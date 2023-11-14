@@ -12,8 +12,10 @@ import java.util.*;
 import com.evolveum.midpoint.prism.FreezableList;
 import com.evolveum.midpoint.prism.PrismObject;
 
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType;
 
 import org.apache.commons.lang3.LocaleUtils;
@@ -402,5 +404,19 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     public Set<String> getDelegatedMembershipFor(
             @Nullable OtherPrivilegesLimitations.Type limitationType) {
         return otherPrivilegesLimitations.getDelegatedMembershipFor(limitationType);
+    }
+
+    /**
+     * Checks if the midPoint object behind this principal is enabled. The method is placed here to be easily accessible
+     * from various contexts. (Although it is a bit questionable if it isn't just too late to check the object after being
+     * "installed" into {@link MidPointPrincipal}.)
+     *
+     * We assume that the object was recomputed.
+     */
+    public void checkEnabled() throws SecurityViolationException {
+        var effectiveStatus = FocusTypeUtil.getEffectiveStatus(focus);
+        if (effectiveStatus == ActivationStatusType.DISABLED || effectiveStatus == ActivationStatusType.ARCHIVED) {
+            throw new SecurityViolationException("The principal is disabled");
+        }
     }
 }

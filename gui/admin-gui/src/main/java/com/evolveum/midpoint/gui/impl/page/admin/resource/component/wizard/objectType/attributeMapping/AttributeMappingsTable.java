@@ -269,7 +269,7 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttons = new ArrayList<>();
-        AjaxIconButton newObjectSimpleButton = new AjaxIconButton(
+        AjaxIconButton newObjectButton = new AjaxIconButton(
                 idButton,
                 new Model<>("fa fa-circle-plus"),
                 createStringResource(getKeyOfTitleForNewObjectButton())) {
@@ -281,10 +281,10 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                 newItemPerformed(target, null);
             }
         };
-        newObjectSimpleButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm ml-3"));
-        newObjectSimpleButton.add(new VisibleBehaviour(this::isCreateNewObjectSimpleVisible));
-        newObjectSimpleButton.showTitleAsLabel(true);
-        buttons.add(newObjectSimpleButton);
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm ml-3"));
+        newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
+        newObjectButton.showTitleAsLabel(true);
+        buttons.add(newObjectButton);
 
         return buttons;
     }

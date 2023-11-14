@@ -19,6 +19,7 @@ import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 
@@ -38,6 +39,7 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
     private static final String OPERATION_SET_MAINTENANCE = DOT_CLASS + "setMaintenance";
     private static final String OPERATION_SET_LIFECYCLE_STATE = DOT_CLASS + "setLifecycleState";
 
+    private static final String ID_RESOURCE_OPERATIONS_CONTAINER="resourceOperationsContainer";
     private static final String ID_RESOURCE_BUTTONS = "resourceButtons";
     private static final String ID_LIFECYCLE_STATE_PANEL = "lifecycleStatePanel";
 
@@ -52,9 +54,19 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
     }
 
     private void initLayout() {
+        WebMarkupContainer resourceOperationsContainer = new WebMarkupContainer(ID_RESOURCE_OPERATIONS_CONTAINER){
+            @Override
+            public boolean isVisible() {
+                return !WebComponentUtil.isTemplateCategory(getPrismObject().asObjectable());
+            }
+        };
+        resourceOperationsContainer.setOutputMarkupId(true);
+        add(resourceOperationsContainer);
+
         RepeatingView resourceButtons = new RepeatingView(ID_RESOURCE_BUTTONS);
-        add(resourceButtons);
         initResourceButtons(resourceButtons);
+        resourceOperationsContainer.add(resourceButtons);
+
         initLifecycleStatePanel(ID_LIFECYCLE_STATE_PANEL);
     }
 
@@ -67,11 +79,6 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
             @Override
             public void onClick(AjaxRequestTarget target) {
                 testConnectionPerformed(target);
-            }
-
-            @Override
-            public boolean isVisible() {
-                return !WebComponentUtil.isTemplateCategory(getPrismObject().asObjectable());
             }
         };
         test.showTitleAsLabel(true);

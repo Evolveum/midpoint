@@ -17,10 +17,9 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -42,23 +41,22 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
  */
 public abstract class OperationRequested {
 
-    final PrismContext prismContext;
+    final PrismContext prismContext = PrismContext.get();
     public final ShadowType shadow;
 
-    protected OperationRequested(PrismContext prismContext, ShadowType shadow) {
-        this.prismContext = prismContext;
+    protected OperationRequested(ShadowType shadow) {
         this.shadow = shadow;
     }
 
     public static class Add extends OperationRequested {
 
-        public Add(ShadowType shadow, PrismContext prismContext) {
-            super(prismContext, shadow);
+        public Add(ShadowType shadow) {
+            super(shadow);
         }
 
         @Override
         public AsyncProvisioningOperationRequestedType asBean() {
-            return new AsyncProvisioningAddOperationRequestedType(prismContext)
+            return new AsyncProvisioningAddOperationRequestedType()
                     .shadowRef(getShadowAsReference());
         }
 
@@ -79,20 +77,22 @@ public abstract class OperationRequested {
 
         @Override
         public QName getObjectClassName() {
-            ResourceObjectClassDefinition ocd = ShadowUtil.getObjectClassDefinition(shadow);
-            return ocd != null ? ocd.getTypeName() : null;
+            return ShadowUtil.getObjectClassDefinition(shadow).getTypeName();
         }
     }
 
     public static class Modify extends OperationRequested {
 
-        @NotNull public final ResourceObjectIdentification identification;
+        @NotNull public final ResourceObjectIdentification.WithPrimary identification;
         @NotNull public final Collection<Operation> operations;
         public final ConnectorOperationOptions options;
 
-        public Modify(@NotNull ResourceObjectIdentification identification, ShadowType shadow, Collection<Operation> operations,
-                ConnectorOperationOptions options, PrismContext prismContext) {
-            super(prismContext, shadow);
+        public Modify(
+                @NotNull ResourceObjectIdentification.WithPrimary identification,
+                ShadowType shadow,
+                Collection<Operation> operations,
+                ConnectorOperationOptions options) {
+            super(shadow);
             this.identification = identification;
             this.operations = Collections.unmodifiableCollection(operations);
             this.options = options;
@@ -100,7 +100,7 @@ public abstract class OperationRequested {
 
         @Override
         public AsyncProvisioningOperationRequestedType asBeanWithoutShadow() throws SchemaException {
-            AsyncProvisioningModifyOperationRequestedType bean = new AsyncProvisioningModifyOperationRequestedType(prismContext)
+            AsyncProvisioningModifyOperationRequestedType bean = new AsyncProvisioningModifyOperationRequestedType()
                     .identification(identification.asBean());
             for (Operation operation : operations) {
                 bean.getOperation().add(operation.asBean(prismContext));
@@ -117,6 +117,7 @@ public abstract class OperationRequested {
         /**
          * Returns the map containing attribute names and corresponding deltas.
          */
+        @SuppressWarnings("WeakerAccess") // potentially needed by scripts
         public Map<ItemName, ItemDelta<?,?>> getAttributeChangeMap() {
             Map<ItemName, ItemDelta<?, ?>> map = new HashMap<>();
             for (Operation operation : operations) {
@@ -130,34 +131,32 @@ public abstract class OperationRequested {
 
         @Override
         public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
-            return identification.getPrimaryIdentifiers();
+            return identification.getPrimaryIdentifiersAsAttributes();
         }
 
         @Override
         public Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers() {
-            return identification.getSecondaryIdentifiers();
+            return identification.getSecondaryIdentifiersAsAttributes();
         }
 
         @Override
         public QName getObjectClassName() {
-            return identification.getResourceObjectDefinition() != null ?
-                    identification.getResourceObjectDefinition().getTypeName() : null;
+            return identification.getResourceObjectDefinition().getTypeName();
         }
     }
 
     public static class Delete extends OperationRequested {
 
-        public final ResourceObjectIdentification identification;
+        public final ResourceObjectIdentification<?> identification;
 
-        public Delete(ResourceObjectDefinition objectClass, ShadowType shadow,
-                Collection<? extends ResourceAttribute<?>> identifiers, PrismContext prismContext) throws SchemaException {
-            super(prismContext, shadow);
-            this.identification = ResourceObjectIdentification.create(objectClass, identifiers);
+        public Delete(ResourceObjectIdentification<?> identification, ShadowType shadow) throws SchemaException {
+            super(shadow);
+            this.identification = identification;
         }
 
         @Override
         public AsyncProvisioningOperationRequestedType asBeanWithoutShadow() throws SchemaException {
-            return new AsyncProvisioningDeleteOperationRequestedType(prismContext)
+            return new AsyncProvisioningDeleteOperationRequestedType()
                     .identification(identification.asBean());
         }
 
@@ -169,18 +168,18 @@ public abstract class OperationRequested {
 
         @Override
         public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
-            return identification.getPrimaryIdentifiers();
+            return ResourceObjectIdentifiers.asAttributes(
+                    identification.getPrimaryIdentifiers());
         }
 
         @Override
         public Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers() {
-            return identification.getSecondaryIdentifiers();
+            return identification.getSecondaryIdentifiersAsAttributes();
         }
 
         @Override
         public QName getObjectClassName() {
-            return identification.getResourceObjectDefinition() != null ?
-                    identification.getResourceObjectDefinition().getTypeName() : null;
+            return identification.getResourceObjectDefinition().getTypeName();
         }
     }
 
@@ -194,6 +193,7 @@ public abstract class OperationRequested {
     /**
      * Returns the map containing attribute names and their real values.
      */
+    @SuppressWarnings("WeakerAccess") // potentially needed by scripts
     public Map<ItemName, Collection<?>> getAttributeValueMap() {
         PrismContainer<Containerable> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer != null && attributesContainer.hasAnyValue()) {
@@ -207,10 +207,12 @@ public abstract class OperationRequested {
 
     public abstract Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers();
 
+    @SuppressWarnings("WeakerAccess") // potentially needed by scripts
     public Map<ItemName, Collection<?>> getPrimaryIdentifiersValueMap() {
         return getAttributesValueMap(getPrimaryIdentifiers());
     }
 
+    @SuppressWarnings("WeakerAccess") // potentially needed by scripts
     public Map<ItemName, Collection<?>> getSecondaryIdentifiersValueMap() {
         return getAttributesValueMap(getSecondaryIdentifiers());
     }
@@ -228,6 +230,7 @@ public abstract class OperationRequested {
         return identifier != null ? identifier.getRealValue() : null;
     }
 
+    @SuppressWarnings("unused") // potentially needed by scripts
     public Object getSecondaryIdentifierValue() {
         ResourceAttribute<?> identifier = MiscUtil.extractSingleton(getSecondaryIdentifiers());
         return identifier != null ? identifier.getRealValue() : null;
@@ -237,6 +240,7 @@ public abstract class OperationRequested {
         return ObjectTypeUtil.createObjectRefWithFullObject(shadow);
     }
 
+    @SuppressWarnings("unused") // potentially needed by scripts
     public String getObjectClassLocalName() {
         QName objectClassName = getObjectClassName();
         return objectClassName != null ? objectClassName.getLocalPart() : null;

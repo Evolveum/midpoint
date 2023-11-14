@@ -26,10 +26,10 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 public class ResourceSchemaFactory {
 
-    private static final String USER_DATA_KEY_PARSED_RESOURCE_SCHEMA = ResourceSchema.class.getName()+".parsedResourceSchema";
-    private static final String USER_DATA_KEY_REFINED_SCHEMA = ResourceSchema.class.getName()+".refinedSchema";
+    private static final String USER_DATA_KEY_RAW_SCHEMA = ResourceSchema.class.getName() + ".rawSchema";
+    private static final String USER_DATA_KEY_COMPLETE_SCHEMA = ResourceSchema.class.getName() + ".completeSchema";
 
-    public static ResourceSchema getCompleteSchema(@NotNull ResourceType resource)
+    public static CompleteResourceSchema getCompleteSchema(@NotNull ResourceType resource)
             throws SchemaException, ConfigurationException {
         return getCompleteSchema(resource.asPrismObject());
     }
@@ -37,14 +37,14 @@ public class ResourceSchemaFactory {
     /**
      * We assume that missing schema is a configuration (not schema) problem.
      */
-    public static @NotNull ResourceSchema getCompleteSchemaRequired(@NotNull ResourceType resource)
+    public static @NotNull CompleteResourceSchema getCompleteSchemaRequired(@NotNull ResourceType resource)
             throws ConfigurationException, SchemaException {
         return requireSchemaPresent(
                 getCompleteSchema(resource),
                 resource);
     }
 
-    private static @NotNull ResourceSchema requireSchemaPresent(ResourceSchema schema, @NotNull ResourceType resource)
+    private static <S extends ResourceSchema> @NotNull S requireSchemaPresent(S schema, @NotNull ResourceType resource)
             throws ConfigurationException {
         return MiscUtil.requireNonNull(
                 schema,
@@ -74,44 +74,48 @@ public class ResourceSchemaFactory {
      * Returns null if the resource does not contain any (raw) schema.
      *
      * If the resource does NOT contain the schema, it must be mutable.
+     *
+     * Returned schema is immutable.
      */
-    public static ResourceSchema getCompleteSchema(@NotNull PrismObject<ResourceType> resource)
+    public static CompleteResourceSchema getCompleteSchema(@NotNull PrismObject<ResourceType> resource)
             throws SchemaException, ConfigurationException {
         Preconditions.checkNotNull(resource, "Resource must not be null");
 
-        ResourceSchema existingRefinedSchema = getExistingRefinedSchema(resource);
-        if (existingRefinedSchema != null) {
-            return existingRefinedSchema;
+        CompleteResourceSchema existingCompleteSchema = getExistingCompleteSchema(resource);
+        if (existingCompleteSchema != null) {
+            return existingCompleteSchema;
         } else {
             stateCheck(!resource.isImmutable(), "Trying to setup parsed schema on immutable resource: %s", resource);
-            ResourceSchema completeSchema = parseCompleteSchema(resource.asObjectable());
-            resource.setUserData(USER_DATA_KEY_REFINED_SCHEMA, completeSchema);
+            CompleteResourceSchema completeSchema = parseCompleteSchema(resource.asObjectable());
             if (completeSchema != null) {
                 completeSchema.freeze();
             }
+            resource.setUserData(USER_DATA_KEY_COMPLETE_SCHEMA, completeSchema);
             return completeSchema;
         }
     }
 
-    private static ResourceSchema getExistingRefinedSchema(PrismObject<ResourceType> resource) {
-        Object userDataEntry = resource.getUserData(USER_DATA_KEY_REFINED_SCHEMA);
+    private static CompleteResourceSchema getExistingCompleteSchema(PrismObject<ResourceType> resource) {
+        Object userDataEntry = resource.getUserData(USER_DATA_KEY_COMPLETE_SCHEMA);
         if (userDataEntry != null) {
-            if (userDataEntry instanceof ResourceSchema) {
-                return (ResourceSchema) userDataEntry;
+            if (userDataEntry instanceof CompleteResourceSchema completeResourceSchema) {
+                return completeResourceSchema;
             } else {
-                throw new IllegalStateException("Expected ResourceSchema under user data key " + USER_DATA_KEY_REFINED_SCHEMA +
-                        "in " + resource + ", but got " + userDataEntry.getClass());
+                throw new IllegalStateException(
+                        "Expected ResourceSchema under user data key %s in %s, but got %s".formatted(
+                                USER_DATA_KEY_COMPLETE_SCHEMA, resource, userDataEntry.getClass()));
             }
         } else {
             return null;
         }
     }
 
+    /** Returned schema is immutable. FIXME there is a lot of cloning if layer != MODEL! */
     public static ResourceSchema getCompleteSchema(PrismObject<ResourceType> resource, LayerType layer)
             throws SchemaException, ConfigurationException {
         ResourceSchema schema = getCompleteSchema(resource);
         if (schema != null) {
-            return schema.forLayer(layer);
+            return schema.forLayerImmutable(layer);
         } else {
             return null;
         }
@@ -132,6 +136,8 @@ public class ResourceSchemaFactory {
      * Obtains "raw" schema for the resource, i.e. the one without `schemaHandling` and similar configuration.
      *
      * If the resource does NOT contain the schema, it must be mutable.
+     *
+     * The returned schema is immutable.
      */
     public static ResourceSchema getRawSchema(@NotNull PrismObject<ResourceType> resource) throws SchemaException {
         Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
@@ -141,41 +147,43 @@ public class ResourceSchemaFactory {
 
         // Synchronization here is a workaround for MID-5648. We need to synchronize parsing here because of DOM access even
         // before DomToSchemaProcessor (where global synchronization is done) comes into play.
-        //
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (resourceXsdSchema) {
-            Object userDataEntry = resource.getUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA);
-            if (userDataEntry != null) {
-                if (userDataEntry instanceof ResourceSchema) {
-                    return (ResourceSchema) userDataEntry;
+            Object cachedRawSchema = resource.getUserData(USER_DATA_KEY_RAW_SCHEMA);
+            if (cachedRawSchema != null) {
+                if (cachedRawSchema instanceof ResourceSchema schema) {
+                    schema.checkImmutable();
+                    return schema;
                 } else {
                     throw new IllegalStateException("Expected ResourceSchema under user data key " +
-                            USER_DATA_KEY_PARSED_RESOURCE_SCHEMA + "in " + resource + ", but got " + userDataEntry.getClass());
+                            USER_DATA_KEY_RAW_SCHEMA + "in " + resource + ", but got " + cachedRawSchema.getClass());
                 }
             } else {
                 stateCheck(!resource.isImmutable(), "Trying to set parsed schema on immutable resource: %s", resource);
                 InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
-                ResourceSchema parsedSchema =
+                ResourceSchema parsedRawSchema =
                         ResourceSchemaParser.parse(resourceXsdSchema, "resource schema of " + resource);
-                resource.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema);
-                return parsedSchema;
+                parsedRawSchema.freeze();
+                resource.setUserData(USER_DATA_KEY_RAW_SCHEMA, parsedRawSchema);
+                return parsedRawSchema;
             }
         }
     }
 
     @VisibleForTesting
-    public static boolean hasParsedSchema(ResourceType resourceType) {
-        PrismObject<ResourceType> resource = resourceType.asPrismObject();
-        return resource.getUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA) != null;
+    public static boolean hasParsedSchema(ResourceType resource) {
+        return resource.asPrismObject().getUserData(USER_DATA_KEY_RAW_SCHEMA) != null;
     }
 
     /**
      * Executes the real parsing. Returns complete schema (raw + refined).
      *
      * Normally internal to this class, but may be called externally from the test code.
+     *
+     * DO NOT call it directly from the production code. The schema is NOT immutable here, but we want to ensure immutability
+     * throughout the running system. Use {@link #getCompleteSchema(PrismObject)} instead.
      */
     @VisibleForTesting
-    public static ResourceSchema parseCompleteSchema(ResourceType resource) throws SchemaException, ConfigurationException {
+    public static CompleteResourceSchema parseCompleteSchema(ResourceType resource) throws SchemaException, ConfigurationException {
         var rawResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         if (rawResourceSchema != null) {
             return new RefinedResourceSchemaParser(resource, rawResourceSchema)

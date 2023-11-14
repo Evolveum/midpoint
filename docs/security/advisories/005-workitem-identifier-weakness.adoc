@@ -1,0 +1,64 @@
+= Security Advisory: Workitem identifier weakness
+:page-wiki-name: Security Advisory: Workitem identifier weakness
+:page-wiki-id: 30245420
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-18T08:50:14.945+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-05-23T07:47:11.752+02:00
+:page-nav-title: Workitem identifier weakness
+:page-display-order: 5
+:page-upkeep-status: green
+
+*Date:* 18 April 2019
+
+*Severity:* Medium (CVSS 4.3)
+
+*Affected versions:* all midPoint versions up to 3.9
+
+*Fixed in versions:* 3.9.1 (unreleased), 3.8.1 (unreleased), 3.7.3 (unreleased), 3.6.2 (unreleased)
+
+
+== Description
+
+Any approver can display any workitem by guessing its short identifier.
+
+
+== Severity and Impact
+
+This is medium-severity issue.
+The attacker can get read access to information stored in workitems that should otherwise be inaccessible.
+Impact of this vulnerability is limited to information leakage (confidentiality).
+Attacker cannot act on those workitems (integrity is not impacted).
+Approver role is needed to exploit this vulnerability.
+
+
+== Mitigation
+
+MidPoint users are advised to upgrade their deployments to the latest builds from the xref:/midpoint/install/using-support-branch/[support branches].
+
+As this is a medium severity issue, it is not forcing official maintenance releases of midPoint.
+However, the fix is provided in all the support branches.
+
+
+== Discussion and Explanation
+
+MidPoint 3.9 and earlier relied on Actitivi for all workflow-related processing.
+Activiti is a general-purpose workflow engine and the design of Activiti is based on a different paradigms that the design of midPoint.
+Therefore during the course of midPoint development there were often integration difficulties and compromise solutions have to be implemented.
+This vulnerability may be considered an indirect consequence of such a compromise.
+Temporary solution that significantly reduces the probability of identifier guessing was implemented for midPoint 3.9 and earlier.
+
+The "conceptual incompatibility" of Activiti and midPoint core was also one of the reason for a decision to remove Activiti component in midPoint 4.0 and later.
+MidPoint 4.0 is using a completely different mechanism for dealing with workitems which is conceptually compatible with the rest of midPoint and especially with midPoint authorization mechanism.
+
+
+== Credit
+
+Variants of this issue were reported by Martin Lizner by the means of link:https://joinup.ec.europa.eu/collection/eu-fossa-2/about[EU-Free and Open Source Software Auditing (EU-FOSSA2) project].
+
+
+== See Also
+
+* bug:MID-5291[]
+
+* link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.*;
+import javax.swing.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -54,7 +55,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -109,6 +109,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private final IModel<Boolean> showAllItemsModel = Model.of(true);
     // confirmation dialog model
     private IModel<DebugConfDialogDto> confDialogModel = null;
+    private Class<? extends ObjectType> objectType = SystemConfigurationType.class;
 
     public PageDebugList() {
     }
@@ -119,7 +120,6 @@ public class PageDebugList extends PageAdminConfiguration {
         DebugConfDialogDto searchDto = new DebugConfDialogDto();
         searchDto.setType(SystemConfigurationType.class);
         confDialogModel = Model.of(searchDto);
-
         searchModel = new LoadableDetachableModel<>() {
 
             @Override
@@ -146,15 +146,13 @@ public class PageDebugList extends PageAdminConfiguration {
                 .additionalSearchContext(createAdditionalSearchContext())
                 .modelServiceLocator(PageDebugList.this);
 
-        Search search = searchBuilder.build();
-        //TODO axiom?
-        search.setAllowedModeList(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
-        return search;
+        return searchBuilder.build();
     }
 
     private SearchContext createAdditionalSearchContext() {
         SearchContext ctx = new SearchContext();
         ctx.setPanelType(CollectionPanelType.DEBUG);
+        ctx.setAvailableSearchBoxModes(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.AXIOM_QUERY, SearchBoxModeType.OID));
         return ctx;
     }
 
@@ -326,7 +324,10 @@ public class PageDebugList extends PageAdminConfiguration {
 
     @NotNull
     private Class<? extends ObjectType> getType() {
-        return searchModel.isAttached() ? searchModel.getObject().getTypeClass() : SystemConfigurationType.class;
+        if (searchModel.isAttached()) {
+            objectType = searchModel.getObject().getTypeClass();
+        }
+        return objectType;
     }
 
     private List<InlineMenuItem> initInlineMenu() {
@@ -529,19 +530,19 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private boolean hasToZip() {
-        BoxedTablePanel table = (BoxedTablePanel) getListTable();
+        BoxedTablePanel table = getListTable();
         DebugSearchFragment header = (DebugSearchFragment) table.getHeader();
         CheckBoxPanel zipCheck = header.getZipCheck();
 
         return zipCheck.getValue();
     }
 
-    private Table getListTable() {
-        return (Table) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    private BoxedTablePanel getListTable() {
+        return (BoxedTablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
     private void listObjectsPerformed(AjaxRequestTarget target) {
-        Table table = getListTable();
+        BoxedTablePanel table = getListTable();
 
         Search search = searchModel.getObject();
         if (search.isForceReload()) {
@@ -551,13 +552,14 @@ public class PageDebugList extends PageAdminConfiguration {
             searchModel.setObject(newSearch);//TODO: this is veeery ugly, available definitions should refresh when the type changed
             table.getDataTable().getColumns().clear();
             table.getDataTable().getColumns().addAll(createColumns());
+            table.refreshSearch();
         }
 
         // save object type category to session storage, used by back button
         GenericPageStorage storage = getSessionStorage().getConfiguration();
         storage.setSearch(searchModel.getObject());
 
-        target.add((Component) table);
+        target.add(table);
         target.add(getFeedbackPanel());
     }
 

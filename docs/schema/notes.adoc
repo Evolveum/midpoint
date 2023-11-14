@@ -1,0 +1,79 @@
+= Schema Notes
+:page-wiki-name: Schema Notes
+:page-wiki-id: 24674988
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-08-17T09:32:36.294+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-08-15T16:41:05.122+02:00
+:page-upkeep-status: orange
+
+This page contains miscellaneous notes and explanation of midPoint schema concepts.
+
+
+== QNames, URIs and Other Animals
+
+QNames are used for identification of many things in midPoint: properties (items), schema data types, resource attributes, relations, ...
+
+
+=== The Problem
+
+How to properly render input field for QName properties in GUI? If that QName is supposed to be an object type then we should render a dropdown with list of all object types (e.g. focusType element).
+If the field is a relation then it has quite a custom logic to present relations to choose from.
+If the field specified name of a new relation, we should present something that can be used to specify completely new namespace.
+How should GUI know what type of field to render?
+
+And the same for the parser/validator.
+The parser can validate references to data types, but it has to know that this particular QName is a data type reference.
+
+
+=== Namespaces
+
+We need namespaces.
+But people hate them.
+Therefore we should hide them whenever possible.
+
+E.g. we should not force user to set "org:manager" or "http://midpoint.evolveum.com/xml/ns/public/common/org-3#namaner" in XML or input fields.
+Just specifying "manager" should be enough - unless there is a naming conflict.
+
+
+=== QName-URI Dichotomy
+
+QNames and URIs are basically the same thing: xref:/midpoint/devel/guides/xml-conventions/[XML Conventions]
+
+Yet, there are two data types in XSD: QName and anyURI.
+
+
+=== Solution
+
+The solution has several parts:
+
+* Create new data type for qname-that-is-also-uri data type.
+That should be used instead of existing QName and anyURI data types.
+And it should act as both.
+The values may be full URIs, local part of a QName or (legacy) QName with a namespace prefix (XML only).
+
+* In case that only a local part of a QName is specified then the namespace is automatically added.
+The default namespace may be defined in the schema (as special schema annotation).
+Or the QName will go with empty namespace and in that case parser or application (midPoint) will try to match the local part to existing namespace.
+The default namespace from the enclosing XML document (xmlns="...") will *not* be used.
+
+* For the QNames that point to a schema data types there will be another special annotation.
+It will specify the "root" data type that is valid as a value.
+E.g. it will specify "FocusType".
+
+
+== XmlRootElement Annotation
+
+Why do the classes generated from midPoint schemans not have @XmlRootElement annotations? The @XmlRootElement annotation is really a tricky one.
+The generated Java class corresponds to XSD complex type.
+XSD complex type can be used with many elements under normal circumstances.
+If it is used by many elements, what element name would you put in @XmlRootElement annotation? You may not even know all the elements, because the data type may be used by other schemas.
+So, the JAXB code generator puts the XmlRootElement annotation in the code only in cases that the data type can be used only with a single element.
+And that's the case when the data type definition is embedded directly into element definition.
+We generally avoid such definitions in midPoint schemas, as we want to have maximum reusability of data types.
+Therefore perhaps the only such case in midPoint schemas is the "objects" element in the common schema.
+
+
+== See Also
+
+* xref:/midpoint/reference/schema/[Data Model]

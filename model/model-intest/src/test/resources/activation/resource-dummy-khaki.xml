@@ -106,7 +106,10 @@
                     <outbound/>
                 </existence>
                 <administrativeStatus>
-                    <outbound/>
+                    <outbound>
+                        <!-- Strong because of TestActivation.test810 -->
+                        <strength>strong</strength>
+                    </outbound>
                 </administrativeStatus>
                 <validFrom>
                     <outbound>
@@ -139,6 +142,15 @@
                     <outbound/>
                 </password>
             </credentials>
+
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+            </synchronization>
 
         </objectType>
 

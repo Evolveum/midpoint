@@ -1806,6 +1806,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return state == ModelState.PRIMARY;
     }
 
+    public boolean isInInitial() {
+        return state == ModelState.INITIAL;
+    }
+
     public boolean hasFocusOfType(Class<? extends ObjectType> type) {
         return focusContext != null && focusContext.isOfType(type);
     }

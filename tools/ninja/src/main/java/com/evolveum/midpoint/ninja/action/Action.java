@@ -10,10 +10,10 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -25,11 +25,25 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  */
 public abstract class Action<O, R> {
 
+    /**
+     * Flag, whether action is part of more complex action.
+     * This is most often used to determine whether and how to print information to user (or skip some, e.g. next steps messages).
+     */
+    protected final boolean partial;
+
     protected Log log;
 
     protected NinjaContext context;
 
     protected O options;
+
+    public Action() {
+        this(false);
+    }
+
+    public Action(boolean partial) {
+        this.partial = partial;
+    }
 
     public void init(NinjaContext context, O options) {
         this.context = context;
@@ -50,7 +64,7 @@ public abstract class Action<O, R> {
         return LogTarget.SYSTEM_OUT;
     }
 
-    protected void handleResultOnFinish(OperationStatus operation, String finishMessage) {
+    protected void handleResultOnFinish(R consumerResult, OperationStatus operation, String finishMessage) {
         OperationResult result = operation.getResult();
         result.recomputeStatus();
 

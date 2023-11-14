@@ -217,7 +217,6 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS = ItemPath.create(
             UserType.F_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, PasswordType.F_FAILED_LOGINS);
     public static final ItemPath PATH_LINK_REF = ItemPath.create(FocusType.F_LINK_REF);
-    public static final ItemPath PATH_LIFECYCLE_STATE = ItemPath.create(ObjectType.F_LIFECYCLE_STATE);
     public static final ItemPath PATH_ROLE_MEMBERSHIP_REF = ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF);
     public static final ItemPath PATH_AUTOASSIGN_ENABLED = ItemPath
             .create(AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_ENABLED);
@@ -552,6 +551,7 @@ public abstract class SchemaConstants {
     // Case is open - work items are created, completed, delegated, etc. Associated work is carried out.
     public static final String CASE_STATE_OPEN = "open";
     public static final QName CASE_STATE_OPEN_QNAME = new QName(NS_CASE, CASE_STATE_OPEN);
+    public static final String CASE_STATE_OPEN_URI = qNameToUri(CASE_STATE_OPEN_QNAME);
 
     // All human interaction regarding the case is over. But there might be some actions pending, e.g.
     // submitting change execution task, waiting for subtasks to be closed, and so on.

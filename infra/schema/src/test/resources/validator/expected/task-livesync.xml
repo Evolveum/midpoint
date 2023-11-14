@@ -14,6 +14,7 @@
     <extension>
         <rext:reportDataParam oid="e7df0b0e-48f7-4c32-a4a5-c444a48d08f0"/>
     </extension>
+    <expectedTotal>123</expectedTotal>
     <activity>
         <work>
             <cleanup>

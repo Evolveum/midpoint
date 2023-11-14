@@ -11,20 +11,41 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.*;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.prepareDetectedPattern;
 
+/**
+ * The `PatternResolver` class implements the `DetectionOperation` interface and provides
+ * the algorithms for performing user-based and role-based pattern detection within the
+ * role analysis process.
+ * <p>
+ * This class plays a crucial role in identifying patterns within the analyzed data, assisting
+ * in making informed decisions about role and user assignments.
+ */
 public class PatternResolver implements DetectionOperation, Serializable {
 
+    /**
+     * Performs user-based pattern detection based on the provided mining role type chunks, detection options,
+     * and a progress increment handler.
+     *
+     * @param miningRoleTypeChunks The mining role type chunks to analyze.
+     * @param detectionOption The detection options to configure the detection process.
+     * @param handler The progress increment handler for tracking the detection process.
+     * @return A list of detected patterns based on user-based detection criteria.
+     */
     @Override
-    public List<DetectedPattern> performUserBasedDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            DetectionOption detectionOption, Handler handler) {
+    public @NotNull List<DetectedPattern> performUserBasedDetection(
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            @NotNull DetectionOption detectionOption,
+            @NotNull RoleAnalysisProgressIncrement handler) {
 
-        handler.setSubTitle("Data Preparation");
+        handler.enterNewStep("Pattern Detection");
         handler.setActive(true);
         handler.setOperationCountToProcess(miningRoleTypeChunks.size());
 
@@ -57,7 +78,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
 
         }
 
-        handler.setSubTitle("Outer Detection");
+        handler.enterNewStep("Outer Detection");
         handler.setOperationCountToProcess(preparedObjects.size());
 
         Set<List<String>> outerIntersections = new HashSet<>();
@@ -80,7 +101,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
 
         List<List<String>> outerIntersectionsList = new ArrayList<>(outerIntersections);
 
-        handler.setSubTitle("Inner Detection");
+        handler.enterNewStep("Inner Detection");
         handler.setOperationCountToProcess(outerIntersectionsList.size());
         Set<List<String>> innerIntersections = new HashSet<>();
         for (int i = 0; i < outerIntersectionsList.size(); i++) {
@@ -99,7 +120,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
 
             }
         }
-        handler.setSubTitle("Inner Pattern Preparation");
+        handler.enterNewStep("Inner Pattern Preparation");
         handler.setOperationCountToProcess(outerIntersectionsList.size());
 
         for (List<String> members : outerIntersectionsList) {
@@ -119,7 +140,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
             }
         }
 
-        handler.setSubTitle("Outer Pattern Preparation");
+        handler.enterNewStep("Outer Pattern Preparation");
         handler.setOperationCountToProcess(innerIntersections.size());
 
         for (List<String> members : innerIntersections) {
@@ -146,11 +167,21 @@ public class PatternResolver implements DetectionOperation, Serializable {
         return intersections;
     }
 
+    /**
+     * Performs role-based pattern detection based on the provided mining user type chunks, detection options,
+     * and a progress increment handler.
+     *
+     * @param miningUserTypeChunks The mining user type chunks to analyze.
+     * @param roleAnalysisSessionDetectionOptionType The detection options to configure the detection process.
+     * @param handler The progress increment handler for tracking the detection process.
+     * @return A list of detected patterns based on role-based detection criteria.
+     */
     @Override
-    public List<DetectedPattern> performRoleBasedDetection(List<MiningUserTypeChunk> miningUserTypeChunks,
-            DetectionOption roleAnalysisSessionDetectionOptionType, Handler handler) {
+    public @NotNull List<DetectedPattern> performRoleBasedDetection(@NotNull List<MiningUserTypeChunk> miningUserTypeChunks,
+            @NotNull DetectionOption roleAnalysisSessionDetectionOptionType,
+            @NotNull RoleAnalysisProgressIncrement handler) {
 
-        handler.setSubTitle("Data Preparation");
+        handler.enterNewStep("Data Preparation");
         handler.setActive(true);
         handler.setOperationCountToProcess(miningUserTypeChunks.size());
 
@@ -184,7 +215,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
             }
         }
 
-        handler.setSubTitle("Outer Pattern Detection");
+        handler.enterNewStep("Outer Pattern Detection");
         handler.setOperationCountToProcess(preparedObjects.size());
 
         Set<List<String>> outerIntersections = new HashSet<>();
@@ -207,7 +238,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
         }
 
         List<List<String>> outerIntersectionsList = new ArrayList<>(outerIntersections);
-        handler.setSubTitle("Inner Pattern Detection");
+        handler.enterNewStep("Inner Pattern Detection");
         handler.setOperationCountToProcess(outerIntersectionsList.size());
 
         Set<List<String>> innerIntersections = new HashSet<>();
@@ -228,11 +259,10 @@ public class PatternResolver implements DetectionOperation, Serializable {
             }
         }
 
-        handler.setSubTitle("Outer Pattern Preparation");
+        handler.enterNewStep("Outer Pattern Preparation");
         handler.setOperationCountToProcess(outerIntersectionsList.size());
 
         for (List<String> members : outerIntersectionsList) {
-
             handler.iterateActualStatus();
 
             Set<String> properties = new HashSet<>();
@@ -249,7 +279,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
             }
         }
 
-        handler.setSubTitle("Inner Pattern Preparation");
+        handler.enterNewStep("Inner Pattern Preparation");
         handler.setOperationCountToProcess(innerIntersections.size());
         for (List<String> members : innerIntersections) {
             handler.iterateActualStatus();

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.api.config;
 import java.util.*;
 import java.util.stream.Stream;
 
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -95,6 +96,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
      */
     private String archetypeOid;
     private boolean archetypeSelected;
+
+    /**
+     * Indicates if the profile of midpoint principal was compiled after successful authentication.
+     * It should be recorded only for whole sequence and after the whole sequence
+     * was reliably evaluated. E.g. all modules run and authentication was successful.
+     */
+    private boolean alreadyCompiledGui;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
@@ -194,8 +202,8 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     @Override
     public boolean isAuthenticated() {
         List<AuthenticationSequenceModuleType> modules = sequence.getModule();
-        if (modules.isEmpty()) {
-            return false;
+        if (modules.isEmpty() && !AuthUtil.isClusterAuthentication(MidpointAuthentication.this)) {
+                return false;
         }
 
         if (shouldEvaluateAuthentication()) {
@@ -255,7 +263,11 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     private boolean allModulesAreProcessed() {
-        return allModulesStateMatch(AuthenticationModuleState.SUCCESSFULLY, AuthenticationModuleState.FAILURE, AuthenticationModuleState.CALLED_OFF);
+        return allModulesStateMatch(
+                AuthenticationModuleState.SUCCESSFULLY,
+                AuthenticationModuleState.FAILURE,
+                AuthenticationModuleState.CALLED_OFF,
+                AuthenticationModuleState.FAILURE_CONFIGURATION);
     }
 
     private boolean atLeastOneSuccessfulModuleExists() {
@@ -374,7 +386,36 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     public boolean isFinished() {
         int actualSize = getAuthentications().size();
         int endSize = getAuthModules().size();
-        return processingModuleIsRequisiteAndFailure() || (actualSize == endSize && allModulesAreProcessed());
+        return successfulProcessedSufficientModule() || processingModuleIsRequisiteAndFailure() || (actualSize == endSize && allModulesAreProcessed());
+    }
+
+    private boolean successfulProcessedSufficientModule() {
+        boolean successOneSufficientModule = false;
+
+        for (AuthenticationSequenceModuleType module : getSequence().getModule()) {
+            if (AuthenticationSequenceModuleNecessityType.REQUISITE == module.getNecessity()
+                    || AuthenticationSequenceModuleNecessityType.OPTIONAL == module.getNecessity()) {
+                continue;
+            }
+            if (AuthenticationSequenceModuleNecessityType.REQUIRED == module.getNecessity()) {
+                ModuleAuthentication authentication = getAuthenticationByIdentifier(module);
+                if (authentication == null
+                        || AuthenticationModuleState.SUCCESSFULLY != authentication.getState()) {
+                    return false;
+                }
+            }
+            if (AuthenticationSequenceModuleNecessityType.SUFFICIENT == module.getNecessity()) {
+                ModuleAuthentication authentication = getAuthenticationByIdentifier(module);
+                if (authentication == null) {
+                    continue;
+                }
+                if (AuthenticationModuleState.SUCCESSFULLY == authentication.getState()) {
+                    successOneSufficientModule = true;
+                }
+            }
+        }
+
+        return successOneSufficientModule;
     }
 
     private boolean processingModuleIsRequisiteAndFailure() {
@@ -570,6 +611,14 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     public boolean isLast(ModuleAuthentication moduleAuthentication) {
+        SecurityPolicyType securityPolicy = resolveSecurityPolicyForPrincipal();
+        if (securityPolicy != null) {
+            int currentModulesSize = authModules.size();
+            AuthenticationSequenceType seq = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, sequence.getIdentifier());
+            if (seq != null && currentModulesSize != seq.getModule().size()) {
+                return false;
+            }
+        }
         if (getAuthentications().isEmpty()) {
             return false;
         }
@@ -652,13 +701,6 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return StringUtils.isNotEmpty(archetypeOid) || archetypeSelected;
     }
 
-    public Collection<? extends GrantedAuthority> resolveAuthorities(Authentication token) {
-        if (token.getPrincipal() instanceof MidPointPrincipal mpPrincipal) {
-            return authenticationChannel.resolveAuthorities(mpPrincipal.getAuthorities());
-        }
-        return token.getAuthorities();
-    }
-
     public ModuleAuthentication getProcessingModuleOrThrowException() {
         ModuleAuthentication moduleAuthentication = getProcessingModuleAuthentication();
         if (moduleAuthentication == null) {
@@ -673,4 +715,11 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         moduleAuthentication.setAuthentication(token);
     }
 
+    public boolean isAlreadyCompiledGui() {
+        return alreadyCompiledGui;
+    }
+
+    public void setAlreadyCompiledGui(boolean alreadyCompiledGui) {
+        this.alreadyCompiledGui = alreadyCompiledGui;
+    }
 }

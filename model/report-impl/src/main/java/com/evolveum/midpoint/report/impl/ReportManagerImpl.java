@@ -7,9 +7,7 @@
 
 package com.evolveum.midpoint.report.impl;
 
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -25,7 +23,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.Holder;
@@ -50,6 +47,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -75,6 +75,7 @@ public class ReportManagerImpl implements ReportManager {
     @Autowired private PrismContext prismContext;
     @Autowired private ReportServiceImpl reportService;
     @Autowired private ModelService modelService;
+    @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private ClusterExecutionHelper clusterExecutionHelper;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private SecurityEnforcer securityEnforcer;
@@ -83,83 +84,70 @@ public class ReportManagerImpl implements ReportManager {
         return GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options));
     }
 
-    /**
-     * Creates and starts task with proper handler, also adds necessary information to task
-     * (like ReportType reference and so on).
-     *
-     * @param report
-     * @param task
-     * @param parentResult describes report which has to be created
-     */
     @Override
-    public void runReport(PrismObject<ReportType> report, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+    public void runReport(
+            PrismObject<ReportType> report, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult result)
+            throws CommonException {
 
-        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
-
-        if (!reportService.isAuthorizedToRunReport(report, task, parentResult)) {
+        if (!reportService.isAuthorizedToRunReport(report, task, result)) {
             LOGGER.error("User is not authorized to run report {}", report);
             throw new SecurityViolationException("Not authorized");
         }
 
         ClassicReportExportWorkDefinitionType reportConfig = new ClassicReportExportWorkDefinitionType()
-                .reportRef(new ObjectReferenceType().oid(report.getOid()).type(ReportType.COMPLEX_TYPE));
+                .reportRef(ObjectTypeUtil.createObjectRef(report));
         if (paramContainer != null && !paramContainer.isEmpty()) {
             reportConfig.reportParam(paramContainer.getRealValue());
         }
 
-        task.getUpdatedTaskObject().getRealValue()
-                .activity(new ActivityDefinitionType()
-                        .work(new WorkDefinitionsType()
-                                .reportExport(reportConfig)
-                        )
-                );
+        var activityDefinition = new ActivityDefinitionType()
+                .work(new WorkDefinitionsType()
+                        .reportExport(reportConfig));
 
-        task.setThreadStopAction(ThreadStopActionType.CLOSE);
-        task.makeSingle();
+        TaskType taskTemplate = new TaskType()
+                .name(generateTaskName("Export", report))
+                .threadStopAction(ThreadStopActionType.CLOSE);
 
-        taskManager.switchToBackground(task, parentResult);
-        parentResult.setBackgroundTaskOid(task.getOid());
+        modelInteractionService.submit(
+                activityDefinition,
+                ActivitySubmissionOptions.create()
+                        .withTaskTemplate(taskTemplate),
+                task, result);
     }
 
-    /**
-     * Creates and starts task with proper handler, also adds necessary information to task
-     * (like ReportType reference and so on).
-     *
-     * @param report
-     * @param task
-     * @param parentResult describes report which has to be created
-     */
+    private static String generateTaskName(String verb, PrismObject<ReportType> report) {
+        var dateTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(ZoneId.systemDefault())
+                .format(Instant.now());
+        return "%s task for %s (%s)".formatted(
+                verb, report.asObjectable().getName(), dateTime);
+    }
 
     @Override
-    public void importReport(PrismObject<ReportType> report, PrismObject<ReportDataType> reportData, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+    public void importReport(
+            PrismObject<ReportType> report, PrismObject<ReportDataType> reportData, Task task, OperationResult result)
+            throws CommonException {
 
-        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK.value());
-
-        if (!reportService.isAuthorizedToImportReport(report, task, parentResult)) {
+        if (!reportService.isAuthorizedToImportReport(report, task, result)) {
             LOGGER.error("User is not authorized to import report {}", report);
             throw new SecurityViolationException("Not authorized");
         }
 
-        ClassicReportImportWorkDefinitionType reportConfig = new ClassicReportImportWorkDefinitionType()
-                .reportRef(new ObjectReferenceType().oid(report.getOid()).type(ReportType.COMPLEX_TYPE))
-                .reportDataRef(new ObjectReferenceType().oid(reportData.getOid()).type(ReportDataType.COMPLEX_TYPE));
+        var activityDefinition = new ActivityDefinitionType()
+                .work(new WorkDefinitionsType()
+                        .reportImport(new ClassicReportImportWorkDefinitionType()
+                                .reportRef(ObjectTypeUtil.createObjectRef(report))
+                                .reportDataRef(ObjectTypeUtil.createObjectRef(reportData))));
 
-        task.getUpdatedTaskObject().getRealValue()
-                .activity(new ActivityDefinitionType()
-                        .work(new WorkDefinitionsType()
-                                .reportImport(reportConfig)
-                        )
-                );
+        TaskType taskTemplate = new TaskType()
+                .name(generateTaskName("Import", report))
+                .threadStopAction(ThreadStopActionType.CLOSE);
 
-        task.setThreadStopAction(ThreadStopActionType.CLOSE);
-        task.makeSingle();
-
-        taskManager.switchToBackground(task, parentResult);
-        parentResult.setBackgroundTaskOid(task.getOid());
+        modelInteractionService.submit(
+                activityDefinition,
+                ActivitySubmissionOptions.create()
+                        .withTaskTemplate(taskTemplate),
+                task, result);
     }
 
     @Override

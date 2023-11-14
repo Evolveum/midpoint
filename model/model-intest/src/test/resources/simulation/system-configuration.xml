@@ -10,6 +10,11 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>SystemConfiguration</name>
+    <audit>
+        <eventRecording>
+            <recordResourceStageChanges>false</recordResourceStageChanges>
+        </eventRecording>
+    </audit>
     <simulation>
         <metric>
             <identifier>nonsense-custom-metric</identifier>

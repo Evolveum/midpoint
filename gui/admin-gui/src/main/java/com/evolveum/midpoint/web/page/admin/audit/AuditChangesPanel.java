@@ -10,6 +10,10 @@ package com.evolveum.midpoint.web.page.admin.audit;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -37,10 +41,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.show.ChangesPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
@@ -186,7 +186,7 @@ public class AuditChangesPanel extends ChangesPanel {
             ObjectDelta<? extends ObjectType> delta;
             ObjectDeltaType deltaType = model.getObject().getObjectDelta();
             try {
-                delta = DeltaConvertor.createObjectDelta(deltaType, page.getPrismContext());
+                delta = DeltaConvertor.createObjectDelta(deltaType, true);
             } catch (SchemaException e) {
                 LoggingUtils.logException(LOGGER, "SchemaException while converting delta:\n{}", e, deltaType);
                 throw e;
@@ -201,7 +201,15 @@ public class AuditChangesPanel extends ChangesPanel {
                 throw e;
             }
 
-            return Collections.singletonList(new VisualizationDto(visualization));
+            ObjectDeltaOperationType deltaOperation = model.getObject();
+
+            VisualizationDto dto = new VisualizationDto(visualization);
+
+            if (deltaOperation.getObjectName() != null && ChangeType.DELETE == dto.getChangeType()) {
+                dto.setNameOverwrite(deltaOperation.getObjectName().toPolyString());
+            }
+
+            return Collections.singletonList(dto);
         }
     }
 }

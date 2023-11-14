@@ -47,29 +47,38 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             // In login mode we are interested only in authorization and GUI configuration data
             // that is present in roles.
             LOGGER.trace("Skipping evaluation of payload of assignment {} because of login mode", segment.assignment);
-        } else if (!segment.isAssignmentActive() && !segment.direct) {
-            LOGGER.trace("Skipping evaluation of payload of assignment {} because it is not valid and it's not the directly assigned one", segment.assignment);
-        } else {
-            // Directly assigned assignments are visited even if they are not valid (i.e. effectively disabled) - see below
+            return;
+        }
 
-            if (segment.isMatchingOrder) {
-                collectResourceObjectConstruction(); // constructions (from invalid direct assignments) are collected
-                collectPersonaConstruction(); // constructions (from invalid direct assignments) are collected
-                if (segment.isFullPathActive()) {
-                    collectFocusMappings(); // but mappings from invalid direct assignments are not
-                }
-                if (segment.isNonNegativeRelativeRelativityMode()) {
-                    // object policy rules from invalid assignments are collected (why?) but only if non-negative (why?)
-                    collectObjectPolicyRule();
-                }
+        // Note that constructions from invalid assignments are collected, as they have validity recorded inside.
+        // It is necessary for their removal under default enforcement policy (MID-9061).
+        // TODO it seems that the relativity is ignored here
+        if (segment.isMatchingOrder) {
+            collectResourceObjectConstruction();
+            collectPersonaConstruction();
+        }
+
+        if (!segment.isAssignmentActive() && !segment.direct) {
+            LOGGER.trace("Skipping evaluation of payload (other than constructions) of assignment {} because it is not valid"
+                    + "and it's not a directly assigned one", segment.assignment);
+            return;
+        }
+
+        if (segment.isMatchingOrder) {
+            if (segment.isFullPathActive()) {
+                collectFocusMappings(); // But mappings from invalid assignments are ignored. TODO what about relativity here?
             }
+            if (segment.isNonNegativeRelativeRelativityMode()) {
+                // object policy rules from invalid direct assignments are collected (why?) but only if non-negative (why?)
+                collectObjectPolicyRule();
+            }
+        }
 
-            if (segment.isMatchingOrderForTarget) {
-                // Target policy rules from non-valid direct assignments are collected because of e.g. approvals or SoD.
-                // But we consider only non-negative ones (why?)
-                if (segment.isNonNegativeRelativeRelativityMode()) {
-                    collectTargetPolicyRule();
-                }
+        if (segment.isMatchingOrderForTarget) {
+            // Target policy rules from non-valid direct assignments are collected because of e.g. approvals or SoD.
+            // But we consider only non-negative ones (why?)
+            if (segment.isNonNegativeRelativeRelativityMode()) {
+                collectTargetPolicyRule();
             }
         }
     }

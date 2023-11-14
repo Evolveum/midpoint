@@ -27,17 +27,17 @@ public class RunSqlOptions {
          * This mode will set up datasource based on midpoint home config.xml pointing to midpoint repository.
          */
         REPOSITORY(
-                List.of(new File(SCRIPTS_DIRECTORY, "postgres-new.sql"),
-                        new File(SCRIPTS_DIRECTORY, "postgres-new-quartz.sql")),
-                List.of(new File(SCRIPTS_DIRECTORY, "postgres-new-upgrade.sql"))
+                List.of(new File(SCRIPTS_DIRECTORY, "postgres.sql"),
+                        new File(SCRIPTS_DIRECTORY, "postgres-quartz.sql")),
+                List.of(new File(SCRIPTS_DIRECTORY, "postgres-upgrade.sql"))
         ),
 
         /**
          * This mode will set up datasource based on midpoint home config.xml pointing to midpoint audit database.
          */
         AUDIT(
-                List.of(new File(SCRIPTS_DIRECTORY, "postgres-new-audit.sql")),
-                List.of(new File(SCRIPTS_DIRECTORY, "postgres-new-upgrade-audit.sql"))
+                List.of(new File(SCRIPTS_DIRECTORY, "postgres-audit.sql")),
+                List.of(new File(SCRIPTS_DIRECTORY, "postgres-audit-upgrade.sql"))
         );
 
         public final List<File> createScripts;

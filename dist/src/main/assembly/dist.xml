@@ -19,6 +19,10 @@
             <source>../INSTALL-dist</source>
             <destName>INSTALL</destName>
         </file>
+        <file>
+            <source>../install-dist.adoc</source>
+            <destName>install.adoc</destName>
+        </file>
         <!-- We do this the old/simple way, because adding midpoint-jar dep breaks javadoc steps. -->
         <file>
             <source>../gui/midpoint-jar/target/midpoint.jar</source>
@@ -34,8 +38,10 @@
                 <include>LICENSE</include>
                 <include>LICENSE.AL</include>
                 <include>LICENSE.EUPL</include>
+                <include>LICENSE.CC</include>
                 <include>NOTICE</include>
                 <include>RELEASE-NOTES</include>
+                <include>release-notes.adoc</include>
                 <include>NEWS</include>
             </includes>
         </fileSet>

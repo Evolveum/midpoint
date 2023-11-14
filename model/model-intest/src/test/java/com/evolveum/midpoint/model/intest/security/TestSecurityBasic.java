@@ -2943,10 +2943,11 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
 
         OperationResult result = assertAddAllowTracing(USER_NOOID_FILE);
         display("RESULT", result);
-        // MID-5066
+        // MID-5066; here the search for `personaRef` is safe: no search for "personaRef = null" will be done, because
+        // the object being added has already an OID.
         OperationResultRepoSearchAsserter.forResult(result)
                 .display()
-                .assertNotContainsQuerySubstring("personaRef");
+                .assertContainsQuerySubstring("personaRef");
 
         assertModifyDeny();
         assertDeleteDeny();

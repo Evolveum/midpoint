@@ -10,7 +10,11 @@ import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
 import jakarta.servlet.ServletContext;
+
 import javax.xml.datatype.Duration;
 
 import org.apache.commons.configuration2.Configuration;
@@ -28,6 +32,8 @@ import org.apache.wicket.core.util.objects.checker.IObjectChecker;
 import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
 import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
 import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
+import org.apache.wicket.csp.CSPDirective;
+import org.apache.wicket.csp.CSPDirectiveSrcValue;
 import org.apache.wicket.devutils.inspector.InspectorPage;
 import org.apache.wicket.devutils.inspector.LiveSessionsPage;
 import org.apache.wicket.devutils.pagestore.PageStorePage;
@@ -179,6 +185,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private ModelAuditService auditService;
     @Autowired private SqlPerformanceMonitorsCollection performanceMonitorsCollection; // temporary
     @Autowired private RepositoryService repositoryService; // temporary
+    @Autowired private RoleAnalysisService roleAnalysisService;
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired private CaseService caseService;
     @Autowired private CaseManager caseManager;
@@ -197,6 +204,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired(required = false) private List<WicketConfigurator> wicketConfigurators = new ArrayList<>();
     @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
     @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
+    @Value("${wicket.request-cycle.timeout:60s}") private java.time.Duration requestCycleTimeout;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -227,7 +235,12 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     public void init() {
         super.init();
 
-        getCspSettings().blocking().disabled();
+        getRequestCycleSettings().setTimeout(requestCycleTimeout);
+
+        getCspSettings().blocking().clear()
+                .unsafeInline()
+                .add(CSPDirective.IMG_SRC, "data:")
+                .add(CSPDirective.FONT_SRC, "data:");
 
         // This is needed for wicket to work correctly. Also jQuery version in webjars should match AdminLTE jQuery version.
         // We'll try to use npm/webpack to create this jquery resource directly, without webjars [todo lazyman]
@@ -541,6 +554,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public Protector getProtector() {
         return protector;
+    }
+
+    public RoleAnalysisService getRoleAnalysisService() {
+        return roleAnalysisService;
     }
 
     @Override

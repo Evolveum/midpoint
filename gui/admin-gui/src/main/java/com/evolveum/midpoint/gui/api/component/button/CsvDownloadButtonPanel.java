@@ -43,7 +43,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 
     private static final String ID_EXPORT_DATA = "exportData";
 
-//    private final boolean canCountBeforeExporting;
+    //    private final boolean canCountBeforeExporting;
     List<Integer> exportableColumnsIndex = new ArrayList<>();
 
 //    public CsvDownloadButtonPanel(String id, boolean canCountBeforeExporting) {
@@ -94,7 +94,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 
             @Override
             protected <T> IModel<T> wrapModel(IModel<T> model) {
-                if (model.getObject() == null) {
+                if (model == null || model.getObject() == null) {
                     return () -> (T) "";
                 }
                 if (model.getObject() instanceof Referencable) {
@@ -146,9 +146,9 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                     askForSizeLimitConfirmation = false;
                 } else {
 //                    if (canCountBeforeExporting) {
-                        IDataProvider<?> dataProvider = getDataTable().getDataProvider();
-                        long size = dataProvider.size();
-                        askForSizeLimitConfirmation = size > exportSizeLimit;
+                    IDataProvider<?> dataProvider = getDataTable().getDataProvider();
+                    long size = dataProvider.size();
+                    askForSizeLimitConfirmation = size > exportSizeLimit;
 //                    } else {
 //                        askForSizeLimitConfirmation = true;     // size is unknown
 //                    }

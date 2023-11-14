@@ -19,10 +19,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
- *
  */
 public class ActivationComputer {
 
@@ -32,69 +32,77 @@ public class ActivationComputer {
         super();
     }
 
-
     public ActivationComputer(Clock clock) {
         super();
         this.clock = clock;
     }
 
-
     public Clock getClock() {
         return clock;
     }
-
 
     public void setClock(Clock clock) {
         this.clock = clock;
     }
 
-    public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, LifecycleStateModelType stateModel) {
-        return getEffectiveStatus(lifecycleStatus, activationType, getValidityStatus(activationType), stateModel);
-    }
-
+    /** Never returns {@link ActivationStatusType#ARCHIVED}. */
     public ActivationStatusType getEffectiveStatus(
-            String lifecycleStatus,
-            ActivationType activationType,
-            TimeIntervalStatusType validityStatus,
-            LifecycleStateModelType stateModel) {
-        ActivationStatusType forcedLifecycleActivationStatus = getForcedLifecycleActivationStatus(lifecycleStatus, stateModel);
-        if (forcedLifecycleActivationStatus != null) {
-            return forcedLifecycleActivationStatus;
-        }
+            String lifecycleStatus, ActivationType activationBean, LifecycleStateModelType stateModel) {
+        return getEffectiveStatus(
+                lifecycleStatus,
+                activationBean,
+                getValidityStatus(activationBean),
+                stateModel);
+    }
 
-        if (activationType == null) {
+    /** Never returns {@link ActivationStatusType#ARCHIVED}. */
+    public ActivationStatusType getEffectiveStatus(
+            @Nullable String lifecycleStatus,
+            @Nullable ActivationType activationBean,
+            @Nullable TimeIntervalStatusType validityStatus,
+            @Nullable LifecycleStateModelType stateModel) {
+
+        ActivationStatusType forcedEffectiveStatus = getForcedLifecycleEffectiveActivationStatus(lifecycleStatus, stateModel);
+        if (forcedEffectiveStatus != null) {
+            return forcedEffectiveStatus;
+        }
+        if (activationBean == null) {
             return ActivationStatusType.ENABLED;
         }
-        ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
+        ActivationStatusType administrativeStatus = activationBean.getAdministrativeStatus();
         if (administrativeStatus != null) {
-            // Explicit administrative status overrides everything
-            return administrativeStatus;
+            // Explicit administrative status overrides everything; except that ARCHIVED is converted to DISABLED
+            return archivedToDisabled(administrativeStatus);
         }
-        if (validityStatus == null) {
-            // No administrative status, no validity. Return default.
-            return ActivationStatusType.ENABLED;
+        if (validityStatus != null) {
+            return validityToEffective(validityStatus);
         }
-        switch (validityStatus) {
-            case AFTER:
-            case BEFORE:
-                return ActivationStatusType.DISABLED;
-            case IN:
-                return ActivationStatusType.ENABLED;
-        }
-        // This should not happen
-        return null;
+        // No administrative status, no validity. Return default.
+        return ActivationStatusType.ENABLED;
     }
 
-    public TimeIntervalStatusType getValidityStatus(ActivationType activationType) {
-        return getValidityStatus(activationType, clock.currentTimeXMLGregorianCalendar());
+    @NotNull
+    private static ActivationStatusType validityToEffective(@NotNull TimeIntervalStatusType validityStatus) {
+        return switch (validityStatus) {
+            case AFTER, BEFORE -> ActivationStatusType.DISABLED;
+            case IN -> ActivationStatusType.ENABLED;
+        };
     }
 
-    public TimeIntervalStatusType getValidityStatus(ActivationType activationType, XMLGregorianCalendar referenceTime) {
-        if (activationType == null || referenceTime == null) {
+    public static ActivationStatusType archivedToDisabled(ActivationStatusType status) {
+        return status != ActivationStatusType.ARCHIVED ? status : ActivationStatusType.DISABLED;
+    }
+
+    public TimeIntervalStatusType getValidityStatus(ActivationType activationBean) {
+        return getValidityStatus(activationBean, clock.currentTimeXMLGregorianCalendar());
+    }
+
+    public TimeIntervalStatusType getValidityStatus(ActivationType activationBean, XMLGregorianCalendar referenceTime) {
+        if (activationBean == null || referenceTime == null) {
             return null;
         }
-        XMLGregorianCalendar validFrom = activationType.getValidFrom();
-        XMLGregorianCalendar validTo = activationType.getValidTo();
+        XMLGregorianCalendar validFrom = activationBean.getValidFrom();
+        XMLGregorianCalendar validTo = activationBean.getValidTo();
         if (validFrom == null && validTo == null) {
             return null;
         } else if (validTo != null && referenceTime.compare(validTo) == DatatypeConstants.GREATER) {
@@ -106,38 +114,14 @@ public class ActivationComputer {
         }
     }
 
-    public void computeEffective(String lifecycleStatus, ActivationType activationType, LifecycleStateModelType stateModel) {
-        computeEffective(lifecycleStatus, activationType, clock.currentTimeXMLGregorianCalendar(), stateModel);
-    }
+    public void setValidityAndEffectiveStatus(
+            String lifecycleStatus, @NotNull ActivationType activationBean, LifecycleStateModelType stateModel) {
 
-    public void computeEffective(String lifecycleStatus, ActivationType activationType, XMLGregorianCalendar referenceTime, LifecycleStateModelType stateModel) {
-        ActivationStatusType effectiveStatus = getForcedLifecycleActivationStatus(lifecycleStatus, stateModel);
+        TimeIntervalStatusType validityStatus = getValidityStatus(activationBean);
+        activationBean.setValidityStatus(validityStatus);
 
-        ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
-        if (effectiveStatus == null && administrativeStatus != null) {
-            // Explicit administrative status overrides everything
-            effectiveStatus = administrativeStatus;
-        }
-
-        TimeIntervalStatusType validityStatus = getValidityStatus(activationType);
-        if (effectiveStatus == null) {
-            if (validityStatus == null) {
-                // No administrative status, no validity. Defaults to enabled.
-                effectiveStatus = ActivationStatusType.ENABLED;
-            } else {
-                switch (validityStatus) {
-                    case AFTER:
-                    case BEFORE:
-                        effectiveStatus = ActivationStatusType.DISABLED;
-                        break;
-                    case IN:
-                        effectiveStatus = ActivationStatusType.ENABLED;
-                        break;
-                }
-            }
-        }
-        activationType.setEffectiveStatus(effectiveStatus);
-        activationType.setValidityStatus(validityStatus);
+        ActivationStatusType effectiveStatus = getEffectiveStatus(lifecycleStatus, activationBean, validityStatus, stateModel);
+        activationBean.setEffectiveStatus(effectiveStatus);
     }
 
     public boolean lifecycleHasActiveAssignments(
@@ -162,38 +146,34 @@ public class ActivationComputer {
             return true; // FIXME TEMPORARY IMPLEMENTATION, need to do something smarter when we have full lifecycle model
         }
 
-        ActivationStatusType forcedLifecycleActivationStatus = getForcedLifecycleActivationStatus(lifecycleStatus, stateModel);
+        ActivationStatusType forcedLifecycleActivationStatus =
+                getForcedLifecycleEffectiveActivationStatus(lifecycleStatus, stateModel);
         if (forcedLifecycleActivationStatus == null) {
             return true;
         }
-        switch (forcedLifecycleActivationStatus) {
-            case ENABLED:
-                return true;
-            case DISABLED:
-            case ARCHIVED:
-                return false;
-            default:
-                throw new IllegalStateException("Unknown forced activation "+forcedLifecycleActivationStatus);
-        }
+        return switch (forcedLifecycleActivationStatus) {
+            case ENABLED -> true;
+            case DISABLED -> false;
+            case ARCHIVED -> throw new AssertionError();
+        };
     }
 
-
-    private ActivationStatusType getForcedLifecycleActivationStatus(String lifecycleStatus, LifecycleStateModelType stateModel) {
+    /** Never returns {@link ActivationStatusType#ARCHIVED}. */
+    private ActivationStatusType getForcedLifecycleEffectiveActivationStatus(
+            String lifecycleStatus, LifecycleStateModelType stateModel) {
         LifecycleStateType stateDefinition = LifecycleUtil.findStateDefinition(stateModel, lifecycleStatus);
         if (stateDefinition == null) {
             return getHardcodedForcedLifecycleActivationStatus(lifecycleStatus);
         }
-        return stateDefinition.getForcedActivationStatus();
+        return archivedToDisabled(
+                stateDefinition.getForcedActivationStatus());
     }
-
 
     private ActivationStatusType getHardcodedForcedLifecycleActivationStatus(String lifecycleStatus) {
         if (lifecycleStatus == null
                 || lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE)
                 || lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED)) {
             return null;
-        } else if (lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ARCHIVED)) {
-            return ActivationStatusType.ARCHIVED;
         } else {
             return ActivationStatusType.DISABLED;
         }

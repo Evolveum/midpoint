@@ -1,0 +1,78 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+
+<wicket:panel>
+    <div class="card-footer" wicket:id="headerFooter"/>
+    <div class="card-header" wicket:id="header"/>
+    <div wicket:id="tableContainer" id="tableScaleContainer"  class="card-body p-0 table-responsive">
+        <table class="table table-hover" wicket:id="table"/>
+    </div>
+    <div class="card-footer" wicket:id="footer"/>
+</wicket:panel>
+
+
+<wicket:fragment wicket:id="pagingFooterHeader">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2" wicket:id="footerContainer">
+
+            <div class="d-flex">
+
+                <form class="mr-3" wicket:id="form_bs_process">
+                    <div
+                            wicket:id="process_selections_id" style="width: 150px"></div>
+                </form>
+
+                <form class="mr-3" wicket:id="form_sort_model">
+                    <select class="btn btn-default dropdown-toggle btn-sm mr-3" wicket:id="modeSelector" style="width: 150px"></select>
+                </form>
+
+            </div>
+
+            <div class="d-flex align-items-center flex-wrap gap-2">
+
+                <div class="text-nowrap mr-2">
+                    <span class="align-middle" wicket:id="label_dropdown"/>
+                </div>
+                <form class="mr-3" wicket:id="form">
+                    <select class="form-control form-control-sm" wicket:id="colCountOnPage"></select>
+                </form>
+
+                <div class="mr-3">
+                    <span class="align-middle" wicket:id="count"/>
+                </div>
+
+                <div wicket:id="paging"/>
+
+            </div>
+
+
+    </div>
+
+</wicket:fragment>
+
+<wicket:fragment wicket:id="pagingFooter">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex">
+        <div class="d-flex" wicket:id="buttonToolbar"/>
+        </div>
+        <div class="d-flex align-items-center flex-wrap gap-2" wicket:id="footerContainer">
+            <form class="mr-3" wicket:id="form">
+                <div wicket:id="pageSize"/>
+            </form>
+            <div class="mr-3">
+                <span class="align-middle" wicket:id="count"/>
+            </div>
+            <div wicket:id="paging"/>
+
+        </div>
+    </div>
+</wicket:fragment>
+</html>

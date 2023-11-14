@@ -24,6 +24,7 @@ import java.util.Properties;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
@@ -759,7 +760,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 
         // THEN
         then();
-        assertHandledError(result);
+        assertSuccess(result);
 
         assertRepoShadow(SHADOW_GHOST_OID)
                 .assertDead();
@@ -2025,7 +2026,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         // WHEN
         when();
         modifyUserReplace(USER_SUBMAN_OID, UserType.F_TITLE, task, result,
-                createPolyString("Underdog"));
+                PolyString.fromOrig("Underdog"));
 
         // THEN
         then();
@@ -2146,9 +2147,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_SUBMAN_OID, UserType.F_NAME,
-                createPolyString(USER_SUBDOG_USERNAME));
+                PolyString.fromOrig(USER_SUBDOG_USERNAME));
         objectDelta.addModificationReplaceProperty(UserType.F_FULL_NAME,
-                createPolyString(USER_SUBDOG_FULL_NAME));
+                PolyString.fromOrig(USER_SUBDOG_FULL_NAME));
 
         // WHEN
         when();
@@ -2292,17 +2293,17 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 
         // WHEN
         when();
-        addObject(getSyncTaskFile(), task, result);
+        getSyncTask().init(AbstractAdLdapMultidomainTest.this, task, result);
 
         // THEN
         then();
         assertSuccess(result);
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         long tsEnd = System.currentTimeMillis();
 
-        assertStepSyncToken(getSyncTaskOid(), 0, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 0, tsStart, tsEnd);
     }
 
     @Test
@@ -2316,7 +2317,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         // WHEN
         when();
         addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         // THEN
         then();
@@ -2330,7 +2331,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertNotNull("No user " + ACCOUNT_HT_UID + " created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
 
-        assertStepSyncToken(getSyncTaskOid(), 1, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 1, tsStart, tsEnd);
     }
 
     protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)

@@ -57,6 +57,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     public static final String ID_ICON = "icon";
     public static final String ID_OVERVIEW = "overview";
     public static final String ID_MINIMIZE = "minimize";
+    public static final String ID_ONLY_OPERATIONAL_ITEMS_MESSAGE = "onlyOperationalItemsMessage";
     private static final String ID_HEADER_PANEL = "headerPanel";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_WRAPPER_DISPLAY_NAME = "wrapperDisplayName";
@@ -74,6 +75,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     private boolean operationalItemsVisible = false;
 
     private IModel<String> overviewModel;
+    private final IModel<Boolean> minimalized;
 
     public VisualizationPanel(String id, @NotNull IModel<VisualizationDto> model) {
         this(id, model, false, true);
@@ -84,6 +86,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
         this.advanced = advanced;
         this.showOperationalItems = showOperationalItems;
+        minimalized = Model.of(model.getObject().isMinimized());
     }
 
     @Override
@@ -94,7 +97,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         initLayout();
 
         if (!advanced && overviewModel.getObject() != null) {
-            getModelObject().setMinimized(true);
+            minimalized.setObject(true);
         }
     }
 
@@ -145,7 +148,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         headerPanel.add(new AjaxEventBehavior("click") {
             @Override
             protected void onEvent(AjaxRequestTarget target) {
-                headerOnClickPerformed(target, model);
+                headerOnClickPerformed(target);
             }
         });
         add(headerPanel);
@@ -246,8 +249,8 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         headerPanel.add(warning);
 
         final AjaxIconButton minimize = new AjaxIconButton(ID_MINIMIZE,
-                () -> getModelObject().isMinimized() ? GuiStyleConstants.CLASS_ICON_EXPAND : GuiStyleConstants.CLASS_ICON_COLLAPSE,
-                () -> getModelObject().isMinimized() ? getString("prismOptionButtonPanel.maximize") : getString("prismOptionButtonPanel.minimize")) {
+                () -> minimalized.getObject() ? GuiStyleConstants.CLASS_ICON_EXPAND : GuiStyleConstants.CLASS_ICON_COLLAPSE,
+                () -> minimalized.getObject() ? getString("prismOptionButtonPanel.maximize") : getString("prismOptionButtonPanel.minimize")) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -258,16 +261,21 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                headerOnClickPerformed(target, VisualizationPanel.this.getModel());
+                headerOnClickPerformed(target);
             }
         };
         minimize.add(new VisibleBehaviour(this::hasBodyContent));
         headerPanel.add(minimize);
 
+        final Label onlyOperationMessage = new Label(
+                ID_ONLY_OPERATIONAL_ITEMS_MESSAGE,
+                createStringResource("VisualizationPanel.onlyOperationalItemsMessage"));
+        onlyOperationMessage.add(new VisibleBehaviour(this::showOnlyOperationalContentMessage));
+        headerPanel.add(onlyOperationMessage);
+
         final WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.add(new VisibleBehaviour(() -> {
-            VisualizationDto dto = getModelObject();
-            if (dto.isMinimized()) {
+            if (minimalized.getObject()) {
                 return false;
             }
 
@@ -305,6 +313,11 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         return advanced && showOperationalItems && dto.hasOperationalContent();
     }
 
+    private boolean showOnlyOperationalContentMessage() {
+        VisualizationDto dto = getModelObject();
+        return !advanced && !dto.hasNonOperationalContent() && dto.hasOperationalContent();
+    }
+
     protected boolean isExistingViewableObject() {
         final Visualization visualization = getModelObject().getVisualization();
         final PrismContainerValue<?> value = visualization.getSourceValue();
@@ -319,9 +332,8 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
                 obj.getOid() != null && (visualization.getSourceDelta() == null || !visualization.getSourceDelta().isAdd());
     }
 
-    public void headerOnClickPerformed(AjaxRequestTarget target, IModel<VisualizationDto> model) {
-        VisualizationDto dto = model.getObject();
-        dto.setMinimized(!dto.isMinimized());
+    public void headerOnClickPerformed(AjaxRequestTarget target) {
+        minimalized.setObject(!minimalized.getObject());
         target.add(this);
     }
 

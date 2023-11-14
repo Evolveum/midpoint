@@ -11,13 +11,13 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsQueryUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsQueryUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.ObjectQuery;

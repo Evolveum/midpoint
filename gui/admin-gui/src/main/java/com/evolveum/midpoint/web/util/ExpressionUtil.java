@@ -575,13 +575,13 @@ public class ExpressionUtil {
         }
     }
 
-    public static void updateScriptExpressionValue(
+    public static ExpressionType updateScriptExpressionValue(
             ExpressionType expression, ScriptExpressionEvaluatorType evaluator) throws SchemaException {
-        updateExpressionEvaluator(
+        return updateExpressionEvaluator(
                 expression, evaluator, ScriptExpressionEvaluatorType.class, SchemaConstantsGenerated.C_SCRIPT);
     }
 
-    private static <E extends Object> void updateExpressionEvaluator(
+    private static <E extends Object> ExpressionType updateExpressionEvaluator(
             ExpressionType expression, E evaluator, Class<E> clazz, ItemName evaluatorName) throws SchemaException {
         if (expression == null) {
             expression = new ExpressionType();
@@ -590,12 +590,13 @@ public class ExpressionUtil {
         removeEvaluatorByName(expression, evaluatorName);
 
         if (evaluator == null) {
-            return;
+            return null;
         }
 
         JAXBElement<E> element =
                 new JAXBElement<>(evaluatorName, clazz, evaluator);
         expression.expressionEvaluator(element);
+        return expression;
     }
 
     public static void updateGenerateExpressionValue(

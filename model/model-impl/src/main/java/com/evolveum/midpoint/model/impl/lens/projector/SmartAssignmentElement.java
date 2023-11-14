@@ -89,7 +89,11 @@ public class SmartAssignmentElement implements DebugDumpable {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("SmartAssignmentElement: ").append(origin).append("\n");
+        sb.append("SmartAssignmentElement: ").append(origin);
+        if (externalId != null) {
+            sb.append(" (externalId=").append(externalId).append(")");
+        }
+        sb.append("\n");
         sb.append(assignmentCVal.debugDump(indent + 1));
         return sb.toString();
     }

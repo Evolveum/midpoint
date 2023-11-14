@@ -7,5 +7,18 @@
 <archetype oid="00000000-0000-0000-0000-000000000511"
            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Report export task</name>
-    <!-- We need only the existence of this object. -->
+    <!-- We need only the existence of this object plus a single "marking" mapping. -->
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <expression>
+                    <value>export</value>
+                </expression>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
 </archetype>

@@ -198,7 +198,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     @Override
     public void setSorted(boolean sorted) {
         this.sorted = sorted;
-        sortContainers();
+        sortContainers(nonContainers);
     }
 
     @Override
@@ -249,6 +249,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     @Override
     public List<PrismContainerWrapper<? extends Containerable>> getContainers() {
         if (!containers.isEmpty()) {
+            sortContainers(containers);
             return containers;
         }
         for (ItemWrapper<?, ?> container : items) {
@@ -265,6 +266,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
                 }
             }
         }
+        sortContainers(containers);
         return containers;
     }
 
@@ -301,13 +303,13 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     @Override
     public List<ItemWrapper<?, ?>> getNonContainers() {
         if (!nonContainers.isEmpty()) {
-            sortContainers();
+            sortContainers(nonContainers);
             return nonContainers;
         }
 
         collectContainers();
         collectVirtualContainers();
-        sortContainers();
+        sortContainers(nonContainers);
 
         return nonContainers;
     }
@@ -371,10 +373,10 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         }
     }
 
-    private void sortContainers() {
+    private void sortContainers(List<? extends ItemWrapper<?, ?>> items) {
         ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(WebComponentUtil.getCollator(), sorted);
-        if (CollectionUtils.isNotEmpty(nonContainers)) {
-            nonContainers.sort((Comparator) comparator);
+        if (CollectionUtils.isNotEmpty(items)) {
+            items.sort((Comparator) comparator);
         }
     }
 

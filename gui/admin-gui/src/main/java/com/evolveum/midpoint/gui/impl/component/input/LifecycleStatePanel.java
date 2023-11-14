@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.component.input;
 
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.util.DisplayForLifecycleState;
 import com.evolveum.midpoint.gui.api.util.DisplayableChoiceRenderer;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -52,41 +54,6 @@ public class LifecycleStatePanel extends InputPanel {
 
     private final IModel<PrismPropertyWrapper<String>> model;
 
-    enum DisplayForOption {
-
-        ACTIVE("SimulationModePanel.option.active", "colored-form-success"),
-        DRAFT("SimulationModePanel.option.draft", "colored-form-secondary"),
-        PROPOSED("SimulationModePanel.option.proposed", "colored-form-warning"),
-        DEFAULT(null, "colored-form-info");
-
-        private final String label;
-        private final String cssClass;
-
-        DisplayForOption(String label, String cssClass) {
-            this.label = label;
-            this.cssClass = cssClass;
-        }
-
-        private static DisplayForOption valueOfOrDefault(String name) {
-            if (StringUtils.isEmpty(name)) {
-                return DisplayForOption.DEFAULT;
-            }
-
-            DisplayForOption value;
-            try {
-                value = valueOf(name.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                return DisplayForOption.DEFAULT;
-            }
-
-            if (value == null) {
-                return DisplayForOption.DEFAULT;
-            }
-
-            return value;
-        }
-    }
-
     public LifecycleStatePanel(String id, IModel<PrismPropertyWrapper<String>> model) {
         super(id);
         this.model = model;
@@ -122,7 +89,9 @@ public class LifecycleStatePanel extends InputPanel {
             public DisplayableValue<String> getObject() {
                 String value = null;
                 try {
-                    value = getModelObject().getValue().getRealValue();
+                    if (getModelObject() != null) {
+                        value = getModelObject().getValue().getRealValue();
+                    }
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't get value from " + getModelObject(), e);
                 }
@@ -132,7 +101,7 @@ public class LifecycleStatePanel extends InputPanel {
                 String finalValue = value;
                 return (DisplayableValue<String>) choicesModel.getObject()
                         .stream()
-                        .filter(choice -> ((DisplayableValue<String>)choice).getValue().equals(finalValue))
+                        .filter(choice -> ((DisplayableValue<String>) choice).getValue().equals(finalValue))
                         .findFirst()
                         .get();
             }
@@ -178,9 +147,9 @@ public class LifecycleStatePanel extends InputPanel {
             @Override
             protected void appendOptionHtml(AppendingStringBuffer buffer, T choice, int index, String selected) {
                 DisplayableValue<String> displayValue = (DisplayableValue<String>) choice;
-                DisplayForOption display = DisplayForOption.valueOfOrDefault(displayValue.getValue());
+                DisplayForLifecycleState display = DisplayForLifecycleState.valueOfOrDefault(displayValue.getValue());
                 String label = new DisplayableValueChoiceRenderer<>(null).getDisplayValue(displayValue);
-                if (display.label == null) {
+                if (display.getLabel() == null) {
                     buffer.append("\n<option ");
                     setOptionAttributes(buffer, choice, index, selected);
                     buffer.append(">");
@@ -193,7 +162,7 @@ public class LifecycleStatePanel extends InputPanel {
                     buffer.append(label);
                     buffer.append("</option>");
 
-                    String advancedLabel = LocalizationUtil.translate(display.label);
+                    String advancedLabel = LocalizationUtil.translate(display.getLabel());
                     buffer.append("\n<option ");
                     setOptionAttributes(buffer, choice, index, null);
                     buffer.append(">");
@@ -229,8 +198,8 @@ public class LifecycleStatePanel extends InputPanel {
             } else {
                 name = value.getValue();
             }
-            DisplayForOption display = DisplayForOption.valueOfOrDefault(name);
-            return display.cssClass + " form-control form-control-sm resizing-select " + customCssClassForInputField();
+            DisplayForLifecycleState display = DisplayForLifecycleState.valueOfOrDefault(name);
+            return display.getCssClass() + " form-control form-control-sm resizing-select " + customCssClassForInputField();
         }));
 
         add(input);
@@ -246,6 +215,11 @@ public class LifecycleStatePanel extends InputPanel {
 
     private List getChoices() {
         List choices = new ArrayList();
+
+        if (getModelObject() == null) {
+            return choices;
+        }
+
         String lookupOid = getModelObject().getPredefinedValuesOid();
         if (StringUtils.isEmpty(lookupOid)) {
             return choices;
@@ -266,13 +240,11 @@ public class LifecycleStatePanel extends InputPanel {
             choices.add(display);
         }
 
-
-
         return choices;
     }
 
     @Override
-    public FormComponent getBaseFormComponent(){
+    public FormComponent getBaseFormComponent() {
         return (FormComponent) get(ID_PANEL);
     }
 }

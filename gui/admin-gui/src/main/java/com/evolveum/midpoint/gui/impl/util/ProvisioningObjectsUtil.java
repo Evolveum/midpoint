@@ -94,7 +94,16 @@ public class ProvisioningObjectsUtil {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get refined schema for {}", e, resource);
             return null;
         }
-        return resourceSchema.findObjectDefinition(shadow.getKind(), shadow.getIntent(), shadow.getObjectClass());
+
+        try {
+            return resourceSchema.findObjectDefinition(shadow.getKind(), shadow.getIntent(), shadow.getObjectClass());
+        } catch (Exception e) {
+            LOGGER.debug(
+                    "Couldn't get ResourceObjectDefinition for kind: " + shadow.getKind() + ", intent: " + shadow.getIntent()
+                            + " in resource schema " + resourceSchema,
+                    e);
+            return null;
+        }
     }
 
     private static ResourceType loadResource(ShadowType shadow, PageBase pageBase) {

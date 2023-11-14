@@ -7,15 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
  * When new assignments are being created (either as part of focus "add" or "modify" operation), we need to know their PCV IDs
@@ -34,7 +33,7 @@ import java.util.Map;
  * NOTE: {@link TemporaryContainerIdStore} addresses a similar problem. However, in that case, IDs are not really important,
  * and they can be safely discarded when the delta is executed. (Unlike this case, where we need to keep them.)
  */
-public class AssignmentIdStore {
+public class AssignmentIdStore implements ShortDumpable {
 
     /** The map keys are parent-less assignments, immutable (to avoid hashCode being inadvertently changed). */
     @NotNull private final Map<AssignmentType, Long> generatedIdsMap = new HashMap<>();
@@ -51,5 +50,12 @@ public class AssignmentIdStore {
 
     public boolean isEmpty() {
         return generatedIdsMap.isEmpty();
+    }
+
+    @Override
+    public void shortDump(StringBuilder sb) {
+        sb.append("AssignmentIdStore(");
+        sb.append(generatedIdsMap.values());
+        sb.append(")");
     }
 }

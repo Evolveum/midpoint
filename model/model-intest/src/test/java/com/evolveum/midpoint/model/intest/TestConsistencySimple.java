@@ -14,6 +14,11 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.test.DummyTestResource;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,7 +27,6 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -35,14 +39,19 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests various aspects of consistency mechanism. Unlike the complex story test,
  * those tests here are much simpler (e.g. use dummy resource instead of OpenDJ)
  * and relatively isolated.
+ *
+ * Tests 1xx and 2xx are based on the scenario described in
+ * {@link #executeBasicTest(ShadowOperation, ResourceObjectOperation, FocusOperation)}.
+ *
+ * There are also other, unrelated tests.
+ *
+ * Tests 4xx are devoted to the discovery, i.e. running embedded clockwork triggered by some inconsistency being detected.
+ * They could be factored out into a separate test class later.
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -55,11 +64,26 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
     private static final TestObject<UserType> USER_JIM = TestObject.file(
             TEST_DIR, "user-jim.xml", "99576c2e-4edf-40d1-a7ea-47add9362c3a");
 
+    private static final TestObject<ArchetypeType> ARCHETYPE_PERSON = TestObject.file(
+            TEST_DIR, "archetype-person.xml", "3cdd3cac-affc-466b-bc4b-78c64952901e");
+    private static final DummyTestResource RESOURCE_SOURCE = new DummyTestResource(
+            TEST_DIR, "resource-source.xml", "9794d702-5aed-4b96-99fc-14012c7595a0", "source");
+    private static final DummyTestResource RESOURCE_TARGET_1 = new DummyTestResource(
+            TEST_DIR, "resource-target-1.xml", "86100e19-1052-4913-8551-b2cef402c85d", "target-1");
+    private static final DummyTestResource RESOURCE_TARGET_2 = new DummyTestResource(
+            TEST_DIR, "resource-target-2.xml", "1f594726-59ce-4ed6-a6bb-e39a3d0770c7", "target-2");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
         login(USER_ADMINISTRATOR_USERNAME);
+
+        initTestObjects(initTask, initResult,
+                ARCHETYPE_PERSON,
+                RESOURCE_SOURCE,
+                RESOURCE_TARGET_1,
+                RESOURCE_TARGET_2);
     }
 
     private enum FocusOperation {RECONCILE, RECOMPUTE}
@@ -75,88 +99,98 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
     }
 
     @Test
-    public void test100Reconcile_Keep_Keep() throws Exception {
-        executeTest(FocusOperation.RECONCILE, ShadowOperation.KEEP, ResourceObjectOperation.KEEP);
+    public void test100KeepKeepReconcile() throws Exception {
+        executeBasicTest(ShadowOperation.KEEP, ResourceObjectOperation.KEEP, FocusOperation.RECONCILE);
     }
 
     @Test
-    public void test110Recompute_Keep_Keep() throws Exception {
-        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.KEEP, ResourceObjectOperation.KEEP);
+    public void test110KeepKeepRecompute() throws Exception {
+        executeBasicTest(ShadowOperation.KEEP, ResourceObjectOperation.KEEP, FocusOperation.RECOMPUTE);
     }
 
     @Test
-    public void test120Reconcile_Unlink_Keep() throws Exception {
-        executeTest(FocusOperation.RECONCILE, ShadowOperation.UNLINK, ResourceObjectOperation.KEEP);
+    public void test120UnlinkKeepReconcile() throws Exception {
+        executeBasicTest(ShadowOperation.UNLINK, ResourceObjectOperation.KEEP, FocusOperation.RECONCILE);
     }
 
     @Test
-    public void test130Recompute_Unlink_Keep() throws Exception {
-        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.UNLINK, ResourceObjectOperation.KEEP);
+    public void test130UnlinkKeepRecompute() throws Exception {
+        executeBasicTest(ShadowOperation.UNLINK, ResourceObjectOperation.KEEP, FocusOperation.RECOMPUTE);
     }
 
     @Test
-    public void test140Reconcile_UnlinkTombstone_Keep() throws Exception {
-        executeTest(FocusOperation.RECONCILE, ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP);
+    public void test140UnlinkTombstoneKeepReconcile() throws Exception {
+        executeBasicTest(ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP, FocusOperation.RECONCILE);
     }
 
     @Test
-    public void test150Recompute_UnlinkTombstone_Keep() throws Exception {
-        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP);
+    public void test150UnlinkTombstoneKeepRecompute() throws Exception {
+        executeBasicTest(ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP, FocusOperation.RECOMPUTE);
     }
 
     @Test
-    public void test160Reconcile_Delete_Keep() throws Exception {
-        executeTest(FocusOperation.RECONCILE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
+    public void test160DeleteKeepReconcile() throws Exception {
+        executeBasicTest(ShadowOperation.DELETE, ResourceObjectOperation.KEEP, FocusOperation.RECONCILE);
     }
 
     @Test
-    public void test170Recompute_Delete_Keep() throws Exception {
-        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
+    public void test170DeleteKeepRecompute() throws Exception {
+        executeBasicTest(ShadowOperation.DELETE, ResourceObjectOperation.KEEP, FocusOperation.RECOMPUTE);
     }
 
     @Test
-    public void test200Reconcile_Keep_Delete() throws Exception {
-        executeTest(FocusOperation.RECONCILE, ShadowOperation.KEEP, ResourceObjectOperation.KEEP);
+    public void test200KeepDeleteReconcile() throws Exception {
+        executeBasicTest(ShadowOperation.KEEP, ResourceObjectOperation.KEEP, FocusOperation.RECONCILE);
     }
 
     @Test
-    public void test210Recompute_Keep_Delete() throws Exception {
-        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.KEEP, ResourceObjectOperation.KEEP);
+    public void test210KeepDeleteRecompute() throws Exception {
+        executeBasicTest(ShadowOperation.KEEP, ResourceObjectOperation.KEEP, FocusOperation.RECOMPUTE);
     }
 
     @Test
-    public void test220Reconcile_Unlink_Delete() throws Exception {
-        executeTest(FocusOperation.RECONCILE, ShadowOperation.UNLINK, ResourceObjectOperation.KEEP);
+    public void test220UnlinkDeleteReconcile() throws Exception {
+        executeBasicTest(ShadowOperation.UNLINK, ResourceObjectOperation.KEEP, FocusOperation.RECONCILE);
     }
 
     @Test
-    public void test230Recompute_Unlink_Delete() throws Exception {
-        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.UNLINK, ResourceObjectOperation.KEEP);
+    public void test230UnlinkDeleteRecompute() throws Exception {
+        executeBasicTest(ShadowOperation.UNLINK, ResourceObjectOperation.KEEP, FocusOperation.RECOMPUTE);
     }
 
     @Test
-    public void test240Reconcile_UnlinkTombstone_Delete() throws Exception {
-        executeTest(FocusOperation.RECONCILE, ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP);
+    public void test240UnlinkTombstoneDeleteReconcile() throws Exception {
+        executeBasicTest(ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP, FocusOperation.RECONCILE);
     }
 
     @Test
-    public void test250Recompute_UnlinkTombstone_Delete() throws Exception {
-        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP);
+    public void test250UnlinkTombstoneDeleteRecompute() throws Exception {
+        executeBasicTest(ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP, FocusOperation.RECOMPUTE);
     }
 
     @Test
-    public void test260Reconcile_Delete_Delete() throws Exception {
-        executeTest(FocusOperation.RECONCILE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
+    public void test260DeleteDeleteReconcile() throws Exception {
+        executeBasicTest(ShadowOperation.DELETE, ResourceObjectOperation.KEEP, FocusOperation.RECONCILE);
     }
 
     @Test
-    public void test270Recompute_Delete_Delete() throws Exception {
-        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
+    public void test270DeleteDeleteRecompute() throws Exception {
+        executeBasicTest(ShadowOperation.DELETE, ResourceObjectOperation.KEEP, FocusOperation.RECOMPUTE);
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private void executeTest(FocusOperation focusOperation, ShadowOperation shadowOperation,
-            ResourceObjectOperation resourceObjectOperation) throws Exception {
+    /**
+     * Tests a basic consistency-related scenario:
+     *
+     * . there is a user with an account
+     * . account is manipulated (see {@link ShadowOperation} and {@link ResourceObjectOperation}),
+     * e.g. shadow is deleted in repo but account is preserved on the resource
+     * . user is recomputed or reconciled (see {@link FocusOperation})
+     * . the account should be OK again
+     */
+    private void executeBasicTest(
+            ShadowOperation shadowOperation,
+            ResourceObjectOperation resourceObjectOperation,
+            FocusOperation focusOperation) throws Exception {
 
         // GIVEN
         Task task = getTestTask();
@@ -348,9 +382,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         assertShadow(findShadowByPrismName("jim", getDummyResourceObject(), result), "after deletion")
                 .display()
                 .pendingOperations()
-                    .assertUnfinishedOperation()
-                        .deleteOperation()
-                            .display();
+                    .assertNoUnfinishedOperations(); // the deletion is finished (it is not applicable)
         // @formatter:on
 
         when("jim is re-created");
@@ -387,5 +419,76 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
         // TODO It is questionable if we should check "bring resource up and reconcile the user" scenario here,
         //  or if it's in the scope of more advanced consistency tests (like TestConsistencyMechanism in story tests).
+    }
+
+    /**
+     * Tests administrative status computation in the case of deleted shadow discovery.
+     * Inspired by MID-9103.
+     *
+     * The scenario:
+     *
+     * . one source system, two target systems (with different administrativeStatus mappings, see below)
+     * . an account on the source system disappears
+     * . the user is reconciled
+     * . there are two clockwork runs:
+     * .. the inner - "discovery" - one, triggered by the fact that the account is gone;
+     * .. the outer - "main" - one, executing after the discovery run finishes
+     *
+     * `target-1` has a default administrativeStatus mapping (although strong);
+     * `target-2` has a mapping that uses `administrativeStatus` instead of `effectiveStatus`.
+     *
+     * MID-9103 is about the fact that the administrativeStatus for projections is computed wrongly
+     * in the outer clockwork execution.
+     */
+    @Test
+    public void test400ActivationAfterDiscovery() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("account on source system exists");
+        RESOURCE_SOURCE.controller.addAccount(userName);
+
+        and("it's synchronized into repo");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_SOURCE.oid)
+                .withDefaultAccountType()
+                .withNameValue(userName)
+                .executeOnForeground(result);
+
+        var userOid = assertUserByUsername(userName, "initial")
+                .assertLinks(3, 0)
+                .getOid();
+
+        and("the accounts on target systems are enabled");
+        RESOURCE_TARGET_1.controller.assertAccountByUsername(userName)
+                .display()
+                .assertAttribute(DummyAccount.ATTR_DESCRIPTION_NAME, "enabled");
+        RESOURCE_TARGET_2.controller.assertAccountByUsername(userName)
+                .display()
+                .assertAttribute(DummyAccount.ATTR_DESCRIPTION_NAME, "enabled");
+
+        when("account on source system is deleted and the user is reconciled");
+        dummyAuditService.clear();
+        RESOURCE_SOURCE.controller.deleteAccount(userName);
+        reconcileUser(userOid, task, result);
+
+        then("the user exists and is disabled");
+        // @formatter:off
+        assertUserByUsername(userName, "after reconciliation")
+                .display()
+                .assertLiveLinks(2)
+                .activation()
+                    .assertEffectiveStatus(ActivationStatusType.DISABLED)
+                .end();
+        // @formatter:on
+
+        and("the target accounts are disabled as well");
+        RESOURCE_TARGET_1.controller.assertAccountByUsername(userName)
+                .display()
+                .assertAttribute(DummyAccount.ATTR_DESCRIPTION_NAME, "disabled");
+        RESOURCE_TARGET_2.controller.assertAccountByUsername(userName)
+                .display()
+                .assertAttribute(DummyAccount.ATTR_DESCRIPTION_NAME, "disabled");
     }
 }

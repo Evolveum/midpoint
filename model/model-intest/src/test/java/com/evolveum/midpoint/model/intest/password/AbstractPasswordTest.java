@@ -15,8 +15,10 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.Channel;
 
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
@@ -89,9 +91,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     protected static final String RESOURCE_DUMMY_UGLY_OID = "10000000-0000-0000-0000-000000344104";
     protected static final String RESOURCE_DUMMY_UGLY_NAME = "ugly";
 
-    protected static final File RESOURCE_DUMMY_LIFECYCLE_FILE = new File(TEST_DIR, "resource-dummy-lifecycle.xml");
-    protected static final String RESOURCE_DUMMY_LIFECYCLE_OID = "519f131a-147b-11e7-a270-c38e2b225751";
-    protected static final String RESOURCE_DUMMY_LIFECYCLE_NAME = "lifecycle";
+    private static final DummyTestResource RESOURCE_DUMMY_PURPOSE = new DummyTestResource(
+            TEST_DIR, "resource-dummy-purpose.xml", "519f131a-147b-11e7-a270-c38e2b225751", "purpose",
+            c -> c.extendSchemaPirate());
 
     protected static final File RESOURCE_DUMMY_SOUVENIR_FILE = new File(TEST_DIR, "resource-dummy-souvenir.xml");
     protected static final String RESOURCE_DUMMY_SOUVENIR_OID = "f4fd7e90-ff6a-11e7-a504-4b84f92fec0e";
@@ -157,8 +159,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         setGlobalSecurityPolicy(getSecurityPolicyOid(), initResult);
 
         initDummyResourcePirate(RESOURCE_DUMMY_UGLY_NAME, RESOURCE_DUMMY_UGLY_FILE, RESOURCE_DUMMY_UGLY_OID, initTask, initResult);
-        initDummyResourcePirate(RESOURCE_DUMMY_LIFECYCLE_NAME, RESOURCE_DUMMY_LIFECYCLE_FILE, RESOURCE_DUMMY_LIFECYCLE_OID, initTask, initResult);
         initDummyResourcePirate(RESOURCE_DUMMY_SOUVENIR_NAME, RESOURCE_DUMMY_SOUVENIR_FILE, RESOURCE_DUMMY_SOUVENIR_OID, initTask, initResult);
+
+        RESOURCE_DUMMY_PURPOSE.initAndTest(this, initTask, initResult);
 
         repoAddObjectFromFile(USER_THREE_HEADED_MONKEY_FILE, UserType.class, true, initResult);
 
@@ -381,14 +384,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDummyAccountShadowRepo(accountShadowRepo, accountJackOid, USER_JACK_USERNAME);
         // MID-3860
         assertShadowPasswordMetadata(accountShadowRepo, startCal, endCal, false, true);
-        assertShadowLifecycle(accountShadowRepo, false);
+        assertShadowPurpose(accountShadowRepo, false);
 
         // Check account
         PrismObject<ShadowType> accountShadowModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
         display("Model shadow", accountShadowModel);
         assertDummyAccountShadowModel(accountShadowModel, accountJackOid, USER_JACK_USERNAME, USER_JACK_FULL_NAME);
         assertShadowPasswordMetadata(accountShadowModel, startCal, endCal, false, true);
-        assertShadowLifecycle(accountShadowModel, false);
+        assertShadowPurpose(accountShadowModel, false);
 
         // Check account in dummy resource
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
@@ -442,7 +445,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDummyAccountShadowRepo(accountShadowRepo, accountJackOid, "jack");
         // MID-3860
         assertShadowPasswordMetadata(accountShadowRepo, lastPasswordChangeStart, lastPasswordChangeEnd, true, false);
-        assertShadowLifecycle(accountShadowRepo, false);
+        assertShadowPurpose(accountShadowRepo, false);
 
         // Check channel migration (MID-6547).
         assertThat(accountShadowRepo.asObjectable().getCredentials().getPassword().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
@@ -452,7 +455,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("Model shadow", accountShadowModel);
         assertDummyAccountShadowModel(accountShadowModel, accountJackOid, "jack", "Jack Sparrow");
         assertShadowPasswordMetadata(accountShadowModel, lastPasswordChangeStart, lastPasswordChangeEnd, true, false);
-        assertShadowLifecycle(accountShadowModel, false);
+        assertShadowPurpose(accountShadowModel, false);
 
         assertSingleAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_2_CLEAR);
         assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_2_CLEAR);
@@ -1761,7 +1764,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     private void setPasswordMinOccurs(Integer value, Task task, OperationResult result) throws CommonException {
         ObjectDelta<SecurityPolicyType> delta = prismContext.deltaFor(SecurityPolicyType.class)
                 .item(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_OCCURS)
-                .replace(value)
+                .replace(value != null ? value.toString() : null)
                 .asObjectDelta(getSecurityPolicyOid());
         executeChanges(delta, null, task, result);
     }
@@ -2108,7 +2111,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // WHEN
         when();
         modifyUserReplace(USER_THREE_HEADED_MONKEY_OID, UserType.F_LOCALITY, task, result,
-                createPolyString("Monkey Island"));
+                PolyString.fromOrig("Monkey Island"));
 
         // THEN
         then();
@@ -2459,12 +2462,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountOid, USER_RAPP_USERNAME);
-        assertShadowLifecycle(accountShadow, true);
+        assertShadowPurpose(accountShadow, true);
 
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountOid, USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
-        assertShadowLifecycle(accountModel, true);
+        assertShadowPurpose(accountModel, true);
 
         // Check account in dummy resource
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
@@ -2498,12 +2501,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountOid, USER_RAPP_USERNAME);
-        assertShadowLifecycle(accountShadow, true);
+        assertShadowPurpose(accountShadow, true);
 
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountOid, USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
-        assertShadowLifecycle(accountModel, true);
+        assertShadowPurpose(accountModel, true);
 
         // Check account in dummy resource
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
@@ -2514,7 +2517,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     }
 
     /**
-     * add new assignment to the user, check that account is provisioned and has correct lifecycle
+     * add new assignment to the user, check that account is provisioned and has correct purpose
      */
     @Test
     public void test402AssignRappDummyRed() throws Exception {
@@ -2549,21 +2552,21 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         PrismObject<ShadowType> accountShadowRed = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
         display("Repo shadow RED", accountShadowRed);
         assertAccountShadowRepo(accountShadowRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountShadowRed, false);
+        assertShadowPurpose(accountShadowRed, false);
 
         PrismObject<ShadowType> accountModelRed = modelService.getObject(ShadowType.class, accountRedOid, null, task, result);
         display("Model shadow RED", accountModelRed);
         assertAccountShadowModel(accountModelRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountModelRed, false);
+        assertShadowPurpose(accountModelRed, false);
 
         // DEFAULT shadows
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountDefaultOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
-        assertShadowLifecycle(accountShadow, null);
+        assertShadowPurpose(accountShadow, null);
 
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountDefaultOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountDefaultOid, USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
-        assertShadowLifecycle(accountModel, null);
+        assertShadowPurpose(accountModel, null);
 
         assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
@@ -2611,21 +2614,21 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         PrismObject<ShadowType> accountShadowRed = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
         display("Repo shadow RED", accountShadowRed);
         assertAccountShadowRepo(accountShadowRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountShadowRed, false);
+        assertShadowPurpose(accountShadowRed, false);
 
         PrismObject<ShadowType> accountModelRed = modelService.getObject(ShadowType.class, accountRedOid, null, task, result);
         display("Model shadow RED", accountModelRed);
         assertAccountShadowModel(accountModelRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountModelRed, false);
+        assertShadowPurpose(accountModelRed, false);
 
         // DEFAULT shadows
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountDefaultOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
-        assertShadowLifecycle(accountShadow, null);
+        assertShadowPurpose(accountShadow, null);
 
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountDefaultOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountDefaultOid, USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
-        assertShadowLifecycle(accountModel, null);
+        assertShadowPurpose(accountModel, null);
 
         assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
@@ -2636,7 +2639,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     }
 
     /**
-     * initialize the account (password and lifecycle delta), check account password and lifecycle
+     * initialize the account (password and purpose delta), check account password and purpose
      */
     @Test
     public void test404InitializeRappDummyRed() throws Exception {
@@ -2674,21 +2677,21 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         PrismObject<ShadowType> accountShadowRed = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
         display("Repo shadow RED", accountShadowRed);
         assertAccountShadowRepo(accountShadowRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountShadowRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        assertShadowPurpose(accountShadowRed, null);
 
         PrismObject<ShadowType> accountModelRed = modelService.getObject(ShadowType.class, accountRedOid, null, task, result);
         display("Model shadow RED", accountModelRed);
         assertAccountShadowModel(accountModelRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountModelRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        assertShadowPurpose(accountModelRed, null);
 
         // DEFAULT shadows
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountDefaultOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
-        assertShadowLifecycle(accountShadow, null);
+        assertShadowPurpose(accountShadow, null);
 
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountDefaultOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountDefaultOid, USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
-        assertShadowLifecycle(accountModel, null);
+        assertShadowPurpose(accountModel, null);
 
         assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
@@ -2735,21 +2738,21 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         PrismObject<ShadowType> accountShadowRed = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
         display("Repo shadow RED", accountShadowRed);
         assertAccountShadowRepo(accountShadowRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountShadowRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        assertShadowPurpose(accountShadowRed, null);
 
         PrismObject<ShadowType> accountModelRed = modelService.getObject(ShadowType.class, accountRedOid, null, task, result);
         display("Model shadow RED", accountModelRed);
         assertAccountShadowModel(accountModelRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountModelRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        assertShadowPurpose(accountModelRed, null);
 
         // DEFAULT shadows
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountDefaultOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
-        assertShadowLifecycle(accountShadow, null);
+        assertShadowPurpose(accountShadow, null);
 
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountDefaultOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountDefaultOid, USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
-        assertShadowLifecycle(accountModel, null);
+        assertShadowPurpose(accountModel, null);
 
         assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
@@ -2760,10 +2763,10 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     }
 
     /**
-     * add new assignment to the user. This resource has explicit lifecycle mapping.
+     * add new assignment to the user. This resource has explicit purpose mapping.
      */
     @Test
-    public void test410AssignRappDummyLifecycle() throws Exception {
+    public void test410AssignRappDummyPurpose() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2774,7 +2777,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         // WHEN
         when();
-        assignAccountToUser(USER_RAPP_OID, RESOURCE_DUMMY_LIFECYCLE_OID, null, task, result);
+        assignAccountToUser(USER_RAPP_OID, RESOURCE_DUMMY_PURPOSE.oid, null, task, result);
 
         // THEN
         then();
@@ -2785,16 +2788,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("User after", userAfter);
         assertLiveLinks(userAfter, 3);
 
-        String accountLifecycleOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_LIFECYCLE_OID);
+        String accountOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_PURPOSE.oid);
 
-        assertDummyAccount(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
-        assertDummyPasswordConditional(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertDummyAccount(RESOURCE_DUMMY_PURPOSE.name, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPasswordConditional(RESOURCE_DUMMY_PURPOSE.name, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
-        PrismObject<ShadowType> accountShadowLifecycle = repositoryService.getObject(ShadowType.class, accountLifecycleOid, null, result);
-        display("Repo shadow LIFECYCLE", accountShadowLifecycle);
-        assertAccountShadowRepo(accountShadowLifecycle, accountLifecycleOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_LIFECYCLE_NAME));
-        assertShadowLifecycle(accountShadowLifecycle, false);
-//        assertShadowLifecycle(accountShadowLifecycle, SchemaConstants.LIFECYCLE_ACTIVE);
+        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Repo shadow PURPOSE", shadow);
+        assertAccountShadowRepo(shadow, accountOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_PURPOSE.name));
+        assertShadowPurpose(shadow, false);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
@@ -2802,12 +2804,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
-        assertSingleAccountPasswordNotificationConditional(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertSingleAccountPasswordNotificationConditional(RESOURCE_DUMMY_PURPOSE.name, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
         assertNoUserPasswordNotifications();
     }
 
     @Test
-    public void test412InitializeRappDummyLifecycle() throws Exception {
+    public void test412InitializeRappDummyPurpose() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2815,14 +2817,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
         display("User before", userBefore);
-        String accountLifecycleOid = getLiveLinkRefOid(userBefore, RESOURCE_DUMMY_LIFECYCLE_OID);
+        String accountOid = getLiveLinkRefOid(userBefore, RESOURCE_DUMMY_PURPOSE.oid);
 
         ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
-                .createEmptyModifyDelta(ShadowType.class, accountLifecycleOid);
+                .createEmptyModifyDelta(ShadowType.class, accountOid);
         ProtectedStringType passwordPs = new ProtectedStringType();
         passwordPs.setClearValue(USER_PASSWORD_VALID_1);
         shadowDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, passwordPs);
-        shadowDelta.addModificationReplaceProperty(ObjectType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
+        shadowDelta.addModificationReplaceProperty(ShadowType.F_PURPOSE, ShadowPurposeType.REGULAR);
 
         // WHEN
         when();
@@ -2837,15 +2839,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("User after", userAfter);
         assertLiveLinks(userAfter, 3);
 
-        accountLifecycleOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_LIFECYCLE_OID);
+        accountOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_PURPOSE.oid);
 
-        assertDummyAccount(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
-        assertDummyPassword(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertDummyAccount(RESOURCE_DUMMY_PURPOSE.name, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_PURPOSE.name, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
-        PrismObject<ShadowType> accountShadowLifecycle = repositoryService.getObject(ShadowType.class, accountLifecycleOid, null, result);
-        display("Repo shadow LIFECYCLE", accountShadowLifecycle);
-        assertAccountShadowRepo(accountShadowLifecycle, accountLifecycleOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_LIFECYCLE_NAME));
-        assertShadowLifecycle(accountShadowLifecycle, SchemaConstants.LIFECYCLE_ACTIVE);
+        PrismObject<ShadowType> accountShadowPurpose = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Repo shadow PURPOSE", accountShadowPurpose);
+        assertAccountShadowRepo(accountShadowPurpose, accountOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_PURPOSE.name));
+        assertShadowPurpose(accountShadowPurpose, null);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
@@ -2859,25 +2861,25 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         PrismObject<ShadowType> accountShadowRed = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
         display("Repo shadow RED", accountShadowRed);
         assertAccountShadowRepo(accountShadowRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountShadowRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        assertShadowPurpose(accountShadowRed, null);
 
         PrismObject<ShadowType> accountModelRed = modelService.getObject(ShadowType.class, accountRedOid, null, task, result);
         display("Model shadow RED", accountModelRed);
         assertAccountShadowModel(accountModelRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountModelRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        assertShadowPurpose(accountModelRed, null);
 
         // DEFAULT shadows
         String accountDefaultOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
 
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountDefaultOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountDefaultOid, USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
-        assertShadowLifecycle(accountModel, null);
+        assertShadowPurpose(accountModel, null);
 
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountDefaultOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
-        assertShadowLifecycle(accountShadow, null);
+        assertShadowPurpose(accountShadow, null);
 
-        assertSingleAccountInitializationPasswordNotification(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertSingleAccountInitializationPasswordNotification(RESOURCE_DUMMY_PURPOSE.name, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
         assertNoUserPasswordNotifications();
     }
 
@@ -2903,8 +2905,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("User after", userAfter);
         assertLiveLinks(userAfter, 3);
 
-        assertDummyAccount(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
-        assertDummyPassword(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertDummyAccount(RESOURCE_DUMMY_PURPOSE.name, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_PURPOSE.name, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
@@ -2912,14 +2914,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
-        // LIFECYCLE shadows
+        // PURPOSE shadows
 
-        String accountLifecycleOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_LIFECYCLE_OID);
+        String accountPurposeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_PURPOSE.oid);
 
-        PrismObject<ShadowType> accountShadowLifecycle = repositoryService.getObject(ShadowType.class, accountLifecycleOid, null, result);
-        display("Repo shadow LIFECYCLE", accountShadowLifecycle);
-        assertAccountShadowRepo(accountShadowLifecycle, accountLifecycleOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_LIFECYCLE_NAME));
-        assertShadowLifecycle(accountShadowLifecycle, SchemaConstants.LIFECYCLE_ACTIVE);
+        PrismObject<ShadowType> accountShadowPurpose = repositoryService.getObject(ShadowType.class, accountPurposeOid, null, result);
+        display("Repo shadow PURPOSE", accountShadowPurpose);
+        assertAccountShadowRepo(accountShadowPurpose, accountPurposeOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_PURPOSE.name));
+        assertShadowPurpose(accountShadowPurpose, null);
 
         // RED shadows
         String accountRedOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_RED_OID);
@@ -2927,23 +2929,23 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         PrismObject<ShadowType> accountShadowRed = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
         display("Repo shadow RED", accountShadowRed);
         assertAccountShadowRepo(accountShadowRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountShadowRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        assertShadowPurpose(accountShadowRed, null);
 
         PrismObject<ShadowType> accountModelRed = modelService.getObject(ShadowType.class, accountRedOid, null, task, result);
         display("Model shadow RED", accountModelRed);
         assertAccountShadowModel(accountModelRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountModelRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        assertShadowPurpose(accountModelRed, null);
 
         // DEFAULT shadows
         String accountDefaultOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
 
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountDefaultOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountDefaultOid, USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
-        assertShadowLifecycle(accountModel, null);
+        assertShadowPurpose(accountModel, null);
 
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountDefaultOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
-        assertShadowLifecycle(accountShadow, null);
+        assertShadowPurpose(accountShadow, null);
 
         assertNoAccountPasswordNotifications();
         assertNoUserPasswordNotifications();
@@ -2971,8 +2973,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("User after", userAfter);
         assertLiveLinks(userAfter, 3);
 
-        assertDummyAccount(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
-        assertDummyPassword(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertDummyAccount(RESOURCE_DUMMY_PURPOSE.name, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_PURPOSE.name, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
@@ -2980,13 +2982,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
-        // LIFECYCLE shadows
+        // PURPOSE shadows
 
-        String accountLifecycleOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_LIFECYCLE_OID);
+        String accountPurposeOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_PURPOSE.oid);
 
-        PrismObject<ShadowType> accountShadowLifecycle = repositoryService.getObject(ShadowType.class, accountLifecycleOid, null, result);
-        display("Repo shadow LIFECYCLE", accountShadowLifecycle);
-        assertAccountShadowRepo(accountShadowLifecycle, accountLifecycleOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_LIFECYCLE_NAME));
+        PrismObject<ShadowType> accountShadowPurpose = repositoryService.getObject(ShadowType.class, accountPurposeOid, null, result);
+        display("Repo shadow PURPOSE", accountShadowPurpose);
+        assertAccountShadowRepo(accountShadowPurpose, accountPurposeOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_PURPOSE.name));
 
         // RED shadows
         String accountRedOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_RED_OID);
@@ -2994,23 +2996,23 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         PrismObject<ShadowType> accountShadowRed = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
         display("Repo shadow RED", accountShadowRed);
         assertAccountShadowRepo(accountShadowRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountShadowRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        assertShadowPurpose(accountShadowRed, null);
 
         PrismObject<ShadowType> accountModelRed = modelService.getObject(ShadowType.class, accountRedOid, null, task, result);
         display("Model shadow RED", accountModelRed);
         assertAccountShadowModel(accountModelRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        assertShadowLifecycle(accountModelRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        assertShadowPurpose(accountModelRed, null);
 
         // DEFAULT shadows
         String accountDefaultOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
 
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountDefaultOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountDefaultOid, USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
-        assertShadowLifecycle(accountModel, null);
+        assertShadowPurpose(accountModel, null);
 
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountDefaultOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
-        assertShadowLifecycle(accountShadow, null);
+        assertShadowPurpose(accountShadow, null);
 
         assertNoAccountPasswordNotifications();
         assertNoUserPasswordNotifications();
@@ -3020,7 +3022,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     /**
      * Add user without a password, but with an assignment. Check that the account is provisioned.
      * The account will always be in a proposed state, even if password encryption is used.
-     * The default lifecycle algorithm does not consider generated password to be good enough for the account to be active.
+     * The default purpose algorithm does not consider generated password to be good enough for the account to be active.
      * MID-5629
      */
     @Test
@@ -3048,12 +3050,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 .getOid();
 
         assertRepoShadow(accountOid)
-                // Lifecycle state is always proposed, even for encrypted passwords.
-                // The default lifecycle algorithm does not consider generated password to be good enough for the account to be active.
-                .assertLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
+                // Purpose is always 'incomplete', even for encrypted passwords.
+                // The default purpose algorithm does not consider generated password to be good enough for the account to be active.
+                .assertPurpose(ShadowPurposeType.INCOMPLETE);
 
         assertModelShadow(accountOid)
-                .assertLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
+                .assertPurpose(ShadowPurposeType.INCOMPLETE);
 
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_DRAKE_USERNAME, USER_DRAKE_FULLNAME, true);
@@ -3109,7 +3111,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
 
         PrismObject<ShadowType> shadowPasswordCachingModel = getShadowModel(accountJackSouvenirOid);
-        assertShadowLifecycle(shadowPasswordCachingModel, false);
+        assertShadowPurpose(shadowPasswordCachingModel, false);
 
         assertDummyPasswordConditional(RESOURCE_DUMMY_SOUVENIR_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
 
@@ -3147,7 +3149,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         PrismObject<ShadowType> shadowPasswordCachingRepo = getShadowRepo(accountJackSouvenirOid);
         display("Shadow repo", shadowPasswordCachingRepo);
-        assertShadowLifecycle(shadowPasswordCachingRepo, SchemaConstants.LIFECYCLE_ACTIVE);
+        assertShadowPurpose(shadowPasswordCachingRepo, null);
         assertCachedResourcePassword(shadowPasswordCachingRepo, PASSWORD_ALLIGATOR);
 
         assertDummyPassword(RESOURCE_DUMMY_SOUVENIR_NAME, ACCOUNT_JACK_DUMMY_USERNAME, PASSWORD_ALLIGATOR);
@@ -3268,7 +3270,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         PrismObject<ShadowType> shadowMaverickRepo = getShadowRepo(accountJackMaverickOid);
         display("Shadow repo", shadowMaverickRepo);
-        assertShadowLifecycle(shadowMaverickRepo, SchemaConstants.LIFECYCLE_ACTIVE);
+        assertShadowPurpose(shadowMaverickRepo, null);
 
         assertDummyPassword(RESOURCE_DUMMY_MAVERICK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, PASSWORD_CROCODILE);
 
@@ -3638,8 +3640,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         assertUserAfter(USER_JACK_OID)
                 .assertPassword(USER_PASSWORD_VALID_5, getPasswordStorageType())
-                .assertLiveLinks(4)
-                .getObject();
+                .assertLiveLinks(4);
 
         // default password mapping is normal
         assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
@@ -3734,13 +3735,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_VALID_6);
     }
 
-    protected ObjectDelta<ShadowType> createAccountInitializationDelta(String accountOid, String newAccountPassword) {
+    private ObjectDelta<ShadowType> createAccountInitializationDelta(String accountOid, String newAccountPassword) {
         ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountOid);
         ProtectedStringType passwordPs = new ProtectedStringType();
         passwordPs.setClearValue(newAccountPassword);
         shadowDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, passwordPs);
-        shadowDelta.addModificationReplaceProperty(ObjectType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
+        shadowDelta.addModificationReplaceProperty(ShadowType.F_PURPOSE, ShadowPurposeType.REGULAR);
         return shadowDelta;
     }
 
@@ -3788,16 +3789,16 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
     protected abstract void assertAccountActivationNotification(String dummyResourceName, String username);
 
-    protected abstract void assertShadowLifecycle(PrismObject<ShadowType> shadow, boolean focusCreated);
+    protected abstract void assertShadowPurpose(PrismObject<ShadowType> shadow, boolean focusCreated);
 
-    protected void assertShadowLifecycle(PrismObject<ShadowType> shadow, String expectedLifecycle) {
-        if (expectedLifecycle == null) {
-            String actualLifecycle = shadow.asObjectable().getLifecycleState();
-            if (actualLifecycle != null && !SchemaConstants.LIFECYCLE_ACTIVE.equals(actualLifecycle)) {
-                fail("Expected default lifecycle for " + shadow + ", but was " + actualLifecycle);
+    void assertShadowPurpose(PrismObject<ShadowType> shadow, ShadowPurposeType expected) {
+        if (expected == null) {
+            ShadowPurposeType actual = shadow.asObjectable().getPurpose();
+            if (actual != null && actual != ShadowPurposeType.REGULAR) {
+                fail("Expected default purpose for " + shadow + ", but was " + actual);
             }
         } else {
-            PrismAsserts.assertPropertyValue(shadow, ObjectType.F_LIFECYCLE_STATE, expectedLifecycle);
+            PrismAsserts.assertPropertyValue(shadow, ShadowType.F_PURPOSE, expected);
         }
     }
 
@@ -4392,7 +4393,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // WHEN
         when();
         modifyUserReplace(USER_THREE_HEADED_MONKEY_OID, UserType.F_LOCALITY, task, result,
-                createPolyString("Scabb Island"));
+                PolyString.fromOrig("Scabb Island"));
 
         // THEN
         then();

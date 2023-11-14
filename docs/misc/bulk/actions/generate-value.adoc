@@ -1,0 +1,122 @@
+= generate-value
+:page-wiki-name: generate-value
+:page-wiki-id: 24674322
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-25T10:34:35.773+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-05-25T10:45:24.477+02:00
+:page-since: "3.6"
+:page-upkeep-status: orange
+
+== Description
+
+Generate new values for item or items specified in the request according to the value policy.
+
+
+== Input
+
+Any object.
+
+
+== Output
+
+Object with the generated values.
+
+
+== Properties
+
+[%autowidth]
+|===
+| Property name | Meaning
+
+| items
+| Description of items to generate (see below).
+
+
+|===
+
+The description of items to be generated is the same as for the corresponding REST call (i.e. `/{type}/{oid}/generate`). It is `PolicyItemsDefinitionType` structure, consisting of `PolicyItemDefinitionType` elements, with the following structure:
+
+[%autowidth]
+|===
+| Item | Meaning | Examples | Default
+
+| target
+| Path of the item whose value is to be generated.
+| credentials/password/value, employeeNumber
+| -
+
+
+| valuePolicyRef
+| Reference to the value policy to be used.
+| oid=00000000-0000-0000-0000-000000000003, type=ValuePolicyType
+| user or system-wide password policy
+
+
+| execute
+| "True" if the generated value should be stored into the repository or resource object.
+| true, false
+| false
+
+
+|===
+
+Note that if the items parameter is not present, the default value is the following:
+
+.Default value for "items" parameter
+[source,xml]
+----
+<c:value xsi:type="api:PolicyItemsDefinitionType">
+  <api:policyItemDefinition>
+    <api:target>
+      <api:path>credentials/password/value</api:path>
+    </api:target>
+  </api:policyItemDefinition>
+</c:value>
+----
+
+Meaning that the item generated is the password value using user or system-wide password policy and not storing it into midPoint users.
+
+
+== Examples
+
+.Takes selected users, generates and stores passwords for them
+[source,xml]
+----
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xmlns:api="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3">
+    <s:pipeline>
+        <s:action>
+            <s:type>resolve</s:type>        <!-- resolves references to real objects -->
+        </s:action>
+        <s:action>
+            <s:type>generate-value</s:type>
+            <s:parameter>
+                <s:name>items</s:name>
+                <c:value xsi:type="api:PolicyItemsDefinitionType">
+                    <api:policyItemDefinition>
+                        <api:target>
+                            <api:path>credentials/password/value</api:path>
+                        </api:target>
+                        <api:execute>true</api:execute>
+                    </api:policyItemDefinition>
+                </c:value>
+            </s:parameter>
+        </s:action>
+        <s:filterContent>
+            <s:keep>name</s:keep>
+            <s:keep>credentials/password/value</s:keep>     <!-- removes everything except OID, name and password -->
+        </s:filterContent>
+    </s:pipeline>
+    <s:input>
+        <s:value xsi:type="c:ObjectReferenceType" oid="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" type="UserType"/> <!-- invalid OID -->
+        <s:value xsi:type="c:ObjectReferenceType" oid="c0c010c0-d34d-b33f-f00d-111111111116" type="UserType"/> <!-- guybrush -->
+        <s:value xsi:type="c:ObjectReferenceType" oid="c0c010c0-d34d-b33f-f00d-11111111111e" type="UserType"/> <!-- elaine -->
+    </s:input>
+    <s:options>
+        <s:continueOnAnyError>true</s:continueOnAnyError>
+    </s:options>
+</s:executeScript>
+----

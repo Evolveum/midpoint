@@ -1,16 +1,31 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
-
 import java.util.*;
 
-import static com.evolveum.midpoint.model.api.expr.MidpointFunctions.LOGGER;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
+/**
+ * Performs density-based clustering of data points based on specified parameters and distance measure.
+ * This class implements the Density-Based Spatial Clustering of Applications with Noise (DBSCAN) algorithm.
+ */
 public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> {
     private double eps;
     private int minPts;
+    int minPropertiesOverlap;
 
-    public DensityBasedClustering(double eps, int minPts, DistanceMeasure measure) {
+    private static final Trace LOGGER = TraceManager.getTrace(DensityBasedClustering.class);
+
+    /**
+     * Constructs a DensityBasedClustering instance with the specified parameters.
+     *
+     * @param eps               The epsilon parameter for distance-based clustering.
+     * @param minPts            The minimum number of points required to form a dense cluster.
+     * @param measure           The distance measure for clustering.
+     * @param minRolesOverlap   The minimum properties overlap required for adding a point to a cluster.
+     */
+    public DensityBasedClustering(double eps, int minPts, DistanceMeasure measure, int minRolesOverlap) {
         super(measure);
 
         if (eps < 0.0) {
@@ -22,17 +37,27 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
         } else {
             this.eps = eps;
             this.minPts = (minPts - 1);
-            LOGGER.info("Updated parameters: eps={} and minPts={}. New values: eps={} and minPts={}.",
+            LOGGER.debug("Updated parameters: eps={} and minPts={}. New values: eps={} and minPts={}.",
                     eps, minPts, this.eps, this.minPts);
         }
+
+        this.minPropertiesOverlap = minRolesOverlap;
+
     }
 
-    public List<Cluster<T>> cluster(Collection<T> points, Handler handler) {
+    /**
+     * Performs density-based clustering on the provided collection of data points.
+     *
+     * @param points   The collection of data points to cluster.
+     * @param handler  The progress increment handler for tracking the execution progress.
+     * @return A list of clusters containing the clustered data points.
+     */
+    public List<Cluster<T>> cluster(Collection<T> points, RoleAnalysisProgressIncrement handler) {
         List<Cluster<T>> clusters = new ArrayList<>();
         Map<Clusterable, PointStatus> visited = new HashMap<>();
 
         handler.setActive(true);
-        handler.setSubTitle("Clustering");
+        handler.enterNewStep("Clustering");
         handler.setOperationCountToProcess(points.size());
         for (T point : points) {
             handler.iterateActualStatus();
@@ -40,7 +65,8 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             if (visited.get(point) == null) {
                 List<T> neighbors = this.getNeighbors(point, points);
                 int neighborsSize = getNeightborsSize(neighbors);
-                if (neighborsSize >= this.minPts || point.getMembersCount() >= this.minPts) {
+
+                if (neighborsSize >= this.minPts || (point.getMembersCount() >= this.minPts && point.getPoint().size() >= minPropertiesOverlap)) {
                     Cluster<T> cluster = new Cluster<>();
                     clusters.add(this.expandCluster(cluster, point, neighbors, points, visited));
                 } else {

@@ -7,12 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import javax.xml.namespace.QName;
 
 public enum CollectionPanelType {
     ROLE_MEMBER_GOVERNANCE(true, "roleGovernance", true, FocusType.COMPLEX_TYPE),
@@ -22,7 +21,7 @@ public enum CollectionPanelType {
     ARCHETYPE_MEMBER_GOVERNANCE(true, "archetypeGovernance", true, FocusType.COMPLEX_TYPE),
     ARCHETYPE_MEMBER_MEMBER(true, "archetypeMembers", true, AssignmentHolderType.COMPLEX_TYPE),
     ORG_MEMBER_GOVERNANCE(true, "orgGovernance", true, FocusType.COMPLEX_TYPE),
-    ORG_MEMBER_MEMBER(true, "orgMembers", true, AssignmentType.COMPLEX_TYPE),
+    ORG_MEMBER_MEMBER(true, "orgMembers", true, AssignmentHolderType.COMPLEX_TYPE),
     MEMBER_ORGANIZATION(true, null, true, AssignmentHolderType.COMPLEX_TYPE),
     CARDS_GOVERNANCE(true, null, true, FocusType.COMPLEX_TYPE),
     MEMBER_WIZARD(true, null, false, UserType.COMPLEX_TYPE),

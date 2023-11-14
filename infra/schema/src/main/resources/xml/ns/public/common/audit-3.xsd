@@ -13,17 +13,16 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+        xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
         xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
         elementFormDefault="qualified"
         jaxb:extensionBindingPrefixes="xjc"
-        jaxb:version="2.0">
+        jaxb:version="3.0">
 
     <xsd:annotation>
         <xsd:documentation>
             Schema for audit event serialization.
 
-            Version: 3.7
             Recommended namespace prefix: audit
         </xsd:documentation>
         <xsd:appinfo>
@@ -305,6 +304,11 @@
             </xsd:element>
             <xsd:element name="delta" type="c:ObjectDeltaOperationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        Delta or objects affected by this audit operation.
+                        NOTE: In future this could be renamed to affectedObjects or similar to better
+                        signify that delta may be empty, but object was affected in some way by audit operation.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AuditEventRecordType.delta</a:displayName>
                         <!-- delta is property in complex value, so explicit mark as searchable is required by filter parser
@@ -646,6 +650,14 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DISCOVER_OBJECT"/>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="informationDisclosure">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INFORMATION_DISCLOSURE"/>
                         <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>

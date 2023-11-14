@@ -19,6 +19,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -352,6 +354,11 @@ public class SynchronizationRequest {
         public SynchronizationRequestBuilder withResourceOid(String resourceOid) {
             this.resourceOid = resourceOid;
             return this;
+        }
+
+        public SynchronizationRequestBuilder withDefaultAccountType() {
+            return withTypeIdentification(
+                    ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT));
         }
 
         public SynchronizationRequestBuilder withTypeIdentification(

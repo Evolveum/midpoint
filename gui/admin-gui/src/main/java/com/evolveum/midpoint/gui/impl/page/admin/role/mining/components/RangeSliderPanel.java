@@ -22,7 +22,6 @@ public class RangeSliderPanel extends InputPanel {
     private static final String ID_TEXT_FIELD = "slider_label";
     private static final String ID_SLIDER = "slider";
     Integer sliderSimilarityValue;
-
     private final ItemRealValueModel<Double> model;
 
     public RangeSliderPanel(String id, ItemRealValueModel<Double> realValueModel) {
@@ -30,11 +29,10 @@ public class RangeSliderPanel extends InputPanel {
 
         this.model = realValueModel;
 
-        if (model.getObject() == null) {
-            model.setObject(80.0);
-            sliderSimilarityValue = 80;
+        if (getModelSimilarity() == null) {
+            model.setObject((double) getDefaultValue());
+            sliderSimilarityValue = getDefaultValue();
         } else {
-//            model.setObject(model.getObject() * 100.0);
             sliderSimilarityValue = model.getObject().intValue();
         }
 
@@ -78,9 +76,13 @@ public class RangeSliderPanel extends InputPanel {
         };
         slider.add(new AttributeModifier("min", getMinValueD()));
         slider.add(new AttributeModifier("max", getMaxValueD()));
-        slider.add(new AttributeModifier("value", getDefaultValue()));
+        slider.add(new AttributeModifier("value", getModelSimilarity()));
         slider.add(new AttributeModifier("style", "width:" + getSliderWidth() + getSliderWidthUnit()));
         add(slider);
+    }
+
+    public Double getModelSimilarity() {
+        return model.getObject();
     }
 
     @Override

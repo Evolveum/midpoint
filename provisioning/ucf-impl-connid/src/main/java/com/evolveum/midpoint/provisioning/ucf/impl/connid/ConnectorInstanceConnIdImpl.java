@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.proc
 import static com.evolveum.midpoint.schema.reporting.ConnIdOperation.getIdentifier;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import static java.util.Collections.emptySet;
 import static org.apache.commons.collections4.SetUtils.emptyIfNull;
 
@@ -97,7 +99,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorInstanceConnIdImpl.class);
 
-    public static final String FACADE_OP_GET_OBJECT = ConnectorFacade.class.getName() + ".getObject";
+    private static final String FACADE_OP_GET_OBJECT = ConnectorFacade.class.getName() + ".getObject";
 
     private final ConnectorInfo connectorInfo;
     private final ConnectorType connectorType;
@@ -163,13 +165,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         this.instanceName = instanceName;
     }
 
-    public void setRawResourceSchema(ResourceSchema rawResourceSchema) {
+    private void setRawResourceSchema(ResourceSchema rawResourceSchema) {
         this.rawResourceSchema = rawResourceSchema;
         connIdNameMapper.setResourceSchema(rawResourceSchema);
-    }
-
-    public void resetResourceSchema() {
-        setRawResourceSchema(null);
     }
 
     @Override
@@ -277,7 +275,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException {
+    public ConnectorOperationalStatus getOperationalStatus() {
 
         if (!(connectorInfo instanceof LocalConnectorInfoImpl)) {
             LOGGER.trace("Cannot get operational status of a remote connector {}", connectorType);
@@ -456,8 +454,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
-            AttributesToReturn attributesToReturn, UcfExecutionContext ctx, OperationResult parentResult)
+    public UcfResourceObject fetchObject(
+            ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
+            AttributesToReturn attributesToReturn,
+            UcfExecutionContext ctx,
+            OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, SecurityViolationException, ConfigurationException {
 
@@ -469,18 +470,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         result.addArbitraryObjectAsParam("identification", resourceObjectIdentification);
         result.addContext("connector", connectorType);
         try {
-            if (connIdConnectorFacade == null) {
-                throw new IllegalStateException("Attempt to use unconfigured connector " + connectorType + " " + description);
-            }
+            stateCheck(connIdConnectorFacade != null,
+                    "Attempt to use unconfigured connector %s %s", connectorType, description);
 
-            // Get UID from the set of identifiers
             Uid uid = getUid(resourceObjectIdentification);
-            if (uid == null) {
-                throw new IllegalArgumentException(
-                        "Required attribute UID not found in identification set while attempting to fetch object identified by "
-                                + resourceObjectIdentification + " from " + description);
-            }
-
             ObjectClass icfObjectClass = objectClassToConnId(objectDefinition);
 
             OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
@@ -511,19 +504,19 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             }
 
             PrismObjectDefinition<ShadowType> shadowDefinition = toShadowDefinition(objectDefinition);
+
             // TODO configure error reporting method
-            PrismObject<ShadowType> shadow = connIdConvertor
-                    .convertToUcfObject(co, shadowDefinition, false, caseIgnoreAttributeNames,
+            return connIdConvertor
+                    .convertToUcfObject(
+                            co, shadowDefinition, false, caseIgnoreAttributeNames,
                             legacySchema, UcfFetchErrorReportingMethod.EXCEPTION, result)
                     .getResourceObject();
 
-            result.recordSuccess();
-            return shadow;
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -898,7 +891,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification identification,
+            ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
@@ -909,34 +902,31 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         OperationResult result = parentResult.createSubresult(OP_MODIFY_OBJECT);
         result.addArbitraryObjectAsParam("identification", identification);
         result.addArbitraryObjectCollectionAsParam("changes", changes);
+        result.addArbitraryObjectAsParam("options", options);
 
-        if (changes.isEmpty()) {
-            LOGGER.info("No modifications for connector object specified. Skipping processing.");
-            result.recordNotApplicableIfUnknown();
-            return AsynchronousOperationReturnValue.wrap(new ArrayList<>(0), result);
-        }
-
-        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
-
-        ObjectClass objClass = objectClassToConnId(identification.getResourceObjectDefinition());
-
-        Uid uid;
         try {
-            uid = getUid(identification);
-        } catch (SchemaException e) {
-            result.recordFatalError(e);
-            throw e;
-        }
 
-        if (uid == null) {
-            result.recordFatalError("Cannot determine UID from identification: " + identification);
-            throw new IllegalArgumentException("Cannot determine UID from identification: " + identification);
-        }
+            if (changes.isEmpty()) {
+                LOGGER.debug("No modifications for connector object specified. Skipping processing.");
+                result.recordNotApplicable();
+                return AsynchronousOperationReturnValue.wrap(new ArrayList<>(0), result);
+            }
 
-        if (supportsDeltaUpdateOp()) {
-            return modifyObjectDelta(identification, objClass, uid, shadow, changes, options, ctx, result);
-        } else {
-            return modifyObjectUpdate(identification, objClass, uid, shadow, changes, options, ctx, result);
+            UcfExecutionContext.checkExecutionFullyPersistent(ctx);
+
+            Uid uid = getUid(identification);
+            ObjectClass objClass = objectClassToConnId(identification.getResourceObjectDefinition());
+
+            if (supportsDeltaUpdateOp()) {
+                return modifyObjectDelta(identification, objClass, uid, changes, options, ctx, result);
+            } else {
+                return modifyObjectUpdate(identification, objClass, uid, changes, options, ctx, result);
+            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 
@@ -944,10 +934,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
      * Modifies object by using new delta update operations.
      */
     private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObjectDelta(
-            ResourceObjectIdentification identification,
+            ResourceObjectIdentification.WithPrimary identification,
             ObjectClass objClass,
             Uid uid,
-            PrismObject<ShadowType> shadow,
             Collection<Operation> changes,
             ConnectorOperationOptions options,
             UcfExecutionContext reporter,
@@ -1045,25 +1034,23 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         return AsynchronousOperationReturnValue.wrap(knownExecutedOperations, result);
     }
 
-    private Collection<PropertyModificationOperation<?>> convertToExecutedOperations(Set<AttributeDelta> knownExecutedChanges,
-            ResourceObjectIdentification identification, ResourceObjectDefinition objectClassDef) throws SchemaException {
+    private Collection<PropertyModificationOperation<?>> convertToExecutedOperations(
+            Set<AttributeDelta> knownExecutedIcfDeltas,
+            ResourceObjectIdentification.WithPrimary identification,
+            ResourceObjectDefinition objectClassDef) throws SchemaException {
         Collection<PropertyModificationOperation<?>> knownExecutedOperations = new ArrayList<>();
-        for (AttributeDelta executedDelta : knownExecutedChanges) {
-            String name = executedDelta.getName();
+        for (AttributeDelta executedIcfDelta : knownExecutedIcfDeltas) {
+            String name = executedIcfDelta.getName();
             if (name.equals(Uid.NAME)) {
-                Uid newUid = new Uid((String)executedDelta.getValuesToReplace().get(0));
+                Uid newUid = new Uid((String)executedIcfDelta.getValuesToReplace().get(0));
                 PropertyDelta<String> uidDelta = createUidDelta(newUid, getUidDefinition(identification));
                 PropertyModificationOperation<?> uidMod = new PropertyModificationOperation<>(uidDelta);
                 knownExecutedOperations.add(uidMod);
-
-                replaceUidValue(identification, newUid); // TODO why we are doing this? Do we do that for the caller?
             } else if (name.equals(Name.NAME)) {
-                Name newName = new Name((String)executedDelta.getValuesToReplace().get(0));
-                PropertyDelta<String> nameDelta = createNameDelta(newName, getNameDefinition(identification));
-                PropertyModificationOperation<?> nameMod = new PropertyModificationOperation<>(nameDelta);
-                knownExecutedOperations.add(nameMod);
-
-                replaceNameValue(identification, new Name((String)executedDelta.getValuesToReplace().get(0)));  // TODO why?
+                Name newName = new Name((String)executedIcfDelta.getValuesToReplace().get(0));
+                PropertyDelta<?> nameDelta = createNameDelta(newName, getNameDefinition(identification));
+                knownExecutedOperations.add(
+                        new PropertyModificationOperation<>(nameDelta));
             } else {
                 //noinspection unchecked
                 ResourceAttributeDefinition<Object> definition =
@@ -1074,16 +1061,16 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 }
                 PropertyDelta<Object> delta = PrismContext.get().deltaFactory().property()
                         .create(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getItemName()), definition);
-                if (executedDelta.getValuesToReplace() != null) {
-                    delta.setRealValuesToReplace(executedDelta.getValuesToReplace().get(0));
+                if (executedIcfDelta.getValuesToReplace() != null) {
+                    delta.setRealValuesToReplace(executedIcfDelta.getValuesToReplace().get(0));
                 } else {
-                    if (executedDelta.getValuesToAdd() != null) {
-                        for (Object value : executedDelta.getValuesToAdd()) {
+                    if (executedIcfDelta.getValuesToAdd() != null) {
+                        for (Object value : executedIcfDelta.getValuesToAdd()) {
                             delta.addRealValuesToAdd(value);
                         }
                     }
-                    if (executedDelta.getValuesToRemove() != null) {
-                        for (Object value : executedDelta.getValuesToRemove()) {
+                    if (executedIcfDelta.getValuesToRemove() != null) {
+                        for (Object value : executedIcfDelta.getValuesToRemove()) {
                             delta.addRealValuesToDelete(value);
                         }
                     }
@@ -1098,10 +1085,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
      * Modifies object by using old add/delete/replace attribute operations.
      */
     private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObjectUpdate(
-            ResourceObjectIdentification identification,
+            ResourceObjectIdentification.WithPrimary identification,
             ObjectClass objClass,
             Uid uid,
-            PrismObject<ShadowType> shadow,
             Collection<Operation> changes,
             ConnectorOperationOptions options,
             UcfExecutionContext reporter,
@@ -1318,39 +1304,22 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         if (!originalUid.equals(uid.getUidValue())) {
             // UID was changed during the operation, this is most likely a rename
             PropertyDelta<String> uidDelta = createUidDelta(uid, getUidDefinition(identification));
-            PropertyModificationOperation<?> uidMod = new PropertyModificationOperation<>(uidDelta);
             // TODO what about matchingRuleQName ?
-            sideEffectChanges.add(uidMod);
-
-            replaceUidValue(identification, uid);
+            sideEffectChanges.add(
+                    new PropertyModificationOperation<>(uidDelta));
         }
         return AsynchronousOperationReturnValue.wrap(sideEffectChanges, result);
     }
 
-    private void replaceNameValue(ResourceObjectIdentification identification, Name newName) throws SchemaException {
-        ResourceAttribute<String> secondaryIdentifier = identification.getSecondaryIdentifier();
-        if (secondaryIdentifier == null) {
-            // fallback, compatibility
-            for (ResourceAttribute<?> attr : identification.getAllIdentifiers()) {
-                if (attr.getElementName().equals(SchemaConstants.ICFS_NAME)) {
-                    // expecting the NAME property is of type String
-                    //noinspection unchecked
-                    ((ResourceAttribute<String>) attr).setRealValue(newName.getNameValue());
-                    return;
-                }
-            }
-            throw new IllegalStateException("No identifiers");
-        }
-        secondaryIdentifier.setRealValue(newName.getNameValue());
-    }
-
-    private PropertyDelta<String> createNameDelta(Name name, ResourceAttributeDefinition<String> nameDefinition) {
-        PropertyDelta<String> uidDelta =
-                PrismContext.get().deltaFactory().property()
-                        .create(ItemPath.create(ShadowType.F_ATTRIBUTES, nameDefinition.getItemName()),
-                nameDefinition);
-        uidDelta.setRealValuesToReplace(name.getNameValue());
-        return uidDelta;
+    private PropertyDelta<?> createNameDelta(
+            @NotNull Name name, @NotNull ResourceAttributeDefinition<?> nameDefinition) {
+        //noinspection unchecked
+        PropertyDelta<String> nameDelta =
+                (PropertyDelta<String>) PrismContext.get().deltaFactory().property().create(
+                        ItemPath.create(ShadowType.F_ATTRIBUTES, nameDefinition.getItemName()),
+                        nameDefinition);
+        nameDelta.setRealValuesToReplace(name.getNameValue());
+        return nameDelta;
     }
 
     private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition<String> uidDefinition) {
@@ -1425,71 +1394,74 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     @Override
     public AsynchronousOperationResult deleteObject(
-            ResourceObjectDefinition objectDefinition,
-            PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers,
-            UcfExecutionContext ctx,
-            OperationResult parentResult)
+            @NotNull ResourceObjectIdentification<?> identification,
+            @Nullable PrismObject<ShadowType> shadow,
+            @Nullable UcfExecutionContext ctx,
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException {
-        Validate.notNull(objectDefinition, "No objectclass");
 
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
         OperationResult result = parentResult.createSubresult(OP_DELETE_OBJECT);
-        result.addArbitraryObjectCollectionAsParam("identifiers", identifiers);
-
-        ObjectClass objClass = objectClassToConnId(objectDefinition);
-        Uid uid;
-        try {
-            uid = getUid(objectDefinition, identifiers);
-        } catch (SchemaException e) {
-            result.recordFatalError(e);
-            throw e;
-        }
-
-        OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".delete");
-        icfResult.addArbitraryObjectAsParam("uid", uid);
-        icfResult.addArbitraryObjectAsParam("objectClass", objClass);
-        icfResult.addContext("connector", connIdConnectorFacade.getClass());
-
-        InternalMonitor.recordConnectorOperation("delete");
-        InternalMonitor.recordConnectorModification("delete");
-        ConnIdOperation operation = recordIcfOperationStart(ctx, ProvisioningOperation.ICF_DELETE, objectDefinition, uid);
-
-        LOGGER.trace("Invoking ConnId delete operation: {}", operation);
+        result.addArbitraryObjectAsParam("identification", identification);
         try {
 
-            connIdConnectorFacade.delete(objClass, uid, new OperationOptionsBuilder().build());
-            recordIcfOperationEnd(ctx, operation, null);
-
-            icfResult.recordSuccess();
-
-        } catch (Throwable ex) {
-            recordIcfOperationEnd(ctx, operation, ex);
-            String desc = this.getHumanReadableName() + " while deleting object identified by ConnId UID '"+uid.getUidValue()+"'";
-            Throwable midpointEx = processConnIdException(ex, desc, icfResult);
-            result.computeStatus("Removing attribute values failed");
-            // Do some kind of acrobatics to do proper throwing of checked
-            // exception
-            if (midpointEx instanceof ObjectNotFoundException) {
-                throw (ObjectNotFoundException) midpointEx;
-            } else if (midpointEx instanceof CommunicationException) {
-                throw (CommunicationException) midpointEx;
-            } else if (midpointEx instanceof GenericFrameworkException) {
-                throw (GenericFrameworkException) midpointEx;
-            } else if (midpointEx instanceof SchemaException) {
-                // Schema exception during delete? It must be a missing UID
-                throw new IllegalArgumentException(midpointEx.getMessage(), midpointEx);
-            } else if (midpointEx instanceof RuntimeException) {
-                throw (RuntimeException) midpointEx;
-            } else if (midpointEx instanceof Error) {
-                throw (Error) midpointEx;
-            } else {
-                throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
+            if (!(identification instanceof ResourceObjectIdentification.WithPrimary primaryIdentification)) {
+                throw new IllegalArgumentException("Expected primary identification, got " + identification);
             }
+
+            ResourceObjectDefinition objectDefinition = primaryIdentification.getResourceObjectDefinition();
+
+            ObjectClass objClass = objectClassToConnId(objectDefinition);
+            Uid uid = getUid(primaryIdentification);
+
+            InternalMonitor.recordConnectorOperation("delete");
+            InternalMonitor.recordConnectorModification("delete");
+            ConnIdOperation operation = recordIcfOperationStart(ctx, ProvisioningOperation.ICF_DELETE, objectDefinition, uid);
+
+            OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".delete");
+            icfResult.addArbitraryObjectAsParam("uid", uid);
+            icfResult.addArbitraryObjectAsParam("objectClass", objClass);
+            icfResult.addContext("connector", connIdConnectorFacade.getClass());
+
+            try {
+                LOGGER.trace("Invoking ConnId delete operation: {}", operation);
+
+                connIdConnectorFacade.delete(objClass, uid, new OperationOptionsBuilder().build());
+                recordIcfOperationEnd(ctx, operation, null);
+
+            } catch (Throwable ex) {
+                recordIcfOperationEnd(ctx, operation, ex);
+                String desc = "%s while deleting object identified by ConnId UID '%s'".formatted(
+                        getHumanReadableName(), uid.getUidValue());
+                Throwable midpointEx = processConnIdException(ex, desc, icfResult);
+                // Do some kind of acrobatics to do proper throwing of checked exception
+                if (midpointEx instanceof ObjectNotFoundException) {
+                    throw (ObjectNotFoundException) midpointEx;
+                } else if (midpointEx instanceof CommunicationException) {
+                    throw (CommunicationException) midpointEx;
+                } else if (midpointEx instanceof GenericFrameworkException) {
+                    throw (GenericFrameworkException) midpointEx;
+                } else if (midpointEx instanceof SchemaException) {
+                    // Schema exception during delete? It must be a missing UID
+                    throw new IllegalArgumentException(midpointEx.getMessage(), midpointEx);
+                } else if (midpointEx instanceof RuntimeException) {
+                    throw (RuntimeException) midpointEx;
+                } else if (midpointEx instanceof Error) {
+                    throw (Error) midpointEx;
+                } else {
+                    throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
+                }
+            } finally {
+                icfResult.close();
+            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
 
-        result.computeStatus();
         return AsynchronousOperationResult.wrap(result);
     }
 
@@ -1659,7 +1631,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                         //
                         // So we can safely compute/cleanup/summarize results here.
                         handleResult.computeStatusIfUnknown();
-                        handleResult.cleanupResult();
+                        handleResult.cleanup();
                         connIdResult.summarize(true);
                         recordIcfOperationResume(ctx, operation);
                     }
@@ -1674,14 +1646,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     // non-null when all changes were fetched. And some of the connectors return null even then.
                     LOGGER.trace("connector sync method returned: {}", finalToken);
                     connIdResult.computeStatus();
-                    connIdResult.cleanupResult();
+                    connIdResult.cleanup();
                     connIdResult.addReturn(OperationResult.RETURN_COUNT, deltasProcessed.get());
                     recordIcfOperationEnd(ctx, operation, null);
                 } catch (Throwable ex) {
                     recordIcfOperationEnd(ctx, operation, ex);
                     Throwable midpointEx = processConnIdException(ex, this, connIdResult);
                     connIdResult.computeStatusIfUnknown();
-                    connIdResult.cleanupResult();
+                    connIdResult.cleanup();
                     result.computeStatus();
                     // Do some kind of acrobatics to do proper throwing of checked exception
                     if (midpointEx instanceof CommunicationException) {
@@ -1825,7 +1797,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 pagedSearchConfiguration = getCapability(PagedSearchCapabilityType.class);
             }
 
-            return new SearchExecutor(objectDefinition, query, handler, attributesToReturn,
+            return new SearchExecutor(
+                    objectDefinition, query, handler, attributesToReturn,
                     pagedSearchConfiguration, searchHierarchyConstraints,
                     ucfErrorReportingMethod, ctx, this)
                     .execute(result);
@@ -1968,140 +1941,52 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     // UTILITY METHODS
 
-    private Uid getUid(ResourceObjectIdentification resourceObjectIdentification) throws SchemaException {
-        ResourceAttribute<String> primaryIdentifier = resourceObjectIdentification.getPrimaryIdentifier();
-        if (primaryIdentifier == null) {
-            return null;
+    private @NotNull Uid getUid(ResourceObjectIdentification.WithPrimary identification) throws SchemaException {
+        String uidValue = (String) identification.getPrimaryIdentifier().getRealValue();
+        String nameValue = getNameValue(identification);
+        if (nameValue == null) {
+            return new Uid(uidValue);
+        } else {
+            return new Uid(uidValue, new Name(nameValue));
         }
-        String uidValue = primaryIdentifier.getRealValue();
-        String nameValue = getNameValue(resourceObjectIdentification);
-        if (uidValue != null) {
-            if (nameValue == null) {
-                return new Uid(uidValue);
-            } else {
-                return new Uid(uidValue, new Name(nameValue));
-            }
-        }
-        return null;
     }
 
-    private String getNameValue(ResourceObjectIdentification resourceObjectIdentification) throws SchemaException {
-        Collection<? extends ResourceAttribute<?>> secondaryIdentifiers = resourceObjectIdentification.getSecondaryIdentifiers();
+    private String getNameValue(ResourceObjectIdentification<?> identification) throws SchemaException {
+        var secondaryIdentifiers = identification.getSecondaryIdentifiers();
         if (secondaryIdentifiers.size() == 1) {
             return (String) secondaryIdentifiers.iterator().next().getRealValue();
         } else if (secondaryIdentifiers.size() > 1) {
-            for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
-                ResourceAttributeDefinition<?> definition = secondaryIdentifier.getDefinition();
-                if (definition != null) {
-                    if (Name.NAME.equals(definition.getFrameworkAttributeName())) {
-                        return (String) secondaryIdentifier.getRealValue();
-                    }
+            for (var secondaryIdentifier : secondaryIdentifiers) {
+                if (Name.NAME.equals(secondaryIdentifier.getDefinition().getFrameworkAttributeName())) {
+                    return secondaryIdentifier.getRealValue().toString();
                 }
             }
-            throw new SchemaException("More than one secondary indentifier in "+resourceObjectIdentification+", cannot detemine ConnId __NAME__");
+            throw new SchemaException(
+                    "More than one secondary identifier in " + identification + ", cannot determine ConnId __NAME__");
+        } else {
+            assert secondaryIdentifiers.isEmpty();
+            assert identification.hasPrimaryIdentifier();
+            return null;
         }
-        return null;
     }
 
-    /**
-     * Looks up ConnId Uid identifier in a (potentially multi-valued) set of
-     * identifiers. Handy method to convert midPoint identifier style to an ConnId
-     * identifier style.
-     *
-     * @param identifiers
-     *            midPoint resource object identifiers
-     * @return ConnId UID or null
-     */
-    private Uid getUid(ResourceObjectDefinition objectDefinition, Collection<? extends ResourceAttribute<?>> identifiers)
+    private ResourceAttributeDefinition<?> getNameDefinition(ResourceObjectIdentification.WithPrimary identification)
             throws SchemaException {
-        if (identifiers.size() == 0) {
-            return null;
+        ResourceObjectDefinition objDef = identification.getResourceObjectDefinition();
+        var namingAttributeDef = objDef.getNamingAttribute();
+        if (namingAttributeDef != null) {
+            return namingAttributeDef;
         }
-        if (identifiers.size() == 1) {
-            try {
-                return new Uid((String) identifiers.iterator().next().getRealValue());
-            } catch (IllegalArgumentException e) {
-                throw new SchemaException(e.getMessage(), e);
-            }
+        var icfsNameDef = objDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        if (icfsNameDef != null) {
+            return icfsNameDef;
         }
-        String uidValue = null;
-        String nameValue = null;
-        for (ResourceAttribute<?> attr : identifiers) {
-            if (objectDefinition.isPrimaryIdentifier(attr.getElementName())) {
-                //noinspection unchecked
-                uidValue = ((ResourceAttribute<String>) attr).getValue().getValue();
-            }
-            if (objectDefinition.isSecondaryIdentifier(attr.getElementName())) {
-                ResourceAttributeDefinition<?> attrDef = objectDefinition.findAttributeDefinitionRequired(attr.getElementName());
-                String frameworkAttributeName = attrDef.getFrameworkAttributeName();
-                if (Name.NAME.equals(frameworkAttributeName)) {
-                    //noinspection unchecked
-                    nameValue = ((ResourceAttribute<String>) attr).getValue().getValue();
-                }
-            }
-        }
-        if (uidValue != null) {
-            if (nameValue == null) {
-                return new Uid(uidValue);
-            } else {
-                return new Uid(uidValue, new Name(nameValue));
-            }
-        }
-        // fallback, compatibility
-        for (ResourceAttribute<?> attr : identifiers) {
-            if (attr.getElementName().equals(SchemaConstants.ICFS_UID)) {
-                //noinspection unchecked
-                return new Uid(((ResourceAttribute<String>) attr).getValue().getValue());
-            }
-        }
-        return null;
+        throw new SchemaException("No naming attribute definition for " + identification);
     }
 
-    private void replaceUidValue(ResourceObjectIdentification identification, Uid newUid) throws SchemaException {
-        ResourceAttribute<String> primaryIdentifier = identification.getPrimaryIdentifier();
-        if (primaryIdentifier == null) {
-            // fallback, compatibility
-            Collection<? extends ResourceAttribute<?>> identifiers = identification.getAllIdentifiers();
-            for (ResourceAttribute<?> attr : identifiers) {
-                if (attr.getElementName().equals(SchemaConstants.ICFS_UID)) {
-                    // expecting the UID property is of type String
-                    //noinspection unchecked
-                    ((ResourceAttribute<String>) attr).setRealValue(newUid.getUidValue());
-                    return;
-                }
-            }
-            throw new IllegalStateException("No UID attribute in " + identifiers);
-        }
-        primaryIdentifier.setRealValue(newUid.getUidValue());
-    }
-
-    private ResourceAttributeDefinition<String> getNameDefinition(ResourceObjectIdentification identification) throws SchemaException {
-        ResourceAttribute<String> secondaryIdentifier = identification.getSecondaryIdentifier();
-        if (secondaryIdentifier == null) {
-            // fallback, compatibility
-            for (ResourceAttribute<?> attr : identification.getAllIdentifiers()) {
-                if (attr.getElementName().equals(SchemaConstants.ICFS_NAME)) {
-                    //noinspection unchecked
-                    return (ResourceAttributeDefinition<String>) attr.getDefinition();
-                }
-            }
-            return null;
-        }
-        return secondaryIdentifier.getDefinition();
-    }
-
-    private ResourceAttributeDefinition getUidDefinition(ResourceObjectIdentification identification) throws SchemaException {
-        ResourceAttribute<String> primaryIdentifier = identification.getPrimaryIdentifier();
-        if (primaryIdentifier == null) {
-            // fallback, compatibility
-            for (ResourceAttribute<?> attr : identification.getAllIdentifiers()) {
-                if (attr.getElementName().equals(SchemaConstants.ICFS_UID)) {
-                    return attr.getDefinition();
-                }
-            }
-            return null;
-        }
-        return primaryIdentifier.getDefinition();
+    private <T> ResourceAttributeDefinition<T> getUidDefinition(ResourceObjectIdentification.WithPrimary identification) {
+        //noinspection unchecked
+        return (ResourceAttributeDefinition<T>) identification.getPrimaryIdentifierAttribute().getDefinition();
     }
 
     @Override
@@ -2290,12 +2175,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
     }
 
-    private OperationOptions createConnIdOptions(ConnectorOperationOptions options, Collection<Operation> changes) throws SchemaException {
+    private OperationOptions createConnIdOptions(ConnectorOperationOptions options, Collection<Operation> changes)
+            throws SchemaException {
         OperationOptionsBuilder connIdOptionsBuilder = new OperationOptionsBuilder();
         if (options != null) {
-            ResourceObjectIdentification runAsIdentification = options.getRunAsIdentification();
+            ResourceObjectIdentification<?> runAsIdentification = options.getRunAsIdentification();
             if (runAsIdentification != null) {
-                connIdOptionsBuilder.setRunAsUser(getNameValue(runAsIdentification));
+                connIdOptionsBuilder.setRunAsUser(getRunAsNameValue(runAsIdentification));
                 // We are going to figure out what the runAsPassword may be.
                 // If there is a password change then there should be old value in the delta.
                 // This is quite a black magic. But we do not have a better way now.
@@ -2321,6 +2207,17 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             }
         }
         return connIdOptionsBuilder.build();
+    }
+
+    private String getRunAsNameValue(ResourceObjectIdentification<?> identification) throws SchemaException {
+        var nameValue = getNameValue(identification);
+        if (nameValue != null) {
+            return nameValue;
+        } else {
+            ResourceObjectIdentifier<?> primaryIdentifier = identification.getPrimaryIdentifier();
+            assert primaryIdentifier != null;
+            return primaryIdentifier.getRealValue().toString();
+        }
     }
 
     boolean isLegacySchema() {

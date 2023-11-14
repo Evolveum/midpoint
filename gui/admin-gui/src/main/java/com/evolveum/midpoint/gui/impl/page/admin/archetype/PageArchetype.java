@@ -6,24 +6,24 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.archetype;
 
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
-import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.archetype.ArchetypeSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
@@ -87,5 +87,17 @@ public class PageArchetype extends PageAbstractRole<ArchetypeType, FocusDetailsM
             LOGGER.error("Couldn't apply deltas for archetypes " + getModelWrapperObject().getObject(), e);
         }
         return null;
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        String string = getString("ObjectTypeGuiDescriptor.archetype");
+        String archetypeTitle = getLocalizationService()
+                .translate(PolyString.fromOrig(string), WebComponentUtil.getCurrentLocale(), true);
+
+        String archetypeObjectName = WebComponentUtil.getName(getModelWrapperObject().getObject());
+        return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getModel(),
+                archetypeTitle.toLowerCase(), archetypeObjectName);
+
     }
 }

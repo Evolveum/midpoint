@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.google.common.base.Preconditions;
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.wf.impl.processors.primary.cases.CaseClosing;
@@ -21,6 +23,7 @@ import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +44,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -90,8 +92,8 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
     // =================================================================================== Processing model invocation
 
     // beware, may damage model context during execution
-    public List<PcpStartInstruction> previewModelInvocation(@NotNull ModelInvocationContext<?> context,
-            @NotNull OperationResult result)
+    public List<PcpStartInstruction> previewModelInvocation(
+            @NotNull ModelInvocationContext<?> context, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         List<PcpStartInstruction> rv = new ArrayList<>();
@@ -110,10 +112,17 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
         }
     }
 
-    private <O extends ObjectType> HookOperationMode previewOrProcessModelInvocation(@NotNull ModelInvocationContext<O> ctx,
-            boolean previewOnly, List<PcpStartInstruction> startInstructionsHolder, @NotNull OperationResult parentResult)
+    private <O extends ObjectType> HookOperationMode previewOrProcessModelInvocation(
+            @NotNull ModelInvocationContext<O> ctx,
+            boolean previewOnly,
+            @Nullable List<PcpStartInstruction> startInstructionsHolder,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
+
+        if (previewOnly) {
+            Preconditions.checkNotNull(startInstructionsHolder, "startInstructionsHolder");
+        }
 
         OperationResult result = parentResult.subresult(OP_PREVIEW_OR_PROCESS_MODEL_INVOCATION)
                 .addParam("previewOnly", previewOnly)
@@ -136,22 +145,29 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
                 return null;
             }
 
-            // examine the request using process aspects
+            // Examine the request using "aspects" -> start instructions
             ObjectTreeDeltas<O> changesBeingDecomposed = objectTreeDeltas.clone();
             List<PcpStartInstruction> startInstructions = gatherStartInstructions(changesBeingDecomposed, ctx, result);
 
-            // start the process(es)
-            removeEmptyProcesses(startInstructions, ctx, result);
-            if (startInstructions.isEmpty()) {
-                LOGGER.debug("There are no workflow processes to be started, exiting.");
-                return null;
-            }
+            // Remove empty processes, and return all changes from them back into "changes being decomposed"
+            removeEmptyProcesses(startInstructions, changesBeingDecomposed, ctx, result);
+
             if (previewOnly) {
                 startInstructionsHolder.addAll(startInstructions);
                 return null;
-            } else {
-                return executeStartInstructions(startInstructions, ctx, changesBeingDecomposed, result);
             }
+
+            // Now start the process(es)
+            if (startInstructions.isEmpty()) {
+                LOGGER.debug("There are no workflow processes to be started, exiting.");
+                // Although the changes in empty processes were returned to changesBeingDecomposed, and these are ignored
+                // outside this method, it is not a problem. Because we return "null", the clockwork processing continues
+                // with the original deltas.
+                return null;
+            }
+            // "Changes being decomposed" contains changes that do not require approval. They are stored into separate case.
+            return executeStartInstructions(startInstructions, ctx, changesBeingDecomposed, result);
+
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -160,14 +176,20 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
         }
     }
 
-    private void removeEmptyProcesses(List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+    private <O extends ObjectType> void removeEmptyProcesses(
+            @NotNull List<PcpStartInstruction> instructions,
+            @NotNull ObjectTreeDeltas<O> changesWithoutApproval,
+            @NotNull ModelInvocationContext<O> ctx,
+            @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         for (Iterator<PcpStartInstruction> iterator = instructions.iterator(); iterator.hasNext(); ) {
             PcpStartInstruction instruction = iterator.next();
-            if (instruction.startsWorkflowProcess() &&
-                    isEmpty(instruction, stageComputeHelper, ctx, result)) {
-                LOGGER.debug("Skipping empty processing instruction: {}", DebugUtil.debugDumpLazily(instruction));
+            if (instruction.startsWorkflowProcess()
+                    && isEmpty(instruction, stageComputeHelper, ctx, result)) {
+                LOGGER.debug("Skipping empty processing instruction (returning deltas to the 'without approval' set): {}",
+                        instruction.debugDumpLazily());
+                //noinspection unchecked
+                changesWithoutApproval.merge((ObjectTreeDeltas<O>) instruction.getDeltasToApprove());
                 iterator.remove();
             }
         }
@@ -222,7 +244,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
                     ctx.wfConfiguration != null ? ctx.wfConfiguration.getPrimaryChangeProcessor() : null;
             List<PcpStartInstruction> startProcessInstructions = new ArrayList<>();
             for (PrimaryChangeAspect aspect : getActiveChangeAspects(processorConfigurationType)) {
-                if (changesBeingDecomposed.isEmpty()) {      // nothing left
+                if (changesBeingDecomposed.isEmpty()) { // nothing left
                     break;
                 }
                 List<PcpStartInstruction> instructions = aspect.getStartInstructions(changesBeingDecomposed, ctx, result);
@@ -258,7 +280,8 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
         }
     }
 
-    private HookOperationMode executeStartInstructions(List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx,
+    private HookOperationMode executeStartInstructions(
+            List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx,
             ObjectTreeDeltas<?> changesWithoutApproval, OperationResult parentResult) {
         // Note that this result cannot be minor, because we need to be able to retrieve case OID. And minor results get cut off.
         OperationResult result = parentResult.subresult(OP_EXECUTE_START_INSTRUCTIONS)

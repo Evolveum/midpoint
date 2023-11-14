@@ -288,7 +288,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
             recordOperationEnd(this, outcome, exception);
             if (startInfo.isSimpleCaller()) {
                 activityState.getLiveProgress().increment(outcome, ActivityProgress.Counters.COMMITTED);
-                updateStatisticsForSimpleClients();
+                updateStatisticsForSimpleClients(false);
             }
         }
 
@@ -327,10 +327,10 @@ public class ActivityItemProcessingStatistics extends Initializable {
      * Very ugly hack. We create our own operation result (!!).
      */
     @Experimental
-    private void updateStatisticsForSimpleClients() {
+    public void updateStatisticsForSimpleClients(boolean forced) {
         try {
             activityState.updateProgressAndStatisticsNoCommit();
-            if (System.currentTimeMillis() > lastStatisticsUpdatedForSimpleClients + STATISTICS_UPDATE_INTERVAL) {
+            if (forced || System.currentTimeMillis() > lastStatisticsUpdatedForSimpleClients + STATISTICS_UPDATE_INTERVAL) {
                 lastStatisticsUpdatedForSimpleClients = System.currentTimeMillis();
                 activityState.flushPendingTaskModificationsChecked(new OperationResult(OP_UPDATE_STATISTICS_FOR_SIMPLE_CLIENT));
             }

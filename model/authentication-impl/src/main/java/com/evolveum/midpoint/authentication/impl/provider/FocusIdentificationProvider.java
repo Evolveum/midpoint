@@ -51,10 +51,10 @@ public class FocusIdentificationProvider extends MidpointAbstractAuthenticationP
             List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
 
-        if (StringUtils.isNotBlank(enteredUsername)) {
-            LOGGER.debug("User already identified, skipping focusIdentification module.");
-            return authentication;
-        }
+//        if (StringUtils.isNotBlank(enteredUsername)) {
+//            LOGGER.debug("User already identified, skipping focusIdentification module.");
+//            return authentication;
+//        }
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
         if (!(authentication instanceof FocusVerificationToken focusVerificationToken)) {

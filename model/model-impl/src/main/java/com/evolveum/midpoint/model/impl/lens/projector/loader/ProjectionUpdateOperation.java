@@ -34,6 +34,7 @@ import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.GetOperationOptions.isNoFetch;
@@ -42,8 +43,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.isNoFetch;
  * Updates the projection context:
  *
  * . Sets the "do reconciliation" flag for volatile resources.
- * . Loads the object (from repo or from resource), if needed. See {@link #loadCurrentObjectIfNeeded(OperationResult)}
- * and {@link #needToReload()}.
+ * . Loads the object (from repo or from resource), if needed. See {@link #loadCurrentObjectIfNeeded(OperationResult)}.
  * . Loads the resource, if not loaded yet.
  * . Sets projection security policy.
  * . Sets "can project" flag if limited propagation option is present.
@@ -134,24 +134,84 @@ class ProjectionUpdateOperation<F extends ObjectType> {
     }
 
     /**
-     * Loads the current object, if it's not loaded or if it needs to be reloaded.
+     * Loads the current object, if needed. See {@link #shouldLoadCurrentObject()} for the exact algorithm.
      *
      * Returns true if an error occurred.
      */
     private boolean loadCurrentObjectIfNeeded(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException {
+
         projectionObject = asObjectable(projectionContext.getObjectCurrent());
-        if (projectionContext.getObjectCurrent() == null || needToReload()) {
+
+        if (shouldLoadCurrentObject()) {
             return loadCurrentObject(result);
         } else {
-            LOGGER.trace("No need to reload the object");
             if (projectionObjectOid != null) {
                 projectionContext.setExists(
                         ShadowUtil.isExists(projectionObject));
             }
             return false;
         }
+    }
+
+    /**
+     * Should the object be loaded or reloaded?
+     *
+     * Coupled with {@link #createProjectionLoadingOptions()} regarding whether `noFetch` option should be used.
+     *
+     * There is an interesting side effect of "no fetch" loading of already-loaded object: the "full shadow" flag is discarded
+     * in such cases. This may ensure the consistency at the cost of resource object re-loading.
+     */
+    private boolean shouldLoadCurrentObject() throws SchemaException, ConfigurationException {
+        if (projectionContext.getObjectCurrent() == null) {
+            LOGGER.trace("Will load current object, as there is none loaded");
+            return true;
+        }
+
+        if (projectionContext.isDoReconciliation() && !projectionContext.isFullShadow()) {
+            LOGGER.trace("Will reload current object, because we are doing reconciliation and we do not have full shadow");
+            return true; // Note that the loading options will ensure that the full object is loaded.
+        }
+
+        // This is kind of brutal. But effective. We are reloading all higher-order dependencies
+        // before they are processed. This makes sure we have fresh state when they are re-computed.
+        // Because higher-order dependencies may have more than one projection context and the
+        // changes applied to one of them are not automatically reflected on on other. therefore we need to reload.
+        //
+        // Note: we can safely assume that the projection wave is known, as the order is > 0
+        // (order is determined by the dependency processor).
+        if (projectionContext.getOrder() > 0
+                && projectionContext.isCurrentProjectionWave()) {
+            LOGGER.trace("Will reload higher-order context because its wave has come (projection ctx wave = {})",
+                    projectionContext.getWave());
+            return true;
+        }
+
+        List<LensProjectionContext> modifiedDependees = projectionContext.getModifiedDataBoundDependees();
+        if (!modifiedDependees.isEmpty()
+                && projectionContext.hasProjectionWave()
+                && projectionContext.isCurrentProjectionWave()) {
+            // Reloading the projection if some of its data-dependees changed (and if it's wave has come). See MID-8929.
+            // We do not reload if the wave is not known. This is to avoid useless reloading at the very beginning.
+            //
+            // In the future, we may consider optimizing the loading by removing the initial loading of these projections.
+            // See MID-9083.
+            LOGGER.trace(
+                    "Will reload context with modified data-bound dependee because its wave has come. "
+                            + "Projection ctx wave = {}, modified data-bound dependees = {}",
+                    projectionContext.getWave(), modifiedDependees);
+            return true;
+        }
+
+        LOGGER.trace("No explicit reason for reloading current object "
+                        + "(recon: {}, full: {}, order: {}, wave: {}, modified deps: {})",
+                projectionContext.isDoReconciliation(),
+                projectionContext.isFullShadow(),
+                projectionContext.getOrder(),
+                projectionContext.getWave(),
+                modifiedDependees);
+        return false;
     }
 
     /**
@@ -212,7 +272,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         LOGGER.trace("Trying to load current object");
 
         if (projectionContext.isAdd() && !projectionContext.isCompleted()) {
-            LOGGER.trace("No need to load old object, there is none");
+            LOGGER.trace("No need to try to load old object, there is none");
             projectionContext.setExists(false);
             projectionContext.recompute();
             projectionObject = asObjectable(projectionContext.getObjectNew());
@@ -349,39 +409,6 @@ class ProjectionUpdateOperation<F extends ObjectType> {
                                     shadowResourceOid, projectionContext.getHumanReadableName()));
                 }
             }
-        }
-    }
-
-    /**
-     * Do we need to reload already-loaded object?
-     *
-     * TODO reconsider this algorithm
-     */
-    private boolean needToReload() {
-        if (projectionContext.isDoReconciliation() && !projectionContext.isFullShadow()) {
-            LOGGER.trace("Will reload, because doing reconciliation (and do not have full shadow)");
-            return true;
-        }
-
-        // This is kind of brutal. But effective. We are reloading all higher-order dependencies
-        // before they are processed. This makes sure we have fresh state when they are re-computed.
-        // Because higher-order dependencies may have more than one projection context and the
-        // changes applied to one of them are not automatically reflected on on other. therefore we need to reload.
-        if (projectionContext.getOrder() == 0) {
-            LOGGER.trace("Not doing reconciliation; and context is NOT of higher-order -> no need to reload");
-            return false;
-        }
-
-        int executionWave = context.getExecutionWave();
-        int projCtxWave = projectionContext.getWave();
-        if (executionWave == projCtxWave - 1) {
-            LOGGER.trace("Reloading higher-order context because its wave has come (exec wave = {}, projection wave = {})",
-                    executionWave, projCtxWave);
-            return true;
-        } else {
-            LOGGER.trace("Not reloading higher-order context because its wave has not come (exec wave = {}, projection wave = {})",
-                    executionWave, projCtxWave);
-            return false;
         }
     }
 

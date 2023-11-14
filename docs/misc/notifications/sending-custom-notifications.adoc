@@ -1,0 +1,151 @@
+= Sending Custom Notifications
+:page-wiki-name: Sending custom notifications HOWTO
+:page-wiki-id: 23167747
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-09-24T00:02:03.564+02:00
+:page-wiki-metadata-modify-user: michael
+:page-wiki-metadata-modify-date: 2017-01-12T16:43:34.438+01:00
+:page-display-order: 410
+:page-upkeep-status: yellow
+
+Notifications are used to send information about events that occur within midPoint.
+They can be related to (e.g.)
+
+. model: like adding, modifying or deleting a user,
+
+. resource objects: like adding, modifying or deleting an account,
+
+. workflows: like starting or completing work item or process,
+
+. certifications: like opening or closing a campaign,
+
+. tasks: e.g. when a task is starting or finishing.
+
+Besides these, midPoint has a special kind of event: *custom events*.
+These can be used to send "any other" notifications, not covered by the above types.
+
+A custom event has the following attributes:
+
+[%autowidth]
+|===
+| Attribute | Meaning
+
+| subtype
+| Free-text information about category (type) of this custom event.
+For example, "passwordResetRequest" (if used for self-service functionality).
+
+| operation
+| Add / modify / delete - if relevant for a given type of custom events.
+
+| status
+| Success / alsoSuccess / failure / onlyFailure / inProgress - if relevant for a given type of custom events.
+
+| object
+| Object to which is given event related.
+It can be a PrismObject or any other object (Item, PrismValue, plain Java object, or even a collection of objects).
+
+| adHocHandler
+| Event handler that should be used to process this event.
+
+|===
+
+These custom events can be processed in one or both of the following ways:
+
+. Using standard notification configuration in system configuration object.
+I.e. they might be filtered and eventually translated into messages using a notifier.
+Because no out-of-the-box notifier exists for custom events, a generalNotifier has to be used.
+This notifier has to specify the recipient(s), subject, and body of created message.
+
+. Using ad-hoc event handler, specified within the event itself.
+Definition of this handler is exactly the same as definition of handlers in system configuration.
+
+When a custom event is processed, first the ad-hoc handler is used (if present), followed by handler(s) from the system configuration object.
+
+== How to submit custom events
+
+=== Using bulk actions
+
+In order to easily send custom events there is the *notify* scripting (bulk) action.
+It takes the input from the pipe - usually a list of PrismObjects - and creates an event for each one of them.
+(Alternatively, for the whole list, if forWholeInput parameter is set to "true".)
+
+The following parameters are available:
+
+[%autowidth]
+|===
+| Parameter | Meaning
+
+| subtype
+| Subtype of the event created.
+
+| operation
+| Operation to be put into event (add, modify, delete).
+Default is "add".
+
+| status
+| Status to be put into event (success, failure, inProgress, alsoSuccess, onlyFailure).
+Default is "success".
+
+| handler
+| Ad-hoc event handler that should be used to process the event.
+
+| forWholeInput
+| Whole input (i.e. all items in the pipeline) should be sent as event object.
+The default behavior is to generate one event for each input object.
+
+|===
+
+All of them are optional.
+
+An example of such bulk action:
+
+[source,xml]
+----
+<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+    <s:expression xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:SearchExpressionType">
+        <s:type>RoleType</s:type>
+    </s:expression>
+    <s:expression xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:ActionExpressionType">
+        <s:type>notify</s:type>
+        <s:parameter>
+            <s:name>subtype</s:name>
+            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">type1</c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>handler</s:name>
+            <c:value xsi:type="c:EventHandlerType" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+                <c:generalNotifier>
+                    <c:recipientExpression>
+                        <c:value>recipient@evolveum.com</c:value>
+                    </c:recipientExpression>
+                    <c:bodyExpression>
+                        <c:script>
+                            <c:language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</c:language>
+                            <c:code>event.object is '$event.object.name' with OID of $event.object.oid</c:code>
+                        </c:script>
+                    </c:bodyExpression>
+                    <c:transport>mail</c:transport>
+                </c:generalNotifier>
+            </c:value>
+        </s:parameter>
+        <!-- Other parameters: forWholeInput, status, operation -->
+    </s:expression>
+</s:pipeline>
+----
+
+More examples can be found in link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/send-notifications-about-all-users.xml[samples] and tests (link:https://github.com/Evolveum/midpoint-samples/blob/master/model/model-intest/src/test/resources/scripting/notification-about-jack.xml[here] and link:https://github.com/Evolveum/midpoint-samples/blob/master/model/model-intest/src/test/resources/scripting/notification-about-jack-type2.xml[here]; see also link:https://github.com/Evolveum/midpoint-samples/blob/master/model/model-intest/src/test/resources/common/system-configuration.xml[related system configuration]).
+
+These bulk actions can be also generated by xref:/midpoint/reference/legacy/eclipse-plugin/[the Eclipse plugin], since 0.10.3.
+
+== Using Java code
+
+Constructing and submitting custom events is simple; like this:
+
+[source,java]
+----
+Event event = new CustomEvent(
+        lightweightIdentifierGenerator, subtype, handler, item, operation, status, channel);
+notificationManager.processEvent(event, task, result);
+----
+
+Just have a look at link:https://github.com/Evolveum/midpoint/blob/master/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/scripting/actions/NotifyExecutor.java[NotifyExecutor Java class] (implementing "notify" bulk action).

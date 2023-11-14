@@ -33,6 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -105,6 +107,16 @@ public class ExportActivitySupport extends ReportActivitySupport {
                     options,
                     runningTask,
                     result);
+        } else if (SimulationResultProcessedObjectType.class.isAssignableFrom(type)) {
+            Class<? extends Containerable> containerableType = type.asSubclass(Containerable.class);
+            modelService.searchContainersIterative(
+                    containerableType,
+                    query,
+                    ((ObjectHandler<Containerable>) handler)::handle,
+                    options,
+                    runningTask,
+                    result
+            );
         } else if (Containerable.class.isAssignableFrom(type)) {
             // TODO: Temporary - until iterative search is available
             Class<? extends Containerable> containerableType = type.asSubclass(Containerable.class);
@@ -112,6 +124,10 @@ public class ExportActivitySupport extends ReportActivitySupport {
                     modelService.searchContainers(containerableType, query, options, runningTask, result);
             //noinspection unchecked
             values.forEach(value -> ((ObjectHandler<Containerable>) handler).handle(value, result));
+
+
+
+
         } else if (Referencable.class.isAssignableFrom(type)) {
             //noinspection unchecked
             modelService.searchReferencesIterative(query,

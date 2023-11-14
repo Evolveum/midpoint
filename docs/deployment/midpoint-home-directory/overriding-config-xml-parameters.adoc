@@ -1,0 +1,34 @@
+= Overriding config.xml parameters
+:page-wiki-name: Overriding config.xml parameters
+:page-wiki-id: 26411334
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2018-08-09T17:12:25.521+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2018-08-09T17:12:25.521+02:00
+:page-since: "3.9"
+
+
+It is possible to override parameters specified in `config.xml` using Java system properties specified on the command line.
+
+For example if profiling is to be temporarily enabled, one can use the following command line option:
+
+[source,bash]
+----
+-Dmidpoint.profilingEnabled=true
+----
+
+Or, for example, when customizing repository connection information one can use the following (this is in the context of a Dockerfile):
+
+[source,bash]
+----
+CMD java -Xmx2048M -Xms2048M -Dfile.encoding=UTF8 \
+       -Dmidpoint.home=$MP_DIR/var \
+       -Dmidpoint.repository.database=mariadb \
+       -Dmidpoint.repository.jdbcUsername=$REPO_USER \
+       -Dmidpoint.repository.jdbcPasswordFile=$REPO_PASSWORD_FILE \
+       -Dmidpoint.repository.jdbcUrl=jdbc:mariadb://$REPO_HOST:$REPO_PORT/registry?characterEncoding=utf8 \
+       -Dmidpoint.repository.hibernateHbm2ddl=none \
+       -Dmidpoint.repository.missingSchemaAction=create \
+       -Dmidpoint.repository.initializationFailTimeout=60000 \
+       -jar $MP_DIR/lib/midpoint.war
+----

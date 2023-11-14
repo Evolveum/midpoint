@@ -1,0 +1,33 @@
+= ITSM Plugin
+:page-wiki-name: ITSM Plugin
+:page-wiki-id: 24085917
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-04-24T14:15:18.845+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-09-25T15:23:15.103+02:00
+:page-since: "3.6"
+:page-experimental: true
+:page-upkeep-status: green
+
+== Introduction
+
+See xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration] for an introduction to the topic.
+
+
+== ITSM Plugin Implementation
+
+The purpose of ITSM plugin is to provide integration between midPoint and IT Service Management (ITSM) system.
+MidPoint ITSM plugins are just a special case of MidPoint connector.
+In fact it is a subclass of midPoint abstract manual connector using xref:/midpoint/architecture/archive/subsystems/provisioning/ucf/interfaces/[Unified Connector Framework Interfaces]. See sample ITSM plugin project here: link:https://github.com/Evolveum/connector-manual-sample[https://github.com/Evolveum/connector-manual-sample]
+
+++++
+{% include missing-incomplete.html %}
+++++
+
+== See Also
+
+* xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration]
+
+* xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration]
+
+* xref:/midpoint/architecture/archive/subsystems/provisioning/ucf/interfaces/[Unified Connector Framework Interfaces]

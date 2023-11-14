@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME;
+
+import static org.assertj.core.api.Assertions.*;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -281,9 +280,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                 SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
                 result))
                 .isInstanceOf(ObjectNotFoundException.class);
-
-        and("operation result is handled error");
-        assertThatOperationResult(result).isHandledError();
+        assertThatOperationResult(result).isSuccess();
     }
 
     @Test

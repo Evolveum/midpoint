@@ -42,6 +42,7 @@ public class ObjectTypeListUtil {
         supportedObjectTypeList.add(AccessCertificationWorkItemType.COMPLEX_TYPE);
         supportedObjectTypeList.add(OperationExecutionType.COMPLEX_TYPE);
         supportedObjectTypeList.add(SimulationResultProcessedObjectType.COMPLEX_TYPE);
+        supportedObjectTypeList.add(ObjectReferenceType.COMPLEX_TYPE);
         return supportedObjectTypeList;
     }
 

@@ -9,7 +9,8 @@
     oid="00000000-0000-0000-0000-000000000737">
     <name>Shadow correlation state changed</name>
     <description>Correlation state of a shadow was changed</description>
-    <assignment>
+    <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>510</displayOrder>

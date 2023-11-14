@@ -38,11 +38,11 @@ public class IconMenuLinkPanel extends MenuLinkPanel<ButtonInlineMenuItem> {
 
         Label badge = new Label(ID_MENU_ITEM_BADGE, () -> {
             if (dto instanceof ButtonInlineMenuItemWithCount) {
-                return ((ButtonInlineMenuItemWithCount)dto).getCount();
+                return ((ButtonInlineMenuItemWithCount) dto).getCount();
             }
             return "";
         });
-        badge.add(new VisibleBehaviour(() -> dto instanceof ButtonInlineMenuItemWithCount));
+        badge.add(new VisibleBehaviour(dto::isBadgeVisible));
         getLinkContainer().add(badge);
     }
 }

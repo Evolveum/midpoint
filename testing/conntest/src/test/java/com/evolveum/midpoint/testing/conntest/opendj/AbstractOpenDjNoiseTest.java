@@ -123,7 +123,7 @@ public abstract class AbstractOpenDjNoiseTest extends TestOpenDj {
 
         syncWait();
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         // THEN
         then();
@@ -136,6 +136,6 @@ public abstract class AbstractOpenDjNoiseTest extends TestOpenDj {
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_NOISE_CHAOTIC_UID);
         assertNull("Unexpected user " + user, user);
 
-        assertStepSyncToken(getSyncTaskOid(), 1, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 1, tsStart, tsEnd);
     }
 }

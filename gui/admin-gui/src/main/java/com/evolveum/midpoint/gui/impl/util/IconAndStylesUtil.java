@@ -56,6 +56,10 @@ public class IconAndStylesUtil {
             return createSimulationResultIcon();
         } else if (type == MarkType.class) {
             return createMarkIcon();
+        }else if (type == RoleAnalysisSessionType.class) {
+            return createRoleAnalysisSessionIcon();
+        }else if (type == RoleAnalysisClusterType.class) {
+            return createRoleAnalysisClusterIcon();
         }
         return "";
     }
@@ -338,6 +342,14 @@ public class IconAndStylesUtil {
 
     private static String createMarkIcon() {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_MARK);
+    }
+
+    private static String createRoleAnalysisSessionIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON);
+    }
+
+    private static String createRoleAnalysisClusterIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON);
     }
 
     private static String createSimulationResultIcon() {

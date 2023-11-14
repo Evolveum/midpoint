@@ -156,6 +156,11 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
+    public Boolean isCached() {
+        return getRefinedAttributeDefinition().isCached();
+    }
+
+    @Override
     public @NotNull List<String> getTolerantValuePatterns() {
         return getRefinedAttributeDefinition().getTolerantValuePatterns();
     }

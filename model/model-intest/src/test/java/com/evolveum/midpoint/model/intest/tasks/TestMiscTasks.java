@@ -13,12 +13,6 @@ import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import java.io.File;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.task.ActivityBasedTaskInformation;
-import com.evolveum.midpoint.test.TestTask;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,21 +24,17 @@ import com.evolveum.midpoint.schema.util.task.ActivityBasedTaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.test.TestObject;
-
-import javax.xml.namespace.QName;
 
 /**
  * Tests miscellaneous kinds of tasks that do not deserve their own test class.
  *
  * Besides that, checks the "affected objects" management when a task changes.
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
@@ -73,6 +63,10 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
     private static final TestTask TASK_ROLE_ANALYSIS_PATTERN_DETECTION_BASIC =
             new TestTask(TEST_DIR, "task-role-analysis-pattern-detection-basic.xml", "a3429097-52c4-4474-80b7-fc1667584831");
 
+    private static final TestObject<RoleAnalysisSessionType> SESSION_ROLE_BASED = TestObject.file(
+            TEST_DIR, "session-role-based.xml", "c0d74ad2-f92a-40f0-b661-3c0a6a5dc225");
+    private static final TestObject<RoleAnalysisClusterType> CLUSTER_ROLE_BASED = TestObject.file(
+            TEST_DIR, "cluster-role-based.xml", "16a8b95a-8a37-4f91-b835-bb77670c2899");
     private static final TestObject<RoleType> ROLE_BUSINESS_1 = TestObject.file(
             TEST_DIR, "role-business-1.xml", "b48628a2-a032-47c2-947d-adc51940e920");
     private static final TestObject<RoleType> ROLE_APPLICATION_1 = TestObject.file(
@@ -90,6 +84,10 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         initTestObjects(initTask, initResult,
                 ROLE_APPLICATION_1, ROLE_APPLICATION_2, ROLE_BUSINESS_1,
                 USER_1, USER_2);
+
+        if (isNativeRepository()) {
+            initTestObjects(initTask, initResult, SESSION_ROLE_BASED, CLUSTER_ROLE_BASED);
+        }
     }
 
     /**
@@ -632,9 +630,10 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         // @formatter:on
     }
 
-    /** Currently does nothing, as the activity handler has no implementation. */
     @Test
-    public void test400RoleAnalysisClusteringBasic() throws CommonException {
+    public void test400RoleAnalysisClusteringBasic() throws Exception {
+        skipIfNotNativeRepository();
+
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -643,16 +642,20 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         TASK_ROLE_ANALYSIS_CLUSTERING_BASIC.rerun(result); // asserts success
 
         then("task is OK");
+        //Temporarily set to 1 due to incomplete object.
         TASK_ROLE_ANALYSIS_CLUSTERING_BASIC.assertAfter()
                 .display()
                 .assertProgress(1);
     }
 
-    /** Currently does nothing, as the activity handler has no implementation. */
     @Test
-    public void test410RoleAnalysisPatternDetectionBasic() throws CommonException {
+    public void test410RoleAnalysisPatternDetectionBasic() throws Exception {
+        skipIfNotNativeRepository();
+
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        initTestObjects(task, result, CLUSTER_ROLE_BASED);
 
         when("task is run");
         TASK_ROLE_ANALYSIS_PATTERN_DETECTION_BASIC.init(this, task, result);
@@ -661,6 +664,6 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         then("task is OK");
         TASK_ROLE_ANALYSIS_PATTERN_DETECTION_BASIC.assertAfter()
                 .display()
-                .assertProgress(1);
+                .assertProgress(6);
     }
 }

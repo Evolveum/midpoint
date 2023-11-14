@@ -142,6 +142,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         add(footer);
     }
 
+    //used only for debug pages, to refresh search properly when type is changed.
+    public void refreshSearch() {
+        addOrReplace(createHeader(ID_HEADER));
+    }
+
     private int computeRefreshInterval() {
         int refreshInterval = getAutoRefreshInterval();
         if (refreshInterval != 0) {

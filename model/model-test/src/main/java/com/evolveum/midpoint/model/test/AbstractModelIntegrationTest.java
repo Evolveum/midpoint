@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static com.evolveum.midpoint.model.api.validator.StringLimitationResult.extractMessages;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
@@ -38,6 +39,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 
 import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
@@ -820,7 +823,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> void renameObject(Class<O> type, String oid, String newName, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-        modifyObjectReplaceProperty(type, oid, ObjectType.F_NAME, task, result, createPolyString(newName));
+        modifyObjectReplaceProperty(type, oid, ObjectType.F_NAME, task, result, PolyString.fromOrig(newName));
     }
 
     protected void recomputeUser(String userOid) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -4627,7 +4630,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
         // If we are brave enough, we can use getTestOperationResult here -- later.
-        return focusProfileService.getPrincipal(user, new OperationResult(OPERATION_GET_PRINCIPAL));
+        return focusProfileService.getPrincipal(user, ProfileCompilerOptions.create(), new OperationResult(OPERATION_GET_PRINCIPAL));
     }
 
     protected void login(MidPointPrincipal principal) {
@@ -5799,7 +5802,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
         assertNotNull("The org " + orgName + " is missing!", org);
         display("Org " + orgName, org);
-        PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, createPolyString(orgName));
+        PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PolyString.fromOrig(orgName));
         return org;
     }
 
@@ -5879,11 +5882,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         String password = getPassword(user);
         displayValue("Password of " + user, password);
         PrismObject<ValuePolicyType> passwordPolicy = repositoryService.getObject(ValuePolicyType.class, passwordPolicyOid, null, result);
-        List<LocalizableMessage> messages = new ArrayList<>();
-        valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messages, "validating password of " + user, task, result);
+        var results = valuePolicyProcessor.validateValue(
+                password, passwordPolicy.asObjectable(), createUserOriginResolver(user), "validating password of " + user, task, result);
         boolean valid = result.isAcceptable();
         if (!valid) {
-            fail("Password for " + user + " does not comply with password policy: " + messages);
+            fail("Password for " + user + " does not comply with password policy: " + extractMessages(results));
         }
     }
 
@@ -7649,5 +7652,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .markRef(markOid, MarkType.COMPLEX_TYPE)
                 .type(PolicyStatementTypeType.APPLY);
         modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
+    }
+
+    protected @NotNull CaseType getOpenCaseRequired(List<CaseType> cases) {
+        var openCases = cases.stream()
+                .filter(c -> QNameUtil.matchUri(c.getState(), CASE_STATE_OPEN_URI))
+                .toList();
+        return MiscUtil.extractSingletonRequired(
+                openCases,
+                () -> new AssertionError("More than one open case: " + openCases),
+                () -> new AssertionError("No open case in: " + cases));
+    }
+
+    protected @NotNull CaseWorkItemType getOpenWorkItemRequired(CaseType aCase) {
+        var openWorkItems = aCase.getWorkItem().stream()
+                .filter(wi -> CaseTypeUtil.isCaseWorkItemNotClosed(wi))
+                .toList();
+        return MiscUtil.extractSingletonRequired(
+                openWorkItems,
+                () -> new AssertionError("More than one open work item: " + openWorkItems),
+                () -> new AssertionError("No open work items in: " + aCase));
     }
 }

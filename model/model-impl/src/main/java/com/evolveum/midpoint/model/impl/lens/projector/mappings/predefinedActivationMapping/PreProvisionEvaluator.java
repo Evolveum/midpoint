@@ -11,12 +11,13 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.List;
@@ -36,30 +37,26 @@ public class PreProvisionEvaluator extends PredefinedActivationMappingEvaluator 
     }
 
     @Override
-    public void init() {
-        super.init();
+    public void initialize() {
+        super.initialize();
         timeEvaluation = new TimeConstraintEvaluation(
                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
                 getActivationDefinitionBean().getPreProvision().getCreateBefore());
     }
 
-    public <F extends FocusType> boolean defineExistence(
-            final LensContext<F> context, final LensProjectionContext projCtx) {
+    public <F extends FocusType> boolean defineExistence(LensContext<F> context, LensProjectionContext projCtx) {
         return false;
     }
 
     @Override
-    public <F extends FocusType> XMLGregorianCalendar defineTimeForTriggerOfExistence(
+    public <F extends FocusType> XMLGregorianCalendar getNextRecomputeTimeForExistence(
             LensContext<F> context, LensProjectionContext projCtx, XMLGregorianCalendar now)
-            throws SchemaException, ConfigurationException {
-        checkInitialization();
+            throws SchemaException {
+        initializeIfNeeded();
 
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            return null;
-        }
+        LensFocusContext<F> focusContext = context.getFocusContextRequired();
 
-        if (timeEvaluation.isTimeConstraintValid() == null) {
+        if (!timeEvaluation.isTimeValidityEstablished()) {
             timeEvaluation.evaluateTo(focusContext.getObjectDeltaObjectAbsolute(), now);
         }
 
@@ -78,37 +75,22 @@ public class PreProvisionEvaluator extends PredefinedActivationMappingEvaluator 
     }
 
     @Override
-    public <F extends FocusType> boolean isConfigured(Task task) {
-        if (getActivationDefinitionBean().getPreProvision() == null) {
-            LOGGER.trace(
-                    "PreProvisionEvaluator: non-exist configuration for preProvisionAccount in: {}, skipping",
-                    getActivationDefinitionBean());
-            return false;
-        }
-
-        PreProvisionActivationMappingType preProvisionAccount = getActivationDefinitionBean().getPreProvision();
-        if (!task.canSee(preProvisionAccount.getLifecycleState())) {
-            LOGGER.trace("PreProvisionEvaluator: not applicable to the execution mode, skipping");
-            return false;
-        }
-        return true;
+    @Nullable
+    AbstractPredefinedActivationMappingType getConfiguration() {
+        return getActivationDefinitionBean().getPreProvision();
     }
 
     @Override
     public <F extends FocusType> boolean isApplicable(
             LensContext<F> context, LensProjectionContext projCtx, XMLGregorianCalendar now)
             throws SchemaException, ConfigurationException {
-        checkInitialization();
+        initializeIfNeeded();
 
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            LOGGER.trace("PreProvisionEvaluator: couldn't find focus context in {}, skipping", context.debugDump());
-            return false;
-        }
+        LensFocusContext<F> focusContext = context.getFocusContextRequired();
 
         timeEvaluation.evaluateTo(focusContext.getObjectDeltaObjectAbsolute(), now);
         if (!timeEvaluation.isTimeConstraintValid()) {
-            LOGGER.trace("PreProvisionEvaluator: time constraint isn't valid, skipping");
+            LOGGER.trace("Time constraint isn't valid -> not applicable");
             return false;
         }
 
@@ -116,10 +98,15 @@ public class PreProvisionEvaluator extends PredefinedActivationMappingEvaluator 
                 focusContext.getObjectDeltaObjectAbsolute(),
                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
                 List.of())) {
-            LOGGER.trace("PreProvisionEvaluator: valid from attribute for user is empty, skipping", context.debugDump());
+            LOGGER.trace("'Valid from' focus property is empty -> not applicable");
             return false;
         }
 
         return true;
+    }
+
+    @Override
+    Trace getLogger() {
+        return LOGGER;
     }
 }

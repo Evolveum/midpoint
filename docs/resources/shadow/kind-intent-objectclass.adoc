@@ -1,0 +1,201 @@
+= Kind, Intent and ObjectClass
+:page-wiki-name: Kind, Intent and ObjectClass
+:page-wiki-id: 13598734
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-01-07T13:34:04.023+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-05-03T15:29:01.975+02:00
+:page-upkeep-status: yellow
+:page-liquid:
+:page-toc: top
+
+
+Kind, intent and ObjectClass are three terms that are very frequently used in midPoint.
+These terms define a type of resource object (or xref:/midpoint/reference/resources/shadow/[shadow]). The _kind_ and _intent_ are midPoint terms.
+They define how midPoint is _using_ the object, how midPoint understands its role in the system.
+The _objectClass_ is a native type by which the resource recognizes the object.
+
+
+== Kind, Intent and Tag
+
+MidPoint identifies useful types of resource objects by using a *(kind, intent)* tuple.
+I.e. each useful resource object has a *kind* and an *intent*. Kind defines what the object _is_, intent specified how the object _behaves_.
+
+
+=== Kind
+
+MidPoint supports several *kinds* of resource objects:
+
+* *Account* resource objects represent identity of a person, either physical such as computer user or virtual such as _administrator_, _root_, _daemon_ or similar special-purpose identities.
+Accounts can be _xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[linked]_ to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[User] objects.
+
+* xref:/midpoint/reference/resources/entitlements/[Entitlement] resource objects represent groupings or privileges of an *account*. Entitlement resource objects represent groups, resource-specific roles, access permissions or even organizational unit membership.
+Entitlements are *associated* to an *account*.
+
+* Other kinds of resource objects may be introduced later (e.g. organizational unit).
+
+Kind of a resource object is mostly fixed and it is quite difficult to change.
+However the kind is usually determined by the fixed type of the object (object class) and does not need to be changed.
+The list of resource object kinds is not extensible as their meaning is used in the midPoint IDM logic.
+
+
+=== Intent
+
+*Intent* of a resource object describes its intended usage.
+E.g. users may want to have one _default_ account for normal work, they might have another quite different _admin_ account for system administration and yet another _testing_ account.
+The "default", "admin" and "testing" are account intents.
+Other IDM systems use the term _account types_ for this, but _intent_ is more generic term and may apply to other resource objects kinds not just accounts (e.g. to entitlements).
+
+Intents are almost entirely custom.
+It is expected that intents will be defined specifically for each deployment.
+There is only a single standard intent defined: `default`. As the name suggests this is the default intent and it is used if no intent is specified.
+
+
+=== Tag
+
+++++
+{% include since.html since="4.0" %}
+++++
+
+_Tag_ is a differentiator for resource object (e.g. accounts) that have the same value of kind and intent.
+Tag is used in situations when xref:/midpoint/reference/resources/multiaccounts/[multiple equivalent accounts] are enabled.
+Tag is the value that discriminates between such accounts.
+
+Tag is optional.
+Accounts that are not used in the "multi" mode do not have any value for tag.
+
+
+=== Shadow Objects
+
+Kind, intent and tag are stored in xref:/midpoint/reference/resources/shadow/[shadow objects]. Those are midPoint internal concepts.
+They are *not* passed to the connector.
+They are translated to the _object class_ which is then passed to the connector.
+
+
+=== Resource Object Discriminator
+
+Tuple (resource, kind, intent, tag) is called _resource object discriminator_ or _resource shadow discriminator_. While this term is almost never seen in midPoint user interface, it can be seen in log files and it is quite an important concept to understand.
+The purpose of this discriminator is to distinguish xref:/midpoint/reference/schema/focus-and-projections/[projections]. Each projection linked to a particular focus must have unique value of the discriminator.
+MidPoint will generally avoid duplicating the projections.
+For example, in case that two _constructions_ use the same combination of (resource, kind, intent, tag) then midPoint assumes that they are referring to the same resource object and such definitions are merged.
+
+It is very important that the discriminator uniqueness is maintained for every focal object.
+MidPoint should never create a situation when there is a discriminator duplication.
+However, in case that midPoint data are corrupted and there is such a duplication, midPoint will stop the operations with a hard error.
+
+
+== Object Class
+
+xref:/midpoint/reference/resources/resource-schema/[Object Class] is a type of the object how the _resource_ understands it.
+It is therefore a "technical" type of the resource object.
+Object classes are defined by the xref:/midpoint/reference/resources/resource-schema/[Resource Schema] and are presented to midPoint by the connector.
+MidPoint has a very little control over object classes.
+The object classes define a _reality_, what types of objects the resource _can_ handle.
+Object classes can reflect the real object class defined by the resource such as `inetOrgPerson` LDAP object class.
+Or the object classes can be "virtual" and introduced by the connector such as ConnId `pass:[__ACCOUNT__]` object class (which is presented in midPoint as `ri:AccountObjectClass`).
+
+_Object class_ is a term used by midPoint connectors.
+Therefore object class definition is passed to the connector.
+
+
+== Kind, Intent and Object Class in MidPoint
+
+Object class is what resource understands.
+When midPoint reads an object it will know its object class.
+If midPoint creates an object it has to define a specific object class.
+Therefore object class defines how the object looks like.
+However midPoint usually does not know what to do with a specific object class, e.g. an LDAP objectclass `inetOrgPerson`. This object class usually defines an account but the details can vary from deployment to deployment.
+Therefore midPoint cannot provide any fixed association between object class and its usage.
+Therefore midPoint sorts out the object class to _kind_ and _intent_ as specified above.
+While midPoint does not know how to handle objects of object class `inetOrgPerson`, midPoint knows quite well what to do with _default account_ objects.
+Default account objects are presented as (kind=account, intent=default) in midPoint.
+
+Therefore midPoint maps object classes to (kind, intent) tuples.
+The mapping on the outbound side is defined in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. This maps (kind, intent) to object class.
+In this case midPoint has a lot of information about the intended use and type of the object in this case and the information is quite reliable.
+This configuration can be very declarative and straightforward.
+The mapping on the inbound side is defined in xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]. This maps object class to (kind, intent) tuple.This mapping is not a very reliable and straightforward because all the midPoint really knows about the object is its object class and attributes.
+Therefore this configuration needs to be much more flexible and allow some kind of "guesswork" to correctly sort out the object.
+
+NOTE: See also xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6.adoc[].
+
+== Examples
+
+[%autowidth]
+|===
+|  | kind | intent | objectClass | Description
+
+| Usual LDAP account
+| account
+| default
+| ri:inetOrgPerson
+| The LDAP account that is used for most of the accounts.
+The account types that are by default assigned to users.
+"Normal" account.
+E.g. the mappings can place such accounts into `ou=People,dc=example,dc=com`, use `uid` as naming attribute and so on.
+Simply speaking normal account.
+
+
+| Testing LDAP account
+| account
+| test
+| ri:inetOrgPerson
+| The LDAP account used for testing purposes.
+As this has a different intent then a different set of mappings can be defined for this account type.
+E.g. the mappings may place it in a different `ou`, prefix it with a `TEST` prefix or do any other variation on the definition.
+
+
+| Legacy LDAP account
+| account
+| legacy
+| ri:person
+| The LDAP account using `person` LDAP object class.
+This may be used for some legacy applications.
+It may (and usually should) have a very different outbound mappings when compared with the default account.
+
+
+| Usual CSV account
+| account
+| default
+| ri:AccountObjectClass
+| Just a simple CSV file account.
+The CSV connector does not have a concept of object classes therefore the connector defines only a single virtual  "pass:[__ACCOUNT__]" ConnId object class.
+
+
+| LDAP group
+| entitlement
+| group
+| ri:groupOfNames
+| LDAP group that is normally used for grouping LDAP accounts.
+It is using `groupOfNames` LDAP object class.
+The outbound mappings may place it in `ou=Groups,dc=example,dc=com` subtree.
+
+
+| LDAP group (unique)
+| entitlement
+| group-unique
+| ri:groupOfUniqueNames
+| Alternative LDAP group that is used by some applications.
+It is using `groupOfUniqueNames` LDAP object class.
+This may have a different outbound mappings and an entirely different definition.
+Therefore midPoint allows the two grouping mechanisms to coexist (and may keep them somehow consistent).
+
+
+| Custom privilege
+| entitlement
+| priv
+| ri:MiscPrivObjectClass
+| Some custom privilege defined in the resource and supported by the connector.
+
+|===
+
+
+== See Also
+
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
+
+* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
+
+* xref:/midpoint/reference/resources/resource-schema/[Resource Schema]
+
+* xref:/midpoint/reference/resources/entitlements/[Entitlements]

@@ -340,12 +340,23 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                     @Override
                     protected Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> newCellItem(String id, int index, IModel<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> model) {
                         Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> item = super.newCellItem(id, index, model);
+                        if (index == 1) {
+                            item.add(AttributeAppender.append("style", "word-break:break-all"));
+                        }
                         item.add(AttributeAppender.append("class", "align-middle"));
 
                         return item;
                     }
 
+                    @Override
+                    protected boolean isBreakTextBehaviourEnabled(int index) {
+                        if (index == 1) {
+                            return false;
+                        }
+                        return super.isBreakTextBehaviourEnabled(index);
+                    }
                 };
+
         relatedObjects.add(new VisibleBehaviour(() -> relatedObjects.getRowCount() > 1));
         add(relatedObjects);
 
@@ -404,7 +415,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
     private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = new ArrayList<>();
-        columns.add(SimulationsGuiUtil.createProcessedObjectIconColumn());
+        columns.add(SimulationsGuiUtil.createProcessedObjectIconColumn(PageSimulationResultObject.this));
         columns.add(new AjaxLinkColumn<>(createStringResource("ProcessedObjectsPanel.nameColumn")) {
 
             @Override
@@ -459,9 +470,17 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
     }
 
     private IModel<String> createTitleModel() {
-        return () ->
-                WebComponentUtil.getOrigStringFromPoly(objectModel.getObject().getName())
-                        + " (" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
+        return () -> {
+            String name = WebComponentUtil.getOrigStringFromPoly(objectModel.getObject().getName());
+
+            if (StringUtils.isEmpty(name)) {
+                SimulationResultProcessedObjectType object = objectModel.getObject();
+                ProcessedObject<?> processedObject = SimulationsGuiUtil.parseProcessedObject(object, PageSimulationResultObject.this);
+                name = SimulationsGuiUtil.getShadowNameFromAttribute(processedObject);
+            }
+
+            return name + " (" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
+        };
     }
 
     @Override

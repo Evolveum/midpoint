@@ -1,0 +1,128 @@
+= Synchronization Sorter
+:page-wiki-name: Synchronization Sorter
+:page-wiki-id: 26411320
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2018-08-07T09:31:29.746+02:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2018-08-07T09:47:37.950+02:00
+:page-since: "3.9"
+
+
+It's common in deployments that there is a need to support multiple intents for the same kind.
+If there is also need to support synchronization/reconciliation for each of them it is needed to configure appropriate object synchronization part for each of them.
+Sometimes it can lead to huge resource configuration with complex and non-trivial queries in synchronization condition.
+With supporting many intents there must be synchronization condition for each of them to find out if the currently processed resource object satisfy constraints for this intent.
+It cannot be expected that the kind/intent are know.
+It must be expected that the kind/intent will be determined according to the conditions in the object synchronization part.
+Since 3.9 there is possibility to specify one sorter instead of specifying conditions for each intent.
+The main goal of the sorter is to divide resource objects to appropriate kind/intent so then the appropriate object synchronization can take part and perform specified actions.
+The example of such sorter can be found below:
+
+.Object synchronization sorter
+[source,xml]
+----
+<synchronization>
+......
+    <objectSynchronizationSorter>
+        <expression>
+            <trace>true</trace>
+            <script>
+                <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                    import javax.xml.namespace.QName
+                    import com.evolveum.midpoint.prism.query.builder.QueryBuilder
+                    import com.evolveum.midpoint.prism.path.ItemPath
+                    import com.evolveum.midpoint.schema.constants.SchemaConstants
+                    import com.evolveum.midpoint.util.exception.ConfigurationException
+                    import com.evolveum.midpoint.schema.util.ShadowUtil
+
+                    discriminator = new ObjectSynchronizationDiscriminatorType();
+                    owner = midpoint.searchShadowOwner(shadow.getOid());
+
+                    if (owner == null) {
+                        accountNamePath = new QName("http://midpoint.evolveum.com/xml/ns/story/serviceAccountsClassifier/ext", "accountName");
+                        query = QueryBuilder.queryFor(ServiceType.class, midpoint.getPrismContext())
+                                    .item(new ItemPath(ServiceType.F_EXTENSION, accountNamePath))
+                                        .eq(ShadowUtil.getSecondaryIdentifierRealValue(shadow.asPrismObject()))
+                                    .build()
+
+                        applicableServices = midpoint.searchObjects(ServiceType.class, query)
+                        if (applicableServices.isEmpty()) {
+                            log.trace("No applicable services found, returning UNMATCHED situation for account/default")
+                            discriminator.setSynchronizationSituation(SynchronizationSituationType.UNMATCHED)
+                            discriminator.setKind(ShadowKindType.ACCOUNT)
+                            discriminator.setIntent("default")
+                            return discriminator
+                        }
+
+                        if (applicableServices.size() == 1) {
+                            log.trace("Corresponding service found, returning UNLINKED situation for account/service")
+                            discriminator.setOwner(applicableServices.get(0))
+                            discriminator.setKind(ShadowKindType.ACCOUNT)
+                            discriminator.setIntent("service")
+                            discriminator.setSynchronizationSituation(SynchronizationSituationType.UNLINKED)
+                            return discriminator
+                        }
+
+                        log.info("Unexpected situation, throw exception rather")
+                        throw new ConfigurationException("Wrong configuration, cannot determine what to do.");
+                    }
+
+                    ownerType = owner.asObjectable();
+                    if (ownerType instanceof UserType) {
+                        discriminator.setIntent("default")
+                    } else if (ownerType instanceof ServiceType) {
+                        discriminator.setIntent("service")
+                    }
+
+                    discriminator.setOwner(ownerType)
+                    discriminator.setKind(ShadowKindType.ACCOUNT)
+                    discriminator.setSynchronizationSituation(SynchronizationSituationType.LINKED)
+                    return discriminator
+                </code>
+            </script>
+        </expression>
+    </objectSynchronizationSorter>
+...
+<synchronization>
+----
+
+The most important part in the example above is the expression.
+This expression is used to divide resource objects to the appropriate kind/intent.
+It can also specify focus and synchronization situation.
+The expected result of the expression is an ObjectSynchronizationDiscriminatorType:
+
+
+
+[%autowidth]
+|===
+| Attribute | Type | Description
+
+| kind
+| ShadowKindType
+| The resulting kind of the resource object.
+According to this kind specification appropriate objectSynchronization is chosen.
+
+
+| intent
+| String
+| The resulting intent of the resource object.
+According to this intent specification    appropriate objectSynchronization is chosen.
+
+
+| synchronizationSituation
+| SynchronizationSituationType
+| The synchronization situation for the resource object.
+If set, reaction for the situation is found and the actions are run.
+
+
+| owner
+| FocusType
+| The owner of the resource object if known.
+
+
+|===
+
+
+All properties are optional.
+If they are not set by the expression, they are computed by original way using object synchronization parts..

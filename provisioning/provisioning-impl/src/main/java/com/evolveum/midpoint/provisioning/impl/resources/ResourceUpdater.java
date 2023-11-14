@@ -2,7 +2,6 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -207,7 +206,7 @@ class ResourceUpdater {
         try {
             LOGGER.trace("Applying modifications to {}:\n{}",
                     resource, DebugUtil.debugDumpLazily(modifications, 1));
-            beans.cacheRepositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+            beans.repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
             InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
         } catch (ObjectAlreadyExistsException ex) {
             throw SystemException.unexpected(ex, "when updating resource during completion");

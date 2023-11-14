@@ -22,10 +22,7 @@ import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -3891,6 +3888,17 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertCustomColumn("foo", "test");
     }
 
+    private String addTestRole(Task task, OperationResult result) throws CommonException {
+        RoleType role = new RoleType()
+                .name(getTestNameShort());
+        PrismPropertyDefinition<String> costCenterDef = role.asPrismObject().getDefinition()
+                .findPropertyDefinition(ItemPath.create(RoleType.F_EXTENSION, "costCenter"));
+        PrismProperty<String> costCenterProp = costCenterDef.instantiate();
+        costCenterProp.setRealValue("CC000");
+        role.asPrismObject().getOrCreateExtension().getValue().add(costCenterProp);
+        return addObject(role, task, result);
+    }
+
     /**
      * Checks whether broken live `linkRef` value is correctly removed.
      *
@@ -3971,15 +3979,80 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertThat(propDef).as("definition of property 'synchronization'").isNull();
     }
 
-    private String addTestRole(Task task, OperationResult result) throws CommonException {
+    /**
+     * Checking the number of audit records when a new role (without assignments) is created. MID-8659.
+     */
+    @Test
+    public void test750CreateRoleSimple() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+        dummyAuditService.clear();
+
+        when("a role is created");
         RoleType role = new RoleType()
-                .name("test410");
-        PrismPropertyDefinition<String> costCenterDef = role.asPrismObject().getDefinition()
-                .findPropertyDefinition(ItemPath.create(RoleType.F_EXTENSION, "costCenter"));
-        PrismProperty<String> costCenterProp = costCenterDef.instantiate();
-        costCenterProp.setRealValue("CC000");
-        role.asPrismObject().getOrCreateExtension().getValue().add(costCenterProp);
-        return addObject(role, task, result);
+                .name(getTestNameShort());
+        addObject(role.asPrismObject(), task, result);
+
+        then("there should be 2 audit records");
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+    }
+
+    /**
+     * Checking the number of audit records when a new role (with an archetype) is created. MID-8659.
+     */
+    @Test
+    public void test760CreateRoleWithArchetype() throws CommonException, IOException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("an archetype");
+        ArchetypeType archetype = new ArchetypeType()
+                .name(getTestNameShort());
+        var archetypeOid = addObject(archetype.asPrismObject(), task, result);
+
+        dummyAuditService.clear();
+
+        when("a role with an archetype is created");
+        RoleType role = new RoleType()
+                .name(getTestNameShort())
+                .assignment(new AssignmentType()
+                        .targetRef(archetypeOid, ArchetypeType.COMPLEX_TYPE));
+        addObject(role.asPrismObject(), task, result);
+
+        then("audit records are OK");
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2 + accessesMetadataAuditOverhead(1));
+        dummyAuditService.assertSimpleRecordSanity();
+    }
+
+    /**
+     * Checking the number of audit records when a new user (with a role) is created. MID-8659.
+     */
+    @Test
+    public void test770CreateUserWithRole() throws CommonException, IOException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("a role");
+        RoleType role = new RoleType()
+                .name(getTestNameShort());
+        var roleOid = addObject(role.asPrismObject(), task, result);
+
+        dummyAuditService.clear();
+
+        when("a user with a role is created");
+        UserType user = new UserType()
+                .name(getTestNameShort())
+                .assignment(new AssignmentType()
+                        .targetRef(roleOid, RoleType.COMPLEX_TYPE));
+        addObject(user.asPrismObject(), task, result);
+
+        then("audit records are OK");
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2 + accessesMetadataAuditOverhead(1));
+        dummyAuditService.assertSimpleRecordSanity();
     }
 
     private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {

@@ -1,0 +1,554 @@
+= Migration of Tasks from 4.0/4.3 to 4.4
+:toc:
+:page-since: "4.4"
+:page-upkeep-status: green
+
+TIP: *TL;DR* See xref:#_doing_the_migration[Doing the migration] section.
+
+== Theory
+
+Here we explain the differences between the legacy and new task definition styles, the reasons for migration,
+and so on. Read this section if you want to have the complete information. Otherwise, you can skip to the
+next section on doing the migration.
+
+=== Legacy Task Definition Style
+
+In midPoint 4.3 and before, the definition of the _work_ to be done by a task was based on the following items:
+
+* `handlerUri` specifying what should be done (e.g. recomputation, import, reconciliation, and so on),
+* `objectRef` providing the related object - typically the resource that we should import from, or reconcile with,
+* various task extension properties defining further parameters of the work, like kind/intent/objectclass
+of resource objects to be dealt with, or a query specifying a set of objects to be recomputed,
+or execution options to be used, and so on.
+
+_Distribution_ of the work into threads was driven by `workerThreads` property. And the distribution
+of the work into worker tasks was specified by `workManagement` container that contained the
+specification of buckets, worker tasks, and partitions.
+
+_Error handling_ was driven by a task property of `errorHandlingStrategy`.
+
+_Thresholds_ were configured in quite a complex way.
+
+=== New Task Definition Style
+
+Starting from 4.4, the definition of the work and its various execution aspects is concentrated
+in a single place: xref:/midpoint/reference/tasks/activities/#configuring-the-activities[the `<activity>` item].
+
+=== Support of the Legacy Task Definition Style
+
+In 4.4 the following parts of legacy task definition style are supported:
+
+* the work definition i.e. `handlerUri`, `objectRef`, and extension properties defining the parameters
+of the work,
+* `workerThreads` extension property providing the number of worker threads,
+* `errorHandlingStrategy` property.
+
+This support is limited, though:
+
+* Tasks defined in this way are correctly executed, respecting the settings.
+* However, in GUI it is not possible to view or edit this kind of configuration. We are limited
+to the use of XML viewing and editing to do that. (Alternatively, if you switch the whole GUI
+to the legacy mode, then you'll be able to see your legacy tasks. But we don't recommend doing this.)
+
+As for the advanced distribution features, i.e. buckets, worker tasks, and task partitions,
+the legacy style of configuration is _no longer supported_. The users have to migrate these
+definitions to the new style.
+
+=== Details on How to Migrate from the Legacy to the New Style
+
+Here we describe how to do the migration, if you decide to do that manually.
+
+==== Migration of the Work Definition
+
+1. Create appropriate `activity/work/X` item, according to the specific type of the activity,
+given by `handlerUri`. For example, use `reconciliation` for reconciliation activity,
+`import` for import from resource, and so on. You can consult the list of all supported
+xref:../work/[activity types].
+
+2. Fill-in the `work/X` item according to the configuration provided by `objectRef` and
+task extension properties.
+
+An example:
+
+.Before
+[source,xml]
+----
+<task>
+    <name>Import from services-inbound-pwd-copy (legacy style)</name>
+    <extension>
+        <ext:kind>account</ext:kind>
+        <ext:intent>default</ext:intent>
+        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
+    </extension>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
+    <objectRef oid="81c080f2-dce5-43b9-b748-a2a5fdb48c51" type="ResourceType"/>
+</task>
+----
+
+.After
+[source,xml]
+----
+<task>
+    <name>Import from services-inbound-pwd-copy (new style)</name>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="81c080f2-dce5-43b9-b748-a2a5fdb48c51"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
+</task>
+----
+
+==== Migration of the Distribution Definition (Except for Partitioning)
+
+1. Create `activity/distribution` container.
+2. Migrate `workerThreads` property by simply copying it from the task extension to this container.
+3. Migrate `workManagement/buckets` item by copying it from the original position to this container.
+4. Migrate `workManagement/workers` item by copying it from the original position to this container.
+
+An example:
+
+.Before
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+      oid="4ccd0cde-c506-49eb-9718-f85ba3438515">
+    <name>Buckets, multiple threads</name>
+    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+               xmlns:se="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+        <mext:workerThreads>4</mext:workerThreads>
+        <mext:objectType>UserType</mext:objectType>
+        <mext:objectQuery>
+            <q:filter>
+                <q:equal>
+                    <q:path>subtype</q:path>
+                    <q:value>test</q:value>
+                </q:equal>
+            </q:filter>
+        </mext:objectQuery>
+        <se:executeScript>
+            <s:execute>
+                <s:script>
+                    <code>
+                        log.info('Found user {}', input)
+                    </code>
+                </s:script>
+            </s:execute>
+        </se:executeScript>
+    </extension>
+    <taskIdentifier>4ccd0cde-c506-49eb-9718-f85ba3438515</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionStatus>runnable</executionStatus>
+    <category>BulkActions</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3</handlerUri>
+    <workManagement>
+        <taskKind>coordinator</taskKind>
+        <buckets>
+            <stringSegmentation>
+                <discriminator>name</discriminator>
+                <boundary>
+                    <position>1</position>
+                    <characters>0</characters>
+                </boundary>
+                <boundary>
+                    <position>2</position>
+                    <characters>0-9</characters>
+                </boundary>
+            </stringSegmentation>
+        </buckets>
+        <workers>
+            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
+            <workersPerNode>
+                <count>2</count>
+            </workersPerNode>
+        </workers>
+    </workManagement>
+    <recurrence>single</recurrence>
+    <binding>loose</binding>
+</task>
+----
+
+.After
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+      oid="4ccd0cde-c506-49eb-9718-f85ba3438515">
+    <name>Buckets, multiple threads</name>
+    <taskIdentifier>4ccd0cde-c506-49eb-9718-f85ba3438515</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <iterativeScripting>
+                <objects>
+                    <type>UserType</type>
+                    <query>
+                        <q:filter>
+                            <q:equal>
+                                <q:path>subtype</q:path>
+                                <q:value>test</q:value>
+                            </q:equal>
+                        </q:filter>
+                    </query>
+                </objects>
+                <scriptExecutionRequest>
+                    <s:execute>
+                        <s:script>
+                            <code>
+                                log.info('Found user {}', input)
+                            </code>
+                        </s:script>
+                    </s:execute>
+                </scriptExecutionRequest>
+            </iterativeScripting>
+        </work>
+        <distribution>
+            <buckets>
+                <stringSegmentation>
+                    <discriminator>name</discriminator>
+                    <boundary>
+                        <position>1</position>
+                        <characters>0</characters>
+                    </boundary>
+                    <boundary>
+                        <position>2</position>
+                        <characters>0-9</characters>
+                    </boundary>
+                </stringSegmentation>
+            </buckets>
+            <workers>
+                <workersPerNode>
+                    <count>2</count>
+                </workersPerNode>
+            </workers>
+            <workerThreads>4</workerThreads>
+        </distribution>
+    </activity>
+</task>
+----
+
+Notes:
+
+- Handler URI of `http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3` in the legacy configuration
+should be ignored. It is a technical pointer to a component that creates and manages worker tasks. It is of no use in the new
+configuration.
+- Handler URI of `http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3` in the `workers` section
+is the real one. It is translated to `iterativeScripting` work definition. (And removed from `workers` section when migrating.)
+
+==== Migration of the Partitioning Definition
+
+There are two kinds of legacy definitions using partitioning:
+
+- customization of predefined partitioned tasks like reconciliation or focus validity scanning,
+- creation of custom partitioned tasks.
+
+These correspond to predefined and custom composite activities.
+
+===== Migration of the Partitioning Definition (Predefined Tasks)
+
+In this case, `workManagement/partitions` is translated into `activity/tailoring/change`.
+
+An example:
+
+.Before
+[source,xml]
+----
+<task oid="10000000-0000-0000-565f-565600000204"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
+
+    <name>Reconciliation: Dummy Blue</name>
+
+    <extension>
+        <syncext:objectclass>ri:AccountObjectClass</syncext:objectclass>
+    </extension>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/partitioned-reconciliation/handler-3</handlerUri>
+    <objectRef oid="10000000-0000-0000-0000-000000000204" type="ResourceType"/>
+    <workManagement>
+        <partitions>
+            <partition>
+                <index>2</index>
+                <workManagement>
+                    <taskKind>coordinator</taskKind>
+                    <buckets>
+                        <stringSegmentation>
+                            <discriminator>attributes/icfs:name</discriminator>
+                            <boundary>
+                                <characters>abcdefghijklmnopqrstuvwxyz</characters>
+                            </boundary>
+                        </stringSegmentation>
+                    </buckets>
+                    <workers>
+                        <workersPerNode>
+                            <count>4</count>
+                        </workersPerNode>
+                    </workers>
+                </workManagement>
+            </partition>
+        </partitions>
+    </workManagement>
+</task>
+----
+
+.After
+[source,xml]
+----
+<task oid="10000000-0000-0000-565f-565600000204"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
+
+    <name>Reconciliation: Dummy Blue</name>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>runnable</executionState>
+
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000204"/>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <distribution>
+            <subtasks/>
+        </distribution>
+        <tailoring>
+            <change>
+                <reference>resourceObjects</reference>
+                <distribution>
+                    <buckets>
+                        <stringSegmentation>
+                            <discriminator>attributes/icfs:name</discriminator>
+                            <boundary>
+                                <characters>abcdefghijklmnopqrstuvwxyz</characters>
+                            </boundary>
+                        </stringSegmentation>
+                    </buckets>
+                    <workers>
+                        <workersPerNode>
+                            <count>4</count>
+                        </workersPerNode>
+                    </workers>
+                </distribution>
+            </change>
+        </tailoring>
+    </activity>
+</task>
+----
+
+The `subtasks` item in `distribution` means that we want to create separate tasks for individual sub-activities
+of the main reconciliation activity. This is not strictly needed. We use it here just to reproduce the original pre-4.4
+behavior of task partitioning.
+
+We see that instead of using `index=2` we now have `reference=resourceObjects`. Instead of referencing to existing partitions
+by number (1, 2, 3), we reference sub-activities by their identifiers (`operationCompletion`, `resourceObjects`, `remainingShadows`).
+
+===== Migration of the Partitioning Definition (Custom Tasks)
+
+NOTE: This functionality is _experimental_.
+
+In this case, `workManagement/partitions` is translated into `activity/composition`.
+
+As an example, let us consider a task that imports first from resource A, then from resource B:
+
+.Before
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+      oid="3894b082-f708-46e4-b6dd-26a54a459409">
+    <name>Custom partitions</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionStatus>runnable</executionStatus>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/generic-partitioning/handler-3</handlerUri>
+    <workManagement>
+        <taskKind>partitionedMaster</taskKind>
+        <partitions>
+            <sequentialExecution>true</sequentialExecution>
+            <durablePartitions>false</durablePartitions>
+            <partition>
+                <index>1</index>
+                <taskName>Import form A</taskName>
+                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
+                <copyMasterExtension>false</copyMasterExtension>
+                <extension>
+                    <mext:objectclass>ri:AccountObjectClass</mext:objectclass>
+                    <mext:kind>account</mext:kind>
+                    <mext:intent>default</mext:intent>
+                    <mext:workerThreads>5</mext:workerThreads>
+                </extension>
+                <otherDeltas>
+                    <t:modificationType>replace</t:modificationType>
+                    <t:path>objectRef</t:path>
+                    <t:value oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="ResourceType" />
+                </otherDeltas>
+            </partition>
+            <partition>
+                <index>2</index>
+                <taskName>Import from B</taskName>
+                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
+                <copyMasterExtension>false</copyMasterExtension>
+                <extension>
+                    <mext:objectclass>ri:AccountObjectClass</mext:objectclass>
+                    <mext:kind>account</mext:kind>
+                    <mext:intent>default</mext:intent>
+                    <mext:workerThreads>5</mext:workerThreads>
+                </extension>
+                <otherDeltas>
+                    <t:modificationType>replace</t:modificationType>
+                    <t:path>objectRef</t:path>
+                    <t:value oid="2db718b6-243a-11e7-a9e5-bbb2545f80ed" type="ResourceType" />
+                </otherDeltas>
+            </partition>
+        </partitions>
+    </workManagement>
+</task>
+----
+
+.After
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="3894b082-f708-46e4-b6dd-26a54a459409">
+    <name>Custom partitions</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <identifier>import-from-A</identifier>
+                <work>
+                    <import>
+                        <resourceObjects>
+                            <resourceRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce"/>
+                            <kind>account</kind>
+                            <intent>default</intent>
+                            <objectclass>ri:AccountObjectClass</objectclass>
+                        </resourceObjects>
+                    </import>
+                </work>
+                <distribution>
+                    <workerThreads>5</workerThreads>
+                </distribution>
+            </activity>
+            <activity>
+                <order>2</order>
+                <identifier>import-from-B</identifier>
+                <work>
+                    <import>
+                        <resourceObjects>
+                            <resourceRef oid="2db718b6-243a-11e7-a9e5-bbb2545f80ed"/>
+                            <kind>account</kind>
+                            <intent>default</intent>
+                            <objectclass>ri:AccountObjectClass</objectclass>
+                        </resourceObjects>
+                    </import>
+                </work>
+                <distribution>
+                    <workerThreads>5</workerThreads>
+                </distribution>
+            </activity>
+        </composition>
+        <distribution>
+            <subtasks/> <!-- optional -->
+        </distribution>
+    </activity>
+</task>
+----
+
+[#_doing_the_migration]
+== Doing the Migration
+
+How to practically do the migration?
+
+Imagine you run a 4.0.x or 4.3.x system (minimal supported versions are 4.0.4 and 4.3.2).
+Here we describe how the migration could look like. We will use MidPoint Studio for the work.
+
+1. *Before you stop the system for the last time,* you need to:
+
+- Suspend all running tasks.This is necessary to avoid their unintended execution
+after the upgraded system is started for the first time.
+- Download (export) all tasks you want to preserve - at least the ones that contain `workManagement`
+item (i.e. clustered and partitioned tasks). This item will be inaccessible after the upgrade.
+Download or export can be done either via midPoint Studio or via midPoint GUI.
+You may skip downloading the tasks if you maintain them outside midPoint, e.g. in midPoint
+Studio or a similar tool.
+
+2. Now you do the traditional upgrade actions, not related specifically to tasks.
+
+3. When the midPoint 4.4.x is started again (and all the other required upgrade actions are done),
+you may start migrating your tasks.
++
+There are two options here:
++
+* either you start with tasks maintained outside midPoint (this is an easier way),
+* or you don't have them (or don't want to use them), and you need to start with tasks that you have downloaded.
+
+4. Prepare the tasks for migration.
++
+If the tasks contain state data (e.g. if they were exported from midPoint), these data should be deleted.
+It is because some of them - e.g. `structuredProgress` or `workState` - were removed in 4.4, therefore you might
+not be able to import the tasks into midPoint.
++
+In midPoint Studio, the clean-up can be done by invoking `Other actions` -> `Cleanup File` action.footnote:[It seems
+that currently the `structuredProgress` and `expectedTotal` are not removed. So please remove them manually.] You can
+clean up individual files, or whole directories.
+
+5. Migrate the tasks.
++
+Tasks can be migrated using `Other actions` ->
+xref:/midpoint/tools/studio/usage/#upgrade-task-objects-to-use-activity-midpoint-4-4[`Upgrade task to activity (4.4)`] action.
+You can migrate individual files, or whole directories.
++
+Then inspect the migrated tasks, to make sure they were transformed correctly. You should also open the console view
+of the plugin (`Console` tab in `MidPoint` tool window) to see if there were any errors reported. We also recommend you
+to backup the original tasks just in case the migration would not be successful.
++
+NOTE: Do not migrate subtasks. These will be re-created automatically.
++
+[NOTE]
+====
+System tasks (cleanup, validity scanner, and trigger scanner) cannot be migrated automatically (yet). You can
+either migrate them manually, or simply delete and re-import them from initial objects.
+
+But beware, for deployments with many objects (like millions) you might want to preserve the last scan timestamp,
+to avoid scanning all objects for validity when the new task starts.
+====
+
+6. Re-import the tasks.
++
+Now you should delete your tasks in midPoint repository, and import the migrated versions from the Studio.
++
+Then resume them (gradually) and check if they work as expected.
+
+[NOTE]
+====
+It is not strictly necessary to migrate live synchronization tokens and last scan timestamps
+in scanner tasks (validity, trigger, shadow refresh). Although this information can be migrated
+manually, it is also possible to simply keep it "as is" in its original place - i.e. in the task
+extension. When the task will run under midPoint 4.4, it will fetch the values from the extension,
+and store updated ones to the correct place.
+====

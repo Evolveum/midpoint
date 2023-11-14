@@ -49,7 +49,7 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
     }
 
     public void setCorrelators(List<CorrelationModuleConfigurationType> correlators) {
-        this.correlators = correlators;
+        this.correlators = new ArrayList<>(correlators);
         sortCorrelators();
     }
 
@@ -65,6 +65,10 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
         return currentProcessingCorrelator == correlators.size() - 1;
     }
 
+    public boolean currentCorrelatorIndexEquals(int expectedValue) {
+        return currentProcessingCorrelator == expectedValue;
+    }
+
     public void setNextCorrelator() {
         currentProcessingCorrelator++;
     }
@@ -73,7 +77,8 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
         return CollectionUtils.isEmpty(correlators);
     }
 
-    public void addCandidateOwners(CandidateOwnersMap map) {
+    public void rewriteCandidateOwners(CandidateOwnersMap map) {
+        candidateOwners.clear();
         candidateOwners.mergeWith(map);
     }
 
@@ -84,8 +89,33 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
                 .collect(Collectors.toSet());
     }
 
-    public void addOwner(ObjectType owner) {
-        owners.add(owner);
+    public void rewriteOwner(ObjectType owner) {
+        rewriteOwners(Collections.singletonList(owner));
+    }
+
+   public void rewriteOwners(List<ObjectType> owners) {
+       clearOwners();
+       if (owners != null) {
+           owners.forEach(this::addOwnerIfNotExist);
+       }
+    }
+
+    public void clearOwners() {
+        owners.clear();
+    }
+
+    public void addOwnerIfNotExist(ObjectType owner) {
+        if (owner == null) {
+            return;
+        }
+        if (!ownerAlreadyExist(owner)) {
+            owners.add(owner);
+        }
+    }
+
+    private boolean ownerAlreadyExist(ObjectType owner) {
+        return owners.stream()
+                .anyMatch(o -> owner.getOid().equals(o.getOid()));
     }
 
     public List<ObjectType> getOwners() {
@@ -106,6 +136,10 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
 
     public FocusType getPreFocus() {
         return preFocus;
+    }
+
+    public int getCurrentCorrelatorIndex() {
+        return currentProcessingCorrelator;
     }
 
     public boolean isCorrelationMaxUsersNumberSet() {

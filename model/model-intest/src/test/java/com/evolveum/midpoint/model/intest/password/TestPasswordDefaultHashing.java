@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.password;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowPurposeType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,11 +50,11 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     }
 
     @Override
-    protected void assertShadowLifecycle(PrismObject<ShadowType> shadow, boolean focusCreated) {
+    protected void assertShadowPurpose(PrismObject<ShadowType> shadow, boolean focusCreated) {
         if (focusCreated) {
-            assertShadowLifecycle(shadow, null);
+            assertShadowPurpose(shadow, null);
         } else {
-            assertShadowLifecycle(shadow, SchemaConstants.LIFECYCLE_PROPOSED);
+            assertShadowPurpose(shadow, ShadowPurposeType.INCOMPLETE);
         }
     }
 

@@ -182,10 +182,46 @@
                     </searchItems>
                 </searchBoxConfiguration>
             </objectCollectionView>
+            <objectCollectionView id="15">
+                <identifier>orgMember</identifier>
+                <type>OrgType</type>
+                <additionalPanels>
+                    <memberPanel>
+                        <searchBoxConfiguration>
+                            <scopeConfiguration>
+                                <display>
+                                    <label>Custom Scope</label>
+                                    <help>Help scope text</help>
+                                </display>
+                                <defaultValue>subtree</defaultValue>
+                            </scopeConfiguration>
+                            <objectTypeConfiguration>
+                                <display>
+                                    <label>Custom Type</label>
+                                </display>
+                                <defaultValue>OrgType</defaultValue>
+                                <supportedTypes>OrgType</supportedTypes>
+                                <supportedTypes>UserType</supportedTypes>
+                                <supportedTypes>ServiceType</supportedTypes>
+                            </objectTypeConfiguration>
+                            <indirectConfiguration>
+                                <visibility>hidden</visibility>
+                            </indirectConfiguration>
+                        </searchBoxConfiguration>
+                    </memberPanel>
+                </additionalPanels>
+            </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
             <objectDetailsPage id="10">
                 <type>UserType</type>
+                <forms id="16">
+                    <type>UserType</type>
+                    <formSpecification>
+                        <title>Transform</title>
+                        <panelClass>com.example.midpoint.gui.forms.ConfigurationTableTabPanel</panelClass>
+                    </formSpecification>
+                </forms>
                 <container id="9">
                     <identifier>123</identifier>
                 </container>

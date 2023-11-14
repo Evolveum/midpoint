@@ -6,15 +6,21 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ENABLE_TIMESTAMP;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.cast;
 
 import java.io.File;
 import java.util.*;
+
+import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -65,9 +71,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
     // This resource does not support native activation. It has simulated activation instead.
     // + unusual validTo and validFrom mappings
-    private static final File RESOURCE_DUMMY_KHAKI_FILE = new File(TEST_DIR, "resource-dummy-khaki.xml");
-    private static final String RESOURCE_DUMMY_KHAKI_OID = "10000000-0000-0000-0000-0000000a1004";
-    private static final String RESOURCE_DUMMY_KHAKI_NAME = "khaki";
+    private static final DummyTestResource RESOURCE_DUMMY_KHAKI = new DummyTestResource(TEST_DIR,
+            "resource-dummy-khaki.xml", "10000000-0000-0000-0000-0000000a1004", "khaki",
+            c -> c.extendSchemaPirate());
 
     // This resource does not support native activation. It has simulated activation instead.
     // + unusual validTo and validFrom mappings
@@ -77,6 +83,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
     private static final DummyTestResource RESOURCE_DUMMY_PRECREATE = new DummyTestResource(TEST_DIR,
             "resource-dummy-precreate.xml", "f18711a2-5db5-4562-b50d-3ef4c74f2e1d", "precreate");
+    private static final DummyTestResource RESOURCE_DUMMY_FULL_VALIDITY = new DummyTestResource(TEST_DIR,
+            "resource-dummy-full-validity.xml", "729b0fc8-261b-476b-bfcc-9ac2be3ecd8a", "full-validity",
+            c -> c.extendSchemaPirate());
 
     private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
@@ -90,10 +99,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     private String userMancombOid;
     private XMLGregorianCalendar manana;
 
-    private DummyResource dummyResourceKhaki;
-    private DummyResourceContoller dummyResourceCtlKhaki;
-    private ResourceType resourceDummyKhakiType;
-    private PrismObject<ResourceType> resourceDummyKhaki;
+    private ResourceType resourceDummyKhaki;
 
     private DummyResource dummyResourceCoral;
     private DummyResourceContoller dummyResourceCtlCoral;
@@ -105,13 +111,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
             throws Exception {
         super.initSystem(initTask, initResult);
 
-        dummyResourceCtlKhaki = DummyResourceContoller.create(RESOURCE_DUMMY_KHAKI_NAME, resourceDummyKhaki);
-        dummyResourceCtlKhaki.extendSchemaPirate();
-        dummyResourceKhaki = dummyResourceCtlKhaki.getDummyResource();
-        resourceDummyKhaki = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_KHAKI_FILE, RESOURCE_DUMMY_KHAKI_OID, initTask, initResult);
-        resourceDummyKhakiType = resourceDummyKhaki.asObjectable();
-        dummyResourceCtlKhaki.setResource(resourceDummyKhaki);
-
         dummyResourceCtlCoral = DummyResourceContoller.create(RESOURCE_DUMMY_CORAL_NAME, resourceDummyCoral);
         DummyObjectClass accountObjectClass = dummyResourceCtlCoral.getDummyResource().getAccountObjectClass();
         dummyResourceCtlCoral.addAttrDef(accountObjectClass, SUSPENDED_ATTRIBUTE_NAME, Boolean.class, false, false);
@@ -119,10 +118,15 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         resourceDummyCoral = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_CORAL_FILE, RESOURCE_DUMMY_CORAL_OID, initTask, initResult);
         resourceDummyCoralType = resourceDummyCoral.asObjectable();
         dummyResourceCtlCoral.setResource(resourceDummyCoral);
+        dummyResourceCollection.initDummyResource(RESOURCE_DUMMY_CORAL_NAME, dummyResourceCtlCoral);
 
+        RESOURCE_DUMMY_KHAKI.init(this, initTask, initResult);
         RESOURCE_DUMMY_PRECREATE.init(this, initTask, initResult);
-//
-//        setGlobalTracingOverride(createModelLoggingTracingProfile());
+        RESOURCE_DUMMY_FULL_VALIDITY.init(this, initTask, initResult);
+
+        resourceDummyKhaki = modelService
+                .getObject(ResourceType.class, RESOURCE_DUMMY_KHAKI.oid, null, initTask, initResult)
+                .asObjectable();
     }
 
     @Test
@@ -130,7 +134,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // MID-6609
         // 1. Correct serialization and parsing of <path> expression
 
-        PrismProperty<Object> uselessStringProp = resourceDummyKhaki.findProperty(ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, "configurationProperties", "uselessString"));
+        PrismProperty<Object> uselessStringProp =
+                resourceDummyKhaki.asPrismObject().findProperty(
+                        ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, "configurationProperties", "uselessString"));
         ExpressionType expression = (ExpressionType) Objects.requireNonNull(uselessStringProp.getValue().getExpression())
                 .getExpression();
         assertThat(expression.getExpressionEvaluator()).hasSize(1);
@@ -139,7 +145,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertThat(evaluatorJaxb.getValue().toString()).isEqualTo("$configuration/name");
 
         // 2. Correct evaluation of <path> expression: $configuration/name = 'SystemConfiguration'
-        assertThat(dummyResourceKhaki.getUselessString()).as("useless string").isEqualTo("SystemConfiguration");
+        assertThat(RESOURCE_DUMMY_KHAKI.getDummyResource().getUselessString())
+                .as("useless string")
+                .isEqualTo("SystemConfiguration");
     }
 
     @Test
@@ -438,7 +446,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         assertAdministrativeStatusEnabled(userJack);
         assertValidity(userJack, null);
-        assertEffectiveStatus(userJack, ActivationStatusType.ARCHIVED);
+        assertEffectiveStatus(userJack, ActivationStatusType.DISABLED);
 
         TestUtil.assertModifyTimestamp(userJack, start, end);
     }
@@ -1327,7 +1335,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_KHAKI.oid, null, task, result);
 
         // THEN
         then();
@@ -1338,26 +1346,26 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertUserJack(userAfter);
-        String accountKhakiOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_KHAKI_OID);
+        String accountKhakiOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_KHAKI.oid);
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountKhakiOid, null, result);
         display("Shadow (repo)", accountShadow);
-        assertAccountShadowRepo(accountShadow, accountKhakiOid, "jack", resourceDummyKhakiType);
+        assertAccountShadowRepo(accountShadow, accountKhakiOid, "jack", resourceDummyKhaki);
         TestUtil.assertCreateTimestamp(accountShadow, start, end);
         assertEnableTimestampShadow(accountShadow, start, end);
 
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountKhakiOid, null, task, result);
         display("Shadow (model)", accountModel);
-        assertAccountShadowModel(accountModel, accountKhakiOid, "jack", resourceDummyKhakiType);
+        assertAccountShadowModel(accountModel, accountKhakiOid, "jack", resourceDummyKhaki);
         TestUtil.assertCreateTimestamp(accountModel, start, end);
         assertEnableTimestampShadow(accountModel, start, end);
 
         // Check account in dummy resource
-        assertDummyAccount(RESOURCE_DUMMY_KHAKI_NAME, "jack", "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_KHAKI.name, "jack", "Jack Sparrow", true);
 
-        assertDummyEnabled(RESOURCE_DUMMY_KHAKI_NAME, "jack");
+        assertDummyEnabled(RESOURCE_DUMMY_KHAKI.name, "jack");
 
         TestUtil.assertModifyTimestamp(userAfter, start, end);
 
@@ -1378,10 +1386,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         for (ObjectDeltaOperation<? extends ObjectType> executionDelta : executionDeltas) {
             ObjectDelta<? extends ObjectType> objectDelta = executionDelta.getObjectDelta();
             if (objectDelta.getObjectTypeClass() == ShadowType.class) {
-                // Actually, there should be no F_TRIGGER delta! It was there by mistake.
-//                if (objectDelta.findContainerDelta(ShadowType.F_TRIGGER) != null) {
-//                    continue;
-//                }
                 PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(PATH_ACTIVATION_ENABLE_TIMESTAMP);
                 displayDumpable("Audit enableTimestamp delta", enableTimestampDelta);
                 assertNotNull("EnableTimestamp delta vanished from audit record, delta: " + objectDelta, enableTimestampDelta);
@@ -1389,6 +1393,90 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
             }
         }
         assertTrue("Shadow delta not found", found);
+    }
+
+    /**
+     * Administrative status of `archived` should not be propagated to resources (khaki, full-validity).
+     * Testing on object ADD operation.
+     *
+     * MID-9026.
+     */
+    @Test
+    public void test165AddWithArchived() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("user has administrativeStatus of ARCHIVED");
+        String userName = getTestNameShort();
+        var user = new UserType()
+                .name(userName)
+                .activation(new ActivationType()
+                        .administrativeStatus(ActivationStatusType.ARCHIVED))
+                .assignment(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(RESOURCE_DUMMY_KHAKI.oid, ResourceType.COMPLEX_TYPE)))
+                .assignment(new AssignmentType()
+                        .construction(RESOURCE_DUMMY_FULL_VALIDITY.defaultConstruction()));
+        addObject(user, task, result);
+
+        then("the khaki account simulation attribute indicates it's disabled");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_KHAKI.name, userName)
+                .display()
+                .assertAttribute("gossip", "dead");
+
+        then("the 'full-validity' account simulation attribute indicates it's disabled");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_FULL_VALIDITY.name, userName)
+                .display()
+                .assertAttribute("gossip", "dead");
+
+        // To make downstream tests happy
+        deleteObject(UserType.class, user.getOid());
+    }
+
+    /**
+     * Administrative status of `archived` should not be propagated to resources (khaki, full-validity).
+     * Testing on object MODIFY operation.
+     *
+     * MID-9026.
+     */
+    @Test
+    public void test167ModifyWithArchived() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("user with two accounts exists");
+        String userName = getTestNameShort();
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(RESOURCE_DUMMY_KHAKI.oid, ResourceType.COMPLEX_TYPE)))
+                .assignment(new AssignmentType()
+                        .construction(RESOURCE_DUMMY_FULL_VALIDITY.defaultConstruction()));
+        addObject(user, task, result);
+        assertDummyAccountByUsername(RESOURCE_DUMMY_KHAKI.name, userName);
+        assertDummyAccountByUsername(RESOURCE_DUMMY_FULL_VALIDITY.name, userName);
+
+        when("the administrativeStatus is changed to ARCHIVED");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(PATH_ACTIVATION_ADMINISTRATIVE_STATUS)
+                        .replace(ActivationStatusType.ARCHIVED)
+                        .asObjectDelta(user.getOid()),
+                null, task, result);
+
+        then("the khaki account simulation attribute indicates it's disabled");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_KHAKI.name, userName)
+                .display()
+                .assertAttribute("gossip", "dead");
+
+        then("the 'full-validity' account simulation attribute indicates it's disabled");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_FULL_VALIDITY.name, userName)
+                .display()
+                .assertAttribute("gossip", "dead");
+
+        // To make downstream tests happy
+        deleteObject(UserType.class, user.getOid());
     }
 
     @Test
@@ -2190,7 +2278,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
         display("user after", userAfter);
-        assertEffectiveActivation(userAfter, ActivationStatusType.ARCHIVED);
+        assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
 
         assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
         assertAssignments(userAfter, 2);
@@ -2405,7 +2493,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        assignAccountToUser(USER_HERMAN_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
+        assignAccountToUser(USER_HERMAN_OID, RESOURCE_DUMMY_KHAKI.oid, null, task, result);
 
         // THEN
         result.computeStatus();
@@ -2415,7 +2503,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", user);
         assertLiveLinks(user, 1);
 
-        DummyAccount khakiAccount = getDummyAccount(RESOURCE_DUMMY_KHAKI_NAME, USER_HERMAN_USERNAME);
+        DummyAccount khakiAccount = getDummyAccount(RESOURCE_DUMMY_KHAKI.name, USER_HERMAN_USERNAME);
         assertNotNull("No khaki account", khakiAccount);
         assertTrue("khaki account not enabled", khakiAccount.isEnabled());
         assertEquals("Wrong quote (validFrom) in khaki account", "from: 1700-05-30T11:00:00Z",
@@ -2918,6 +3006,59 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertUser(user.getOid(), "after")
                 .display()
                 .assertAssignments(0);
+    }
+
+    /**
+     * When an account is disabled, the "estimated old" value should be correctly set.
+     *
+     * MID-9102
+     */
+    @Test
+    public void test810AuditAccountDisable() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("user (suspended) with an account (enabled)");
+        var userName = getTestNameShort();
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .construction(RESOURCE_DUMMY_KHAKI.defaultConstruction()));
+        addObject(user, task, result);
+
+        and("suspending the user after the account is created (otherwise it would not get created at all)");
+        modifyUserReplace(
+                user.getOid(),
+                UserType.F_LIFECYCLE_STATE,
+                task, result,
+                LIFECYCLE_SUSPENDED);
+
+        and("account is manually enabled");
+        var account = RESOURCE_DUMMY_KHAKI.getDummyResource().getAccountByUsername(userName);
+        account.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "alive");
+
+        when("account is imported");
+        dummyAuditService.clear();
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_KHAKI.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
+                .withNameValue(userName)
+                .executeOnForeground(result);
+
+        then("the account is disabled");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_KHAKI.name, userName)
+                .display()
+                .assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "dead");
+
+        and("audit has status old value of ENABLED");
+        displayDumpable("audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        ObjectDeltaOperation<ShadowType> odo = dummyAuditService.getExecutionDelta(0, ChangeType.MODIFY, ShadowType.class);
+        var delta = odo.getObjectDelta();
+        PropertyDelta<Object> statusDelta = delta.findPropertyDelta(PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+        assertThat(PrismValueCollectionsUtil.getRealValuesOfCollection(statusDelta.getEstimatedOldValues()))
+                .as("status estimated old values")
+                .containsExactlyInAnyOrder(ActivationStatusType.ENABLED);
     }
 
     private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException, InterruptedException {

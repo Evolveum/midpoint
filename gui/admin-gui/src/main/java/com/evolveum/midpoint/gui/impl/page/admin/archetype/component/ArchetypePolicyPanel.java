@@ -35,7 +35,13 @@ public class ArchetypePolicyPanel extends AbstractObjectMainPanel<ArchetypeType,
                     ArchetypeType.F_ARCHETYPE_POLICY,
                     ArchetypePolicyType.F_ADMIN_GUI_CONFIGURATION,
                     ArchetypeAdminGuiConfigurationType.F_OBJECT_DETAILS,
-                    GuiObjectDetailsPageType.F_TYPE)
+                    GuiObjectDetailsPageType.F_TYPE),
+            ItemPath.create(
+                    ArchetypeType.F_ARCHETYPE_POLICY,
+                    ArchetypePolicyType.F_ADMIN_GUI_CONFIGURATION,
+                    ArchetypeAdminGuiConfigurationType.F_OBJECT_DETAILS,
+                    GuiObjectDetailsPageType.F_FORMS,
+                    ObjectFormType.F_TYPE)
     };
 
     private static final String ID_PANEL = "panel";

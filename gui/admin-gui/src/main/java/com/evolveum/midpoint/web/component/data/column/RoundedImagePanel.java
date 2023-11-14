@@ -48,6 +48,7 @@ public class RoundedImagePanel extends BasePanel<DisplayType> {
 
         Label cssIcon = new Label(ID_CSS_ICON);
         cssIcon.add(AttributeAppender.append("class", () -> getCssIcon()));
+        cssIcon.add(AttributeAppender.append("style", () -> getIconColorStyle()));
         icon.add(cssIcon);
 
         NonCachingImage image = new NonCachingImage(ID_IMAGE, preferredImage);
@@ -67,6 +68,17 @@ public class RoundedImagePanel extends BasePanel<DisplayType> {
     private String getCssIcon() {
         IconType icon = getIcon();
         return icon != null ? icon.getCssClass() : null;
+    }
+
+    private String getIconColorStyle() {
+        IconType icon = getIcon();
+        if(icon != null) {
+            String color = icon.getColor();
+            if (StringUtils.isNotEmpty(color)) {
+                return "color:" + color + ";";
+            }
+        }
+        return null;
     }
 
     private boolean isCssIconVisible() {

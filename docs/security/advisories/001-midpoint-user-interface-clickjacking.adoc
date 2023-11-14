@@ -1,0 +1,59 @@
+= Security Advisory: MidPoint user interface clickjacking
+:page-wiki-name: Security Advisory: MidPoint user interface clickjacking
+:page-wiki-id: 30245231
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-03-21T07:57:45.989+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-05-23T07:46:49.911+02:00
+:page-nav-title: MidPoint user interface clickjacking
+:page-display-order: 1
+:page-upkeep-status: green
+
+*Date:* 21 Mar 2019
+
+*Severity:* Medium (CVSS 4.2)
+
+*Affected versions:* all midPoint versions
+
+*Fixed in versions:* 4.0 (unreleased),  3.9.1 (unreleased), 3.8.1 (unreleased), 3.7.3 (unreleased)
+
+
+== Description
+
+MidPoint user interface is vulnerable to clickjacking.
+The attacker can embed midPoint user interface in a frame.
+The victim can be tricked into unknowingly initiating actions in the user interface.
+The issue was caused by a missing `X-Frame-Options` header.
+
+
+== Severity and Impact
+
+This is medium-severity issue.
+There is a significant potential damage that an attacker can cause.
+The attack can be relatively easy on an uncustomized midPoint instance.
+However, midPoint user interface is almost always customized and configured to adapt to the specific environment.
+Therefore the attack is quite complex in practical cases, as it requires intimate knowledge of the deployment.
+Also, interaction of a privileged user is required.
+
+
+== Mitigation
+
+MidPoint users are advised to upgrade their deployments to the latest builds from the xref:/midpoint/install/using-support-branch/[support branches]. MidPoint 3.6.x users are advised to upgrade to a newer midPoint version.
+
+As this is a medium severity issue, it is not forcing official maintenance releases of midPoint.
+However, the fix is provided in all the support branches, except for midPoint 3.6 support branch.
+MidPoint 3.6 is using a different structural framework than later versions (i.e. it is not based on Spring Boot), therefore the fix cannot be directly backported.
+MidPoint 3.6 is also very close to the end of support, therefore midPoint 3.6 are strongly advised to upgrade to a newer midPoint versions as soon as possible.
+Albeit all those circumstances we can still provide fix for midPoint 3.6 in case that any midPoint subscriber asks for the fix.
+
+
+== Credit
+
+This bug was reported by Yash Sodha (yashrs) by the means of link:https://joinup.ec.europa.eu/collection/eu-fossa-2/about[EU-Free and Open Source Software Auditing (EU-FOSSA2) project].
+
+
+== See Also
+
+* bug:MID-5216[]
+
+* link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]

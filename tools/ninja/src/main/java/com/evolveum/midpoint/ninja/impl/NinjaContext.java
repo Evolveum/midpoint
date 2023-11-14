@@ -158,7 +158,11 @@ public class NinjaContext implements Closeable {
         String oldValue = System.getProperty(key);
         systemPropertiesBackup.put(key, oldValue);
 
-        System.setProperty(key, value);
+        if (value != null) {
+            System.setProperty(key, value);
+        } else {
+            System.clearProperty(key);
+        }
     }
 
     private void overrideRepoConfiguration(ConnectionOptions options) {

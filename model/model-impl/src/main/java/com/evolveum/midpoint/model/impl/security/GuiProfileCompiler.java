@@ -10,6 +10,10 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -23,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
@@ -86,13 +90,30 @@ public class GuiProfileCompiler {
             GuiProfiledPrincipal principal,
             PrismObject<SystemConfigurationType> systemConfiguration,
             AuthorizationTransformer authorizationTransformer,
+            ProfileCompilerOptions options,
             Task task,
             OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
+
+        if (options == null) {
+            options = ProfileCompilerOptions.create();
+        }
+
         LOGGER.debug("Going to compile focus profile for {}", principal.getName());
-        principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getFocus().asPrismObject(),
-                null, systemConfiguration, task, result));
+
+        if (options.isTryReusingSecurityPolicy()) {
+            MidPointPrincipal authPrincipal = AuthUtil.getMidpointPrincipal();
+            if (authPrincipal != null) {
+                principal.setApplicableSecurityPolicy(authPrincipal.getApplicableSecurityPolicy());
+            }
+        }
+
+        if (options.isLocateSecurityPolicy()
+                && (!options.isTryReusingSecurityPolicy() || principal.getApplicableSecurityPolicy() == null)) {
+            principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getFocus().asPrismObject(),
+                    null, systemConfiguration, task, result));
+        }
 
         List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
         Set<String> profileDependencies = new HashSet<>();
@@ -101,7 +122,12 @@ public class GuiProfileCompiler {
         if (systemConfiguration != null) {
             profileDependencies.add(systemConfiguration.getOid());
         }
-        collect(adminGuiConfigurations, profileDependencies, principal, authorizationTransformer, task, result);
+
+        collect(adminGuiConfigurations, profileDependencies, principal, authorizationTransformer, options, task, result);
+
+        if (!options.isCompileGuiAdminConfiguration()) {
+            return;
+        }
 
         CompiledGuiProfile compiledGuiProfile = compileFocusProfile(adminGuiConfigurations, systemConfiguration, principal, task, result);
 
@@ -118,19 +144,41 @@ public class GuiProfileCompiler {
             Set<String> consideredOids,
             GuiProfiledPrincipal principal,
             AuthorizationTransformer authorizationTransformer,
-            Task task,
+            ProfileCompilerOptions options, Task task,
             OperationResult result) throws SchemaException, ConfigurationException {
+
+        if (!options.isCollectAuthorization() && !options.isCompileGuiAdminConfiguration()) {
+            return;
+        }
+
         FocusType focus = principal.getFocus(); // [EP:APSO] DONE, focus is from repository
 
         Collection<? extends EvaluatedAssignment> evaluatedAssignments = // [EP:APSO] DONE, see the called method
                 assignmentCollector.collect(focus.asPrismObject(), task, result);
+
+        MidpointAuthentication auth = AuthUtil.getMidpointAuthenticationNotRequired();
+        AuthenticationChannel channel = auth != null ? auth.getAuthenticationChannel() : null;
+
+        if(!options.isRunAsRunner() && channel != null) {
+            @Nullable Authorization additionalAuth = channel.getAdditionalAuthority();
+            if (additionalAuth != null) {
+                addAuthorizationToPrincipal(principal, additionalAuth, authorizationTransformer);
+            }
+        }
+
         for (EvaluatedAssignment assignment : evaluatedAssignments) {
             if (assignment.isValid()) {
-                // TODO: Should we add also invalid assignments?
-                consideredOids.addAll(assignment.getAdminGuiDependencies());
+                if (options.isCompileGuiAdminConfiguration()) {
+                    // TODO: Should we add also invalid assignments?
+                    consideredOids.addAll(assignment.getAdminGuiDependencies());
+                }
 
-                addAuthorizations(principal, assignment.getAuthorizations(), authorizationTransformer);
-                adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
+                if (options.isCollectAuthorization()) {
+                    addAuthorizations(principal, channel, assignment.getAuthorizations(), authorizationTransformer, options);
+                }
+                if (options.isCompileGuiAdminConfiguration()) {
+                    adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
+                }
             }
             for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // TODO see MID-6403
                 if (target.isValid() && target.getAssignmentPath().containsDelegation()) {
@@ -139,6 +187,10 @@ public class GuiProfileCompiler {
                             target.getAssignmentPath().getOtherPrivilegesLimitation());
                 }
             }
+        }
+
+        if (!options.isCompileGuiAdminConfiguration()) {
+            return;
         }
 
         if (focus instanceof UserType user && user.getAdminGuiConfiguration() != null) {
@@ -151,15 +203,29 @@ public class GuiProfileCompiler {
 
     private void addAuthorizations(
             @NotNull MidPointPrincipal principal,
+            @Nullable AuthenticationChannel channel,
             @NotNull Collection<Authorization> sourceCollection,
-            @Nullable AuthorizationTransformer authorizationTransformer) {
+            @Nullable AuthorizationTransformer authorizationTransformer, ProfileCompilerOptions options) {
         for (Authorization autz : sourceCollection) {
-            if (authorizationTransformer == null) {
-                principal.addAuthorization(autz.clone());
-            } else {
-                for (Authorization transformedAutz : emptyIfNull(authorizationTransformer.transform(autz))) {
-                    principal.addAuthorization(transformedAutz);
+            Authorization resolvedAutz = autz;
+
+            if (!options.isRunAsRunner() && channel != null) {
+                resolvedAutz = channel.resolveAuthorization(autz);
+                if (resolvedAutz == null) {
+                    continue;
                 }
+            }
+            addAuthorizationToPrincipal(principal, resolvedAutz, authorizationTransformer);
+        }
+    }
+
+    private void addAuthorizationToPrincipal(
+            MidPointPrincipal principal, Authorization autz, AuthorizationTransformer authorizationTransformer) {
+        if (authorizationTransformer == null) {
+            principal.addAuthorization(autz.clone());
+        } else {
+            for (Authorization transformedAutz : emptyIfNull(authorizationTransformer.transform(autz))) {
+                principal.addAuthorization(transformedAutz);
             }
         }
     }
@@ -177,7 +243,7 @@ public class GuiProfileCompiler {
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
-        if(principal != null) {
+        if (principal != null) {
             LOGGER.debug("Going to compile focus profile (inner) for {}", principal.getName());
         }
         AdminGuiConfigurationType globalAdminGuiConfig = null;

@@ -74,9 +74,11 @@ public abstract class AbstractAuthenticationProvider implements AuthenticationPr
             Authentication token = internalAuthentication(processingAuthentication, authRequirements.requireAssignment,
                     authRequirements.channel, authRequirements.focusType);
 
-            token = createNewAuthenticationToken(token, actualAuthentication.resolveAuthorities(token));
+//            token = createNewAuthenticationToken(token, actualAuthentication.resolveAuthorities(token));
 
             writeAuthentication(processingAuthentication, actualAuthentication, token);
+
+            postAuthenticationProcess();
 
             return actualAuthentication;
 
@@ -88,6 +90,9 @@ public abstract class AbstractAuthenticationProvider implements AuthenticationPr
             LOGGER.error("Unexpected exception during authentication: {}", e.getMessage(), e);
             throw e;
         }
+    }
+
+    void postAuthenticationProcess() {
     }
 
     private boolean isAnonymous(Authentication originalAuthentication) {

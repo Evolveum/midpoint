@@ -73,26 +73,31 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
                     focusType);
             ObjectType owner = correlationResult.getOwner();
 
+            if (owner == null && !candidateOwnerExist(correlationResult)) {
+                throw new AuthenticationServiceException("No identity is found.");
+            }
+
             correlationModuleAuthentication.addAttributes(correlationVerificationToken.getDetails());
 
+            correlationModuleAuthentication.setPreFocus(correlationVerificationToken.getPreFocus(focusType,
+                    correlationModuleAuthentication.getProcessedAttributes()));
             if (owner != null) {
-                correlationModuleAuthentication.addOwner(owner);
+                correlationModuleAuthentication.rewriteOwner(owner);
                 return authentication;
-            } else if (correlationModuleAuthentication.isLastCorrelator()) {
+            } else if (isLastCorrelatorProcessing(correlationModuleAuthentication, correlationVerificationToken)) {
                 if (candidateOwnerExist(correlationResult)) {
-                    writeCandidatesToOwners(correlationResult.getCandidateOwnersMap(), correlationModuleAuthentication);
+                    rewriteCandidatesToOwners(correlationResult.getCandidateOwnersMap(), correlationModuleAuthentication);
+                } else {
+                    correlationModuleAuthentication.clearOwners();
                 }
 
                 isOwnersNumberUnderRestriction(correlationModuleAuthentication);
-
-                correlationModuleAuthentication.setPreFocus(correlationVerificationToken.getPreFocus(focusType,
-                                    correlationModuleAuthentication.getProcessedAttributes()));
 
                 return authentication;
             }
 
             CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
-            correlationModuleAuthentication.addCandidateOwners(ownersMap);
+            correlationModuleAuthentication.rewriteCandidateOwners(ownersMap);
 
             return authentication;
         } catch (Exception e) {
@@ -100,6 +105,12 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
 
+    }
+
+    private boolean isLastCorrelatorProcessing(CorrelationModuleAuthenticationImpl correlationModuleAuthentication,
+            CorrelationVerificationToken token) {
+        return correlationModuleAuthentication.isLastCorrelator()
+                && correlationModuleAuthentication.currentCorrelatorIndexEquals(token.getCurrentCorrelatorIndex());
     }
 
     private String determineArchetypeOid() {
@@ -114,10 +125,11 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
         return correlationResult.getCandidateOwnersMap() != null && !correlationResult.getCandidateOwnersMap().isEmpty();
     }
 
-    private void writeCandidatesToOwners(@NotNull CandidateOwnersMap candidateOwnersMap,
+    private void rewriteCandidatesToOwners(@NotNull CandidateOwnersMap candidateOwnersMap,
             CorrelationModuleAuthenticationImpl correlationModuleAuthentication) {
+        correlationModuleAuthentication.clearOwners();
         candidateOwnersMap.values()
-                .forEach(c -> correlationModuleAuthentication.addOwner(c.getObject()));
+                .forEach(c -> correlationModuleAuthentication.addOwnerIfNotExist(c.getObject()));
     }
 
     private void isOwnersNumberUnderRestriction(CorrelationModuleAuthenticationImpl correlationModuleAuthentication) {
@@ -127,17 +139,6 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
         if (correlationModuleAuthentication.getOwners().size() > correlationModuleAuthentication.getCorrelationMaxUsersNumber()) {
             LOGGER.error("Correlation result owners number exceeds the threshold.");
             throw new AuthenticationServiceException("web.security.provider.unavailable");
-        }
-    }
-
-    private Authentication createAuthenticationToken(ObjectType owner, Class<? extends FocusType> focusType) {
-        try {
-            MidPointPrincipal principal = focusProfileService.getPrincipalByOid(owner.getOid(), focusType);
-            return new UsernamePasswordAuthenticationToken(principal, null);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
-                SecurityViolationException | ExpressionEvaluationException e) {
-            throw new RuntimeException(e);
-            //TODO
         }
     }
 

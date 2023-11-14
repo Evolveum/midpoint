@@ -292,7 +292,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                        evaluator.toPath("name"), "Jack");
+                        evaluator.toPath("name"), PolyString.fromOrig("Jack"));
         delta.addModificationDeleteProperty(evaluator.toPath("subtype"), "CAPTAIN");
 
         String shortTestName = getTestNameShort();
@@ -501,7 +501,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                        UserType.F_ADDITIONAL_NAME, "Captain Sparrow");
+                        UserType.F_ADDITIONAL_NAME, PolyString.fromOrig("Captain Sparrow"));
 
         String shortTestName = getTestNameShort();
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =

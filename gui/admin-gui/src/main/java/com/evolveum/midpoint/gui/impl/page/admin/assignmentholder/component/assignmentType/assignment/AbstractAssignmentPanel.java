@@ -135,7 +135,7 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
         }
 
         List<AssignmentObjectRelation> assignmentRelationsList =
-                WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
+                WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList(), false);
         if (assignmentRelationsList == null || assignmentRelationsList.isEmpty()) {
             return assignmentRelationsList;
         }

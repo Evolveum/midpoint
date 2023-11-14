@@ -24,6 +24,9 @@ import org.apache.wicket.request.resource.DynamicImageResource;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
+/**
+ * CustomImageResource generates images for role mining clusters based on a MiningOperationChunk.
+ */
 public class CustomImageResource extends DynamicImageResource {
 
     public int getWidth() {

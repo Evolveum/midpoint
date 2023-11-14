@@ -80,7 +80,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
                         description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS,
                         label = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_LABEL,
-                        description = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_DESCRIPTION)})
+                        description = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_DESCRIPTION) })
 
 public class PageCertDecisions extends PageAdminCertification {
 
@@ -107,7 +107,7 @@ public class PageCertDecisions extends PageAdminCertification {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
@@ -335,19 +335,19 @@ public class PageCertDecisions extends PageAdminCertification {
         };
         columns.add(column);
 
-            column = new PropertyColumn<CertWorkItemDto, String>(createStringResource("PageCertDecisions.table.deadline"),
+        column = new PropertyColumn<CertWorkItemDto, String>(createStringResource("PageCertDecisions.table.deadline"),
                 SearchingUtils.CURRENT_REVIEW_DEADLINE, CertWorkItemDto.F_DEADLINE_AS_STRING) {
-                private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, final IModel<CertWorkItemDto> rowModel) {
-                    super.populateItem(item, componentId, rowModel);
-                    XMLGregorianCalendar deadline = rowModel.getObject().getCertCase().getCurrentStageDeadline();
-                    if (deadline != null) {
-                        item.add(AttributeModifier.replace("title", WebComponentUtil.formatDate(deadline)));
-                        item.add(new TooltipBehavior());
-                    }
+            @Override
+            public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, final IModel<CertWorkItemDto> rowModel) {
+                super.populateItem(item, componentId, rowModel);
+                XMLGregorianCalendar deadline = rowModel.getObject().getCertCase().getCurrentStageDeadline();
+                if (deadline != null) {
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.formatDate(deadline)));
+                    item.add(new TooltipBehavior());
                 }
+            }
         };
         columns.add(column);
 
@@ -360,7 +360,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
             @Override
             public void populateItem(Item<ICellPopulator<CertWorkItemDto>> cellItem, String componentId,
-                                     IModel<CertWorkItemDto> rowModel) {
+                    IModel<CertWorkItemDto> rowModel) {
 
                 cellItem.add(new MultiButtonPanel<CertWorkItemDto>(componentId, rowModel, responses + 1) {
 
@@ -402,7 +402,7 @@ public class PageCertDecisions extends PageAdminCertification {
         };
         columns.add(column);
 
-        columns.add(new InlineMenuHeaderColumn(createInlineMenu(availableResponses)));
+        columns.add(new InlineMenuHeaderColumn<>(createInlineMenu(availableResponses)));
 
         return columns;
     }
@@ -519,7 +519,9 @@ public class PageCertDecisions extends PageAdminCertification {
             showResult(result);
         }
 //        resetCertWorkItemCountModel();
-        target.add(this);
+        if (response != null) {
+            target.add(this);
+        }
     }
 
     private void searchFilterPerformed(AjaxRequestTarget target) {
@@ -537,14 +539,14 @@ public class PageCertDecisions extends PageAdminCertification {
         target.add((Component) getDecisionsTable());
     }
 
-    private CertDecisionsStorage getCertDecisionsStorage(){
+    private CertDecisionsStorage getCertDecisionsStorage() {
         return getSessionStorage().getCertDecisions();
     }
 
     private static class SearchFragment extends Fragment {
 
         public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
-                              IModel<Boolean> model) {
+                IModel<Boolean> model) {
             super(id, markupId, markupProvider, model);
 
             initLayout();

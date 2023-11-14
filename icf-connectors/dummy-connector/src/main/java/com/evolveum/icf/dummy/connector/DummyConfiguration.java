@@ -50,8 +50,8 @@ public class DummyConfiguration extends AbstractConfiguration {
     private String uselessString;
     private GuardedString uselessGuardedString;
     private boolean requireUselessString = false;
-    private boolean generateAccountDescriptionOnCreate = false;           // simulates volatile behavior (on create)
-    private boolean generateAccountDescriptionOnUpdate = false;        // simulates volatile behavior (on update)
+    private boolean generateAccountDescriptionOnCreate = false; // simulates volatile behavior (on create)
+    private boolean generateAccountDescriptionOnUpdate = false; // simulates volatile behavior (on update)
     private String[] forbiddenNames = new String[0];
     private boolean useLegacySchema = true;
     private String requiredBaseContextOrgName = null;
@@ -66,6 +66,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean impreciseTokenValues = false;
     private String[] alwaysRequireUpdateOfAttribute = new String[0];
     private boolean canRead = true;
+    private boolean hierarchicalObjectsEnabled;
 
     /**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -456,6 +457,15 @@ public class DummyConfiguration extends AbstractConfiguration {
         this.canRead = canRead;
     }
 
+    @ConfigurationProperty
+    public boolean isHierarchicalObjectsEnabled() {
+        return hierarchicalObjectsEnabled;
+    }
+
+    public void setHierarchicalObjectsEnabled(boolean hierarchicalObjectsEnabled) {
+        this.hierarchicalObjectsEnabled = hierarchicalObjectsEnabled;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -463,8 +473,14 @@ public class DummyConfiguration extends AbstractConfiguration {
     public void validate() {
         LOG.info("begin");
 
-        if (isUidBoundToName() && !enforceUniqueName) {
-            throw new IllegalArgumentException("Cannot use name UID mode without enforceUniqueName");
+        if (!enforceUniqueName) {
+            if (isUidBoundToName()) {
+                throw new ConfigurationException("Cannot use name UID mode without enforceUniqueName");
+            }
+
+            if (hierarchicalObjectsEnabled) {
+                throw new ConfigurationException("Cannot use hierarchical objects without enforceUniqueName");
+            }
         }
 
         LOG.info("uselessString: {0}", uselessString);

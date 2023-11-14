@@ -6,7 +6,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -24,6 +23,12 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
 
     @Override
     ResourceObjectDefinition delegate();
+
+    @Override
+    @Nullable
+    default BasicResourceInformation getBasicResourceInformation() {
+        return delegate().getBasicResourceInformation();
+    }
 
     @Override
     default @NotNull List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
@@ -74,21 +79,6 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     default ResourceAttributeDefinition<?> getDisplayNameAttribute() {
         return delegate().getDisplayNameAttribute();
     }
-
-//    @Override
-//    default String getNativeObjectClass() {
-//        return delegate().getNativeObjectClass();
-//    }
-//
-//    @Override
-//    default boolean isAuxiliary() {
-//        return delegate().isAuxiliary();
-//    }
-//
-//    @Override
-//    default boolean isDefaultInAKind() {
-//        return delegate().isDefaultInAKind();
-//    }
 
     @Override
     default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
@@ -177,8 +167,13 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default ResourceObjectDefinition forLayer(@NotNull LayerType layer) {
-        return delegate().forLayer(layer);
+    default @NotNull ResourceObjectDefinition forLayerMutable(@NotNull LayerType layer) {
+        return delegate().forLayerMutable(layer);
+    }
+
+    @Override
+    default @NotNull ResourceObjectDefinition forLayerImmutable(@NotNull LayerType layer) {
+        return delegate().forLayerImmutable(layer);
     }
 
     @Override
@@ -200,11 +195,6 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     @Override
     default String getDescription() {
         return delegate().getDescription();
-    }
-
-    @Override
-    default String getResourceOid() {
-        return delegate().getResourceOid();
     }
 
     @Override
@@ -311,5 +301,10 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     @Override
     default boolean isDefaultFor(@NotNull ShadowKindType kind) {
         return delegate().isDefaultFor(kind);
+    }
+
+    @Override
+    default @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy() {
+        return delegate().getEffectiveShadowCachingPolicy();
     }
 }

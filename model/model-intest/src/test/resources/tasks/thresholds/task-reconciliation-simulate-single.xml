@@ -30,31 +30,22 @@
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>
+                <reporting>
+                    <simulationResult>
+                        <enabled>false</enabled>
+                    </simulationResult>
+                </reporting>
             </change>
             <change>
                 <reference>remainingShadowsPreview</reference>
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>
-                <!--<reporting>-->
-                <!--    <tracing>-->
-                <!--        <interval>1</interval>-->
-                <!--        <tracingProfile>-->
-                <!--            <fileNamePattern>trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}</fileNamePattern>-->
-                <!--            <collectLogEntries>true</collectLogEntries>-->
-                <!--            <loggingOverride>-->
-                <!--                <levelOverride>-->
-                <!--                    <logger>com.evolveum.midpoint.model</logger>-->
-                <!--                    <logger>com.evolveum.midpoint.provisioning</logger>-->
-                <!--                    <level>TRACE</level>-->
-                <!--                </levelOverride>-->
-                <!--            </loggingOverride>-->
-                <!--            <tracingTypeProfile>-->
-                <!--                <level>normal</level>-->
-                <!--            </tracingTypeProfile>-->
-                <!--        </tracingProfile>-->
-                <!--    </tracing>-->
-                <!--</reporting>-->
+                <reporting>
+                    <simulationResult>
+                        <enabled>false</enabled>
+                    </simulationResult>
+                </reporting>
             </change>
             <change>
                 <reference>resourceObjects</reference>

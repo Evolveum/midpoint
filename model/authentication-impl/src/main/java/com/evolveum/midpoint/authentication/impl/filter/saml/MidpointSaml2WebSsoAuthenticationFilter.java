@@ -8,7 +8,11 @@
 package com.evolveum.midpoint.authentication.impl.filter.saml;
 
 import java.io.IOException;
+
+import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -28,6 +32,29 @@ public class MidpointSaml2WebSsoAuthenticationFilter extends Saml2WebSsoAuthenti
             ModelAuditRecorder auditProvider) {
         super(authenticationConverter, filterProcessingUrl);
         this.auditProvider = auditProvider;
+    }
+
+    public boolean requiresAuth(HttpServletRequest request, HttpServletResponse response) {
+        return super.requiresAuthentication(request, response);
+    }
+
+    public void unsuccessfulAuth(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws ServletException, IOException {
+        remoteUnsuccessfulAuthentication(request, response, failed, getRememberMeServices(), getFailureHandler());
+    }
+
+    @Override
+    public String getErrorMessageKeyNotResponse() {
+        return "web.security.flexAuth.saml.not.response";
+    }
+
+    @Override
+    public void doAuth(ServletRequest req, ServletResponse res, FilterChain chain) throws ServletException, IOException {
+        super.doFilter(req, res, chain);
+    }
+
+    @Override
+    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+        doRemoteFilter(req, res, chain);
     }
 
     @Override

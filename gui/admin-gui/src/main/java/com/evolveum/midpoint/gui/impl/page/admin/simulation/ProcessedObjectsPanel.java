@@ -168,7 +168,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
     @Override
     protected IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createIconColumn() {
-        return SimulationsGuiUtil.createProcessedObjectIconColumn();
+        return SimulationsGuiUtil.createProcessedObjectIconColumn(getParentPage());
     }
 
     @Override

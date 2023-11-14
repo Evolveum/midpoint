@@ -19,17 +19,12 @@ import java.util.zip.ZipOutputStream;
 
 import com.beust.jcommander.IUsageFormatter;
 import com.beust.jcommander.JCommander;
-
-import com.evolveum.midpoint.ninja.impl.NinjaUsageFormatter;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
-import com.evolveum.midpoint.ninja.impl.Command;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.impl.NinjaException;
+import com.evolveum.midpoint.ninja.impl.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -41,6 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -54,7 +51,16 @@ public class NinjaUtils {
             "\txmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\"\n" +
             "\txmlns:org=\"http://midpoint.evolveum.com/xml/ns/public/common/org-3\">\n";
 
-    public static final String XML_OBJECTS_SUFFIX = "</c:objects>";
+    public static final String XML_OBJECTS_SUFFIX = "</c:objects>\n";
+
+    public static final String XML_DELTAS_PREFIX = "<deltas "
+            + "xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/api-types-3\" "
+            + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+            + "xsi:type=\"ObjectDeltaListType\">\n";
+
+    public static final String XML_DELTAS_SUFFIX = "</deltas>\n";
+
+    public static final QName DELTA_LIST_DELTA = new QName("http://midpoint.evolveum.com/xml/ns/public/common/api-types-3", "delta");
 
     public static final String JSON_OBJECTS_PREFIX = "[\n";
 
@@ -281,15 +287,29 @@ public class NinjaUtils {
         return Arrays.stream(names).anyMatch(s -> s.matches(filenameRegex));
     }
 
-    public static String readInput(Function<String, Boolean> inputValidation) throws IOException {
+    public static String readInput(Log log, Function<String, Boolean> inputValidation) {
+        log.logRaw(ConsoleFormat.formatInputPrompt());
+        boolean first = true;
+
         String line = null;
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
+        // we don't want to close this input stream (stdin), we didn't open it.
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
             boolean accepted = false;
             while (!accepted) {
+                if (!first) {
+                    log.error("Invalid input, please try again");
+                    log.logRaw(ConsoleFormat.formatInputPrompt());
+                }
+                first = false;
+
                 line = br.readLine();
 
                 accepted = inputValidation.apply(line);
             }
+        } catch (IOException ex) {
+            log.error("Error occurred while reading input from stdin", ex);
         }
 
         return line;
@@ -325,5 +345,13 @@ public class NinjaUtils {
         }
 
         return sb.toString();
+    }
+
+    public static String printObjectNameOidAndType(PrismObject<?> object) {
+        if (object == null) {
+            return null;
+        }
+
+        return printFormatted("{} ({}, {})", object.getName(), object.getOid(), object.toDebugType());
     }
 }

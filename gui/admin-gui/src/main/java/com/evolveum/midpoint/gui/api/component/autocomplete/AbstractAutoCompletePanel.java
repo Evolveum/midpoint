@@ -6,7 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
-import com.evolveum.midpoint.web.component.prism.InputPanel;
+import java.io.Serial;
+import java.time.Duration;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -14,20 +15,21 @@ import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 
-import java.time.Duration;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * @author semancik
  */
 public abstract class AbstractAutoCompletePanel extends InputPanel {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON_BUTTON = "iconButton";
 
     public AbstractAutoCompletePanel(String id) {
         super(id);
-        AjaxLink<String> showChoices = new AjaxLink<String>(ID_ICON_BUTTON) {
-            private static final long serialVersionUID = 1L;
+        AjaxLink<String> showChoices = new AjaxLink<>(ID_ICON_BUTTON) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -41,7 +43,12 @@ public abstract class AbstractAutoCompletePanel extends InputPanel {
                 attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ofMillis(settings.getThrottleDelay()), true));
             }
         };
+        showChoices.add(new VisibleBehaviour(this::isShowChoicesVisible));
         add(showChoices);
+    }
+
+    protected boolean isShowChoicesVisible() {
+        return true;
     }
 
     protected AutoCompleteSettings createAutoCompleteSettings() {

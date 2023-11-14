@@ -12,36 +12,43 @@
 <wicket:extend>
 
     <wicket:fragment wicket:id="staticContent">
-        <div wicket:id="staticForm">
-            <div class="input-group mb-3">
-                <div wicket:id="firstName"/>
-                <div class="input-group-append">
-                    <div class="input-group-text">
-                        <span class="fas fa-user"></span>
-                    </div>
+        <div wicket:id="staticForm" >
+            <div class="mb-3">
+            <div class="d-flex flex-column my-2 justify-content-between login-panel-control">
+                <label>
+                    <wicket:message key="UserType.givenName"/>
+                </label>
+                <div>
+                    <div wicket:id="firstName"/>
                 </div>
             </div>
 
-            <div class="input-group mb-3">
-                <div wicket:id="lastName"/>
-                <div class="input-group-append">
-                    <div class="input-group-text">
-                        <span class="fas fa-user"></span>
-                    </div>
+            <div class="d-flex flex-column my-2 justify-content-between login-panel-control">
+                <label>
+                    <wicket:message key="UserType.familyName"/>
+                </label>
+                <div>
+                    <div wicket:id="lastName"/>
                 </div>
             </div>
 
-            <div class="input-group mb-3">
-                <div wicket:id="email"/>
-                <div class="input-group-append">
-                    <div class="input-group-text">
-                        <span class="fas fa-user"></span>
-                    </div>
+            <div class="d-flex flex-column my-2 justify-content-between login-panel-control">
+                <label>
+                    <wicket:message key="UserType.emailAddress"/>
+                </label>
+                <div>
+                    <div wicket:id="email"/>
                 </div>
             </div>
 
-            <div class="input-group mb-3">
-                <div class="col-md-12 px-0" wicket:id="password"/>
+            <div class="d-flex flex-column my-2 justify-content-between login-panel-control">
+                <label>
+                    <wicket:message key="CredentialsType.password"/>
+                </label>
+                <div>
+                    <div class="col-md-12 px-0" wicket:id="password"/>
+                </div>
+            </div>
             </div>
 
             <div wicket:id="componentFeedback"/>

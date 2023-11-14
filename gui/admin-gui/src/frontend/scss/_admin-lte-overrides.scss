@@ -7,6 +7,13 @@
 
 .user-panel {
   border-bottom: 0 !important;
+
+  &.info-box {
+    min-height:70px;
+  }
+  &.info-box > div > div:first-child {
+    min-height:54px;
+  }
 }
 
 .btn-default {
@@ -30,4 +37,26 @@
 
 .role-catalog-tiles-table div.img-circle {
   background-color: #f5f5f5;
+}
+
+.dropdown-toggle:after {
+  vertical-align: middle;
+  /*margin: 0 0.255em;*/
+  margin-bottom: 0.05rem;
+}
+
+.login-box-msg,
+.register-box-msg {
+  padding: 0 20px 10px;
+  font-size:1.5rem;
+}
+
+.popover {
+  z-index:1040;
+}
+
+//:focus pseudo attribute fix for accessibility intentions
+.btn-default:focus {
+  background-color: #e9ecef;
+  color: #2b2b2b;
 }

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="729b0fc8-261b-476b-bfcc-9ac2be3ecd8a"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>resource-dummy-full-validity</name>
+    <documentation>Supports valid from/to and status (simulated - to fail on "archive" status - MID-9026)</documentation>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>full-validity</icfi:instanceId>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <outbound>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+                <validFrom>
+                    <outbound>
+                        <expression>
+                            <script>
+                                <code>'from: '+input</code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>attributes/quote</path>
+                        </target>
+                    </outbound>
+                </validFrom>
+                <validTo>
+                    <outbound>
+                        <expression>
+                            <script>
+                                <code>'to: '+input</code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>attributes/drink</path>
+                        </target>
+                    </outbound>
+                </validTo>
+            </activation>
+        </objectType>
+    </schemaHandling>
+
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <configured>
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:gossip</cap:attribute>
+                    <cap:enableValue>alive</cap:enableValue>
+                    <cap:enableValue/>
+                    <cap:disableValue>dead</cap:disableValue>
+                </cap:status>
+                <cap:validFrom/>
+                <cap:validTo/>
+            </cap:activation>
+        </configured>
+    </capabilities>
+</resource>

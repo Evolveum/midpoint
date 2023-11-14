@@ -9,7 +9,18 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
@@ -19,39 +30,26 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objec
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.ActivationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.associations.AssociationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeMappingWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.basic.FocusResourceObjectTypeStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.basic.ResourceObjectTypeBasicWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.capabilities.CapabilitiesWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation.CorrelationWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.CredentialsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationWizardPanel;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceSummaryPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectFocusSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 
 @PageDescriptor(
         urls = {
@@ -68,10 +66,6 @@ import com.evolveum.midpoint.web.page.admin.resources.ResourceSummaryPanel;
 public class PageResource extends PageAssignmentHolderDetails<ResourceType, ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);
-
-//    private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
-//    private static final String ID_WIZARD = "wizard";
-
 
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);

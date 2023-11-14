@@ -4,9 +4,10 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<functionLibrary xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                 oid="19a38b96-8357-473c-b0a2-87e2885503bb">
+<functionLibrary oid="19a38b96-8357-473c-b0a2-87e2885503bb"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3">
     <name>testlib</name>
     <function>
         <name>test</name>
@@ -14,6 +15,28 @@
         <returnMultiplicity>single</returnMultiplicity>
         <script>
             <code>'test-result'</code>
+        </script>
+    </function>
+    <function>
+        <name>getSelectedObjects</name>
+        <returnType>apit:ObjectListType</returnType>
+        <script>
+            <code>
+                import com.evolveum.midpoint.schema.util.MiscSchemaUtil
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                def administrator = midpoint.getObject(UserType, SystemObjectsType.USER_ADMINISTRATOR.value())
+                def superuser = midpoint.getObject(RoleType, SystemObjectsType.ROLE_SUPERUSER.value())
+                def systemConfiguration = midpoint.getObject(SystemConfigurationType, SystemObjectsType.SYSTEM_CONFIGURATION.value())
+
+                return MiscSchemaUtil.toObjectListType([
+                        administrator.asPrismObject(),
+                        superuser.asPrismObject(),
+                        systemConfiguration.asPrismObject()])
+            </code>
         </script>
     </function>
 </functionLibrary>

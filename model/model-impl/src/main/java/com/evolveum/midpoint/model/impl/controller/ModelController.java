@@ -126,6 +126,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     private static final String OP_APPLY_PROVISIONING_DEFINITION = CLASS_NAME_WITH_DOT + "applyProvisioningDefinition";
     static final String OP_REEVALUATE_SEARCH_FILTERS = CLASS_NAME_WITH_DOT + "reevaluateSearchFilters";
 
+    private static final int OID_GENERATION_ATTEMPTS = 5;
+
     private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 
     private static final Trace OP_LOGGER = TraceManager.getTrace(ModelService.OPERATION_LOGGER_NAME);
@@ -344,6 +346,10 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         context.setProgressListeners(statusListeners);
         // Note: Request authorization happens inside clockwork
 
+        // We generate focus OID even for generic repo, and when access metadata are not concerned.
+        // It is maybe not strictly needed for these cases, but this allows us to rely on the fact that the OID is always there.
+        generateFocusOidIfNeeded(context, result);
+
         clockwork.run(context, task, result);
 
         // prepare return value
@@ -370,6 +376,40 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         cleanupOperationResult(result);
         return executedDeltas;
+    }
+
+    private void generateFocusOidIfNeeded(LensContext<? extends ObjectType> context, OperationResult result)
+            throws SchemaException {
+        LensFocusContext<? extends ObjectType> focusContext = context.getFocusContext();
+        if (focusContext == null) {
+            return;
+        }
+        var primaryDelta = focusContext.getPrimaryDelta();
+        if (primaryDelta == null || !primaryDelta.isAdd()) {
+            return;
+        }
+        var objectToAdd = primaryDelta.getObjectToAdd().asObjectable();
+        if (objectToAdd.getOid() != null) {
+            return;
+        }
+        String oid = getNewOid(objectToAdd.getClass(), result);
+        focusContext.modifyPrimaryDelta(d -> d.setOid(oid));
+    }
+
+    private String getNewOid(Class<? extends ObjectType> type, OperationResult result) {
+        for (int attempt = 1; attempt <= OID_GENERATION_ATTEMPTS; attempt++) {
+            var randomOid = UUID.randomUUID().toString();
+            try {
+                cacheRepositoryService.getObject(type, randomOid, GetOperationOptions.createAllowNotFoundCollection(), result);
+                LOGGER.info("Random UUID is not that random? Attempt {} of {}: {}", attempt, OID_GENERATION_ATTEMPTS, randomOid);
+            } catch (ObjectNotFoundException e) {
+                result.clearLastSubresultError(); // e.g. because of tests
+                return randomOid; // This is the good case
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't check for existence of object with OID {}", e, randomOid);
+            }
+        }
+        throw new IllegalStateException("Couldn't generate random OID even after " + OID_GENERATION_ATTEMPTS + " attempts");
     }
 
     static void checkIndestructible(ObjectType object)
@@ -759,6 +799,105 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             result.cleanup();
         }
     }
+
+    public <T extends Containerable> SearchResultMetadata searchContainersIterative(
+            Class<T> type, ObjectQuery origQuery,
+            ObjectHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
+            Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+
+        Validate.notNull(type, "Container type must not be null.");
+        Validate.notNull(parentResult, "Result type must not be null.");
+        ObjectQuery query = origQuery != null ? origQuery.clone() : null;
+        if (query != null) {
+            ModelImplUtils.validatePaging(query.getPaging());
+        }
+
+        OP_LOGGER.trace("MODEL OP enter searchContainersIterative({},{},{})", type.getSimpleName(), query, rawOptions);
+
+        OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS)
+                .addParam(OperationResult.PARAM_QUERY, query);
+
+        try {
+            var rawOptionsReadWrite = GetOperationOptions.updateToReadWriteSafe(rawOptions);
+            var parsedOptions = preProcessOptionsSecurity(rawOptionsReadWrite, task, result);
+            var options = parsedOptions.getCollection();
+
+            var ctx = new ContainerSearchLikeOpContext<>(type, origQuery, parsedOptions, task, result);
+
+            GetOperationOptions rootOptions = parsedOptions.getRootOptions();
+
+            ObjectQuery processedQuery = ctx.securityRestrictedQuery;
+
+
+            if (isFilterNone(processedQuery, result)) {
+                LOGGER.trace("Skipping search because filter is NONE");
+                return null;
+            }
+
+            ObjectHandler<T> internalHandler = (object, lResult) -> {
+                var prismContainer = object.asPrismContainerValue().cloneIfImmutable();
+                object = prismContainer.getRealValue();
+                try {
+                    if (ctx.skipSecurityPostProcessing) {
+                        LOGGER.debug("Objects of type '{}' do not have security constraints applied yet", type.getSimpleName());
+                    } else {
+                        SearchResultList<Containerable> list = new SearchResultList<>();
+                        list.add(object);
+                        schemaTransformer.applySchemasAndSecurityToContainerValues(list, parsedOptions, task, result);
+                    }
+                } catch (CommonException ex) {
+                    lResult.recordException(ex); // We should create a subresult for this
+                    throw new SystemException(ex.getMessage(), ex);
+                }
+
+                OP_LOGGER.debug("MODEL OP handle searchContainersIterative({},{},{}): {}",
+                        type.getSimpleName(), query, rawOptions, object);
+                if (OP_LOGGER.isTraceEnabled()) {
+                    OP_LOGGER.trace("MODEL OP handle searchContainersIterative({},{},{}):\n{}",
+                            type.getSimpleName(), query, rawOptions, DebugUtil.debugDump(object,1));
+                }
+
+                return handler.handle(prismContainer.getRealValue(), lResult);
+            };
+
+            SearchResultMetadata metadata;
+            try {
+                enterModelMethodNoRepoCache(); // skip using cache to avoid potentially many objects there (MID-4615, MID-4959)
+                logQuery(processedQuery);
+
+                if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
+                    QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
+                }
+                //noinspection SwitchStatementWithTooFewBranches
+                switch (ctx.manager) {
+                    case REPOSITORY:
+                        metadata = cacheRepositoryService.searchContainersIterative(type, processedQuery, internalHandler, options, result);
+                        break;
+                    default:
+                        throw new IllegalStateException();
+                }
+            } catch (Exception e) {
+                result.recordException(e);
+                throw e;
+            } finally {
+                exitModelMethodNoRepoCache();
+            }
+
+            // TODO: log errors
+
+            if (OP_LOGGER.isDebugEnabled()) {
+                OP_LOGGER.debug("MODEL OP exit searchObjects({},{},{}): {}", type.getSimpleName(), query, rawOptions, metadata);
+            }
+
+            return metadata;
+        } finally {
+            result.close();
+            result.cleanup();
+        }
+    }
+
 
     @Override
     public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query,

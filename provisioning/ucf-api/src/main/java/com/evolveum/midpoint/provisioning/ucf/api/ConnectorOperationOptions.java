@@ -17,14 +17,23 @@ public class ConnectorOperationOptions {
     /**
      * Run the operations on resource using the specified identity.
      * Provided identification should identify valid, active account.
+     *
+     * The identification currently has the primary identifier. But we don't require it here, as we don't need it downstream.
      */
-    private ResourceObjectIdentification runAsIdentification;
+    private ResourceObjectIdentification<?> runAsIdentification;
 
-    public ResourceObjectIdentification getRunAsIdentification() {
+    public ResourceObjectIdentification<?> getRunAsIdentification() {
         return runAsIdentification;
     }
 
-    public void setRunAsIdentification(ResourceObjectIdentification runAsIdentification) {
+    public void setRunAsIdentification(ResourceObjectIdentification<?> runAsIdentification) {
         this.runAsIdentification = runAsIdentification;
+    }
+
+    @Override
+    public String toString() {
+        return "ConnectorOperationOptions{" +
+                "runAsIdentification=" + runAsIdentification +
+                '}';
     }
 }

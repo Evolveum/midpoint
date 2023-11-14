@@ -13,7 +13,7 @@
     <parent>
         <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint.gui</groupId>
-        <version>4.8-SNAPSHOT</version>
+        <version>4.9-SNAPSHOT</version>
     </parent>
 
     <artifactId>midpoint-jar</artifactId>
@@ -30,6 +30,11 @@
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
+    	<dependency>
+          <groupId>net.bytebuddy</groupId>
+          <artifactId>byte-buddy</artifactId>
+          <scope>runtime</scope>
+   	</dependency>
     </dependencies>
 
     <build>

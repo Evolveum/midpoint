@@ -273,8 +273,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     /** Dependency-defining beans *with the defaults filled-in*. All of resource OID, kind, and intent are not null. */
     private transient Collection<ResourceObjectTypeDependencyType> dependencies;
 
+    /** This definition is always immutable. */
     private transient ResourceObjectDefinition structuralObjectDefinition;
+
+    /** These definitions are always immutable. */
     private transient Collection<ResourceObjectDefinition> auxiliaryObjectClassDefinitions;
+
+    /** This definition is always immutable. */
     private transient CompositeObjectDefinition compositeObjectDefinition;
 
     private SecurityPolicyType projectionSecurityPolicy;
@@ -338,7 +343,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * (Meaning that the source that contains `dependency` among its configured dependencies depends on `target`,
      * i.e. the `dependency` configuration points to `target`.)
      *
-     * Precondition: dependency is fully specified (resource, kind, intent are not null).
+     * Precondition: dependency is fully specified (resource, kind, intent are not null), see {@link #getDependencies()}.
      */
     public boolean isDependencyTarget(
             ResourceObjectTypeDependencyType dependency) {
@@ -922,7 +927,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
     }
 
-    public ResourceObjectDefinition getStructuralObjectDefinition() throws SchemaException, ConfigurationException {
+    /** Returns immutable definition. */
+    public @Nullable ResourceObjectDefinition getStructuralObjectDefinition() throws SchemaException, ConfigurationException {
         if (structuralObjectDefinition == null) {
             ResourceSchema resourceSchema = getResourceSchema();
             if (resourceSchema == null) {
@@ -982,8 +988,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             ResourceObjectDefinition auxiliaryObjectClassDef =
                     schema.findObjectClassDefinition(auxiliaryObjectClassQName);
             if (auxiliaryObjectClassDef == null) {
-                throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
+                throw new SchemaException("Auxiliary object class %s specified in %s does not exist".formatted(
+                        auxiliaryObjectClassQName, this));
             }
+            auxiliaryObjectClassDef.checkImmutable();
             auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
         }
         resetCompositeObjectDefinition();
@@ -999,9 +1007,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (compositeObjectDefinition == null) {
             ResourceObjectDefinition structuralDefinition = getStructuralObjectDefinition();
             if (structuralDefinition != null) {
-                compositeObjectDefinition = new CompositeObjectDefinitionImpl(
-                        structuralDefinition, getAuxiliaryObjectClassDefinitions());
-                compositeObjectDefinition.freeze();
+                compositeObjectDefinition =
+                        CompositeObjectDefinition.of(structuralDefinition, getAuxiliaryObjectClassDefinitions());
             }
             state.invalidate(); // composite OCD is a parameter for current object adjuster
         }
@@ -1760,7 +1767,17 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Experimental
     public boolean isCurrentForProjection() {
         return !completed
-                && (wave == -1 || wave == getLensContext().getProjectionWave());
+                && (!hasProjectionWave() || isCurrentProjectionWave());
+    }
+
+    public boolean hasProjectionWave() {
+        return wave != -1;
+    }
+
+    /** Assumes the wave is computed. */
+    public boolean isCurrentProjectionWave() {
+        stateCheck(hasProjectionWave(), "Projection wave was not yet determined for %s", this);
+        return wave == getLensContext().getProjectionWave();
     }
 
     public boolean isCompleted() {
@@ -2036,5 +2053,40 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return false;
         }
         return !policy.getSynchronize().getOutbound().isEnabled();
+    }
+
+    /**
+     * Returns the projection contexts bound to this one via data dependency that are known (or supposed) to be modified.
+     */
+    public List<LensProjectionContext> getModifiedDataBoundDependees() throws SchemaException, ConfigurationException {
+        List<LensProjectionContext> matching = new ArrayList<>();
+        for (ResourceObjectTypeDependencyType dependencyBean : getDependencies()) {
+            if (ResourceObjectTypeDependencyTypeUtil.isDataBindingPresent(dependencyBean)) {
+                lensContext.getProjectionContexts().stream()
+                        .filter(ctx -> ctx != this)
+                        .filter(ctx -> ctx.isDependencyTarget(dependencyBean))
+                        .filter(ctx -> ctx.hasOnResourceModificationAttempt())
+                        .forEach(matching::add);
+            }
+        }
+        return matching;
+    }
+
+    /**
+     * Returns true if there was an operation (or attempted operation) dealing with the on-resource state.
+     *
+     * We consider ADD and DELETE operations as such, mainly to be sure.
+     * For MODIFY operations we check the individual modifications.
+     */
+    private boolean hasOnResourceModificationAttempt() {
+        for (LensObjectDeltaOperation<ShadowType> odo : getExecutedDeltas()) {
+            var delta = odo.getObjectDelta();
+            if (ObjectDelta.isAdd(delta)
+                    || ObjectDelta.isDelete(delta)
+                    || ObjectDelta.isModify(delta) && ShadowUtil.hasResourceModifications(delta.getModifications())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -43,7 +43,6 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.*;
-import com.evolveum.midpoint.model.api.ModelInteractionService.SearchSpec;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
@@ -56,7 +55,6 @@ import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataItemProcessingSpecImpl;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.controller.tasks.ActivityExecutor;
@@ -378,7 +376,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.debug("No resource object definition for shadow {}, returning null", shadow.getOid());
             return null;
         }
-        ResourceObjectDefinition objectDefinition = rocd.forLayer(LayerType.PRESENTATION);
+
+        // We are going to modify attribute definitions list, hence we ask for a mutable instance.
+        ResourceObjectDefinition objectDefinition = rocd.forLayerMutable(LayerType.PRESENTATION);
 
         // TODO: maybe we need to expose owner resolver in the interface?
         ObjectSecurityConstraints securityConstraints =
@@ -406,11 +406,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         LOGGER.trace("Attributes container access read:{}, add:{}, modify:{}",
                 attributesReadDecision, attributesAddDecision, attributesModifyDecision);
 
-        /*
-         *  We are going to modify attribute definitions list.
-         *  So let's make a (shallow) clone here.
-         */
-        objectDefinition = objectDefinition.clone();
         // Let's work on the copied list, as we modify (replace = delete+add) the definitions in the object definition.
         List<? extends ResourceAttributeDefinition<?>> definitionsCopy =
                 new ArrayList<>(objectDefinition.getAttributeDefinitions());
@@ -449,6 +444,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         // TODO what about activation and credentials?
 
+        objectDefinition.freeze();
         return objectDefinition;
     }
 
@@ -1035,9 +1031,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType> String generateValue(ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
-            PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return policyProcessor.generate(null, policy, defaultLength, generateMinimalSize, createOriginResolver(object, parentResult), shortDesc, task, parentResult);
+    public <O extends ObjectType> String generateValue(
+            ValuePolicyType policy, int defaultLength, boolean generateMinimalSize, PrismObject<O> object, String shortDesc,
+            Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return policyProcessor.generate(
+                null, policy, defaultLength,
+                createOriginResolver(object, parentResult),
+                shortDesc, task, parentResult);
     }
 
     @Override
@@ -1210,10 +1212,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.error("Target item path must be defined");
             throw new SchemaException("Target item path must be defined");
         }
-        ItemPath targetPath = null;
-
+        ItemPath targetPath;
         if (target != null) {
             targetPath = target.getPath().getItemPath();
+        } else {
+            targetPath = null;
         }
 
         ValuePolicyType valuePolicy = resolveValuePolicy(policyItemDefinition, defaultPolicy, task, result);
@@ -1223,14 +1226,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.trace("No sting policy defined. Cannot generate value.");
             result.recordFatalError("No string policy defined. Cannot generate value");
             return;
-//            throw new SchemaException("No value policy for " + targetPath);
         }
 
         String newValue = policyProcessor.generate(
                 targetPath,
                 valuePolicy,
                 10,
-                false,
                 createOriginResolver(object, result),
                 "generating value for" + targetPath,
                 task,
@@ -1851,7 +1852,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public void refreshPrincipal(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         try {
-            MidPointPrincipal principal = guiProfiledPrincipalManager.getPrincipalByOid(oid, clazz);
+            // For refreshing current logged-in principal, we need to support GUI config
+            MidPointPrincipal principal = guiProfiledPrincipalManager.getPrincipalByOid(
+                    oid, clazz, ProfileCompilerOptions.create());
             Authentication authentication = securityContextManager.getAuthentication();
             if (authentication instanceof MidpointAuthentication) {
                 ((MidpointAuthentication) authentication).setPrincipal(principal);
@@ -2156,9 +2159,21 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType> List<StringLimitationResult> validateValue(ProtectedStringType protectedStringValue, ValuePolicyType pp, PrismObject<O> object, Task task, OperationResult parentResult)
-            throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        return policyProcessor.validateValue(getClearValue(protectedStringValue), pp, createOriginResolver(object, parentResult), "validate string", task, parentResult);
+    public <O extends ObjectType> List<StringLimitationResult> validateValue(
+            ProtectedStringType protectedStringValue,
+            ValuePolicyType valuePolicy,
+            PrismObject<O> object,
+            Task task,
+            OperationResult result)
+            throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return policyProcessor.validateValue(
+                getClearValue(protectedStringValue),
+                valuePolicy,
+                createOriginResolver(object, result),
+                "validate string",
+                task,
+                result);
     }
 
     // TODO deduplicate with getSearchSpecificationFromCollection

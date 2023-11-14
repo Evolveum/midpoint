@@ -33,12 +33,20 @@ public class ConfigureTaskConfirmationPanel extends ConfirmationPanel {
 
     }
 
+    private final IModel<String> warningMessageModel;
+
     public ConfigureTaskConfirmationPanel(String id, IModel<String> message) {
         super(id, message);
+        warningMessageModel = createWarningMessageModel();
+    }
 
-        MessagePanel<?> warningMessage = new MessagePanel<>("warnningMessage", MessagePanel.MessagePanelType.WARN, getWarningMessageModel());
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        MessagePanel<?> warningMessage = new MessagePanel<>("warnningMessage", MessagePanel.MessagePanelType.WARN, warningMessageModel);
         warningMessage.setOutputMarkupId(true);
-        warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
+        warningMessage.add(new VisibleBehaviour(() -> warningMessageModel != null));
         add(warningMessage);
     }
 
@@ -64,7 +72,7 @@ public class ConfigureTaskConfirmationPanel extends ConfirmationPanel {
         return null;
     }
 
-    protected IModel<String> getWarningMessageModel() {
+    protected IModel<String> createWarningMessageModel() {
         return null;
     }
 

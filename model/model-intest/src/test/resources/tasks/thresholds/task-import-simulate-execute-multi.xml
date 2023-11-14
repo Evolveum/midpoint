@@ -29,7 +29,9 @@
                         </resourceObjects>
                     </import>
                 </work>
-                <executionMode>preview</executionMode>
+                <execution>
+                    <mode>preview</mode>
+                </execution>
                 <distribution>
                     <buckets>
                         <stringSegmentation>
@@ -50,6 +52,11 @@
                         </workersPerNode>
                     </workers>
                 </distribution>
+                <reporting>
+                    <simulationResult>
+                        <enabled>false</enabled>
+                    </simulationResult>
+                </reporting>
             </activity>
             <activity>
                 <order>2</order>

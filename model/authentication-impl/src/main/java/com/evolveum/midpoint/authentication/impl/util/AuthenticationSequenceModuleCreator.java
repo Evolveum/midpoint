@@ -7,13 +7,11 @@
 
 package com.evolveum.midpoint.authentication.impl.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.authentication.api.ModuleFactory;
+import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -105,7 +103,7 @@ public class AuthenticationSequenceModuleCreator<MA extends ModuleAuthentication
         } catch (Exception e) {
             LOGGER.error("Couldn't build filter for module moduleFactory", e);
         }
-        return null;
+        return AuthModuleImpl.buildFailedConfigurationModule(sequenceModule);
     }
 
     private List<AuthModule<MA>> getSpecificModuleFilter(AuthModuleRegistryImpl authRegistry, String urlSuffix, HttpServletRequest httpRequest, Map<Class<?>, Object> sharedObjects,

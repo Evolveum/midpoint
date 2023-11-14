@@ -14,7 +14,10 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.module.authentication.DuoModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.DuoRequestToken;
 
+import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +43,30 @@ public class DuoAuthenticationFilter extends AbstractAuthenticationProcessingFil
     public DuoAuthenticationFilter(String filterProcessesUrl, ModelAuditRecorder auditProvider) {
         super(filterProcessesUrl);
         this.auditProvider = auditProvider;
+    }
+
+    public boolean requiresAuth(HttpServletRequest request, HttpServletResponse response) {
+        return super.requiresAuthentication(request, response);
+    }
+
+    public void unsuccessfulAuth(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed)
+            throws IOException, ServletException {
+        remoteUnsuccessfulAuthentication(request, response, failed, getRememberMeServices(), getFailureHandler());
+    }
+
+    @Override
+    public String getErrorMessageKeyNotResponse() {
+        return "web.security.flexAuth.duo.not.response";
+    }
+
+    @Override
+    public void doAuth(ServletRequest req, ServletResponse res, FilterChain chain) throws ServletException, IOException {
+        super.doFilter(req, res, chain);
+    }
+
+    @Override
+    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+        doRemoteFilter(req, res, chain);
     }
 
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
@@ -79,6 +106,6 @@ public class DuoAuthenticationFilter extends AbstractAuthenticationProcessingFil
             HttpServletRequest request, HttpServletResponse response, AuthenticationException failed)
             throws IOException, ServletException {
         remoteUnsuccessfulAuthentication(
-                request, response, failed, auditProvider, getRememberMeServices(), getFailureHandler(), "OIDC");
+                request, response, failed, auditProvider, getRememberMeServices(), getFailureHandler(), "DUO");
     }
 }

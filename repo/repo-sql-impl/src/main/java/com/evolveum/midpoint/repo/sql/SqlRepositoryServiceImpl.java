@@ -1212,4 +1212,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return !SimulationResultType.class.equals(type)
                 && !MarkType.class.equals(type);
     }
+
+    @Override
+    public <T extends Containerable> SearchResultMetadata searchContainersIterative(Class<T> type, ObjectQuery query, ObjectHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+        throw new UnsupportedOperationException("Not supported");
+    }
 }

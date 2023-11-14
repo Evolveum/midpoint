@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.report.api;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -25,25 +26,25 @@ import java.io.InputStream;
  * @author katkav
  */
 public interface ReportManager {
-    /**
-     * todo comments [lazyman]
-     *
-     * @param report
-     * @param parentResult describes report which has to be created
-     */
-    void runReport(PrismObject<ReportType> report, PrismContainer<ReportParameterType> params, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            SecurityViolationException;
 
     /**
-     * todo comments [lazyman]
+     * Creates and submits a simple (classic export) task that will execute the "export" report.
+     * Requires {@link ModelAuthorizationAction#RUN_REPORT} authorization related to given report.
      *
-     * @param report
-     * @param parentResult describes report which has to be created
+     * @param report The report object; it must reside in repository. Actually, only its OID is used from the parameter.
      */
-    void importReport(PrismObject<ReportType> report, PrismObject<ReportDataType> reportData, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            SecurityViolationException;
+    void runReport(PrismObject<ReportType> report, PrismContainer<ReportParameterType> params, Task task, OperationResult result)
+            throws CommonException;
+
+    /**
+     * Creates and submits a task that will execute the "import" report.
+     * Requires {@link ModelAuthorizationAction#IMPORT_REPORT} authorization related to given report.
+     *
+     * @param report The report object; it must reside in repository. Actually, only its OID is used from the parameter.
+     * @param reportData Data to be imported. It must reside in repository. Actually, only its OID is used from the parameter.
+     */
+    void importReport(PrismObject<ReportType> report, PrismObject<ReportDataType> reportData, Task task, OperationResult result)
+            throws CommonException;
 
     /**
      * todo comments [lazyman]

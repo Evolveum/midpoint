@@ -11,7 +11,7 @@
     <parent>
         <artifactId>midpoint</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.8-SNAPSHOT</version>
+        <version>4.9-SNAPSHOT</version>
     </parent>
 
     <groupId>com.evolveum.midpoint.infra</groupId>
@@ -22,9 +22,7 @@
 
     <modules>
         <module>schema</module>
-        <!-- FIXME: Enable after migration to newer jaxb?
         <module>schema-pure-jaxb</module>
-        -->
         <module>common</module>
         <module>test-util</module>
     </modules>

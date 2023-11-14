@@ -1,0 +1,385 @@
+= PostgreSQL
+:page-wiki-name: PostgreSQL
+:page-wiki-id: 15859783
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2014-06-26T17:07:01.929+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-09-25T16:38:05.724+02:00
+:page-toc: top
+:page-upkeep-status: orange
+:page-deprecated-since: "4.4"
+
+== MidPoint Configuration
+
+=== Database create
+
+[source,sql]
+----
+CREATE USER midpoint WITH PASSWORD 'password' LOGIN SUPERUSER;
+CREATE DATABASE midpoint WITH OWNER = midpoint ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1;
+----
+
+[NOTE]
+====
+.Collation
+You're free to use different collation if it suits your needs although the following must be considered:
+
+* PostgreSQL support for collation is based on available OS collations or ICU collations (these can't be used as default for the database).
+Check https://www.postgresql.org/docs/current/collation.html[collation documentation] for your version of PG to see more.
+* Assure that case-sensitivity or insensitivity does not break task bucketing.
+See bug:MID-6468[] for example.
+====
+
+=== Configuration sample
+
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        <repository>
+            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+            <database>postgresql</database>
+            <jdbcUsername>midpoint</jdbcUsername>
+            <jdbcPassword>password</jdbcPassword>
+            <jdbcUrl>jdbc:postgresql://localhost/midpoint</jdbcUrl>
+        </repository>
+    </midpoint>
+</configuration>
+
+----
+
+=== Driver
+
+Driver for this database is bundled in MidPoint WAR archive.
+
+== Tips and Tricks
+
+=== Ubuntu
+
+==== Create Database User
+
+[source]
+----
+sudo -u postgres createuser --pwprompt --no-superuser --no-createdb --no-createrole midpoint
+----
+
+==== Delete Database User
+
+[source]
+----
+sudo -u postgres dropuser midpoint
+----
+
+==== Delete Database
+
+[source]
+----
+sudo -u postgres dropdb midpoint
+----
+
+==== Create database
+
+[source]
+----
+sudo -u postgres createdb --owner=midpoint midpoint
+----
+
+==== Run database script
+
+[source]
+----
+psql --host=localhost --username=midpoint < postgresql-schema.sql
+----
+
+=== Working with explicit schema
+
+To use different schema for midPoint database than the implicit `public` one, the following
+commands can be used to create new schema, e.g. named `midpoint`, and set it as the first one
+to be searched for when unqualified object names are used:
+
+[source]
+----
+CREATE SCHEMA midpoint;
+ALTER DATABASE db_midpoint SET search_path TO midpoint, public;
+GRANT USAGE, SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA midpoint TO midpoint_user_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA midpoint TO midpoint_user_role;
+----
+
+== Performance tuning
+
+=== Statement statistics
+
+[WARNING]
+While the module/extension exists in previous PostgreSQL versions the table `pg_stat_statements`
+has more and renamed columns, so the examples below work only from version 13 on.
+
+To track slow queries it is recommended to enable module https://www.postgresql.org/docs/current/pgstatstatements.html[pg_stat_statements].
+To enable it the module must be added to `postgresql.conf` like this:
+
+----
+shared_preload_libraries = 'pg_stat_statements'
+----
+
+If you already use `shared_preload_libraries`, add it to the comma separated list.
+Database restart is required after this configuration change.
+
+To track slow queries one can use query like this:
+
+[source,sql]
+----
+-- before the first time, run this, otherwise the view doesn't exist
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+
+-- remove "_exec" from columns for PG < 13
+select
+    (total_exec_time / 1000 / 60)::numeric(20,4) as total_min, -- min as minutes here
+    mean_exec_time::numeric(20,2) as avg_ms,
+    max_exec_time::numeric(20,2) as max_ms,
+    calls,
+    query
+from pg_stat_statements
+-- optional where to limit it to one database, if needed (e.g. shared/test DB)
+-- where dbid = (select oid from pg_database where datname = 'midpoint')
+order by 1 desc -- change order as necessary
+limit 50;
+----
+
+=== Tuning indexes
+
+TODO: PostgreSQL specific advices will be added together with the new repository.
+In the meantime, check the xref:/midpoint/reference/repository/native-postgresql/db-maintenance/#index-tuning[generic indexing tips].
+
+// TODO
+
+== Development installation on Windows
+
+(Tested in March 2020 with PostgreSQL 12.2)
+
+=== Installation, initdb
+
+To avoid any problems with admin rights we will install link:https://www.enterprisedb.com/download-postgresql-binaries[Postgres from ZIP archive] as suggested on link:https://www.postgresql.org/download/windows/[this page] (for advanced users ☺).
+
+* Unpack the archive, e.g. to `c:\work\tools\pgsql` (`pgsql` is the name of zipped directory).
+
+* Optional: Add `C:\work\tools\pgsql\bin` to your `PATH` environment variable for convenience.
+
+* Optional: Decide where you want your postgres data and set *PGDATA* environment variable.
+This is useful for `initdb` and `pg_ctl` commands, but can be also provided with switches.
+I strongly recommend setting this one.
+
+* Run (and provide admin password and [.underline]#remember it#):
++
+----
+initdb.exe -E utf8 --auth-host=scram-sha-256 -U admin -W
+----
+
+** If you don't have `PGDAT`* set, provide the expected directory name with `-D` switch.
+
+** By default, superuser is named `postgres`, you can use that, if you want.
+This is useful on Linux where the name matches system username, less so on Windows.
+
+If we try to mess with locales (e.g. `LC_CTYPE` is set) `initdb` command may fail mysteriously with:
+
+[source]
+----
+initdb: error: The program "postgres" was found by "C:/work/tools/pgsql/bin/initdb.exe"
+but was not the same version as initdb.
+Check your installation.
+----
+
+This is the start of the locale related problems on Windows, but not the end of it.
+
+* Start the database with: `pg_ctl start`
+
+* Again, use `-D` switch if you don't have `PGDATA` set.
+
+* Log in: `psql -W postgres admin`
+
+** `-W` forces the password prompt and is not necessary, unless you already set some `psql` environment variables; `postgres` is name of the default database, `admin` is the username.
+
+=== Creating user and database
+
+Now we can create user and the database as indicated at the start of this page - but Windows uses different names for locales, so we simply leave this out and hope it will not matter for our development purposes.
+
+[source,sql]
+----
+CREATE USER midpoint WITH PASSWORD 'password' LOGIN SUPERUSER;
+CREATE DATABASE midpoint WITH OWNER = midpoint ENCODING = 'UTF8' TABLESPACE = pg_default CONNECTION LIMIT = -1;
+----
+
+If we try the locales provided above, it will very likely complain about it and fallback to something like `CPUTF-8`.
+
+Now the database is up and running, operated manually with `pg_ctl start`/`stop`, fully under our control, no services, no access rights problems (provided the directories you used are available to you).
+
+Then we want to populate the database, e.g. from the root of Midpoint repository:
+
+----
+psql midpoint midpoint < config\sql\postgresql-4.2-all.sql
+----
+
+=== Separate audit database
+
+Since 4.2 midPoint allows for separate audit repository.
+It is best to create another user and database for this, if we want to try it:
+
+[source,sql]
+----
+CREATE USER midaudit WITH PASSWORD 'password' LOGIN SUPERUSER;
+CREATE DATABASE midaudit WITH OWNER = midaudit ENCODING = 'UTF8' TABLESPACE = pg_default CONNECTION LIMIT = -1;
+----
+
+It is possible to populate it just like the main database, non-audit tables will simply not be used.
+Alternatively, copy-paste only audit related tables and other objects:
+
+* tables *m_audit_delta*, *m_audit_event*, *m_audit_item*, *m_audit_prop_value*, *m_audit_ref_value* and *m_audit_resource* (this will also create sequences *m_audit_event_id_seq*, *m_audit_prop_value_id_seq* and *m_audit_ref_value_id_seq*);
+
+* indexes *iAuditDeltaRecordId* through *iAuditResourceOidRecordId* (anything with *audit* in the name, they are in one place in the *postgresql-4.2-all.sql* file);
+
+* foreign keys containing *audit* - *fk_audit_delta* through *fk_audit_resource*.
+
+=== Configuring midPoint
+
+* Adjust the Midpoint configuration.
+If you use multiple databases I recommend adding a new *midpoint.home*, e.g.: *c:\work\tmp\midpoint-home-postgres*
+
+* Add `config.xml` there with the repository configured to use Postgres (the same as at the start of this page).
+
+* Start your Midpoint application with switch: `-Dmidpoint.home=c:\work\tmp\midpoint-home-postgres`
+
+To make `psql` easier to use you can set environment variables `PGHOST=localhost` (probably default), `PGPORT=5432` (probably default), `PGDATABASE=midpoint`, `PGUSER=midpoint`, `PGPASSWORD=password` (normally obviously unsafe).
+
+[NOTE]
+Installation up to this point does not allow connection from other machines and we don't need it for Midpoint and PostgreSQL running on the same machine.
+In the next experiment, with PostgreSQL on a virtual machine, we have to solve this issue as well.
+
+== Vagrantbox with PostgreSQL on Linux
+
+(Tested in March 2020, based on bento/ubuntu-19.10 box, PostgreSQL is 11.7)
+
+To shield ourselves from non-linux operating system, we can use power of link:https://www.vagrantup.com/[Vagrant]+link:https://www.virtualbox.org/[VirtualBox] combo - both must be installed in advance.
+
+Instead of following the steps lower, you can also use polished Vagrantbox from here: link:https://github.com/virgo47/midpoint-vagrantboxes/tree/master/vagrant-midpoint-db-postgresql[vagrant-midpoint-db-postgresql]
+
+=== Virtual machine provisioning
+
+Create empty directory, which will be the working directory for this Vagrant environment, in our case representing a single Linux virtual machine we want to provision with PostgreSQL - we will call it _vagrant directory_. Create a single file called *Vagrantfile* there with the following content:
+
+.Vagrantfile
+[source,ruby]
+----
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  # base Vagrantbox we're starting with
+  config.vm.box = "bento/ubuntu-19.10"
+  config.vm.box_check_update = false
+
+  # multiple entries can be added, but we don't need web, and we need 8080 free on host
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+  # PostgreSQL
+  config.vm.network "forwarded_port", guest: 5432, host: 5432
+
+  config.vm.provider "virtualbox" do |vb|
+  #   vb.gui = true
+    vb.name = "postgres-linux"
+    vb.memory = "1024"
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    sudo apt-get update
+    sudo apt-get install -y postgresql postgresql-contrib
+    sudo -i -u postgres psql -c "SELECT version();"
+
+    # allow connections from outside (not just from localhost)
+    sudo ed /etc/postgresql/*/main/postgresql.conf << EOF
+/^#listen_addresses
+i
+# Listen on all interfaces to allow connections from outside
+listen_addresses = '*'
+.
+wq
+EOF
+    sudo cat >> /etc/postgresql/*/main/pg_hba.conf << EOF
+# Allow connections from outside (with password)
+host    all             all             0.0.0.0/0            md5
+
+EOF
+    sudo service postgresql restart
+
+    sudo -i -u postgres psql -c "CREATE USER midpoint WITH PASSWORD 'password' LOGIN SUPERUSER;"
+    sudo -i -u postgres psql -c "CREATE DATABASE midpoint WITH OWNER = midpoint ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1;"
+
+    # let's make it easy for "vagrant" user to use psql command
+    sudo cat >> ~vagrant/.bashrc << EOF
+
+export PGHOST=localhost
+export PGPORT=5432
+export PGDATABASE=midpoint
+export PGUSER=midpoint
+export PGPASSWORD=password
+
+EOF
+
+  SHELL
+end
+----
+
+Now inside the _vagrant directory_ (the one with `Vagrantfile`) run: `vagrant up`
+
+[NOTE]
+No PostgreSQL can run on the host taking the 5432 port.
+We either have to stop the Postgres on the host, or use different port for the host.
+This is perfectly fine, but we have to change it later in JDBC URL as it will not be default anymore.
+
+=== Using the VM
+
+This will provision the virtual machine and starts it up for us.
+Next vagrant up is faster, first provisioning always lasts longer.
+Now we want to log into the machine: *vagrant ssh*
+
+We can check that everthing works just running `psql`, checking the list of databases there with `\l`.
+As we still don't have `midpoint` database populated, `\d` shows nothing.
+Let's get out with: `\q`
+
+To halt the VM later we need to get out of it (exit) and run `vagrant halt` on our host machine, still in our _vagrant directory_.
+To restart it later just run `vagrant up` again.
+VM remembers everything when used like this.
+
+=== Populating the DB
+
+There are two ways how to run the initial script:
+
+* We can copy `postgresql-4.3-all.sql` to the vagrant directory, which is shared with the virtual machine as its `/vagrant` directory.
+Then we can run from inside the box (as `vagrant` user):
++
+----
+psql < /vagrant/postgresql-4.2-all.sql
+----
+
+* Or we can use `psql` from the host machine, if PostgreSQL is available there.
+Database port 5432 is forwarded from guest to host again as 5432, so it seems to be running on the host directly.
+
+The first way has an advantage that we don't need to install anything additional on the host - Midpoint and driver is obvious prerequisite that we need anyway.
+From here on it's again about setting the configuration, preferably in newly created `${midpoint.home}` that we provide to Midpoint using `-D` switch.
+
+=== Vagrant advantages
+
+One big advantage of using Vagrant is repeatability.
+When we're done with our VM or we want to recreate it from scratch (e.g. something went wrong beyond repair) we just destroy it with: `vagrant destroy -f`
+
+After that we just start it again with: `vagrant up`
+
+This time it does not need to download the base box, but it still needs to provision it - that is to run update, PG install and other commands in the `Vagrantfile`, but this is much faster than manual work.
+
+[WARNING]
+====
+Vagrant, or better said VirtualBox used under the hood, sometimes has its own problems.
+If provisioning doesn't work as expected, first upgrade both tools and then restart the computer before trying again.
+This helps most of the time.
+
+You can also run the VM directly from VirtualBox, but this is not recommended for Vagrant managed boxes.
+It may be needed to use VirtualBox to really get rid of some stuck VM.
+
+Despite these possible annoying problems, I highly recommend Vagrant for provisioning of development environments.
+====

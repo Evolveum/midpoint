@@ -8,11 +8,15 @@
 package com.evolveum.midpoint.schema.processor;
 
 import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.*;
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +28,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.merger.objdef.ResourceObjectTypeDefinitionMergeOperation;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -35,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
- * Creates refined class and object type definitions in {@link ResourceSchemaImpl} objects.
+ * Creates refined class and object type definitions in {@link CompleteResourceSchemaImpl} objects.
  *
  * These definitions are derived from:
  *
@@ -51,29 +54,33 @@ public class RefinedResourceSchemaParser {
     /** Resource whose refined schema is being parsed. */
     @NotNull private final ResourceType resource;
 
+    /** The `schemaHandling` from {@link #resource}, empty if missing. */
+    @NotNull private final SchemaHandlingType schemaHandling;
+
+    @NotNull private final BasicResourceInformation basicResourceInformation;
+
     /** Raw resource schema we start with. */
     @NotNull private final ResourceSchema rawResourceSchema;
 
     @NotNull private final String contextDescription;
 
-    @NotNull private final ResourceSchemaImpl completeSchema = new ResourceSchemaImpl();
+    @NotNull private final CompleteResourceSchemaImpl completeSchema;
 
     public RefinedResourceSchemaParser(@NotNull ResourceType resource, @NotNull ResourceSchema rawResourceSchema) {
         this.resource = resource;
+        this.schemaHandling = Objects.requireNonNullElseGet(resource.getSchemaHandling(), () -> new SchemaHandlingType());
+        this.basicResourceInformation = BasicResourceInformation.of(resource);
         this.rawResourceSchema = rawResourceSchema;
         this.contextDescription = "definition of " + resource;
+        this.completeSchema = new CompleteResourceSchemaImpl(basicResourceInformation);
     }
 
     /**
      * Creates the refined resource schema.
-     *
-     * Returns null if the resource has no (raw) schema.
      */
-    public @NotNull ResourceSchema parse() throws SchemaException, ConfigurationException {
+    public @NotNull CompleteResourceSchema parse() throws SchemaException, ConfigurationException {
 
-        if (resource.getSchemaHandling() == null) {
-            return rawResourceSchema;
-        }
+        checkAttributeNames();
 
         createEmptyObjectClassDefinitions();
         createEmptyObjectTypeDefinitions();
@@ -95,11 +102,55 @@ public class RefinedResourceSchemaParser {
         return completeSchema;
     }
 
-    private void createEmptyObjectClassDefinitions() throws ConfigurationException {
+    /**
+     * Checks that all attribute names (`ref` elements) are valid - before even starting to parse the schema.
+     * Otherwise, the parsing may fail at unusual places, generating confusing error messages. See also MID-8162.
+     *
+     * Note this is temporary solution until serious configuration error reporting is done.
+     */
+    private void checkAttributeNames() throws ConfigurationException {
+        for (ResourceObjectTypeDefinitionType objectClassDefBean : schemaHandling.getObjectClass()) {
+            checkAttributeNames(objectClassDefBean, () -> characterizeClass(objectClassDefBean));
+        }
+        for (ResourceObjectTypeDefinitionType objectTypeDefBean : schemaHandling.getObjectType()) {
+            checkAttributeNames(objectTypeDefBean, () -> characterizeType(objectTypeDefBean));
+        }
+    }
+
+    private String characterizeClass(ResourceObjectTypeDefinitionType objectClassDefBean) {
+        return "object class '" + getObjectClassName(objectClassDefBean) + "' definition";
+    }
+
+    private String characterizeType(ResourceObjectTypeDefinitionType objectTypeDefBean) {
+        return "object type '" + ResourceObjectTypeIdentification.of(objectTypeDefBean) + "' definition";
+    }
+
+    private void checkAttributeNames(
+            @NotNull ResourceObjectTypeDefinitionType typeDefBean,
+            @NotNull Supplier<String> descriptionSupplier)
+            throws ConfigurationException {
+        for (ResourceAttributeDefinitionType attrDefBean : typeDefBean.getAttribute()) {
+            var ref = attrDefBean.getRef();
+            if (ref == null) {
+                throw new ConfigurationException(
+                        "Missing `ref` element in attribute definition in %s in %s at %s".formatted(
+                                descriptionSupplier.get(), resource, attrDefBean.asPrismContainerValue().getPath()));
+            }
+            ItemPath path = ref.getItemPath();
+            if (path.size() != 1) {
+                throw new ConfigurationException(
+                        "Invalid `ref` element (%s) in attribute definition in %s in %s at %s".formatted(
+                                path, descriptionSupplier.get(), resource,
+                                attrDefBean.asPrismContainerValue().getPath()));
+            }
+        }
+    }
+
+    private void createEmptyObjectClassDefinitions() throws ConfigurationException, SchemaException {
 
         LOGGER.trace("Creating refined object class definitions");
 
-        List<ResourceObjectTypeDefinitionType> definitionBeans = resource.getSchemaHandling().getObjectClass();
+        List<ResourceObjectTypeDefinitionType> definitionBeans = schemaHandling.getObjectClass();
         for (ResourceObjectTypeDefinitionType definitionBean : definitionBeans) {
             QName objectClassName =
                     MiscUtil.requireNonNull(
@@ -111,12 +162,13 @@ public class RefinedResourceSchemaParser {
                     MiscUtil.requireNonNull(
                             rawResourceSchema.findObjectClassDefinition(objectClassName),
                             () -> new ConfigurationException(
-                                    "Object class " + objectClassName + " referenced by schemaHandling does not exist in "
-                                            + resource));
+                                    "Object class %s referenced by schemaHandling does not exist in %s".formatted(
+                                            objectClassName, resource)));
 
             assertClassNotDefinedYet(objectClassName);
             completeSchema.add(
-                    ResourceObjectClassDefinitionImpl.refined(rawObjectClassDefinition, definitionBean));
+                    ResourceObjectClassDefinitionImpl.refined(
+                            basicResourceInformation, rawObjectClassDefinition, definitionBean));
         }
 
         LOGGER.trace("Created {} refined object class definitions from beans; creating remaining ones", definitionBeans.size());
@@ -124,7 +176,8 @@ public class RefinedResourceSchemaParser {
         for (ResourceObjectClassDefinition rawObjectClassDefinition : rawResourceSchema.getObjectClassDefinitions()) {
             if (completeSchema.findObjectClassDefinition(rawObjectClassDefinition.getObjectClassName()) == null) {
                 completeSchema.add(
-                        ResourceObjectClassDefinitionImpl.refined(rawObjectClassDefinition, null));
+                        ResourceObjectClassDefinitionImpl.refined(
+                                basicResourceInformation, rawObjectClassDefinition, null));
             }
         }
 
@@ -143,7 +196,7 @@ public class RefinedResourceSchemaParser {
     private void createEmptyObjectTypeDefinitions() throws SchemaException, ConfigurationException {
         LOGGER.trace("Creating empty object type definitions");
         int created = 0;
-        for (ResourceObjectTypeDefinitionType definitionBean : resource.getSchemaHandling().getObjectType()) {
+        for (ResourceObjectTypeDefinitionType definitionBean : schemaHandling.getObjectType()) {
             if (!isAbstract(definitionBean)) {
                 ResourceObjectTypeDefinition definition = createEmptyObjectTypeDefinition(definitionBean);
                 LOGGER.trace("Created (empty) object type definition: {}", definition);
@@ -194,10 +247,10 @@ public class RefinedResourceSchemaParser {
         merge(expandedBean, objectClassRefinementBean); // no-op if refinement bean is empty
 
         return new ResourceObjectTypeDefinitionImpl(
+                basicResourceInformation,
                 identification,
                 completeSchema.findObjectClassDefinitionRequired(objectClassName),
-                CloneUtil.toImmutable(expandedBean),
-                resource.getOid());
+                CloneUtil.toImmutable(expandedBean));
     }
 
     /**
@@ -248,7 +301,7 @@ public class RefinedResourceSchemaParser {
     private @NotNull ResourceObjectTypeDefinitionType find(@NotNull SuperObjectTypeReferenceType superRefBean)
             throws ConfigurationException {
         SuperReference superRef = SuperReference.of(superRefBean);
-        List<ResourceObjectTypeDefinitionType> matching = resource.getSchemaHandling().getObjectType().stream()
+        List<ResourceObjectTypeDefinitionType> matching = schemaHandling.getObjectType().stream()
                 .filter(superRef::matches)
                 .collect(Collectors.toList());
         return MiscUtil.extractSingletonRequired(matching,
@@ -433,8 +486,7 @@ public class RefinedResourceSchemaParser {
          */
         private void assertNoOtherAttributes() throws SchemaException {
             for (ResourceAttributeDefinitionType attrDefBean : definitionBean.getAttribute()) {
-                QName attrName = ItemPathTypeUtil.asSingleName(
-                        Objects.requireNonNull(attrDefBean.getRef(), () -> "No attribute name in " + attrDefBean));
+                QName attrName = ItemPathTypeUtil.asSingleNameOrFail(attrDefBean.getRef());
                 // TODO check that we really look into aux object classes
                 if (!definition.containsAttributeDefinition(attrName) && !ResourceSchemaUtil.isIgnored(attrDefBean)) {
                     throw new SchemaException(String.format(
@@ -492,10 +544,6 @@ public class RefinedResourceSchemaParser {
                 throws SchemaException {
             List<ResourceAttributeDefinitionType> matchingDefBeans = new ArrayList<>();
             for (ResourceAttributeDefinitionType attrDefBean : definitionBean.getAttribute()) {
-                if (attrDefBean.getRef() == null) {
-                    throw new SchemaException("Missing reference to the attribute schema definition in definition "
-                            + SchemaDebugUtil.prettyPrint(attrDefBean) + " during processing of " + contextDescription);
-                }
                 if (QNameUtil.match(
                         ItemPathTypeUtil.asSingleNameOrFail(attrDefBean.getRef()),
                         attrName)) {

@@ -141,7 +141,9 @@ public class TestCsvReportImportClassic extends TestCsvReport {
         addObject(OBJECT_COLLECTION_ALL_USERS, task, result);
         addObject(REPORT_REIMPORT_USERS_CLASSIC, task, result);
         runExportTaskClassic(REPORT_REIMPORT_USERS_CLASSIC, result);
-        PrismObject<UserType> oldWill = getObject(UserType.class, USER_WILL.oid);
+        PrismObject<UserType> oldWillUser = getObject(UserType.class, USER_WILL.oid);
+        assertNotNull("No user will", oldWillUser);
+        UserType oldWill = oldWillUser.asObjectable();
 
         waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
         assertTask(TASK_EXPORT_CLASSIC.oid, "after")
@@ -179,13 +181,14 @@ public class TestCsvReportImportClassic extends TestCsvReport {
                 .assertSuccess()
                 .display();
 
-        PrismObject<UserType> newWill = searchObjectByName(UserType.class, "will");
-        assertNotNull("User will was not created", newWill);
-        assertThat(newWill.asObjectable().getTelephoneNumber()).isNull();
-        assertEquals(oldWill.asObjectable().getGivenName(), newWill.asObjectable().getGivenName());
-        assertEquals(oldWill.asObjectable().getFamilyName(), newWill.asObjectable().getFamilyName());
-        assertEquals(oldWill.asObjectable().getFullName(), newWill.asObjectable().getFullName());
-        assertEquals(oldWill.asObjectable().getEmailAddress(), newWill.asObjectable().getEmailAddress());
+        PrismObject<UserType> newWillUser = searchObjectByName(UserType.class, "will");
+        assertNotNull("User will was not created", newWillUser);
+        UserType newWill = newWillUser.asObjectable();
+        assertThat(newWill.getTelephoneNumber()).isNull();
+        assertEquals(oldWill.getPersonalNumber(), newWill.getPersonalNumber());
+        assertEquals("123456", newWill.getPersonalNumber());
+        assertEquals(oldWill.getFullName(), newWill.getFullName());
+        assertEquals(oldWill.getEmailAddress(), newWill.getEmailAddress());
     }
 
     /** This removes the last line with subscription appeal. */

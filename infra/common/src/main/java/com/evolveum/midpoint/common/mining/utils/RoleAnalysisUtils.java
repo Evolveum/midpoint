@@ -7,12 +7,7 @@
 
 package com.evolveum.midpoint.common.mining.utils;
 
-import static com.evolveum.midpoint.util.ClassPathUtil.LOGGER;
-
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -29,19 +24,16 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.schema.util.roles.RoleManagementUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * The `RoleAnalysisUtils` class provides utility methods for various operations related to role analysis.
+ */
 public class RoleAnalysisUtils {
 
-    public static List<String> extractOid(List<PrismObject<UserType>> roleMembers) {
-        List<String> membersOids = new ArrayList<>();
-        for (PrismObject<UserType> roleMember : roleMembers) {
-            membersOids.add(roleMember.getOid());
-        }
-
-        return membersOids;
-
-    }
+    public static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisUtils.class);
 
     public static AbstractAnalysisSessionOptionType getSessionOptionType(RoleAnalysisSessionType roleAnalysisSession) {
         if (roleAnalysisSession == null || roleAnalysisSession.getProcessMode() == null) {
@@ -70,10 +62,15 @@ public class RoleAnalysisUtils {
     public static List<String> getRolesOidAssignment(AssignmentHolderType object) {
         List<String> oidList;
         List<AssignmentType> assignments = object.getAssignment();
-        oidList = assignments.stream().map(AssignmentType::getTargetRef).filter(
-                        targetRef -> targetRef.getType().equals(RoleType.COMPLEX_TYPE))
-                .map(AbstractReferencable::getOid).sorted()
+
+        oidList = assignments.stream()
+                .map(AssignmentType::getTargetRef)
+                .filter(Objects::nonNull)
+                .filter(targetRef -> targetRef.getType().equals(RoleType.COMPLEX_TYPE))
+                .map(AbstractReferencable::getOid)
+                .sorted()
                 .collect(Collectors.toList());
+
         return oidList;
     }
 

@@ -55,6 +55,10 @@ public class SearchBuilder<C extends Serializable> {
 
     private boolean isViewForDashboard;
 
+    private boolean isFullTextSearchEnabled = true;
+
+    private boolean typeChanged = false;
+
     private PathKeyedMap<ItemDefinition<?>> allSearchableItems;
 
     private SearchContext additionalSearchContext;
@@ -95,6 +99,16 @@ public class SearchBuilder<C extends Serializable> {
 
     public SearchBuilder<C> additionalSearchContext(SearchContext additionalSearchContext) {
         this.additionalSearchContext = additionalSearchContext;
+        return this;
+    }
+
+    public SearchBuilder<C> setFullTextSearchEnabled(boolean fullTextSearchEnabled) {
+        isFullTextSearchEnabled = fullTextSearchEnabled;
+        return this;
+    }
+
+    public SearchBuilder<C> setTypeChanged(boolean typeChanged) {
+        this.typeChanged = typeChanged;
         return this;
     }
 
@@ -207,17 +221,31 @@ public class SearchBuilder<C extends Serializable> {
 
     private SearchBoxConfigurationType getMergedConfiguration() {
         SearchBoxConfigurationType configuredSearchBox = getConfiguredSearchBox();
+        resolveRealSearchType(configuredSearchBox);
         SearchBoxConfigurationType defaultSearchBoxConfig = new SearchBoxConfigurationBuilder()
                 .type(type)
                 .availableDefinitions(allSearchableItems)
                 .additionalSearchContext(additionalSearchContext)
                 .modelServiceLocator(modelServiceLocator)
+                .fullTextSearchEnabled(isFullTextSearchEnabled())
                 .create();
 
-        if (isFullTextSearchEnabled(type)) {
-            defaultSearchBoxConfig.getAllowedMode().add(SearchBoxModeType.FULLTEXT);
-        }
         return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
+    }
+
+    private void resolveRealSearchType(SearchBoxConfigurationType configuredSearchBox) {
+        if (configuredSearchBox == null) {
+            return;
+        }
+        //if the search is loaded because of the changed type, the new selected type value
+        //should be used for search instead of configured default type value
+        if (typeChanged) {
+            QName searchType = WebComponentUtil.anyClassToQName(modelServiceLocator.getPrismContext(), type);
+            configuredSearchBox.setDefaultObjectType(searchType);
+            if (configuredSearchBox.getObjectTypeConfiguration() != null) {
+                configuredSearchBox.getObjectTypeConfiguration().setDefaultValue(searchType);
+            }
+        }
     }
 
     public ItemDefinition<?> getDefinitionOverride() {
@@ -242,7 +270,7 @@ public class SearchBuilder<C extends Serializable> {
         search.setFulltextQueryWrapper(fulltextQueryWrapper);
         search.setSearchConfigurationWrapper(basicSearchWrapper);
 
-        search.setSearchMode(getDefaultSearchMode(mergedConfig, type));
+        search.setSearchMode(mergedConfig.getDefaultMode());
         search.setAllowedModeList(mergedConfig.getAllowedMode());
         if (collectionView != null) {
             search.setCollectionViewName(collectionView.getViewIdentifier());
@@ -297,17 +325,6 @@ public class SearchBuilder<C extends Serializable> {
         basicSearchWrapper.getItemsList().sort(Comparator.comparing(i -> i instanceof PropertySearchItemWrapper));
     }
 
-    private SearchBoxModeType getDefaultSearchMode(SearchBoxConfigurationType config, Class<C> type) {
-        List<SearchBoxModeType> allowedModes = config.getAllowedMode();
-        if (isFullTextSearchEnabled(type) && allowedModes.contains(SearchBoxModeType.FULLTEXT)) {
-            return SearchBoxModeType.FULLTEXT;
-        }
-        if (allowedModes.size() == 1) {
-            return allowedModes.get(0);
-        }
-        return config.getDefaultMode();
-    }
-
     private SearchBoxConfigurationType getConfiguredSearchBox() {
         if (collectionView == null) {
             return null;
@@ -340,6 +357,19 @@ public class SearchBuilder<C extends Serializable> {
         return searchConfigWrapper;
     }
 
+    private boolean isFullTextSearchEnabled() {
+        if (!isFullTextSearchEnabled) {
+            return false;
+        }
+        //This is not entirely correct. however, there is no clever options for now for handling fullText for assignments
+        // The main problem is the isFullTextSearchEnabled(type), since the fulltext for assignment is not actually for
+        // AssignmentType, but for its targetRef. So, fulltext for AbstractRoleType has to be specified
+        if (AssignmentType.class.isAssignableFrom(type)) {
+            return isFullTextSearchEnabled((Class<C>) AbstractRoleType.class);
+        }
+        return isFullTextSearchEnabled(type);
+    }
+
     private boolean isFullTextSearchEnabled(Class<C> type) {
         OperationResult result = new OperationResult(LOAD_SYSTEM_CONFIGURATION);
         try {
@@ -370,5 +400,4 @@ public class SearchBuilder<C extends Serializable> {
         }
         return additionalSearchContext.getPanelType().getTypeForNull();
     }
-
 }

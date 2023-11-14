@@ -69,10 +69,26 @@
   color: $red;
 }
 
+.gap-2h {
+    gap: 0.75rem!important;
+}
+
 //Extra smooth transition function with importance flag
 @mixin smooth-transition($duration, $important: "") {
   $important-flag: if($important == "important", ' !important', '');
 
   transition: all ease $duration#{$important-flag};
   -webkit-transition: all ease $duration#{$important-flag};
+}
+
+.fp-center {
+  min-height:100%!important;
+  width: 100%;
+  min-height: 100% !important;
+  height: auto !important;
+  position: absolute;
+}
+
+.lh-n {
+  line-height: normal!important;
 }

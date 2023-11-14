@@ -6,13 +6,13 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
@@ -27,11 +27,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -53,8 +51,7 @@ public class ResourceAttributeDefinitionImpl<T>
         extends AbstractFreezable
         implements PropertyDefinitionDelegator<T>, ResourceAttributeDefinition<T> {
 
-
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     /**
      * Default value for {@link #currentLayer}.
@@ -362,6 +359,7 @@ public class ResourceAttributeDefinitionImpl<T>
         accessOverride.setModify(value);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public boolean isIgnored() {
         return isIgnored(currentLayer);
@@ -557,6 +555,11 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public Boolean isCached() {
+        return customizationBean.isCached();
+    }
+
+    @Override
     public QName getMatchingRuleQName() {
         if (customizationBean.getMatchingRule() != null) {
             return customizationBean.getMatchingRule();
@@ -613,21 +616,6 @@ public class ResourceAttributeDefinitionImpl<T>
         }
 
     }
-
-//    static boolean isIgnored(ResourceAttributeDefinitionType attrDefType) throws SchemaException {
-//        List<PropertyLimitationsType> limitations = attrDefType.getLimitations();
-//        if (limitations == null) {
-//            return false;
-//        }
-//        PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsForLayer(limitations, DEFAULT_LAYER);
-//        if (limitationsType == null) {
-//            return false;
-//        }
-//        if (limitationsType.getProcessing() != null) {
-//            return limitationsType.getProcessing() == ItemProcessingType.IGNORE;
-//        }
-//        return false;
-//    }
 
     @Override
     public @NotNull MutableRawResourceAttributeDefinition<T> toMutable() {

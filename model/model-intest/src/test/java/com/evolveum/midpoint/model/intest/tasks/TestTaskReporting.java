@@ -20,6 +20,7 @@ import java.net.ConnectException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -30,10 +31,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
@@ -136,7 +133,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
     }
 
     private void createAccount(int i) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException,
-            FileNotFoundException, ConflictException, InterruptedException {
+            FileNotFoundException, ConflictException, InterruptedException, ObjectDoesNotExistException {
         String name = formatAccountName(i);
         DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.addAccount(name);
         account.addAttributeValue(ATTR_NUMBER, i);

@@ -1,0 +1,19 @@
+= MidPoint Task Management Configuration
+:page-nav-title: Task Management
+:page-wiki-name: Server Tasks
+:page-wiki-id: 24085139
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-01-26T14:50:39.904+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-01-26T14:50:39.904+01:00
+:page-display-order: 300
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe mechanism that deal with task management, server tasks, task scheduling and similar topics.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

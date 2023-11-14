@@ -64,7 +64,7 @@ public class TestActivationComputerLifecycle extends AbstractActivationComputerT
                 SchemaConstants.LIFECYCLE_DRAFT, activationType, createLifecycleModel());
 
         // THEN
-        assertEquals("Unexpected effective status", ActivationStatusType.ARCHIVED, effectiveStatus);
+        assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class TestActivationComputerLifecycle extends AbstractActivationComputerT
             ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity)
             throws SchemaException, IOException {
         testCompute(SchemaConstants.LIFECYCLE_DRAFT, now, administrativeStatus,
-                validFrom, validTo, ActivationStatusType.ARCHIVED, expectedValidity);
+                validFrom, validTo, ActivationStatusType.DISABLED, expectedValidity);
     }
 
     @Override
@@ -114,6 +114,6 @@ public class TestActivationComputerLifecycle extends AbstractActivationComputerT
             ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity)
             throws SchemaException, IOException {
         testCompute(LIFECYCLE_STATE_INHUMED, now, administrativeStatus,
-                validFrom, validTo, ActivationStatusType.ARCHIVED, expectedValidity);
+                validFrom, validTo, ActivationStatusType.DISABLED, expectedValidity);
     }
 }

@@ -131,6 +131,11 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
+    public <T extends Containerable> SearchResultMetadata searchContainersIterative(Class<T> type, ObjectQuery query, ObjectHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+        return searchOpHandler.searchContainersIterative(type, query, handler, options, parentResult);
+    }
+
+    @Override
     public @NotNull <T extends Containerable> SearchResultList<T> searchContainers(
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,

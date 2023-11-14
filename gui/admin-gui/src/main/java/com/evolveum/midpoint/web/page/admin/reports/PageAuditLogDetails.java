@@ -6,13 +6,27 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.cases.api.AuditingConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -36,22 +50,8 @@ import com.evolveum.midpoint.web.page.admin.audit.AuditChangesPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordItemValueDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
-
-import java.util.*;
 
 @PageDescriptor(
         urls = {
@@ -65,7 +65,7 @@ import java.util.*;
                         label = "PageAuditLogViewer.auth.auditLogViewer.label",
                         description = "PageAuditLogViewer.auth.auditLogViewer.description")})
 public class PageAuditLogDetails extends PageBase {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAuditLogDetails.class);
 
@@ -265,7 +265,7 @@ public class PageAuditLogDetails extends PageBase {
     }
 
     private IModel<String> createTargetOwnerRefModel() {
-        return new ReadOnlyModel<>(() -> {
+        return () -> {
             AuditEventRecordType record = recordModel.getObject();
             if (record == null) {
                 return null;
@@ -274,7 +274,7 @@ public class PageAuditLogDetails extends PageBase {
                     PageAuditLogDetails.this,
                     createSimpleTask(OPERATION_RESOLVE_REFERENCE_NAME),
                     new OperationResult(OPERATION_RESOLVE_REFERENCE_NAME));
-        });
+        };
     }
 
     private Label createLabel(String id, IModel<String> model) {
@@ -313,13 +313,13 @@ public class PageAuditLogDetails extends PageBase {
     }
 
     private IModel<String> createTaskNameModel(IModel<TaskType> taskModel) {
-        return new ReadOnlyModel<>(() -> {
+        return () -> {
             TaskType task = taskModel.getObject();
             if (task == null) {
                 return "";
             }
             return " " + WebComponentUtil.getName(task);
-        });
+        };
     }
 
     private IModel<String> createInitiatorRefModel() {
@@ -327,29 +327,29 @@ public class PageAuditLogDetails extends PageBase {
         if (record == null) {
             return null;
         }
-        return new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(record.getInitiatorRef(), PageAuditLogDetails.this));
+        return () -> WebModelServiceUtils.resolveReferenceName(record.getInitiatorRef(), PageAuditLogDetails.this);
     }
 
     private IModel<String> createAttorneyRefModel() {
-        return new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(
+        return () -> WebModelServiceUtils.resolveReferenceName(
                 recordModel.getObject().getAttorneyRef(), PageAuditLogDetails.this,
                 createSimpleTask(ID_PARAMETERS_EVENT_ATTORNEY),
-                new OperationResult(ID_PARAMETERS_EVENT_ATTORNEY)));
+                new OperationResult(ID_PARAMETERS_EVENT_ATTORNEY));
     }
 
     private IModel<String> createEffectivePrincipalRefModel() {
-        return new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(
+        return () -> WebModelServiceUtils.resolveReferenceName(
                 recordModel.getObject().getEffectivePrincipalRef(), PageAuditLogDetails.this,
                 createSimpleTask(ID_PARAMETERS_EVENT_EFFECTIVE_PRINCIPAL),
-                new OperationResult(ID_PARAMETERS_EVENT_EFFECTIVE_PRINCIPAL)));
+                new OperationResult(ID_PARAMETERS_EVENT_EFFECTIVE_PRINCIPAL));
     }
 
     private IModel<String> createTargetRefModel() {
-        return new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(
+        return () -> WebModelServiceUtils.resolveReferenceName(
                 recordModel.getObject().getTargetRef(),
                 this,
                 createSimpleTask(ID_PARAMETERS_EVENT_TARGET),
-                new OperationResult(ID_PARAMETERS_EVENT_TARGET)));
+                new OperationResult(ID_PARAMETERS_EVENT_TARGET));
     }
 
     private IModel<List<AuditEventRecordItemValueDto>> createAdditionalItemsListModel() {
@@ -432,47 +432,9 @@ public class PageAuditLogDetails extends PageBase {
                 if (record == null) {
                     return new ArrayList<>();
                 }
-                List<ObjectDeltaOperationType> deltas = record.getDelta();
-                return connectDeltas(deltas);
+                return record.getDelta();
             }
         };
-    }
-
-    private List<ObjectDeltaOperationType> connectDeltas(List<ObjectDeltaOperationType> deltas) {
-        Map<PolyStringType, ObjectDeltaOperationType> focusDeltas = new HashMap<>();
-        List<ObjectDeltaOperationType> otherDeltas = new ArrayList<>();
-        for (ObjectDeltaOperationType delta : deltas) {
-            var deltaType = WebComponentUtil.qnameToClass(getPrismContext(), delta.getObjectDelta().getObjectType());
-            if (delta != null && delta.getObjectDelta() != null && deltaType != null && FocusType.class.isAssignableFrom(deltaType)) {
-                if (focusDeltas.containsKey(delta.getObjectName())) {
-                    focusDeltas.get(delta.getObjectName()).setResourceName(null);
-                    focusDeltas.get(delta.getObjectName()).setResourceOid(null);
-                    if (delta.getObjectDelta() != null) {
-                        if (focusDeltas.get(delta.getObjectName()).getObjectDelta() == null) {
-                            focusDeltas.get(delta.getObjectName()).setObjectDelta(delta.getObjectDelta());
-                        } else {
-                            focusDeltas.get(delta.getObjectName()).getObjectDelta().getItemDelta().addAll(delta.getObjectDelta().getItemDelta());
-                        }
-                        for (ItemDeltaType itemDelta : delta.getObjectDelta().getItemDelta()) {
-                            if (itemDelta == null) {
-                                continue; //TODO why?
-                            }
-                        }
-                    }
-                } else {
-                    focusDeltas.put(delta.getObjectName(), delta);
-                }
-            } else if (deltaType == null) {
-                // MID-7913 Intentionally we skip this delta for now, since we do not have object definition
-                // type was deprecated and removed.
-            } else {
-                otherDeltas.add(delta);
-            }
-        }
-        List<ObjectDeltaOperationType> retDeltas = new ArrayList<>();
-        retDeltas.addAll(focusDeltas.values());
-        retDeltas.addAll(otherDeltas);
-        return retDeltas;
     }
 
     protected void initLayoutBackButton() {

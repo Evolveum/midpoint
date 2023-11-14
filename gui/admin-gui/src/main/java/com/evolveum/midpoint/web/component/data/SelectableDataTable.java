@@ -7,11 +7,9 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.session.SessionStorage;
+import java.util.List;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.Session;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -21,8 +19,6 @@ import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
-
-import java.util.List;
 
 public class SelectableDataTable<T> extends DataTable<T, String> {
 
@@ -53,12 +49,17 @@ public class SelectableDataTable<T> extends DataTable<T, String> {
     @Override
     protected Item<IColumn<T, String>> newCellItem(String id, int index, IModel<IColumn<T, String>> model) {
         Item item = super.newCellItem(id, index, model);
-        item.add(new BreakTextBehaviour(item.getMarkupId()));
+        if(isBreakTextBehaviourEnabled(index)){
+            item.add(new BreakTextBehaviour(item.getMarkupId()));
+        }
         item.add(AttributeAppender.append("style", "word-wrap: break-word !important;"));
 
         return item;
     }
 
+    protected boolean isBreakTextBehaviourEnabled(int index){
+        return true;
+    }
     @Override
     protected void onPageChanged() {
         super.onPageChanged();

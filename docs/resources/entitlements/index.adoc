@@ -1,0 +1,439 @@
+= Entitlements
+:page-wiki-name: Entitlements
+:page-wiki-id: 13598822
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-01-09T14:23:08.383+01:00
+:page-wiki-metadata-modify-user: vera
+:page-wiki-metadata-modify-date: 2020-03-31T14:52:37.580+02:00
+:page-toc: top
+:page-since: "3.0"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+== Introduction
+
+Entitlement is a resource object similar to an account.
+But unlike account the entitlement does *not* represent a user.
+The entitlement represents a privilege, access right, resource-side role or group or any similar concept.
+The entitlements are very frequently used to represent groups.
+
+MidPoint can be configured to fully understand entitlements.
+MidPoint can know which resource objects represent groups.
+Therefore midPoint can manage group membership in a structured and automated way.
+MidPoint can list entitlements and therefore it can be used to create smart and convenient user interfaces.
+MidPoint support for entitlements goes beyond the capabilities of vast majority of IDM solutions.
+
+[TIP]
+.Why are entitlements so important?
+====
+Group membership management is traditionally one of the worst nightmares of identity management solutions.
+While the concept of grouping is supported by almost every resource the actual group implementation differs a lot.
+Some systems store the list of groups in account objects.
+Other systems (such as LDAP) store the list of members in group objects.
+The systems often store the list of member or group identifiers in a plain string attributes therefore it is difficult to automatically find out which attribute it is.
+Support for group membership traditionally involved heavy customization of IDM tools that slowed down the projects.
+Even worse it required a very costly maintenance such as manual synchronization of list of groups and roles in the IDM system.
+This situation is just not acceptable for efficient IDM deployments.
+
+That's the reason for unified entitlement support in midPoint.
+MidPoint can manage all groups in a uniform way regardless of the grouping mechanism that the resource is using.
+All that is needed is a handful of configuration lines.
+And the nightmare is over.
+Especially when entitlements are combined with the power of xref:/midpoint/reference/roles-policies/assignment/[assignments] and xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization].
+
+To be completely honest, even though midPoint support for entitlements is quite powerful it is still at its beginning.
+The entitlements are supported in midPoint core engine but the GUI support is currently very limited.
+However even this basic support is enough to avoid deployment nightmares.
+====
+
+
+== Entitlement Shadow
+
+It is important to remember that entitlement is a *resource object*. Entitlement resides on the resource.
+It is *not* an object that is maintained by midPoint.
+Entitlements only reflect the reality on the resource.
+Similarly to all other resource-side object the entitlement is represented in midPoint only as a xref:/midpoint/reference/resources/shadow/[shadow].
+
+image::schemas-entitlement-1.png[]
+
+
+== Entitlement, Account and User
+
+The primary purpose of an entitlement is to be associated with accounts (*not* users!). E.g. an account can be added as a member of a group.
+This is realized in midPoint by associating a "group entitlement" with user's account.
+MidPoint xref:/midpoint/architecture/archive/subsystems/provisioning/[provisioning component] modifies the resource in appropriate way to add account to a group.
+Similarly to other shadow-related operations midPoint then forgets about it.
+The information remains only on the resource.
+When such association happens the situation looks like this:
+
+image::schemas-entitlement-2.png[]
+
+Similarly to accounts midPoint always reads fresh data from the resource when dealing with entitlements.
+Therefore midPoint does not need to remember the association.
+It can read it directly from the resource anytime.
+And that's exactly what midPoint does when an account xref:/midpoint/reference/resources/shadow/[shadow] is retrieved:
+
+image::schemas-entitlement-3.png[]
+
+
+
+MidPoint fetches the shadow from its repository and it uses the identifiers stored in the shadow to locate account object on the resource.
+MidPoint retrieves the account object.
+Then midPoint looks for entitlement information in the account and processes any associations.
+MidPoint may need to retrieve or search additional objects to fully process the associations.
+E.g. standard LDAP groups store the list of members in the group object therefore midPoint needs to search the group objects to fully process the association information.
+MidPoint does all that transparently.
+Regardless what kind of grouping and association mechanism is used midPoint presents the data in a unified form.
+
+
+== Association Definition
+
+Association of account and entitlement is defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] section of xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]. Both object-to-subject and subject-to-object association directions are supported
+
+Association is a relation between two parties: subject and object.
+Subject is the party that receives the entitlement (usually an account).
+The object is the entitlement (usually a group).
+There are three important things that define the association:
+
+* *direction*: Specifies the direction of association, i.e. if the association point from object to subject or the other way around:
+
+** *subjectToObject*: Subject has an attribute that contains object identifiers as its values.
+E.g. an account has a list of groups to which it belongs.
+
+** *objectToSubject*: Object has an attribute that contains subject identifiers as its values.
+E.g. a group has a list of members.
+
+
+
+* *associationAttribute*: Name of the attribute which represents the association.
+This is the attribute that will be modified when the association changes.
+In object-to-subject associations this is the attribute of the object (e.g. group).
+In subject-to-object associations this is an attribute of the subject (e.g. account).
+
+* *valueAttribute*: Name of the attribute from with a value for association attribute is taken.
+The value is taken from this attribute and it will be stored in the association attribute.
+This attribute will *not* be modified when the association changes, it is only for reading.
+In object-to-subject associations this is the attribute of the subject (e.g. account).
+In subject-to-object associations this is an attribute of the object (e.g. group).
+This attribute usually contain identifiers.
+
+
+=== Association Direction
+
+MidPoint supports associations that are represented by any of the two directions: subject-to-object and object-to-subject.
+
+The *subject-to-object* associations are quite simple.
+In this case the subject (account) has a list of its entitlements (groups).
+It may look like this:
+
+.subject-to-object association
+[source,ldif]
+----
+objectclass: account
+username: jack
+fullName: Jack Sparrow
+groups: pirates
+groups: captains
+
+objectclass: account
+username: will
+fullName: Will Turner
+groups: pirates
+
+objectclass: group
+groupname: pirates
+
+objectclass: group
+groupname: captains
+----
+
+In this case the association attribute is `groups` and the value attribute is `groupname`.
+
+Also the implementation of this type of association is very simple.
+MidPoint will just retrieve the subject (account) and all of the necessary data are there.
+
+The *object-to-subject* associations are more complex.
+In this case the association is the other way around.
+The object (group) has the list of subjects (accounts) that are the memebers.
+Like this:
+
+.object-to-subject association
+[source,ldif]
+----
+objectclass: account
+username: jack
+fullName: Jack Sparrow
+
+objectclass: account
+username: will
+fullName: Will Turner
+
+objectclass: group
+groupname: pirates
+members: jack
+members: will
+
+objectclass: group
+groupname: captains
+members: jack
+----
+
+In this case the association attribute is `members` and the value attribute is `username`.
+
+The implementation of this association is also complex.
+In this case we cannot simply retrieve the subject (account).
+The membership data are not there.
+What we need is to _search_ for all the entitlements.
+E.g. if we want to get a list of all groups that `jack` belongs to then we need to search for all groups that match the filter (members=jack).
+
+The direction of the association has significant consequences in many areas.
+Firstly there is performance impact.
+The object-to-subject associations need more operations than the subject-to-object associations.
+And these additional operations are usually big searches over the resource.
+Secondly this has consequences for troubleshooting.
+Different types of associations produce different connector operations.
+Especially the searches for object-to-subject associations may be quite tricky to troubleshoot.
+
+
+=== Association Shortcut
+
+There are two more properties that define a "shortcut" for membership.
+E.g. LDAP servers typically have objectToSubject association for groups (groups have a list of members).
+This is not very efficient approach because it requires at least two operations to retrieve an account and all its groups (first operation to read the account itself, second search for all the groups).
+Therefore advanced LDAP servers typically provide a _virtual_ account attribute that contains a list of groups.
+This attribute is computed and it is only for reading.
+If the group membership has to be changed then the group object needs to be modified.
+However this approach significantly improves read efficiency.
+MidPoint fully supports this approach.
+This "shortcut" can be configured in a way that is very similar to the association itself:
+
+* *shortcutAssociationAttribute*: Association attribute short-cut.
+There are cases when a object-to-subject association is the authoritative one, but reading object-to-subject is expensive.
+E.g. several searches must be done to fully resolve object-to-subject associations.
+This attribute provides a short-cut mechanism.
+It is used in cases when there is additional (virtual) attribute that goes in the opposite direction as the primary object-to-subject association attribute.
+The association short-cut is only usable for object-to-subject associations. +
+This property specifies name of the attribute which represents the association short-cut.
+This is the attribute of the subject (e.g. account).
+This attribute will only be read, it is never written.
+The primary association attribute is used for writing.
+
+* *shortcutValueAttribute*: Association attribute short-cut.
+There are cases when a object-to-subject association is the authoritative one, but reading object-to-subject is expensive.
+E.g. several searches must be done to fully resolve object-to-subject associations.
+This attribute provides a short-cut mechanism.
+It is used in cases when there is additional (virtual) attribute that goes in the opposite direction as the primary object-to-subject association attribute.
+The assocition short-cut is only usable for object-to-subject associations. +
+This property specifies name of the attribute from with a value for association attribute short-cut is taken.
+The values of this attribute are expected to appear in association short-cut attribute.
+This is an attribute of the object (e.g. group).
+This attribute usually contain identifiers.
+
+
+=== Association Definition Examples
+
+The following example illustrates definition of an LDAP-style group entitlement association:
+
+[source,xml]
+----
+<resource>
+    ...
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            ...
+            <association>
+                <ref>ri:group</ref>
+                <kind>entitlement</kind>
+                <intent>group</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:members</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+                <shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
+                <shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            </association>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <default>true</default>
+            <objectClass>ri:GroupObjectClass</objectClass>
+        </objectType>
+    </schemaHandling>
+</resource>
+----
+
+The definition defines one account type and one entitlement type _group_. The entitlement and account are associated by using entitlement's attribute `members`. The `members` property of a group contains a collection of usernames that belong to the group.
+
+Following example illustrates the reverse direction of association.
+This association is realized by account's attribute `privileges` that contains a list of privileges assigned to an account.
+
+[source,xml]
+----
+<resource>
+    ...
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            ...
+            <association>
+                <ref>ri:priv</ref>
+                <kind>entitlement</kind>
+                <intent>privilege</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:privileges</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+            </association>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>privilege</intent>
+            <default>false</default>
+            <objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+    </schemaHandling>
+</resource>
+----
+
+MidPoint will present all entitlements and associations in the uniform fashion regardless of the association direction, object classes or attribute names.
+MidPoint will transparently process correct object retrieval and modification requests.
+
+[TIP]
+.Entitlements and connectors
+====
+Entitlements are resource objects.
+Therefore the component that closely communicates with the resource should be able to identify entitlements.
+This component is the connector.
+However current xref:/connectors/connectors/[Identity Connector Framework] does not support this functionality.
+Therefore the entitlements and associations needs to be manually defined in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. However we are cooperating on evolution of the connector framework and introduction of connector entitlement support is quite high on our wishlist.
+
+====
+
+
+[TIP]
+.Multi-intent associations
+====
+The association may point to many intents (many object types with different intents).
+This is sometimes useful, especially if there are many types of groups and each type is constructed in a slightly different way.
+The multi-intent associations are supported and often very useful.
+But there is an important hard limitation: all the object types referenced from a single association must have the same object type, attributes, matching rules, .... they must be equivalent in every aspect except for attribute mappings.
+====
+
+
+=== Association Behavior in MidPoint
+
+MidPoint works with associations in almost the same way how it works with resource object attributes.
+The associations are not stored in midPoint (xref:/midpoint/reference/resources/shadow/[Shadow Objects]). The associations are retrieved fresh from the resource.
+This applies to all parts of midPoint and particularly to xref:/midpoint/reference/synchronization/introduction/[synchronization] and the user interface.
+E.g. the user interface will retrieve the associations only when the resource object (account) on the projection tab is expanded.
+Exactly at the same time when attributes are retrieved.
+
+
+=== Associations Versus Attributes
+
+Some midPoint deployments may have a dilemma whether to use associations or simple attributes.
+E.g. the `groups` attribute in the example above may as well be managed as a simple multi-valued attribute.
+No need for associations here.
+However there are two arguments in favor of associations:
+
+* Associations are smart.
+Association knows that the values in that attribute are supposed to represent group name.
+The midPoint user interface may use this information to list all available groups when user wants to add a new associations.
+User then simply selects value from the list.
+No need to enter the group name manually.
+
+* The object-to-subject associations are very difficult to model as simple attributes.
+In this case the attribute that needs to be modified is in fact in a different object.
+MidPoint tries to isolate the operations to a single object (or a set of related objects).
+Therefore modeling object-to-subject associations using simple attributes may be very difficult.
+The association mechanisms makes this very easy.
+
+
+== Assigning Entitlements
+
+Entitlements can be easily assigned to accounts by using the xref:/midpoint/reference/roles-policies/assignment/[assignment] mechanism.
+This allows the construction of roles that automatically associate user's accounts with appropriate groups.
+See xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page for more details.
+
+
+== Entitlement Membership Removal
+
+Most midPoint operations are delta-based.
+E.g. if user interface is used to add or remove an assignment a xref:/midpoint/devel/prism/concepts/deltas/[delta] is created and sent as a parameter of the operation.
+In this case we know what has changed.
+Therefore we can easily add remove entitlement membership.
+We can do this even if the entitlement is set to be _tolerant_. We can do this because we know that the last assignment that "induced" that group was just removed.
+
+But the situation is different for reconciliation and recompute.
+E.g in case that the role definition is changed.
+There are in fact two operation: change of the role and then reconcile the user.
+These operations are independent.
+Therefore for the second operation there is no delta.
+MidPoint does not know what has changed in the role.
+Therefore it cannot use the same logic to remove the user from the entilement.
+Slightly different logic is used in reconciliation.
+Logic that is not based on deltas (because there are none).
+And in this case the tolerant flag is important.
+If it is set to true then midPoint will NOT remove the extra values from the attribute or the extra entitlements.
+If it is set to false then midPoint will remove them.
+
+For these operations to work correctly even in reconciliation it is important to set the _tolerant_ property.
+Please make sure you have the association set to non-tolerant in the schemaHandling section of the resource definition.
+Like this:
+
+[source,xml]
+----
+<resource>
+    <schemaHandling>
+       ....
+       <association>
+                 <ref>ri:group</ref>
+                 <tolerant>false</tolerant>
+                  ....
+             </association>
+              ...
+----
+
+This has to be defined in the schemaHandling and *not* in the role or meta-role.
+The tolerance is the property of the attribute/association itself and *not* a property of any mapping, role or value.
+The values that are not given by any role and just that - not given by any role.
+So we do not have any role definition that we can apply to them.
+Therefore the setting whether the attribute/association is tolerant or not is somehow "global".
+Therefore it needs to be defined in `schemaHandling`.
+
+Also, please make sure that your mappings are strong, e.g.
+
+[source,xml]
+----
+<role>
+     ...
+     <inducement>
+         <construction>
+             ...
+             <association>
+                 <ref>ri:group</ref>
+                 <outbound>
+                     <strength>strong</strength>
+                     ...
+                 </outbound>
+             </association>
+         </construction>
+     </inducement>
+----
+
+Mappings that are of "normal" strength are inherently delta-based and they are usually NOT processed by the reconciliation at all.
+For "normal" mappings the last change wins.
+But in reconciliation we have no idea what change was the last one - whether the one on the resource or the one in midPoint.
+Therefore we prefer the conservative approach and we rather maintain status quo.
+
+
+== See Also
+
+* xref:/midpoint/reference/resources/shadow/[Shadow Objects]
+
+* xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
+
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]

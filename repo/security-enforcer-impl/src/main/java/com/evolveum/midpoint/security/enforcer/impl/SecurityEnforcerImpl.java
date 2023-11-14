@@ -132,12 +132,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     public @Nullable MidPointPrincipal getMidPointPrincipal() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
-            LOGGER.warn("No authentication");
+            LOGGER.debug("No authentication");
             return null;
         }
         Object principal = authentication.getPrincipal();
         if (principal == null) {
-            LOGGER.warn("Null principal");
+            LOGGER.debug("Null principal");
             return null;
         }
         if (principal instanceof MidPointPrincipal) {
@@ -146,7 +146,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         if (AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principal)) {
             return null;
         }
-        LOGGER.warn("Unknown principal type {}", principal.getClass());
+        LOGGER.debug("Unknown principal type {}", principal.getClass());
         return null;
     }
 
@@ -320,8 +320,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             failAuthorization(attorneyAuthorizationAction, null, autzParams, result);
         }
 
+        // For running operations by Power Of Attorney, we don't need to support GUI config
         MidPointPrincipal donorPrincipal =
-                securityContextManager.getUserProfileService().getPrincipal(donor, limitationsCollector, result);
+                securityContextManager.getUserProfileService().getPrincipal(
+                        donor,
+                        limitationsCollector,
+                        ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
+                                .locateSecurityPolicy(false),
+                        result);
         donorPrincipal.setAttorney(attorneyPrincipal.getFocus());
 
         // chain principals so we can easily drop the power of attorney and return back to original identity

@@ -17,6 +17,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -58,10 +59,7 @@ import javax.xml.datatype.Duration;
 @Component
 public class OperationResultRecorder {
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private ShadowDeltaComputerAbsolute shadowDeltaComputerAbsolute;
@@ -102,14 +100,14 @@ public class OperationResultRecorder {
 
         ProvisioningContext ctx = operation.getCtx();
         AddOperationState opState = operation.getOpState();
-        ShadowType resourceObject = operation.getResourceObjectAddedOrToAdd();
+        var resourceObject = operation.getResourceObjectAddedOrToAdd();
 
-        ShadowType repoShadowToAdd = shadowCreator.createShadowForRepoStorage(ctx, resourceObject);
+        ShadowType repoShadowToAdd = shadowCreator.createShadowForRepoStorage(ctx, resourceObject.getBean());
         opState.setRepoShadow(repoShadowToAdd);
 
         if (!opState.isCompleted()) {
             pendingOperationsHelper.addPendingOperationIntoNewShadow(
-                    repoShadowToAdd, resourceObject, opState, null);
+                    repoShadowToAdd, resourceObject.getBean(), opState, null);
         }
 
         addCreationMetadata(repoShadowToAdd);
@@ -138,7 +136,7 @@ public class OperationResultRecorder {
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
 
         ProvisioningContext ctx = addOperation.getCtx();
-        ShadowType resourceShadow = addOperation.getResourceObjectAddedOrToAdd();
+        ResourceObject resourceShadow = addOperation.getResourceObjectAddedOrToAdd();
         AddOperationState opState = addOperation.getOpState();
 
         Collection<ItemDelta<?, ?>> shadowModifications = computePendingOperationsAndLifecycleStateModifications(addOperation);
@@ -146,11 +144,11 @@ public class OperationResultRecorder {
         // Here we compute the deltas that would align the repository shadow with the "full" version of the resource object.
         // We use the same mechanism (shadow delta computer) as is used for shadows coming from the resource.
         ShadowType repoShadow = opState.getRepoShadow();
-        ShadowLifecycleStateType shadowState = ctx.determineShadowState(repoShadow);
+        ctx.updateShadowState(repoShadow);
         shadowModifications.addAll(
                 shadowDeltaComputerAbsolute
                         .computeShadowDelta(
-                                ctx, repoShadow, resourceShadow, null, shadowState, false)
+                                ctx, repoShadow, resourceShadow, null, false)
                         .getModifications());
 
         addModificationMetadataDeltas(shadowModifications, repoShadow);

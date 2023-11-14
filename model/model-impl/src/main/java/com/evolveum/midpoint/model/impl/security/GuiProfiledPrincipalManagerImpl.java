@@ -16,6 +16,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
+
 import jakarta.annotation.PostConstruct;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -121,7 +123,7 @@ public class GuiProfiledPrincipalManagerImpl
     }
 
     @Override
-    public GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz)
+    public GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz, ProfileCompilerOptions options)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
@@ -139,11 +141,13 @@ public class GuiProfiledPrincipalManagerImpl
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        return getPrincipal(focus, null, result);
+        return getPrincipal(focus, null, options, result);
     }
 
     @Override
-    public GuiProfiledPrincipal getPrincipal(ObjectQuery query, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public GuiProfiledPrincipal getPrincipal(ObjectQuery query, Class<? extends FocusType> clazz, ProfileCompilerOptions options)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         PrismObject<? extends FocusType> focus;
         try {
@@ -159,29 +163,34 @@ public class GuiProfiledPrincipalManagerImpl
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        return getPrincipal(focus, null, result);
+        return getPrincipal(focus, null, options, result);
     }
 
     @Override
-    public GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz)
+    public GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz, ProfileCompilerOptions options)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         return getPrincipal(
                 getUserByOid(oid, clazz, result).asPrismObject(),
+                options,
                 result);
     }
 
     @Override
-    public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus, OperationResult result)
+    public GuiProfiledPrincipal getPrincipal(
+            PrismObject<? extends FocusType> focus, ProfileCompilerOptions options, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
-        return getPrincipal(focus, null, result);
+        return getPrincipal(focus, null, options, result);
     }
 
     @Override
     public GuiProfiledPrincipal getPrincipal(
-            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result)
+            PrismObject<? extends FocusType> focus,
+            AuthorizationTransformer authorizationTransformer,
+            ProfileCompilerOptions options,
+            OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
         if (focus == null) {
@@ -194,7 +203,7 @@ public class GuiProfiledPrincipalManagerImpl
 
             focusComputer.recompute(focus, lifecycleModel);
             GuiProfiledPrincipal principal = new GuiProfiledPrincipal(focus.asObjectable());
-            initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer);
+            initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer, options);
             return principal;
         } finally {
             securityContextManager.clearTemporaryPrincipalOid();
@@ -318,11 +327,12 @@ public class GuiProfiledPrincipalManagerImpl
     private void initializePrincipalFromAssignments(
             GuiProfiledPrincipal principal,
             PrismObject<SystemConfigurationType> systemConfiguration,
-            AuthorizationTransformer authorizationTransformer) {
+            AuthorizationTransformer authorizationTransformer,
+            ProfileCompilerOptions options) {
         Task task = taskManager.createTaskInstance(GuiProfiledPrincipalManagerImpl.class.getName() + ".initializePrincipalFromAssignments");
         OperationResult result = task.getResult();
         try {
-            guiProfileCompiler.compileFocusProfile(principal, systemConfiguration, authorizationTransformer, task, result);
+            guiProfileCompiler.compileFocusProfile(principal, systemConfiguration, authorizationTransformer, options, task, result);
         } catch (Throwable e) {
             // Do not let any error stop processing here. This code is used during user login. An error here can stop login procedure. We do not
             // want that. E.g. wrong adminGuiConfig may prohibit login on administrator, therefore ruining any chance of fixing the situation.
@@ -401,7 +411,7 @@ public class GuiProfiledPrincipalManagerImpl
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try {
-            return getPrincipal(username, FocusType.class);
+            return getPrincipal(username, FocusType.class, ProfileCompilerOptions.create());
         } catch (ObjectNotFoundException e) {
             throw new UsernameNotFoundException(e.getMessage(), e);
         } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
@@ -448,6 +458,16 @@ public class GuiProfiledPrincipalManagerImpl
 
     @Override
     public @NotNull CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal principal) {
+        return refreshCompiledProfile(
+                principal,
+                ProfileCompilerOptions.create()
+                    .compileGuiAdminConfiguration(true)
+                    .collectAuthorization(true)
+                    .locateSecurityPolicy(true));
+    }
+
+    @Override
+    public @NotNull CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal principal, ProfileCompilerOptions options) {
         OperationResult result = new OperationResult("refreshCompiledProfile");
 
         // Maybe focus was also changed, we should probably reload it
@@ -461,7 +481,7 @@ public class GuiProfiledPrincipalManagerImpl
         try {
             focus = repositoryService.getObject(principal.getFocus().getClass(), focusOid, null, result);
             principal.setOrReplaceFocus(focus.asObjectable());
-            if (!principal.isEnabled()) {
+            if (options.terminateDisabledUserSession() && !principal.isEnabled()) {
                 // User is disabled
                 var terminate = new TerminateSessionEvent();
                 terminate.setPrincipalOids(Collections.singletonList(principal.getOid()));
@@ -473,7 +493,7 @@ public class GuiProfiledPrincipalManagerImpl
         } catch (ObjectNotFoundException e) {
             throw new SystemException("Focus was deleted");
         } catch (SchemaException e) {
-             throw new SystemException("Encountered schema exception", e);
+            throw new SystemException("Encountered schema exception", e);
         }
         securityContextManager.setTemporaryPrincipalOid(focusOid);
         try {
@@ -481,7 +501,12 @@ public class GuiProfiledPrincipalManagerImpl
             LifecycleStateModelType lifecycleModel = getLifecycleModel(focus, systemConfiguration);
             focusComputer.recompute(focus, lifecycleModel);
             principal.clearAuthorizations();
-            initializePrincipalFromAssignments(principal, systemConfiguration, null);
+            // For refreshing current logged-in principal, we need to support GUI config
+            initializePrincipalFromAssignments(
+                    principal,
+                    systemConfiguration,
+                    null,
+                    options);
             principal.clearEffectivePrivilegesModification(); // we just recomputed them strictly from user's assignments
             return principal.getCompiledGuiProfile();
         } finally {

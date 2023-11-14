@@ -7,22 +7,23 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-
-import static java.util.Collections.emptyList;
 
 import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectLiveShadow;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,58 +47,91 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * Naming:
  *
- * - lookup: returns a single shadow
+ * - get: returns a single shadow (by OID)
+ * - lookup: returns a single shadow (by some other criteria)
  * - search: returns a collection of shadows
  *
- * There should be no side effects of methods here.
+ * There should be no side effects of methods (like creating a shadow if nothing is found) here.
+ *
+ * Ideally, all read accesses related to the repository should go through this class.
+ * (Exceptions where appropriate.)
  */
 @Component
 public class ShadowFinder {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowFinder.class);
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaService schemaService;
 
-    /** Simply gets a repo shadow from the repository. No magic here. No side effects. */
-    public PrismObject<ShadowType> getShadow(String oid, OperationResult result)
+    /** Simply gets a repo shadow from the repository. No magic here. */
+    public @NotNull PrismObject<ShadowType> getShadow(@NotNull String oid, @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         return repositoryService.getObject(ShadowType.class, oid, null, result);
     }
 
-    /** Iteratively searches for shadows in the repository. No magic except for handling matching rules. No side effects. */
-    public SearchResultMetadata searchShadowsIterative(ProvisioningContext ctx, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> repoHandler,
+    /** A convenience method. */
+    public @NotNull ShadowType getShadowBean(@NotNull String oid, @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        return getShadow(oid, result)
+                .asObjectable();
+    }
+
+    /** A convenience method. */
+    public @NotNull ShadowType getShadowBean(
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        return repositoryService
+                .getObject(ShadowType.class, oid, options, result)
+                .asObjectable();
+    }
+
+    /** Iteratively searches for shadows in the repository. No magic except for handling matching rules. */
+    public SearchResultMetadata searchShadowsIterative(
+            ProvisioningContext ctx,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            ResultHandler<ShadowType> repoHandler,
             OperationResult result) throws SchemaException {
         ObjectQuery repoQuery = normalizeQueryValues(query, ctx.getObjectDefinition());
         return repositoryService.searchObjectsIterative(
                 ShadowType.class, repoQuery, repoHandler, options, true, result);
     }
 
-    /** Non-iteratively searches for shadows in the repository. No magic except for handling matching rules. No side effects. */
+    /** Non-iteratively searches for shadows in the repository. No magic except for handling matching rules. */
     public SearchResultList<PrismObject<ShadowType>> searchShadows(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
         ObjectQuery repoQuery = normalizeQueryValues(query, ctx.getObjectDefinition());
         return repositoryService.searchObjects(ShadowType.class, repoQuery, options, parentResult);
     }
 
-    /** Simply counts the shadows in repository. No magic except for handling matching rules. No side effects. */
-    public int countShadows(ProvisioningContext ctx, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult result) throws SchemaException {
+    /** Simply counts the shadows in repository. No magic except for handling matching rules. */
+    public int countShadows(
+            ProvisioningContext ctx, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            throws SchemaException {
         ObjectQuery repoQuery = normalizeQueryValues(query, ctx.getObjectDefinition());
         return repositoryService.countObjects(ShadowType.class, repoQuery, options, result);
     }
 
-    /** Looks up live (or any other, if there's none) shadow by primary identifier(s). Side effects: none. */
-    public ShadowType lookupLiveOrAnyShadowByPrimaryIds(
-            ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers, OperationResult result)
-            throws SchemaException, ConfigurationException {
+    /**
+     * Looks up live (or any other, if there's none) shadow by primary identifier(s).
+     *
+     * This method, unlike many others in this class, accepts a wildcard context, assuming that the primary identifiers
+     * are the same for all object classes, and that the identifier values are unique across object classes (!)
+     *
+     * This method is not inlined to keep the consistency with
+     * {@link #lookupLiveShadowByPrimaryId(ProvisioningContext, PrismProperty, QName, OperationResult)}.
+     */
+    public @Nullable ShadowType lookupLiveOrAnyShadowByPrimaryId(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ResourceObjectIdentifier.Primary<?> primaryIdentifier,
+            @NotNull OperationResult result)
+            throws SchemaException {
         return ProvisioningUtil.selectLiveOrAnyShadow(
-                searchShadowsByPrimaryIds(ctx, identifiers, result));
+                searchShadowsByPrimaryId(ctx, primaryIdentifier, result));
     }
 
     /**
@@ -106,138 +139,122 @@ public class ShadowFinder {
      * Unlike {@link #lookupShadowByIndexedPrimaryIdValue(ProvisioningContext, String, OperationResult)} this method
      * uses stored attributes to execute the query.
      *
-     * Side effects: none.
-     *
      * @param objectClass Intentionally not taken from the context - yet. See the explanation in
      * {@link com.evolveum.midpoint.provisioning.impl.shadows.ShadowAcquisition#objectClass}.
      */
-    public ShadowType lookupLiveShadowByPrimaryId(
+    public @Nullable ShadowType lookupLiveShadowByPrimaryId(
             ProvisioningContext ctx, PrismProperty<?> primaryIdentifier, QName objectClass, OperationResult result)
             throws SchemaException {
 
         ObjectQuery query = createQueryByPrimaryId(ctx, primaryIdentifier, objectClass);
 
         LOGGER.trace("Searching for shadow by primary identifier using query:\n{}", query.debugDumpLazily(1));
-        List<PrismObject<ShadowType>> shadowsFound = searchRepoShadows(query, zeroStalenessOptions(), result);
+        List<PrismObject<ShadowType>> shadowsFound = searchRepoShadows(query, zeroStalenessOptions(), result); // no caching!
         LOGGER.trace("Found {} shadows (live or dead)", shadowsFound.size());
 
-        PrismObject<ShadowType> liveShadow = selectLiveShadow(shadowsFound);
+        PrismObject<ShadowType> liveShadow =
+                selectLiveShadow(shadowsFound, "when looking by primary identifier " + primaryIdentifier);
         checkConsistency(liveShadow);
         return asObjectable(liveShadow);
     }
 
-    /** Side effects: none. */
-    private List<PrismObject<ShadowType>> searchShadowsByPrimaryIds(ProvisioningContext ctx,
-            Collection<ResourceAttribute<?>> identifiers, OperationResult result)
-            throws SchemaException, ConfigurationException {
-        ObjectQuery query = createQueryBySelectedIds(ctx, identifiers, true);
-        try {
-            return searchRepoShadows(query, null, result);
-        } catch (SchemaException ex) {
-            throw ex.wrap("Failed to search shadow according to the primary identifiers in: " + identifiers);
-        }
+    private @NotNull List<PrismObject<ShadowType>> searchShadowsByPrimaryId(
+            ProvisioningContext ctx, ResourceObjectIdentifier.Primary<?> primaryIdentifier, OperationResult result)
+            throws SchemaException {
+        return searchRepoShadows(
+                createQueryBySelectedAttributes(ctx, List.of(primaryIdentifier.getAttribute())),
+                null,
+                result);
     }
 
     /**
-     * Looks up a shadow with given secondary identifiers (any one must match).
-     * If there are no secondary identifiers, null is returned.
-     * If there is no matching shadow, null is returned.
-     * If there are more matching shadows, an exception is thrown.
-     *
-     * Side effects: none.
+     * Looks up a shadow by primary identifier value.
      *
      * Unlike {@link #lookupLiveShadowByPrimaryId(ProvisioningContext, PrismProperty, QName, OperationResult)} this method
      * queries directly the shadow.primaryIdentifierValue property. (And does not ask for shadow liveness.)
      */
-    public PrismObject<ShadowType> lookupShadowByIndexedPrimaryIdValue(
+    public @Nullable ShadowType lookupShadowByIndexedPrimaryIdValue(
             ProvisioningContext ctx, String primaryIdentifierValue, OperationResult result) throws SchemaException {
 
         ObjectQuery query = createQueryByPrimaryIdValue(ctx, primaryIdentifierValue);
         LOGGER.trace("Searching for shadow by primaryIdentifierValue using filter:\n{}", query.debugDumpLazily(1));
 
         return ProvisioningUtil.selectSingleShadow(
-                searchRepoShadows(query, zeroStalenessOptions(), result),
+                searchRepoShadows(query, zeroStalenessOptions(), result), // zero staleness = no caching!
                 lazy(() -> "primary identifier value " + primaryIdentifierValue + " (impossible because of DB constraint)"));
     }
 
-    private Collection<SelectorOptions<GetOperationOptions>> zeroStalenessOptions() {
-        return schemaService.getOperationOptionsBuilder()
-                .staleness(0L) // Explicitly avoid all caches. We want to avoid shadow duplication.
-                .build();
-    }
+    /**
+     * Looks up a live shadow by provided attributes (all must match).
+     * Usually these are identifiers from an association value.
+     * They must have proper definitions applied.
+     */
+    public @Nullable ShadowType lookupLiveShadowByAllAttributes(
+            ProvisioningContext ctx, Collection<? extends ResourceAttribute<?>> attributes, OperationResult result)
+            throws SchemaException {
 
-    /** Looks up a live shadow by all available identifiers (all must match). Side effects: none. */
-    public ShadowType lookupLiveShadowByAllIds(
-            ProvisioningContext ctx, ResourceAttributeContainer identifierContainer, OperationResult result)
-            throws SchemaException, ConfigurationException {
-
-        //noinspection rawtypes,unchecked
-        ObjectQuery query = createQueryBySelectedIds(
-                ctx, (Collection) identifierContainer.getValue().getItems(), false);
+        ObjectQuery query = createQueryBySelectedAttributes(ctx, attributes);
         LOGGER.trace("Searching for shadow using filter (repo):\n{}", query.debugDumpLazily());
 
         List<PrismObject<ShadowType>> shadows = searchRepoShadows(query, null, result);
 
-        PrismObject<ShadowType> singleShadow = ProvisioningUtil.selectLiveShadow(shadows);
+        PrismObject<ShadowType> singleShadow =
+                ProvisioningUtil.selectLiveShadow(shadows, "when looking by attributes: " + attributes);
         checkConsistency(singleShadow);
         return asObjectable(singleShadow);
     }
 
     /**
      * Returns dead shadows "compatible" (having the same primary identifier) as given shadow that is to be added.
-     * Side effects: none.
      */
-    public Collection<PrismObject<ShadowType>> searchForPreviousDeadShadows(
-            ProvisioningContext ctx, ShadowType shadowToAdd, OperationResult result)
+    public @NotNull Collection<PrismObject<ShadowType>> searchForPreviousDeadShadows(
+            ProvisioningContext ctx, ShadowType objectToAdd, OperationResult result)
             throws SchemaException {
 
-        PrismProperty<?> identifier = ProvisioningUtil.getSingleValuedPrimaryIdentifier(shadowToAdd);
+        PrismProperty<?> identifier = ProvisioningUtil.getSingleValuedPrimaryIdentifier(objectToAdd);
         if (identifier == null) {
             LOGGER.trace("No primary identifier. So there are obviously no relevant previous dead shadows.");
-            return emptyList();
+            return List.of();
         }
 
-        ObjectQuery query = createQueryByPrimaryId(ctx, identifier, shadowToAdd.getObjectClass());
+        ObjectQuery query = createQueryByPrimaryId(ctx, identifier, objectToAdd.getObjectClass());
         LOGGER.trace("Searching for dead shadows using filter:\n{}", query.debugDumpLazily(1));
 
-        List<PrismObject<ShadowType>> shadowsFound = searchRepoShadows(query, zeroStalenessOptions(), result);
+        List<PrismObject<ShadowType>> shadowsFound = searchRepoShadows(query, zeroStalenessOptions(), result); // no caching!
         List<PrismObject<ShadowType>> deadShadowsFound = shadowsFound.stream()
-                .filter(shadowFound -> Boolean.TRUE.equals(shadowFound.asObjectable().isDead()))
-                .collect(Collectors.toList());
+                .filter(shadowFound -> ShadowUtil.isDead(shadowFound))
+                .toList();
 
         LOGGER.trace("looking for previous dead shadows, found {} objects. Dead among them: {}",
                 shadowsFound.size(), deadShadowsFound.size());
         return deadShadowsFound;
     }
 
-    public PrismObject<ShadowType> lookupShadowBySecondaryIds(ProvisioningContext ctx,
-            Collection<ResourceAttribute<?>> secondaryIdentifiers, OperationResult result)
-            throws SchemaException {
-        List<PrismObject<ShadowType>> shadows = searchShadowsBySecondaryIds(ctx, secondaryIdentifiers, result);
-        return ProvisioningUtil.selectSingleShadow(shadows, lazy(() -> "secondary identifiers: " + secondaryIdentifiers));
-    }
-
-    private List<PrismObject<ShadowType>> searchShadowsBySecondaryIds(
-            ProvisioningContext ctx, Collection<ResourceAttribute<?>> secondaryIdentifiers, OperationResult result)
+    /** Search shadows with given identifiers (any one can match - i.e. OR clause is created). May return dead ones. */
+    public @NotNull List<PrismObject<ShadowType>> searchShadowsByAnySecondaryIdentifier(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ResourceObjectIdentification.SecondaryOnly secondaryIdentification,
+            @NotNull OperationResult result)
             throws SchemaException {
 
-        if (secondaryIdentifiers.isEmpty()) {
-            LOGGER.trace("Shadow does not contain secondary identifier. Skipping lookup shadows according to it.");
-            return emptyList();
-        }
+        var secondaryIdentifiers = secondaryIdentification.getSecondaryIdentifiers();
 
+        // this is guaranteed; but double checking to avoid massive searches
+        Preconditions.checkArgument(!secondaryIdentifiers.isEmpty());
+
+        ResourceObjectDefinition objDef = ctx.getObjectDefinitionRequired();
+
+        // TODO why do we create OR query here? What about the performance?
         S_FilterEntry q = prismContext.queryFor(ShadowType.class)
                 .block();
-        for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
-            // There may be identifiers that come from associations and they will have parent set to association/identifiers
-            // For the search to succeed we need all attribute to have "attributes" parent path.
-            secondaryIdentifier = ShadowUtil.fixAttributePath(secondaryIdentifier);
-            q = q.item(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition())
-                    .eq(getNormalizedValues(secondaryIdentifier, ctx.getObjectDefinitionRequired()))
+        for (ResourceObjectIdentifier<?> identifier : secondaryIdentifiers) {
+            q = q.item(identifier.getSearchPath(), identifier.getDefinition())
+                    .eq(identifier.getNormalizedValues())
                     .or();
         }
         ObjectQuery query = q.none().endBlock()
                 .and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(objDef.getTypeName())
                 .build();
         LOGGER.trace("Searching for shadow using filter on secondary identifiers:\n{}", query.debugDumpLazily());
 
@@ -274,62 +291,36 @@ public class ShadowFinder {
                 .build();
     }
 
-    private ObjectQuery createQueryBySelectedIds(
-            ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers, boolean primaryIdentifiersOnly)
-            throws SchemaException, ConfigurationException {
+    /** Constructs a query that matches all provided attributes (there must be at least one, definitions must be present). */
+    private ObjectQuery createQueryBySelectedAttributes(
+            ProvisioningContext ctx, Collection<? extends ResourceAttribute<?>> attributes)
+            throws SchemaException {
 
-        boolean identifierFound = false;
+        Preconditions.checkArgument(
+                !attributes.isEmpty(), "Attributes to search by must not be empty for %s", ctx);
+
+        var objectDefinition = ctx.getObjectDefinition();
 
         S_FilterEntry q = prismContext.queryFor(ShadowType.class);
-
-        ResourceObjectDefinition objectDefinition = ctx.getObjectDefinition();
-        for (PrismProperty<?> identifier : identifiers) {
-            ResourceAttributeDefinition<?> rAttrDef;
-            PrismPropertyValue<?> identifierValue = identifier.getValue();
-            if (objectDefinition == null) {
-                // If there is no specific object class definition then the identifier definition
-                // must be the same in all object classes and that means that we can use
-                // definition from any of them.
-                ResourceObjectTypeDefinition anyDefinition = ctx.getResourceSchema().getObjectTypeDefinitions().iterator().next();
-                rAttrDef = anyDefinition.findAttributeDefinition(identifier.getElementName());
-                if (primaryIdentifiersOnly && !anyDefinition.isPrimaryIdentifier(identifier.getElementName())) {
-                    continue;
-                }
-            } else {
-                if (primaryIdentifiersOnly && !objectDefinition.isPrimaryIdentifier(identifier.getElementName())) {
-                    continue;
-                }
-                rAttrDef = objectDefinition.findAttributeDefinition(identifier.getElementName());
-            }
-
-            if (rAttrDef == null) {
-                throw new SchemaException("No definition for " + identifier.getElementName());
-            }
-            String normalizedIdentifierValue = (String) getNormalizedAttributeValue(identifierValue, rAttrDef);
-            //noinspection unchecked
-            PrismPropertyDefinition<String> def = (PrismPropertyDefinition<String>) identifier.getDefinition();
-            q = q.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getItemName()).eq(normalizedIdentifierValue).and();
-            identifierFound = true;
-        }
-
-        if (!identifierFound) {
-            throw new SchemaException("Identifiers not found. Cannot create search query by identifier.");
-        }
-
         if (objectDefinition != null) {
             q = q.item(ShadowType.F_OBJECT_CLASS).eq(objectDefinition.getTypeName()).and();
+        }
+        for (ResourceAttribute<?> attribute : attributes) {
+            var attrDef = MiscUtil.argNonNull(attribute.getDefinition(), "No definition for %s", attribute);
+            q = q.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName())
+                    .eq(getNormalizedAttributeValue(attribute.getValue(), attrDef))
+                    .and();
         }
         return q.item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid()).build();
     }
 
-    /** No side effects. */
     private @NotNull List<PrismObject<ShadowType>> searchRepoShadows(
             ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws SchemaException {
         return repositoryService.searchObjects(
                 ShadowType.class,
                 query,
-                GetOperationOptions.updateToDistinct(options),
+                updateToDistinct(options),
                 result);
     }
 }

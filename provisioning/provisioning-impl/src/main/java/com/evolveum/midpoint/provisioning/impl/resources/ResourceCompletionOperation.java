@@ -119,6 +119,13 @@ class ResourceCompletionOperation {
         result = parentResult.createMinorSubresult(OP_COMPLETE_RESOURCE);
         try {
             expand(resource);
+
+            if (ResourceTypeUtil.isAbstract(resource)) {
+                // TODO or should we also try to apply connector schema and expressions?
+                LOGGER.trace("Not continuing with resource completion because it's abstract: {}", resource);
+                return resource;
+            }
+
             applyConnectorSchemaAndExpressions();
 
             ResourceType completed;
@@ -144,11 +151,18 @@ class ResourceCompletionOperation {
     /**
      * Expands the resource by resolving super-resource references.
      */
-    private void expand(@NotNull ResourceType resource)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+    private void expand(@NotNull ResourceType resource) throws StopException {
         if (resource.getSuper() != null) {
             lastExpansionOperation = new ResourceExpansionOperation(resource, beans);
-            lastExpansionOperation.execute(result);
+            try {
+                lastExpansionOperation.execute(result);
+            } catch (SchemaException | ConfigurationException | ObjectNotFoundException | RuntimeException e) {
+                String message =
+                        "An error occurred while expanding super-resource references of " + resource + ": " + e.getMessage();
+                result.recordPartialError(message, e);
+                LOGGER.warn(message, e);
+                throw new StopException();
+            }
         } else {
             // We spare some CPU cycles by not instantiating the expansion operation object.
         }

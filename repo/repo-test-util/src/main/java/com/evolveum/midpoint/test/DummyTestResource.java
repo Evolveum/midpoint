@@ -76,12 +76,12 @@ public class DummyTestResource extends TestResource {
     }
 
     public String addAccount(DummyAccount account) throws ConflictException, FileNotFoundException, SchemaViolationException,
-            ObjectAlreadyExistsException, InterruptedException, ConnectException {
+            ObjectAlreadyExistsException, InterruptedException, ConnectException, ObjectDoesNotExistException {
         return getDummyResource().addAccount(account);
     }
 
     public DummyAccount addAccount(String name) throws ConflictException, FileNotFoundException, SchemaViolationException,
-            ObjectAlreadyExistsException, InterruptedException, ConnectException {
+            ObjectAlreadyExistsException, InterruptedException, ConnectException, ObjectDoesNotExistException {
         return controller.addAccount(name);
     }
 }

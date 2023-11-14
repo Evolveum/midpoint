@@ -11,9 +11,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -27,6 +28,8 @@ import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
 import static com.evolveum.midpoint.schema.util.ShadowUtil.shortDumpShadowLazily;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Takes care of the _shadow acquisition_ process. We look up an appropriate live shadow,
@@ -42,8 +45,6 @@ import static com.evolveum.midpoint.schema.util.ShadowUtil.shortDumpShadowLazily
  * ask for `getObject`), so we have no need to acquire one there. We just update the shadow after getting the resource object.
  *
  * This class also takes care of _object classification_. I am not sure if this is the right approach, though.
- *
- * Note: Maybe we can make this class an inner class of {@link ShadowAcquisitionHelper}?
  */
 class ShadowAcquisition {
 
@@ -62,52 +63,69 @@ class ShadowAcquisition {
      */
     @NotNull private final QName objectClass;
 
-    /**
-     * When called, supplies actual resource object that should be used for shadow creation.
-     * We use this lazy approach because when processing changes, we sometimes do not have resource
-     * object at hand.
-     */
-    @NotNull private final ResourceObjectSupplier resourceObjectSupplier;
-
-    /**
-     * Lazily obtained resource object (via {@link #resourceObjectSupplier}).
-     */
-    private ShadowType resourceObject;
+    /** The resource object we try to acquire shadow for. May be minimalistic in extreme cases (sync changes, emergency). */
+    @NotNull private final ShadowType resourceObject;
 
     /** Whether we want to skip the classification. It is used e.g. in emergency shadow creation. */
     private final boolean skipClassification;
 
-    private final CommonBeans beans;
-    private final ShadowsLocalBeans localBeans;
+    private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
 
-    ShadowAcquisition(
+    private ShadowAcquisition(
             @NotNull ProvisioningContext ctx,
             @NotNull PrismProperty<?> primaryIdentifier,
             @NotNull QName objectClass,
-            @NotNull ResourceObjectSupplier resourceObjectSupplier,
-            boolean skipClassification,
-            CommonBeans commonBeans) {
+            @NotNull ShadowType resourceObject,
+            boolean skipClassification) {
         this.ctx = ctx;
         this.primaryIdentifier = primaryIdentifier;
         this.objectClass = objectClass;
-        this.resourceObjectSupplier = resourceObjectSupplier;
+        this.resourceObject = resourceObject;
         this.skipClassification = skipClassification;
-        this.beans = commonBeans;
-        this.localBeans = commonBeans.shadowsFacade.getLocalBeans();
+    }
+
+    /**
+     * Acquires repository shadow for a provided resource object. The repository shadow is located or created.
+     * In case that the shadow is created, all additional ceremonies for a new shadow are done, e.g. invoking
+     * change notifications (discovery).
+     *
+     * Returned shadow is NOT guaranteed to have all the attributes aligned and updated. That is only possible after
+     * completeShadow(). But maybe, this method can later invoke completeShadow() and do all the necessary stuff?
+     *
+     * TODO completeShadow method does not exist any more, update the docs
+     *
+     * It may look like this method would rather belong to ShadowManager. But it does not. It does too much stuff
+     * (e.g. change notification).
+     */
+    @NotNull static ShadowType acquireRepoShadow(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType resourceObject,
+            boolean skipClassification,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
+
+        PrismProperty<?> primaryIdentifier = ProvisioningUtil.getSingleValuedPrimaryIdentifierRequired(resourceObject);
+        QName objectClass = requireNonNull(
+                resourceObject.getObjectClass(),
+                () -> "No object class in " + ShadowUtil.shortDumpShadow(resourceObject));
+
+        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, resourceObject, skipClassification)
+                .execute(result);
     }
 
     public @NotNull ShadowType execute(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             GenericConnectorException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
 
-        ShadowType repoShadow = obtainRepoShadow(result);
+        ShadowType repoShadow = acquireRawRepoShadow(result);
 
         setOidAndResourceRefToResourceObject(repoShadow);
 
         if (skipClassification) {
             LOGGER.trace("Acquired repo shadow (skipping classification as requested):\n{}", repoShadow.debugDumpLazily(1));
             return repoShadow;
-        } else if (!localBeans.classificationHelper.shouldClassify(ctx, repoShadow)) {
+        } else if (!b.classificationHelper.shouldClassify(ctx, repoShadow)) {
             LOGGER.trace("Acquired repo shadow (no need to classify):\n{}", repoShadow.debugDumpLazily(1));
             return repoShadow;
         } else {
@@ -122,17 +140,14 @@ class ShadowAcquisition {
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
 
-        var classification = localBeans.classificationHelper.classify(ctx, repoShadow, getResourceObject(), result);
+        var classification = b.classificationHelper.classify(ctx, repoShadow, resourceObject, result);
 
         // TODO We probably can avoid re-reading the shadow
-        return localBeans.shadowUpdater.normalizeShadowAttributesInRepository(ctx, repoShadow, classification, result);
+        return b.shadowUpdater.normalizeShadowAttributesInRepositoryAfterClassification(ctx, repoShadow, classification, result);
     }
 
     // TODO is it OK to do it here? OID maybe. But resourceRef should have been there already (although without full object)
-    private void setOidAndResourceRefToResourceObject(ShadowType repoShadow)
-            throws SchemaException {
-        ShadowType resourceObject = getResourceObject();
-
+    private void setOidAndResourceRefToResourceObject(ShadowType repoShadow) {
         resourceObject.setOid(repoShadow.getOid());
         if (resourceObject.getResourceRef() == null) {
             resourceObject.setResourceRef(new ObjectReferenceType());
@@ -140,22 +155,18 @@ class ShadowAcquisition {
         resourceObject.getResourceRef().asReferenceValue().setObject(ctx.getResource().asPrismObject());
     }
 
-    private @NotNull ShadowType obtainRepoShadow(OperationResult result)
-            throws SchemaException, ConfigurationException, EncryptionException {
+    private @NotNull ShadowType acquireRawRepoShadow(OperationResult result)
+            throws SchemaException, EncryptionException {
 
-        ShadowType existingLiveRepoShadow =
-                localBeans.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
-
+        var existingLiveRepoShadow = b.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
         if (existingLiveRepoShadow != null) {
             LOGGER.trace("Found live shadow object in the repository {}", shortDumpShadowLazily(existingLiveRepoShadow));
-            if (localBeans.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(existingLiveRepoShadow, result)) {
+            if (b.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(existingLiveRepoShadow, result)) {
                 return existingLiveRepoShadow;
             } else {
                 LOGGER.trace("The shadow disappeared, we will create a new one: {}", existingLiveRepoShadow);
             }
         }
-
-        ShadowType resourceObject = getResourceObject();
 
         LOGGER.trace("Shadow object (in repo) corresponding to the resource object (on the resource) was not found. "
                 + "The repo shadow will be created. The resource object:\n{}", resourceObject);
@@ -164,7 +175,7 @@ class ShadowAcquisition {
         // We need to create the shadow to align repo state to the reality (resource).
 
         try {
-            return localBeans.shadowCreator.addDiscoveredRepositoryShadow(ctx, resourceObject, result);
+            return b.shadowCreator.addDiscoveredRepositoryShadow(ctx, resourceObject, result);
         } catch (ObjectAlreadyExistsException e) {
             return findConflictingShadow(resourceObject, e, result);
         }
@@ -183,11 +194,10 @@ class ShadowAcquisition {
 
         LOGGER.debug("Attempt to create new repo shadow for {} ended up in conflict, re-trying the search for repo shadow",
                 resourceObject);
-        ShadowType conflictingLiveShadow =
-                localBeans.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
+        var conflictingLiveShadow = b.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
 
         if (conflictingLiveShadow != null) {
-            if (localBeans.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(conflictingLiveShadow, result)) {
+            if (b.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(conflictingLiveShadow, result)) {
                 originalRepoAddSubresult.muteError();
                 return conflictingLiveShadow;
             } else {
@@ -200,8 +210,8 @@ class ShadowAcquisition {
 
         // Do some "research" and log the results, so we have good data to diagnose this situation.
         String determinedPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, resourceObject);
-        PrismObject<ShadowType> potentialConflictingShadow =
-                localBeans.shadowFinder.lookupShadowByIndexedPrimaryIdValue(ctx, determinedPrimaryIdentifierValue, result);
+        ShadowType potentialConflictingShadow =
+                b.shadowFinder.lookupShadowByIndexedPrimaryIdValue(ctx, determinedPrimaryIdentifierValue, result);
 
         LOGGER.error("Unexpected repository behavior: object already exists error even after we double-checked "
                 + "shadow uniqueness: {}", e.getMessage(), e);
@@ -214,19 +224,8 @@ class ShadowAcquisition {
         LOGGER.debug("REPO CONFLICT: potential conflicting repo shadow (by primaryIdentifierValue)\n{}",
                 DebugUtil.debugDumpLazily(potentialConflictingShadow, 1));
 
-        throw new SystemException("Unexpected repository behavior: object already exists error even after we double-checked "
-                + "shadow uniqueness: " + e.getMessage(), e);
-    }
-
-    private ShadowType getResourceObject() throws SchemaException {
-        if (resourceObject == null) {
-            resourceObject = resourceObjectSupplier.getResourceObject();
-        }
-        return resourceObject;
-    }
-
-    @FunctionalInterface
-    interface ResourceObjectSupplier {
-        @NotNull ShadowType getResourceObject() throws SchemaException;
+        throw new SystemException(
+                "Unexpected repository behavior: object already exists error even after we double-checked shadow uniqueness: "
+                        + e.getMessage(), e);
     }
 }

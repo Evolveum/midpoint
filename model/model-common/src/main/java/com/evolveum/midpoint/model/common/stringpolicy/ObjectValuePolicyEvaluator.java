@@ -41,6 +41,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.model.api.validator.StringLimitationResult.extractMessages;
+
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -136,7 +138,6 @@ public class ObjectValuePolicyEvaluator {
         if (credentialPolicy != null) {
             ObjectReferenceType valuePolicyRef = credentialPolicy.getValuePolicyRef();
             if (valuePolicyRef != null) {
-                //noinspection unchecked
                 PrismObject<ValuePolicyType> valuePolicyObj = valuePolicyRef.asReferenceValue().getObject();
                 if (valuePolicyObj != null) {
                     return valuePolicyObj.asObjectable();
@@ -278,16 +279,20 @@ public class ObjectValuePolicyEvaluator {
         }
     }
 
-    private void validateStringPolicy(String clearValue, List<LocalizableMessage> messages, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private void validateStringPolicy(String clearValue, List<LocalizableMessage> messages, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         if (clearValue == null) {
             return; // should be checked elsewhere
         }
 
         if (valuePolicy != null) {
-            valuePolicyProcessor.validateValue(clearValue, valuePolicy, originResolver, messages,
+            var results = valuePolicyProcessor.validateValue(
+                    clearValue, valuePolicy, originResolver,
                     "focus " + shortDesc + " value policy validation", task, result);
+            messages.addAll(
+                    extractMessages(results));
         } else {
             LOGGER.trace("Skipping validating {} value. Value policy not specified.", shortDesc);
         }

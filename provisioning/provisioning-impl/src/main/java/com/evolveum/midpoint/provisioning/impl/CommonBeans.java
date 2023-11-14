@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -24,11 +25,20 @@ import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.util.annotation.Experimental;
 
 @Component
-@Experimental
 public class CommonBeans {
+
+    private static CommonBeans instance;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
+
+    public static CommonBeans get() {
+        return instance;
+    }
 
     @Autowired public MatchingRuleRegistry matchingRuleRegistry;
     @Autowired public RelationRegistry relationRegistry;
@@ -36,7 +46,7 @@ public class CommonBeans {
     @Autowired public PrismContext prismContext;
     @Autowired public ShadowsFacade shadowsFacade;
     @Autowired public ResourceObjectConverter resourceObjectConverter;
-    @Autowired @Qualifier("cacheRepositoryService") public RepositoryService cacheRepositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") public RepositoryService repositoryService;
     @Autowired public ProvisioningServiceImpl provisioningService;
     @Autowired public ResourceManager resourceManager;
     @Autowired public ResourceCache resourceCache;

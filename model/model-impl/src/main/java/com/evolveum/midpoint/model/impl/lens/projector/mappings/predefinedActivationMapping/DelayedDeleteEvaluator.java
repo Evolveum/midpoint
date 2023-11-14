@@ -11,12 +11,13 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.List;
@@ -37,25 +38,24 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
     }
 
     @Override
-    public void init() {
-        super.init();
+    public void initialize() {
+        super.initialize();
         timeEvaluation = new TimeConstraintEvaluation(
                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
                 getActivationDefinitionBean().getDelayedDelete().getDeleteAfter());
     }
 
-    public <F extends FocusType> boolean defineExistence(
-            final LensContext<F> context, final LensProjectionContext projCtx) {
+    public <F extends FocusType> boolean defineExistence(LensContext<F> context, LensProjectionContext projCtx) {
         return false;
     }
 
     @Override
-    public <F extends FocusType> XMLGregorianCalendar defineTimeForTriggerOfExistence(
+    public <F extends FocusType> XMLGregorianCalendar getNextRecomputeTimeForExistence(
             LensContext<F> context, LensProjectionContext projCtx, XMLGregorianCalendar now)
             throws SchemaException, ConfigurationException {
-        checkInitialization();
+        initializeIfNeeded();
 
-        if (timeEvaluation.isTimeConstraintValid() == null) {
+        if (!timeEvaluation.isTimeValidityEstablished()) {
             timeEvaluation.evaluateFrom(projCtx.getObjectDeltaObject(), now);
         }
 
@@ -71,38 +71,24 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
     }
 
     @Override
-    public <F extends FocusType> boolean isConfigured(Task task) {
-        if (getActivationDefinitionBean().getDelayedDelete() == null) {
-            LOGGER.trace(
-                    "DelayedDeleteEvaluator: non-exist configuration for delayedDelete in: {}, skipping",
-                    getActivationDefinitionBean());
-            return false;
-        }
-
-        DelayedDeleteActivationMappingType delayedDelete = getActivationDefinitionBean().getDelayedDelete();
-        if (!task.canSee(delayedDelete.getLifecycleState())) {
-            LOGGER.trace("DelayedDeleteEvaluator: not applicable to the execution mode, skipping");
-            return false;
-        }
-        return true;
+    @Nullable AbstractPredefinedActivationMappingType getConfiguration() {
+        return getActivationDefinitionBean().getDelayedDelete();
     }
 
     @Override
     public <F extends FocusType> boolean isApplicable(
             LensContext<F> context, LensProjectionContext projCtx, XMLGregorianCalendar now)
             throws SchemaException, ConfigurationException {
-        checkInitialization();
+        initializeIfNeeded();
 
         timeEvaluation.evaluateFrom(projCtx.getObjectDeltaObject(), now);
         if (!timeEvaluation.isTimeConstraintValid()) {
-            LOGGER.trace("DelayedDeleteEvaluator: time constraint isn't valid, skipping");
+            LOGGER.trace("Time constraint isn't valid -> not applicable");
             return false;
         }
 
-        if (isConditionSatisfied(projCtx)) {
-            LOGGER.trace(
-                    "DelayedDeleteEvaluator: activation status isn't disabled "
-                    + "or disable reason isn't mapped or deprovision, skipping");
+        if (!isConditionSatisfied(projCtx)) {
+            LOGGER.trace("Activation status isn't 'disabled' or disable reason isn't 'deprovision' -> not applicable");
             return false;
         }
 
@@ -117,15 +103,21 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
             return false;
         }
 
+        // We want to delete only those accounts that were disabled because of de-provisioning
+        // (e.g. using disable-instead-of-delete feature). Not those that were simply deactivated.
+        // See MID-9143. In the future, the list of reasons may be configurable.
         if (!isExpectedValueOfItem(
                 projCtx.getObjectDeltaObject(),
                 ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_REASON),
-                List.of(
-                        SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION,
-                        SchemaConstants.MODEL_DISABLE_REASON_MAPPED))) {
+                List.of(SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION))) {
             return false;
         }
 
         return true;
+    }
+
+    @Override
+    Trace getLogger() {
+        return LOGGER;
     }
 }

@@ -123,6 +123,8 @@ public class ListMappingPanel extends BasePanel<PrismContainerWrapper<MappingTyp
                     }
                 });
 
+                columns.add(new LifecycleStateColumn<>(getContainerModel(), getPageBase()));
+
                 List<InlineMenuItem> items = new ArrayList<>();
                 InlineMenuItem item = new InlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
                     private static final long serialVersionUID = 1L;
@@ -169,8 +171,6 @@ public class ListMappingPanel extends BasePanel<PrismContainerWrapper<MappingTyp
                         return "col-xs-1";
                     }
                 });
-
-                columns.add(new LifecycleStateColumn<>(getContainerModel(), getPageBase()));
 
                 return columns;
             }

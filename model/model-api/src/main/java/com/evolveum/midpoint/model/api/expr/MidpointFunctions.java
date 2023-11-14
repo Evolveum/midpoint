@@ -861,6 +861,7 @@ public interface MidpointFunctions {
 
     List<String> toList(String... s);
 
+    /** Uses repository service directly, bypassing authorization checking. */
     long getSequenceCounter(String sequenceOid) throws ObjectNotFoundException, SchemaException;
 
     Collection<String> getManagersOids(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
@@ -877,6 +878,7 @@ public interface MidpointFunctions {
 
     Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
+    /** Uses repository service directly, bypassing authorization checking. */
     UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException;
 
     // todo here we could select "functional" org.units in order to filter out e.g. project managers from the list of managers
@@ -1021,7 +1023,7 @@ public interface MidpointFunctions {
 
     /**
      * Returns `true` if the current clockwork operation causes the current projection to have `administrativeState` switched to
-     * a disabled value (e.g. {@link ActivationStatusType#DISABLED} or {@link ActivationStatusType#ARCHIVED}.
+     * a disabled value (e.g. {@link ActivationStatusType#DISABLED} or {@link ActivationStatusType#ARCHIVED}).
      *
      * Not always precise - the original value may not be known.
      *
@@ -1138,10 +1140,10 @@ public interface MidpointFunctions {
             ObjectNotFoundException, ExpressionEvaluationException;
 
     /**
-     * Default function used to compute projection lifecycle. It is provided here so it can be explicitly
+     * Default function used to compute projection purpose. It is provided here so it can be explicitly
      * invoked from a custom expression and then the result can be changed for special cases.
      */
-    <F extends FocusType> String computeProjectionLifecycle(F focus, ShadowType shadow, ResourceType resource);
+    <F extends FocusType> ShadowPurposeType computeDefaultProjectionPurpose(F focus, ShadowType shadow, ResourceType resource);
 
     /**
      * Returns principal representing the user whose identity is used to execute the expression.
@@ -1161,6 +1163,7 @@ public interface MidpointFunctions {
 
     /**
      * Used for account activation notifier to collect all shadows which are going to be activated.
+     * Currently it simply collects all accounts with the purpose of {@link ShadowPurposeType#INCOMPLETE}.
      */
     List<ShadowType> getShadowsToActivate(Collection<? extends ModelProjectionContext> projectionContexts);
 
@@ -1313,6 +1316,9 @@ public interface MidpointFunctions {
      * method is invoked in a situation when such a distinction is not applicable.
      */
     Boolean isEvaluateNew();
+
+    /** Just a convenience method to allow writing `midpoint.evaluateNew` even after Groovy upgrade in 4.8. */
+    Boolean getEvaluateNew();
 
     /**
      * Returns all non-negative values from all focus mappings (targeted to given path)

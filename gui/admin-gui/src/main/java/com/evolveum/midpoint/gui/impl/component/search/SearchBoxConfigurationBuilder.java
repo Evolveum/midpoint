@@ -86,6 +86,8 @@ public class SearchBoxConfigurationBuilder {
     private Map<ItemPath, ItemDefinition<?>> availableDefinitions;
     private SearchContext additionalSearchContext;
 
+    private boolean fullTextSearchEnabled;
+
     public SearchBoxConfigurationBuilder type(Class<?> type) {
         this.type = type;
         return this;
@@ -108,6 +110,12 @@ public class SearchBoxConfigurationBuilder {
         this.availableDefinitions = availableDefinitions;
         return this;
     }
+
+    public SearchBoxConfigurationBuilder fullTextSearchEnabled(boolean fullTextSearchEnabled) {
+        this.fullTextSearchEnabled = fullTextSearchEnabled;
+        return this;
+    }
+
     public SearchBoxConfigurationType create() {
         SearchBoxConfigurationType defaultSearchBoxConfig = createDefaultSearchBoxConfig();
 
@@ -125,10 +133,15 @@ public class SearchBoxConfigurationBuilder {
         if (additionalSearchContext != null && additionalSearchContext.getAvailableSearchBoxModes() != null) {
             searchBoxConfig.getAllowedMode().addAll(additionalSearchContext.getAvailableSearchBoxModes());
         } else {
-            searchBoxConfig.getAllowedMode().addAll(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY));
+            searchBoxConfig.getAllowedMode().addAll(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.AXIOM_QUERY));
+        }
+        if (fullTextSearchEnabled && !searchBoxConfig.getAllowedMode().contains(SearchBoxModeType.FULLTEXT)) {
+            searchBoxConfig.getAllowedMode().add(SearchBoxModeType.FULLTEXT);
         }
         if (searchBoxConfig.getAllowedMode().size() == 1) {
             searchBoxConfig.setDefaultMode(searchBoxConfig.getAllowedMode().iterator().next());
+        } else if (fullTextSearchEnabled) {
+            searchBoxConfig.setDefaultMode(SearchBoxModeType.FULLTEXT);
         } else {
             searchBoxConfig.setDefaultMode(SearchBoxModeType.BASIC);
         }

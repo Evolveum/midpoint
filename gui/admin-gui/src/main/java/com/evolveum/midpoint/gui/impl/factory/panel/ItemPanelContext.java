@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.Component;
@@ -38,10 +40,11 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
     private AjaxEventBehavior ajaxEventBehavior;
     private ItemMandatoryHandler mandatoryHandler;
     private VisibleEnableBehaviour visibleEnableBehaviour;
-    private ExpressionValidator<T> expressionValidator;
+    private ExpressionValidator<T, IW> expressionValidator;
     private FeedbackAlerts feedback;
 
     private FormPanelType formType = FormPanelType.getDefault();
+    private Map<String, String> attributeValuesMap = new HashMap<>();
 
     public ItemPanelContext(IModel<IW> itemWrapper) {
         this.itemWrapper = itemWrapper;
@@ -131,11 +134,11 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
         return itemWrapper.getObject().isMandatory();
     }
 
-    public void setExpressionValidator(ExpressionValidator<T> expressionValidator) {
+    public void setExpressionValidator(ExpressionValidator<T, IW> expressionValidator) {
         this.expressionValidator = expressionValidator;
     }
 
-    public ExpressionValidator<T> getExpressionValidator() {
+    public ExpressionValidator<T, IW> getExpressionValidator() {
         return expressionValidator;
     }
 
@@ -145,6 +148,14 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
 
     public FeedbackAlerts getFeedback() {
         return feedback;
+    }
+
+    public void setAttributeValuesMap(Map<String, String> attributeValuesMap) {
+        this.attributeValuesMap = attributeValuesMap;
+    }
+
+    public Map<String, String> getAttributeValuesMap() {
+        return attributeValuesMap;
     }
 
     /**

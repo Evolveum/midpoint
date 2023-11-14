@@ -39,15 +39,17 @@ public class RangePanelFactory extends AbstractInputGuiComponentFactory<RangeTyp
     protected InputPanel getPanel(PrismPropertyPanelContext<RangeType> panelCtx) {
         ItemName itemName = panelCtx.unwrapWrapperModel().getItemName();
 
+        boolean doubleType = false;
         double max;
         if (RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE.equals(itemName)) {
+            doubleType = true;
             max = 100.0;
         } else {
-            max = 1000.0;
+            max = 10000.0;
         }
 
         RangeSimplePanel rangeSliderPanel = new RangeSimplePanel(panelCtx.getComponentId(),
-                new PropertyModel<>(panelCtx.getItemWrapperModel(), "value"), max);
+                new PropertyModel<>(panelCtx.getItemWrapperModel(), "value"), max, doubleType);
         rangeSliderPanel.setOutputMarkupId(true);
         return rangeSliderPanel;
     }
@@ -59,10 +61,7 @@ public class RangePanelFactory extends AbstractInputGuiComponentFactory<RangeTyp
 
     @Override
     public void configure(PrismPropertyPanelContext<RangeType> panelCtx, org.apache.wicket.Component component) {
-        component.setEnabled(isEnable());
+        component.setEnabled(panelCtx.getVisibleEnableBehavior().isEnabled());
     }
 
-    public boolean isEnable() {
-        return true;
-    }
 }

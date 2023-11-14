@@ -21,24 +21,24 @@ import com.evolveum.midpoint.ninja.action.BasicExportOptions;
 public class ExportMiningOptions extends BaseMiningOptions implements BasicExportOptions {
 
     private static final String DELIMITER = ",";
-    public static final String P_OUTPUT = "-O";
+    public static final String P_OUTPUT = "-o";
     public static final String P_OUTPUT_LONG = "--output";
-    public static final String P_OVERWRITE = "-ow";
+    public static final String P_OVERWRITE = "-O";
     public static final String P_OVERWRITE_LONG = "--overwrite";
     public static final String P_PREFIX_APPLICATION = "-arp";
-    public static final String P_PREFIX_APPLICATION_LONG = "--applicationRolePrefix";
+    public static final String P_PREFIX_APPLICATION_LONG = "--application-role-prefix";
     public static final String P_PREFIX_BUSINESS = "-brp";
-    public static final String P_PREFIX_BUSINESS_LONG = "--businessRolePrefix";
+    public static final String P_PREFIX_BUSINESS_LONG = "--business-role-prefix";
     public static final String P_SUFFIX_APPLICATION = "-ars";
-    public static final String P_SUFFIX_APPLICATION_LONG = "--applicationRoleSuffix";
+    public static final String P_SUFFIX_APPLICATION_LONG = "--application-role-suffix";
     public static final String P_SUFFIX_BUSINESS = "-brs";
-    public static final String P_SUFFIX_BUSINESS_LONG = "--businessRoleSuffix";
+    public static final String P_SUFFIX_BUSINESS_LONG = "--business-role-suffix";
     public static final String P_ORG = "-do";
-    public static final String P_ORG_LONG = "--disableOrg";
+    public static final String P_ORG_LONG = "--disable-org";
     public static final String P_NAME_OPTIONS = "-nm";
-    public static final String P_NAME_OPTIONS_LONG = "--nameMode";
-    public static final String P_ARCHETYPE_OID_APPLICATION_LONG = "--applicationRoleArchetypeOid";
-    public static final String P_ARCHETYPE_OID_BUSINESS_LONG = "--businessRoleArchetypeOid";
+    public static final String P_NAME_OPTIONS_LONG = "--name-mode";
+    public static final String P_ARCHETYPE_OID_APPLICATION_LONG = "--application-role-archetype-oid";
+    public static final String P_ARCHETYPE_OID_BUSINESS_LONG = "--business-role-archetype-oid";
     public static final String P_SECURITY_LEVEL = "-s";
     public static final String P_SECURITY_LEVEL_LONG = "--security";
 

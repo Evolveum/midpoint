@@ -6,42 +6,33 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManagerConfigurationException;
 import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
-import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-task-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -54,12 +45,6 @@ public class TestMiscellaneous extends AbstractTaskManagerTest {
     private static final TestObject<TaskType> TASK_42_WAITING = TestObject.file(TEST_DIR, "task-42-waiting.xml", "c9bdc85b-27d0-43f7-8b2a-1e44d1d23594");
 
     @Autowired private TaskSynchronizer taskSynchronizer;
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
 
     @Test
     public void test100ParsingTaskExecutionLimitations() throws TaskManagerConfigurationException, SchemaException {
@@ -208,5 +193,37 @@ public class TestMiscellaneous extends AbstractTaskManagerTest {
 
     private String serialize(TaskExecutionLimitationsType parsed) throws SchemaException {
         return getPrismContext().xmlSerializer().serializeRealValue(parsed, new QName(SchemaConstants.NS_C, "value"));
+    }
+
+    /** MID-9058. */
+    @Test
+    public void test220TaskWithoutIdentifier() throws Exception {
+        var result = createOperationResult();
+
+        given("scheduler is down");
+        taskManager.stopLocalScheduler(result);
+
+        when("task without identifier is added");
+        TaskType task = new TaskType()
+                .name(getTestNameShort())
+                .ownerRef(SystemObjectsType.USER_ADMINISTRATOR.value(), UserType.COMPLEX_TYPE)
+                .executionState(TaskExecutionStateType.RUNNABLE)
+                .handlerUri(MOCK_TASK_HANDLER_URI);
+        repositoryService.addObject(task.asPrismObject(), null, result);
+
+        and("scheduler is started");
+        taskManager.startLocalScheduler(result);
+
+        and("tasks are synchronized");
+        taskManager.synchronizeTasks(result);
+
+        then("task is started but suspended");
+        waitForTaskCloseOrSuspend(task.getOid(), 10000);
+
+        assertTask(task.getOid(), "after")
+                .display()
+                .assertSuspended()
+                .assertFatalError()
+                .assertResultMessageContains("Task without identifier cannot be executed");
     }
 }

@@ -23,10 +23,15 @@
         </display>
         <adminGuiConfiguration>
             <objectDetails>
-                <panel>
+                <panel id="3">
                     <identifier>childCases</identifier>
                     <display>
-                        <label>Child cases</label>
+                        <label>
+                            <orig>Child cases</orig>
+                            <translation>
+                                <key>ChildCases.panel.title</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>
@@ -34,10 +39,15 @@
                     <panelType>childCases</panelType>
                     <type>c:CaseType</type>
                 </panel>
-                <panel>
+                <panel id="4">
                     <identifier>operationRequestCase</identifier>
                     <display>
-                        <label>Operation request</label>
+                        <label>
+                            <orig>Operation request</orig>
+                            <translation>
+                                <key>OperationRequest.panel.title</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>
@@ -50,8 +60,9 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
             <holderType>CaseType</holderType>
         </assignmentRelation>
     </assignment>

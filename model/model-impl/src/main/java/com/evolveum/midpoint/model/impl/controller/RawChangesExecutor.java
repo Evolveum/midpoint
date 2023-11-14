@@ -17,7 +17,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 import org.jetbrains.annotations.NotNull;
@@ -191,24 +193,42 @@ class RawChangesExecutor {
         } finally { // to have a record with the failed delta as well
             result.close();
             executedDeltas.add(
-                    prepareObjectDeltaOperation(delta, objectToDetermineDetailsForAudit, result));
+                    prepareObjectDeltaOperation(delta, objectToDetermineDetailsForAudit, parentResult, result));
         }
     }
 
     private ObjectDeltaOperation<? extends ObjectType> prepareObjectDeltaOperation(ObjectDelta<? extends ObjectType> delta,
-            ObjectType objectToDetermineDetailsForAudit, OperationResult executionResult) {
+            ObjectType objectToDetermineDetailsForAudit, OperationResult parentResult, OperationResult executionResult) {
         ObjectDeltaOperation<? extends ObjectType> odoToAudit = new ObjectDeltaOperation<>(delta, executionResult);
         if (objectToDetermineDetailsForAudit != null) {
             odoToAudit.setObjectName(toPolyString(objectToDetermineDetailsForAudit.getName()));
             if (objectToDetermineDetailsForAudit instanceof ShadowType) {
                 ShadowType shadow = (ShadowType) objectToDetermineDetailsForAudit;
                 odoToAudit.setResourceOid(ShadowUtil.getResourceOid(shadow));
-                odoToAudit.setResourceName(ShadowUtil.getResourceName(shadow));
+                odoToAudit.setResourceName(getResourceName(shadow, parentResult));
                 odoToAudit.setShadowKind(ShadowUtil.getKind(shadow));
                 odoToAudit.setShadowIntent(ShadowUtil.getIntent(shadow));
             }
         }
         return odoToAudit;
+    }
+
+    private PolyString getResourceName(ShadowType shadow, OperationResult result) {
+        var ref = shadow.getResourceRef();
+        if (ref == null) {
+            return null;
+        }
+        var targetName = ref.asReferenceValue().getTargetName();
+        if (targetName == null && ref.getOid() != null) {
+            try {
+                var resource = cacheRepositoryService.getObject(ResourceType.class, ref.getOid(),
+                        GetOperationOptionsBuilder.create().readOnly().allowNotFound().build(), result);
+                targetName = resource.getName();
+            } catch (ObjectNotFoundException | SchemaException e) {
+                LOGGER.debug("Problem reading resource {} while getting name for audit record", ref.getOid(), e);
+            }
+        }
+        return targetName;
     }
 
     private ObjectType executeChangeRawInternal(

@@ -10,12 +10,11 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.LOGGER;
 
-import static com.evolveum.midpoint.test.util.MidPointTestConstants.CHANNEL_TEST_URI;
-
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatStream;
 import static org.testng.Assert.*;
 
 import static com.evolveum.midpoint.prism.PrismObject.cast;
@@ -64,6 +63,7 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -1905,7 +1905,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected PolyStringType createPolyStringType(String string) {
-        return new PolyStringType(createPolyString(string));
+        return new PolyStringType(PolyString.fromOrig(string));
     }
 
     protected ItemPath getExtensionPath(QName propName) {
@@ -2573,6 +2573,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void assertMessageContains(OperationResult result, String text) {
         assertThat(result.getMessage()).as("message in operation result").contains(text);
+    }
+
+    protected void assertSubresultMessageContains(OperationResult result, String text) {
+        assertThatStream(result.getResultStream().map(OperationResult::getMessage))
+                .as("message in operation result")
+                .anyMatch(message -> StringUtils.isNotEmpty(message) && message.contains(text));
     }
 
     protected String assertInProgress(OperationResult result) {

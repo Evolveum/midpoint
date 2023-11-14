@@ -1,0 +1,140 @@
+= PolyString Normalization Configuration
+:page-nav-title: PolyString Normalization
+:page-wiki-name: PolyString Normalization Configuration
+:page-wiki-id: 24676549
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-02-22T16:25:02.749+01:00
+:page-wiki-metadata-modify-user: dantrob
+:page-wiki-metadata-modify-date: 2019-07-15T16:32:44.297+02:00
+:page-upkeep-status: green
+:page-since: "3.8"
+
+== Introduction
+
+xref:/midpoint/reference/concepts/polystring/[PolyString] is a flexible data structure that has several purposes.
+One of the purposes is to allow comfortable text search in international environment.
+The basic idea is that is the user is searching for user `naiveboy123` then the users `naveBOY123` and `NaiveBoy123` are found.
+The other effect is that if someone already registered `naiveboy123` username then other user cannot register `naveBOY123`, `NaiveBoy123` and `NAIVEboy123` usernames.
+
+This functionality is sometimes achieved by using a native full text search capabilities of the database.
+However, those database features are often difficult to configure and they may also be somehow expensive.
+But most importantly of all they are specific to individual databases, there is no practical standard.
+As midPoint supports several databases it would be very difficult to support those capabilities in all the databases.
+Therefore midPoint is using a much simpler approach.
+
+PolyString is storing the value in two different forms:
+
+* *Original form (_orig_)*: the text that was entered by the user.
+This may contain international characters, any number of whitespace and so on.
+E.g. ``Coup D'état``.
+
+* *Normalized form (_norm_)*: the text that was simplified, cleaned up, transformed to canonical form or otherwise prepared for storage. E.g. `coup detat`.
+
+Both _orig_ and _norm_ forms are stored in the database.
+The _orig_ form is used for vast majority of purposes: displaying the value, editing the value and so on.
+However, when it comes to searching or uniqueness check then the norm value is used.
+Searching works like this:
+
+. Careless user enters  ``Coup  d`etat`` into search input field.
+
+. MidPoint normalizes the value.
+The result is `coup detat`.
+
+. MidPoint looks in the database for all entries that have _norm_ value equals to `coup detat`.
+
+. An entry is found.
+The _orig_ part the matching entry is displayed: `Coup D'état`.
+
+Of course, this capability is a bit limited.
+Searching for "coup d etat" is unlikely to provide any meaningful results.
+There is no equivalence nor stemming, therefore it makes no sense to search for "putsch".
+Yet, this is nice, simple and elegant method for many practical use cases.
+
+
+== Normalizers
+
+The effectiveness of the method depends heavily on the normalization algorithm.
+Given the right algorithm and the system will work flawlessly.
+However wrong normalization algorithm may cause a lot of problems.
+Therefore since midPoint 3.8 the normalization algorithm is configurable and there is an option for a completely custom normalization algorithm.
+
+All normalization algorithms bundled with midPoint go through the same set of steps:
+
+. *Trimming (_trim_):* removing whitespaces at the start and the end of the string.
+
+. *Decomposition (_nfkd_)*: composed characters (such as ) are decomposed to the constituent parts (e and '). Unicode Normalization Form Compatibility Decomposition (NFKD) is used for this purpose.
+
+. *Core normalization algorithm:* e.g. removing all non-alphanumeric characters, removing all non-ASCII characters and so on.
+
+. *Whitespace trimming (_trimWhitespace_)*: removing extra whitespaces and replacing with a single space.
+E.g. Good    morning  Sunshine is transformed to Good morning Sunshine.
+
+. *Lowercase transform (_lowercase_)*: all characters are transformed to their lowercase equivalents.
+
+All these steps are applied by default.
+But individual steps can be disabled in the normalizer configuration, therefore the function of the normalizer can be customized.
+There are also three options for the core normalization algorithm:
+
+[%autowidth]
+|===
+| Normalizer class | Description | Example transforms (default configration)
+
+| `AlphanumericPolyStringNormalizer` +
+(default)
+| Keeps only (latin) alphanumeric characters. +
+Due to NFKD decomposition the composed national characters will be converted to base latin characters.
+| `Gulôčka #2 v jamôčke` -> `gulocka 2 v jamocke` +
+`Coup d'état!` -> `coup detat` +
+`Сою́з 7к` -> `7`
+
+
+| `Ascii7PolyStringNormalizer`
+| Keeps only (printable) ACSII7 characters, i.e. characters with unicode codes U+0020 through U+007f.
+| `Gulôčka #2 v jamôčke` -> `gulocka #2 v jamocke` +
+`Coup d'état!` -> `coup d'etat!` +
+`Сою́з 7к` -> `7`
+
+
+| `PassThroughPolyStringNormalizer`
+| Keeps all characters (but still subject to other processing phases described above).
+| `Gulôčka #2 v jamôčke` -> `gulôčka #2 v jamôčke` +
+`Coup d'état!` -> `coup d'état!` +
+`Сою́з 7к` -> `сою́з 7к` +
+(the composite characters such as `ô` or `é` are decomposed)
+
+|===
+
+
+== Normalizer Configuration
+
+Normalizers can be configured in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]:
+
+[source]
+----
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001">
+    ...
+    <internals>
+        <polyStringNormalizer>
+            <className>Ascii7PolyStringNormalizer</className>
+            <nfkd>false</nfkd>
+        </polyStringNormalizer>
+    </internals>
+    ...
+</systemConfiguration>
+----
+
+Individual processing steps can be turned off by setting corresponding elements (`trim`, `nfkd`, `trimWhitespace`, `lowercase`) to `false`. Normalizer can be specified by placing its class name to a `className` element.
+The `className` element may also contain fully-qualified class name of a custom normalizer code (Note: this functionality is EXPERIMENTAL).
+
+Normalizers are initialized at system startup.
+The mechanism for handling change of normalizer configuration in runtime is very limited, therefore all midPoint nodes must be restarted if normalizer configuration is changed.
+Also, the normalizer reconfiguration affect only new values that are updated after configuration change.
+Existing values in the repository are unaffected.
+Therefore for the change to take a full effect all the data need to be updated (e.g. export and re-import of the data).
+
+
+== See Also
+
+* xref:/midpoint/reference/concepts/polystring/[PolyString]
+
+* xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]

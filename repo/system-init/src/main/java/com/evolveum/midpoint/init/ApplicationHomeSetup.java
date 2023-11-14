@@ -58,6 +58,7 @@ class ApplicationHomeSetup {
 
         Path[] directories = {
                 midPointHomePath.resolve("icf-connectors"),
+                midPointHomePath.resolve("connid-connectors"),
                 midPointHomePath.resolve("idm-legacy"),
                 midPointHomePath.resolve("log"),
                 midPointHomePath.resolve("schema"),

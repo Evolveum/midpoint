@@ -33,22 +33,29 @@ public interface MidPointPrincipalManager extends OwnerResolver {
     String OPERATION_GET_PRINCIPAL = DOT_CLASS + "getPrincipal";
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
+    // This method is used from many test cases, and some of them require GUI Config.
+    default MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return getPrincipal(username, clazz, ProfileCompilerOptions.create());
+    }
+
     // TODO add OperationResult here
-    MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz)
+    MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz, ProfileCompilerOptions options)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
     // TODO add OperationResult here
-    MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz)
+    MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz, ProfileCompilerOptions options)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
-    MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, OperationResult result)
+    MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, ProfileCompilerOptions options, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 
     MidPointPrincipal getPrincipal(
-            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result)
+            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, ProfileCompilerOptions options, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 

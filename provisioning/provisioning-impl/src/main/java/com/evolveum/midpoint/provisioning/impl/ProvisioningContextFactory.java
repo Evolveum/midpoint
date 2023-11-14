@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +26,6 @@ import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -161,9 +159,8 @@ public class ProvisioningContextFactory {
                 false); // The client has explicitly requested kind/intent, so it wants the type, not the class.
     }
 
-    @NotNull
-    private ResourceObjectDefinition getDefinition(
-            @NotNull ResourceSchema schema, @NotNull ShadowKindType kind, @NotNull String intent) {
+    private @NotNull ResourceObjectDefinition getDefinition(
+            @NotNull ResourceSchema schema, @NotNull ShadowKindType kind, @NotNull String intent) throws SchemaException {
         ResourceObjectDefinition definition = schema.findObjectDefinitionRequired(kind, intent);
         return ResourceSchemaUtil.addOwnAuxiliaryObjectClasses(definition, schema);
     }
@@ -299,7 +296,7 @@ public class ProvisioningContextFactory {
             @NotNull ResourceType resource,
             @NotNull ShadowType shadow,
             @NotNull Collection<QName> additionalAuxiliaryObjectClassNames) throws SchemaException, ConfigurationException {
-        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
+        var schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         return schema.findDefinitionForShadow(shadow, additionalAuxiliaryObjectClassNames);
     }
 
@@ -322,7 +319,7 @@ public class ProvisioningContextFactory {
         }
     }
 
-    public @NotNull CommonBeans getCommonBeans() {
+    @NotNull CommonBeans getCommonBeans() {
         return commonBeans;
     }
 }

@@ -48,7 +48,7 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final String FILE_INDIRECTION_SUFFIX = "fileIndirectionSuffix";
 
     private static final String DEFAULT_FILE_INDIRECTION_SUFFIX = "_FILE";
-    private static final String DEFAULT_CONFIG_FILE_NAME = "config.xml";
+    public static final String DEFAULT_CONFIG_FILE_NAME = "config.xml";
     private static final String LOGBACK_CONFIG_FILENAME = "logback.xml";
     private static final String LOGBACK_EXTRA_CONFIG_FILENAME = "logback-extra.xml";
 

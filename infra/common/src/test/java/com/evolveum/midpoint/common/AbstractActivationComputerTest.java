@@ -96,7 +96,7 @@ public abstract class AbstractActivationComputerTest extends AbstractUnitTest {
                 activationComputer.getEffectiveStatus(null, activationType, createLifecycleModel());
 
         // THEN
-        assertEquals("Unexpected effective status", ActivationStatusType.ARCHIVED, effectiveStatus);
+        assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
     }
 
     @Test
@@ -192,7 +192,7 @@ public abstract class AbstractActivationComputerTest extends AbstractUnitTest {
                 SchemaConstants.LIFECYCLE_ACTIVE, activationType, createLifecycleModel());
 
         // THEN
-        assertEquals("Unexpected effective status", ActivationStatusType.ARCHIVED, effectiveStatus);
+        assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
     }
 
     @Test
@@ -208,7 +208,7 @@ public abstract class AbstractActivationComputerTest extends AbstractUnitTest {
                 SchemaConstants.LIFECYCLE_ARCHIVED, activationType, createLifecycleModel());
 
         // THEN
-        assertEquals("Unexpected effective status", ActivationStatusType.ARCHIVED, effectiveStatus);
+        assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
     }
 
     @Test
@@ -281,7 +281,7 @@ public abstract class AbstractActivationComputerTest extends AbstractUnitTest {
     public void testComputeAdministrativeArchivedBefore() throws Exception {
         testCompute(YEAR_START,
                 ActivationStatusType.ARCHIVED, SPRING_EQUINOX, AUTUMN_EQUINOX,
-                ActivationStatusType.ARCHIVED, TimeIntervalStatusType.BEFORE);
+                ActivationStatusType.DISABLED, TimeIntervalStatusType.BEFORE);
     }
 
     @Test
@@ -337,7 +337,7 @@ public abstract class AbstractActivationComputerTest extends AbstractUnitTest {
         testCompute(SchemaConstants.LIFECYCLE_SUSPENDED, now, administrativeStatus,
                 validFrom, validTo, ActivationStatusType.DISABLED, expectedValidity);
         testCompute(SchemaConstants.LIFECYCLE_ARCHIVED, now, administrativeStatus,
-                validFrom, validTo, ActivationStatusType.ARCHIVED, expectedValidity);
+                validFrom, validTo, ActivationStatusType.DISABLED, expectedValidity);
         testComputeLimbo(now, administrativeStatus, validFrom, validTo, expectedValidity);
         testComputeCharmed(now, administrativeStatus, validFrom, validTo, expectedEffective, expectedValidity);
         testComputeInhumed(now, administrativeStatus, validFrom, validTo, expectedEffective, expectedValidity);
@@ -407,7 +407,7 @@ public abstract class AbstractActivationComputerTest extends AbstractUnitTest {
         ActivationType activationType = createActivationType(administrativeStatus, validFrom, validTo);
 
         // WHEN
-        activationComputer.computeEffective(lifecycleState, activationType, createLifecycleModel());
+        activationComputer.setValidityAndEffectiveStatus(lifecycleState, activationType, createLifecycleModel());
 
         // THEN
         assertEquals("Unexpected effective status", expectedEffective, activationType.getEffectiveStatus());

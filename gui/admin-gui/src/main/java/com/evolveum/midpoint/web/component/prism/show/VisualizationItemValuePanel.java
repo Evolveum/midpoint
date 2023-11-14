@@ -86,7 +86,7 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
                     return;
                 }
                 PrismReferenceValue refValue = (PrismReferenceValue) VisualizationItemValuePanel.this.getModelObject().getSourceValue();
-                if (refValue == null) {
+                if (refValue == null || refValue.getOid() == null) {
                     return;
                 }
                 ObjectReferenceType ort = new ObjectReferenceType();

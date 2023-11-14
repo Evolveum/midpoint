@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.RelationSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -23,6 +24,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RelationSearchItemPanel extends SingleSearchItemPanel<RelationSearchItemWrapper> {
 
     public RelationSearchItemPanel(String id, IModel<RelationSearchItemWrapper> searchItemModel) {
@@ -31,9 +35,25 @@ public class RelationSearchItemPanel extends SingleSearchItemPanel<RelationSearc
 
     @Override
     protected Component initSearchItemField(String id) {
-        DropDownChoicePanel inputPanel = new DropDownChoicePanel(id,
+
+        IModel<List<QName>> choices;
+        if (getModel().getObject().getSupportedRelations().size() < 2) {
+            choices = new PropertyModel<>(getModel(), RelationSearchItemWrapper.F_SUPPORTED_RELATIONS);
+        } else {
+            choices = () -> {
+                List<QName> list = new ArrayList<>();
+                list.add(PrismConstants.Q_ANY);
+                list.addAll(getModel().getObject().getSupportedRelations());
+                return list;
+            };
+        }
+
+        DropDownChoicePanel inputPanel = new DropDownChoicePanel(
+                id,
                 new PropertyModel(getModel(), RelationSearchItemWrapper.F_VALUE),
-                new PropertyModel<>(getModel(), RelationSearchItemWrapper.F_SUPPORTED_RELATIONS), new RelationChoiceRenderer() , false);
+                choices,
+                new RelationChoiceRenderer() ,
+                false);
         return inputPanel;
     }
 

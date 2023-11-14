@@ -1,0 +1,135 @@
+= Script Expression Functions
+:page-nav-title: Functions
+:page-wiki-name: Script Expression Functions
+:page-wiki-id: 11075733
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-06-26T11:08:35.031+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2021-01-28T18:12:32.633+01:00
+:page-upkeep-status: yellow
+:page-toc: top
+
+== Introduction
+
+MidPoint provides several sets of built-in functions for scripting expressions.
+Although the scripting expressions can use full potential of the scripting language and all the associated libraries, there are some things that are commonly used in most deployments.
+These are either common for many IDM deployments such as string normalization and conversion or such functions are specific to the way how midPoint works.
+Either way there are several function libraries that are accessible from all the scripting environments that midPoint supports.
+
+Each function library has its own "handle" that is used to access the functions.
+Invocation for *generic scripting environments* (Groovy, JavaScript, ...) uses simple variable name to access the functions.
+The following code snippet shows Groovy syntax for invocation of function `norm` in library identified by variable `basic`. The variable names used as library handles are pre-defined.
+They are specified in the following text.
+
+[source,groovy]
+----
+basic.norm('Guľôčka v jamôčke!')
+----
+
+TIP: Not to be confused with xref:/midpoint/reference/expressions/function-libraries/[custom function libraries].
+
+== Basic Library
+
+Basic function library provides very basic functions for string operations, object property retrieval, etc.
+These are simple, efficient stand-alone functions.
+
+[%autowidth,cols="h,1"]
+|===
+| Namespace | http://midpoint.evolveum.com/xml/ns/public/function/basic-3
+
+| library name
+| `basic`
+
+
+|===
+
+
+== Logging Library
+
+Logging library provides access to logging functions.
+The functions may be used to log data to the midPoint system logs.
+Such functions are used mostly for diagnostics and troubleshooting.
+
+[%autowidth,cols="h,1"]
+|===
+| Namespace | http://midpoint.evolveum.com/xml/ns/public/function/log-3
+
+| library name
+| `log`
+
+
+|===
+
+All functions in this library log an entry into the system logs.
+Ordinary midPoint xref:/midpoint/reference/diag/logging/[logging] system is used.
+The log entries are recorded using `com.evolveum.midpoint.expression` logger.
+The functions have arguments using the link:http://www.slf4j.org/[SLF4J] style: The first argument is a format string.
+Each occurrence of `{}` in the format string is replaced with the argument that follows the format string.
+E.g. following Groovy code will produce ERROR log record `"The foo is broken, bar is to blame`" assuming that resource=foo and reason=bar.
+
+[source]
+----
+log.error('The {} is broken, {} is to blame', resource, reason)
+----
+
+Functions:
+
+* error
+
+* warn
+
+* info
+
+* debug
+
+* trace
+
+Please see xref:/midpoint/reference/diag/logging/log-levels/[Log Levels] page for description of the usual meaning and usage of individual log levels in midPoint.
+
+
+== MidPoint Library
+
+Main article: xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[MidPoint Script Library]
+
+MidPoint function library provides access to midPoint internals.
+It provides complex functions that contain IDM-specific and midPoint-specific logic.
+
+[%autowidth,cols="h,1"]
+|===
+| Namespace | http://midpoint.evolveum.com/xml/ns/public/function/midpoint-3
+
+| library name
+| midpoint
+
+|===
+
+== Documentation and Source Code
+
+Please follow the JavaDoc links below for a documentation of individual functions.
+The source code may also provide additional information.
+
+++++
+{% versionlinks
+since: "3.0"
+development: true
+columns:
+  - heading: Basic Library
+    links:
+      - linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/model/common/expression/functions/BasicExpressionFunctions.html"
+        linkText: "JavaDoc"
+      - linkUrlPattern: "https://github.com/Evolveum/midpoint/blob/${git-tag}/model/model-common/src/main/java/com/evolveum/midpoint/model/common/expression/functions/BasicExpressionFunctions.java"
+        linkText: "Source"
+  - heading: Logging Library
+    links:
+      - linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/model/common/expression/functions/LogExpressionFunctions.html"
+        linkText: "JavaDoc"
+      - linkUrlPattern: "https://github.com/Evolveum/midpoint/blob/${git-tag}/model/model-common/src/main/java/com/evolveum/midpoint/model/common/expression/functions/LogExpressionFunctions.java"
+        linkText: "Source"
+  - heading: MidPoint Library
+    links:
+      - linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/model/api/expr/MidpointFunctions.html"
+        linkText: "JavaDoc"
+      - linkUrlPattern: "https://github.com/Evolveum/midpoint/blob/${git-tag}/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/expr/MidpointFunctionsImpl.java"
+        linkText: "Source"
+%}
+++++

@@ -18,6 +18,7 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.query.TypedQuery;
 
 import org.apache.commons.io.IOUtils;
@@ -122,7 +123,8 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             "ObjectType_AllObjectsInASubtree",
             "ObjectType_AllObjectsInAnOrg",
             "ShadowType_ShadowsOnGivenResource",
-            "UserType_UsersWithShadowOnGivenResource"
+            "UserType_UsersWithShadowOnGivenResource",
+            "ObjectReferenceType_RoleMembershipRefsTargetingSuperuser"
     );
     private static final Set<QName> USE_IN_OBJECT_LIST_AVAILABLE_FOR = new HashSet<>(Arrays.asList(
             UserType.COMPLEX_TYPE,
@@ -383,19 +385,12 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         Task task = getPageBase().createSimpleTask(OPERATION_CHECK_QUERY);
         OperationResult result = task.getResult();
         try {
-            updateRequestWithMidpointQuery(request, dto.getObjectType(), queryText, dto.isDistinct(), dto.getMidPointQueryScript(), task, result); // just to parse the query
 
-            ObjectFilter parsedFilter = request.getQuery().getFilter();
-            String filterAsString;
-            if (parsedFilter != null) {
-                SearchFilterType filterType = getPageBase().getQueryConverter().createSearchFilterType(parsedFilter);
-                filterAsString = getPrismContext().xmlSerializer().serializeRealValue(filterType, SchemaConstantsGenerated.Q_FILTER);
-                // TODO remove extra xmlns from serialized value
-            } else {
-                filterAsString = "";
+            ExpressionType scriptQuery = null;
+            if (dto.isScriptEnabled()) {
+                scriptQuery = dto.getMidPointQueryScript();
             }
-
-            // TODO add containerable option too (or split the code sooner?)
+            updateRequestWithMidpointQuery(request, dto.getObjectType(), dto.getMidPointQuery(), dto.isDistinct(), scriptQuery, task, result);
             //noinspection unchecked
             Class<? extends PageBase> listPageClass = DetailsPageUtil.getObjectListPage((Class<? extends ObjectType>) request.getType());
             String storageKey = listPageClass != null ? WebComponentUtil.getObjectListPageStorageKey(dto.getObjectType().getLocalPart()) : null;
@@ -411,11 +406,11 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             if (storage == null) {
                 storage = sessionStorage.initPageStorage(storageKey);
             }
-            // TODO add containerable option too
             Search search = storage.getSearch() != null ? storage.getSearch() : new SearchBuilder(request.getType()).modelServiceLocator(getPageBase()).build();
-            search.addAllowedModelType(SearchBoxModeType.ADVANCED);
-            search.setSearchMode(SearchBoxModeType.ADVANCED);
-            search.setAdvancedQuery(filterAsString);
+            search.addAllowedModelType(SearchBoxModeType.AXIOM_QUERY);
+            search.setSearchMode(SearchBoxModeType.AXIOM_QUERY);
+            // Use query from model object, call of updateRequestWithMidpointQuery may updated it with new Query Language text.
+            search.setDslQuery(getModelObject().getMidPointQuery());
 
             if (!search.isAdvancedQueryValid(getPageBase())) {
                 // shouldn't occur because the query was already parsed
@@ -428,6 +423,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         } catch (Exception e) {
             result.recordFatalError(getString("PageRepositoryQuery.message.couldNotParseQuery", e.getMessage()), e);
             showResult(result);
+            target.add(getFeedbackPanel());
             target.add(this);
         }
     }
@@ -477,10 +473,9 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
                 if (action != Action.TRANSLATE_ONLY) {
                     // not an admin, so have to fetch objects via model
-                    // TODO add containerable option too
+                    queryResult = performModelSearch(request, task, result);
                     //noinspection unchecked
-                    queryResult = getPageBase().getModelService().searchObjects((Class<? extends ObjectType>) request.getType(), request.getQuery(),
-                            createRawCollection(), task, result);
+
                 } else {
                     queryResult = null;
                 }
@@ -510,7 +505,23 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         }
 
         showResult(result);
+        target.add(getFeedbackPanel());
         target.add(this);
+    }
+
+    private List<?> performModelSearch(RepositoryQueryDiagRequest request, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        if (ObjectType.class.isAssignableFrom(request.getType())) {
+            return getPageBase().getModelService().searchObjects((Class<? extends ObjectType>) request.getType(), request.getQuery(),
+                    createRawCollection(), task, result);
+        }
+        if (Containerable.class.isAssignableFrom(request.getType())) {
+            return getPageBase().getModelService().searchContainers((Class<? extends Containerable>) request.getType(), request.getQuery(),
+                    createRawCollection(), task, result);
+        }
+        if (ObjectReferenceType.class.isAssignableFrom(request.getType())) {
+            return getPageBase().getModelService().searchReferences(request.getQuery(), createRawCollection(), task, result);
+        }
+        throw new SchemaException("Unknown type " + request.getType() + "for search.");
     }
 
     private void warnNoQuery(AjaxRequestTarget target) {
@@ -530,9 +541,8 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             objectType = ObjectType.COMPLEX_TYPE;
         }
         @SuppressWarnings("unchecked")
-        Class<? extends ObjectType> clazz = (Class<? extends ObjectType>)
-                prismContext.getSchemaRegistry().getCompileTimeClassForObjectTypeRequired(objectType);
-
+        Class<? extends Containerable> clazz =
+                prismContext.getSchemaRegistry().determineClassForTypeRequired(objectType);
         ObjectQuery queryWithExprEvaluated = null;
         if (midPointQueryScript != null) {
             PrismPropertyValue<?> filterValue = ExpressionUtil.evaluateExpression(new VariablesMap(), null, midPointQueryScript,

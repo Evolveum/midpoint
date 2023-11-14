@@ -33,24 +33,40 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
 
     private static final String ID_DESCRIPTION = "description";
 
+    private boolean horizontal = true;
+
     public TilePanel(String id, IModel<T> model) {
         super(id, model);
 
         initLayout();
     }
 
+    public boolean isHorizontal() {
+        return horizontal;
+    }
+
+    public void setHorizontal(boolean horizontal) {
+        this.horizontal = horizontal;
+    }
+
     private void initLayout() {
-        add(AttributeAppender.append("class", "tile-panel d-flex flex-column align-items-center rounded p-3 justify-content-center"));
+        add(AttributeAppender.append("class", () -> horizontal ?
+                "tile-panel d-flex flex-column align-items-center rounded p-3 justify-content-center" :
+                "tile-panel d-flex flex-row vertical align-items-center rounded justify-content-left"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
         setOutputMarkupId(true);
 
         WebMarkupContainer icon = createIconPanel(ID_ICON);
         add(icon);
 
-        add(new Label(ID_TITLE, () -> {
-            String title = getModelObject().getTitle();
-            return title != null ? getString(title, null, title) : null;
-        }));
+        Label title = new Label(ID_TITLE, () -> {
+            String str = getModelObject().getTitle();
+            return str != null ? getString(str, null, str) : null;
+        });
+        title.add(AttributeAppender.append("class", () ->  horizontal ?
+                "mt-4 text-center" :
+                "ml-2"));
+        add(title);
 
         Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
         description.add(AttributeAppender.replace("title", () -> getModelObject().getDescription()));

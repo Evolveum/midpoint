@@ -13,6 +13,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,33 +61,32 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @NotNull private final ResourceObjectClassDefinition refinedObjectClassDefinition;
 
-    /**
-     * OID of the resource. Usually not null.
-     *
-     * TODO keep this? If so, shouldn't we have resource OID also in {@link ResourceObjectClassDefinitionImpl} ?
-     */
-    private final String resourceOid;
-
     ResourceObjectTypeDefinitionImpl(
+            @NotNull BasicResourceInformation basicResourceInformation,
             @NotNull ResourceObjectTypeIdentification identification,
             @NotNull ResourceObjectClassDefinition refinedObjectClassDefinition,
-            @NotNull ResourceObjectTypeDefinitionType definitionBean,
-            String resourceOid) {
-        this(DEFAULT_LAYER, identification, refinedObjectClassDefinition, definitionBean, resourceOid);
+            @NotNull ResourceObjectTypeDefinitionType definitionBean)
+            throws SchemaException, ConfigurationException {
+        this(DEFAULT_LAYER, basicResourceInformation, identification, refinedObjectClassDefinition, definitionBean);
     }
 
     private ResourceObjectTypeDefinitionImpl(
             @NotNull LayerType layer,
+            @NotNull BasicResourceInformation basicResourceInformation,
             @NotNull ResourceObjectTypeIdentification identification,
             @NotNull ResourceObjectClassDefinition refinedObjectClassDefinition,
-            @NotNull ResourceObjectTypeDefinitionType definitionBean,
-            String resourceOid) {
-        super(layer, definitionBean);
+            @NotNull ResourceObjectTypeDefinitionType definitionBean)
+            throws SchemaException, ConfigurationException {
+        super(layer, basicResourceInformation, definitionBean);
         this.identification = identification;
         this.kind = identification.getKind();
         this.intent = identification.getIntent();
         this.refinedObjectClassDefinition = refinedObjectClassDefinition;
-        this.resourceOid = resourceOid;
+    }
+
+    @Override
+    public @NotNull BasicResourceInformation getBasicResourceInformation() {
+        return Objects.requireNonNull(basicResourceInformation);
     }
 
     @Override
@@ -183,14 +187,20 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
-    public ResourceObjectTypeDefinition forLayer(@NotNull LayerType layerType) {
-        return (ResourceObjectTypeDefinition) super.forLayer(layerType);
+    public @NotNull ResourceObjectTypeDefinition forLayerMutable(@NotNull LayerType layer) {
+        return (ResourceObjectTypeDefinition) super.forLayerMutable(layer);
     }
 
     @Override
-    protected ResourceObjectTypeDefinitionImpl cloneInLayer(@NotNull LayerType layer) {
-        ResourceObjectTypeDefinitionImpl clone = new ResourceObjectTypeDefinitionImpl(
-                layer, identification, refinedObjectClassDefinition, definitionBean, resourceOid);
+    protected @NotNull ResourceObjectTypeDefinitionImpl cloneInLayer(@NotNull LayerType layer) {
+        ResourceObjectTypeDefinitionImpl clone;
+        try {
+            clone = new ResourceObjectTypeDefinitionImpl(
+                    layer, getBasicResourceInformation(), identification, refinedObjectClassDefinition, definitionBean);
+        } catch (SchemaException | ConfigurationException e) {
+            // The data should be already checked for correctness, so this should not happen.
+            throw SystemException.unexpected(e, "when cloning");
+        }
         clone.copyDefinitionDataFrom(layer, this);
         return clone;
     }
@@ -245,7 +255,7 @@ public final class ResourceObjectTypeDefinitionImpl
                 && secondaryIdentifiersNames.equals(that.secondaryIdentifiersNames)
                 && refinedObjectClassDefinition.equals(that.refinedObjectClassDefinition)
                 && auxiliaryObjectClassDefinitions.equals(that.auxiliaryObjectClassDefinitions)
-                && Objects.equals(resourceOid, that.resourceOid)
+                && Objects.equals(basicResourceInformation, that.basicResourceInformation)
                 && definitionBean.equals(that.definitionBean)
                 && kind == that.kind
                 && intent.equals(that.intent);
@@ -253,7 +263,7 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), resourceOid, definitionBean, kind, intent);
+        return Objects.hash(super.hashCode(), basicResourceInformation, definitionBean, kind, intent);
     }
 
     //endregion
@@ -358,11 +368,6 @@ public final class ResourceObjectTypeDefinitionImpl
                 .kind(getKind())
                 .intent(getIntent())
                 .asPrismObject();
-    }
-
-    @Override
-    public String getResourceOid() {
-        return resourceOid;
     }
 
     @Override

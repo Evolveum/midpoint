@@ -172,11 +172,20 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
             ExpressionEvaluationException, GenericFrameworkException, SecurityViolationException, PolicyViolationException {
 
         if (shadowState == ShadowLifecycleStateType.TOMBSTONE) {
-
             // Do not even try to delete resource object for tombstone shadows.
             // There may be dead shadow and live shadow for the resource object with the same identifiers.
             // If we try to delete dead shadow then we might delete existing object by mistake
             LOGGER.trace("DELETE {}: skipping resource deletion on tombstone shadow", repoShadow);
+
+            opState.setExecutionStatus(COMPLETED);
+            result.createSubresult(OP_RESOURCE_OPERATION) // FIXME this hack
+                    .recordNotApplicable(); // using "record" to immediately close the result
+            return;
+        }
+
+        if (shadowState == ShadowLifecycleStateType.PROPOSED) {
+            // This operation most probably fail, as there is no such object on the resource.
+            LOGGER.trace("DELETE {}: skipping resource deletion on proposed shadow", repoShadow);
 
             opState.setExecutionStatus(COMPLETED);
             result.createSubresult(OP_RESOURCE_OPERATION) // FIXME this hack

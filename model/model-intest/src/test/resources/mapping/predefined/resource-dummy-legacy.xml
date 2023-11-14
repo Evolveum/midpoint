@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- Resource with legacy (advanced) disable-instead-of-delete, and delayed-delete mappings. -->
+
+<resource oid="47c7b626-2255-46f4-8d09-72e82add1894"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>resource-dummy-legacy</name>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>legacy</icfi:instanceId>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <path>$user/name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <path>fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <activation>
+                <existence>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                    <outbound>
+                        <name>Delayed delete</name>
+                        <timeFrom>
+                            <referenceTime>
+                                <path>$shadow/activation/disableTimestamp</path>
+                            </referenceTime>
+                            <offset>P1M</offset>
+                        </timeFrom>
+                        <source>
+                            <path>$projection/activation/administrativeStatus</path>
+                        </source>
+                        <source>
+                            <path>$projection/activation/disableReason</path>
+                        </source>
+                        <expression>
+                            <value>false</value>
+                        </expression>
+                        <condition>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+                                    import com.evolveum.midpoint.schema.constants.SchemaConstants
+                                    administrativeStatus == ActivationStatusType.DISABLED &amp;&amp;
+                                            disableReason == SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION
+                                </code>
+                            </script>
+                        </condition>
+                    </outbound>
+                </existence>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+                                    if (legal) {
+                                        input
+                                    } else {
+                                        ActivationStatusType.DISABLED
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
+        </objectType>
+    </schemaHandling>
+</resource>

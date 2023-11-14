@@ -27,6 +27,8 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -184,6 +186,11 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
 
         assertCreated(0);
         assertTest100TaskAfterRepeatedExecution(importTask);
+
+        if (isNativeRepository()) {
+            and("there are no simulation results"); // MID-8936
+            assertNoRepoObjects(SimulationResultType.class);
+        }
     }
 
     abstract void assertTest100Task(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;

@@ -1,0 +1,56 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="ca449b85-f86e-45bd-ab40-4f36028f5b58">
+    <name>template</name>
+    <template>true</template>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <correlator/>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                    <use>correlation</use>
+                </inbound>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+</resource>

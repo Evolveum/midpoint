@@ -8,8 +8,11 @@ package com.evolveum.midpoint.authentication.impl.filter;
 
 import java.util.Map;
 
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -32,7 +35,7 @@ public class CorrelationAuthenticationFilter extends MidpointFocusVerificationFi
     }
 
     protected AbstractAuthenticationToken createAuthenticationToken(Map<ItemPath, String> attributeValues) {
-        return new CorrelationVerificationToken(attributeValues, null); //TDO refactor
+        return new CorrelationVerificationToken(attributeValues, null, 0); //TDO refactor
     }
 
     @Override
@@ -40,9 +43,17 @@ public class CorrelationAuthenticationFilter extends MidpointFocusVerificationFi
         validateRequest(request);
 
         Map<ItemPath, String> attributeValues = obtainAttributeValues(request);
-        String correlatorName = request.getParameter("correlatorName");
-        AbstractAuthenticationToken authRequest = new CorrelationVerificationToken(attributeValues, correlatorName);
-
+        String correlatorName = request.getParameter(AuthConstants.ATTR_VERIFICATION_CORRELATOR_NAME);
+        String correlatorIndex = request.getParameter(AuthConstants.ATTR_VERIFICATION_CORRELATOR_INDEX);
+        int correlatorIndexVal = 0;
+        if (StringUtils.isNotEmpty(correlatorIndex)) {
+            try {
+                correlatorIndexVal = Integer.parseInt(correlatorIndex);
+            } catch (Exception e) {
+                //nothing to do here
+            }
+        }
+        CorrelationVerificationToken authRequest = new CorrelationVerificationToken(attributeValues, correlatorName, correlatorIndexVal);
         return this.getAuthenticationManager().authenticate(authRequest);
     }
 }

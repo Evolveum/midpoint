@@ -7,15 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
 
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusterDataLoaderUtils.prepareDataPoints;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringUtils.prepareDataPoints;
 
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.*;
 import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
@@ -27,24 +29,50 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionO
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Implements clustering of roles based process mode.
+ * This class is responsible for executing the clustering operation.
+ */
 public class RoleBasedClustering implements Clusterable {
 
+    /**
+     * Executes the clustering operation for role analysis.
+     *
+     * @param roleAnalysisService The role analysis service for performing operations.
+     * @param modelService The model service for performing operations.
+     * @param session The role analysis session object to be processed.
+     * @param handler The progress increment handler for tracking the execution progress.
+     * @param task The task being executed.
+     * @param result The operation result to record the outcome.
+     * @return A list of PrismObject instances representing the role analysis clusters.
+     */
     @Override
-    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
-            OperationResult result, ModelService modelService, Handler handler, Task task) {
+    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull ModelService modelService,
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull RoleAnalysisProgressIncrement handler,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
 
         RoleAnalysisSessionOptionType sessionOptionType = session.getRoleModeOptions();
 
         int minUserOccupancy = sessionOptionType.getPropertiesRange().getMin().intValue();
         int maxUserOccupancy = sessionOptionType.getPropertiesRange().getMax().intValue();
 
-        handler.setSubTitle("Load Data");
+        handler.enterNewStep("Load Data");
         handler.setOperationCountToProcess(1);
-        ListMultimap<List<String>, String> chunkMap = loadData(result, modelService,
-                minUserOccupancy, maxUserOccupancy, sessionOptionType.getQuery(), task);
+        ListMultimap<List<String>, String> chunkMap = loadRoleBasedMultimapData(
+                modelService, minUserOccupancy, maxUserOccupancy, sessionOptionType.getQuery(), task, result);
         handler.iterateActualStatus();
 
-        handler.setSubTitle("Prepare Data");
+        if (chunkMap.isEmpty()) {
+            return null;
+        }
+
+        handler.enterNewStep("Prepare Data");
         handler.setOperationCountToProcess(1);
         List<DataPoint> dataPoints = prepareDataPoints(chunkMap);
         handler.iterateActualStatus();
@@ -53,7 +81,8 @@ public class RoleBasedClustering implements Clusterable {
         double similarityDifference = 1 - (similarityThreshold / 100);
 
         if (similarityDifference == 0.00) {
-            return new RoleAnalysisAlgorithmUtils().processExactMatch(modelService, task, result, dataPoints, session, handler);
+            return new RoleAnalysisAlgorithmUtils().processExactMatch(
+                    roleAnalysisService, dataPoints, session, handler, task, result);
         }
 
         int minUsersOverlap = sessionOptionType.getMinPropertiesOverlap();
@@ -61,25 +90,31 @@ public class RoleBasedClustering implements Clusterable {
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minUsersOverlap);
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(
-                similarityDifference, minRolesCount, distanceMeasure);
+                similarityDifference, minRolesCount, distanceMeasure, minUsersOverlap);
 
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
-        return new RoleAnalysisAlgorithmUtils().processClusters(modelService, task, result, dataPoints, clusters, session, handler);
+        return new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
+                handler, task, result);
 
     }
 
-    private ListMultimap<List<String>, String> loadData(OperationResult result, @NotNull ModelService modelService,
-            int minProperties, int maxProperties, SearchFilterType userQuery, Task task) {
+    @NotNull
+    private ListMultimap<List<String>, String> loadRoleBasedMultimapData(@NotNull ModelService modelService,
+            int minProperties,
+            int maxProperties,
+            @Nullable SearchFilterType userQuery,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
 
-        Set<String> existingRolesOidsSet = ClusterDataLoaderUtils.getExistingRolesOidsSet(result, modelService, task);
+        Set<String> existingRolesOidsSet = ClusteringUtils.getExistingRolesOidsSet(modelService, task, result);
 
         //role //user
-        ListMultimap<String, String> roleToUserMap = ClusterDataLoaderUtils.getRoleBasedRoleToUserMap(result, modelService, task, userQuery,
-                existingRolesOidsSet);
+        ListMultimap<String, String> roleToUserMap = ClusteringUtils
+                .getRoleBasedRoleToUserMap(modelService, userQuery, existingRolesOidsSet, task, result);
 
         //user //role
-        return ClusterDataLoaderUtils.getRoleBasedUserToRoleMap(minProperties, maxProperties, roleToUserMap);
+        return ClusteringUtils.getRoleBasedUserToRoleMap(minProperties, maxProperties, roleToUserMap);
     }
 
 }

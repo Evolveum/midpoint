@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPan
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,10 +41,6 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
     public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
         super(id, model);
-        ScriptExpressionWrapper wrapper = getEvaluatorValue();
-        if (wrapper == null || wrapper.isEmpty()) {
-            updateEvaluatorValue((ExpressionUtil.Language) null);
-        }
     }
 
     @Override
@@ -123,8 +120,6 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         editorPanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                String updatedValue = ((AceEditor) editorPanel.getBaseFormComponent()).getConvertedInput();
-                updateEvaluatorValue(updatedValue);
                 target.add(getFeedback());
             }
         });
@@ -149,9 +144,11 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     private void updateEvaluatorValue(String code) {
+        ExpressionType expressionType = getModelObject();
         try {
             ScriptExpressionEvaluatorType evaluator = getEvaluatorValue().code(code).toEvaluator();
-            ExpressionUtil.updateScriptExpressionValue(getModelObject(), evaluator);
+            expressionType = ExpressionUtil.updateScriptExpressionValue(expressionType, evaluator);
+            getModel().setObject(expressionType);
         } catch (SchemaException ex) {
             LOGGER.error("Couldn't update generate expression values: {}", ex.getLocalizedMessage());
             getPageBase().error("Couldn't update generate expression values: " + ex.getLocalizedMessage());
@@ -207,10 +204,16 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         }
 
         public ScriptExpressionEvaluatorType toEvaluator() {
+            if (StringUtils.isEmpty(code)) {
+                return null;
+            }
             return new ScriptExpressionEvaluatorType().code(code).language(language == null ? null : language.getLanguage());
         }
 
         public ScriptExpressionWrapper code(String code) {
+            if (StringUtils.isNotEmpty(code)) {
+                code = code.replaceAll("(\r\n)", "\n");
+            }
             this.code = code;
             return ScriptExpressionPanel.ScriptExpressionWrapper.this;
         }

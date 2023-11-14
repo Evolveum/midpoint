@@ -248,14 +248,20 @@ public class NavigatorPanel extends Panel {
     private void changeCurrentPage(AjaxRequestTarget target, long page) {
         pageable.setCurrentPage(page);
 
-        Component container = ((Component) pageable);
-        while (container instanceof AbstractRepeater) {
-            container = container.getParent();
+        if (isComponent()) {
+            Component container = ((Component) pageable);
+            while (container instanceof AbstractRepeater) {
+                container = container.getParent();
+            }
+            target.add(container);
         }
-        target.add(container);
         target.add(this);
 
         onPageChanged(target, page);
+    }
+
+    protected boolean isComponent() {
+        return true;
     }
 
     private void pageLinkPerformed(AjaxRequestTarget target, long page) {

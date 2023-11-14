@@ -134,10 +134,12 @@ public class QAccessCertificationCaseMapping
     public AccessCertificationCaseType toSchemaObject(
             @NotNull Tuple row, @NotNull QAccessCertificationCase entityPath,
             @NotNull JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
-        return parseSchemaObject(
+        var ret = parseSchemaObject(
                 Objects.requireNonNull(row.get(entityPath.fullObject)),
                 Objects.requireNonNull(row.get(entityPath.ownerOid)) + ","
                         + Objects.requireNonNull(row.get(entityPath.cid)));
+        attachOwnerOid(ret, row, entityPath);
+        return ret;
     }
 
     @Override

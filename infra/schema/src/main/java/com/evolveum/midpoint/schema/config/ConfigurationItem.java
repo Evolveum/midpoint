@@ -74,6 +74,13 @@ public class ConfigurationItem<T extends Serializable & Cloneable> implements Co
         return new ConfigurationItem<>(value, ConfigurationItemOrigin.embedded(value));
     }
 
+    @Contract("!null -> !null; null -> null")
+    public static <T extends Serializable & Cloneable> ConfigurationItem<T> embeddedNullable(T value) {
+        return value != null ?
+                new ConfigurationItem<>(value, ConfigurationItemOrigin.embedded(value)) :
+                null;
+    }
+
     public static @NotNull <T extends Serializable & Cloneable> List<ConfigurationItem<T>> ofListEmbedded(@NotNull List<T> items) {
         return ofList(items, OriginProvider.embedded());
     }

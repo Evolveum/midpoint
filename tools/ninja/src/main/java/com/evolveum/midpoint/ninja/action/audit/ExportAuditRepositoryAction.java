@@ -87,7 +87,7 @@ public class ExportAuditRepositoryAction extends RepositoryAction<ExportAuditOpt
             log.error("Executor did not finish before timeout");
         }
 
-        handleResultOnFinish(operation, "Finished " + OPERATION_SHORT_NAME);
+        handleResultOnFinish(null, operation, "Finished " + OPERATION_SHORT_NAME);
 
         return null;
     }

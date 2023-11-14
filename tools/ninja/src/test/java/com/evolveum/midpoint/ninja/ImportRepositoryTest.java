@@ -7,17 +7,17 @@
 package com.evolveum.midpoint.ninja;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -33,9 +33,16 @@ public class ImportRepositoryTest extends NinjaSpringTest {
 
     private static final String PATH_MONKEY_ISLAND_SIMPLE_ZIP = "./target/org-monkey-island-simple.zip";
 
-    @BeforeClass
+    @BeforeClass(
+            dependsOnMethods = {"springTestContextPrepareTestInstance"}
+    )
     @Override
     public void beforeClass() throws Exception {
+        RepositoryDiag diag = repository.getRepositoryDiag();
+        if (diag.isEmbedded()) {
+            throw new SkipException("Skipping test because H2 is used as repository.");
+        }
+
         TestUtils.zipFile(new File("./src/test/resources/org-monkey-island-simple.xml"), new File(PATH_MONKEY_ISLAND_SIMPLE_ZIP));
 
         super.beforeClass();
@@ -53,7 +60,7 @@ public class ImportRepositoryTest extends NinjaSpringTest {
         when();
 
         executeTest(
-                out -> Assertions.assertThat(out.size()).isEqualTo(5),
+                out -> Assertions.assertThat(out.size()).isEqualTo(8),
                 EMPTY_STREAM_VALIDATOR,
                 "-m", getMidpointHome(), "import", "--oid", "00000000-8888-6666-0000-100000000001", "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z");
 
@@ -75,7 +82,7 @@ public class ImportRepositoryTest extends NinjaSpringTest {
         when();
 
         executeTest(
-                out -> Assertions.assertThat(out.size()).isEqualTo(5),
+                out -> Assertions.assertThat(out.size()).isEqualTo(8),
                 EMPTY_STREAM_VALIDATOR,
                 "-m", getMidpointHome(), "import", "-f", "<equal><path>name</path><value>F0002</value></equal>",
                 "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z");
@@ -98,7 +105,7 @@ public class ImportRepositoryTest extends NinjaSpringTest {
         when();
 
         executeTest(
-                out -> Assertions.assertThat(out.size()).isEqualTo(5),
+                out -> Assertions.assertThat(out.size()).isEqualTo(8),
                 EMPTY_STREAM_VALIDATOR,
                 "-m", getMidpointHome(), "import", "-f", "@src/test/resources/filter.xml",
                 "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z", "-O");

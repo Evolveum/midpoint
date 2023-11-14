@@ -10,6 +10,8 @@ package com.evolveum.midpoint.security.impl;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.security.api.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,10 +28,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.AuthorizationTransformer;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -56,7 +54,8 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     private PrismContext prismContext;
 
     @Override
-    public MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException {
+    public MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz, ProfileCompilerOptions options)
+            throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         PrismObject<? extends FocusType> focus;
         try {
@@ -71,24 +70,27 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        return getPrincipal(focus, null, result);
+        return getPrincipal(focus, null, options, result);
     }
 
     @Override
-    public MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException {
+    public MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz, ProfileCompilerOptions options)
+            throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         FocusType focus = getUserByOid(oid, clazz, result);
-        return getPrincipal(focus.asPrismObject(), result);
+        return getPrincipal(focus.asPrismObject(), options, result);
     }
 
     @Override
-    public MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, OperationResult result) throws SchemaException {
-        return getPrincipal(focus, null, result);
+    public MidPointPrincipal getPrincipal(
+            PrismObject<? extends FocusType> focus, ProfileCompilerOptions options, OperationResult result)
+            throws SchemaException {
+        return getPrincipal(focus, null, options, result);
     }
 
     @Override
     public MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus,
-            AuthorizationTransformer authorizationLimiter, OperationResult result) {
+            AuthorizationTransformer authorizationLimiter, ProfileCompilerOptions options, OperationResult result) {
         if (focus == null) {
             return null;
         }
@@ -150,7 +152,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
 
         ActivationType activation = principal.getFocus().getActivation();
         if (activation != null) {
-            activationComputer.computeEffective(principal.getFocus().getLifecycleState(), activation, null);
+            activationComputer.setValidityAndEffectiveStatus(principal.getFocus().getLifecycleState(), activation, null);
         }
     }
 
@@ -210,7 +212,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 //         TODO Auto-generated method stub
         try {
-            return getPrincipal(username, FocusType.class);
+            return getPrincipal(username, FocusType.class, ProfileCompilerOptions.create());
         } catch (ObjectNotFoundException e) {
             throw new UsernameNotFoundException(e.getMessage(), e);
         } catch (SchemaException e) {

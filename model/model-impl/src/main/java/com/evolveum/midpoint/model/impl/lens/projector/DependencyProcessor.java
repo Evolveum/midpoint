@@ -521,7 +521,7 @@ public class DependencyProcessor {
             for (ResourceObjectTypeDependencyType dependency : currentCtx.getDependencies()) {
                 ResourceObjectTypeDependencyStrictnessType strictness = getDependencyStrictness(dependency);
                 if (isForceLoadDependentShadow(dependency)
-                        && (strictness == STRICT || strictness == RELAXED)) {
+                        && (strictness == STRICT || strictness == RELAXED)) { // TODO why not when LAX?
                     // Before 4.6, we used RSD to match the contexts. It matched e.g. only contexts with order = 0.
                     // This one should be more appropriate.
                     LensProjectionContext upstreamCtx = findFirstUpstreamContext(currentCtx, dependency);

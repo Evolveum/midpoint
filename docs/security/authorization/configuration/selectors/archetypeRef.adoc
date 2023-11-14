@@ -1,0 +1,21 @@
+= Archetype Clause
+:page-since: 4.0
+
+Authorization applies only to objects that have specified archetype.
+
+.Listing 1. Authorization applicable to objects with a given archetype.
+[source,xml]
+----
+<authorization>
+    <action>...</action>
+    <object>
+        <archetypeRef oid="00000000-0000-0000-0000-000000000321"/>
+    </object>
+</authorization>
+----
+
+Archetype specification is multivalued.
+If more than one `archetypeRef` is used in the same authorization, then _or_ operation is implied.
+I.e. match of a single archetypes from the list will make the authorization applicable for the object.
+
+See also xref:/midpoint/reference/schema/archetypes/[Archetypes].

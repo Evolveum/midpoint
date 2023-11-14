@@ -207,8 +207,11 @@ public class TestUuidClient extends AbstractUuidTest {
 
     /**
      * Kate has a name. But no OID.
+     *
+     * Since 4.8, this test is disabled, because now each new object has a pre-generated OID.
+     * TODO This feature will be removed in 4.9, anyway.
      */
-    @Test
+    @Test(enabled = false)
     public void test120AddKateWithRoleClient() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();

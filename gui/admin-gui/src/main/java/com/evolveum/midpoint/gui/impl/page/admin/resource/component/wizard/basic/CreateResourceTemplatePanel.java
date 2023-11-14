@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -109,6 +110,12 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
             @Override
             protected TemplateTile<ResourceTemplate> createTileObject(TemplateTile<ResourceTemplate> object) {
+                if (object != null
+                        && object.getValue() != null
+                        && (TemplateType.COPY_FROM_TEMPLATE == object.getValue().getTemplateType()
+                            || TemplateType.INHERIT_TEMPLATE == object.getValue().getTemplateType())){
+                    object.setIcon(GuiStyleConstants.CLASS_OBJECT_RESOURCE_TEMPLATE_ICON);
+                }
                 return object;
             }
 

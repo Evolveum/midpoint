@@ -89,15 +89,15 @@ public class ResourceAttributeContainerDefinitionImpl
         return getComplexTypeDefinition().getNamingAttribute();
     }
 
-    public void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute) {
-        // We can afford to delegate a set here as we know that there is one-to-one correspondence between
-        // object class definition and attribute container
-        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setNamingAttributeName(namingAttribute.getItemName());
-    }
+//    public void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute) {
+//        // We can afford to delegate a set here as we know that there is one-to-one correspondence between
+//        // object class definition and attribute container
+//        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setNamingAttributeName(namingAttribute.getItemName());
+//    }
 
-    public void setNamingAttribute(QName namingAttribute) {
-        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setNamingAttributeName(namingAttribute);
-    }
+//    public void setNamingAttribute(QName namingAttribute) {
+//        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setNamingAttributeName(namingAttribute);
+//    }
 
     @Override
     public String getNativeObjectClass() {

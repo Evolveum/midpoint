@@ -245,7 +245,7 @@ echo -e "\\nWait to DB get up..."
 checkDB jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} ../logs-${JOB_NAME}-${BUILD_NUMBER} 0
 
 # dd of=... is used because cat > redirect would require some quoting to work on the remote side.
-cat config/sql/generic-old/oracle-*-all.sql repo/repo-sql-impl-test/sql-procedures/oracle.sql |
+cat config/sql/generic/oracle-*-all.sql repo/repo-sql-impl-test/sql-procedures/oracle.sql |
     kubectl exec -i -n jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- dd of=ora-mp-init.sql
 
 # Inside Oracle container sys/Heslo123@xepdb1 works the same as sys/Heslo123@//localhost:1521/xepdb1

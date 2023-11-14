@@ -132,7 +132,7 @@ public class ResourceSchemaUtil {
 
     public static @NotNull ResourceObjectDefinition addOwnAuxiliaryObjectClasses(
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull ResourceSchema resourceSchema) {
+            @NotNull ResourceSchema resourceSchema) throws SchemaException {
         return addAuxiliaryObjectClasses(
                 objectDefinition,
                 objectDefinition.getConfiguredAuxiliaryObjectClassNames(),
@@ -146,7 +146,7 @@ public class ResourceSchemaUtil {
     static @NotNull ResourceObjectDefinition addAuxiliaryObjectClasses(
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull Collection<QName> auxiliaryObjectClassNames,
-            @NotNull ResourceSchema resourceSchema) {
+            @NotNull ResourceSchema resourceSchema) throws SchemaException {
         if (auxiliaryObjectClassNames.isEmpty()) {
             return objectDefinition;
         }
@@ -156,7 +156,7 @@ public class ResourceSchemaUtil {
             auxiliaryObjectClassDefinitions.add(
                     resourceSchema.findDefinitionForObjectClassRequired(auxiliaryObjectClassName));
         }
-        return new CompositeObjectDefinitionImpl(objectDefinition, auxiliaryObjectClassDefinitions);
+        return CompositeObjectDefinition.of(objectDefinition, auxiliaryObjectClassDefinitions);
     }
 
     /**

@@ -503,4 +503,25 @@ public class WebPrismUtil {
         Validate.notNull(nameKey, "Null localization key");
         return ColumnUtils.createStringResource(nameKey, defaultString).getString();
     }
+
+    public static void collectWrappers(ItemWrapper iw, List<ItemWrapper> iws) {
+        iws.add(iw);
+
+        if (!(iw instanceof PrismContainerWrapper)) {
+            return;
+        }
+
+        PrismContainerWrapper pcw = (PrismContainerWrapper) iw;
+        List<PrismContainerValueWrapper> pcvws = pcw.getValues();
+        if (pcvws == null) {
+            return;
+        }
+
+        pcvws.forEach(pcvw -> {
+            pcvw.getItems().forEach(childIW -> {
+                collectWrappers((ItemWrapper) childIW, iws);
+            });
+        });
+    }
+
 }

@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
-import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.GuiProfileCompilable;

@@ -8,14 +8,17 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.resolveDateAndTime;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.countRoleMembers;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getRoleTypeObject;
 
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -52,16 +55,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisClusterType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.migratedRoles",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 2
+                icon = GuiStyleConstants.CLASS_GROUP_ICON,
+                order = 30
         )
 )
 public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
 
     private static final String ID_CONTAINER = "container";
-    private static final String ID_PANEL = "panel";
+    private static final String ID_PANEL = "panelId";
 
-    private final OperationResult operationResult = new OperationResult("LoadMigratedRoles");
+    private static final String DOT_CLASS = MigratedRolesPanel.class.getName() + ".";
+    private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
+    private final OperationResult result = new OperationResult(OP_PREPARE_OBJECTS);
 
     public MigratedRolesPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
             ContainerPanelConfigurationType config) {
@@ -70,14 +75,16 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
 
     @Override
     protected void initLayout() {
-
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
         List<ObjectReferenceType> reductionObject = cluster.getResolvedPattern();
+        Task task = getPageBase().createSimpleTask("resolve role object");
+
         List<RoleType> roles = new ArrayList<>();
         for (ObjectReferenceType objectReferenceType : reductionObject) {
             String oid = objectReferenceType.getOid();
             if (oid != null) {
-                PrismObject<RoleType> roleTypeObject = getRoleTypeObject(getPageBase(), oid, operationResult);
+                PrismObject<RoleType> roleTypeObject = getPageBase().getRoleAnalysisService()
+                        .getRoleTypeObject(oid, task, result);
                 if (roleTypeObject != null) {
                     roles.add(roleTypeObject.asObjectable());
                 }
@@ -107,7 +114,23 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
     private BoxedTablePanel<RoleType> generateTable(RoleMiningProvider<RoleType> provider) {
 
         BoxedTablePanel<RoleType> table = new BoxedTablePanel<>(
-                ID_PANEL, provider, initColumns());
+                ID_PANEL, provider, initColumns()) {
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                AjaxIconButton refreshIcon = new AjaxIconButton(id, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
+                        createStringResource("MainObjectListPanel.refresh")) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onRefresh();
+                    }
+                };
+                refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                return refreshIcon;
+            }
+        };
         table.setOutputMarkupId(true);
         return table;
     }
@@ -201,11 +224,11 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
             @Override
             public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
                     IModel<RoleType> rowModel) {
-                Integer membersCount = countRoleMembers(null, operationResult, getPageBase(), rowModel.getObject().getOid());
+                Task task = getPageBase().createSimpleTask("countRoleMembers");
 
-                if (membersCount == null) {
-                    membersCount = 0;
-                }
+                Integer membersCount = getPageBase().getRoleAnalysisService()
+                        .countUserTypeMembers(null, rowModel.getObject().getOid(),
+                                task, result);
 
                 item.add(new Label(componentId, membersCount));
             }
@@ -253,6 +276,15 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
         });
 
         return columns;
+    }
+
+    private void onRefresh() {
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, getObjectDetailsModels().getObjectType().getOid());
+        parameters.add(ID_PANEL, getPanelConfiguration().getIdentifier());
+        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                .getObjectDetailsPage(RoleAnalysisClusterType.class);
+        getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
     public PageBase getPageBase() {

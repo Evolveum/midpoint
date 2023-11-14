@@ -6,6 +6,20 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.file.PathUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
 import com.evolveum.midpoint.ninja.action.worker.VerifyConsumerWorker;
 import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
@@ -16,22 +30,17 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, VerifyResult> {
+
+    public VerifyAction() {
+    }
+
+    public VerifyAction(boolean partial) {
+        super(partial);
+    }
 
     @Override
     public String getOperationName() {
@@ -58,13 +67,34 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
         };
     }
 
+    private void guessReportStyle() {
+        if (options.getOutput() == null) {
+            options.setReportStyle(VerifyOptions.ReportStyle.PLAIN);
+            return;
+        }
+
+        File output = options.getOutput();
+        String extension = FilenameUtils.getExtension(output.getName());
+        VerifyOptions.ReportStyle style = "csv".equalsIgnoreCase(extension) ?
+                VerifyOptions.ReportStyle.CSV : VerifyOptions.ReportStyle.PLAIN;
+
+        options.setReportStyle(style);
+    }
+
     @Override
     public VerifyResult execute() throws Exception {
+        if (options.getReportStyle() == null) {
+            guessReportStyle();
+        }
+
         VerifyResult result;
         if (options.getOutput() != null) {
-            log.info("Verification report will be saved to '{}'", options.getOutput().getPath());
-        } else if (context.isUserMode()) {
-            log.warn("Consider using  '-o verify-output.csv' option for CSV output with upgradability status of deprecated items.");
+            log.info("Verification report will be saved to '{}' ({})", options.getOutput().getPath(), options.getReportStyle().name().toLowerCase());
+        } else if (context.isUserMode() && !partial) {
+            log.warn(
+                    "Consider using '" + VerifyOptions.P_OUTPUT + " verify-output.csv " + VerifyOptions.P_REPORT_STYLE
+                            + " " + VerifyOptions.ReportStyle.CSV.name().toLowerCase()
+                            + "' option for CSV output with upgradeability status of deprecated items.");
             log.warn("It is recommended to review this report and actions for proper upgrade procedure.");
         }
         if (!options.getFiles().isEmpty()) {
@@ -75,12 +105,14 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
 
         log.info("");
         log.info(
-                "Verification finished. {}, {}, {} optional issues found",
+                "Verification finished. {}, {}, {} and {} unknown issues found.",
                 ConsoleFormat.formatMessageWithErrorParameters("{} critical", result.getCriticalCount()),
                 ConsoleFormat.formatMessageWithWarningParameters("{} necessary", result.getNecessaryCount()),
-                result.getOptionalCount());
+                ConsoleFormat.formatMessageWithInfoParameters("{} optional", result.getOptionalCount()),
+                result.getUnknownCount());
 
         if (options.getOutput() != null) {
+            log.info("");
             log.info("Verification report saved to '{}'", options.getOutput().getPath());
 
             if (Objects.equals(VerifyOptions.ReportStyle.CSV, options.getReportStyle())) {
@@ -89,7 +121,11 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
 
             // FIXME: ADD links (do not display in batch mode)
             // FIXME: Could We could try to infer script name?
-            if (context.isUserMode()) {
+            if (context.isUserMode() && !partial) {
+                if (result.getCriticalCount() > 0) {
+                    log.info("");
+                    log.info("Critical issues should be fixed before upgrade as they could cause major problems after upgrade (e.g. prevent midpoint start).");
+                }
                 log.info("");
                 log.info("Please see documentation for use of verification report in upgrade process and modify it accordingly.");
                 log.info("After you've reviewed verification report and marked changes to skip you can continue upgrade process "

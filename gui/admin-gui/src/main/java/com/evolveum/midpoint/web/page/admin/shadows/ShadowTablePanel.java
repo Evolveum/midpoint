@@ -47,6 +47,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -311,6 +312,14 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
 
+                        var selected = getSelectedShadowsList(getRowModel());
+
+                        if (selected.isEmpty()) {
+                            warn(getString("pageContentAccounts.message.noAccountSelected"));
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
                         ObjectFilter marksFilter = PrismContext.get().queryFor(MarkType.class)
                                 .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
                                 .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
@@ -351,7 +360,20 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     public void onSubmit(AjaxRequestTarget target) {
 
                         var selected = getSelectedShadowsList(getRowModel());
+
+                        if (selected.isEmpty()) {
+                            warn(getString("pageContentAccounts.message.noAccountSelected"));
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
                         var selectedMarks = collectExistingMarks(selected);
+
+                        if (selectedMarks.length == 0) {
+                            warn(getString("pageContentAccounts.message.noMarkOnSelectedAccount"));
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
 
                         ObjectFilter marksFilter = PrismContext.get().queryFor(MarkType.class)
                                 .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
@@ -378,7 +400,9 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
                             protected org.apache.wicket.model.StringResourceModel getAddButtonTitle() {
                                 return createStringResource("pageContentAccounts.menu.mark.remove");
-                            };
+                            }
+
+                            ;
                         };
 
                         getPageBase().showMainPopup(browser, target);
@@ -393,7 +417,9 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
     @Override
     protected IColumn<SelectableBean<ShadowType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        return new ContainerableNameColumn<>(displayModel, ObjectType.F_NAME.getLocalPart(), customColumn, expression, getPageBase()) {
+        return new ContainerableNameColumn<>(displayModel == null
+                ? createStringResource("ObjectType.name")
+                : displayModel, ObjectType.F_NAME.getLocalPart(), customColumn, expression, getPageBase()) {
 
             @Override
             protected IModel<String> getContainerName(SelectableBean<ShadowType> rowModel) {
@@ -457,7 +483,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
-                                     String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
+                    String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
 
                 SelectableBean<ShadowType> dto = rowModel.getObject();
                 RepeatingView repeater = new RepeatingView(componentId);
@@ -498,7 +524,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel,
-                                ObjectType targetObjectType) {
+                    ObjectType targetObjectType) {
                 ownerDetailsPerformed((FocusType) targetObjectType);
             }
 
@@ -516,7 +542,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
-                                     String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
+                    String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
                 cellItem.add(new PendingOperationPanel(componentId,
                         new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + ShadowType.F_PENDING_OPERATION.getLocalPart())));
             }
@@ -662,7 +688,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     protected void updateResourceObjectStatusPerformed(IModel<SelectableBean<ShadowType>> selected, AjaxRequestTarget target,
-                                                       boolean enabled) {
+            boolean enabled) {
         List<SelectableBean<ShadowType>> selectedShadow = getSelectedShadowsList(selected);
 
         OperationResult result = new OperationResult(OPERATION_UPDATE_STATUS);
@@ -687,8 +713,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                 getPageBase().getModelService().executeChanges(
                         MiscUtil.createCollection(deleteDelta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                     | PolicyViolationException | SecurityViolationException e) {
+                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                    | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
                         createStringResource(
                                 "ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow)
@@ -756,7 +782,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     result.setUserFriendlyMessage(
                             new SingleLocalizableMessage(
                                     "ShadowTablePanel.message.deletionForbidden",
-                                    new Object[]{shadow.getName()}));
+                                    new Object[] { shadow.getName() }));
                 }
             } catch (Throwable e) {
                 result.recordPartialError("Could not delete " + shadow + ", reason: " + e.getMessage(), e);
@@ -791,7 +817,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     private void changeOwner(IModel<SelectableBean<ShadowType>> selected, AjaxRequestTarget target, FocusType ownerToChange,
-                             boolean remove) {
+            boolean remove) {
 
         getPageBase().hideMainPopup(target);
 
@@ -883,9 +909,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         target.add(getPageBase().getFeedbackPanel());
     }
 
-
     private void markShadows(IModel<SelectableBean<ShadowType>> rowModel, List<String> markOids,
-                             AjaxRequestTarget target) {
+            AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
         Task task = getPageBase().createSimpleTask(OPERATION_MARK_SHADOW);
 
@@ -912,8 +937,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                                 statements.toArray(new PolicyStatementType[0]));
                 getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                     | PolicyViolationException | SecurityViolationException e) {
+                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                    | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
                         createStringResource(
                                 "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)
@@ -948,7 +973,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     private void changeOwnerInternal(String ownerOid, Class<? extends FocusType> ownerType, Collection<? extends ItemDelta> modifications,
-                                     AjaxRequestTarget target) {
+            AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
         Task task = getPageBase().createSimpleTask(OPERATION_CHANGE_OWNER);
         ObjectDelta<? extends ObjectType> objectDelta =
@@ -982,7 +1007,6 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         return getPageBase().getPrismContext().getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(FocusType.class);
     }
-
 
     private String[] collectExistingMarks(List<SelectableBean<ShadowType>> selected) {
         Set<String> marks = new HashSet<>();

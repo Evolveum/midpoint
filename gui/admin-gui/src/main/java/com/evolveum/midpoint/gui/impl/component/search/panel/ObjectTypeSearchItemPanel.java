@@ -18,6 +18,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 public class ObjectTypeSearchItemPanel<T> extends SingleSearchItemPanel<ObjectTypeSearchItemWrapper> {
 
@@ -28,7 +29,7 @@ public class ObjectTypeSearchItemPanel<T> extends SingleSearchItemPanel<ObjectTy
     @Override
     protected Component initSearchItemField(String id) {
         DropDownChoicePanel<QName> choices = new DropDownChoicePanel<>(id, new PropertyModel(getModel(), ObjectTypeSearchItemWrapper.F_VALUE),
-                Model.ofList(getModelObject().getAvailableValues()),
+                getSortedAvailableData(),
                 new QNameObjectTypeChoiceRenderer(), getModelObject().isAllowAllTypesSearch()) {
 
             private static final long serialVersionUID = 1L;
@@ -51,6 +52,17 @@ public class ObjectTypeSearchItemPanel<T> extends SingleSearchItemPanel<ObjectTy
             }
         });
         return choices;
+    }
+
+    private IModel<List<QName>> getSortedAvailableData() {
+        QNameObjectTypeChoiceRenderer qNameObjectTypeChoiceRenderer = new QNameObjectTypeChoiceRenderer();
+        List<QName> values = getModelObject().getAvailableValues();
+        values.sort((q1, q2) -> {
+            String displayValue1 = qNameObjectTypeChoiceRenderer.getDisplayValue(q1).toString();
+            String displayValue2 = qNameObjectTypeChoiceRenderer.getDisplayValue(q2).toString();
+            return displayValue1.compareToIgnoreCase(displayValue2);
+        });
+        return Model.ofList(values);
     }
 
 }

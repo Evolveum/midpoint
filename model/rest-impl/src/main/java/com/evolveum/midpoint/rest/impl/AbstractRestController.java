@@ -69,6 +69,7 @@ public class AbstractRestController {
         if (principalObject != null) {
             task.setOwner(principalObject);
         }
+        task.getResult().setPropagateHandledErrorAsSuccess(false);
         return task;
     }
 

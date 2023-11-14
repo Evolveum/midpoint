@@ -14,11 +14,11 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+        xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
         elementFormDefault="qualified"
         xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
         jaxb:extensionBindingPrefixes="xjc"
-        jaxb:version="2.0">
+        jaxb:version="3.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -1376,6 +1376,11 @@
                                 Deprecated use attribute in token definition instead
                             </p>
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:deprecated/>
+                            <a:deprecatedSince>4.8</a:deprecatedSince>
+                            <a:plannedRemoval>4.9</a:plannedRemoval>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="keyStoreTrustingAsymmetricKey" type="tns:AbstractKeyStoreKeyType" minOccurs="0">
@@ -3183,7 +3188,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:composite>true</a:composite>
-                        <a:objectReferenceTargetType>FocusType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3233,7 +3238,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:composite>true</a:composite>
-                                <a:objectReferenceTargetType>ObjectType</a:objectReferenceTargetType>
+                                <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3319,7 +3324,7 @@
     <xsd:complexType name="AdditionalAuthorizationsType">
         <xsd:annotation>
             <xsd:documentation>
-                HACK, FIXME document
+                Authorizations to be applied in addition to or instead of the ones of current/selected subject.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>

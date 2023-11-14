@@ -15,7 +15,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -50,6 +56,8 @@ import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -106,18 +114,30 @@ public class SimulationsGuiUtil {
         return LocalizationUtil.translate(key);
     }
 
-    public static IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createProcessedObjectIconColumn() {
+    public static IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createProcessedObjectIconColumn(
+            PageAdminLTE parentPage) {
         return new RoundedIconColumn<>(null) {
 
             @Override
             protected DisplayType createDisplayType(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
                 SimulationResultProcessedObjectType object = model.getObject().getValue();
-                ObjectType obj = object.getBefore() != null ? object.getBefore() : object.getAfter();
-                if (obj == null || obj.asPrismObject() == null) {
+                ObjectType obj = object.getAfter() != null ? object.getAfter() : object.getBefore();
+                if (obj == null) {
                     return new DisplayType()
                             .icon(new IconType().cssClass(IconAndStylesUtil.createDefaultColoredIcon(object.getType())));
                 }
-
+                if (obj.asPrismObject() == null) {
+                    obj = ObjectTypeUtil.fix(obj);
+                }
+                if (obj.asPrismObject() == null) {
+                    return new DisplayType()
+                            .icon(new IconType().cssClass(IconAndStylesUtil.createDefaultColoredIcon(object.getType())));
+                }
+                DisplayType archetypeDisplayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(obj, parentPage);
+                String iconCss = GuiDisplayTypeUtil.getIconCssClass(archetypeDisplayType);
+                if (StringUtils.isNotEmpty(iconCss)) {
+                    return archetypeDisplayType;
+                }
                 return new DisplayType()
                         .icon(new IconType().cssClass(IconAndStylesUtil.createDefaultIcon(obj.asPrismObject())));
             }
@@ -157,7 +177,7 @@ public class SimulationsGuiUtil {
     }
 
     public static String getProcessedObjectName(ProcessedObject<?> object, PageBase page) {
-        if (object == null || object.getName() == null) {
+        if (object == null) {
             return page.getString("ProcessedObjectsPanel.unnamed");
         }
 
@@ -196,6 +216,33 @@ public class SimulationsGuiUtil {
         }
 
         return name + " (" + displayName + ")";
+    }
+
+    @Nullable
+    public static String getShadowNameFromAttribute(ProcessedObject<?> object) {
+
+        if (object == null) {
+            return null;
+        }
+
+        ObjectType obj = ObjectProcessingStateType.DELETED.equals(object.getState()) ? object.getBefore() : object.getAfter();
+        if (obj == null) {
+            return null;
+        }
+
+        if (!(obj instanceof ShadowType)) {
+            return null;
+        }
+
+        String name = null;
+        try {
+            ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute((ShadowType) obj);
+            Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
+             name = realName != null ? realName.toString() : null;
+        } catch (SystemException e) {
+            LOGGER.debug("Couldn't create processed shadow name", e);
+        }
+        return name;
     }
 
     private static String getProcessedShadowName(ShadowType shadow, PageBase page) {

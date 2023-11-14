@@ -35,7 +35,13 @@ public class ObjectPolicyDetailsPanel extends MultivalueContainerDetailsPanel<Ob
                     SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
                     ObjectPolicyConfigurationType.F_ADMIN_GUI_CONFIGURATION,
                     ArchetypeAdminGuiConfigurationType.F_OBJECT_DETAILS,
-                    GuiObjectDetailsPageType.F_TYPE)
+                    GuiObjectDetailsPageType.F_TYPE),
+            ItemPath.create(
+                    SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
+                    ObjectPolicyConfigurationType.F_ADMIN_GUI_CONFIGURATION,
+                    ArchetypeAdminGuiConfigurationType.F_OBJECT_DETAILS,
+                    GuiObjectDetailsPageType.F_FORMS,
+                    ObjectFormType.F_TYPE)
     };
 
     public ObjectPolicyDetailsPanel(String id, IModel<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> model, boolean addDefaultPanel) {

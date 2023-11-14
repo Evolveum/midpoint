@@ -52,6 +52,7 @@ import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -216,64 +217,31 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                 relationSpec.getObjectTypes() : getAvailableObjectTypes();
         List<ObjectReferenceType> archetypeRefList = relationSpec != null && !CollectionUtils.isEmpty(relationSpec.getArchetypeRefs()) ?
                 relationSpec.getArchetypeRefs() : getArchetypeRefList();
-        tabs.add(new CountablePanelTab(createStringResource(ObjectTypes.USER),
-                new VisibleBehaviour(() -> objectTypes == null || QNameUtil.contains(objectTypes, UserType.COMPLEX_TYPE))) {
 
-            private static final long serialVersionUID = 1L;
+        if (objectTypes != null && objectTypes.size() == 1) {
+            QName objectType = objectTypes.get(0);
+            tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, objectType));
+            return tabs;
+        }
 
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                return createMemberPopup(panelId, ObjectTypes.USER, archetypeRefList);
-            }
+        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, UserType.COMPLEX_TYPE));
 
-            @Override
-            public String getCount() {
-                return Integer.toString(getTabPanelSelectedCount(getPanel()));
-            }
-        });
+        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, RoleType.COMPLEX_TYPE));
 
-        tabs.add(new CountablePanelTab(createStringResource(ObjectTypes.ROLE),
-                new VisibleBehaviour(() -> objectTypes == null || QNameUtil.contains(objectTypes, RoleType.COMPLEX_TYPE))) {
+        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, OrgType.COMPLEX_TYPE));
 
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                return createMemberPopup(panelId, ObjectTypes.ROLE, archetypeRefList);
-            }
-
-            @Override
-            public String getCount() {
-                return Integer.toString(getTabPanelSelectedCount(getPanel()));
-            }
-        });
-
-        tabs.add(new CountablePanelTab(createStringResource(ObjectTypes.ORG),
-                new VisibleBehaviour(() -> objectTypes == null || QNameUtil.contains(objectTypes, OrgType.COMPLEX_TYPE))) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                return createMemberPopup(panelId, ObjectTypes.ORG, archetypeRefList);
-            }
-
-            @Override
-            public String getCount() {
-                return Integer.toString(selectedOrgsList.size());
-            }
-        });
+        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, ServiceType.COMPLEX_TYPE));
 
         if (archetypeRefList == null || archetypeRefList.isEmpty()) {
             tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
                     new VisibleBehaviour(() -> isOrgTreeVisible() && (objectTypes == null || QNameUtil.contains(objectTypes, OrgType.COMPLEX_TYPE)))) {
 
-                private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
                     return new OrgTreeMemberPopupTabPanel(panelId, search, archetypeRefList) {
-                        private static final long serialVersionUID = 1L;
+                        @Serial private static final long serialVersionUID = 1L;
 
                         @Override
                         protected T getAbstractRoleTypeObject() {
@@ -300,23 +268,27 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
             });
         }
 
-        tabs.add(new CountablePanelTab(createStringResource(ObjectTypes.SERVICE),
-                new VisibleBehaviour(() -> objectTypes == null || QNameUtil.contains(objectTypes, ServiceType.COMPLEX_TYPE))) {
+        return tabs;
+    }
 
-            private static final long serialVersionUID = 1L;
+    private CountablePanelTab createCountablePanelTab(List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList,
+            QName complexType) {
+        ObjectTypes objectType = ObjectTypes.getObjectType(complexType.getLocalPart());
+       return new CountablePanelTab(createStringResource("ObjectTypes." + objectType),
+                new VisibleBehaviour(() -> objectTypes == null || QNameUtil.contains(objectTypes, complexType))) {
+
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return createMemberPopup(panelId, ObjectTypes.SERVICE, archetypeRefList);
+                return createMemberPopup(panelId, objectType, archetypeRefList);
             }
 
             @Override
             public String getCount() {
                 return Integer.toString(getTabPanelSelectedCount(getPanel()));
             }
-        });
-
-        return tabs;
+        };
     }
 
     private WebMarkupContainer createMemberPopup(String panelId, ObjectTypes objectType, List<ObjectReferenceType> archetypeRefList) {
@@ -349,7 +321,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
             @Override
             protected boolean isVisibleParameterPanel() {
                 if (getRelationIfIsStable() == null) {
-                    super.isVisibleParameterPanel();
+                    return super.isVisibleParameterPanel();
                 }
                 return false;
             }
@@ -443,7 +415,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
     private List<CompositedIconButtonDto> getAssignButtonDescription() {
         List<CompositedIconButtonDto> buttons = new ArrayList<>();
-        List<AssignmentObjectRelation> assignmentObjectRelations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList());
+        List<AssignmentObjectRelation> assignmentObjectRelations =
+                WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList(), true);
         if (assignmentObjectRelations != null) {
             assignmentObjectRelations.forEach(relation -> {
                 DisplayType additionalDispayType = GuiDisplayTypeUtil.getAssignmentObjectRelationDisplayType(ChooseMemberPopup.this.getPageBase(),

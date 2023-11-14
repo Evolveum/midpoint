@@ -29,12 +29,16 @@ public abstract class DummyObject implements DebugDumpable {
     private String id;
 //    private int internalId = -1;
     private String name;
+
     private final Map<String,Set<Object>> attributes = new ConcurrentHashMap<>();
     private Boolean enabled = true;
     private Date validFrom = null;
     private Date validTo = null;
     private String lastModifier;
     protected DummyResource resource;
+
+    /** Present only if hierarchy is supported. Set when object is added on the resource (we need to know the normalization). */
+    private HierarchicalName normalizedHierarchicalName;
 
     private final Set<String> auxiliaryObjectClassNames = ConcurrentHashMap.newKeySet();
 
@@ -69,6 +73,17 @@ public abstract class DummyObject implements DebugDumpable {
 
     public void setName(String username) {
         this.name = username;
+        if (resource != null) {
+            resource.updateNormalizedHierarchicalName(this);
+        }
+    }
+
+    /**
+     * The normalized hierarchical name cannot be computed by the object itself. It needs the resource
+     * (normalization, hierarchy support). This method is called from there. It is intentionally package-private.
+     */
+    void setNormalizedHierarchicalName(HierarchicalName normalizedHierarchicalName) {
+        this.normalizedHierarchicalName = normalizedHierarchicalName;
     }
 
     public Boolean isEnabled() {
@@ -506,5 +521,10 @@ public abstract class DummyObject implements DebugDumpable {
             System.out.println("Warning: attribute " + attrName + " is not defined in " + this);
             return false;
         }
+    }
+
+    /** Assumes hierarchical object support is on. */
+    boolean containedByOrg(HierarchicalName normalizedOrgName) {
+        return normalizedHierarchicalName != null && normalizedHierarchicalName.residesIn(normalizedOrgName);
     }
 }

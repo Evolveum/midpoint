@@ -29,7 +29,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivi
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests various combinations of `runAsRef`, `runAsPrivileged`, and `taskOwnerRef` (in `executeScript` policy action).
+ * Tests various combinations of `runAsRef`, `runAsRunner`, and `taskOwnerRef` (in `executeScript` policy action).
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -55,6 +55,12 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<ServiceType> SERVICE_ONE = TestObject.file(
             TEST_DIR, "service-one.xml", "3c938d46-8fee-4e23-8618-6514b969b4b2");
 
+    private static final TestObject<UserType> USER_DISABLED = TestObject.file(
+            TEST_DIR, "user-disabled.xml", "334022b7-11ea-47f9-b561-d1224fbe93a6");
+    private static final TestObject<RoleType> ROLE_WITH_SERVICE_MAPPING_RUN_AS_DISABLED = TestObject.file(
+            TEST_DIR, "role-with-service-mapping-run-as-disabled.xml", "f6e1ac76-714c-4ce3-977b-8165a9ee7947");
+
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -68,7 +74,9 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
                 ROLE_WITH_SERVICE_MAPPING_RUN_AS,
                 ROLE_WITH_SERVICE_MAPPING_PRIVILEGED,
                 ROLE_WITH_METHOD_STANDARD,
-                SERVICE_ONE);
+                SERVICE_ONE,
+                USER_DISABLED,
+                ROLE_WITH_SERVICE_MAPPING_RUN_AS_DISABLED);
     }
 
     /** Processing standard mapping (no run-as/run-privileged) under administrator. */
@@ -223,5 +231,21 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
         assertSuccess(result);
         assertUserAfter(user.getOid())
                 .assertCostCenter("desc1: s:one p:administrator a:administrator");
+    }
+
+    /** RunAs should fail if the target user is disabled. */
+    @Test
+    public void test400RunAsDisabled() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("regular user with 'runAs mapping disabled' is created");
+        try {
+            addRegularUser(getTestNameShort(), ROLE_WITH_SERVICE_MAPPING_RUN_AS_DISABLED);
+            fail("unexpected success");
+        } catch (Exception e) {
+            assertExpectedException(e)
+                    .hasMessageContaining("The principal is disabled");
+        }
     }
 }

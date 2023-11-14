@@ -8,37 +8,41 @@
 package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import java.io.Serial;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
@@ -49,6 +53,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthentication> extends PageAbstractAuthenticationModule<MA> {
@@ -57,14 +63,12 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
     private static final Trace LOGGER = TraceManager.getTrace(PageAbstractAttributeVerification.class);
     private static final String DOT_CLASS = PageAbstractAttributeVerification.class.getName() + ".";
     protected static final String OPERATION_CREATE_ITEM_WRAPPER = DOT_CLASS + "createItemWrapper";
-    private static final String ID_ATTRIBUTE_VALUES = "attributeValues";
     private static final String ID_ATTRIBUTES = "attributes";
     private static final String ID_ATTRIBUTE_NAME = "attributeName";
-    private static final String ID_ATTRIBUTE_PANEL = "attributePanel";
     private static final String ID_ATTRIBUTE_VALUE = "attributeValue";
+    private static final String ID_PARAMETER_VALUE = "parameterValue";
 
     private LoadableModel<List<VerificationAttributeDto>> attributePathModel;
-    private final IModel<String> attrValuesModel = Model.of();
 
     public PageAbstractAttributeVerification() {
         super();
@@ -86,10 +90,6 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
 
     @Override
     protected void initModuleLayout(MidpointForm form) {
-        HiddenField<String> verified = new HiddenField<>(ID_ATTRIBUTE_VALUES, attrValuesModel);
-        verified.setOutputMarkupId(true);
-        form.add(verified);
-
         initAttributesLayout(form);
     }
 
@@ -108,36 +108,131 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
     }
 
     private void createAttributePanel(ListItem<VerificationAttributeDto> item) {
-        Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, resolveAttributeLabel(item.getModelObject()));
+        PrismPropertyWrapper<?> itemWrapper = item.getModelObject().getItemWrapper();
+
+        PrismPropertyHeaderPanel<?> attributeNameLabel = new PrismPropertyHeaderPanel(ID_ATTRIBUTE_NAME, Model.of(itemWrapper)) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean isRequired() {
+                if (areAllItemsMandatory(itemWrapper)) {
+                    return true;
+                }
+                return super.isRequired();
+            }
+        };
         item.add(attributeNameLabel);
 
-        var itemWrapper = item.getModelObject().getItemWrapper();
-        var valuePanel = new PrismPropertyValuePanel<PrismPropertyValueWrapper<?>>(ID_ATTRIBUTE_VALUE,
-                new PropertyModel<>(itemWrapper, "value"),
-                new ItemPanelSettingsBuilder().build()) {
+        if (QNameUtil.match(DOMUtil.XSD_STRING, itemWrapper.getTypeName()) ||
+                QNameUtil.match(PolyStringType.COMPLEX_TYPE, itemWrapper.getTypeName())) {
+            createTextPanelComponent(itemWrapper, item);
+        } else {
+            createGenericPanelComponent(itemWrapper, item);
+        }
+    }
+
+    private void createTextPanelComponent(PrismPropertyWrapper<?> itemWrapper, ListItem<VerificationAttributeDto> item) {
+        PropertyModel<String> valueModel = new PropertyModel<>(itemWrapper, "value.realValue");
+        TextPanel<String> valuePanel = new TextPanel<>(ID_ATTRIBUTE_VALUE, valueModel);
+        addNameAttribute(valuePanel.getBaseFormComponent(), item);
+        item.add(valuePanel);
+
+        HiddenField<?> parameterValue = new HiddenField<>(ID_PARAMETER_VALUE, valueModel);
+        parameterValue.setOutputMarkupId(true);
+        item.add(parameterValue);
+    }
+
+    private void createGenericPanelComponent(PrismPropertyWrapper<?> itemWrapper, ListItem<VerificationAttributeDto> item) {
+        IModel<String> hiddenFieldModel = Model.of();
+
+        PropertyModel<PrismPropertyValueWrapper> valueModel = new PropertyModel<PrismPropertyValueWrapper>(itemWrapper, "value");
+        var valuePanel = new PrismPropertyValuePanel(ID_ATTRIBUTE_VALUE,
+                valueModel, createItemPanelSettings()) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected AjaxEventBehavior createEventBehavior() {
                 return new AjaxFormComponentUpdatingBehavior("change") {
-
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
-                        attrValuesModel.setObject(generateAttributeValuesString());
-                        target.add(getVerifiedField());
-                    }
-
-                    @Override
-                    protected void onError(AjaxRequestTarget target, RuntimeException e) {
-                        target.add(getFeedback());
+                        try {
+                            hiddenFieldModel.setObject(itemWrapper.getValue().getRealValue().toString());
+                        } catch (Exception e) {
+                            hiddenFieldModel.setObject(null);
+                        }
+                        target.add(item.get("parameterValue"));
                     }
                 };
             }
+
+            @Override
+            protected Map<String, String> getAttributeValuesMap() {
+                Map<String, String> nameAttribute = new HashMap<>();
+                nameAttribute.put("name", AuthConstants.ATTR_VERIFICATION_PARAMETER_START + item.getModelObject().getItemPath());
+                return nameAttribute;
+            }
+
+            @Override
+            protected void remove(PrismPropertyValueWrapper valueToRemove, AjaxRequestTarget target)
+                    throws SchemaException {
+                try {
+                    OperationResult result = new OperationResult("removeAttributeValue");
+                    PrismObject<UserType> administrator = getAdministratorPrivileged(result);
+                    runAsChecked(
+                            (lResult) -> {
+                                if (valueToRemove != null) {
+                                    itemWrapper.remove(valueToRemove, PageAbstractAttributeVerification.this);
+                                    target.add(getValuePanel());
+                                }
+                                return null;
+                            }, administrator, result);
+                } catch (CommonException e) {
+                    LOGGER.error("Unable to remove attribute value.");
+                }
+            }
         };
         item.add(valuePanel);
+
+        HiddenField<?> parameterValue = new HiddenField<>(ID_PARAMETER_VALUE, hiddenFieldModel);
+        addNameAttribute(parameterValue, item);
+        parameterValue.setOutputMarkupId(true);
+        item.add(parameterValue);
+
+        //todo ugly hack for DatePanel which has several input fields and we want to update hidden field model value
+        //after any change in each of them
+        if (isDateTypeAttribute(itemWrapper)) {
+            valuePanel.visitChildren(
+                    FormComponent.class,
+                    (component, objectIVisit) -> {
+                        component.add(new AjaxEventBehavior("keyup") {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void onEvent(AjaxRequestTarget target) {
+                                try {
+                                    hiddenFieldModel.setObject(itemWrapper.getValue().getRealValue().toString());
+                                } catch (Exception e) {
+                                    hiddenFieldModel.setObject(null);
+                                }
+                                target.add(item.get("parameterValue"));
+
+                            }
+                        });
+                    });
+        }
+    }
+
+    private boolean isDateTypeAttribute(PrismPropertyWrapper<?> itemWrapper) {
+        return QNameUtil.match(DOMUtil.XSD_DATETIME, itemWrapper.getTypeName());
+    }
+
+    private void addNameAttribute(FormComponent component, ListItem<VerificationAttributeDto> item) {
+        component.add(AttributeAppender.replace("name", AuthConstants.ATTR_VERIFICATION_PARAMETER_START
+                + item.getModelObject().getItemPath()));
     }
 
     private String resolveAttributeLabel(VerificationAttributeDto attribute) {
@@ -153,7 +248,7 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
         return StringUtils.isEmpty(label) ? path.toString() : label;
     }
 
-    protected ItemWrapper<?, ?> createItemWrapper(ItemPath itemPath) {
+    protected PrismPropertyWrapper<?> createItemWrapper(ItemPath itemPath) {
         try {
             var itemDefinition = resolveAttributeDefinition(itemPath);
             var wrapperContext = createWrapperContext();
@@ -173,29 +268,17 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
     private WrapperContext createWrapperContext() {
         Task task = createAnonymousTask(OPERATION_CREATE_ITEM_WRAPPER);
         WrapperContext ctx = new WrapperContext(task, task.getResult());
-//        ctx.setCreateIfEmpty(true);
         return ctx;
     }
 
-    private String generateAttributeValuesString() {
-        JSONArray attrValues = new JSONArray();
-        attributePathModel.getObject().forEach(entry -> {
-            PrismPropertyValueWrapper value = (PrismPropertyValueWrapper) entry.getValue();
-            if (value == null || value.getRealValue() == null) {
-                return;
-            }
-            JSONObject json = new JSONObject();
-            json.put(AuthConstants.ATTR_VERIFICATION_J_PATH, entry.getItemPath());
-            json.put(AuthConstants.ATTR_VERIFICATION_J_VALUE, value.getRealValue());
-            attrValues.put(json);
-        });
-        if (attrValues.length() == 0) {
-            return null;
-        }
-        return attrValues.toString();
+    private ItemPanelSettings createItemPanelSettings() {
+        return new ItemPanelSettingsBuilder()
+                .mandatoryHandler(this::areAllItemsMandatory)
+                .build();
     }
 
-    private Component getVerifiedField() {
-        return getForm().get(ID_ATTRIBUTE_VALUES);
+    protected boolean areAllItemsMandatory(ItemWrapper<?,?> itemWrapper) {
+        return false;
     }
+
 }

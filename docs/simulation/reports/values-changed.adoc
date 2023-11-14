@@ -1,0 +1,83 @@
+= Values Changed
+:page-toc: top
+:page-since: "4.7"
+:page-display-order: 400
+
+This report lists values added or deleted within individual items in processed objects.
+
+== Report Columns
+
+.Individual columns
+[%autowidth]
+[%header]
+|===
+| Column | Description
+
+| ID
+.11+| Please see xref:objects.adoc[] for the description.
+
+| OID
+| Name
+| Type
+| Structural archetype
+| Resource
+| Kind
+| Intent
+| Tag
+| State
+| Event mark
+
+2+|
+{zwsp} +
+_The following part of the report is instantiated once per each item changed within given object._ +
+{zwsp}
+
+| Item changed
+| Path of the item changed.
+See xref:items-changed.adoc[] for details.
+
+2+|
+{zwsp} +
+_The following part of the report is instantiated once per each value changed within given item._ +
+{zwsp}
+
+| Value state
+| State of the value below:
+`ADDED` - the value would be added by the change;
+`DELETED` - the value would be deleted by the change;
+`MODIFIED` - the value would be modified by the change.
+The last one can happen only for container replace deltas that would result in internal changes of values with given ID.
+(It should be very rare case; and we strongly recommend not sending such deltas to midPoint.)
+
+| Value
+| The value being changed.
+
+| Related assignment
+.7+| The assignment related to given value or change.
+See xref:items-changed.adoc[] for details.
+
+| Related assignment ID
+| Related assignment target
+| Related assignment target relation
+| Related assignment resource
+| Related assignment kind
+| Related assignment intent
+
+|===
+
+== Parameters
+
+The same as for xref:items-changed.adoc[].
+
+== An Example
+
+.An example report
+image::example-values-changed.png[Example report]
+
+== Definition
+
+The definition can be found on https://github.com/Evolveum/midpoint/blob/master/repo/system-init/src/main/resources/initial-objects/report/173-report-simulation-values-changed.xml[GitHub].
+
+== Limitations
+
+The same as for xref:items-changed.adoc[].

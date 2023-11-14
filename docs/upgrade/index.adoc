@@ -1,0 +1,18 @@
+= MidPoint Upgrade And Migration
+:page-nav-title: Upgrade And Migration
+:page-wiki-name: Migration and Upgrades
+:page-wiki-id: 13074493
+:page-wiki-metadata-create-user: ifarinic
+:page-wiki-metadata-create-date: 2013-10-17T11:39:25.309+02:00
+:page-wiki-metadata-modify-user: ifarinic
+:page-wiki-metadata-modify-date: 2019-09-18T09:57:14.134+02:00
+:page-display-order: 600
+:page-upkeep-status: green
+
+Following pages describe procedures and mechanism for MidPoint upgrades and data migrations.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

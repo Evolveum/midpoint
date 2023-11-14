@@ -17,6 +17,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
 
+/**
+ * The `ExtractPatternUtils` class provides utility methods for preparing and transforming detected patterns.
+ * <p>
+ *     It's a part of the `Role Analysis`.
+ * </p>
+ */
 public class ExtractPatternUtils {
 
     public static DetectedPattern prepareDetectedPattern(Set<String> roles, Set<String> users) {
@@ -29,6 +35,10 @@ public class ExtractPatternUtils {
     public static List<DetectedPattern> transformDefaultPattern(RoleAnalysisClusterType clusterType) {
         List<RoleAnalysisDetectionPatternType> defaultDetection = clusterType.getDetectedPattern();
         List<DetectedPattern> mergedIntersection = new ArrayList<>();
+
+        if (isEmptyDetectionPattern(defaultDetection)) {
+            return new ArrayList<>();
+        }
 
         for (RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType : defaultDetection) {
 
@@ -55,4 +65,19 @@ public class ExtractPatternUtils {
 
         return mergedIntersection;
     }
+
+    private static boolean isEmptyDetectionPattern(List<RoleAnalysisDetectionPatternType> defaultDetection) {
+
+        if (defaultDetection == null) {
+            return true;
+        }
+
+        if (defaultDetection.size() == 1) {
+            RoleAnalysisDetectionPatternType detectionPatternType = defaultDetection.get(0);
+            return detectionPatternType == null || detectionPatternType.getClusterMetric() == null;
+        } else {
+            return false;
+        }
+    }
+
 }

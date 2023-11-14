@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster
 import java.io.Serial;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
@@ -24,18 +26,13 @@ public class ClusterSummaryPanel extends FocusSummaryPanel<RoleAnalysisClusterTy
     }
 
     @Override
-    protected QName getDisplayNamePropertyName() {
-        return RoleAnalysisClusterType.F_NAME;
-    }
-
-    @Override
     protected QName getTitlePropertyName() {
         return RoleAnalysisClusterType.F_SUBTYPE;
     }
 
     @Override
     protected String getDefaultIconCssClass() {
-        return "fa fa-users";
+        return IconAndStylesUtil.createDefaultIcon(getModelObject().asPrismObject());
     }
 
     @Override
@@ -46,6 +43,11 @@ public class ClusterSummaryPanel extends FocusSummaryPanel<RoleAnalysisClusterTy
     @Override
     protected String getBoxAdditionalCssClass() {
         return "summary-panel-role";
+    }
+
+    @Override
+    protected boolean isActivationVisible() {
+        return false;
     }
 
 }

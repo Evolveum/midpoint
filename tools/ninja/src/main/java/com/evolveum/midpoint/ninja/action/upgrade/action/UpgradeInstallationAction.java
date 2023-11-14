@@ -8,12 +8,12 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 
-import com.evolveum.midpoint.ninja.util.ConsoleFormat;
-
 import org.apache.commons.io.FileUtils;
 
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+import com.evolveum.midpoint.ninja.util.InputParameterException;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions, Void> {
@@ -28,6 +28,9 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
     @Override
     public Void execute() throws Exception {
         final File distributionDirectory = options.getDistributionDirectory();
+        if (distributionDirectory == null) {
+            throw new InputParameterException("Undefined distribution directory option " + UpgradeInstallationOptions.P_DISTRIBUTION_DIRECTORY);
+        }
 
         final boolean backupFiles = options.isBackup();
 
@@ -51,6 +54,10 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
         }
 
         log.info(ConsoleFormat.formatSuccessMessage("Installation upgraded successfully"));
+
+        log.info("");
+        log.info("Next step should be to update initial objects. You can use 'ninja initial-objects --dry-run' to review changes.");
+        log.info("Please see documentation and initial-objects command options for more information.");
 
         return null;
     }

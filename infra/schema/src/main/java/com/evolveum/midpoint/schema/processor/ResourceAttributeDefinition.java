@@ -10,14 +10,19 @@ package com.evolveum.midpoint.schema.processor;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -74,6 +79,7 @@ public interface ResourceAttributeDefinition<T>
      */
     int getMinOccurs(LayerType layer);
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     default boolean isOptional(LayerType layer) {
         return getMinOccurs(layer) == 0;
     }
@@ -125,6 +131,45 @@ public interface ResourceAttributeDefinition<T>
      * @see ResourceItemDefinitionType#getStorageStrategy()
      */
     @NotNull AttributeStorageStrategyType getStorageStrategy();
+
+    /**
+     * If present, it overrides the inclusion/exclusion of this item in/from the shadow caching.
+     * Please use the {@link #isEffectivelyCached(ResourceObjectDefinition)} method
+     * to determine the effective caching status.
+     */
+    Boolean isCached();
+
+    /**
+     * Returns `true` if this attribute is effectively cached, given provided object type/class definition.
+     *
+     * Precondition: the definition must be attached to a resource.
+     *
+     * NOTE: Ignores the default caching turned on by read capability with `cachingOnly` = `true`.
+     */
+    default boolean isEffectivelyCached(@NotNull ResourceObjectDefinition objectDefinition) {
+
+        var cachingPolicy = objectDefinition.getEffectiveShadowCachingPolicy();
+        if (cachingPolicy.getCachingStrategy() != CachingStrategyType.PASSIVE) {
+            // Caching is disabled. Individual overriding of caching status is not relevant.
+            return false;
+        }
+
+        var override = isCached();
+        if (override != null) {
+            return override;
+        }
+
+        var scope = cachingPolicy.getScope();
+        var attributesScope = Objects.requireNonNullElse(
+                scope != null ? scope.getAttributes() : null,
+                ShadowItemsCachingScopeType.MAPPED);
+
+        return switch (attributesScope) {
+            case ALL -> true;
+            case NONE -> false;
+            case MAPPED -> hasOutboundMapping() || getInboundMappingBeans().isEmpty();
+        };
+    }
 
     /**
      * Is this attribute so-called volatility trigger, i.e. may its changes cause changes in other attributes?
@@ -293,5 +338,10 @@ public interface ResourceAttributeDefinition<T>
     /** TODO */
     default boolean isVisible(@NotNull TaskExecutionMode taskExecutionMode) {
         return SimulationUtil.isVisible(getLifecycleState(), taskExecutionMode);
+    }
+
+    default @NotNull MatchingRule<T> getMatchingRule() throws SchemaException {
+        return SchemaService.get().matchingRuleRegistry()
+                .getMatchingRule(getMatchingRuleQName(), getTypeName());
     }
 }

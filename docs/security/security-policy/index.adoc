@@ -1,0 +1,255 @@
+= Security Policy Configuration
+:page-nav-title: Security Policy
+:page-wiki-name: Security Policy Configuration
+:page-wiki-id: 24085527
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-03-16T16:49:07.028+01:00
+:page-wiki-metadata-modify-user: rpudil
+:page-wiki-metadata-modify-date: 2020-05-12T12:11:56.222+02:00
+:page-upkeep-status: yellow
+:page-toc: top
+
+Security policy object contains definition of a security-related setting for an midPoint instance.
+It refers to password policies and contains configuration for different types of credentials (security questions, nonce, password).
+It is also used to define password resets, self-service registration and so on.
+
+== Security Policy Merging
+
+Starting from 4.7 version there is a possibility to merge security policies. This mechanism allows to apply different security policies for different groups of user. The security policy which should be applied to the user (or to the group of the users) can be defined in several places in midPoint:
+
+. in global security policy (assigned in system configuration),
+. in the organization to which the user belongs,
+. in the structural archetype (or its super-structural-archetypes) which is assigned to the user.
+
+All security policies which are defined in the specified objects are merged into one in such an order that security policies "closer" to the user have higher priority.
+This means the security policy from the user's archetype can extend/override a security policy from super archetype, super archetype security policy can extend/override a security policy from organization, a security policy from the organization can extend/override a global security policy.
+While merging the authentication configuration, every authentication module which wasn't defined in the previous security policy, will be added to the list of the authentication modules which further can be used in the authentication sequence (module identifier is used for analyzing if the module is already defined or not). While merging the authentication sequences, the algorithm looks for the sequences with the same identifier attribute and gathers all the modules which are defined for this concrete sequence among all security policies. The modules then are ordered depending on the module's `order` attribute value. If the module (within the same authentication sequence) with the same identifier is met in the more prioritized security policy, it will override the values of the previously defined module (for example, the necessity of the module which is defined in the global security policy can be overridden by defining the same module (the module with the same identifier) with a new necessity value in the archetype security policy).
+
+Following is the example of complex Security Policy.
+
+.Security Policy sample
+[source,xml]
+----
+<securityPolicy oid="6df80eb2-0a63-11e7-8ced-af0e536f33e1" xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>Security Policy</name>
+    <authentication>
+        <mailAuthentication>
+               <name>confirmationLink</name>
+            <displayName>Additional mail authentication</displayName>
+            <mailNonce>mailNonce</mailNonce>
+        </mailAuthentication>
+    </authentication>
+    <credentials>
+        <password>
+            <maxAge>P180D</maxAge>
+            <lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
+            <lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
+            <lockoutDuration>PT15M</lockoutDuration>
+            <valuePolicyRef oid="6df08ed7-0b13-11e7-8ced-af0e536f33e1" type="ValuePolicyType"/>
+        </password>
+        <nonce>
+            <maxAge>PT10M</maxAge>
+            <lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
+            <lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
+            <lockoutDuration>PT15M</lockoutDuration>
+            <valuePolicyRef oid="6df08ed7-0b13-11e7-8ced-af0e536f33e2" type="ValuePolicyType"/>
+        </nonce>
+        <securityQuestions>
+            <maxAge>P90D</maxAge>
+            <lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
+            <lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
+            <lockoutDuration>PT15M</lockoutDuration>
+            <valuePolicyRef oid="6df08ed7-0b13-11e7-8ced-af0e536f33e3" type="ValuePolicyType"/>
+            <questionNumber>1</questionNumber>
+            <question>
+                <identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</identifier>
+                <enabled>true</enabled>
+                <questionText>How much wood would a woodchuck chuck if woodchuck could chuck wood?</questionText>
+            </question>
+            <question>
+                <identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q002</identifier>
+                <questionText>What is your mother's best friend's uncle's grandaughter's dog's mother maiden name?</questionText>
+            </question>
+            <question>
+                <identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q003</identifier>
+                <enabled>true</enabled>
+                <questionText>What's your favorite color?</questionText>
+            </question>
+            <question>
+                <identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q004</identifier>
+                <enabled>false</enabled>
+                <questionText>What's your favorite film?</questionText>
+            </question>
+        </securityQuestions>
+    </credentials>
+    <registration>
+      <selfRegistration>
+         <name>selfRegistration</name>
+         <initialLifecycleState>proposed</initialLifecycleState>
+         <displayName>Self Registration</displayName>
+         <additionalAuthenticationName>confirmationLink</additionalAuthenticationName>
+         <defaultRole xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                      oid="00000000-0000-0000-0000-000000000008"
+                      relation="org:default"
+                      type="c:RoleType"/>
+      </selfRegistration>
+   </registration>
+   <credentialsReset>
+      <mailReset>
+         <name>Reset password using mail</name>
+         <additionalAuthenticationName>confirmationLink</additionalAuthenticationName>
+      </mailReset>
+   </credentialsReset>
+</securityPolicy>
+----
+
+
+== Configuring credentials
+
+Midpoint supports different types of credentials - password, nonce, security questions.
+Nonce and security questions are midPoint specific types of credentials which are mainly used for reset password, self-registration or similar use cases related to the midPoint.
+They are stored in the midPoint directory but they are not propagated to connected systems.
+Password (based on the configuration) is (usually) stored in midPoint local repository, but it is also propagated to the connected resources (based on the configuration again).
+For all credential types supported by midPoint it is possible to set policies for validation, e.g if the nonce generated for password reset is still valid, if there is enough security question-answer couples, if the password satisfies password policy and so on.
+Following table contains properties which can be set for all types of credentials.
+
+[%autowidth]
+|===
+| Property | Example | Description
+
+| maxAge
+| P30D
+| To enforce maximum lifetime of the credentials.
+E.g. password has to be changed every 30 days
+
+
+| lockoutMaxFailedAttempts
+| 3
+| To enforce lockout of the account after _n_ failed attempts to login
+
+
+| lockoutDuration
+| PT15M
+| To provide automatic unlock of the account after some time
+
+
+| valuePolicyRef
+| oid="6df08ed7-0b13-11e7-8ced-af0e536f33e1"
+| Reference to the value policy used to validate characters used in password
+
+
+|===
+
+
+=== Configuring password related policies
+
+.Credentials - Password
+[source,xml]
+----
+<securityPolicy oid="6df80eb2-0a63-11e7-8ced-af0e536f33e1" xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>Security Policy</name>
+    ...
+    <credentials>
+        <password>
+            <maxAge>P180D</maxAge>
+            <lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
+            <lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
+            <lockoutDuration>PT15M</lockoutDuration>
+            <valuePolicyRef oid="6df08ed7-0b13-11e7-8ced-af0e536f33e1" type="ValuePolicyType"/>
+        </password>
+    ....
+    </credentials>
+    ...
+</securityPolicy>
+----
+
+
+=== Configuring nonce related policies
+
+.Credentials - Nonce
+[source,xml]
+----
+<securityPolicy oid="6df80eb2-0a63-11e7-8ced-af0e536f33e1" xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    ...
+    <credentials>
+        ...
+        <nonce>
+            <maxAge>PT10M</maxAge>
+            <lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
+            <lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
+            <lockoutDuration>PT15M</lockoutDuration>
+            <valuePolicyRef oid="6df08ed7-0b13-11e7-8ced-af0e536f33e2" type="ValuePolicyType"/>
+        </nonce>
+        ...
+    </credentials>
+    ...
+</securityPolicy>
+----
+
+
+=== Configuring security questions related policies
+
+.Credentials - Security questions
+[source,xml]
+----
+<securityPolicy oid="6df80eb2-0a63-11e7-8ced-af0e536f33e1" xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>Security Policy</name>
+    ...
+    <credentials>
+        ...
+        <securityQuestions>
+            <maxAge>P90D</maxAge>
+            <lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
+            <lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
+            <lockoutDuration>PT15M</lockoutDuration>
+            <valuePolicyRef oid="6df08ed7-0b13-11e7-8ced-af0e536f33e3" type="ValuePolicyType"/>
+            <questionNumber>1</questionNumber>
+            <question>
+                <identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</identifier>
+                <enabled>true</enabled>
+                <questionText>How much wood would a woodchuck chuck if woodchuck could chuck wood?</questionText>
+            </question>
+            <question>
+                <identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q002</identifier>
+                <questionText>What is your mother's best friend's uncle's grandaughter's dog's mother maiden name?</questionText>
+            </question>
+            <question>
+                <identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q003</identifier>
+                <enabled>true</enabled>
+                <questionText>What's your favorite color?</questionText>
+            </question>
+            <question>
+                <identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q004</identifier>
+                <enabled>false</enabled>
+                <questionText>What's your favorite film?</questionText>
+            </question>
+        </securityQuestions>
+    </credentials>
+    ...
+</securityPolicy>
+----
+
+
+== Referencing Security Policy
+
+The security policy object is usually referenced from xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]:
+
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <globalSecurityPolicyRef oid="6df80eb2-0a63-11e7-8ced-af0e536f33e1"/>
+    ...
+</systemConfiguration>
+----
+
+Security policy referenced in this way is considered to be a global security policy.
+It defines the setting for the whole system.
+Since midPoint 3.6 the security policy may also be specified for each xref:/midpoint/reference/org/organizational-structure/[organizational unit].
+
+
+== See Also
+
+* xref:/midpoint/reference/security/credentials/password-related-configuration/[Password-Related Configuration]
+
+* xref:/midpoint/reference/security/credentials/password-policy/[Password Policy]

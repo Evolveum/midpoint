@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.web.util.ExpressionValidator;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -16,6 +18,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -35,6 +38,9 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T>> extends BasePanel<VW> {
 
@@ -157,7 +163,9 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         panelCtx.setAjaxEventBehavior(createEventBehavior());
         panelCtx.setMandatoryHandler(getMandatoryHandler());
         panelCtx.setVisibleEnableBehaviour(createVisibleEnableBehavior());
+        panelCtx.setExpressionValidator(createExpressionValidator());
         panelCtx.setFeedback(feedback);
+        panelCtx.setAttributeValuesMap(getAttributeValuesMap());
 
         Component component;
         try {
@@ -172,6 +180,17 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             getSession().error("Cannot create panel");
             throw new RuntimeException(e);
         }
+    }
+
+    private ExpressionValidator createExpressionValidator() {
+        ItemWrapper itemWrapper = getModelObject().getParent();
+        return new ExpressionValidator(itemWrapper, getParentPage()) {
+
+            @Override
+            protected ObjectType getObjectType() {
+                return getObject();
+            }
+        };
     }
 
     protected String getCssClassForValueContainer() {
@@ -314,5 +333,9 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     private ValueMetadataWrapperImpl getValueMetadata() {
         return getModelObject().getValueMetadata();
+    }
+
+    protected Map<String, String> getAttributeValuesMap() {
+        return new HashMap<>();
     }
 }

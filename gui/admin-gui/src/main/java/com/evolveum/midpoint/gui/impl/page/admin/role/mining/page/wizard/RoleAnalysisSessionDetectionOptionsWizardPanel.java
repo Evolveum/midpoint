@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
@@ -24,6 +25,9 @@ import static com.evolveum.midpoint.model.api.expr.MidpointFunctions.LOGGER;
 public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
     private static final String WORK_PANEL_TYPE = "rm-detection";
+
+    private static final double DEFAULT_MIN_FREQUENCY = 30.0;
+    private static final double DEFAULT_MAX_FREQUENCY = 100.0;
 
     public RoleAnalysisSessionDetectionOptionsWizardPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
         super(model);
@@ -52,8 +56,8 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
 
             setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_DETECTION_PROCESS_MODE, RoleAnalysisDetectionProcessType.PARTIAL);
             setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE, new RangeType()
-                    .min(30.0)
-                    .max(100.0));
+                    .min(DEFAULT_MIN_FREQUENCY)
+                    .max(DEFAULT_MAX_FREQUENCY));
 
         } catch (SchemaException e) {
             throw new RuntimeException(e);
@@ -104,5 +108,15 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
     @Override
     public String getStepId() {
         return WORK_PANEL_TYPE;
+    }
+
+    protected boolean checkMandatory(ItemWrapper itemWrapper) {
+        ItemName itemName = itemWrapper.getItemName();
+        if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
+                || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)
+                || itemName.equivalent(RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE)) {
+            return true;
+        }
+        return itemWrapper.isMandatory();
     }
 }

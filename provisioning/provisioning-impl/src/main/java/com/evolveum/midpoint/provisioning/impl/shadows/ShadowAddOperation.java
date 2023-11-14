@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createResourceFailureDescription;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.getAdditionalOperationDesc;
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
 
@@ -16,6 +17,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -44,6 +47,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents/executes "add" operation on a shadow - either invoked directly, or during refresh or propagation.
@@ -217,7 +222,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
 
             OperationResult failedOperationResult = result.getLastSubresult(); // This may or may not be correct
 
-            if (hasDeadShadowWithDeleteOperation(ctx, resourceObjectToAdd, result)) {
+            if (hasDeadShadowWithDeleteOperation(result)) {
 
                 if (failedOperationResult.isError()) {
                     failedOperationResult.setStatus(OperationResultStatus.HANDLED_ERROR);
@@ -281,24 +286,20 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
         }
     }
 
-    private boolean hasDeadShadowWithDeleteOperation(
-            ProvisioningContext ctx, ShadowType shadowToAdd, OperationResult result)
+    private boolean hasDeadShadowWithDeleteOperation(OperationResult result)
             throws SchemaException {
 
         Collection<PrismObject<ShadowType>> previousDeadShadows =
-                shadowFinder.searchForPreviousDeadShadows(ctx, shadowToAdd, result);
+                shadowFinder.searchForPreviousDeadShadows(ctx, resourceObjectToAdd, result);
         if (previousDeadShadows.isEmpty()) {
             return false;
         }
         LOGGER.trace("Previous dead shadows:\n{}", DebugUtil.debugDumpLazily(previousDeadShadows, 1));
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        for (PrismObject<ShadowType> previousDeadShadow : previousDeadShadows) {
-            if (shadowCaretaker.findPendingLifecycleOperationInGracePeriod(ctx, previousDeadShadow.asObjectable(), now) == ChangeTypeType.DELETE) {
-                return true;
-            }
-        }
-        return false;
+        return previousDeadShadows.stream()
+                .anyMatch(deadShadow ->
+                        shadowCaretaker.findPendingLifecycleOperationInGracePeriod(ctx, deadShadow.asObjectable(), now) == ChangeTypeType.DELETE);
     }
 
     private OperationResultStatus handleAddError(
@@ -387,12 +388,15 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
         return resourceObjectToAdd;
     }
 
-    public @NotNull ShadowType getResourceObjectAddedOrToAdd() {
+    public @NotNull ResourceObject getResourceObjectAddedOrToAdd() throws SchemaException {
         ShadowType createdShadow = opState.getCreatedShadow();
+        // TODO don't use null for dead shadows here!!!
         if (opState.wasStarted() && createdShadow != null) {
-            return createdShadow;
+            @Nullable Object primaryIdentifierValue = determinePrimaryIdentifierValue(ctx, createdShadow);
+            return ResourceObject.fromBean(createdShadow, primaryIdentifierValue);
         } else {
-            return resourceObjectToAdd;
+            @Nullable Object primaryIdentifierValue = determinePrimaryIdentifierValue(ctx, resourceObjectToAdd);
+            return ResourceObject.fromBean(resourceObjectToAdd, primaryIdentifierValue);
         }
     }
 

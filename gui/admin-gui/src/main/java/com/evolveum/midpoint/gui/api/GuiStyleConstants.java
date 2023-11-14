@@ -48,6 +48,7 @@ public class GuiStyleConstants {
     public static final String CLASS_OBJECT_SERVICE_BOX_THIN_CSS_CLASSES = "object-service-box-thin";
 
     public static final String CLASS_OBJECT_RESOURCE_ICON = "fa fa-database";
+    public static final String CLASS_OBJECT_RESOURCE_TEMPLATE_ICON = "fa-regular fa-file";
     public static final String CLASS_OBJECT_RESOURCE_ICON_COLORED = CLASS_OBJECT_RESOURCE_ICON + " object-resource-color";
     public static final String CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES = "card-outline object-resource-box";
     public static final String CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES = "object-resource-box-thin";
@@ -125,6 +126,8 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_EXPAND = "fa fa-chevron-left";
     public static final String CLASS_ICON_COLLAPSE = "fa  fa-chevron-down";
     public static final String CLASS_ICON_SORT_AMOUNT_ASC = "fa fa-sort-amount-asc";
+    public static final String CLASS_ICON_SORT_AMOUNT_DSC = "fa fa-sort-amount-desc";
+
     public static final String CLASS_ICON_SORT_ALPHA_ASC = "fa fa-sort-alpha-down";
     public static final String CLASS_ICON_SHOW_EMPTY_FIELDS = "fa fa-square-o";
     public static final String CLASS_ICON_NOT_SHOW_EMPTY_FIELDS = "fa fa-square";
@@ -174,7 +177,7 @@ public class GuiStyleConstants {
     public static final String CLASS_BADGE_ACTIVE = "badge-primary";
     public static final String CLASS_BADGE_PASSIVE = "badge-secondary";
 
-    public static final String DEFAULT_BG_COLOR = "#3c8dbc"; //blue-light theme
+    public static final String DEFAULT_BG_COLOR = "#357DA7"; //blue-light theme
 
     public static final String CLASS_PLUS_CIRCLE = "fa fa-plus-circle";
     public static final String CLASS_PLUS_CIRCLE_SUCCESS = CLASS_PLUS_CIRCLE + " text-success";
@@ -201,6 +204,8 @@ public class GuiStyleConstants {
     public static final String CLASS_BAN = "fa fa-ban";
 
     public static final String CLASS_SYSTEM_CONFIGURATION_ICON = "fa fa-cog";
+
+    public static final String CLASS_OPTIONS = "fa fa-cogs";
     public static final String CLASS_SYSTEM_CONFIGURATION_ICON_COLORED = CLASS_SYSTEM_CONFIGURATION_ICON + " object-shadow-color";
 
     public static final String CLASS_ASSIGN = "fa fa-link";
@@ -238,6 +243,10 @@ public class GuiStyleConstants {
     public static final String EVO_CASE_THICK_ICON = "fe fe-case_thick";
     public static final String EVO_ARCHETYPE_TYPE_ICON = "fe fe-archetype_smooth";
     public static final String EVO_MESSAGE_TEMPLATE_TYPE_ICON = "fa fa-book";
+
+    public static final String CLASS_ROLE_ANALYSIS_SESSION_ICON = "fa fa-bar-chart";
+    public static final String CLASS_ROLE_ANALYSIS_CLUSTER_ICON = "fa fa-cubes";
+
 
     public static final String GREEN_COLOR = "color-green";
     public static final String YELLOW_COLOR = "color-yellow";

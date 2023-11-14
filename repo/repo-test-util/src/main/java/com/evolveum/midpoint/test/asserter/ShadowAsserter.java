@@ -100,6 +100,11 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    public ShadowAsserter<RA> assertPurpose(ShadowPurposeType expected) {
+        assertThat(getObjectable().getPurpose()).as("purpose").isEqualTo(expected);
+        return this;
+    }
+
     public ShadowAsserter<RA> assertObjectClass() {
         assertNotNull("No objectClass in " + desc(), getObject().asObjectable().getObjectClass());
         return this;
@@ -193,6 +198,20 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         }
         assertEquals("Wrong activation administrativeStatus in " + desc(),
                 expected, activation.getAdministrativeStatus());
+        return this;
+    }
+
+    public ShadowAsserter<RA> assertDisableReason(String reason) {
+        ActivationType activation = getActivation();
+        if (activation == null) {
+            if (reason == null) {
+                return this;
+            } else {
+                fail("No activation in " + desc());
+            }
+        }
+        assertEquals("Wrong disableReason in " + desc(),
+                reason, activation.getDisableReason());
         return this;
     }
 

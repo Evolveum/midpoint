@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -56,6 +58,8 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 
     private final OperationResult result;
 
+    private final ObjectReferenceType targetRef;
+
     /**
      * Resolved target objects.
      */
@@ -64,6 +68,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     TargetsEvaluation(AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx, OperationResult result) {
         super(segment, ctx);
         this.result = result;
+        this.targetRef = segment.assignment.getTargetRef();
     }
 
     void evaluate()
@@ -77,14 +82,14 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 
         checkIfAlreadyEvaluated();
 
-        if (segment.assignment.getTargetRef() == null) {
+        if (targetRef == null) {
             LOGGER.trace("No targetRef for {}, nothing to evaluate", segment);
             return;
         }
 
         if (ctx.ae.loginMode && !ctx.ae.relationRegistry.isProcessedOnLogin(segment.relation)) {
             LOGGER.trace("Skipping processing of assignment target {} because relation {} is configured for login skip",
-                    segment.assignment.getTargetRef().getOid(), segment.relation);
+                    targetRef.getOid(), segment.relation);
             // Skip - to optimize logging-in, we skip all assignments with non-membership/non-delegation relations
             // (e.g. approver, owner, etc). We want to make this configurable in the future (MID-3581).
             return;
@@ -125,9 +130,16 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 //        boolean resolvedTargets = false;
         // TODO CLEAN THIS UP
         // Important: but we still want this to be reflected in roleMembershipRef
-        if (segment.isNonNegativeRelativeRelativityMode() && Util.shouldCollectMembership(segment)) {
-            if (segment.assignment.getTargetRef().getOid() != null) {
-                ctx.membershipCollector.collect(segment.assignment.getTargetRef(), segment.relation);
+
+        assert targetRef != null;
+        if (!Util.shouldCollectMembership(segment)) {
+            return;
+        }
+
+        boolean collectAllMembership = segment.isNonNegativeRelativeRelativityMode();
+        if (collectAllMembership || QNameUtil.match(ArchetypeType.COMPLEX_TYPE, targetRef.getType())) {
+            if (targetRef.getOid() != null) {
+                ctx.membershipCollector.collect(targetRef, segment.relation, !collectAllMembership);
                 // This branch does not set target for cases like Approver assignments, but saves one resolve.
                 // This means that in EvaluatedAssignment you can later either have target,
                 // or - if null - assignment/targetRef should have OID filled in.
@@ -137,7 +149,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                 for (PrismObject<? extends ObjectType> targetObject : targets) {
                     ObjectType target = targetObject.asObjectable();
                     if (target instanceof FocusType) {
-                        ctx.membershipCollector.collect((FocusType) target, segment.relation);
+                        ctx.membershipCollector.collect((FocusType) target, segment.relation, !collectAllMembership);
                     }
                 }
             }
@@ -216,7 +228,6 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     private List<PrismObject<? extends ObjectType>> resolveTargets()
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        ObjectReferenceType targetRef = segment.assignment.getTargetRef();
         var filterExpressionEvaluator =
                 createFilterExpressionEvaluator(segment.assignmentOrigin.child(AssignmentType.F_TARGET_REF));
         return ctx.ae.referenceResolver.resolve(

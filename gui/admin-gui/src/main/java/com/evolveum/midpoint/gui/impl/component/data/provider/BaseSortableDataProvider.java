@@ -376,4 +376,13 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     public boolean isUseCache() {
         return useCache;
     }
+
+    @Override
+    public void detach() {
+        super.detach();
+
+        if (availableData != null) {
+            availableData.clear();
+        }
+    }
 }

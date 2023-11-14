@@ -6,16 +6,24 @@
  */
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
  *
  */
 public class ActivationUtil {
+
+    public static ActivationStatusType getAdministrativeStatus(FocusType focus) {
+        if (focus == null) {
+            return null;
+        }
+        ActivationType activation = focus.getActivation();
+        if (activation == null) {
+            return null;
+        }
+        return activation.getAdministrativeStatus();
+    }
 
     public static boolean hasAdministrativeActivation(ShadowType objectType) {
         ActivationType activation = objectType.getActivation();

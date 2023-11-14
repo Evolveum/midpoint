@@ -258,7 +258,9 @@ public class MidPointLdapAuthenticationProvider extends MidpointAbstractAuthenti
         String channel = getChannel();
         MidPointPrincipal principal = null;
         try {
-            principal = focusProfileService.getPrincipal(name, getFocusType());
+            // For recording audit log, we don't need to support GUI config
+            principal = focusProfileService.getPrincipal(
+                    name, getFocusType(), ProfileCompilerOptions.createOnlyPrincipalOption());
             focus = principal.getFocus();
         } catch (Exception e) {
             //ignore if non-exist

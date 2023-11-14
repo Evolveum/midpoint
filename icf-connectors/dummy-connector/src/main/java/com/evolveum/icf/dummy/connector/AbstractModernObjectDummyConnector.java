@@ -175,7 +175,9 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                                 throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
                             }
                             // We need to change the returned uid here
-                            addUidChange(sideEffectChanges, newName);
+                            if (configuration.isUidBoundToName()) {
+                                addUidChange(sideEffectChanges, newName);
+                            }
                         }
                     } else if (delta.is(OperationalAttributes.PASSWORD_NAME)) {
                         throw new InvalidAttributeValueException("Attempt to change password on group");
@@ -225,7 +227,9 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                                 throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
                             }
                             // We need to change the returned uid here
-                            addUidChange(sideEffectChanges, newName);
+                            if (configuration.isUidBoundToName()) {
+                                addUidChange(sideEffectChanges, newName);
+                            }
                         }
                     } else if (delta.is(OperationalAttributes.PASSWORD_NAME)) {
                         throw new InvalidAttributeValueException("Attempt to change password on privilege");
@@ -266,7 +270,9 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                             throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
                         }
                         // We need to change the returned uid here
-                        addUidChange(sideEffectChanges, newName);
+                        if (configuration.isUidBoundToName()) {
+                            addUidChange(sideEffectChanges, newName);
+                        }
                     } else if (delta.is(OperationalAttributes.PASSWORD_NAME)) {
                         throw new InvalidAttributeValueException("Attempt to change password on org");
 

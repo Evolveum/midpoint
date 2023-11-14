@@ -150,7 +150,7 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
         http.headers().and()
                 .requestCache().and()
-                .anonymous().authenticationFilter(createAnonymousFilter()).and()
+                .anonymous().authenticationFilter(createAnonymousFilter(http.getSharedObjects())).and()
                 .servletApi();
 
         http.addFilterAfter(new RedirectForLoginPagesWithAuthenticationFilter(), CsrfFilter.class);
@@ -161,13 +161,13 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
         }
 
         http.headers().disable();
-        http.headers().frameOptions().sameOrigin();
+        http.headers().frameOptions().deny();
     }
 
-    protected AnonymousAuthenticationFilter createAnonymousFilter() {
+    protected AnonymousAuthenticationFilter createAnonymousFilter(Map<Class<?>, Object> sharedObjects) {
         return new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, prismContext,
                 UUID.randomUUID().toString(), "anonymousUser",
-                AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+                AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"), sharedObjects);
     }
 
     protected AuthenticationManager authenticationManager() throws Exception {

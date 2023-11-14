@@ -1,0 +1,64 @@
+= Security Advisory: XXE Vulnerabilities
+:page-wiki-name: Security Advisory: XXE Vulnerabilities
+:page-wiki-id: 30245400
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-17T11:36:58.286+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-05-23T07:47:21.191+02:00
+:page-nav-title: XXE Vulnerabilities
+:page-display-order: 3
+:page-upkeep-status: green
+
+*Date:* 17 April 2019
+
+*Severity:* Medium (CVSS 6.8)
+
+*Affected versions:* all midPoint versions
+
+*Fixed in versions:* 4.0 (unreleased),  3.9.1 (unreleased), 3.8.1 (unreleased), 3.7.3 (unreleased), 3.6.2 (unreleased)
+
+
+== Description
+
+The way how MidPoint handles XML documents is vulnerable to attacks based on XML External Entities (XXE).
+MidPoint is parsing XML documents that can contain embedded DTD and Entity declarations.
+Those can be abused to gain information that otherwise should be accessible.
+
+
+== Severity and Impact
+
+This is medium-severity issue.
+The attacker can read files that are accessible to the process that midPoint is running in.
+However, it is unlikely that this vulnerability could expose any information that cannot be exposed by other means already (see below).
+
+
+== Mitigation
+
+MidPoint users are advised to upgrade their deployments to the latest builds from the xref:/midpoint/install/using-support-branch/[support branches].
+
+As this is a medium severity issue, it is not forcing official maintenance releases of midPoint.
+However, the fix is provided in all the support branches.
+
+
+== Discussion and Explanation
+
+The attacker needs an ability to add or modify XML files in the system, e.g. the ability to edit objects in raw XML form, create queries in XML form and so on.
+Therefore this vulnerability is usually exposed only to system administrators that already have high privileges.
+In that case it is unlikely that this vulnerability would expose any information that cannot be exposed by other mechanisms already.
+E.g. system administrators can use xref:/midpoint/reference/expressions/expressions/script/[script expression] to get the same information as is exposed by the XXE vulnerabilities.
+
+However, there is a xref:/midpoint/features/planned/expression-profiles/[planned solution to limit data exposure by expressions]. If that mechanism is implemented, XXE vulnerability may become a significant problem.
+Therefore the use of XXE in XML was explicitly disabled.
+This is reducing potential data exposure in future midPoint versions.
+
+
+== Credit
+
+Variants of this issue were reported by testers known as A855 and XiaoX by the means of link:https://joinup.ec.europa.eu/collection/eu-fossa-2/about[EU-Free and Open Source Software Auditing (EU-FOSSA2) project].
+
+
+== See Also
+
+* bug:MID-5285[]
+
+* link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]

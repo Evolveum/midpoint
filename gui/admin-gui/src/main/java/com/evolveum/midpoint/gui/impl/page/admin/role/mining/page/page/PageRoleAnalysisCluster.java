@@ -6,21 +6,15 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.recomputeRoleAnalysisClusterDetectionOptions;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.getScaleScript;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.io.Serial;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -28,15 +22,27 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.ClusterSummaryPanel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -44,43 +50,80 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
                 @Url(mountUrl = "/admin/roleAnalysisCluster", matchUrlForSecurity = "/admin/roleAnalysisCluster")
         },
         encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(
-                actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL,
-                label = "PageAdminRoles.auth.roleAll.label",
-                description = "PageAdminRoles.auth.roleAll.description"),
-        @AuthorizationAction(
-                actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL,
-                label = "PageRole.auth.role.label",
-                description = "PageRole.auth.role.description") })
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_ANALYSIS_ALL_URL,
+                label = "PageRoleAnalysis.auth.roleAnalysisAll.label",
+                description = "PageRoleAnalysis.auth.roleAnalysisAll.description"),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_ANALYSIS_CLUSTER_URL,
+                label = "PageRoleAnalysis.auth.roleAnalysisCluster.label",
+                description = "PageRoleAnalysis.auth.roleAnalysisCluster.description")
+})
 
-public class PageRoleAnalysisCluster extends AbstractPageObjectDetails<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
+public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAnalysisClusterType, AssignmentHolderDetailsModel<RoleAnalysisClusterType>> {
+
+    private static final String DOT_CLASS = PageRoleAnalysisCluster.class.getName() + ".";
+    private static final String OP_PATTERN_DETECTION = DOT_CLASS + "patternDetection";
+    private static final String OP_RECOMPUTE_SESSION_STAT = DOT_CLASS + "recomputeSessionStatistic";
 
     @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-        response.render(OnDomReadyHeaderItem.forScript(getScaleScript()));
+    protected AssignmentHolderOperationalButtonsPanel<RoleAnalysisClusterType> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<RoleAnalysisClusterType>> wrapperModel) {
+        return super.createButtonsPanel(id, wrapperModel);
     }
 
     @Override
-    public StringResourceModel setSaveButtonTitle() {
-        return ((PageBase) getPage()).createStringResource("PageAnalysisCluster.button.save");
+    protected void onBackPerform(AjaxRequestTarget target) {
+        PageParameters parameters = new PageParameters();
+        ObjectReferenceType roleAnalysisSessionRef = getModelObjectType().getRoleAnalysisSessionRef();
+        parameters.add(OnePageParameterEncoder.PARAMETER, roleAnalysisSessionRef.getOid());
+        parameters.add("panelId", "clusters");
+        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                .getObjectDetailsPage(RoleAnalysisSessionType.class);
+        ((PageBase) getPage()).navigateToNext(detailsPageClass, parameters);
     }
 
     @Override
-    public void savePerformed(AjaxRequestTarget target) {
+    public void addAdditionalButtons(RepeatingView repeatingView) {
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_OBJECT_TASK_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton detection = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
+                setDetectionButtonTitle()) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                detectionPerform(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        detection.titleAsLabel(true);
+        detection.setOutputMarkupId(true);
+        detection.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+        repeatingView.add(detection);
+
+        Form<?> form = detection.findParent(Form.class);
+        if (form != null) {
+            form.setDefaultButton(detection);
+        }
+    }
+
+    public void detectionPerform(AjaxRequestTarget target) {
 
         //TODO
-        OperationResult result = new OperationResult("ImportSessionObject");
+        OperationResult result = new OperationResult(OP_PATTERN_DETECTION);
 
         String clusterOid = getObjectDetailsModels().getObjectType().getOid();
 
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectWrapper().getObject().asObjectable();
 
-        Task task = ((PageBase) getPage()).createSimpleTask("Pattern detection");
-        ModelService modelService = ((PageBase) getPage()).getModelService();
+        PageBase pageBase = (PageBase) getPage();
+        Task task = pageBase.createSimpleTask(OP_PATTERN_DETECTION);
         DetectionOption detectionOption = new DetectionOption(cluster);
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
-        recomputeRoleAnalysisClusterDetectionOptions(clusterOid, modelService, detectionOption, result, task);
+        roleAnalysisService.recomputeClusterDetectionOptions(clusterOid, detectionOption,
+                task, result);
 
         executeDetectionTask(result, task, clusterOid);
 
@@ -108,6 +151,9 @@ public class PageRoleAnalysisCluster extends AbstractPageObjectDetails<RoleAnaly
 
         } catch (CommonException e) {
             LOGGER.error("Couldn't execute Cluster Detection Task {}", clusterOid, e);
+            result.recordPartialError(e);
+        } finally {
+            result.recordSuccessIfUnknown();
         }
     }
 
@@ -125,16 +171,21 @@ public class PageRoleAnalysisCluster extends AbstractPageObjectDetails<RoleAnaly
                         .roleAnalysisPatternDetection(rdw));
     }
 
+    public StringResourceModel setDetectionButtonTitle() {
+        return ((PageBase) getPage()).createStringResource("PageAnalysisCluster.button.save");
+    }
+
     @Override
     public void afterDeletePerformed(AjaxRequestTarget target) {
         PageBase pageBase = (PageBase) getPage();
-        Task task = pageBase.createSimpleTask("Recompute object");
+        Task task = pageBase.createSimpleTask(OP_RECOMPUTE_SESSION_STAT);
         OperationResult result = task.getResult();
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
         RoleAnalysisClusterType cluster = getModelWrapperObject().getObjectOld().asObjectable();
         ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
-        RoleAnalysisObjectUtils.recomputeSessionStatic(result, roleAnalysisSessionRef.getOid(), cluster, pageBase.getModelService(), task);
-
+        roleAnalysisService.recomputeSessionStatics(
+                roleAnalysisSessionRef.getOid(), cluster, task, result);
     }
 
     public PageRoleAnalysisCluster() {

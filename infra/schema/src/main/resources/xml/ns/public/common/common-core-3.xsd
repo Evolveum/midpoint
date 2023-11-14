@@ -16,10 +16,10 @@
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
             elementFormDefault="qualified"
             jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+            jaxb:version="3.0">
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
@@ -142,36 +142,8 @@
                 <p>
                     Lifecycle state of the object. This property defines whether the
                     object represents a draft, proposed definition, whether it is active,
-                    deprecated, and so on.
+                    deprecated, archived, and so on. See "Object Lifecycle" in the documentation.
                 </p>
-                <p>
-                    There are few pre-defined lifecycle states. But custom lifecycle states
-                    may also be defined. Pre-defined lifecycle states are:
-                </p>
-                <ul>
-                    <li>draft: Definition of the new object in progress. The object is
-                        NOT active. The definition may change at any moment. It is
-                        not ready yet.</li>
-                    <li>proposed: Definition of a new object is ready for use, but there
-                        is still a review process to be applied (e.g. approval).
-                        The object is NOT active. However the definition should
-                        not change in this state.</li>
-                    <li>active: Active and working definition. Ready to be used without
-                        any unusual limitations.</li>
-                    <li>deprecated: Active definition which is being phased out. The
-                        definition is still fully operational. But it should not
-                        be used for new assignments. E.g. it should not be requested,
-                        it should not be approved, etc.</li>
-                    <li>archived: Inactive historical definition. It is no longer used.
-                        It is maintained only for historical, auditing and
-                        sentimental reasons.</li>
-                    <li>failed: Unexpected error has occurred during object lifecycle. Result
-                        of that event is that the object is rendered inactive.
-                        The situation cannot be automatically remedied. Manual action
-                        is needed.</li>
-                </ul>
-
-                TODO adapt this definition regarding the "simulations" feature.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.5</a:since>
@@ -411,36 +383,8 @@
                         <p>
                             Lifecycle state of the object. This property defines whether the
                             object represents a draft, proposed definition, whether it is active,
-                            deprecated, and so on.
+                            deprecated, archived, and so on. See "Object Lifecycle" in the documentation.
                         </p>
-                        <p>
-                            There are few pre-defined lifecycle states. But custom lifecycle states
-                            may also be defined. Pre-defined lifecycle states are:
-                        </p>
-                        <ul>
-                            <li>draft: Definition of the new object in progress. The object is
-                                NOT active. The definition may change at any moment. It is
-                                not ready yet.</li>
-                            <li>proposed: Definition of a new object is ready for use, but there
-                                is still a review process to be applied (e.g. approval).
-                                The object is NOT active. However the definition should
-                                not change in this state.</li>
-                            <li>active: Active and working definition. Ready to be used without
-                                any unusual limitations.</li>
-                            <li>deprecated: Active definition which is being phased out. The
-                                definition is still fully operational. But it should not
-                                be used for new assignments. E.g. it should not be requested,
-                                it should not be approved, etc.</li>
-                            <li>archived: Inactive historical definition. It is no longer used.
-                                It is maintained only for historical, auditing and
-                                sentimental reasons.</li>
-                            <li>failed: Unexpected error has occurred during object lifecycle. Result
-                                of that event is that the object is rendered inactive.
-                                The situation cannot be automatically remedied. Manual action
-                                is needed.</li>
-                        </ul>
-
-                        TODO adapt this definition regarding the "simulations" feature.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>
@@ -2957,6 +2901,17 @@
         </xsd:annotation>
         <xsd:sequence>
 
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AssignmentType.identifier</a:displayName>
+                        <xsd:documentation>
+                            Identifier of assignment. Have to be unique to the object. It is now used for merging.
+                        </xsd:documentation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="description" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -3006,34 +2961,8 @@
                         <p>
                             Lifecycle state of the assignment. This property defines whether the
                             assignment represents a draft, proposed definition, whether it is active,
-                            deprecated, and so on.
+                            deprecated, archived, and so on. See "Object Lifecycle" in the documentation.
                         </p>
-                        <p>
-                            There are few pre-defined lifecycle states. But custom lifecycle states
-                            may also be defined. Pre-defined lifecycle states are:
-                        </p>
-                        <ul>
-                            <li>draft: Definition of the assignment in progress. The assignment is
-                                        NOT active. The definition may change at any moment. It is
-                                        not ready yet.</li>
-                            <li>proposed: Definition of a new assignment is ready for use, but there
-                                        is still a review process to be applied (e.g. approval).
-                                        The assignment is NOT active. However the definition should
-                                        not change in this state.
-                                        This is the state applied to requested and not yet approved
-                                        assignments.</li>
-                            <li>active: Active and working definition.</li>
-                            <li>deprecated: Active definition which is being phased out. The
-                                        definition is still fully operational. But it should be
-                                        replaced by a new assignment.</li>
-                            <li>archived: Inactive historical definition. It is no longer used.
-                                        It is maintained only for historical, auditing and
-                                        sentimental reasons.</li>
-                            <li>failed: Unexpected error has occurred during assignment lifecycle. Result
-                                        of that event is that the assignment is rendered inactive.
-                                        The situation cannot be automatically remedied. Manual action
-                                        is needed.</li>
-                        </ul>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.5</a:since>
@@ -3712,7 +3641,7 @@
                         </p><p>
                             It has been disabled, haven't reached the activation period, etc.
                             This is used to indicate that the entity is TEMPORARILY inactive
-                            and there is an intent to enabled the entity later.
+                            and there is an intent to enable the entity later.
                         </p><p>
                             Usually used for an employee on parental leave, sabbatical, temporarily disabled
                             account for security reasons, etc.
@@ -3738,10 +3667,16 @@
                             identifier to avoid their reuse.
                         </p><p>
                             Usually used for retired employees and similar cases.
+                        </p><p>
+                            DEPRECATED. The "archival" state is to be managed through the object lifecycle state instead.
+                            Since 4.8, this value will not be put into "effectiveStatus" property anymore.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHIVED"/>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:plannedRemoval>4.9</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -4264,8 +4199,6 @@
                         How should the computed changes of this item be regarded? (Applied, recorded, ignored.)
 
                         Currently supported only for resource object attributes.
-
-                        TODO better name
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ItemRefinedDefinitionType.changeApplication</a:displayName>
@@ -4712,10 +4645,9 @@
 
     <xsd:simpleType name="ItemChangeApplicationModeType">
         <xsd:annotation>
+            <!-- TODO nouns or verbs for the modes? -->
             <xsd:documentation>
                 What to do with the changes computed for the given item?
-
-                TODO nouns or verbs for the modes?
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -8300,13 +8232,11 @@
     <xsd:complexType name="ObjectParentSelectorType">
         <xsd:annotation>
             <xsd:documentation>
-                Position of an object (more precisely, an item) within midPoint objects structure.
+                Position of an object (an item in the language of prism) within midPoint objects structure.
                 For example a case work item can be specified as having type=CaseType, path=workItem.
 
-                TODO we should perhaps find a better name
-
-                TODO technically this derives from OwnedObjectSelectorType, but not all the features may be available
-                in all contexts (e.g., sometimes only ObjectSelectorType features may be available)
+                Note that although technically this derives from OwnedObjectSelectorType, not all the features may be available
+                in all contexts (e.g., sometimes only ObjectSelectorType features may be available).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -9087,9 +9017,6 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Definition of handling of the data in "multi-source" mode.
-
-                                TODO better explanation
-                                TODO think of a better name
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>
@@ -9189,8 +9116,6 @@
                                 (Where identity[x] is the value assigned to the given source.) Then there may be special
                                 mapping or mappings devoted to the selection of the value or values to be stored right
                                 to the "main" place of the focus item.
-
-                                TODO better name for this configuration item
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>
@@ -10316,34 +10241,65 @@
 
     <xsd:complexType name="LimitationsType">
         <xsd:annotation>
-            <xsd:documentation>Definition of complexity and string policy
+            <xsd:documentation>
+                Definition of complexity and string policy
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="minLength" type="xsd:int" default="0" minOccurs="0"/>
-            <xsd:element name="maxLength" type="xsd:int" default="-1" minOccurs="0"/>
+            <xsd:element name="minLength" type="xsd:int" default="0" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Minimal length of the string. If not specified, the string can be empty.
+
+                        (When generating values, though, the default for minimal generated length
+                        is situation-specific, e.g. 10 or 24 characters. It is used when both minLength
+                        and minUniqueChars are unspecified or zero.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxLength" type="xsd:int" default="-1" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximal length of the string. If not specified or if negative,
+                        the string can have arbitrary length.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="minUniqueChars" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                          Minimum number of unique characters in the generated string.
+                          Minimum number of unique characters in the string.
                           Defaults to minLength.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0"/>
-            <xsd:element name="checkPattern" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Currently ignored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="checkPattern" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Currently ignored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="checkExpression" type="c:CheckExpressionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                          Expression that is used to check the resulting value whether it is acceptable
-                          or not. If the expression returns true, then the value is accepted.
-                          If the expression returns false value, then the value is rejected and it
-                          will be generated again. Until the maximum number of attempts is reached.
-                          If there are several expressions that all of them must pass for the value to
-                          be accepted. However each of them may produce a different failure message.
+                            Expression that is used to check the value whether it is acceptable
+                            or not. If the expression returns true, then the value is accepted.
+                            If the expression returns false value, then the value is rejected and
+                            (in the case of value generation) it will be generated again.
+                            Until the maximum number of attempts is reached.
+                            If there are several expressions that all of them must pass for the value to
+                            be accepted. However, each of them may produce a different failure message.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -10352,48 +10308,174 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                          Maximum number of attempts to generate an expression. Attempts are used
-                          with limitations that cannot be incorporated directly into the generation
-                          algorithm (check expression, pattern, dictionary).
+                            Maximum number of attempts to generate an expression. Attempts are used
+                            with limitations that cannot be incorporated directly into the generation
+                            algorithm (check expression, pattern, dictionary). Any value less than 1
+                            is interpreted as 1.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="limit" type="tns:StringLimitType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="limit" type="tns:StringLimitType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Limitations (e.g., minimum and maximum occurrences) related to individual character classes.
+
+                            Important note: Generation of values is guaranteed to work if the character classes are disjunctive.
+
+                            If they are not, there may be situations where the value cannot be generated entirely,
+                            or their generation would require computationally intensive algorithms involving, e.g.,
+                            approaches known from constraints programming area. This can be the case if requirements
+                            for individual classes contradict each other - like A is subset of B, and minOccurs for A
+                            is greater than maxOccurs of B - or if the current simple algorithm walks into a dead end
+                            by randomly selected required characters from one class in such a way that there will be no
+                            chance of fulfilling the requirements of other classes and the global requirements
+                            at the same time.
+
+                            Hence, you should either use disjunctive character classes or make sure that all the limitations
+                            can be met even when selecting required amounts of characters from individual classes randomly
+                            and independently of each other.
+
+                            If there are no specific limitations, alphanumeric chars are used for value generation.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="StringLimitType">
         <xsd:annotation>
-            <xsd:documentation>Definition of valid single string limitation
+            <xsd:documentation>
+                Limitations of a string value connected to given character class.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="t:PolyStringType" minOccurs="0"/>
-            <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="name" type="t:PolyStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            User-understandable name of the limitations.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            User-understandable description of the limitations.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
-            <xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0"/>
-            <xsd:element name="maxOccurs" type="xsd:int" default="-1" minOccurs="0"/>
-            <xsd:element name="mustBeFirst" type="xsd:boolean" default="false" minOccurs="0"/>
-            <xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0"/>
+            <xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Minimal number of characters from this class that must be present in the string value.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxOccurs" type="xsd:int" default="-1" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Maximal number of characters from this class that can be present in the string value.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mustBeFirst" type="xsd:boolean" default="false" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            If "true", the character from this class must be at the first place of the string value.
+                            If more classes have this flag set to "true", all of them must conform to this rule.
+                            (I.e., the first character must come from an intersection of these classes, which must
+                            be, obviously, non-empty.)
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="characterClass" type="tns:CharacterClassOrRefType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specification of the character class for these limitations.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="CharacterClassType">
         <xsd:annotation>
-            <xsd:documentation>Definition of valid characters in class. Default
-                value is ASCII printable characters (Codes 0x20
-                to 0x7E)
+            <xsd:documentation>
+                Definition of valid characters in a character class.
+                Default value is ASCII printable characters (codes 0x20 to 0x7E).
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:choice>
-                <xsd:element name="characterClass" type="tns:CharacterClassType" maxOccurs="unbounded"/>
-                <xsd:element name="value" type="xsd:string"/>
-            </xsd:choice>
+            <xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Embedded character class(es). Their content is included in the outer class.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Explicitly specified characters belonging to this class.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="ref" type="xsd:QName"/>
-        <xsd:attribute name="name" type="xsd:QName"/>
+        <xsd:attribute name="name" type="xsd:QName">
+            <xsd:annotation>
+                <xsd:documentation>
+                    <p>
+                        Name of this character class (optional).
+                    </p>
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="CharacterClassOrRefType">
+        <xsd:annotation>
+            <xsd:documentation>
+                As a CharacterClassType, but it can contain a reference to a class defined elsewhere.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CharacterClassType">
+                <xsd:attribute name="ref" type="xsd:QName">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            <p>
+                                Name of existing character class that is to be used at this place.
+
+                                If this value is present, no content ("characterClass" nor "value") must be provided.
+                                The referenced classes are looked up in the list of classes provided in the "characterClass"
+                                item within the StringPolicyType object. There must be exactly one class with the given
+                                reference. Note that unlike at other places in midPoint, here both namespaces and local parts
+                                of the names must match. Therefore, the use of unqualified names is suggested for simplicity.
+                            </p>
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="CheckExpressionType">
@@ -11786,7 +11868,7 @@
             <xsd:element name="defaults" type="tns:DefaultExpressionProfilesConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Default expression profiles to be used in specific situations.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SystemConfigurationExpressionsType.defaults</a:displayName>
@@ -12041,7 +12123,7 @@
     <xsd:complexType name="AbstractSecurityProfileType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Abstract supertype for various expression and related profiles.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -12293,7 +12375,7 @@
     <xsd:complexType name="DefaultExpressionProfilesConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Default expression profiles to be used in specific situations.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -12459,7 +12541,7 @@
     <xsd:complexType name="FunctionLibraryProfileType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                What functions in a given function library can be called?
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -14331,9 +14413,17 @@
                      <xsd:documentation>
                          The property value will be bound to OID. This property will be set to the value
                          of OID and it cannot be changed.
+
+                         DEPRECATED since 3.0.
+                         NOT SUPPORTED since 4.8.
+
+                         Migration: Since 4.8, focus OID is known right at the operation start. Hence, it can be used in mappings
+                         just like any other focus property.
                      </xsd:documentation>
                      <xsd:appinfo>
                          <a:deprecated>true</a:deprecated>
+                         <a:deprecatedSince>3.0</a:deprecatedSince>
+                         <a:plannedRemoval>4.9</a:plannedRemoval>
                      </xsd:appinfo>
                  </xsd:annotation>
              </xsd:element>
@@ -17920,6 +18010,14 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="objectOid" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        OID of object that was target of this operation. If objectDelta is present it must not have value or
+                        value must be same as objectDelta/oid.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0"/>
             <xsd:element name="executionResult" type="tns:OperationResultType" minOccurs="0"/>
             <xsd:element name="objectName" type="t:PolyStringType" minOccurs="0">

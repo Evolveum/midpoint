@@ -13,10 +13,12 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -52,5 +54,23 @@ public class BaseMergeOperation<C extends Containerable> {
         PathKeyedMap<ItemMerger> newMap = new PathKeyedMap<>();
         newMap.putAll(sourceMap);
         return newMap;
+    }
+
+    /**
+     * A convenience method that merges two values without origin marking or custom config.
+     * Use as a starting point when you just need to merge two containerable values.
+     */
+    public static <C extends Containerable> C merge(@Nullable C target, @Nullable C source)
+            throws SchemaException, ConfigurationException {
+        if (target == null) {
+            return source;
+        } else if (source == null) {
+            return target;
+        } else {
+            var clone = CloneUtil.cloneCloneable(target);
+            new BaseMergeOperation<>(clone, source, new GenericItemMerger(null, createPathMap(Map.of())))
+                    .execute();
+            return clone;
+        }
     }
 }

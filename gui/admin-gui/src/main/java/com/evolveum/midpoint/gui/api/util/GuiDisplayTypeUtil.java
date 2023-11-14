@@ -85,10 +85,15 @@ public class GuiDisplayTypeUtil {
     }
 
     public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(PrismObject<O> object, PageAdminLTE pageBase) {
-        if (object != null && StringUtils.isNotEmpty(object.getOid())) {
-            ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object, pageBase);
-            if (archetypePolicy != null) {
-                return archetypePolicy.getDisplay();
+        if (object != null) {
+            try {
+                ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object, pageBase);
+                if (archetypePolicy != null) {
+                    return archetypePolicy.getDisplay();
+                }
+            } catch (Exception e) {
+                LOGGER.debug("Couldn't get archetype policy for " + object, e);
+                return null;
             }
         }
         return null;
@@ -169,7 +174,7 @@ public class GuiDisplayTypeUtil {
                         relationValue = relation.getLocalPart();
                     }
                 }
-                displayType.setLabel(new PolyStringType(typeValue + " " + relationValue));
+                displayType.setLabel(new PolyStringType(typeValue + " (" + relationValue + ")"));
 
                 relationTitle = pageBase.createStringResource("abstractRoleMemberPanel.withRelation", relationValue).getString();
 
@@ -190,7 +195,7 @@ public class GuiDisplayTypeUtil {
             displayType = createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
         }
 
-        if (displayType.getIcon() == null || displayType.getIcon().getCssClass() == null){
+        if (displayType.getIcon() == null || displayType.getIcon().getCssClass() == null) {
             MiscSchemaUtil.mergeDisplay(displayType, createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", ""));
         }
 
@@ -256,6 +261,13 @@ public class GuiDisplayTypeUtil {
         return LocalizationUtil.translatePolyString(displayType.getHelp());
     }
 
+    public static String getTooltip(DisplayType displayType) {
+        if (displayType == null || displayType.getTooltip() == null) {
+            return "";
+        }
+        return LocalizationUtil.translatePolyString(displayType.getTooltip());
+    }
+
     public static String getDisplayTypeTitle(DisplayType displayType) {
         if (displayType == null || displayType.getTooltip() == null) {
             return "";
@@ -264,17 +276,17 @@ public class GuiDisplayTypeUtil {
     }
 
     public static boolean existsIconDisplay(CompiledObjectCollectionView view) {
-        if (view == null){
+        if (view == null) {
             return false;
         }
         return existsIconDisplay(view.getDisplay());
     }
 
     private static boolean existsIconDisplay(DisplayType display) {
-        if (display == null){
+        if (display == null) {
             return false;
         }
-        if (display.getIcon() == null){
+        if (display.getIcon() == null) {
             return false;
         }
         return StringUtils.isNotBlank(display.getIcon().getCssClass());

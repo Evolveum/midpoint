@@ -12,6 +12,7 @@ import com.evolveum.midpoint.authentication.api.ModuleFactory;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
+import com.evolveum.midpoint.authentication.impl.filter.FinishAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,7 +37,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
+import org.springframework.security.web.session.SessionManagementFilter;
 
 /**
  * @author skublik
@@ -92,6 +95,10 @@ public abstract class AbstractModuleFactory<
 
         HttpSecurity http =  moduleConfigurer.getNewHttpSecurity(sharedObjects);
         http.addFilterAfter(new RefuseUnauthenticatedRequestFilter(), SwitchUserFilter.class);
+
+
+
+        http.addFilterBefore(getObjectObjectPostProcessor().postProcess(new FinishAuthenticationFilter()), FilterSecurityInterceptor.class);
 
         SecurityFilterChain filter = http.build();
         postProcessFilter(filter, moduleConfigurer);

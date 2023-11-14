@@ -48,6 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -69,8 +70,14 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 /**
  * Takes care about registration of the local node in repository.
  *
+ * @DependsOn was added to ensure that this bean is initialized after {@link NodeRegistrar}.
+ * Without it there were NPEs during initialization under some circumstances (on jenkins in tests).
+ * Problem is caused by spring bean circular dependencies and @PostConstruct methods using autowired
+ * fields that aren't always initialized at the time of execution.
+ *
  * TODO finish review of this class
  */
+@DependsOn("taskManagerConfiguration")
 @Component
 public class NodeRegistrar implements Cache {
 
@@ -226,7 +233,7 @@ public class NodeRegistrar implements Cache {
     @NotNull
     private NodeType createLocalNodeObject(TaskManagerConfiguration configuration) {
         XMLGregorianCalendar currentTime = XmlTypeConverter.createXMLGregorianCalendar();
-        NodeType node = prismContext.createKnownObjectable(NodeType.class);
+        NodeType node = new NodeType();
         String nodeId = configuration.getNodeId();
         node.setNodeIdentifier(nodeId);
         node.setName(new PolyStringType(nodeId));

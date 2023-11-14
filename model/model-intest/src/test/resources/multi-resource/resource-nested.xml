@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="3d49a5df-ca1c-43a7-a64a-c01e3e2a9ec9">
+    <name>resource-nested</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>nested</icfi:instanceId>
+            <icfi:uidMode>uuid</icfi:uidMode>
+            <icfi:hierarchicalObjectsEnabled>true</icfi:hierarchicalObjectsEnabled>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>org</intent>
+            <objectClass>ri:CustomorgObjectClass</objectClass>
+            <attribute>
+                <ref>ri:businessId</ref>
+                <correlator/>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                    <use>correlation</use>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <source>
+                        <path>activation/effectiveStatus</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+
+                                effectiveStatus == ActivationStatusType.ENABLED ? "$name:production" : "$name:archived"
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <attribute>
+                <ref>ri:businessId</ref>
+                <correlator/>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                    <use>correlation</use>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <source>
+                        <path>activation/effectiveStatus</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+
+                                effectiveStatus == ActivationStatusType.ENABLED ? "group:$name:production" : "group:$name:archived"
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <dependency>
+                <kind>entitlement</kind>
+                <intent>org</intent>
+                <strictness>strict</strictness>
+                <dataBinding>some</dataBinding>
+            </dependency>
+        </objectType>
+    </schemaHandling>
+</resource>

@@ -1,0 +1,17 @@
+= Self Clause
+
+Select object(s) that represent the user which initiates the operation.
+For authorizations, it means that the object is the subject of the operation.
+
+.Listing 1. Authorization related to the subject itself
+[source,xml]
+----
+<authorization>
+    <action>...</action>
+    <object>
+        <special>self</special>
+    </object>
+</authorization>
+----
+
+#TODO# limitations; explain also delegation scenarios

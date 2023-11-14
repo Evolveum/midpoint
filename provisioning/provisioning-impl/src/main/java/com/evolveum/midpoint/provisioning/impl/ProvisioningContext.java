@@ -14,6 +14,9 @@ import java.util.function.Supplier;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +32,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -77,6 +79,8 @@ public class ProvisioningContext {
      * Type of objects that are to be processed by the current operation.
      * If this is a bulk operation (like search or live sync), this also drives its scope - i.e. whether to
      * access the whole resource, an object class, or a object type.
+     *
+     * Note: the definition is always attached to the {@link #resource}.
      */
     @Nullable private final ResourceObjectDefinition resourceObjectDefinition;
 
@@ -128,6 +132,7 @@ public class ProvisioningContext {
      */
     private Collection<ResourceObjectPattern> protectedObjectPatterns;
 
+    /** TODO document */
     private ObjectReferenceType associationShadowRef;
 
     private ProvisioningOperationContext operationContext;
@@ -141,6 +146,7 @@ public class ProvisioningContext {
             @NotNull ProvisioningContextFactory contextFactory) {
         this.task = task;
         this.resource = resource;
+        ResourceObjectDefinition.assertAttached(resourceObjectDefinition);
         this.resourceObjectDefinition = resourceObjectDefinition;
         this.wholeClass = wholeClass;
         this.contextFactory = contextFactory;
@@ -155,6 +161,7 @@ public class ProvisioningContext {
             Boolean wholeClass) {
         this.task = task;
         this.resource = originalCtx.resource;
+        ResourceObjectDefinition.assertAttached(resourceObjectDefinition);
         this.resourceObjectDefinition = resourceObjectDefinition;
         this.wholeClass = wholeClass;
         this.contextFactory = originalCtx.contextFactory;
@@ -237,8 +244,7 @@ public class ProvisioningContext {
     /**
      * Returns evaluated protected object patterns.
      */
-    public Collection<ResourceObjectPattern> getProtectedAccountPatterns(
-            ExpressionFactory expressionFactory, OperationResult result)
+    public Collection<ResourceObjectPattern> getProtectedAccountPatterns(OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
         if (protectedObjectPatterns != null) {
@@ -256,7 +262,7 @@ public class ProvisioningContext {
             variables.put(ExpressionConstants.VAR_CONFIGURATION,
                     getResourceManager().getSystemConfiguration(), SystemConfigurationType.class);
             ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
-                    filter, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory,
+                    filter, variables, MiscSchemaUtil.getExpressionProfile(), contextFactory.getCommonBeans().expressionFactory,
                      "protected filter", getTask(), result);
             protectedObjectPatterns.add(
                     new ResourceObjectPattern(
@@ -282,10 +288,7 @@ public class ProvisioningContext {
             }
             auxiliaryObjectClassDefinitions.add(auxObjectClassDef);
         }
-        // FIXME the attribute lookup in this definition will be slow (iterating through all the definitions)
-        return new CompositeObjectDefinitionImpl(
-                getObjectDefinitionRequired(),
-                auxiliaryObjectClassDefinitions);
+        return CompositeObjectDefinition.of(getObjectDefinitionRequired(), auxiliaryObjectClassDefinitions);
     }
 
     /**
@@ -322,8 +325,7 @@ public class ProvisioningContext {
      *
      * The returned context is based on "refined" resource type definition.
      */
-    @NotNull
-    public ProvisioningContext spawnForKindIntent(
+    public @NotNull ProvisioningContext spawnForKindIntent(
             @NotNull ShadowKindType kind,
             @NotNull String intent)
             throws SchemaException, ConfigurationException {
@@ -333,13 +335,22 @@ public class ProvisioningContext {
     /**
      * Creates an exact copy of the context but with different task.
      */
-    public ProvisioningContext spawn(Task task) {
+    public @NotNull ProvisioningContext spawn(Task task) {
         // No need to bother the factory because no population resolution is needed
         return new ProvisioningContext(
                 this,
                 task,
                 resourceObjectDefinition,
                 wholeClass);
+    }
+
+    /** A convenience method for {@link #spawn(Task)} */
+    public @NotNull ProvisioningContext spawnIfNeeded(Task task) {
+        if (task == this.task) {
+            return this;
+        } else {
+            return spawn(task);
+        }
     }
 
     /**
@@ -446,8 +457,19 @@ public class ProvisioningContext {
         return getEnabledCapability(capabilityClass) != null;
     }
 
+    public <C extends CapabilityType> void checkForCapability(Class<C> capabilityClass) {
+        if (!hasCapability(capabilityClass)) {
+            throw new UnsupportedOperationException(
+                    String.format("Operation not supported %s as %s is missing", getDesc(), capabilityClass.getSimpleName()));
+        }
+    }
+
     public boolean hasReadCapability() {
         return hasCapability(ReadCapabilityType.class);
+    }
+
+    public boolean hasRealReadCapability() {
+        return hasReadCapability() && !isReadingCachingOnly();
     }
 
     public boolean isReadingCachingOnly() {
@@ -468,19 +490,65 @@ public class ProvisioningContext {
         return ItemPath.create(components);
     }
 
-    public @NotNull CachingStrategyType getCachingStrategy() {
-        CachingPolicyType cachingPolicy = resource.getCaching();
-        CachingStrategyType explicitCachingStrategy = cachingPolicy != null ? cachingPolicy.getCachingStrategy() : null;
-        if (explicitCachingStrategy != null) {
-            return explicitCachingStrategy;
+    public boolean shouldStoreAttributeInShadow(
+            @NotNull ResourceObjectDefinition objectDefinition,
+            @NotNull ResourceAttributeDefinition<?> attrDef,
+            @NotNull Collection<? extends QName> associationValueAttrs) {
+        ItemName attrName = attrDef.getItemName();
+        if (objectDefinition.isIdentifier(attrName)) {
+            return true;
+        }
+        if (QNameUtil.matchAny(attrName, associationValueAttrs)) {
+            return true;
+        }
+        if (Boolean.FALSE.equals(getExplicitCachingStatus())) {
+            return false;
+        }
+        if (isReadCachingOnlyCapabilityPresent()) {
+            return true;
+        }
+        return attrDef.isEffectivelyCached(objectDefinition);
+    }
+
+    private Boolean getExplicitCachingStatus() {
+        if (resourceObjectDefinition != null) {
+            var objectLevel = resourceObjectDefinition.getEffectiveShadowCachingPolicy().getCachingStrategy();
+            if (objectLevel == CachingStrategyType.NONE) {
+                return false;
+            } else if (objectLevel == CachingStrategyType.PASSIVE) {
+                return true;
+            } else if (objectLevel != null) {
+                throw new AssertionError(objectLevel);
+            }
         } else {
-            ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
-            if (readCapability != null && Boolean.TRUE.equals(readCapability.isCachingOnly())) {
-                return CachingStrategyType.PASSIVE;
-            } else {
-                return CachingStrategyType.NONE;
+            // No object definition, we must go to the resource level
+            ShadowCachingPolicyType resourceCaching = resource.getCaching();
+            var resourceLevel = resourceCaching != null ? resourceCaching.getCachingStrategy() : null;
+            if (resourceLevel == CachingStrategyType.NONE) {
+                return false;
+            } else if (resourceLevel == CachingStrategyType.PASSIVE) {
+                return true;
+            } else if (resourceLevel != null) {
+                throw new AssertionError(resourceLevel);
             }
         }
+
+        return null;
+    }
+
+    private boolean isReadCachingOnlyCapabilityPresent() {
+        ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
+        return readCapability != null && Boolean.TRUE.equals(readCapability.isCachingOnly());
+    }
+
+    public boolean isCachingEnabled() {
+        return Objects.requireNonNullElseGet(
+                getExplicitCachingStatus(),
+                this::isReadCachingOnlyCapabilityPresent);
+    }
+
+    public boolean isReadCachingOnlyCapabilityDisabled() {
+        return isReadCachingOnlyCapabilityPresent() && !Boolean.FALSE.equals(getExplicitCachingStatus());
     }
 
     public String toHumanReadableDescription() {
@@ -602,6 +670,26 @@ public class ProvisioningContext {
     public ProvisioningContext applyAttributesDefinition(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
         return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
+    }
+
+    /**
+     * Takes kind/intent/OC from the shadow, looks up the definition, and updates the shadow accordingly.
+     * Currently that means attribute definitions and shadow state.
+     */
+    public ProvisioningContext adoptShadow(
+            @NotNull ShadowType shadow, @Nullable ObjectDelta<ShadowType> delta)
+            throws SchemaException, ConfigurationException {
+        var shadowCtx = applyAttributesDefinition(shadow);
+        if (delta != null) {
+            shadowCtx.applyAttributesDefinition(delta);
+        }
+        shadowCtx.updateShadowState(shadow);
+        return shadowCtx;
+    }
+
+    /** Just a convenience method. */
+    public ProvisioningContext adoptShadow(@NotNull ShadowType shadow) throws SchemaException, ConfigurationException {
+        return adoptShadow(shadow, null);
     }
 
     /**
@@ -742,5 +830,57 @@ public class ProvisioningContext {
 
     public void setAssociationShadowRef(ObjectReferenceType associationShadowRef) {
         this.associationShadowRef = associationShadowRef;
+    }
+
+    public @NotNull ResourceObjectIdentification.WithPrimary getIdentificationFromShadow(@NotNull ShadowType shadow) {
+        return ResourceObjectIdentification.fromCompleteShadow(getObjectDefinitionRequired(), shadow);
+    }
+
+    public boolean isAvoidDuplicateValues() {
+        return ResourceTypeUtil.isAvoidDuplicateValues(resource);
+    }
+
+    public void checkProtectedObjectAddition(ShadowType repoShadow, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (!ProvisioningUtil.isAddShadowEnabled(
+                getProtectedAccountPatterns(result),
+                repoShadow,
+                result)) {
+            throw new SecurityViolationException(
+                    String.format("Cannot add protected resource object %s (%s)", repoShadow, getExceptionDescription()));
+        }
+    }
+
+    public void checkProtectedObjectModification(ShadowType repoShadow, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (!ProvisioningUtil.isModifyShadowEnabled(
+                getProtectedAccountPatterns(result),
+                repoShadow,
+                result)) {
+            throw new SecurityViolationException(
+                    String.format("Cannot modify protected resource object (%s): %s", repoShadow, getExceptionDescription()));
+        }
+    }
+
+    public void checkProtectedObjectDeletion(ShadowType repoShadow, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (!ProvisioningUtil.isDeleteShadowEnabled(
+                getProtectedAccountPatterns(result),
+                repoShadow,
+                result)) {
+            throw new SecurityViolationException(
+                    String.format("Cannot delete protected resource object (%s): %s", repoShadow, getExceptionDescription()));
+        }
+    }
+
+    public @NotNull ResourceObjectDefinition getAnyDefinition() throws SchemaException, ConfigurationException {
+        Collection<ResourceObjectDefinition> objectDefinitions = getResourceSchema().getResourceObjectDefinitions();
+        if (objectDefinitions.isEmpty()) {
+            throw new IllegalStateException("Resource without object definitions: " + resource);
+        }
+        return objectDefinitions.iterator().next();
     }
 }

@@ -1393,8 +1393,8 @@ public class ObjectTypeUtil {
 //        return getExtensionItemRealValue(parent.asPrismContainerValue(), name);
 //    }
 
-    public static <T> T getExtensionItemRealValue(PrismContainerValue<?> parent, ItemName name) {
-        Item<?, ?> item = parent.findItem(ItemPath.create(ObjectType.F_EXTENSION, name));
+    public static <T> T getExtensionItemRealValue(PrismContainerValue<?> parent, ItemPath path) {
+        Item<?, ?> item = parent.findItem(ItemPath.create(ObjectType.F_EXTENSION, path));
         if (item != null) {
             //noinspection unchecked
             return (T) item.getRealValue();

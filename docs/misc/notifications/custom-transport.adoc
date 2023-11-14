@@ -1,0 +1,66 @@
+= Custom Notification Transport
+:page-wiki-name: Custom notification transport HOWTO
+:page-wiki-id: 26411509
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2018-09-03T15:15:04.436+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-07-04T07:57:38.554+02:00
+:page-since: "3.9"
+:page-display-order: 300
+:page-upkeep-status: yellow
+
+Imagine that you want to append all user password values (as soon as they are changed) as individual records to a CSV file.
+
+It is possible to configure a notification to do so:
+
+[source,xml]
+----
+<notificationConfiguration>
+     <handler>
+        <customNotifier>
+            <category>modelEvent</category>
+            <focusType>UserType</focusType>
+            <status>alsoSuccess</status>            <!-- avoid processing if there's an overall failure (e.g. password does not meet policy constraints) -->
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                        user = event.requestee?.resolveObjectType()
+                        pwd = event.focusPassword
+                        if (user != null &amp;&amp; pwd != null) {
+                            m = new NotificationMessageType()
+                            m.setBody(user.name.orig + ";" + pwd)             // record to be written to the file
+                            m
+                        } else {
+                            null
+                        }
+                    </code>
+                </script>
+            </expression>
+            <transport>custom:csv</transport>
+        </customNotifier>
+     </handler>
+     <customTransport name="csv">
+        <expression>
+            <script>
+                <code>
+                    new File('data.csv').append(message.body+'\n')
+                </code>
+            </script>
+        </expression>
+     </customTransport>
+</notificationConfiguration>
+----
+
+The first part i.e. `<customNotifier`> translates a modelEvent (after filtering out non-user related events and events that ended in a failure) into a notification message containing _username;password_ value pair.
+This is the line that should be written to CSV file.
+
+The second part i.e. `<customTransport>` writes the line into `data.csv` file.
+
+Notes:
+
+. The `event.focusPassword` method is present only in midPoint 3.9 and later.
+But other parts of this mechanism are present in midPoint 3.6.1 already.
+
+. There's a slight limitation of `event.getFocusPassword()` method: it cannot distinguish between "no change of password" and "password set to null value".
+A more elaborate analysis of model context would be needed if such a distinction was required.

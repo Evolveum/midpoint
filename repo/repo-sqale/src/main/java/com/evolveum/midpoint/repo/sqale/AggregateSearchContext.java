@@ -56,6 +56,9 @@ public class AggregateSearchContext {
 
     public SearchResultList<PrismContainerValue<?>> search() throws SchemaException, RepositoryException {
         computeMapping();
+        if (apiQuery.getFilter() != null) {
+            context.processFilter(apiQuery.getFilter());
+        }
         context.beforeQuery();
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             var query = createQueryWithoutPaging(jdbcSession);
@@ -71,6 +74,9 @@ public class AggregateSearchContext {
 
     public int count() throws SchemaException, RepositoryException {
         computeMapping();
+        if (apiQuery.getFilter() != null) {
+            context.processFilter(apiQuery.getFilter());
+        }
         context.beforeQuery();
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             return (int) createQueryWithoutPaging(jdbcSession).fetchCount();

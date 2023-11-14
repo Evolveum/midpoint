@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
@@ -55,5 +56,12 @@ public record ActivitySubmissionOptions(
 
     public ActivitySubmissionOptions withOwner(@Nullable FocusType owner) {
         return new ActivitySubmissionOptions(taskTemplate, archetypes, owner);
+    }
+
+    /** Creates or updates {@link #taskTemplate} with specified updater. */
+    public ActivitySubmissionOptions updateTaskTemplate(@NotNull Consumer<TaskType> taskTemplateUpdater) {
+        TaskType newTaskTemplate = taskTemplate != null ? taskTemplate.clone() : new TaskType();
+        taskTemplateUpdater.accept(newTaskTemplate);
+        return withTaskTemplate(newTaskTemplate);
     }
 }

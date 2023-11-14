@@ -21,6 +21,12 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.LiveSyncEvent;
+import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
+import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
+import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
+import com.evolveum.midpoint.test.TestTask;
+
 import org.apache.directory.api.ldap.codec.api.DefaultConfigurableBinaryAttributeDetector;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.CursorLdapReferralException;
@@ -139,6 +145,21 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     protected Lsof lsof;
 
+    private TestTask taskLiveSync;
+    private TestTask taskLiveSyncInetOrgPerson;
+
+    @Override
+    public void initSystem() throws Exception {
+        super.initSystem();
+
+        taskLiveSync = new TestTask(getBaseDir(), "task-sync.xml", getSyncTaskOid());
+        taskLiveSyncInetOrgPerson = initTaskLiveSyncInetOrgPerson();
+    }
+
+    protected TestTask initTaskLiveSyncInetOrgPerson() {
+        return new TestTask(getBaseDir(), "task-sync-inetorgperson.xml", getSyncTaskOid());
+    }
+
     @Override
     protected void startResources() throws Exception {
         super.startResources();
@@ -173,16 +194,16 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         return new File(getBaseDir(), "resource.xml");
     }
 
-    protected File getSyncTaskFile() {
-        return new File(getBaseDir(), "task-sync.xml");
+    protected TestTask getSyncTask() {
+        return taskLiveSync;
     }
 
     protected String getResourceNamespace() {
         return MidPointConstants.NS_RI;
     }
 
-    protected File getSyncTaskInetOrgPersonFile() {
-        return new File(getBaseDir(), "task-sync-inetorgperson.xml");
+    protected final TestTask getSyncTaskInetOrgPerson() {
+        return taskLiveSyncInetOrgPerson;
     }
 
     protected abstract String getSyncTaskOid();
@@ -343,6 +364,30 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
         resource = getObject(ResourceType.class, getResourceOid());
         displayXml("Resource after test connection", resource);
+
+        showToken();
+    }
+
+    /** This is to diagnose issues with the initial token. */
+    void showToken() throws CommonException {
+        DummyTokenStorage tokenStorage = new DummyTokenStorage();
+        provisioningService.synchronize(
+                ResourceOperationCoordinates.ofResource(getResourceOid()),
+                null,
+                tokenStorage,
+                new LiveSyncEventHandler() {
+                    @Override
+                    public void allEventsSubmitted(OperationResult result) {
+                    }
+
+                    @Override
+                    public boolean handle(LiveSyncEvent event, OperationResult opResult) {
+                        return true;
+                    }
+                },
+                getTestTask(),
+                getTestOperationResult());
+        displayValue("Token", tokenStorage.token);
     }
 
     @Test
@@ -371,6 +416,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         displayXml("Resource after test connection", resource.asPrismObject());
 
         assertNull("Resource was saved to repo, during partial configuration test", findObjectByName(ResourceType.class, "newResource"));
+
+        showToken();
     }
 
     @Test
@@ -398,6 +445,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         displayXml("Resource after test connection", resource.asPrismObject());
 
         assertNull("Resource was saved to repo, during partial configuration test", findObjectByName(ResourceType.class, "newResource"));
+
+        showToken();
     }
 
     @Test
@@ -432,6 +481,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertFalse(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canAdd());
 
         assertStableSystem();
+
+        showToken();
     }
 
     protected String getCreateTimeStampAttributeName() {
@@ -466,6 +517,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertAdditionalCapabilities(nativeCapabilities);
 
         assertStableSystem();
+
+        showToken();
     }
 
     protected void assertActivationCapability(ActivationCapabilityType activationCapabilityType) {
@@ -1087,5 +1140,20 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     protected int getNumberOfFdsPerLdapConnectorInstance() {
         return 7;
+    }
+
+    public static class DummyTokenStorage implements LiveSyncTokenStorage {
+
+        LiveSyncToken token;
+
+        @Override
+        public LiveSyncToken getToken() {
+            return token;
+        }
+
+        @Override
+        public void setToken(LiveSyncToken token, OperationResult result) {
+            this.token = token;
+        }
     }
 }

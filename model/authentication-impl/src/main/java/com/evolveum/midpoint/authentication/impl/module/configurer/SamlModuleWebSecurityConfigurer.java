@@ -100,12 +100,10 @@ public class SamlModuleWebSecurityConfigurer extends RemoteModuleWebSecurityConf
 
     @Override
     protected LogoutSuccessHandler getLogoutRequestSuccessHandler() {
-        RelyingPartyRegistrationResolver registrationResolver = new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrations());
-        Saml2LogoutRequestResolver logoutRequestResolver = new MidpointSaml2LogoutRequestResolver(
-                new OpenSaml4LogoutRequestResolver(registrationResolver));
-        Saml2RelyingPartyInitiatedLogoutSuccessHandler handler = new Saml2RelyingPartyInitiatedLogoutSuccessHandler(logoutRequestResolver);
-        return getObjectPostProcessor().postProcess(new MidpointSaml2LogoutRequestSuccessHandler(
-                handler));
+        Saml2LogoutRequestResolver logoutRequestResolver = new MidpointSaml2LogoutRequestResolver(relyingPartyRegistrations());
+        Saml2RelyingPartyInitiatedLogoutSuccessHandler handler =
+                new Saml2RelyingPartyInitiatedLogoutSuccessHandler(logoutRequestResolver);
+        return getObjectPostProcessor().postProcess(new MidpointSaml2LogoutRequestSuccessHandler(handler));
     }
 
     @Override

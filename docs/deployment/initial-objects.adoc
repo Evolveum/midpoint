@@ -1,0 +1,19 @@
+= Initial Objects
+:page-wiki-name: Default MidPoint Configuration
+:page-wiki-id: 27820288
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-02-27T18:34:45.999+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-02-27T18:36:55.190+01:00
+:page-upkeep-status: orange
+
+When midPoint is installed it applies default minimum configuration, also known as _initial objects_.
+This is a set of objects that make the most basic midPoint installation work.
+There are essential objects such as `administrator` user and `Superuser` role.
+Such objects allow to log in into midPoint and carry out configurations tasks.
+Then there are non-essential objects such as some archetypes and example roles.
+These objects provide a starting point for further midPoint configuration.
+
+The default configuration is meant to be just a starting point that is supposed to be modified and customized for each and every deployment.
+Do not rely on unmodified default configuration, any demos or configuration samples.
+They need to be adapted for the specific environment of each deployment.

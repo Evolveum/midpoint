@@ -1,0 +1,289 @@
+= CSVFile Connector Migration
+:page-wiki-name: CSVFile Connector Migration
+:page-wiki-id: 24084711
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-12-09T17:00:08.049+01:00
+:page-wiki-metadata-modify-user: lazyman
+:page-wiki-metadata-modify-date: 2017-07-17T14:36:38.961+02:00
+:page-obsolete: true
+
+[WARNING]
+====
+This information is applicable for midPoint 3.6. It describes migration from midPoint 3.5.x CSVFile connector to midPoint 3.6 CSV connector.
+====
+
+== Synopsis
+
+Up until version 3.6 midPoint included a legacy CSVFile connector.
+The legacy xref:/connectors/connectors/com.evolveum.polygon.csvfile.CSVFileConnector/[CSVFile Connector] was replaced by* *new xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] in midPoint 3.6. The new CSV connector is a rewrite from scratch.
+The old CSVFile connector was written even before midPoint project started and it was not designed for real deployment use.
+We have maintained and improved the connector during the years.
+But it was not maintainable any more.
+Also the ConnId framework evolved over the time and we needed a connector that will use these features.
+Therefore we have decided to rewrite the connector completely.
+MidPoint 3.6 no longer bundles the old connector.
+New CSV connector is bundled instead.
+Old CSV connector can still be used and it is still supported for deployments that purchased midPoint subscription before midPoint 3.6 was released.
+As the old connector is not bundled with midPoint any more you have to download the connector JAR and deploy it explicitly.
+
+
+== Migration: New CSV Connector
+
+The new CSV connector is very similar in its operation and configuration as the old CSVFile connector.
+However it is *not entirely backwards compatible* with the old connector.
+There are several major differences:
+
+* connector name and bundle
+
+* some connector configuration properties are different and some are missing
+
+* attribute names: native column names are used instead of icfs:name and icfs:uid
+
+* the new connector does *not* support script execution yet
+
+
+=== Connector Name and Bundle
+
+The new CSV connector is using bundle and connector name from com.evolveum.polygon namespace.
+The configuration XML namespace also reflects that:
+
+[%autowidth,cols="h,1"]
+|===
+| Bundle name (connectorBundle) | com.evolveum.polygon.connector-csv
+
+| Connector name (connectorType)
+| com.evolveum.polygon.connector.csv.CsvConnector
+
+
+| Configuration namespace
+| link:http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector[http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector]
+
+
+|===
+
+
+=== Connector Configuration
+
+CSV Connector has configuration schema similar to old connector, but there are differences.
+The new configuration properties are summarized below:
+
+[%autowidth]
+|===
+| Property name | Label | Description
+
+| multivalueDelimiter
+| Multivalue delimiter
+| Multivalue delimiter character user for splitting multivalue attributes.
+
+
+| commentMarker
+| Comment marker
+| Comment marker character.
+
+
+| filePath
+| File path
+| Path to CSV file with records.
+
+
+| quoteMode
+| Quote Mode
+| What field should be quoted.
+Allowed values are ALL, MINIMAL, NON_NUMERIC, NONE.
+
+
+| ignoreEmptyLines
+| Ignore empty lines
+| Whether connector should ignore empty lines in CSV file.
+
+
+| trailingDelimiter
+| Trailing delimiter
+| Whether connector should use trailing delimiter.
+
+
+| encoding
+| Encoding
+| CSV file encoding.
+
+
+| fieldDelimiter
+| Field delimiter
+| Delimiter character between fields in one CSV record (escaped as regexp, if needed).
+
+
+| ignoreSurroundingSpaces
+| Ignore surrounding spaces
+| Whether connector should ignore surrounding spaces.
+
+
+| quote
+| Quote
+| Quote character.
+
+
+| trim
+| Trim
+| Whether fields should be trimmed.
+
+
+| headerExists
+| Header exists
+| Whether header exists in csv file.
+
+
+| passwordAttribute
+| User password attribute name
+| User password attribute name is not required.
+Its used only in authenticate operation.
+
+
+| tmpFolder
+| Tmp folder
+| Folder where csv connector can write temporary files.
+By default the same folder as where csv file resides.
+
+
+| readOnly
+| Read only
+| Whether file is for read only acces only. Default is false.
+
+
+| preserveOldSyncFiles
+| Preserve old sync files
+| How many old sync filed do we want to preserve.
+
+
+| escape
+| Escape
+| Escape character.
+
+
+| nameAttribute
+|
+|
+
+
+| objectClassDefinition
+| Object class definition
+| File which contains definitions for other object classes.
+
+
+| recordSeparator
+| Record separator
+| Record separator string.
+
+
+| uniqueAttribute
+| Unique attribute
+| Unique attribute name.
+
+
+|===
+
+Configuration samples for CSV resources were updated to the new CSV connector.
+The xref:/midpoint/reference/samples/[Configuration Samples] are located at the usual places.
+
+
+=== Shadows
+
+The xref:/midpoint/reference/resources/shadow/[shadows] in the old connector looked like this:
+
+.Shadow: Legacy CSVFile connector
+[source]
+----
+<shadow>
+  <objectClass>AccountObjectClass</objectClass>
+  ...
+  <attributes>
+    <icfs:name>007</icfs:name>
+    <icfs:uid>007</icfs:uid>
+    <ri:username>foo</ri:username>
+    <ri:fullname>Foo Bar</ri:fullname>
+    ...
+  </attributes>
+</shadow>
+----
+
+Shadow for new connector looks like this:
+
+.Shadow: New CSV connector
+[source]
+----
+<shadow>
+  <objectClass>AccountObjectClass</objectClass>
+  ...
+  <attributes>
+    <ri:guid>007</ri:guid>
+    <ri:username>foo</ri:username>
+    <ri:fullname>Foo Bar</ri:fullname>
+    ...
+  </attributes>
+</shadow>
+----
+
+The new CSV connector is using native names of attributes and object classes and therefore it has obviously cleaner and better data structure.
+But this data structure is different and currently there is no way how to automatically transform the shadows.
+
+[WARNING]
+====
+There is a known issues in midPoint that prohibits the use of native attribute with the name of 'id'.
+(bug:MID-3872[]). If the attribute name in the CSV file cannot be changed then the workaround is to force the use of legacy schema.
+In that case midPoint will use the legacy ConnId attribute names (icfs:name and icfs:uid) even with the new CSV connector.
+
+====
+
+
+=== Migration steps
+
+We recommend the following migration procedure:
+
+. Add resource that will use the new CSV connector.
+Configure it as a completely new resource using the configuration equivalent to the old one.
+
+. Change assignment enforcement level to a permissive value (none or positive).
+
+. Set up a correlation expression to correlate users with the CSV accounts.
+Reconcile the new CSV resource.
+The result should be that the CSV accounts on the new resource are linked.
+
+. Modify definitions of role and/or direct assignments to point to the new CSV resource instead of the old one.
+Resource reference (resourceRef) needs to be changed, but also any mappings for identifier attributes (link:http://icfsname[icfs:name] and link:http://icfsuid[icfs:uid] in the old connector).
+
+. Delete old CSVFile resource and all shadows that belong to that resource (there is now an option to do this efficiently in the Repository Objects GUI page).
+
+. Recompute the users.
+This should remove the orphaned linkRefs in user objects.
+
+. Double-ckeck that every thing is switched to the new resource (roles, assignments, shadows exist and are linked to users).
+
+. Change assignment enforcement level to the original.
+
+
+== Migration: Legacy CSVFile Connector
+
+The legacy CSVFile connector is still available and it still can be used.
+This avoids the need for data (shadow) migration.
+
+To use the legacy CSVFile connector in midPoint 3.6 or later please follow these steps:
+
+. Download JAR of the legacy CSVFile connector and deploy it into midPoint
+
+. In all the resource definitions change connectorRef to point to the newly discovered legacy CSVFile connector.
+
+. No change in configuration, shadows or roles is needed.
+
+The legacy CSVFile connector will be maintained for a reasonable migration period which mostly depends on the requirements of midPoint subscribers.
+After that period the legacy connector will no longer be supported.
+Therefore please plan the migration to the new connector accordingly.
+
+
+== See Also
+
+* xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector]
+
+* xref:/connectors/connectors/com.evolveum.polygon.csvfile.CSVFileConnector/[CSVFile Connector (legacy)]
+
+* xref:/connectors/connid/1.x/icf-issues/[ICF Issues]
+
+* xref:/midpoint/release/3.6/[Release 3.6]

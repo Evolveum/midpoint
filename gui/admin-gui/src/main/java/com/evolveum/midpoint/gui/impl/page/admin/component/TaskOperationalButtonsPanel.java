@@ -316,7 +316,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                showSimulationResultPerformed();
+                showSimulationResultPerformed(target);
             }
         };
         download.add(new VisibleBehaviour(this::isSimulationResultAvailable));
@@ -332,11 +332,23 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         }
 
         ActivitySimulationStateType simulation = activityState.getActivity().getSimulation();
-        return simulation != null ? simulation.getResultRef() : null;
+        if (simulation == null || simulation.getResultRef() == null) {
+            return null;
+        }
+
+        ObjectReferenceType ref = simulation.getResultRef();
+        // this extra check is there because model object (task) can contain empty reference because of
+        // prism wrappers preparing it for editing (a lot of empty prism items with null values).
+        return ref.getOid() != null ? ref : null;
     }
 
-    private void showSimulationResultPerformed() {
+    private void showSimulationResultPerformed(AjaxRequestTarget target) {
         ObjectReferenceType resultRef = getSimulationResultReference();
+        if (resultRef == null) {
+            getPageBase().warn(getString("TaskOperationalButtonsPanel.noResultAvailable"));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
 
         PageParameters params = new PageParameters();
         params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, resultRef.getOid());

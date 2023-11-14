@@ -11,40 +11,26 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.MailNonceAuthenticationToken;
 
-import com.evolveum.midpoint.authentication.impl.module.authentication.MailNonceModuleAuthenticationImpl;
-
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
 
-import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.authentication.api.evaluator.context.NonceAuthenticationContext;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -60,19 +46,7 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
     private AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> nonceAuthenticationEvaluator;
 
     @Autowired
-    private SecurityContextManager securityContextManager;
-
-    @Autowired
-    private TaskManager taskManager;
-
-    @Autowired
-    private ModelService modelService;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private ModelInteractionService modelInteractionService;
+    private RepositoryService repositoryService;
 
     @Override
     protected AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> getEvaluator() {
@@ -92,12 +66,9 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
 
         String nonce = (String) authentication.getCredentials();
 
-        UserType user = searchUser(enteredUsername);
-        NonceCredentialsPolicyType noncePolicy = getNoncePolicy(user);
         NonceAuthenticationContext authContext = new NonceAuthenticationContext(enteredUsername,
-                focusType, nonce, noncePolicy, requireAssignment, channel);
+                focusType, nonce, requireAssignment, channel);
         Authentication token = getEvaluator().authenticate(connEnv, authContext);
-        removeNonceAfterSuccessullAuthentication(user);
 
         MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
 
@@ -107,67 +78,32 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
 
     }
 
-    private UserType searchUser(String enteredUsername) {
-        if (StringUtils.isBlank(enteredUsername)) {
-            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
+    @Override
+    void postAuthenticationProcess() {
+        @Nullable MidPointPrincipal principal = AuthUtil.getMidpointPrincipal();
+        if (principal != null) {
+            removeNonceAfterSuccessfulAuthentication(principal.getFocus());
         }
-        UserType user = AuthSequenceUtil.searchUserPrivileged(enteredUsername, securityContextManager, taskManager,
-                modelService, prismContext);
-        if (user == null) {
-            throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
-        }
-        return user;
     }
 
-    private void removeNonceAfterSuccessullAuthentication(UserType user) {
-        securityContextManager.runPrivileged((Producer<Void>) () -> removeNonce(user));
-    }
-
-    private Void removeNonce(UserType user) {
+    private void removeNonceAfterSuccessfulAuthentication(FocusType focus) {
         try {
-            NonceType nonce = user.getCredentials().getNonce();
-            ObjectDelta<UserType> deleteNonce = PrismContext.get().deltaFactory()
+            NonceType nonce = focus.getCredentials().getNonce();
+            ObjectDelta<FocusType> deleteNonce = PrismContext.get().deltaFactory()
                     .object()
-                    .createModificationDeleteContainer(UserType.class, user.getOid(),
-                            ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),
+                    .createModificationDeleteContainer(FocusType.class, focus.getOid(),
+                            ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_NONCE),
                             nonce.clone());
 
-            Task task = taskManager.createTaskInstance("Remove nonce from user");
-            modelService.executeChanges(MiscSchemaUtil.createCollection(deleteNonce), null, task, task.getResult());
+            repositoryService.modifyObject(
+                    (Class)focus.getClass(),
+                    focus.getOid(),
+                    deleteNonce.getModifications(),
+                    new OperationResult("Remove nonce from focus"));
 
-        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
-            LOGGER.error("Couldn't remove nonce from user {}", user, e);
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException e) {
+            LOGGER.error("Couldn't remove nonce from focus {}", focus, e);
         }
-        return null;
-    }
-
-    private NonceCredentialsPolicyType getNoncePolicy(UserType user) {
-        if (illegalAuthentication()){
-            return null;
-        }
-
-        MidpointAuthentication authentication = AuthUtil.getMidpointAuthentication();
-        ModuleAuthentication moduleAuth = authentication.getProcessingModuleAuthentication();
-        String nameOfCredential = ((MailNonceModuleAuthenticationImpl) moduleAuth).getCredentialName();
-
-        return AuthSequenceUtil.determineNoncePolicy(user.asPrismObject(), nameOfCredential, taskManager, modelInteractionService);
-    }
-
-    private boolean illegalAuthentication() {
-        MidpointAuthentication authentication = AuthUtil.getMidpointAuthentication();
-
-        ModuleAuthentication moduleAuth = authentication.getProcessingModuleAuthentication();
-        if (!(moduleAuth instanceof MailNonceModuleAuthenticationImpl)) {
-            LOGGER.debug("Actual processing authentication module isn't MailNonceModuleAuthentication");
-            return true;
-        }
-        String nameOfCredential = ((MailNonceModuleAuthenticationImpl) moduleAuth).getCredentialName();
-        if (nameOfCredential == null) {
-            LOGGER.debug("Name of credential in processing module is null");
-            return true;
-        }
-        return false;
     }
 
     @Override

@@ -12,6 +12,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -86,7 +87,7 @@ public class TestAutoassign extends AbstractRbacTest {
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-                createPolyString(UNIT_WORKER));
+                PolyString.fromOrig(UNIT_WORKER));
 
         // THEN
         assertSuccess(result);
@@ -144,7 +145,7 @@ public class TestAutoassign extends AbstractRbacTest {
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-                createPolyString(UNIT_SLEEPER), createPolyString(UNIT_WALKER));
+                PolyString.fromOrig(UNIT_SLEEPER), PolyString.fromOrig(UNIT_WALKER));
 
         // THEN
         assertSuccess(result);
@@ -184,8 +185,8 @@ public class TestAutoassign extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = prismContext.deltaFactory().object().createModificationAddProperty(UserType.class,
-                USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, createPolyString(UNIT_WORKER));
-        objectDelta.addModificationDeleteProperty(UserType.F_ORGANIZATIONAL_UNIT, createPolyString(UNIT_SLEEPER));
+                USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PolyString.fromOrig(UNIT_WORKER));
+        objectDelta.addModificationDeleteProperty(UserType.F_ORGANIZATIONAL_UNIT, PolyString.fromOrig(UNIT_SLEEPER));
 
         // WHEN
         executeChanges(objectDelta, null, task, result);
@@ -219,7 +220,7 @@ public class TestAutoassign extends AbstractRbacTest {
 
         // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-                createPolyString(UNIT_SLEEPER));
+                PolyString.fromOrig(UNIT_SLEEPER));
 
         // THEN
         assertSuccess(result);
@@ -248,7 +249,7 @@ public class TestAutoassign extends AbstractRbacTest {
 
         // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-                createPolyString(UNIT_RIDER));
+                PolyString.fromOrig(UNIT_RIDER));
 
         // THEN
         assertSuccess(result);
@@ -299,7 +300,7 @@ public class TestAutoassign extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         //WHEN
-        modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, createPolyString(UNIT_RIDER));
+        modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PolyString.fromOrig(UNIT_RIDER));
 
         //THEN
         assertUserAfter(USER_GUYBRUSH_OID)
@@ -321,7 +322,7 @@ public class TestAutoassign extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         //WHEN
-        modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, createPolyString(UNIT_SLEEPER));
+        modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PolyString.fromOrig(UNIT_SLEEPER));
 
         //THEN
         assertUserAfter(USER_GUYBRUSH_OID)
@@ -344,7 +345,7 @@ public class TestAutoassign extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         //WHEN
-        modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, createPolyString(UNIT_RIDER));
+        modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PolyString.fromOrig(UNIT_RIDER));
 
         //THEN
         assertUserAfter(USER_GUYBRUSH_OID)

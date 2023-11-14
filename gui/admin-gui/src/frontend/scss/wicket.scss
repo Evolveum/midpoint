@@ -56,6 +56,8 @@ div.wicket-aa-container {
     padding: $input-padding-y $input-padding-x;
     margin: 1px;
     text-align: left;
+    display: inline-block;
+    min-width: 100%;
 
     ul {
       list-style: none;

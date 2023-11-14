@@ -19,6 +19,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,21 +35,35 @@ public class ShadowDescriptionHandler implements VisualizationDescriptionHandler
     private Resolver resolver;
 
     @Override
-    public boolean match(VisualizationImpl visualization) {
+    public boolean match(VisualizationImpl visualization, VisualizationImpl parentVisualization) {
         PrismContainerValue<?> value = visualization.getSourceValue();
         return value != null && ShadowType.class.equals(value.getCompileTimeClass());
     }
 
     @Override
-    public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
+    public void apply(VisualizationImpl visualization, VisualizationImpl parentVisualization, Task task, OperationResult result) {
         PrismContainerValue<?> value = visualization.getSourceValue();
         ShadowType shadow = (ShadowType) value.asContainerable();
 
         ShadowKindType kind = shadow.getKind() != null ? shadow.getKind() : ShadowKindType.UNKNOWN;
 
-        ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
-        Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
-        String name = realName != null ? realName.toString() : "ShadowDescriptionHandler.noName";
+        String name = null;
+
+        PolyStringType nameBean = shadow.getName();
+        if (nameBean != null) {
+            if (nameBean.getTranslation() != null && StringUtils.isNotEmpty(nameBean.getTranslation().getKey())) {
+                name = nameBean.getTranslation().getKey();
+            } else if (StringUtils.isNotEmpty(nameBean.getOrig())) {
+                name = nameBean.getOrig();
+            }
+        }
+
+        if (StringUtils.isEmpty(name)) {
+            ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
+            Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
+            name = realName != null ? realName.toString() : "ShadowDescriptionHandler.noName";
+        }
+
         ChangeType change = visualization.getChangeType();
 
         String intent = shadow.getIntent() != null ? "(" + shadow.getIntent() + ")" : "";

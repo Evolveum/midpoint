@@ -22,6 +22,7 @@
             </entry>
         </mext:liveSyncErrorHandlingStrategy>
     </extension>
+    <expectedTotal>123</expectedTotal>
     <activity>
         <work>
             <cleanup>

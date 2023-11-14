@@ -12,8 +12,12 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
+import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -24,9 +28,11 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
 
@@ -38,6 +44,7 @@ import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
 class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefinition<?>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemDeltaBeanToNativeConversion.class);
+    private static final QName T_RAW_TYPE = new QName(PrismConstants.NS_TYPES, RawType.class.getSimpleName());
 
     /**
      * Delta to be converted ("XML").
@@ -62,7 +69,9 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
     /**
      * Definition of the item. It is sometimes determined only when parsing.
      */
-    private ID itemDefinition;
+    private ItemDefinition<?> itemDefinition;
+
+    private boolean convertUnknownTypes;
 
     /**
      * Definition of the item parent container. It is used only when itemDefinition cannot be determined directly.
@@ -71,7 +80,7 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
      */
     private PrismContainerDefinition<?> parentDefinition;
 
-    ItemDeltaBeanToNativeConversion(@NotNull ItemDeltaType deltaBean, @NotNull PrismContainerDefinition<?> rootContainerDef)
+    ItemDeltaBeanToNativeConversion(@NotNull ItemDeltaType deltaBean, @NotNull PrismContainerDefinition<?> rootContainerDef, boolean convertUnknownTypes)
             throws SchemaException {
         this.deltaBean = deltaBean;
         itemPath =
@@ -79,12 +88,26 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
                         .getItemPath();
         itemName = requireNonNull(itemPath.lastName(), () -> "No item name in the item delta: " + itemPath);
         this.rootContainerDef = rootContainerDef;
-
+        this.convertUnknownTypes = convertUnknownTypes;
         itemDefinition = rootContainerDef.findItemDefinition(itemPath);
         findParentDefinitionIfNeeded();
     }
 
     public ItemDelta<IV, ID> convert() throws SchemaException {
+        if (convertUnknownTypes && hasUnknownTypes()) {
+            if (itemDefinition != null) {
+                // We have unknown type and we can not continue with normal type-safe processing, so we create new runtime property
+                // definition, which has LegacyDelta annotation, same item name, but type is raw type, so no additional
+                // checks are made on it's content.
+                // This allows for GUI to visualize JSON form of data
+                var replacementDef = PrismContext.get().definitionFactory()
+                        .createPropertyDefinition(itemDefinition.getItemName(), T_RAW_TYPE);
+                replacementDef.setAnnotation(DeltaConvertor.LEGACY_DELTA, DeltaConvertor.LEGACY_DELTA);
+                itemDefinition = replacementDef;
+            }
+        }
+
+
         Collection<IV> parsedValues = getParsedValues(deltaBean.getValue());
         ItemDelta<IV, ID> itemDelta = createDelta();
         if (deltaBean.getModificationType() == ModificationTypeType.ADD) {
@@ -99,7 +122,6 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
             Collection<IV> parsedOldValues = getParsedValues(deltaBean.getEstimatedOldValue());
             itemDelta.addEstimatedOldValues(parsedOldValues);
         }
-
         return itemDelta;
     }
 
@@ -123,6 +145,14 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
             }
         }
     }
+    private boolean hasUnknownTypes() {
+        for (RawType rawValue : deltaBean.getValue()) {
+            if (typeNotExists(rawValue.getExplicitTypeName())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private Collection<IV> getParsedValues(List<RawType> values)
             throws SchemaException {
@@ -135,7 +165,19 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
                         .locateItemDefinition(parentDefinition, itemName, rawValue.getXnode());
             }
             // Note this can be a slight problem if itemDefinition is PRD and the value is a full object.
+            if (convertUnknownTypes) {
+                if (typeNotExists(rawValue.getExplicitTypeName())) {
+                    // Here we should do some rawValue magic or item definition magic
+                    if (rawValue.getXnode() != null) {
+                        XNodeImpl xnodeReplacement = (XNodeImpl) rawValue.getXnode().clone();
+                        xnodeReplacement.setTypeQName(null);
+                        rawValue.setRawValue(xnodeReplacement.frozen());
+                    }
+                }
+            }
             PrismValue parsed = rawValue.getParsedValue(itemDefinition, itemName);
+
+
             if (parsed != null) {
                 PrismValue converted;
                 if (itemDefinition instanceof PrismReferenceDefinition) {
@@ -148,6 +190,14 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
             }
         }
         return parsedValues;
+    }
+
+    private boolean typeNotExists(QName explicitTypeName) {
+        if (explicitTypeName == null) {
+            return false;
+        }
+        var typeDef = PrismContext.get().getSchemaRegistry().findTypeDefinitionByType(explicitTypeName);
+        return typeDef == null;
     }
 
     private PrismReferenceValue convertValueForReferenceDelta(PrismValue value) {

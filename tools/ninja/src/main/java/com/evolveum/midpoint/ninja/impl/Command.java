@@ -36,11 +36,11 @@ public enum Command {
 
     INFO("info", InfoOptions.class, InfoRepositoryAction.class),
 
-    IMPORT_AUDIT("importAudit", ImportAuditOptions.class, ImportAuditRepositoryAction.class),
+    IMPORT_AUDIT("import-audit", ImportAuditOptions.class, ImportAuditRepositoryAction.class),
 
-    EXPORT_AUDIT("exportAudit", ExportAuditOptions.class, ExportAuditRepositoryAction.class),
+    EXPORT_AUDIT("export-audit", ExportAuditOptions.class, ExportAuditRepositoryAction.class),
 
-    EXPORT_MINING("exportMining", ExportMiningOptions.class, ExportMiningRepositoryAction.class),
+    EXPORT_MINING("export-mining", ExportMiningOptions.class, ExportMiningRepositoryAction.class),
 
     TRACE("trace", EditTraceOptions.class, EditTraceAction.class),
 
@@ -56,7 +56,12 @@ public enum Command {
 
     PRE_UPGRADE_CHECK("pre-upgrade-check", PreUpgradeCheckOptions.class, PreUpgradeCheckAction.class),
 
-    HELP("help", HelpOptions.class, HelpAction.class);
+    HELP("help", HelpOptions.class, HelpAction.class),
+
+    // todo disabled, because it's not finished yet
+    // UPGRADE("upgrade", UpgradeOptions.class, UpgradeAction.class),
+
+    INITIAL_OBJECTS("initial-objects", InitialObjectsOptions.class, InitialObjectsAction.class);
 
     private final String commandName;
 

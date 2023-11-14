@@ -11,6 +11,10 @@ import java.io.Serial;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -45,8 +49,6 @@ public class PageCorrelation extends PageAbstractAttributeVerification<Correlati
     private static final Trace LOGGER = TraceManager.getTrace(PageCorrelation.class);
     private static final String OPERATION_DETERMINE_CORRELATOR_SETTINGS = DOT_CLASS + "determineCorrelatorSettings";
 
-    private static final String ID_CORRELATOR_NAME = "correlatorName";
-
     private LoadableModel<CorrelatorConfigDto> correlatorModel;
 
     public PageCorrelation() {
@@ -74,7 +76,8 @@ public class PageCorrelation extends PageAbstractAttributeVerification<Correlati
                     archetypeOid = mpAuthentication.getArchetypeOid();
                 }
 
-                return new CorrelatorConfigDto(correlatorName, archetypeOid, getCorrelationAttributePaths(correlatorName, archetypeOid));
+                return new CorrelatorConfigDto(correlatorName, archetypeOid, getCorrelationAttributePaths(correlatorName, archetypeOid),
+                        module.getCurrentCorrelatorIndex());
             }
         };
         super.initModels();
@@ -101,9 +104,13 @@ public class PageCorrelation extends PageAbstractAttributeVerification<Correlati
     protected void initModuleLayout(MidpointForm form) {
         super.initModuleLayout(form);
 
-        HiddenField<String> verified = new HiddenField<>(ID_CORRELATOR_NAME, new PropertyModel<>(correlatorModel, CorrelatorConfigDto.CORRELATOR_IDENTIFIER));
+        HiddenField<String> verified = new HiddenField<>(AuthConstants.ATTR_VERIFICATION_CORRELATOR_NAME, new PropertyModel<>(correlatorModel, CorrelatorConfigDto.CORRELATOR_IDENTIFIER));
         verified.setOutputMarkupId(true);
         form.add(verified);
+
+        HiddenField<String> index = new HiddenField<>(AuthConstants.ATTR_VERIFICATION_CORRELATOR_INDEX, new PropertyModel<>(correlatorModel, CorrelatorConfigDto.CORRELATOR_INDEX));
+        index.setOutputMarkupId(true);
+        form.add(index);
     }
 
     @Override
@@ -114,5 +121,10 @@ public class PageCorrelation extends PageAbstractAttributeVerification<Correlati
     @Override
     protected IModel<String> getLoginPanelDescriptionModel() {
         return createStringResource("PageCorrelation.title.description");
+    }
+
+    @Override
+    protected boolean areAllItemsMandatory(ItemWrapper<?,?> itemWrapper) {
+        return true;
     }
 }

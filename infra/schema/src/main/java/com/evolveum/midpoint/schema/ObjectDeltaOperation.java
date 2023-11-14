@@ -39,6 +39,8 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
 
     private ObjectDelta<O> objectDelta;
     @Nullable private OperationResult executionResult;
+
+    private String objectOid;
     private PolyString objectName;
     private String resourceOid;
     private PolyString resourceName;
@@ -120,6 +122,7 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
             clone.objectDelta = this.objectDelta.clone();
         }
         clone.executionResult = this.executionResult;
+        clone.objectOid = this.objectOid;
         clone.objectName = this.objectName;
         clone.resourceOid = this.resourceOid;
         clone.resourceName = this.resourceName;
@@ -381,5 +384,13 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
 
     public String getShadowIntent() {
         return shadowIntent;
+    }
+
+    public String getObjectOid() {
+        return objectOid;
+    }
+
+    public void setObjectOid(String objectOid) {
+        this.objectOid = objectOid;
     }
 }

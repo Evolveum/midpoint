@@ -66,6 +66,12 @@ public class DummyAccountAsserter<R> extends DummyObjectAsserter<DummyAccount,R>
     }
 
     @Override
+    public DummyAccountAsserter<R> assertDisabled() {
+        super.assertDisabled();
+        return this;
+    }
+
+    @Override
     public DummyAccountAsserter<R> assertLastModifier(String expected) {
         super.assertLastModifier(expected);
         return this;

@@ -34,7 +34,7 @@ import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_USER_
 @PanelInstance(identifier = "rm-process",
         applicableForType = RoleAnalysisSessionType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageRoleAnalysisSession.wizard.step.basicInformation", icon = "fa fa-wrench"),
+        display = @PanelDisplay(label = "PageRoleAnalysisSession.wizard.step.choice", icon = "fa fa-wrench"),
         containerPath = "empty")
 public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessModeChoiceStepPanel.ProcessMode, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -81,8 +81,8 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
 
 
     public enum ProcessMode implements TileEnum {
-        ROLE(CLASS_OBJECT_ROLE_ICON),
-        USER(CLASS_OBJECT_USER_ICON);
+        USER(CLASS_OBJECT_USER_ICON),
+        ROLE(CLASS_OBJECT_ROLE_ICON);
 
         private final String icon;
 
@@ -126,12 +126,12 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
 
     @Override
     protected IModel<String> getTextModel() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.basicInformation.text");
+        return createStringResource("PageRoleAnalysisSession.wizard.step.choice.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.basicInformation.subText");
+        return createStringResource("PageRoleAnalysisSession.wizard.step.choice.subText");
     }
 
     @Override

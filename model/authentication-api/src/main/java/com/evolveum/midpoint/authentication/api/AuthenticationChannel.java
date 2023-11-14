@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.authentication.api;
 
-import java.util.Collection;
-
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wrapper for define channel of authentication, channel define scope of authentication etc. rest, gui, reset password ...
@@ -35,15 +35,19 @@ public interface AuthenticationChannel {
 
     boolean isDefault();
 
-    Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities);
-
     void postSuccessAuthenticationProcessing();
 
     String getSpecificLoginUrl();
 
     boolean isSupportActivationByChannel();
 
+    boolean isSupportGuiConfigByChannel();
+
     String getUrlSuffix();
 
     boolean isPostAuthenticationEnabled();
+
+    @Nullable Authorization resolveAuthorization(Authorization autz);
+
+    @Nullable Authorization getAdditionalAuthority();
 }

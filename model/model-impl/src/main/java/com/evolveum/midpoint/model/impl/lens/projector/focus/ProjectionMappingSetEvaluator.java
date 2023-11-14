@@ -41,9 +41,9 @@ import java.util.*;
  *
  * Currently used for:
  *
- * - outbound password mappings ({@link ProjectionCredentialsProcessor},
- * - outbound existence and activation mappings ({@link ActivationProcessor},
- * - inbound password and activation mappings ({@link ClockworkInboundsProcessing}.
+ * - outbound password mappings ({@link ProjectionCredentialsProcessor}),
+ * - outbound existence and activation mappings ({@link ActivationProcessor}),
+ * - inbound password and activation mappings ({@link ClockworkInboundsProcessing}).
  *
  * TODO Consider merging evaluation of these special mappings with the evaluation of standard attribute/association mappings.
  *
@@ -102,7 +102,7 @@ public class ProjectionMappingSetEvaluator {
             String mappingName = mappingBean.getName();
 
             if (!mappingBuilder.isApplicableToChannel(params.getContext().getChannel())) {
-                LOGGER.trace("Mapping {} not applicable to channel, skipping {}", mappingName, params.getContext().getChannel());
+                LOGGER.trace("Mapping {} not applicable to channel {}, skipping", mappingName, params.getContext().getChannel());
                 continue;
             }
             if (!task.canSee(mappingBean)) {
@@ -130,9 +130,9 @@ public class ProjectionMappingSetEvaluator {
             boolean timeConstraintValid = mapping.isTimeConstraintValid();
 
             if (params.getEvaluateCurrent() == MappingTimeEval.CURRENT && !timeConstraintValid) {
-                LOGGER.trace("Mapping {} is non-current, but evaluating current mappings, skipping {}", mappingName, params.getContext().getChannel());
+                LOGGER.trace("Mapping {} is non-current, but evaluating current mappings, skipping", mappingName);
             } else if (params.getEvaluateCurrent() == MappingTimeEval.FUTURE && timeConstraintValid) {
-                LOGGER.trace("Mapping {} is current, but evaluating non-current mappings, skipping {}", mappingName, params.getContext().getChannel());
+                LOGGER.trace("Mapping {} is current, but evaluating non-current mappings, skipping", mappingName);
             } else {
                 mappings.add(mapping);
             }
@@ -142,11 +142,14 @@ public class ProjectionMappingSetEvaluator {
         PrismObject<T> aPrioriTargetObject = params.getAPrioriTargetObject();
 
         LOGGER.trace("Going to process {} mappings for {}", mappings.size(), mappingDesc);
+        LOGGER.trace("Target context: {}", targetContext);
 
         for (MappingImpl<V, D> mapping : mappings) {
 
+            LOGGER.trace("Evaluating mapping: {}", mapping.getContextDescription());
+
             if (mapping.getStrength() == MappingStrengthType.WEAK) {
-                // Evaluate weak mappings in a second run.
+                LOGGER.trace("-> weak mapping, will be evaluated in the second run");
                 continue;
             }
 
@@ -159,6 +162,7 @@ public class ProjectionMappingSetEvaluator {
                 ItemDelta<?, ?> aPrioriItemDelta = params.getAPrioriTargetDelta().findItemDelta(mappingOutputPathUniform);
                 if (mapping.getStrength() != MappingStrengthType.STRONG) {
                     if (aPrioriItemDelta != null && !aPrioriItemDelta.isEmpty()) {
+                        LOGGER.trace("-> a-priori delta for non-strong mapping, ignoring the mapping");
                         continue;
                     }
                 }
@@ -167,8 +171,7 @@ public class ProjectionMappingSetEvaluator {
             mappingEvaluator.evaluateMapping(mapping, params.getContext(), task, result);
 
             PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
-            LOGGER.trace("Output triple of mapping {}\n{}", mapping.getContextDescription(),
-                    mappingOutputTriple == null ? null : mappingOutputTriple.debugDumpLazily(1));
+            LOGGER.trace("Output triple:\n{}", mappingOutputTriple == null ? null : mappingOutputTriple.debugDumpLazily(1));
 
             if (isMeaningful(mappingOutputTriple)) {
 
@@ -181,12 +184,14 @@ public class ProjectionMappingSetEvaluator {
                 if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     mappingOutputStruct.setStrongMappingWasUsed(true);
 
-                    if (!hasFullTargetObject && params.getTargetLoader() != null && aPrioriTargetObject != null && aPrioriTargetObject.getOid() != null) {
-                        if (!params.getTargetLoader().isLoaded()) {
-                            aPrioriTargetObject = params.getTargetLoader().load("strong mapping", task, result);
-                            LOGGER.trace("Loaded object because of strong mapping: {}", aPrioriTargetObject);
-                            hasFullTargetObject = true;
-                        }
+                    if (!hasFullTargetObject
+                            && params.getTargetLoader() != null
+                            && aPrioriTargetObject != null
+                            && aPrioriTargetObject.getOid() != null
+                            && !params.getTargetLoader().isLoaded()) {
+                        aPrioriTargetObject = params.getTargetLoader().load("strong mapping", task, result);
+                        LOGGER.trace("Loaded object because of strong mapping: {}", aPrioriTargetObject);
+                        hasFullTargetObject = true;
                     }
                 }
 
@@ -196,12 +201,14 @@ public class ProjectionMappingSetEvaluator {
 
                     // TODO should we really load the resource object also if we are pushing the changes?
                     //  (but it looks like we have to!)
-                    if (!hasFullTargetObject && params.getTargetLoader() != null && aPrioriTargetObject != null && aPrioriTargetObject.getOid() != null) {
-                        if (!params.getTargetLoader().isLoaded()) {
-                            aPrioriTargetObject = params.getTargetLoader().load("pushing changes", task, result);
-                            LOGGER.trace("Loaded object because of pushing changes: {}", aPrioriTargetObject);
-                            hasFullTargetObject = true;
-                        }
+                    if (!hasFullTargetObject
+                            && params.getTargetLoader() != null
+                            && aPrioriTargetObject != null
+                            && aPrioriTargetObject.getOid() != null
+                            && !params.getTargetLoader().isLoaded()) {
+                        aPrioriTargetObject = params.getTargetLoader().load("pushing changes", task, result);
+                        LOGGER.trace("Loaded object because of pushing changes: {}", aPrioriTargetObject);
+                        hasFullTargetObject = true;
                     }
                 }
 
@@ -213,7 +220,7 @@ public class ProjectionMappingSetEvaluator {
                 }
 
             } else {
-                LOGGER.trace("Output triple of mapping {} is NOT meaningful", mapping.getContextDescription());
+                LOGGER.trace("Output triple of mapping is NOT meaningful, ignoring it");
             }
 
         }
@@ -225,6 +232,8 @@ public class ProjectionMappingSetEvaluator {
                 if (mapping.getStrength() != MappingStrengthType.WEAK) {
                     continue;
                 }
+
+                LOGGER.trace("Evaluating weak mapping: {}", mapping.getContextDescription());
 
                 UniformItemPath mappingOutputPath = prismContext.toUniformPathKeepNull(mapping.getOutputPath());
                 if (params.isFixTarget() && mappingOutputPath != null && defaultTargetItemPath != null && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
@@ -248,6 +257,7 @@ public class ProjectionMappingSetEvaluator {
                     //  values. Also we may need the output of the weak mapping to correctly process
                     //  non-tolerant values (to avoid removing the value that weak mapping produces).
                     //  MID-3847
+                    LOGGER.trace("Previous mapping(s) produced zero/positive output, skipping weak mapping");
                     continue;
                 }
 
@@ -268,12 +278,14 @@ public class ProjectionMappingSetEvaluator {
                         // But the mapping may not be activated (e.g. condition is false). And in that
                         // case we really do not want to trigger object loading.
                         // This is all not right. See MID-3847
-                        if (!hasFullTargetObject && params.getTargetLoader() != null && aPrioriTargetObject != null && aPrioriTargetObject.getOid() != null) {
-                            if (!params.getTargetLoader().isLoaded()) {
-                                aPrioriTargetObject = params.getTargetLoader().load("weak mapping", task, result);
-                                LOGGER.trace("Loaded object because of weak mapping: {}", aPrioriTargetObject);
-                                hasFullTargetObject = true;
-                            }
+                        if (!hasFullTargetObject
+                                && params.getTargetLoader() != null
+                                && aPrioriTargetObject != null
+                                && aPrioriTargetObject.getOid() != null
+                                && !params.getTargetLoader().isLoaded()) {
+                            aPrioriTargetObject = params.getTargetLoader().load("weak mapping", task, result);
+                            LOGGER.trace("Loaded object because of weak mapping: {}", aPrioriTargetObject);
+                            hasFullTargetObject = true;
                         }
                         if (aPrioriTargetObject != null && mappingOutputPath != null) {
                             aPrioriTargetItem = aPrioriTargetObject.findItem(mappingOutputPath);
@@ -293,9 +305,13 @@ public class ProjectionMappingSetEvaluator {
             }
         }
 
+        LOGGER.trace("Mapping(s) are evaluated, going to process output triple(s)");
+
         MappingOutputProcessor<V> processor = params.getProcessor();
         for (Map.Entry<UniformItemPath, MappingOutputStruct<V>> outputTripleMapEntry : outputTripleMap.entrySet()) {
             UniformItemPath mappingOutputPath = outputTripleMapEntry.getKey();
+            LOGGER.trace("Processing output triple for path '{}'", mappingOutputPath);
+
             MappingOutputStruct<V> mappingOutputStruct = outputTripleMapEntry.getValue();
             PrismValueDeltaSetTriple<V> outputTriple = mappingOutputStruct.getOutputTriple();
 
@@ -310,7 +326,7 @@ public class ProjectionMappingSetEvaluator {
             if (defaultProcessing) {
 
                 if (outputTriple == null) {
-                    LOGGER.trace("{} expression resulted in null triple for {}, skipping", mappingDesc, targetContext);
+                    LOGGER.trace("Expression resulted in null triple, skipping");
                     continue;
                 }
 
@@ -344,9 +360,10 @@ public class ProjectionMappingSetEvaluator {
 
                     Collection<V> nonNegativeValues = outputTriple.getNonNegativeValues();
                     if (nonNegativeValues.isEmpty()) {
-                        LOGGER.trace("{} resulted in null or empty value for {}, skipping", mappingDesc, targetContext);
+                        LOGGER.trace("The output is null or empty for ADD operation, skipping");
                         continue;
                     }
+                    LOGGER.trace("Setting up the REPLACE delta because of ADD operation; values: {}", nonNegativeValues);
                     targetItemDelta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(nonNegativeValues));
 
                 } else {
@@ -366,8 +383,9 @@ public class ProjectionMappingSetEvaluator {
                         valuesToReplace = outputTriple.getPlusSet();
                     }
 
-                    LOGGER.trace("{}: hasFullTargetObject={}, isStrongMappingWasUsed={}, pushingChange={}, valuesToReplace={}",
-                            mappingDesc, hasFullTargetObject, mappingOutputStruct.isStrongMappingWasUsed(),
+                    LOGGER.trace(
+                            "Computed new values when hasFullTargetObject={}, isStrongMappingWasUsed={}, pushingChange={}: {}",
+                            hasFullTargetObject, mappingOutputStruct.isStrongMappingWasUsed(),
                             mappingOutputStruct.isPushChanges(), valuesToReplace);
 
                     if (!valuesToReplace.isEmpty()) {
@@ -378,30 +396,37 @@ public class ProjectionMappingSetEvaluator {
                         if (hasFullTargetObject && targetContext.isFresh() && aPrioriTargetItem != null) {
                             Collection<V> valuesPresent = aPrioriTargetItem.getValues();
                             if (PrismValueCollectionsUtil.equalsRealValues(valuesPresent, valuesToReplace)) {
-                                LOGGER.trace("{} resulted in existing values for {}, skipping creation of a delta", mappingDesc, targetContext);
+                                LOGGER.trace("Computed values are equivalent to existing ones, skipping creation of a delta");
                                 continue;
+                            } else {
+                                LOGGER.trace("Will create a delta, because computed values are NOT equivalent to existing ones, "
+                                        + "which are: {}", valuesPresent);
                             }
+                        } else {
+                            LOGGER.trace("Not checking with the existing values because of no fresh full target object");
                         }
+
                         targetItemDelta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(valuesToReplace));
 
-                        applyEstimatedOldValueInReplaceCase(targetItemDelta, outputTriple);
+                        applyEstimatedOldValueInReplaceCaseIfCredentials(params, targetItemDelta, outputTriple);
 
                     } else if (outputTriple.hasMinusSet()) {
-                        LOGGER.trace("{} resulted in null or empty value for {} and there is a minus set, resetting it (replace with empty)", mappingDesc, targetContext);
+                        LOGGER.trace("The output is null or empty and there is a minus set, clearing the target property");
                         targetItemDelta.setValueToReplace();
-                        applyEstimatedOldValueInReplaceCase(targetItemDelta, outputTriple);
+
+                        applyEstimatedOldValueInReplaceCaseIfCredentials(params, targetItemDelta, outputTriple);
 
                     } else {
-                        LOGGER.trace("{} resulted in null or empty value for {}, skipping", mappingDesc, targetContext);
+                        LOGGER.trace("The output is null or empty, skipping creation of a delta");
+                        // implicit "continue" (the delta is empty here)
                     }
-
                 }
 
                 if (targetItemDelta.isEmpty()) {
                     continue;
                 }
 
-                LOGGER.trace("{} adding new delta for {}: {}", mappingDesc, targetContext, targetItemDelta);
+                LOGGER.trace("Adding new delta: {}", targetItemDelta);
                 targetContext.swallowToSecondaryDelta(targetItemDelta);
             }
 
@@ -428,9 +453,26 @@ public class ProjectionMappingSetEvaluator {
         return outputTripleMap;
     }
 
-
-    private <V extends PrismValue, D extends ItemDefinition<?>> void applyEstimatedOldValueInReplaceCase(
-            ItemDelta<V, D> targetItemDelta, PrismValueDeltaSetTriple<V> outputTriple) {
+    /**
+     * Sets estimated old values - but only for credentials in a projection.
+     *
+     * Note: Here we intentionally DO NOT set estimated old values in the delta for all the other cases.
+     * The reason is that the old values here would be determined by what the mapping THINKS was there.
+     * The reality may be different. The {@link LensElementContext#swallowToSecondaryDelta(ItemDelta)} would know better.
+     *
+     * The only exception is when we are dealing with credentials in a projection. In that case, we probably won't be able
+     * to obtain the estimatedOldValue from the projection (as it's usually not possible to fetch the password from the resource),
+     * and there is a code that relies on the estimatedOldValue being set for credentials changes
+     * `DeltaExecution#isExecuteAsSelf`. We should replace the magic in that method by something more serious.
+     * Also here we could probably restrict providing old values only to `credentials/password/value`? Maybe, maybe not.
+     */
+    private <V extends PrismValue, D extends ItemDefinition<?>> void applyEstimatedOldValueInReplaceCaseIfCredentials(
+            MappingEvaluatorParams<?, ?, ?, ?> params,
+            ItemDelta<V, D> targetItemDelta,
+            PrismValueDeltaSetTriple<V> outputTriple) {
+        if (!params.isTargetProjection() || !targetItemDelta.getPath().startsWith(ShadowType.F_CREDENTIALS)) {
+            return;
+        }
         Collection<V> nonPositiveValues = outputTriple.getNonPositiveValues();
         if (nonPositiveValues.isEmpty()) {
             return;
@@ -453,7 +495,9 @@ public class ProjectionMappingSetEvaluator {
             return true;
         }
         //noinspection RedundantIfStatement
-        if (hasNoOrHashedValuesOnly(mappingOutputTriple.getMinusSet()) && hasNoOrHashedValuesOnly(mappingOutputTriple.getZeroSet()) && hasNoOrHashedValuesOnly(mappingOutputTriple.getPlusSet())) {
+        if (hasNoOrHashedValuesOnly(mappingOutputTriple.getMinusSet())
+                && hasNoOrHashedValuesOnly(mappingOutputTriple.getZeroSet())
+                && hasNoOrHashedValuesOnly(mappingOutputTriple.getPlusSet())) {
             // Used to skip application of mapping that produces only hashed protected values.
             // Those values are useless, e.g. to set new password. If we would consider them as
             // meaningful then a normal mapping with such values may prohibit application of

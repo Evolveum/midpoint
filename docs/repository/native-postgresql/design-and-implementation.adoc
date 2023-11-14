@@ -1,0 +1,852 @@
+= Design and Implementation of the Native Repository
+:page-toc: top
+:page-nav-title: Design and Implementation
+:page-display-order: 99
+:page-since: "4.4"
+
+[TIP]
+You can learn a lot from the https://youtu.be/5ld4U7AqCck[Native Repository webinar] video
+(from the series prepared after LTS 4.4 release, see https://docs.evolveum.com/talks/[Talks] for more)
+or go through the https://docs.evolveum.com/talks/files/2022-01-native-repository.pdf[slides].
+The webinar goes quite in-depth about the role of the repository in midPoint, its evolution,
+motivation for the rework, the changes in the new repository, database table structure and more.
+Second half focuses on the usage - how to configure midPoint for the repository, tuning it, etc.
+Finally, the webinar closes with section dedicated to the Native SQL audit and its partitioning.
+
+== Repository responsibilities
+
+These are based on https://github.com/Evolveum/midpoint/blob/master/repo/repo-api/src/main/java/com/evolveum/midpoint/repo/api/RepositoryService.java[RepositoryService]
+interface and there should be no difference compared to the legacy repository.
+Each point contains design/implementation notes.
+
+* _Repository stores midPoint objects (subtypes of `ObjectType`), assigning their OID if missing._
+For this `m_object` table with `oid` (UUID) and `fullObject` (BYTEA) columns would be enough.
+However, this is not acceptable for `searchObjects` performance see note there.
+* _Repository assigns any missing container IDs (CID) for object's containers._
+These IDs are unique inside a single object and assigned loosely sequentially.
+For this `m_object.cid_seq` is stored in the database and it contains the next available CID.
+IDs are assigned only to multivalued containers, e.g. object's metadata does not need any CID.
+* _Repository allows searching for objects and selected containers with reasonable performance._
+This is why objects stored as documents (`fullObject`) is not enough.
+Various types are stored in specific sub-tables instead with values extracted to separate columns.
+There are other related tables, typically for containers and other multi-value properties.
+Not all values are by default searchable/indexable in this way and it must be possible to specify
+what other properties are indexed.
+These can be properties from the default schema but also from
+xref:/midpoint/reference/schema/custom-schema-extension/[schema extensions].
+* _Each object is a separate "aggregate" and any inter-object references are soft, not constraints
+on the database level._
+For example, multi-value container `roleMembershipRef` is stored in `m_ref_role_membership` table
+which has a foreign key to the common OID pool `m_object_oid` (this is necessary for any FK pointing
+to object OID if multiple types are possible, FK to `m_object` does not work this way).
+But the `targetOid` is not a FK as it points to another object.
+
+////
+TODO possible topics to cover
+* FullText filter (textInfo), including storage of the info
+* Modify object with reindex; implemented as full delete/add cycle, very reliable
+and potentially more efficient too.
+* Right-hand path support, e.g. `column = otherColumn`, including other comparison operations.
+Minimal needed support implemented, `..` not supported, but poly-strings are.
+* Support for various get/search/modify options
+** `RepoModifyOptions.useNoFetchExtensionValuesInsertion` and `useNoFetchExtensionValuesDeletion`
+may be obsolete and ignored by the new repository.
+** `GetOperationOptions.iterationMethod` is ignored by the new repository, don't implement.
+* JPEG out of full-object (kinda "index-only") - Done
+* Index-only extension properties (`indexOnly=true`) - these are probably stored correctly and can
+be filtered on, but they are not added to the obtained object (`getObject`).
+** They should be included only when asked for specifically, e.g. for shadow attribute
+`ObjectSelector.path`=`c:attributes` and `GetOperationOptions.retrieve`=`INCLUDE`. - Done
+* Support for various get/search/modify options
+* Support for `resolveNames` and `raw` done
+* Proper `modifyObjectDynamically()` implementation - Transactional support introduced
+* Audit service (original functionality without new iterative search)
+* Audit service - iterative search, single order supported, just like in main repo.
+* Multi-node safety for `UriCache` and `ExtItemCache`
+* Query playground: `executeQueryDiagnostics()`
+////
+
+== Design notes
+
+=== Modify Efficiency concerns
+
+Modify efficiency for distributed full-object (`AccessCertificationCampaign` vs its case):
+
+* ADD modification for Case container of AccCertCampaign should not fetch other cases.
+Update of full object (but without cases), version, etc. works as usual.
+* DELETE modification for Case container of AccCertCampaign should not fetch any cases,
+only delete the case row (and update main full object).
+* REPLACE modification for `case` does not need to read any cases, just delete all the rows.
+* Modification going inside any Case should fetch only the needed case before applying the modification.
+
+This mechanism can be reused if full-object for assignments is split from object's full-object
+in the future (not sure about the correctness of the column name `fullObject`).
+
+Index-only attributes/extensions modify efficiency:
+
+* REPLACE modification does not require any fetch, it simply obliterates the previous value in the DB.
+* ADD/DELETE modification currently requires the fetch of the index-only property, which can be
+achieved by selective fetch of `ext->'id-of-index-only-property'`.
+Modification is then applied to prism object as usual.
+Value in the DB is overwritten by the new complete value for the property (like for REPLACE).
+** In the future, ideally, this would not need any fetch access (except for `reindex`) and issue
+fine-tuned SQL operations.
+This may also require more flexible storage options for extensions/attributes, e.g. promoting
+the index-only attribute to a separate array column or separate table even.
+
+=== Iterative search
+
+Iterative search is a solution for long-running operations modifying many objects.
+Doing all the work in a single transaction is not a good design for various reasons:
+
+* It does not perform well, even if done on objects read iteratively (to scale without running out of memory).
+Long transaction my lock objects and slow down other transactions, and/or cause inconsistencies and retries.
+Finally, if something goes wrong on 99% the whole work still needs to be done again.
+
+* It causes inconsistencies as reported in bug:MID-4414[].
+Long database reads (recompute, recon) can return data that are outdated.
+It seems that the databases using `READ_COMMITTED` isolation will return the data as they were at the beginning of the transaction, which is the beginning of the search.
+
+Possible solutions:
+
+* Search returning only OIDs - but this does not scale well.
+When the code gets to the last OID, the object can be changed and not matching the original search.
+
+* Splitting the single search to multiple searches in separate transactions.
+This makes the consistency problems less serious and also assures that the work progresses.
+
+* Due to complexity of possible work on the found objects any pure database-based solution is out of question.
+Sometimes we use the results for reporting, but sometimes we call modify object on each of them.
+
+* Optimistic locking (version check) - but if the object is modified much later this more and more likely requires operation restart.
+
+[NOTE]
+.Relativity and deltas
+In theory, xref:/midpoint/reference/concepts/relativity/[relativity of midPoint] means that modifications
+do not rely on locking that much, but the single modify operation still needs to be atomic.
+When multiple xref:/midpoint/devel/prism/concepts/deltas/[deltas] are applied to a single object,
+even if we don't know or care what order they are applied, they must all be applied.
+It is not acceptable when only the last delta is applied to the original object.
+This does not mean that order of deltas is not relevant, only that all deltas must be respected.
+If the order is critical, then something above the repository must assure that deltas are executed in specified order.
+
+In the end, the *iterative search* was introduced which loads objects using a filter, ideally in
+smaller batches, and uses provided handler to process each object.
+The handler may add it to report data or call possibly heavy-weighted modify operation on it.
+There are still many variables in this solution - how the transactions are organized, how the candidates
+(possibly millions) are iterated over (paginated), how the convergence is assured, etc.
+
+==== Current solution for iterative search
+
+The following solution is used for the Native repository:
+
+* Search uses paging based on strict OID ordering (on top of optionally provided business ordering).
+* Page is reasonably small (by default 100, can be configured) which makes the data resonably fresh.
+* Handling is called out of the reading transaction.
+This is good also for edge situation when the search uses last possible connection and then needs
+another one inside the handler.
+Of course this does not prevent handler from "needing" two connections and blocking because of it.
+* Even with handling running inside the search, even if cursor (live result set) was used, the data
+is still current only at the time of the execution, not during the cursor reading.
+There is no benefit from doing the work inside the transaction.
+* The problem with using some internal search for reading the whole page is that it requires more
+memory than executing the handler while reading the cursor.
+But with each page limited to small maximum size (100 by default) this is not an issue.
+* Another issue is that for complex selects the query execution can take prohibitively long to read
+just 100 objects.
+This can be prevented by avoiding complicated conditions and ordering and leaving just ordering
+by OID which is actually pretty fast, even if the table is scanned.
+Full table scan in the order of OID index can be perfectly fine if a lot of data matches
+the condition, in the opposite case usage of indexes is very likely.
+* Technically, cursor like reading is possible in new repository too, `SQLQuery#getResults()`
+returns normal JDBC `ResultSet`.
+To avoid blocking the connection and having long-running read-only transaction (should not be a big
+deal for read-only, but still) we still prefer the solution with handler running outside
+the search for each page when the connection is freed.
+
+==== Possible inconsistencies
+
+* When object is handled it may have been possibly changed by some other process since read by the search iteration.
+While problem in theory, in practice the object is mostly fresh "enough" to compute the deltas and apply them.
+Applying new delta using https://github.com/Evolveum/midpoint/blob/4445950a83505b5caea600bee7fa94966cce9c32/repo/repo-api/src/main/java/com/evolveum/midpoint/repo/api/RepositoryService.java#L261[modifyObject]
+does not destroy any non-conflicting deltas applied in the meantime.
+This repository call corresponds with `ModelService.executeChanges()` on the model level
+or with functions `midpoint.executeChanges()` or `midpoint.modifyObject()` for script expressions.
+
+* If the fresh object is absolutely needed, one may use https://github.com/Evolveum/midpoint/blob/4445950a83505b5caea600bee7fa94966cce9c32/repo/repo-api/src/main/java/com/evolveum/midpoint/repo/api/RepositoryService.java#L286[modifyObjectDynamically].
+This is new as of 4.4 and intended mostly for internal use - there is no direct alternative
+on the model level or a function available for script expressions.
+
+* There are inconsistencies between the iterations (pages) of the search.
+This is hardly a problem for iterative change executions, as we are concerned only with the consistency of each object.
+It can be problem for reports, however, but this must simply be accepted.
+If totally transactional reports are necessary, they must be preformed on SQL level and only the externalized data are available - this is beyond the topic of iterative search.
+
+////
+TODO
+=== Organization closure
+
+Current design, materialized view, when and how refreshed, etc.
+
+Alternative with function returning query, specific for top-down search:
+https://gist.github.com/jsuchal/b27ea95087ea7367390192fbb7f8e8b7
+
+But we could write various views using various special functions with CTEs and join them for
+various ORG filter types.
+////
+
+== Developer notes
+
+=== How to add a new field/column?
+
+Example - let's add `administrativeOperationalStateAdministrativeAvailabilityStatus` column for `m_resource` table.
+
+This is an extremely long column name, because it is inside a single value container,
+its path is actually `administrativeOperationalState/administrativeAvailabilityStatus`.
+But because this is single value container, the property is mapped directly in the object table
+(from the repository perspective, we call this an "embedded" container),
+unlike, for instance, assignments that have a dedicated `m_assignment` table.
+
+To follow this example, check https://github.com/Evolveum/midpoint/commit/da29673fae66925dd22777cc4f3e4760e8096162[this commit].
+I'm sorry about the superlong name, but this is the best example in a single commit.
+
+. Let's start in the SQL schema, locate the table `m_resource` and add `administrativeOperationalStateAdministrativeAvailabilityStatus` column to it.
+Consider logical order of the columns - even though it's not relevant for upgraded DB,
+it is relevant for future readability.
+Notice, how columns for items from subcontainers are grouped in existing tables.
+If the column requires a comment - like this one to clarify the actual path - add it before the column line.
++
+Also, we name the columns "Java style", although Postgres doesn't care aboute casing.
+The same name will be used in so called "M-class" (`MResource` in our example).
+Sometimes the name contains container name prefix, this is not used for metadata, activation
+and similar common containers - even these are still pure camel-case names.
+
+. What type is it?
+Simple things are easy (`TEXT`, `INTEGER`), some items require multiple columns (references,
+poly-strings), follow the patterns used previously for such cases.
+Our `administrativeOperationalStateAdministrativeAvailabilityStatus` is enum type - great!
+Read the next bullet how to do that.
+Some multi-value types can be represented by arrays like `TEXT[]` or `JSONB` columns.
+If we're talking about whole new multi-value container, whoa-whoa... that's out of scope of this
+humble instruction sheet!
+
+. If the type is previously unused enum, we've got just a bit more work to do.
+First we need to add `CREATE TYPE` for it to the schema.
+Find the section with custom types, read its intro comment and add the enum specification.
+Very likely it will be "schema enum", not specialized repository internal enum - that's typical.
+Use the class name for the custom type to make things as obvious as possible,
+so it's `AdministrativeAvailabilityStatusType` for our case.
+Copy/paste the values to avoid any mistake... other than copy/paste error, that is.
++
+Don't forget to mention this enum in the `SqaleRepoContext` constructor.
+Otherwise, you will later get an error saying `Can't infer the SQL type to use for an instance of ...AdministrativeAvailabilityStatusType`.
+Keep the types in alphabetic order, please, thank you.
+
+. Let's change the "M-class", `MResource` in our example.
+Simply add public field for the column, like `public AdministrativeAvailabilityStatusType administrativeOperationalStateAdministrativeAvailabilityStatus`.
+Keep the order consistent with the table.
+BTW, "M" does *not* stand for "mapping", we will see mapping class later.
+
+. Now it's great time to update `SqaleRepoAddDeleteObjectTest`!
+Find the method testing mapping for this class and add value and assert for the new item.
+Feel free to add the method if this entity/object type is not yet tested - just like I did
+https://github.com/Evolveum/midpoint/commit/8165c46f5f5e775de8dd41a982f4caa86e208314[in another example].
+Run the test, it should fail for the new attribute, which is a good sign.
+
+. We need to declare the new column in a "Q-class" which extends from Querydsl type hierarchy.
+Technically it's mapping for Querydsl, but it's still not "our" mapping for midPoint (soon, I promise!).
+For our example, it's `QResource` - and there are two sections:
+
+.. First, static column metadata, find good example from other class if necessary.
+In our case, I'll add:
++
+[source,java]
+----
+public static final ColumnMetadata ADMINISTRATIVE_OPERATIONAL_STATE_ADMINISTRATIVE_AVAILABILITY_STATUS =
+  ColumnMetadata.named("administrativeOperationalStateAdministrativeAvailabilityStatus")
+    .ofType(Types.OTHER);
+----
++
+For enum types we use `Types.OTHER`, again, see existing examples from other classes for your type.
+
+.. Next, we add non-static column (or attribute) path:
++
+[source,java]
+----
+public final EnumPath<AdministrativeAvailabilityStatusType> administrativeOperationalStateAdministrativeAvailabilityStatus =
+  createEnum("administrativeOperationalStateAdministrativeAvailabilityStatus",
+    AdministrativeAvailabilityStatusType.class,
+    ADMINISTRATIVE_OPERATIONAL_STATE_ADMINISTRATIVE_AVAILABILITY_STATUS);
+----
++
+The name of the column (the same as the name of the field in M-class) appears twice here,
+because we want the same name again for Q-class paths.
+Previously specified column metadata are used.
+As before, see examples from other Q-classes to use the right `create*` method and path type.
+
++
+Keep the order consistent with SQL and M-class in both sections.
+Good, now Querydsl knows what to do with our field in the M-class.
+
+. Now it's time to add the insert code.
+Finally, we're getting to the "mapping class" - `QResourceMapping` in our case.
+Locate `toRowObjectWithoutFullObject` and add something like this there:
++
+[source,java]
+----
+row.xxx = node.getXxx();
+----
++
+Now a bit of explanation is needed, because other actual example is a bit more complicated:
++
+[source,java]
+----
+var administrativeOperationalState = schemaObject.getAdministrativeOperationalState();
+if (administrativeOperationalState != null) {
+  row.administrativeOperationalStateAdministrativeAvailabilityStatus =
+    administrativeOperationalState.getAdministrativeAvailabilityStatus();
+}
+----
++
+This is caused by the nesting of the property inside the container, as we meantioned at the beginning.
+Properties directly on the object are a single liner as indicated above.
++
+As always, follow the order from SQL and M-class.
+The code for enum and many other types is as trivial as shown above, but there is great support
+for refs, poly-strings and many more too - just find the examples in other Q-Mapping classes.
+
+. *Nearly there!*
+We still need one more thing to support searching and modifications too.
+Go to the constructor of the mapping class (`QResourceMapping` for us) and add (respecting the right
+order again, of course!) something like this:
++
+[source,java]
+----
+addItemMapping(F_XXX, enumMapper(q -> q.xxx));
+----
++
+Now, again, because our propety is nested inside another container, our example gets a bit more complicated,
+but we have plenty of support for this as well:
++
+[source,java]
+----
+addNestedMapping(F_ADMINISTRATIVE_OPERATIONAL_STATE, AdministrativeOperationalStateType.class)
+  .addItemMapping(AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS,
+    enumMapper(q -> q.administrativeOperationalStateAdministrativeAvailabilityStatus));
+----
++
+I mean, seriously, can it be more auto-magical than this?
++
+Just be sure to use:
+
+.. the right item names: `F_ADMINISTRATIVE_OPERATIONAL_STATE` imported statically from
+`ResourceType`, but also for the item from the nested container;
+.. proper mapper method depnding on the type: `enumMapper` in this case
+.. and proper path `q.administrativeOperationalStateAdministrativeAvailabilityStatus`, which is that
+final non-static field we added on the Q-class.
+
+. Write the search test.
++
+Often, when the mapping is for a well-working type, we don't bother adding a test for it - although
+in that case it would be nice to try it at least once from Query playground.
++
+But this time we did - look at `test990...` in `SqaleRepoSearchTest` for our example.
+Even the search that returns nothing is better than none, because it executes the query and checks the mapping.
+But it's easy to prepare new data at the start of the class and actually return some data as well.
+
+. And SQL alter script, of course!
+We need to prepare SQL command for upgrade script `postgres-new-upgrade.sql`.
+Prepare the right `ALTER` command and test it on an existing database without the change.
+Wrap the change inside `apply_change` call - use the examples already available in the file.
+Don't forget to bump the change identifier for each chagne.
+Revert the change and test it again by calling the `apply_change` procedure from the upgrade script.
+Check that the change was applied and also that subsequent call skips the change.
++
+[IMPORTANT]
+Each change block is commited automatically - *do not use explicit commit there*.
+If you need to create a new type (enumeration, just like in this example) do this in a separate
+change, because this change *must be committed* before it can be used.
+See the existing examples in the upgrade script - there definitely are some.
+
+. Update the last indicated change in the main SQL scipt!
+This is the last line in `postgres-new.sql` saying `call apply_change...`.
+The number here should match the last used change identifier in the upgrade script.
+This is important to avoid applying any change more than once.
+
+To see the whole success story, check https://github.com/Evolveum/midpoint/commit/da29673fae66925dd22777cc4f3e4760e8096162[this commit].
+
+=== How to add a new persisted type?
+
+Example - let's add persistence for `MessageTemplateType`.
+This is a simple example, only minimal `m_message_template` table will be added, without special persistence
+for its containers, because these are not searchable (full text can be used for that, if required).
+
+. New persisted object type must be declared.
+Add the new value `MESSAGE_TEMPLATE` to the `ObjectType` enum in both `postgres-new.sql` and `postgres-new-upgrade-audit.sql`.
+This value will be later added in the `MObjectType` Java enum, but that requires some other classes we don't have yet.
+
+. Also, prepare and test upgrade command to the same effect just above the bottom comment in both
+`postgres-new-upgrade.sql` and `postgres-new-upgrade-audit.sql`.
+Adding the type value in both files is critical for cases when audit is used in a separate schema/database.
+We will wrap this inside `apply_change` (or `apply_audit_change` for audit SQL) so it is executed only if not applied yet.
+We will write it in an idempotent fashion (`IF NOT EXISTS`), not only because we can and it is more flexible,
+but because, again, it is critical, this time for cases when audit and main repo share the same database
+and both upgrade scripts are run for the same schema:
++
+[source,sql]
+----
+-- MID-7484, always add some relevant comment or a related Jira issue
+-- We add the new enum value in separate change, because it must be committed before it is used.
+call apply_change(2, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MESSAGE_TEMPLATE' AFTER 'LOOKUP_TABLE';
+$aa$);
+----
++
+As described in the comment, we make this a separate change, because the `apply_change` procedure
+manages the commits and we can't use `COMMIT` inside the change block.
+
+. Continue with the table definition in `postgres-new.sql`.
+Again, this one is very simple, we can copy/paste and carefully modify existing simple tables like `m_dashboard` for instance.
+Use search to be sure all `m_dashboard` strings are replaced with `m_message_template` as appropriate,
+especially for the trigger and index names.
+Replace the object type values in the `objectType` column definition.
++
+Place the tables in the proper section (region in IDEA).
+This can be "OTHER object tables", but we will create new region in this case, as we plan more Notification related tables in the future.
+Example for the complete table with triggers and indexes can be seen
+https://github.com/Evolveum/midpoint/blob/7a7c337d50b6cea1ad7c898b780f308c415c7cb5/config/sql/native-new/postgres-new.sql#L1647-L1669[here].
+
+. Add the same creation statements in the upgrade script `postgres-new-upgrade.sql` just after the `ALTER` from the previous step.
+You can use a single `apply_change` block for it, unless commit is required after any of the statements.
+As always, use a new change number (first parameter) for each change.
+
+. After all changes in SQL upgrade files, update the last lines in the main and audit SQL files
+containing the `call apply_[audit_]change` calls - just repeat the last change number there.
+Be careful not to mix the numbers between the main and audit SQL scripts.
+
+. Now it's time to add the mapping Java classes to the native repository module `repo-sqale`.
+For a minimal mapping example see the classes in the package named `com.evolveum.midpoint.repo.sqale.qmodel.node`.
+Typically, three classes are needed:
+// using -- for the nested blocks to make adding two paragraphs after it cleaner
++
+--
+.. Plain bean representing the row in the database - so called "M-class", e.g. `MNode`.
+.. Querydsl mapping for the table, which is traditionally prefixed with `Q`, e.g. `QNode`.
+.. Finally, midPoint specific mapping which is named like the "Q-class", but with `Mapping` suffix, e.g. `QNodeMapping`.
+--
++
+In our case, the situation is even simpler, because there is no additional column mapping for our new table.
+We can use `MObject` as our M-bean, this mapping is similar to the mapping for `m_dashboard`, so we will copy and paste these classes.
+After replacing all the "dashboards" with "messageTemplates" (including the proper table names) we are done with the mapping classes.
++
+Obviously, mapping for more complicated objects with sub-containers stored in dedicated tables is more complicated.
+Existing classes should be used as examples; also see the section about adding the new column for tips about column vs Java types.
+
+. With the Java mapping classes ready, we can add the value inside `MObjectType`.
+Respectfully, we will conform to the alphabetical order and add the following code after the lookup table line:
++
+[source,java]
+----
+MESSAGE_TEMPLATE(QMessageTemplate.class, MessageTemplateType.class),
+----
+
+. New mapping for object must be also registered in `SqaleRepositoryBeanConfig.sqlRepoContext()` method.
+Find the right place (again, typically alphabetically) and add the following line:
++
+[source,java]
+----
+.register(MessageTemplateType.COMPLEX_TYPE, QMessageTemplateMapping.init(repositoryContext))
+----
+
+. Finally, we will add a simple add (insert) test for the class.
+This proves that the midPoint can add objects of this type.
+Because there are no columns specific to this type, we simply test that the row is added,
+as we presume we can trust the existing code handling the super-type columns (already tested).
+In more interesting cases you may also add a search test into `SqaleRepoSearchTest`, etc.
+
+The whole example can be found in https://github.com/Evolveum/midpoint/commit/7a7c337d50b6cea1ad7c898b780f308c415c7cb5[this commit].
+Forgotten object type update for audit is in https://github.com/Evolveum/midpoint/commit/5cefb9bff9435055a6c4ca812590eedc8c26b785[this commit].
+
+=== Possible future improvements
+
+Retry mechanism (if/where necessary) may not be necessary if tests don't show that.
+`SELECT ... FOR UPDATE` seems to do its work just fine.
+
+Minor, tentative, questinable, don't implement while it's in this list:
+
+* Dereferencing (`@`) for extension refs stored in JSONB.
+* Grouping is not supported and the semantics for SQL without ORM is unclear.
+This is not used by midPoint itself and there are no tests for it.
+* Arbitrary ordering for iterative search - currently only one path is supported.
+Fixes for `NULL` values are needed - TODO in the code.
+Multi-path ordering throws - this can probably wait a bit.
+
+////
+TODO
+=== Select for update vs serializable isolation
+
+While serializable is recommended to lower contention (with retries on the application side),
+it didn't work for us.
+FOR UPDATE is used only for modifyObject operation, there is minimal gap possible to execute it
+atomically, and the default transaction isolation level does not prevent from reading the row during that time either.
+It only blocks the same modifyObject on the very same row - which is exactly what we want.
+Also, serializable isolation reports the errors that are rather confusing for our users/customers.
+
+== Unsorted notes originally in midpoint repo/repo-sqale/README.adoc (now removed)
+
+=== Other technical problems
+
+* https://vsevolod.net/postgresql-jsonb-index/[This post] points to various indexing/planning problems, i.e. planner guessing many more rows to be returned.
+Also, JIT slowing down execution of queries was mentioned.
+
+* Pure GIN index can get big depending on the number of different values used.
+It's tricky to use as only some operators are supported - contains/equals are possible, but not comparison or LIKE.
+It can still help with other operations by selecting only relevant rows containing the attribute (with any value) and then adding the condition of interest.
+
+TODO SEE: https://stackoverflow.com/a/49826693/658826
+TODO also: https://stackoverflow.com/a/12612255 see arrays, composite types, hstore options
+
+=== GIN indexes
+
+Using https://www.postgresql.org/docs/13/gin-intro.html[GIN indexes] is tricky.
+Where clauses have to follow certain forms to benefit from https://www.postgresql.org/docs/13/datatype-json.html#JSON-INDEXING[JSONB indexing].
+For example:
+
+[source,sql]
+----
+-- with this index
+CREATE INDEX m_user_ext_idx ON m_user USING gin(ext);
+
+-- the following where does not use it
+select * from m_user
+    where ext->>'email' = 'user11666123@mycompany.com';
+
+-- but this one does (found entry can have other attributes just fine)
+select * from m_user
+    where ext @> '{"email": "user11666123@mycompany.com"}'
+----
+
+Alternatively, more specific GIN indexes can be added, but I'd not recommend this by default.
+If some high-business-value custom query takes longer it may benefit from the manually added index, typically function based with some JSON selector inside.
+It is however not recommended as a preventive measure, because this would require many indexes.
+Also, joining multiple indexes during an execution can take longer than using single (seemingly less efficient) index, see https://medium.com/plangrid-technology/indexing-with-postgres-when-less-is-more-7337d6f09048[this story].
+Finally, each index incurs a penalty for updates and inserts and takes additional space.
+
+Just for example, the following indexes could be created for each attribute (doesn't mean they should):
+
+* `((ext->>'attr'))` for conditions on `ext->>'attr'` of any kind, but mostly comparison.
+* TODO... lower (or upper)
+* TODO min/max functional for arrays (https://dba.stackexchange.com/a/202761/157622[this answer]).
+* trigram index for "endsWith"?
+
+All these indexes could be made much smaller by adding `WHERE ext ? 'attr'`.
+The condition then must be used in the query too, which should not be a problem.
+I recommend to use `ext?'attr'` in the query in any case because even without these indexes it can benefit from the generic GIN index a lot.
+
+== TODO
+
+== PostgreSQL table inheritance
+
+https://www.postgresql.org/docs/current/ddl-inherit.html[Table inheritance] is a nice mechanism that allows creating table hierarchies, so we see all objects in one table and various subtypes in inherited tables.
+*It is also an implicit method for partitioning*, at least from the perspective of the parent table(s).
+
+* We need "abstract" tables like `m_object`.
+Alternative would be a view with `SELECT ... UNION` and common columns have to be repeated in DDL.
+Ideally we don't want to insert into abstract tables, we can use `check (false) no inherit` for this.
+"Check false" always fails, but this is not inherited by sub-tables.
+Updates of common columns or deletes on abstract tables still work with expected results (not possible with view without additional measures like triggers).
+
+* PKs, FKs and most of other constraints must be declared on each sub-table.
+Only check and not-null constraints are inherited, unless `no inherit` is declared.
+See https://www.postgresql.org/docs/current/ddl-inherit.html#DDL-INHERIT-CAVEATS[inheritance caveats].
+
+* To assure globally unique PKs we have to use triggers on sub-tables or separate OID-pool table.
+We chose the separate table solution after See http://blog.ioguix.net/postgresql/2015/02/05/Partitionning-and-constraints-part-1.html[this post]
+for more - especially the solution towards the end with advisory locks.
+The part with the support for other types is also handy, because UUID is bigger than bigint for lock.
+
+* UUID is far from the first recommendation for a PK, but it's impractical to use anything else for midPoint.
+Even with additional serial PK the objects are searched by their OID, so it would have to be indexed and its uniqueness assured and then it can just be PK directly.
+Smaller PK could be beneficial only as FK from other tables, e.g. instead of `targetRef_oid` for associations.
+This could still mean that we need to follow the FK to resolve it to OID which we use in application.
+
+* We want to generate OID in the database, so `DEFAULT gen_random_uuid()` is used for `OID`
+column directly in the master table `m_object`.
+
+* To assure unique OIDs we will use separate `m_object_oid` table.
+Triggers for insert and delete will assure the consistency between this and `m_object` hierarchy.
+For inserts we have to generate OID if it's not provided or use the one that is - in both cases the new OID is inserted into `m_object_oid`.
+Updates of OID are forbidden which is also guarded by a trigger, otherwise it would be able to change OID to already existing OID from another table (PK does not allow it for the same table).
+
+* Can we partition inherited table?
+Like `m_shadow`.
+*No, this is not possible.* Options:
+** Using "application managed partitioning" with inheritance as needed.
+We prefer this, it is more cumbersome, but possibly more flexible.
+It also allows adding different extensions for different tables, e.g. based on resource.
+** Shadow would not be part of `m_object` hierarchy.
+
+* Foreign key can't be used against `m_object.oid` because it does not enforce index (by itself).
+Perhaps we want to introduce `m_object_oid` table that would own the unique pool of OIDs and could be used for referencing FKs.
+Referencing only some types of objects (e.g. just focuses) is probably mission impossible.
+
+
+* TODO: membership searches on abstract tables (e.g. focus), EXPLAIN, performance?
+
+* TODO: logging of all statements for experiments?
+https://www.postgresql.org/docs/current/runtime-config-logging.html
+https://stackoverflow.com/questions/722221/how-to-log-postgresql-queries
+
+* TODO: tablespaces?
+
+* The default `public` schema is used for all midpoint objects, that's OK.
+
+== Maintenance
+
+We may need regular `ANALYZE` and/or `VACUUM`.
+This should be run regularly - can it be done in DB or should MP call this or something else will trigger it?
+
+== Performance drop with volume
+
+TL/DR:
+
+* After first million, insert performance drops.
+* So does query, but if it uses an index, not that significantly.
+* Count queries suffer with volume - avoid count whenever possible.
+* Avoid solutions where number of inherited tables affects the performance, e.g. unique over hierarchy - perhaps externalize it to dedicated table.
+* Nothing was optimized, it was just couple of experiments to get a feeling for it.
+* After mass-deletes, performance can still be slow before `VACUUM` and/or `ANALYZE` is not ran.
+
+Tested on VirtualBox, 2 GB RAM, 60+ GB disk.
+
+Insert performance measurements:
+
+[source,sql]
+----
+INSERT INTO m_user (nameNorm, nameOrig, version)
+  VALUES ('user-' || LPAD(r::text, 10, '0'), 'user-' || LPAD(r::text, 10, '0'), 1);
+----
+
+Both name columns are indexed, `nameNorm` is also unique.
+Loop is used to INSERT the rows, which is slower than `INSERT from SELECT` with `generate_series`, but closer to real scenario that uses separate statements (although there are no round-trips here).
+
+Effect of the number of inherited tables on INSERT performance.
+`VACUUM` was used after massive deletes, otherwise the times for 10M were similar to 40M.
+This should not be problematic when separate `m_object_oid` table is used now.
+
+|===
+| Inherited{nbsp}tables / Existing rows | 4 | 50 | 100
+
+| 0 | 6s | 6s | 6s
+| 1M | 6s | - | 6s
+| 10M | 29/14/14s | - | 28/12/27s
+| 40M | 74/70/72s | 70s | 70s
+|===
+
+Conclusion - as there is no check against `m_object` there is no negative impact of the hierarchy on the performance.
+
+Table sizes after x inserts (index means PK index):
+
+|===
+| Inserted rows total | User table/index size | OID table/index size | DB size
+
+| 0 | | |
+| 1M | 96/30 MB | 42/30 MB | 266 MB
+| 10M | 965/446 MB | 422/446 MB | 2888 MB
+| 40M | 3858/1721 MB | 1689/1721 MB | 11 GB
+|===
+
+With user's names formatted like `user-0000000001` both name indexes had 1269 MB at 40M rows.
+
+== Performance of searching for unused OIDs
+
+If delete is not guarded by a trigger, `m_object_oid` can have unused OIDs.
+It's crucial to use the right select/delete construction to find/delete them.
+With 26M rows naive approach with `NOT IN` to delete 200k unused OIDs took over 1h without finishing.
+Following output shows the plan for `NOT IN`, `LEFT JOIN` and `NOT EXISTS`.
+Latter two use `Parallel Hash Anti Join` which is good, `NOT IN` uses `Parallel Seq Scan` which is not.
+`NOT EXISTS` is practical for `DELETE`/`UPDATE` and perfectly valid to use.
+The previous problem (deleting 200k unused OIDs from 26M total) was solved in around 150s.
+
+[source,sql]
+----
+EXPLAIN -- (ANALYZE, BUFFERS, FORMAT TEXT) with analyze it's super slow, EXPLAIN is enough here
+select * FROM m_object_oid WHERE OID NOT IN (SELECT oid from m_object);
+
+Gather  (cost=1000.00..5431677337728.88 rows=13150078 width=16)
+  Workers Planned: 2
+  ->  Parallel Seq Scan on m_object_oid  (cost=0.00..5431676021721.08 rows=5479199 width=16)
+        Filter: (NOT (SubPlan 1))
+        SubPlan 1
+          ->  Materialize  (cost=0.00..925576.32 rows=26300117 width=16)
+                ->  Append  (cost=0.00..665656.73 rows=26300117 width=16)
+                      ->  Seq Scan on m_object m_object_1  (cost=0.00..0.00 rows=1 width=16)
+                      ->  Seq Scan on m_resource m_object_2  (cost=0.00..10.10 rows=10 width=16)
+                      ->  Seq Scan on m_focus m_object_3  (cost=0.00..0.00 rows=1 width=16)
+                      ->  Seq Scan on m_shadow m_object_4  (cost=0.00..10.10 rows=10 width=16)
+                      ->  Seq Scan on m_user m_object_5  (cost=0.00..534135.95 rows=26300095 width=16)
+JIT:
+  Functions: 14
+"  Options: Inlining true, Optimization true, Expressions true, Deforming true"
+
+EXPLAIN select count(oo.oid) FROM m_object_oid oo
+left join m_object o on o.oid = oo.oid
+WHERE o.oid is null;
+
+Gather  (cost=627018.54..1217367.23 rows=38 width=16)
+  Workers Planned: 2
+  ->  Parallel Hash Anti Join  (cost=626018.54..1216363.43 rows=16 width=16)
+        Hash Cond: (oo.oid = o.oid)
+        ->  Parallel Seq Scan on m_object_oid oo  (cost=0.00..251746.98 rows=10958398 width=16)
+        ->  Parallel Hash  (cost=435530.76..435530.76 rows=10958383 width=16)
+              ->  Parallel Append  (cost=0.00..435530.76 rows=10958383 width=16)
+                    ->  Seq Scan on m_object o_1  (cost=0.00..0.00 rows=1 width=16)
+                    ->  Seq Scan on m_focus o_3  (cost=0.00..0.00 rows=1 width=16)
+                    ->  Parallel Seq Scan on m_user o_5  (cost=0.00..380718.73 rows=10958373 width=16)
+                    ->  Parallel Seq Scan on m_resource o_2  (cost=0.00..10.06 rows=6 width=16)
+                    ->  Parallel Seq Scan on m_shadow o_4  (cost=0.00..10.06 rows=6 width=16)
+JIT:
+  Functions: 18
+"  Options: Inlining true, Optimization true, Expressions true, Deforming true"
+
+EXPLAIN
+delete FROM m_object_oid oo
+where not exists (select * from m_object o where o.oid = oo.oid);
+
+Gather  (cost=627018.54..1217367.23 rows=38 width=16)
+  Workers Planned: 2
+  ->  Parallel Hash Anti Join  (cost=626018.54..1216363.43 rows=16 width=16)
+        Hash Cond: (oo.oid = o.oid)
+        ->  Parallel Seq Scan on m_object_oid oo  (cost=0.00..251746.98 rows=10958398 width=16)
+        ->  Parallel Hash  (cost=435530.76..435530.76 rows=10958383 width=16)
+              ->  Parallel Append  (cost=0.00..435530.76 rows=10958383 width=16)
+                    ->  Seq Scan on m_object o_1  (cost=0.00..0.00 rows=1 width=16)
+                    ->  Seq Scan on m_focus o_3  (cost=0.00..0.00 rows=1 width=16)
+                    ->  Parallel Seq Scan on m_user o_5  (cost=0.00..380718.73 rows=10958373 width=16)
+                    ->  Parallel Seq Scan on m_resource o_2  (cost=0.00..10.06 rows=6 width=16)
+                    ->  Parallel Seq Scan on m_shadow o_4  (cost=0.00..10.06 rows=6 width=16)
+JIT:
+  Functions: 18
+"  Options: Inlining true, Optimization true, Expressions true, Deforming true"
+----
+
+////
+
+=== midPoint related SQL queries
+
+This is a mix of potentially handy queries, experiments and some PG SQL showing-off.
+It is in this "devel" section as it is the least bad place for this content.
+
+==== Playing with JSON inside fullobject
+
+This is possible, but not efficient on large datasets and not recommended in production.
+This also assumes JSON is used as a serialization format (by default it is).
+
+[source,sql]
+----
+-- Full object is often readable in some clients, but not in psql (it's just byte array).
+select fullobject from m_user
+where oid = '00000000-0000-0000-0000-000000000002';
+
+-- Conversion to text helps, now it works in psql too.
+select convert_from(fullobject, 'UTF8') from m_user
+where oid = '00000000-0000-0000-0000-000000000002';
+
+-- Playing with JSON inside (assuming it's JSON and not XML).
+-- BAD: Converts JSONB fullobject into record, but there is only the top-level one (one row).
+-- Also, using jsonb_each in select, we loose (key, value) structure of the record.
+select jsonb_each(convert_from(fullobject, 'UTF8')::jsonb) from m_user
+where oid = '00000000-0000-0000-0000-000000000002';
+
+-- GOOD: jsonb_each is in from clause, it's structured now, but we still have just one row.
+select jrec, pg_typeof(jrec), pg_typeof(jrec.value), jrec.*
+from m_object, jsonb_each(convert_from(fullobject, 'UTF8')::jsonb) jrec
+where oid = '00000000-0000-0000-0000-000000000002';
+
+-- 2nd level jsonb_each must again be in FROM to preserve (key, value) structure.
+-- Now we see the top level structure of the actual object, whatever it's top level key was.
+select jrec.*
+from (select value jval
+        from m_object, jsonb_each(convert_from(fullobject, 'UTF8')::jsonb)
+        where oid = '00000000-0000-0000-0000-000000000002'
+    ) a,
+    jsonb_each(jval) jrec;
+
+-- It's easy to extract exact attribute from known object type (here user).
+-- But this is not optimal, also the top level key can be anything (type is
+select oid, convert_from(fullobject, 'UTF8')::jsonb->'user'->'indestructible' indestructible
+from m_user;
+
+-- To do it from any type (skipping the first level), try this:
+select oid,
+    (select value jval
+        from jsonb_each(convert_from(fullobject, 'UTF8')::jsonb))
+            ->'indestructible' indestructible
+from m_object;
+
+-- Wrap that with an outer select to extract multiple items from that JSON:
+select oid, jval->'indestructible' indestructible, jval->'iteration' iteration
+from (
+    select oid, (select value jval from jsonb_each(convert_from(fullobject, 'UTF8')::jsonb))
+    from m_object
+) a;
+----
+
+==== Other midPoint object related queries
+
+[source,sql]
+----
+-- show OID and full object preview as string (works in plain psql too)
+select oid, objecttype, substring(convert_from(fullobject, 'UTF8'), 1, 100), pg_column_size(fullobject), length(fullobject)
+from m_object
+-- possible conditions here, e.g. oid = '...'
+limit 10
+;
+
+-- showing all extension values exploded to rows (including multi-val)
+select oid, key, coalesce(aval, sval) val from (
+    select oid, key,
+        case when jsonb_typeof(value) = 'array' then value end avals,
+        case when jsonb_typeof(value) <> 'array' then value end sval
+    from m_user, jsonb_each(ext) fields
+) x left join jsonb_array_elements(avals) aval on true
+where oid = '0cbe39c7-c7af-4cf3-a334-098400284a0a'
+-- other conditions possible, but let's not run it on the whole table or order by ext values
+;
+
+-- finding all objects with multi-value extensions
+with mvkeys as (select id::TEXT mvids from m_ext_item where cardinality = 'ARRAY')
+select ARRAY(SELECT jsonb_object_keys(ext) INTERSECT select mvids from mvkeys) mvkeys,
+       ext, * from m_object
+where array(select jsonb_object_keys(ext)) && (select array_agg(mvids) from mvkeys);
+----
+
+==== Handy audit queries
+
+[source,sql]
+----
+-- Finding audit events with any of the specified changed items
+-- (provided array can contain also non-existent values):
+select * from ma_audit_event
+  -- && returns true if the intersection of the two arrays is not empty
+  where changeditempaths && array['\${common}3#familyName', '\${common}3#fullName'];
+
+-- Finding audit events with all of the specified changed items
+-- (event can have additional items):
+select * from ma_audit_event
+  -- @> returns true if the array on the right is superset of the array on the left
+  where changeditempaths @> array['\${common}3#familyName', '\${common}3#fullName'];
+
+-- Unwrapping changeditempaths to separate rows and removing the common prefix:
+select replace(changedItem, '\${common}3#', ''), *
+from ma_audit_event, unnest(changeditempaths) as changedItem
+-- this allows for simpler conditions on a each value:
+where changedItem in ('\${common}3#familyName', '\${common}3#fullName')
+-- and also allows ordering by the changedItem
+order by id, changedItem
+----
+
+== See also
+
+* https://youtu.be/5ld4U7AqCck[Native Repository webinar]
+and https://docs.evolveum.com/talks/files/2022-01-native-repository.pdf[slides]

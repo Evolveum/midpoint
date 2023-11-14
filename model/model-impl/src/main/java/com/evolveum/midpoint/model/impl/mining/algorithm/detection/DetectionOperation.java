@@ -11,18 +11,47 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-
-
+/**
+ * The `DetectionOperation` interface defines the operations required for performing pattern detection
+ * within the role analysis process. Implementations of this interface are responsible for detecting
+ * patterns within the analyzed data based on user-based or role-based detection criteria.
+ */
 public interface DetectionOperation {
 
-    List<DetectedPattern> performUserBasedDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            DetectionOption roleAnalysisDetectionOptionType, Handler handler);
+    /**
+     * Performs user-based pattern detection using the provided mining role type chunks, detection options,
+     * and a progress increment handler.
+     *
+     * @param miningRoleTypeChunks The mining role type chunks to analyze.
+     * @param roleAnalysisDetectionOptionType The detection options to configure the detection process.
+     * @param handler The progress increment handler for tracking the detection process.
+     * @return A list of detected patterns based on user-based detection criteria.
+     */
+    @NotNull
+    List<DetectedPattern> performUserBasedDetection(
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            @NotNull DetectionOption roleAnalysisDetectionOptionType,
+            @NotNull RoleAnalysisProgressIncrement handler);
 
-    List<DetectedPattern> performRoleBasedDetection(List<MiningUserTypeChunk> miningRoleTypeChunks,
-            DetectionOption roleAnalysisDetectionOptionType, Handler handler);
+    /**
+     * Performs role-based pattern detection using the provided mining user type chunks, detection options,
+     * and a progress increment handler.
+     *
+     * @param miningUserTypeChunks The mining user type chunks to analyze.
+     * @param roleAnalysisDetectionOptionType The detection options to configure the detection process.
+     * @param handler The progress increment handler for tracking the detection process.
+     * @return A list of detected patterns based on role-based detection criteria.
+     */
+    @NotNull
+    List<DetectedPattern> performRoleBasedDetection(
+            @NotNull List<MiningUserTypeChunk> miningUserTypeChunks,
+            @NotNull DetectionOption roleAnalysisDetectionOptionType,
+            @NotNull RoleAnalysisProgressIncrement handler);
 
 }

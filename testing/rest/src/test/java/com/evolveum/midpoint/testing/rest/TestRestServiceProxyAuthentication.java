@@ -168,7 +168,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         assertStatus(response, 403);
 
         displayDumpable("Audit", getDummyAuditService());
-        getDummyAuditService().assertRecords(2);
+        getDummyAuditService().assertRecords(1);
         getDummyAuditService().assertFailedProxyLogin(SchemaConstants.CHANNEL_REST_URI);
     }
 

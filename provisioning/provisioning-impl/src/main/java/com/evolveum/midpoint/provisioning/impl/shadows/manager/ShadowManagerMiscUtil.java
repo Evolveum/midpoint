@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecyc
 import java.util.Collection;
 
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -22,10 +23,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Temporary class - this functionality has to be sorted out.
  */
 public class ShadowManagerMiscUtil {
+
+    public static <T> T determinePrimaryIdentifierValue(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ResourceObject resourceObject) throws SchemaException {
+        return determinePrimaryIdentifierValue(ctx, resourceObject.getBean());
+    }
 
     public static <T> T determinePrimaryIdentifierValue(ProvisioningContext ctx, ShadowType shadow) throws SchemaException {
         if (ShadowUtil.isDead(shadow)) {
@@ -58,11 +67,13 @@ public class ShadowManagerMiscUtil {
     }
 
     private static ResourceAttribute<String> getPrimaryIdentifier(ShadowType shadow) throws SchemaException {
+        // Note about using ResourceObjectIdentifiers et al: We are not sure if we have the non-wildcard context here,
+        // so let's go the traditional way.
         Collection<? extends ResourceAttribute<?>> primaryIdentifiers = emptyIfNull(ShadowUtil.getPrimaryIdentifiers(shadow));
         // Let's make this simple. We support single-attribute, single-value, string-only primary identifiers anyway
         if (primaryIdentifiers.isEmpty()) {
-            // No primary identifiers. This can happen in sme cases, e.g. for proposed shadows.
-            // Therefore we should be tolerating this.
+            // No primary identifiers. This can happen in some cases, e.g. for proposed shadows.
+            // Therefore we should tolerate this.
             return null;
         }
         if (primaryIdentifiers.size() > 1) {

@@ -1,0 +1,6 @@
+= Errors While Querying with midPoint Query Language
+:page-nav-title: Errors while querying
+:page-display-order: 500
+
+
+//TODO - here errors and error messages with basic information how to resolve them

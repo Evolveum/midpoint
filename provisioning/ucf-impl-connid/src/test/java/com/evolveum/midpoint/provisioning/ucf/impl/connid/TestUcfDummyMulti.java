@@ -58,7 +58,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
     private static final File CONNECTOR_FAKE = new File("src/test/resources/dummy-connector-fake-4.2.jar");
     private static final File MIDPOINT_HOME = new File("target/midpoint-home");
-    private static final File MIDPOINT_HOME_ICF = new File(MIDPOINT_HOME, "icf-connectors");
+    private static final File MIDPOINT_HOME_ICF = new File(MIDPOINT_HOME, "connid-connectors");
 
     @Test
     public void test000PrismContextSanity() {
@@ -137,8 +137,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         UcfObjectHandler handler = (ucfObject, result) -> {
             displayDumpable("Search: found", ucfObject);
-            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
-            searchResults.add(ucfObject.getResourceObject());
+            checkUcfShadow(ucfObject.getPrismObject(), accountDefinition);
+            searchResults.add(ucfObject.getPrismObject());
             return true;
         };
 
@@ -170,8 +170,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
         final UcfObjectHandler handler = (ucfObject, lResult) -> {
-            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
-            searchResults.add(ucfObject.getResourceObject());
+            checkUcfShadow(ucfObject.getPrismObject(), accountDefinition);
+            searchResults.add(ucfObject.getPrismObject());
             return true;
         };
 
@@ -230,16 +230,16 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         OperationResult result1 = createOperationResult();
         final List<PrismObject<ShadowType>> searchResults1 = new ArrayList<>();
         final UcfObjectHandler handler1 = (ucfObject, result) -> {
-            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
-            searchResults1.add(ucfObject.getResourceObject());
+            checkUcfShadow(ucfObject.getPrismObject(), accountDefinition);
+            searchResults1.add(ucfObject.getPrismObject());
             return true;
         };
 
         OperationResult result2 = createOperationResult();
         final List<PrismObject<ShadowType>> searchResults2 = new ArrayList<>();
         final UcfObjectHandler handler2 = (ucfObject, result) -> {
-            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
-            searchResults2.add(ucfObject.getResourceObject());
+            checkUcfShadow(ucfObject.getPrismObject(), accountDefinition);
+            searchResults2.add(ucfObject.getPrismObject());
             return true;
         };
 

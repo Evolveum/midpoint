@@ -10,7 +10,6 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -99,29 +98,17 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
     }
 
     @Override
-    public Collection<ResourceAttribute<?>> getPrimaryIdentifiers() {
+    public @NotNull Collection<ResourceAttribute<?>> getPrimaryIdentifiers() {
         return extractAttributesByDefinitions(getDefinition().getPrimaryIdentifiers());
     }
 
     @Override
-    public <T> PrismProperty<T> getSecondaryIdentifier() {
-        Collection<ResourceAttribute<?>> secondaryIdentifiers = getSecondaryIdentifiers();
-        if (secondaryIdentifiers.size() > 1){
-            throw new IllegalStateException("Resource object has more than one identifier.");
-        }
-        for (PrismProperty<?> p : secondaryIdentifiers){
-            return (PrismProperty<T>) p;
-        }
-        return null;
-    }
-
-    @Override
-    public Collection<ResourceAttribute<?>> getSecondaryIdentifiers() {
+    public @NotNull Collection<ResourceAttribute<?>> getSecondaryIdentifiers() {
         return extractAttributesByDefinitions(getDefinition().getSecondaryIdentifiers());
     }
 
     @Override
-    public Collection<ResourceAttribute<?>> getAllIdentifiers() {
+    public @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers() {
         return extractAttributesByDefinitions(getDefinition().getAllIdentifiers());
     }
 

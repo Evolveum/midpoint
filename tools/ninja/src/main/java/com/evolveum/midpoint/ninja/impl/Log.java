@@ -80,4 +80,13 @@ public class Log {
 
         stream.println(ConsoleFormat.formatLogMessage(level, formatted));
     }
+
+    /**
+     * Prints raw message without any processing, not even new line character at the end.
+     *
+     * @param message
+     */
+    public void logRaw(String message) {
+        stream.print(message);
+    }
 }

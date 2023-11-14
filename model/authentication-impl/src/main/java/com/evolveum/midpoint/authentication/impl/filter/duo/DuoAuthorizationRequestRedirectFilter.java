@@ -15,6 +15,8 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.filter.RemoteAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.RemoteModuleAuthorizationFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.DuoModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.module.authentication.Saml2ModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.util.RequestState;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
@@ -92,6 +94,12 @@ public class DuoAuthorizationRequestRedirectFilter extends RemoteModuleAuthoriza
             getRequestCache().saveRequest(request, response);
             getSecurityContextRepository().saveContext(SecurityContextHolder.getContext(), request, response);
             getAuthorizationRedirectStrategy().sendRedirect(request, response, authUrl);
+
+            MidpointAuthentication authentication = AuthUtil.getMidpointAuthentication();
+            DuoModuleAuthentication moduleAuthentication =
+                    (DuoModuleAuthentication) authentication.getProcessingModuleAuthentication();
+            moduleAuthentication.setRequestState(RequestState.SENT);
+
         } catch (Exception ex) {
             unsuccessfulAuthentication(request, response,
                     new InternalAuthenticationServiceException("web.security.provider.invalid", ex));

@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class AbstractTaskManagerTest extends AbstractIntegrationTest {
 
-    private static final String MOCK_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/mock-task-handler";
+    static final String MOCK_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/mock-task-handler";
     private static final String MOCK_PARALLEL_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/parallel-task-handler";
 
     private static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");

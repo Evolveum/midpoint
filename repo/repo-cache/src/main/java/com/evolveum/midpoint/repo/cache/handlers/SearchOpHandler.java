@@ -48,6 +48,9 @@ public class SearchOpHandler extends CachedOpHandler {
     private static final String OP_COUNT_REFERENCES = CLASS_NAME_WITH_DOT + "countReferences";
     private static final String OP_SEARCH_REFERENCES_ITERATIVE = CLASS_NAME_WITH_DOT + "searchReferencesIterative";
 
+    private static final String OP_SEARCH_CONTAINERS_ITERATIVE = CLASS_NAME_WITH_DOT + "searchContainersIterative";
+
+
     /**
      * Queries resulting in more objects will not be cached "as such" - although individual objects/versions can be cached.
      */
@@ -438,6 +441,30 @@ public class SearchOpHandler extends CachedOpHandler {
         }
     }
 
+    public <T extends Containerable> SearchResultMetadata searchContainersIterative(
+            @NotNull  Class<T> type,
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<T> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.subresult(OP_SEARCH_CONTAINERS_ITERATIVE)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type)
+                .addParam("query", query)
+                .addArbitraryObjectAsParam("options", options)
+                .build();
+        Long startTime = repoOpStart();
+        try {
+            return repositoryService.searchContainersIterative(type, query, handler, options, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            repoOpEnd(startTime);
+            result.computeStatusIfUnknown();
+        }
+    }
+
     public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
@@ -460,4 +487,6 @@ public class SearchOpHandler extends CachedOpHandler {
             result.computeStatusIfUnknown();
         }
     }
+
+
 }

@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
@@ -62,9 +63,15 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
 
     @Override
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) throws AccessDeniedException, InsufficientAuthenticationException {
-        super.decide(authentication, object, configAttributes);
-        if (authentication instanceof MidpointAuthentication) {
-            for (ModuleAuthentication moduleAuthentication : ((MidpointAuthentication) authentication).getAuthentications()) {
+        try {
+            super.decide(authentication, object, configAttributes);
+        } catch (AccessDeniedException | InsufficientAuthenticationException e) {
+            MidpointAuthentication mpAuthentication = AuthUtil.getMidpointAuthentication();
+            mpAuthentication.setAlreadyAudited(true);
+            throw e;
+        }
+        if (authentication instanceof MidpointAuthentication mpAuthentication) {
+            for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
                 if (AuthenticationModuleState.SUCCESSFULLY.equals(moduleAuthentication.getState())
                         && moduleAuthentication instanceof HttpModuleAuthentication
                         && ((HttpModuleAuthentication) moduleAuthentication).getProxyUserOid() != null) {
@@ -82,12 +89,20 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
                         requiredActions.add(AuthorizationConstants.AUTZ_REST_PROXY_URL);
 
                         MidPointPrincipal actualPrincipal = getPrincipalFromAuthentication(authentication, object, configAttributes);
-                        decideInternal(actualPrincipal, requiredActions, authentication, object, task, AuthorizationParameters.Builder.buildObject(authorizedUser));
+                        try {
+                            decideInternal(actualPrincipal, requiredActions, authentication, object, task, AuthorizationParameters.Builder.buildObject(authorizedUser));
+                        } catch (AccessDeniedException | InsufficientAuthenticationException e) {
+                            mpAuthentication.setAlreadyAudited(true);
+                            throw e;
+                        }
 
                         MidPointPrincipal principal =
                                 // TODO get operation result from the caller
                                 securityContextManager.getUserProfileService().getPrincipal(
                                         authorizedUser,
+                                        // For REST API, we don't need to support GUI config
+                                        ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
+                                                .locateSecurityPolicy(false),
                                         new OperationResult(MidPointPrincipalManager.OPERATION_GET_PRINCIPAL));
                         ((MidpointAuthentication) authentication).setPrincipal(principal);
                         ((MidpointAuthentication) authentication).setAuthorities(principal.getAuthorities());

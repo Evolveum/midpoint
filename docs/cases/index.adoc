@@ -1,0 +1,16 @@
+= MidPoint Case Management and Approvals
+:page-nav-title: Cases and Approvals
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe mechanism that deal with case management, approvals, workflow integration and similar activities that deal with human interaction in identity management and governance processes.
+
+++++
+{% children %}
+++++
+
+Please see following pages for topics related to manual connectors:
+
+* xref:../resources/manual/[]
+
+include::../_reference-disclaimer.adoc[]

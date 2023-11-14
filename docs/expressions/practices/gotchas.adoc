@@ -1,0 +1,68 @@
+= Common Mapping and Expression Gotchas
+:page-nav-title: Gotchas
+:page-upkeep-status: green
+
+This page describes common mapping-related situations that may be perceived as problematic.
+
+== Conditions do not turn mapping off
+
+Conditions are not supposed to be turning mapping off.
+Conditions are supposed to behave in a relativistic way, removing the values provided by the expression when the condition turns to `false`.
+
+Please see xref:../mappings/condition/[] for more details.
+
+
+== Range is evaluated even if mapping condition is false
+
+That is correct, it is supposed to.
+As conditions are not turning the mapping "off" (see above), mapping range still applies.
+
+Please see xref:../mappings/range/[] for more details.
+
+
+== Expressions are evaluated for null inputs
+
+Expressions are evaluated for `null` inputs as well, for the case when an expression needs to provide an output for no input.
+For example, in case that the expression needs to set a default value if input item has no value.
+In case that you do not want expression to be evaluated for null inputs, use `includeNullInputs` configuration option:
+
+[source,xml]
+----
+<expression>
+    <script>
+        <includeNullInputs>false</includeNullInputs>
+        <code>givenName + " " + familyName</code>
+    </script>
+</expression>
+----
+
+
+== Expressions are evaluated several times
+
+Yes, they are.
+Expressions are evaluated for every value for the input, or a _combination_ of inputs, in case there are multiple multi-valued sources.
+Moreover, the expression is evaluated both for the _old_ value (before the change took place) and a new value.
+The old value is needed to properly construct _delete_ delta.
+
+As a general rule, mapping expressions should be simple and efficient algorithms for transformation of a value.
+Execution of an expression is supposed to be _very cheap_ in terms of computational resources and latencies.
+Therefore, overhead associated with evaluation of expressions should be negligible.
+
+If you do not like multiple evaluation of an expression, there is not much you can do about it.
+Maybe _absolute_ mode of script expression can help somehow, perhaps you can save few cycles by using _state properies_ of a mapping to compute a value once, and then share the computed value in all the expression executions.
+However, if you are doing some expensive operation within a mapping expression then perhaps your configuration is not correct.
+Perhaps your code is located at the wrong place.
+Try to use a different midPoint mechanism to achieve the result.
+
+
+== Condition is evaluated several times
+
+It is.
+Mapping conditions are relativistic.
+MidPoint needs to know how the condition changes, whether if has flipped from `true` to `false` or the other way around.
+For that we need to evaluate the condition both for the old value and the new values.
+
+
+==  See Also
+
+* xref:/midpoint/reference/expressions/mappings/[]

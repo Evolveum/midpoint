@@ -7,18 +7,11 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
-import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,12 +21,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
@@ -41,9 +35,12 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -55,25 +52,21 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
-
-import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.*;
 
 @Component
 public class ResourceManager {
 
-    @Autowired @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private ResourceCache resourceCache;
     @Autowired private ConnectorManager connectorManager;
-    @Autowired private PrismContext prismContext;
     @Autowired private ResourceOperationalStateManager operationalStateManager;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired private CommonBeans beans;
-    @Autowired private ResourceCapabilitiesHelper capabilitiesHelper;
 
     @Autowired ResourceSchemaHelper schemaHelper;
     @Autowired SchemaFetcher schemaFetcher;
@@ -150,19 +143,8 @@ public class ResourceManager {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
-        String oid = repositoryObject.getOid();
 
-        if (isAbstract(repositoryObject)) {
-            expandResource(repositoryObject, result);
-            LOGGER.trace("Not putting {} into cache because it's abstract", repositoryObject);
-            return repositoryObject;
-        }
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Completing and caching fetched resource {}, version {} to cache "
-                            + "(previously cached version {}, options={})",
-                    repositoryObject, repositoryObject.getVersion(), beans.resourceCache.getVersion(oid), options);
-        }
+        logResourceBeforeCompletion(repositoryObject, options);
 
         ResourceCompletionOperation completionOperation = new ResourceCompletionOperation(repositoryObject, options, task, beans);
         ResourceType completedResource = completionOperation.execute(result);
@@ -170,7 +152,9 @@ public class ResourceManager {
         logResourceAfterCompletion(completedResource);
 
         // TODO fix this diagnostics using member methods of the completion operation
-        if (!ResourceTypeUtil.isComplete(completedResource)) {
+        if (isAbstract(completedResource)) {
+            LOGGER.debug("Not putting {} into cache because it's abstract", completedResource);
+        } else if (!ResourceTypeUtil.isComplete(completedResource)) {
             // No not cache non-complete resources (e.g. those retrieved with noFetch)
             LOGGER.debug("Not putting {} into cache because it's not complete: hasSchema={}, hasCapabilitiesCached={}",
                     repositoryObject, hasSchema(completedResource), hasCapabilitiesCached(completedResource));
@@ -188,11 +172,27 @@ public class ResourceManager {
         return completedResource;
     }
 
+    private void logResourceBeforeCompletion(
+            @NotNull ResourceType repositoryObject, @Nullable GetOperationOptions options) {
+        if (!LOGGER.isDebugEnabled()) {
+            return;
+        }
+        if (isAbstract(repositoryObject)) {
+            LOGGER.debug("Partially completing fetched abstract resource {}, version {}",
+                    repositoryObject, repositoryObject.getVersion());
+        } else {
+            String oid = repositoryObject.getOid();
+            LOGGER.debug("Completing and caching fetched resource {}, version {} to cache "
+                            + "(previously cached version {}, options={})",
+                    repositoryObject, repositoryObject.getVersion(), beans.resourceCache.getVersion(oid), options);
+        }
+    }
+
     private void logResourceAfterCompletion(ResourceType completedResource) {
         if (!LOGGER.isTraceEnabled()) {
             return;
         }
-        LOGGER.trace("Resource after completion, before putting into cache:\n{}", completedResource.debugDump());
+        LOGGER.trace("Resource after completion, before (considering) putting into cache:\n{}", completedResource.debugDump());
         Element xsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(completedResource);
         if (xsdSchemaElement == null) {
             LOGGER.trace("Schema: null");
@@ -370,7 +370,7 @@ public class ResourceManager {
         ResourceType resource = getCompletedResource(resourceOid, null, task, result);
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, ScriptCapabilityType.class);
         ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
-        ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on " + resource, prismContext);
+        ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on " + resource);
         try {
             UcfExecutionContext ucfCtx = new UcfExecutionContext(lightweightIdentifierGenerator, resource, task);
             ucfCtx.checkExecutionFullyPersistent();

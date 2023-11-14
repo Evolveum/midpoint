@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
@@ -77,49 +78,15 @@ public class ShadowUtil {
         return attributesContainer.getSecondaryIdentifiers();
     }
 
-    public static ResourceAttribute<String> getSecondaryIdentifier(PrismObject<? extends ShadowType> shadow) throws SchemaException {
-        Collection<ResourceAttribute<?>> secondaryIdentifiers = getSecondaryIdentifiers(shadow);
-        if (secondaryIdentifiers == null || secondaryIdentifiers.isEmpty()) {
-            return null;
-        }
-        if (secondaryIdentifiers.size() > 1) {
-            throw new SchemaException("Too many secondary identifiers in "+shadow+": "+secondaryIdentifiers);
-        }
-        return (ResourceAttribute<String>) secondaryIdentifiers.iterator().next();
-    }
-
-    public static Collection<ResourceAttribute<?>> getSecondaryIdentifiers(
-            @Nullable Collection<? extends ResourceAttribute<?>> identifiers,
-            @NotNull ResourceObjectDefinition objectClassDefinition) throws SchemaException {
-        if (identifiers == null) {
-            return null;
-        }
-        Collection<ResourceAttribute<?>> secondaryIdentifiers = new ArrayList<>();
-        for (ResourceAttribute<?> identifier: identifiers) {
-            if (objectClassDefinition.isSecondaryIdentifier(identifier.getElementName())) {
-                secondaryIdentifiers.add(identifier);
-            }
-        }
-        return secondaryIdentifiers;
-    }
-
-    public static String getSecondaryIdentifierRealValue(PrismObject<? extends ShadowType> shadow) throws SchemaException {
-        ResourceAttribute<String> secondaryIdentifier = getSecondaryIdentifier(shadow);
-        if (secondaryIdentifier == null) {
-            return null;
-        }
-        return secondaryIdentifier.getRealValue();
-    }
-
-    public static Collection<ResourceAttribute<?>> getAllIdentifiers(PrismObject<? extends ShadowType> shadow) {
+    public static @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers(PrismObject<? extends ShadowType> shadow) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer == null) {
-            return null;
+            return List.of();
         }
         return attributesContainer.getAllIdentifiers();
     }
 
-    public static Collection<ResourceAttribute<?>> getAllIdentifiers(ShadowType shadow) {
+    public static @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers(ShadowType shadow) {
         return getAllIdentifiers(shadow.asPrismObject());
     }
 
@@ -145,8 +112,8 @@ public class ShadowUtil {
     }
 
     /** Here we assume that the definition may not be applied yet. */
-    public static @NotNull Collection<Item<?, ?>> getAttributesRaw(PrismObject<? extends ShadowType> shadow) {
-        PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+    public static @NotNull Collection<Item<?, ?>> getAttributesRaw(@NotNull ShadowType shadow) {
+        PrismContainer<?> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer != null && attributesContainer.hasAnyValue()) {
             return attributesContainer.getValue().getItems();
         } else {
@@ -180,14 +147,16 @@ public class ShadowUtil {
     }
 
     public static ResourceAttributeContainer getAttributesContainer(PrismContainerValue<?> cval, QName containerName) {
-        PrismContainer attributesContainer = cval.findContainer(containerName);
+        PrismContainer<?> attributesContainer = cval.findContainer(containerName);
         if (attributesContainer == null) {
             return null;
         }
-        if (attributesContainer instanceof ResourceAttributeContainer) {
-            return (ResourceAttributeContainer)attributesContainer;
+        if (attributesContainer instanceof ResourceAttributeContainer resourceAttributeContainer) {
+            return resourceAttributeContainer;
         } else {
-            throw new SystemException("Expected that <"+containerName.getLocalPart()+"> will be ResourceAttributeContainer but it is "+attributesContainer.getClass());
+            throw new IllegalStateException(
+                    "Expected that <%s> will be ResourceAttributeContainer but it is %s".formatted(
+                            containerName.getLocalPart(), attributesContainer.getClass()));
         }
     }
 
@@ -212,7 +181,7 @@ public class ShadowUtil {
         return emptyContainer;
     }
 
-    public static ResourceObjectClassDefinition getObjectClassDefinition(ShadowType shadow) {
+    public static @NotNull ResourceObjectClassDefinition getObjectClassDefinition(@NotNull ShadowType shadow) {
         // TODO: maybe we can do something more intelligent here
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         return attributesContainer.getDefinition()
@@ -266,30 +235,6 @@ public class ShadowUtil {
         return attribute.getRealValue();
     }
 
-    public static String getMultiStringAttributeValueAsSingle(ShadowType shadow, QName attrName) {
-        return getMultiStringAttributeValueAsSingle(shadow.asPrismObject(), attrName);
-    }
-
-
-    private static String getMultiStringAttributeValueAsSingle(PrismObject<ShadowType> shadow, QName attrName) {
-        PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-        if (attributesContainer == null) {
-            return null;
-        }
-        PrismProperty<String> attribute = attributesContainer.findProperty(ItemName.fromQName(attrName));
-        if (attribute == null) {
-            return null;
-        }
-        Collection<String> realValues = attribute.getRealValues();
-        if (realValues == null || realValues.isEmpty()) {
-            return null;
-        }
-        if (realValues.size() > 1) {
-            throw new IllegalStateException("More than one value in attribute "+attrName);
-        }
-        return realValues.iterator().next();
-    }
-
     public static <T> List<T> getAttributeValues(ShadowType shadowType, QName attrName) {
         return getAttributeValues(shadowType.asPrismObject(), attrName);
     }
@@ -314,7 +259,7 @@ public class ShadowUtil {
     }
 
     public static <T> T getAttributeValue(ShadowType shadowType, QName attrName) throws SchemaException {
-        return (T) getAttributeValue(shadowType.asPrismObject(), attrName);
+        return getAttributeValue(shadowType.asPrismObject(), attrName);
     }
 
     public static <T> T getAttributeValue(PrismObject<? extends ShadowType> shadow, QName attrName) throws SchemaException {
@@ -335,6 +280,7 @@ public class ShadowUtil {
 
     public static void setPasswordIncomplete(ShadowType shadow) throws SchemaException {
         PasswordType password = getOrCreateShadowPassword(shadow);
+        //noinspection unchecked
         PrismContainerValue<PasswordType> passwordContainer = password.asPrismContainerValue();
         PrismProperty<ProtectedStringType> valueProperty = passwordContainer.findOrCreateProperty(PasswordType.F_VALUE);
         valueProperty.setIncomplete(true);
@@ -380,6 +326,7 @@ public class ShadowUtil {
         PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         ResourceAttributeContainerDefinition racDef = ObjectFactory.createResourceAttributeContainerDefinition(
                 ShadowType.F_ATTRIBUTES, objectClassDefinition);
+        //noinspection unchecked,rawtypes
         attributesContainer.applyDefinition((PrismContainerDefinition) racDef, true);
     }
 
@@ -443,7 +390,7 @@ public class ShadowUtil {
         if (!QNameUtil.match(ShadowType.F_ATTRIBUTES, firstName)) {
             throw new SchemaException(message + ": first path segment is not "+ShadowType.F_ATTRIBUTES);
         }
-        if (attributePath.size() < 1) {
+        if (attributePath.isEmpty()) {
             throw new SchemaException(message + ": path too short ("+attributePath.size()+" segments)");
         }
         if (attributePath.size() > 2) {
@@ -478,7 +425,7 @@ public class ShadowUtil {
         }
 
         PrismContainerDefinition<ShadowAttributesType> attributesDefinition =
-                shadow.getDefinition().findContainerDefinition((ItemPath) ShadowType.F_ATTRIBUTES);
+                shadow.getDefinition().findContainerDefinition(ShadowType.F_ATTRIBUTES);
         checkConsistency(attributesDefinition, " object definition in "+desc);
     }
 
@@ -492,15 +439,6 @@ public class ShadowUtil {
         }
     }
 
-    // TODO is this correct?
-    public static boolean isAccount(ShadowType shadowType) {
-        if (shadowType.getKind() != null) {
-            return shadowType.getKind() == ShadowKindType.ACCOUNT;
-        } else {
-            return true;        // ???
-        }
-    }
-
     public static boolean isProtected(@Nullable ShadowType shadow) {
         return shadow != null && Boolean.TRUE.equals(shadow.isProtectedObject());
     }
@@ -511,8 +449,7 @@ public class ShadowUtil {
     }
 
     public static boolean isDead(ShadowType shadow) {
-        Boolean dead = shadow.isDead();
-        return dead != null && dead;
+        return Boolean.TRUE.equals(shadow.isDead());
     }
 
     public static boolean isDead(@NotNull PrismObject<ShadowType> shadow) {
@@ -674,7 +611,7 @@ public class ShadowUtil {
         }
         sb.append("shadow ");
         boolean first = true;
-        for(ResourceAttribute iattr: getPrimaryIdentifiers(shadow)) {
+        for (ResourceAttribute<?> iattr : emptyIfNull(getPrimaryIdentifiers(shadow))) {
             if (first) {
                 sb.append("[");
                 first  = false;
@@ -733,7 +670,7 @@ public class ShadowUtil {
             if (identifiers.size() == 1) {
                 PrismProperty<?> identifier = identifiers.iterator().next();
                 // Only single-valued identifiers
-                Collection<PrismPropertyValue<?>> values = (Collection) identifier.getValues();
+                Collection<? extends PrismPropertyValue<?>> values = identifier.getValues();
                 if (values.size() == 1) {
                     PrismPropertyValue<?> value = values.iterator().next();
                     // and only strings
@@ -770,14 +707,6 @@ public class ShadowUtil {
         return value.getValue();
     }
 
-    public static @NotNull ResourceObjectIdentification getResourceObjectIdentification(
-            PrismObject<ShadowType> shadow, ResourceObjectDefinition objectDefinition) {
-        return new ResourceObjectIdentification(
-                objectDefinition,
-                ShadowUtil.getPrimaryIdentifiers(shadow),
-                ShadowUtil.getSecondaryIdentifiers(shadow));
-    }
-
     public static boolean matchesAttribute(ItemPath path, QName attributeName) {
         return path.startsWithName(ShadowType.F_ATTRIBUTES) &&
                 path.rest().startsWithName(attributeName);
@@ -789,39 +718,6 @@ public class ShadowUtil {
                 !attributesContainer
                         .extractAttributesByDefinitions(objectDefinition.getPrimaryIdentifiers())
                         .isEmpty();
-    }
-
-    public static boolean hasPrimaryIdentifier(Collection<? extends ResourceAttribute<?>> identifiers,
-            ResourceObjectDefinition objectDefinition) {
-        for (ResourceAttribute identifier: identifiers) {
-            if (objectDefinition.isPrimaryIdentifier(identifier.getElementName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean hasSecondaryIdentifier(Collection<? extends ResourceAttribute<?>> identifiers,
-            ResourceObjectClassDefinition objectClassDefinition) {
-        for (ResourceAttribute identifier: identifiers) {
-            if (objectClassDefinition.isSecondaryIdentifier(identifier.getElementName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static ResourceAttribute<?> fixAttributePath(ResourceAttribute<?> attribute) throws SchemaException {
-        if (attribute == null) {
-            return null;
-        }
-        if (attribute.getPath().startsWithName(ShadowType.F_ATTRIBUTES)) {
-            return attribute;
-        }
-        ResourceAttribute<?> fixedAttribute = attribute.clone();
-        ResourceAttributeContainer container = ObjectFactory.createResourceAttributeContainer(ShadowType.F_ATTRIBUTES, null);
-        container.createNewValue().add(fixedAttribute);
-        return fixedAttribute;
     }
 
     // TODO: may be useful to move to ResourceObjectClassDefinition later?
@@ -858,13 +754,13 @@ public class ShadowUtil {
             if (val == null) {
                 throw new SchemaException("Null value in attribute "+attrName);
             }
-//            LOGGER.info("MMMMMMMMMMMM: {}:{}\n   {} <-> {}", attrName, attrDef, expectedClass, val.getClass());
             if (!XmlTypeConverter.isMatchingType(expectedClass, val.getClass())) {
                 throw new SchemaException("Wrong value in attribute "+attrName+"; expected class "+attrDef.getTypeClass().getSimpleName()+", but was "+val.getClass());
             }
         }
     }
 
+    // TODO consider removal
     public static ProtectedStringType getPasswordValue(ShadowType shadowType) {
         if (shadowType == null) {
             return null;
@@ -977,17 +873,11 @@ public class ShadowUtil {
             List<ItemName> attributesToDelete = attributesContainer.getAttributes().stream()
                     .map(Item::getElementName)
                     .filter(attrName -> !objDef.isPrimaryIdentifier(attrName))
-                    .collect(Collectors.toList());
+                    .toList();
             for (ItemName attrName : attributesToDelete) {
                 attributesContainer.getValue().removeProperty(attrName);
             }
         }
-    }
-
-    public static List<ObjectReferenceType> selectLiveLinks(List<ObjectReferenceType> refs) {
-        return refs.stream()
-                .filter(ShadowUtil::isNotDead)
-                .collect(Collectors.toList());
     }
 
     /**
@@ -1042,18 +932,6 @@ public class ShadowUtil {
                 () -> "No object class in " + shadow);
     }
 
-    public static boolean isPartiallyClassified(@NotNull ShadowType shadow) {
-        return isKnown(shadow.getKind())
-                && isNotKnown(shadow.getIntent());
-    }
-
-    public static void checkForPartialClassification(@NotNull ShadowType shadow) {
-        if (isPartiallyClassified(shadow)) {
-            // TODO reconsider logging level here
-            LOGGER.warn("{} is partially classified: kind = {}, intent = {}", shadow, shadow.getKind(), shadow.getIntent());
-        }
-    }
-
     public static @NotNull ShadowKindType resolveDefault(ShadowKindType kind) {
         return Objects.requireNonNullElse(kind, ShadowKindType.ACCOUNT);
     }
@@ -1101,5 +979,12 @@ public class ShadowUtil {
         return shadow.getSynchronizationSituationDescription().stream()
                 .max(Comparator.comparing(desc -> XmlTypeConverter.toMillis(desc.getTimestamp())))
                 .orElse(null);
+    }
+
+    public static @NotNull ResourceAttributeContainer getIdentifiersContainerRequired(
+            @NotNull PrismContainerValue<ShadowAssociationType> associationValue) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                getAttributesContainer(associationValue, ShadowAssociationType.F_IDENTIFIERS),
+                () -> "No identifiers in " + associationValue);
     }
 }

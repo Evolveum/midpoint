@@ -13,15 +13,12 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
-
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -41,6 +38,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
@@ -204,10 +203,36 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             }
 
             @Override
+            protected void backPerformed(AjaxRequestTarget target) {
+                super.backPerformed(target);
+                onBackPerform(target);
+            }
+
+            @Override
+            protected void addButtons(RepeatingView repeatingView) {
+                addAdditionalButtons(repeatingView);
+            }
+
+            @Override
+            protected void deleteConfirmPerformed(AjaxRequestTarget target) {
+                super.deleteConfirmPerformed(target);
+                PageAssignmentHolderDetails.this.afterDeletePerformed(target);
+            }
+
+            @Override
             protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
                 return PageAssignmentHolderDetails.this.hasUnsavedChanges(target);
             }
         };
+    }
+
+    protected void afterDeletePerformed(AjaxRequestTarget target) {
+    }
+
+    protected void onBackPerform(AjaxRequestTarget target) {
+    }
+
+    protected void addAdditionalButtons(RepeatingView repeatingView) {
     }
 
     protected AHDM createObjectDetailsModels(PrismObject<AH> object) {
@@ -241,7 +266,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         };
     }
 
-    private String getObjectCollectionName() {
+    protected String getObjectCollectionName() {
         if (getModelWrapperObject() == null || getModelWrapperObject().getObject() == null) {
             return null;
         }
@@ -374,7 +399,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
                 SerializableConsumer<AjaxRequestTarget> consumer =
-                        consumerTarget -> navigateToNext(DetailsPageUtil.getObjectListPage(getType()));
+                        consumerTarget -> exitFromWizard();
                 checkDeltasExitPerformed(consumer, target);
             }
 
@@ -399,6 +424,10 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 return result;
             }
         };
+    }
+
+    protected void exitFromWizard() {
+        navigateToNext(DetailsPageUtil.getObjectListPage(getType()));
     }
 
     protected void checkDeltasExitPerformed(SerializableConsumer<AjaxRequestTarget> consumer, AjaxRequestTarget target) {

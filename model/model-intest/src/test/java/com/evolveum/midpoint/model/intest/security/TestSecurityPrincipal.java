@@ -10,6 +10,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -219,6 +221,41 @@ public class TestSecurityPrincipal extends AbstractInitializedSecurityTest {
             .assertUserDashboardLinks(2)
             .assertObjectCollectionViews(3)
             .assertUserDashboardWidgets(2);
+    }
+
+    @Test
+    public void test100JackRolePirateWithNoSupportGuiConfig() throws Exception {
+        // GIVEN
+        login(USER_ADMINISTRATOR_USERNAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+
+        resetAuthentication();
+
+        // WHEN
+        MidPointPrincipal principal = focusProfileService.getPrincipal(
+                USER_JACK_USERNAME,
+                UserType.class,
+                ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
+                        .locateSecurityPolicy(false));
+
+        // THEN
+        assertJack(principal);
+
+        assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
+        assertHasAuthorizationAllow(principal.getAuthorities().iterator().next(), AUTZ_LOOT_URL);
+
+        assertAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.EXECUTION);
+        assertNotAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.REQUEST);
+        assertNotAuthorized(principal, AUTZ_LOOT_URL, null);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+
+        assertCompiledGuiProfile(principal)
+                .assertAdditionalMenuLinks(0)
+                .assertUserDashboardLinks(0)
+                .assertObjectCollectionViews(0)
+                .assertUserDashboardWidgets(0);
     }
 
     @Test

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  ~ Copyright (c) 2023 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<head/>
+<body>
+<wicket:panel>
+    <form class="" wicket:id="popoverForm" style="width: 400px;">
+        <div class="modal-header px-3 d-flex align-items-center justify-content-between">
+            <h3 class="card-title flex-grow-1 m-0">
+                <wicket:message key="PopoverSearchPanel.title"></wicket:message>
+            </h3>
+            <a wicket:id="remove" class="card-link"/>
+        </div>
+        <div class="modal-body">
+            <wicket:child/>
+        </div>
+        <div class="modal-footer justify-content-between px-3 py-3">
+            <a wicket:id="cancelButton" class="btn btn-sm btn-default m-0"/>
+            <a wicket:id="confirmButton" class="btn btn-sm btn-primary m-0"/>
+        </div>
+    </form>
+</wicket:panel>
+</body>
+</html>

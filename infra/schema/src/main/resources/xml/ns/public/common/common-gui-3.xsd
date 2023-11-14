@@ -14,11 +14,11 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
             elementFormDefault="qualified"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+            jaxb:version="3.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -604,7 +604,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to the root object of the role catalog (org. structure).
-                        Up to 3 levels of org. structure will be shown as menus/submenus.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="roleCatalogDepth" type="xsd:int" minOccurs="0" default="3">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Depth determines how many levels will be shown as menus/submenus.
+                        All roles below this depth level will be listed using subtree query.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

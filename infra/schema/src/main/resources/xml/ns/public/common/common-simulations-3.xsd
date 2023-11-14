@@ -14,11 +14,11 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+        xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
         elementFormDefault="qualified"
         xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
         jaxb:extensionBindingPrefixes="xjc"
-        jaxb:version="2.0">
+        jaxb:version="3.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -716,7 +716,6 @@
                             no        |        yes        |         no
                            yes        |        yes        |        yes
                 </pre>
-                NOT IMPLEMENTED YET, THE STRUCTURE MAY CHANGE
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -753,7 +752,6 @@
                             no        |        yes        |         no
                            yes        |        yes        |        yes
                 </pre>
-                NOT IMPLEMENTED YET, THE STRUCTURE MAY CHANGE
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -831,10 +829,9 @@
 
     <xsd:complexType name="SimulationMetricPartitionType">
         <xsd:annotation>
+            <!-- TODO reconsider type name -->
             <xsd:documentation>
                 Partial or total aggregation of values for given metric.
-
-                TODO type name
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1039,6 +1036,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Structural archetype of the object processed. Applies only to focal objects (assignment holders).
+                        When the simulated change of the archetype itself is reported, the old value is provided here.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SimulationResultProcessedObjectType.structuralArchetypeRef</a:displayName>
@@ -1344,10 +1342,9 @@
 
     <xsd:complexType name="EventMarkDomainType">
         <xsd:annotation>
+            <!-- TODO decide on this - maybe we won't need it for simulations at all, but who knows about the audit? -->
             <xsd:documentation>
                 Domain of a given event mark.
-
-                TODO decide on this -- maybe we won't need it for simulations at all, but who knows about the audit?
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>

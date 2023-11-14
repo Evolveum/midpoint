@@ -6,8 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
+
 import java.util.ArrayList;
 import java.util.List;
+
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -22,14 +24,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetail
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lskublik
  */
 public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, AbstractRoleDetailsModel<RoleType>> {
-
-
 
     public BusinessRoleWizardPanel(String id, WizardPanelHelper<RoleType, AbstractRoleDetailsModel<RoleType>> helper) {
         super(id, helper);
@@ -54,9 +54,10 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                 BusinessRoleWizardPanel.this.onExitPerformed(target);
             }
         });
-
         BusinessRoleApplicationDto patterns = getAssignmentHolderModel().getPatternDeltas();
-        if (patterns != null && CollectionUtils.isNotEmpty(patterns.getBusinessRoleDtos())) {
+        boolean isRoleMigration = patterns != null && CollectionUtils.isNotEmpty(patterns.getBusinessRoleDtos());
+
+        if (isRoleMigration) {
             steps.add(new ExsitingAccessApplicationRoleStepPanel<>(getAssignmentHolderModel()) {
 
                 @Override
@@ -83,25 +84,25 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                 }
             });
 
-            steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()) {
-                @Override
-                protected void onSubmitPerformed(AjaxRequestTarget target) {
-                    super.onSubmitPerformed(target);
-                    BusinessRoleWizardPanel.this.onFinishBasicWizardPerformed(target);
-                }
-
-                @Override
-                protected boolean isSubmitEnable() {
-                    return getHelper().getDetailsModel().getPatternDeltas() != null;
-                }
-
-                @Override
-                protected void onExitPerformed(AjaxRequestTarget target) {
-                    BusinessRoleWizardPanel.this.onExitPerformed(target);
-                }
-            });
-
         }
+
+        steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()) {
+            @Override
+            protected void onSubmitPerformed(AjaxRequestTarget target) {
+                super.onSubmitPerformed(target);
+                BusinessRoleWizardPanel.this.onFinishBasicWizardPerformed(target);
+            }
+
+            @Override
+            protected boolean isSubmitEnable() {
+                return super.isSubmitEnable();
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                BusinessRoleWizardPanel.this.onExitPerformed(target);
+            }
+        });
 
         return steps;
     }

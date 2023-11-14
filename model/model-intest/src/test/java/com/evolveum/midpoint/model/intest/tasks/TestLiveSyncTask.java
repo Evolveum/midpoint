@@ -1356,7 +1356,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
     @SuppressWarnings("SameParameterValue")
     private void prepareErrorsScenario(DummyTestResource source, DummyTestResource target) throws ConnectException,
             ObjectAlreadyExistsException, ConflictException, FileNotFoundException, SchemaViolationException,
-            InterruptedException, SchemaException, ObjectNotFoundException {
+            InterruptedException, SchemaException, ObjectNotFoundException, ObjectDoesNotExistException {
         deleteEUsers();
         deleteEShadows();
         recreateSourceEAccounts(source);
@@ -1367,8 +1367,9 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         resource.controller.getDummyResource().clear();
     }
 
-    private void recreateSourceEAccounts(DummyTestResource resource) throws ConnectException, FileNotFoundException,
-            SchemaViolationException, ConflictException, InterruptedException, ObjectAlreadyExistsException {
+    private void recreateSourceEAccounts(DummyTestResource resource)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException,
+            ObjectAlreadyExistsException, ObjectDoesNotExistException {
         resource.controller.getDummyResource().clear();
         for (int i = 1; i <= ERRORS_ACCOUNTS; i++) {
             resource.controller.addAccount(String.format("e-%06d", i));

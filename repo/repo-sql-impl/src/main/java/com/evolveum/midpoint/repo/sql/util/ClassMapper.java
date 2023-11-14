@@ -70,7 +70,10 @@ public final class ClassMapper {
         TYPES.put(ObjectTypes.MESSAGE_TEMPLATE, RObjectType.MESSAGE_TEMPLATE);
 
         for (ObjectTypes type : ObjectTypes.values()) {
-            if (type == ObjectTypes.SIMULATION_RESULT || type == ObjectTypes.MARK) {
+            if (type == ObjectTypes.SIMULATION_RESULT
+                    || type == ObjectTypes.MARK
+                    || type == ObjectTypes.ROLE_ANALYSIS_CLUSTER
+                    || type == ObjectTypes.ROLE_ANALYSIS_SESSION) {
                 continue; // FIXME ugly hack
             }
             if (!TYPES.containsKey(type)) {

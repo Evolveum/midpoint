@@ -69,6 +69,7 @@ public class NonceAuthenticationEvaluatorImpl extends CredentialsAuthenticationE
         if (policy == null) {
             policy = SecurityUtil.getEffectiveNonceCredentialsPolicy(securityPolicy);
         }
+        authnCtx.setPolicy(policy);
         return policy;
     }
 

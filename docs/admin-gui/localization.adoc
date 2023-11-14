@@ -1,0 +1,121 @@
+= Localization
+:page-wiki-name: Localization
+:page-wiki-id: 30245445
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-24T08:13:11.429+02:00
+:page-wiki-metadata-modify-user: petr.gasparik
+:page-wiki-metadata-modify-date: 2021-01-27T10:31:25.054+01:00
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+MidPoint was born in Europe, therefore it is quite natural that it had support for multiple languages from its very beginning.
+MidPoint supports localization on many levels:
+
+* User interface strings are translated to individual languages by using localization catalogs (property files).
+Those translations are maintained by using link:https://app.transifex.com/evolveum/midpoint/dashboard/[transifex.com].
+
+* Localized data may be entered dynamically into midPoint by leveraging xref:/midpoint/reference/concepts/polystring/[PolyString] mechanism.
+However, please note that this method xref:/midpoint/features/planned/polystring/[needs some Improvements].
+
+* Expressions can indicate error conditions by using localizable messages.
+There is also a special expression in the user interface that can take care of some localization properties of error handling.
+
+For translation rules, there is xref:/midpoint/devel/translations/[Translations] page.
+
+
+== Community Effort
+
+MidPoint localization is a community effort.
+Localization work is shared by the midPoint core team (Evolveum), partners, customers and a community at large.
+When it comes to localization, the responsibilities are divided:
+
+* MidPoint core team (Evolveum) takes care that there are sufficient mechanisms for localization in midPoint core and user interface.
+However, Evolveum does *not*  maintain any localization or translation, except for the default English texts.
+
+* Community take care of all the localization for all the (non-english) languages.
+The translation work is done by Evolveum partners, customers, midPoint community users and so on.
+There is a significant number of translations and every single one was contributed by midPoint community.
+The translation process itself is coordinated by the community.
+Translation coordinator is Jan Mokráček, the effort is supported by AMI Praha.
+
+This arrangement was not part of the original plan.
+It has naturally evolved over the years when midPoint community offered more and more translations.
+Finally we have figured that this makes perfect sense.
+Translation needs to be done by people that are native speakers of that particular language.
+But even more importantly, identity management is a complex field that is using all kinds of special-purpose terms and expressions.
+Most of that can be translated only by people that know the IDM field.
+Therefore even professional translators often struggle with translating midPoint to a new language.
+However, midPoint engineers and users naturally understand the terminology and they make perfect translators.
+On the other hand, Evolveum core team is best utilized in developing the midPoint code.
+And there is still xref:/midpoint/features/planned/[so much to do].
+
+[TIP]
+.Thank you!
+====
+Evolveum team would like to express our deepest gratitude to all the translators.
+MidPoint is successful all around the world and such success would not be possible without you.
+We fully acknowledge that creating of a translation for such a comprehensive system is no easy task.
+And maintaining the translation over all those years requires a lot of time and persistence.
+We appreciate all your hard work.
+Thank you!
+====
+
+
+=== Participation
+
+The easiest way to help with midPoint localization is to use link:https://app.transifex.com/evolveum/midpoint/dashboard/[Transifex]. Transifex is a cloud service that provides and user-friendly interface to maintain the localization files.
+Just create a free account on Transifex and request to join the midPoint localization team.
+Any work that you do on Transifex will be synchronized to localization files in midPoint source code repositories.
+
+In case of any questions please contact link:https://app.transifex.com/user/profile/jan.mokracek/[Jan Mokráček] who coordinates the translation effort.
+
+
+== Localization Of Diagnostics
+
+MidPoint is a very comprehensive system and it perhaps goes without a saying that not everything could be localized.
+MidPoint primary language is English and there are some parts that will remain in English for all foreseeable future.
+Those are of course the source code, source code commentary and developer documentation.
+But there are also diagnostic information such as log files, support tools, schema documentation and so on.
+Those are information targeted at developers and deployment engineers.
+And therefore those will remain in English.
+We currently have no plans to localize such information.
+
+However, there is one area that is currently a grey zone: localization of error messages.
+Error messages are somewhere between development, system administrator and end-user experience.
+Even end user will see an error message occasionally.
+In that case we should make an effort to make to localize at least those error messages that are part of end-user experience.
+
+But error handling itself is a very difficult aspect to do properly and it is even more difficult to maintain.
+There are some mechanisms in midPoint that make localization of error messages possible.
+However, those mechanisms are still very limited.
+We would like to extend this functionality, but it needs to be done in a very sensitive way as overdoing this can ruin maintainability of midPoint code.
+And it makes no sense to have perfectly localized system if that system cannot be evolved and fixed efficiently.
+However, if you have any ideas or suggestions in this matter please xref:/community/[contact us]. However, any non-trivial effort in this direction will require xref:/support/subscription-sponsoring/[some funding].
+
+
+== Plans and Limitations
+
+Generally speaking, midPoint is a system that reasonably localizable.
+However, there is always a room for improvement.
+We would like to improve:
+
+* xref:/midpoint/features/planned/polystring/[PolyString support for multiple languages]
+
+* Proper use of preferred language, locale and time zone setting in the user profile, including an user-friendly way how to set those values.
+
+* Localization of error messages and other diagnostic information (see above).
+
+Current state of midPoint localization is that it can work well in a single-language non-English environment, as it is already proven by many such deployments.
+However, even in that environment there may be cases when English messages appear (e.g. error messages), even though such situations should be very rare.
+Use of midPoint in a multi-language and multi-timezone environment is possible, but there are more problems to be expected.
+MidPoint does not fully support such deployment and it is expected that a xref:/support/subscription-sponsoring/[subscription] may be needed to fix all the issues in such cases.
+
+
+== See Also
+
+* link:https://app.transifex.com/evolveum/midpoint/dashboard/[midPoint page at Transifex]
+
+* xref:/midpoint/reference/concepts/polystring/[PolyString]
+
+* xref:/community/[Participation]

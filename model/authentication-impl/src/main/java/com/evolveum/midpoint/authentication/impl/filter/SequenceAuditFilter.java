@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.authentication.impl.filter;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
+
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -52,6 +60,13 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
 
     @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
 
+    private GuiProfiledPrincipalManager focusProfileService;
+
+    @Autowired
+    public void setPrincipalManager(GuiProfiledPrincipalManager focusProfileService) {
+        this.focusProfileService = focusProfileService;
+    }
+
     private boolean recordOnEndOfChain = true;
 
     public SequenceAuditFilter() {
@@ -67,7 +82,8 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         LOGGER.trace("Running SequenceAuditFilter");
 
         if (recordOnEndOfChain) {

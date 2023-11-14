@@ -6,94 +6,33 @@
  */
 package com.evolveum.midpoint.model.common.stringpolicy;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Set;
 
-import javax.xml.namespace.QName;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import org.apache.commons.lang3.text.StrBuilder;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CharacterClassType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
-
-/**
- * @author mamut
- */
 public class StringPolicyUtils {
 
-    private static final String ASCII7_CHARS = " !\"#$%&'()*+,-.01234567890:;<=>?"
-            + "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_" + "`abcdefghijklmnopqrstuvwxyz{|}~";
-
-    public static StringPolicyType normalize(StringPolicyType sp) {
-        if (null == sp) {
-            throw new IllegalArgumentException("Providide string policy cannot be null");
-        }
-
-        if (null == sp.getLimitations()) {
-            LimitationsType sl = new LimitationsType();
-            sl.setCheckAgainstDictionary(false);
-            sl.setCheckPattern("");
-            sl.setMaxLength(Integer.MAX_VALUE);
-            sl.setMinLength(0);
-            sl.setMinUniqueChars(0);
-            sp.setLimitations(sl);
-        }
-
-        // Add default char class
-        if (null == sp.getCharacterClass()) {
-            CharacterClassType cct = new CharacterClassType();
-            cct.setValue(ASCII7_CHARS);
-            sp.setCharacterClass(cct);
-        }
-
-        return sp;
-    }
-
-    /**
-     * Prepare usable list of strings for generator
-     *
-     */
-
-
-    public static String collectCharacterClass(CharacterClassType cc, QName ref) {
-        StrBuilder l = new StrBuilder();
-        if (null == cc) {
-            throw new IllegalArgumentException("Character class cannot be null");
-        }
-
-        if (null != cc.getValue() && (null == ref || ref.equals(cc.getName()))) {
-            l.append(cc.getValue());
-        } else if (null != cc.getCharacterClass() && !cc.getCharacterClass().isEmpty()) {
-            // Process all sub lists
-            for (CharacterClassType subClass : cc.getCharacterClass()) {
-                // If we found requested name or no name defined
-                if (null == ref || ref.equals(cc.getName())) {
-                    l.append(collectCharacterClass(subClass, null));
-                } else {
-                    l.append(collectCharacterClass(subClass, ref));
-                }
+    static @NotNull Set<Character> stringAsCharacters(@Nullable String value) {
+        if (value == null) {
+            return Collections.emptySet();
+        } else {
+            Set<Character> characters = new HashSet<>();
+            for (char c : value.toCharArray()) {
+                characters.add(c);
             }
+            return characters;
         }
-        // Remove duplicity in return;
-        HashSet<String> h = new HashSet<>();
-        for (String s : l.toString().split("")) {
-            h.add(s);
-        }
-        return new StrBuilder().appendAll(h).toString();
     }
 
-    /**z
-     * Convert string to array
-     * @param in
-     * @return ArrayList
-     */
-    public static List<String> stringTokenizer(String in) {
-        List<String> l = new ArrayList<>();
-        for (int i = 0; i < in.length(); i++) {
-            l.add(in.substring(i, i+1));
+    static @NotNull String charactersAsString(@NotNull Collection<Character> characters) {
+        StringBuilder sb = new StringBuilder();
+        for (Character c : characters) {
+            sb.append(c);
         }
-        return l;
+        return sb.toString();
     }
 }

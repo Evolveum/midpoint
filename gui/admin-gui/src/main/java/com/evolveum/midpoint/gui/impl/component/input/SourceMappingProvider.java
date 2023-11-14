@@ -101,12 +101,16 @@ public class SourceMappingProvider extends ChoiceProvider<VariableBindingDefinit
             ItemDefinition<?> superDef = focusDef.findItemDefinition(ItemPath.create(superPath.split("/")));
             if (superDef != null && superDef instanceof PrismContainerDefinition) {
                 collectItems(((PrismContainerDefinition) superDef).getDefinitions(), suffix, toSelect, true);
-                return toSelect.stream().map(subPath -> superPath + "/" + subPath).collect(Collectors.toList());
+                return toSelect
+                        .stream()
+                        .map(subPath -> superPath + "/" + subPath)
+                        .sorted()
+                        .toList();
             }
         } else {
             collectItems(focusDef.getDefinitions(), input, toSelect, true);
         }
-        return toSelect;
+        return toSelect.stream().sorted().toList();
     }
 
     public List<String> collectAvailableDefinitions(String input) {

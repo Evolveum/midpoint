@@ -70,6 +70,11 @@ public interface AttributeDefinitionDelegator<T> extends PropertyDefinitionDeleg
     }
 
     @Override
+    default Boolean isCached() {
+        return delegate().isCached();
+    }
+
+    @Override
     default boolean isVolatilityTrigger() {
         return delegate().isVolatilityTrigger();
     }

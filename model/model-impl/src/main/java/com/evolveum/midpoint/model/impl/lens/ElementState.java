@@ -940,8 +940,6 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     void setFresh(boolean fresh) {
         this.fresh = fresh;
     }
-
-
     //endregion
 
     //region Consistency checks

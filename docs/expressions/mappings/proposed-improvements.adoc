@@ -1,0 +1,56 @@
+= Proposed Improvements in Mappings and Expressions
+:page-nav-title: Proposed Improvements
+:page-display-order: 900
+
+* Use of value metadata.
+
+** Avoid execution of mappings where sources were not changed.
+The metadata may supplement the missing zero sets from execution of other mappings.
+I.e. the metadata will tell us whether this value was also produced by other mapping, and therefore it has to be kept instead of removing it.
+
+** Open question: metadata of account attributes for outbound mappings.
+
+* Implementation Optimization
+
+** Avoid execution of mapping expression in obvious cases (e.g. condition is `false` -> `false`)
+
+* Deprecation/removal +
+Should we deprecate/remove following items?
+
+** MappingType.authoritative - somehow replaced by range (but not entirely)
+
+** MappingType.exclusive - naturally enforced for single-valued items, do we need this also for multi-value?
+
+* Terminology
+
+** Weak/normal/strong is not very intuitive.
+Do we have better names?
+
+** `includeNullInputs` vs `allowEmptyValues` ... always confusing.
+Would there be a better way?
+Some auto-detect mechanism?
+Smarter expressions?
+
+* Documentation TODO
+
+** Expression / Script expression section of docs still needs to be reviewed
+
+** Schemadoc is missing in too many places
+
+* Ideas
+
+** Smarter pre-defined expression evaluators.
+E.g. expression to construct username, selecting configurable number of firstname/lastname letters, automatically including iterationToken, maybe supporting several strategies/patterns.
+Fool-proof, e.g. good output in case of missing lastname, etc.
+This would be nice in GUI.
+
+== Questions
+
+* Mapping condition seems to be non-intuitive, even after documentation update.
+What should we do with it?
+Remove it?
+Change it?
+
+* Mapping constraints: are they "turning mapping off"? Or are they relativistic (like condition)?
+
+* Script (tranformation) expression condition (since 3.9, Palo) ... what should we do with it?

@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.testing.conntest.ad.AdTestMixin;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -193,9 +194,8 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         return allowDuplicateSearchResults;
     }
 
-    @Override
-    protected File getSyncTaskInetOrgPersonFile() {
-        return new File(getBaseDir(), "task-sync-user.xml");
+    protected TestTask initTaskLiveSyncInetOrgPerson() {
+        return new TestTask(getBaseDir(), "task-sync-user.xml", getSyncTaskOid());
     }
 
     @Override

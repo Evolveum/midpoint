@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.gui.impl.page.login;
 
 import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -33,8 +35,6 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.schema.util.AuthenticationSequenceTypeUtil;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.menu.top.LocaleTextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -42,14 +42,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 
 /**
  * Umbrella class for each page that should have the look and feel of login page.
- *
+ * <p>
  * It is used as a base for:
- *
+ * <p>
  * . self-management pages, such as self-registration, password reset, invitation,
  * . authentication module pages
- *
+ * <p>
  * This abstract page should not contain methods which are not used for both cases.
- *
+ * <p>
  * Basic intention is to provide common layout, such as a styles and title and
  * description of the page. Possibility to change locale and implementation for back button.
  */
@@ -62,20 +62,45 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     private static final String ID_SWITCH_TO_DEFAULT_SEQUENCE = "switchToDefaultSequence";
     private static final String ID_BACK_BUTTON = "back";
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractPageLogin.class);
+    private final List<String> errorMessages = new ArrayList<>();
 
     public AbstractPageLogin(PageParameters parameters) {
         super(parameters);
+        initExceptionMessage();
     }
 
     public AbstractPageLogin() {
         super(null);
+        initExceptionMessage();
+    }
+
+    private void initExceptionMessage() {
+        ServletWebRequest req = (ServletWebRequest) RequestCycle.get().getRequest();
+        HttpServletRequest httpReq = req.getContainerRequest();
+        HttpSession httpSession = httpReq.getSession();
+
+        Exception ex = (Exception) httpSession.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        if (ex == null) {
+            return;
+        }
+        String msg = ex.getMessage();
+        if (StringUtils.isEmpty(msg)) {
+            msg = "web.security.provider.unavailable";
+        }
+
+        String[] msgs = msg.split(";");
+        for (String message : msgs) {
+            message = getLocalizationService().translate(message, null, getLocale(), message);
+            errorMessages.add(message);
+        }
+
+        httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
     }
 
     @Override
     protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
-        body.add(AttributeModifier.replace("class", "login-page"));
-        body.add(AttributeModifier.replace("style", "")); //TODO hack :) because PageBase has min-height defined.
+        body.add(AttributeModifier.replace("class", "login-page py-3 fp-center"));
+        body.add(AttributeModifier.remove("style")); //TODO hack :) because PageBase has min-height defined.
     }
 
     @Override
@@ -166,26 +191,11 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     }
 
     private void showExceptionMessage() {
-        ServletWebRequest req = (ServletWebRequest) RequestCycle.get().getRequest();
-        HttpServletRequest httpReq = req.getContainerRequest();
-        HttpSession httpSession = httpReq.getSession();
-
-        Exception ex = (Exception) httpSession.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        if (ex == null) {
+        if (errorMessages.isEmpty()) {
             return;
         }
-        String msg = ex.getMessage();
-        if (StringUtils.isEmpty(msg)) {
-            msg = "web.security.provider.unavailable";
-        }
 
-        String[] msgs = msg.split(";");
-        for (String message : msgs) {
-            message = getLocalizationService().translate(message, null, getLocale(), message);
-            error(message);
-        }
-
-        httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        errorMessages.forEach(this::error);
     }
 
     @Override

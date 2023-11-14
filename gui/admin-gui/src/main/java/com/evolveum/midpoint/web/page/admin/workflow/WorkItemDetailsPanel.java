@@ -301,32 +301,29 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         String key = CaseTypeUtil.isCorrelationCase(caseModel.getObject().asObjectable()) ? "PageCaseWorkItem.caseWorkItem.comment" : "workItemPanel.approverComment";
         Label commentLabel = new Label(ID_COMMENT_LABEL, createStringResource(key));
         commentLabel.setOutputMarkupId(true);
-        commentLabel.add(new VisibleBehaviour(this::isApproveCommentVisible));
         commentContainer.add(commentLabel);
 
         TextArea<String> approverComment = new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<>(getModel(), "output.comment"));
         approverComment.add(new EnableBehaviour(() -> !isParentCaseClosed()));
-        approverComment.add(new VisibleBehaviour(this::isApproveCommentVisible));
         approverComment.setOutputMarkupId(true);
         approverComment.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         commentContainer.add(approverComment);
 
     }
 
-    private boolean isApproveCommentVisible() {
-        return CaseTypeUtil.isCaseWorkItemNotClosed(getModelObject()) &&
-                !CaseTypeUtil.isWorkItemClaimable(getModelObject()) &&
-                getPageBase().getCaseManager().isCurrentUserAuthorizedToClaim(getModelObject()) &&
-                !isParentCaseClosed();
-    }
     private boolean isAuthorizedForActions() {
+        if (CaseTypeUtil.isCaseWorkItemClosed(getModelObject())
+                || isParentCaseClosed()
+                || CaseTypeUtil.isWorkItemClaimable(getModelObject())) {
+            return false;
+        }
+
         Task task = getPageBase().createSimpleTask(OPERATION_CHECK_ACTIONS_AUTHORIZATION);
         OperationResult result = task.getResult();
         try {
             return WebComponentUtil.runUnderPowerOfAttorneyIfNeeded(() ->
                             getPageBase().getCaseManager().isCurrentUserAuthorizedToComplete(getModelObject(), task, result) ||
-                            getPageBase().getCaseManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result) ||
-                            getPageBase().getCaseManager().isCurrentUserAuthorizedToClaim(getModelObject()),
+                            getPageBase().getCaseManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result),
                     getPowerDonor(), getPageBase(), task, result);
         } catch (Exception ex) {
             LOGGER.error("Unable to check user authorization for workitem actions: {}", ex.getLocalizedMessage());

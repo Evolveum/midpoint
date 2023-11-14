@@ -1,0 +1,96 @@
+= Mapping Usage Guide
+:page-visibility: hidden
+
+NOTE: WORK IN PROGRESS
+
+== Introduction
+
+_Mapping_ is a mechanism that is used at many places through midPoint to map value of a source property (or properties) to a target property.
+It is a very flexible mechanism that allows to use expressions (including scripting), direct variable references, value generators and other _evaluators_ for the value.
+It is used for example in xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mapping], xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping], xref:/midpoint/reference/roles-policies/assignment/[assignments], xref:/midpoint/reference/roles-policies/rbac/[roles] and so on.
+
+
+=== The Basics
+
+Mapping definition consists of the three basic parts:
+
+* *Source* part defines the data sources of the mapping.
+These are usually understood as mapping input variables.
+Source defines where mapping gets its data.
+
+* *Expression* part defines how the data are transformed, generated or passed on to the "other side".
+This is the most flexible part of the mapping as it contains logic.
+There is a broad variety of possibilities that are described in the xref:/midpoint/reference/expressions/expressions/[Expression] page.
+
+* *Target* part defines what to do with the results of the mapping, where the computed values should go.
+
+The three parts of the mapping as well as the basic principle is illustrated in the following figure:
+
+image::mapping-complete.png[]
+
+
+The figure shows simple mapping that takes `employeeNumber` user property and transforms it to `description` account attribute by using a simple Groovy script expression.
+
+The source part of the mapping defines that there is a single source which is based on `employeeNumber` user property.
+Source definitions are important for the mapping to correctly process relative changes (deltas), mapping dependencies, etc.
+The source definition tells mapping that the value of `employeeNumber` user property should be passed to an expression.
+
+The expression part contains a simple Groovy script that prepends the prefix `emp#` to the employee number value specified by the source definition.
+The expression part of the mapping is very flexible and there is a lot of way that can be used to transform a value, generate new value, use a fixed value, pass a value without any change and so on.
+Because expressions are so flexible they are documented in a separate xref:/midpoint/reference/expressions/expressions/[Expression] page.
+
+The target part defines how the result of the expression should be used.
+In this case the result is to be used as a `description` account attribute.
+The target definition is necessary so the mapping can locate appropriate definition of the target property and therefore make sure that the expression produces a correct data type (e.g. string vs xref:/midpoint/reference/concepts/polystring/[polystring] and that other schema constraints are maintained (e.g. single vs multiple values).
+
+This example mapping can be expressed in XML using the same structure:
+
+.Simple mapping
+[source,xml]
+----
+<mapping>
+    <source>
+        <path>$focus/employeeNumber</path>
+    </source>
+    <expression>
+        <script>
+            <code>'emp#' + employeeNumber</code>
+        </script>
+    </expression>
+    <target>
+        <path>$projection/attributes/description</path>
+    </target>
+</mapping>
+----
+
+Not all parts of the mapping are mandatory.
+If the expression is not present then a "as is" expression is assumed that just copies the source to target without any change.
+Some parts of the mapping may be implicitly defined by the surrounding context, e.g. the target is implicit in xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mapping definition]. Similarly a source is implicitly defined in xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping]. Therefore for outbound and inbound mappings it is usually sufficient to define either source or target:
+
+.Simple outbound and inbound mapping
+[source,xml]
+----
+<attribute>
+    <ref>ri:sn</ref>
+    <outbound>
+        <source>
+             <path>$focus/familyName</path>
+        </source>
+    </outbound>
+    <inbound>
+        <target>
+             <path>$focus/familyName</path>
+        </target>
+    </inbound>
+</attribute>
+----
+
+Both source and target are implicit in outbound/inbound mappings of standard properties such e.g. inside `activation` or `credentials` containers.
+Therefore the very minimal form of mapping definition is an empty mapping which copies implicit source to the implicit target without any change:
+
+.Empty outbound mapping
+[source,xml]
+----
+<outbound/>
+----
+

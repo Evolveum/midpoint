@@ -1,0 +1,353 @@
+= Weird Resources
+:page-wiki-name: Attributes modification priority and read-replace mode HOWTO (and discussion on weirdness of some connectors)
+:page-wiki-id: 17760526
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-11-18T22:51:10.015+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2014-11-20T12:56:42.775+01:00
+:page-keywords: [ 'modification priority', 'read-replace' ]
+:page-alias: { "parent" : "/midpoint/guides/" }
+:page-upkeep-status: yellow
+:page-toc: top
+
+MidPoint has a quite straightforward point of view regarding resource objects and their attributes: an object is seen as a set of name-value pairs - its attributes.
+Generally it is assumed that these attributes and/or their values are mutually independent, therefore it does not matter in which order they are modified.
+
+Unfortunately, it is not always so.
+
+In particular, Microsoft Active Directory and Exchange provide a lot of counter-examples in this respect.
+Let us describe a few issues we've met.
+
+== Problems
+
+=== Problem #1: All attributes are equal, but some of them are more equal than others
+
+For example, there is an attribute called RecipientType; it has three possible values: User, UserMailbox and MailUser.
+The latter two values correspond to Exchange-related users.
+An object of such type has more attributes available, compared to "plain" User (denoting Active Directory user without Exchange attributes).
+
+Let's imagine we have the following delta to be applied:
+
+[%autowidth]
+|===
+| Attribute | Operation | Value(s)
+
+| EmailAddresses
+| ADD
+| SMTP:janko.hrasko@lorem-ipsum.sk
+
+
+| ExtensionCustomAttribute1
+| ADD
+| lorem-ipsum
+
+
+| RecipientType
+| REPLACE
+| UserMailbox
+
+
+|===
+
+Now a standard algorithm translating the above midPoint delta into ConnId (ICF) operations applies.
+Because of ConnId Framework limitations, ADD and REPLACE operations are treated separately.
+In midPoint, ADD is processed before REPLACE (and REPLACE before DELETE, but that is not present in our example).
+
+Therefore, the connector sees two operations:
+
+*First:*
+
+[%autowidth]
+|===
+| Attribute | Operation | Value(s)
+
+| EmailAddresses
+| ADD
+| SMTP:link:mailto:janko.hrasko@lorem-ipsum.sk[janko.hrasko@lorem-ipsum.sk]
+
+
+| ExtensionCustomAttribute1
+| ADD
+| lorem-ipsum
+
+
+|===
+
+*Second:*
+
+[%autowidth]
+|===
+| Attribute | Operation | Value(s)
+
+| RecipientType
+| REPLACE
+| UserMailbox
+
+
+|===
+
+Unfortunately, when executing first operation, the recipient type is still User, so EmailAddresses nor ExtensionCustomAttribute1 is not available!
+
+It would be great if RecipientType change would be applied first, and all the other changes afterwards.
+
+
+=== Problem #2: Ensuring that relevant attributes are applied together
+
+Sometimes just the opposite is to be achieved: provide all relevant attribute values at once.
+Back to our example: When changing RecipientType to MailUser, an attribute called ExternalEmailAddress *must* be present.
+But what if RecipientType is being set via ADD operation and ExternalEmailAddress via REPLACE (or vice versa)? ConnId Framework is not able to execute ADD and REPLACE operations in one step.
+
+(Well, actually, because both these attributes are single-valued, midPoint always updates them via REPLACE operation.
+But if one of them would be multivalued, the "ADD" scenario is real.)
+
+
+=== Problem #3: Complex attribute update behavior
+
+Some attributes have their own hidden life, far from being simply "collection of values".
+For example, EmailAddresses attribute contains a list of email addresses: one primary and zero or more secondary ones.
+Primary address is distinguished by SMTP: prefix.
+Secondard addresses start with smtp: (lowercase).
+What happens if the attribute value is e.g.
+
+[%autowidth]
+|===
+| Prefix | Value
+
+| SMTP:
+| a
+
+
+| smtp:
+| b
+
+
+|===
+
+and you add a value of *SMTP:b* ?
+
+The result will be:
+
+[%autowidth]
+|===
+| Prefix | Value
+
+| smtp:
+| a
+
+
+| SMTP:
+| b
+
+
+|===
+
+As you can see, the *smtp:b* disappears and *SMTP:a* silently changes to *smtp:a*.
+
+This can easily confuse midPoint,
+
+For example, if midPoint wants to change the state of
+
+[%autowidth]
+|===
+| Prefix | value
+
+| SMTP:
+| a
+
+
+| smtp:
+| b
+
+
+|===
+
+to
+
+[%autowidth]
+|===
+| Prefix | value
+
+| smtp:
+| a
+
+
+| SMTP:
+| b
+
+
+|===
+
+it would issue a delta of:
+
+[%autowidth]
+|===
+| Attribute | Operation | Value(s)
+
+| EmailAddresses
+| ADD
+| SMTP:b
+
+
+| EmailAddresses
+| ADD
+| smtp:a
+
+
+| EmailAddresses
+| DELETE
+| smtp:b
+
+
+| EmailAddresses
+| DELETE
+| SMTP:a
+
+
+|===
+
+Fortunately, ADD is executed before DELETE.
+The value of SMTP:b is added OK (changing SMTP:a to smtp:a).
+Value of smtp:a is ignored.
+Then the DELETE comes.
+Both requests to delete smtp:b and SMTP:a are ignored.
+
+However, this is more a good luck than reliable design.
+We need a mechanism to tell midPoint that it needs to treat EmailAddresses in a special way.
+Something like "Always use REPLACE instead of ADD/DELETE operations for specified attribute or for the whole object."
+
+
+== Solution
+
+MidPoint provides two answers to these issues:
+
+. attribute modification priority,
+
+. READ+REPLACE attribute update mode.
+
+Let us describe them more closely.
+
+
+=== Attribute modification priority
+
+By specifying a *modificationPriority* property value for an attribute in schemaHandling part of resource definition you can sort attributes into "waves" in which they have to be applied.
+
+An example:
+
+[source,xml]
+----
+<attribute>
+   <ref>ri:RecipientType</ref>
+   <modificationPriority>0</modificationPriority>
+</attribute>
+<attribute>
+   <ref>ri:ExternalEmailAddress</ref>
+   <modificationPriority>0</modificationPriority>
+</attribute>
+----
+
+This says that RecipientType and ExternalEmailAddress have to be processed first, and all other attributes (that do not have priority specified) afterwards.
+
+You can specify as many priority levels as you wish.
+However, try to keep the number of levels as low as possible, because each priority level brings 1-3 calls to the connector - one for ADD, REPLACE, DELETE changes.
+
+
+=== READ+REPLACE attribute update mode
+
+Whether you want to avoid splitting one update into two operations (one for ADD, other for DELETE values - problem #2), or you want to work around weird behavior of updates (problem #3), you can use new READ+REPLACE update mode.
+
+In this mode midPoint first fetches the current value of an attribute from the resource, applies ADD/DELETE operations itself, and writes the result in one REPLACE ("update" in ConnId terms) operation.
+
+This can be configured at three levels:
+
+. at the level of resource - by disabling addRemoveAttributeValues capability in capabilities->configured section.
+
+. at the level of resource object type - by disabling this capability in schemaHandling->objectType->configuredCapabilities section.
+
+. at the level of individual attributes.
+
+*Try to use this feature in minimal scope possible!* First of all, it brings along (some) performance degradation, because of midPoint fetching objects before executing an update.
+But what is worse, midPoint depends on its interpretation of equality of values when adding/removing them.
+So be sure you have correctly set up matching rules for attributes that use READ+REPLACE update mode.
+And this can be very tricky, taking into account such values as LDAP Distinguished names (DNs) or ... our now-well-known EmailAddresses (consisting of case-sensitive prefix SMTP:/smtp: and case-insensitive email address part).
+
+Some configuration examples:
+
+Configuration at the level of individual attributes:
+
+[source,xml]
+----
+<schemaHandling>
+   <objectType>
+      ...
+      <attribute>
+         <ref>ri:EmailAddresses</ref>
+         <matchingRule>mr:exchangeEmailAddresses</matchingRule>   <!-- exchangeEmailAddresses is a special matching rule designed for this attribute -->
+         <readReplaceMode>true</readReplaceMode>
+      </attribute>
+</attribute>
+----
+
+Configuration at the level of resource object type:
+
+[source,xml]
+----
+<schemaHandling>
+   <objectType>
+      <kind>account</kind>
+      <displayName>Default Account</displayName>
+      <default>true</default>
+      ...
+      <configuredCapabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+         <cap:addRemoveAttributeValues>
+            <cap:enabled>false</cap:enabled>
+         </cap:addRemoveAttributeValues>
+      </configuredCapabilities>
+      ...
+----
+
+Configuration at the level of resource (avoid if at all possible):
+
+[source,xml]
+----
+<capabilities>
+   <native> ... </native>
+   <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+      <cap:addRemoveAttributeValues>
+         <cap:enabled>false</cap:enabled>
+      </cap:addRemoveAttributeValues>
+   </configured>
+</capabilities>
+----
+
+Currently it seems that the following is reasonable configuration for MS Exchange:
+
+[source,xml]
+----
+<attribute>
+   <ref>ri:RecipientType</ref>
+   <modificationPriority>0</modificationPriority>
+   <readReplaceMode>true</readReplaceMode>
+</attribute>
+
+<attribute>
+   <ref>ri:ExternalEmailAddress</ref>
+   <modificationPriority>0</modificationPriority>
+   <readReplaceMode>true</readReplaceMode>
+   <matchingRule>mr:stringIgnoreCase</matchingRule>
+</attribute>
+
+<attribute>
+   <ref>ri:EmailAddressPolicyEnabled</ref>
+   <modificationPriority>0</modificationPriority>
+   <readReplaceMode>true</readReplaceMode>
+</attribute>
+
+<attribute>
+   <ref>ri:EmailAddresses</ref>
+   <modificationPriority>0</modificationPriority>
+   <readReplaceMode>true</readReplaceMode>
+   <matchingRule>mr:exchangeEmailAddresses</matchingRule>
+</attribute>
+----
+
+But the testing is still in progress...

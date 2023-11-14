@@ -290,12 +290,13 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
+        var identification =
+                ResourceObjectIdentification.fromAttributes(accountDefinition, identifiers)
+                        .ensurePrimary();
 
-        cc.deleteObject(accountDefinition, null, identifiers, null, result);
+        cc.deleteObject(identification, null, null, result);
 
-        ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
-                accountDefinition, identifiers);
-        PrismObject<ShadowType> resObj = null;
+        UcfResourceObject resObj = null;
         try {
             resObj = cc.fetchObject(identification, null, null, result);
             Assert.fail();
@@ -320,13 +321,14 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
-        ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
-                accountDefinition, identifiers);
+        var identification = ResourceObjectIdentification
+                .fromAttributes(accountDefinition, identifiers)
+                .ensurePrimary();
 
         cc.modifyObject(identification, null, changes, null, null, result);
 
-        PrismObject<ShadowType> shadow = cc.fetchObject(identification, null, null, result);
-        ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(shadow);
+        var resourceObject = cc.fetchObject(identification, null, null, result);
+        ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(resourceObject.bean());
 
         AssertJUnit.assertNull(resObj.findAttribute(QNAME_GIVEN_NAME));
 
@@ -551,14 +553,17 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         ResourceObjectDefinition accountDefinition = resourceObject.getDefinition().getComplexTypeDefinition();
 
-        Collection<ResourceAttribute<?>> identifiers = resourceObject.getPrimaryIdentifiers();
-        // Determine object class from the schema
+        ResourceObjectIdentifier.Primary<?> primaryIdentifier = ResourceObjectIdentifier.Primary.of(
+                accountDefinition,
+                resourceObject.getPrimaryIdentifier());
 
-        ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers, null);
+        // Determine object class from the schema
+        var identification = ResourceObjectIdentification.withPrimary(
+                accountDefinition, primaryIdentifier.getAttribute(), List.of());
         OperationResult result = createOperationResult("fetchObject");
 
         // WHEN
-        PrismObject<ShadowType> ro = cc.fetchObject(identification, null, null, result);
+        var ro = cc.fetchObject(identification, null, null, result);
 
         // THEN
 
@@ -567,7 +572,8 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         System.out.println("Result:");
         System.out.println(result.debugDump());
 
-        assertEquals("Wrong LDAP uid", "Teell", IntegrationTestTools.getAttributeValue(ro.asObjectable(), new QName(NS_RI, "uid")));
+        assertEquals("Wrong LDAP uid", "Teell",
+                IntegrationTestTools.getAttributeValue(ro.bean(), new QName(NS_RI, "uid")));
 
     }
 
@@ -678,8 +684,10 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         PropertyModificationOperation<ProtectedStringType> passwordModification = new PropertyModificationOperation(passDelta);
         changes.add(passwordModification);
 
-        ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
-                accountDefinition, identifiers);
+        ResourceObjectIdentification.WithPrimary identification =
+                ResourceObjectIdentification
+                        .fromAttributes(accountDefinition, identifiers)
+                        .ensurePrimary();
 
         cc.modifyObject(identification, null, changes, null, null, result);
 

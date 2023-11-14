@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.springframework.security.core.Authentication;
@@ -23,7 +21,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -65,7 +62,7 @@ public class PageRegistrationFinish extends PageRegistrationBase {
     private static final String OPERATION_ASSIGN_DEFAULT_ROLES = DOT_CLASS + "assignDefaultRoles";
     private static final String OPERATION_ASSIGN_ADDITIONAL_ROLE = DOT_CLASS + "assignAdditionalRole";
     private static final String OPERATION_FINISH_REGISTRATION = DOT_CLASS + "finishRegistration";
-    private static final String OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE = DOT_CLASS + "removeNonceAndSetLifecycleState";
+    private static final String OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE = DOT_CLASS + "setLifecycleState";
 
     private static final long serialVersionUID = 1L;
 
@@ -96,9 +93,8 @@ public class PageRegistrationFinish extends PageRegistrationBase {
             if (result.getStatus() == OperationResultStatus.FATAL_ERROR) {
                 LOGGER.error("Failed to assign default roles, {}", result.getMessage());
             } else {
-                NonceType nonceClone = user.getCredentials().getNonce().clone();
-                removeNonceAndSetLifecycleState(user.getOid(), nonceClone, administrator, result);
-                assignAdditionalRoleIfPresent(user.getOid(), nonceClone, administrator, result);
+                setLifecycleState(user.getOid(), administrator, result);
+//                assignAdditionalRoleIfPresent(user.getOid(), nonceClone, administrator, result);
                 result.computeStatus();
             }
             initLayout(result);
@@ -138,7 +134,7 @@ public class PageRegistrationFinish extends PageRegistrationBase {
         }
     }
 
-    private void removeNonceAndSetLifecycleState(String userOid, NonceType nonce, PrismObject<UserType> administrator,
+    private void setLifecycleState(String userOid, PrismObject<UserType> administrator,
             OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createSubresult(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
         try {
@@ -146,10 +142,9 @@ public class PageRegistrationFinish extends PageRegistrationBase {
                     (lResult) -> {
                         Task task = createSimpleTask(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
                         ObjectDelta<UserType> delta = getPrismContext().deltaFactory().object()
-                                .createModificationDeleteContainer(UserType.class, userOid,
-                                        ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),
-                                        nonce);
-                        delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
+                                .createModificationReplaceProperty(
+                                        UserType.class, userOid, UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
+
                         WebModelServiceUtils.save(delta, lResult, task, PageRegistrationFinish.this);
                         return null;
                     },

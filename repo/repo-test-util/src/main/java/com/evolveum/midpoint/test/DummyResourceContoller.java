@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.test.asserter.DummyOrgAsserter;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -432,19 +433,31 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     }
 
-    public DummyOrg addOrgTop() throws ConnectException, FileNotFoundException, ObjectAlreadyExistsException, SchemaViolationException, ConflictException, InterruptedException {
-        DummyOrg org = new DummyOrg(ORG_TOP_NAME);
+    public DummyOrg addOrgTop()
+            throws ConnectException, FileNotFoundException, ObjectAlreadyExistsException, SchemaViolationException,
+            ConflictException, InterruptedException, ObjectDoesNotExistException {
+        return addOrg(ORG_TOP_NAME);
+    }
+
+    public DummyOrg addOrg(String name)
+            throws ConflictException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException,
+            ObjectAlreadyExistsException, InterruptedException, ConnectException {
+        DummyOrg org = new DummyOrg(name);
         dummyResource.addOrg(org);
         return org;
     }
 
-    public DummyAccount addAccount(String userId) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+    public DummyAccount addAccount(String userId)
+            throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException,
+            ConflictException, InterruptedException, ObjectDoesNotExistException {
         DummyAccount account = new DummyAccount(userId);
         dummyResource.addAccount(account);
         return account;
     }
 
-    public DummyAccount addAccount(String userId, String fullName) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+    public DummyAccount addAccount(String userId, String fullName)
+            throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException,
+            ConflictException, InterruptedException, ObjectDoesNotExistException {
         DummyAccount account = new DummyAccount(userId);
         account.setEnabled(true);
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, fullName);
@@ -452,7 +465,9 @@ public class DummyResourceContoller extends AbstractResourceController {
         return account;
     }
 
-    public void addAccount(String userId, String fullName, String location) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+    public void addAccount(String userId, String fullName, String location)
+            throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException,
+            ConflictException, InterruptedException, ObjectDoesNotExistException {
         assertExtendedSchema();
         DummyAccount account = new DummyAccount(userId);
         account.setEnabled(true);
@@ -461,7 +476,9 @@ public class DummyResourceContoller extends AbstractResourceController {
         dummyResource.addAccount(account);
     }
 
-    public DummyGroup addGroup(String name) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+    public DummyGroup addGroup(String name)
+            throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException,
+            ConflictException, InterruptedException, ObjectDoesNotExistException {
         assertExtendedSchema();
         DummyGroup group = new DummyGroup(name);
         group.setEnabled(true);
@@ -530,6 +547,17 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     private DummyGroupAsserter<Void> assertGroup(DummyGroup group) {
         return new DummyGroupAsserter<>(group, getName());
+    }
+
+    public DummyOrgAsserter<Void> assertOrgByName(String name)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        DummyOrg org = dummyResource.getOrgByName(name);
+        assertNotNull("Org " + name + " does not exist on dummy resource " + getName(), org);
+        return assertOrg(org);
+    }
+
+    private DummyOrgAsserter<Void> assertOrg(DummyOrg org) {
+        return new DummyOrgAsserter<>(org, getName());
     }
 
     public void setSyncStyle(DummySyncStyle syncStyle) {

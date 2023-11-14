@@ -44,7 +44,8 @@ public enum RAuditEventType implements SchemaEnum<AuditEventTypeType> {
 
     RUN_TASK_IMMEDIATELY(AuditEventType.RUN_TASK_IMMEDIATELY),
 
-    DISCOVER_OBJECT(AuditEventType.DISCOVER_OBJECT);
+    DISCOVER_OBJECT(AuditEventType.DISCOVER_OBJECT),
+    INFORMATION_DISCLOSURE(AuditEventType.INFORMATION_DISCLOSURE);
 
     private final AuditEventType type;
 

@@ -7,14 +7,24 @@
 
 package com.evolveum.midpoint.ninja.action;
 
-import java.util.List;
-
 import com.beust.jcommander.JCommander;
+
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
-public class HelpAction extends Action<HelpOptions, ActionResult> {
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+public class HelpAction extends Action<HelpOptions, ActionResult<Void>> {
+
+    @Override
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
+        return NinjaApplicationContextLevel.NONE;
+    }
 
     @Override
     public String getOperationName() {
@@ -22,7 +32,7 @@ public class HelpAction extends Action<HelpOptions, ActionResult> {
     }
 
     @Override
-    public ActionResult execute() throws Exception {
+    public ActionResult<Void> execute() throws Exception {
         String command = options.getCommand();
 
         JCommander jc = NinjaUtils.setupCommandLineParser();
@@ -33,8 +43,8 @@ public class HelpAction extends Action<HelpOptions, ActionResult> {
                 log.error(
                         "Unknown command {}, known commands: {}",
                         command,
-                        StringUtils.join(", ", List.of(jc.getCommands().keySet()).stream().sorted()));
-                return new ActionResult(null, 1);
+                        StringUtils.join(jc.getCommands().keySet().stream().sorted().iterator(), ", "));
+                return new ActionResult<>(null, 1);
             }
         }
 

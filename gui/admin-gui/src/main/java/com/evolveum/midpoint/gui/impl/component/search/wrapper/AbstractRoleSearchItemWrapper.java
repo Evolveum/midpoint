@@ -210,15 +210,27 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
     }
 
     public boolean isSearchScopeVisible() {
-        return scopeSearchItemWrapper != null;
+        return scopeSearchItemWrapper != null && scopeSearchItemWrapper.isVisible();
     }
 
     public boolean isRelationVisible() {
-        return CollectionUtils.isNotEmpty(getSupportedRelations()) || isSearchScope(SearchBoxScopeType.ONE_LEVEL);
+        boolean wrapperVisibility = relationSearchItemWrapper == null || relationSearchItemWrapper.isVisible();
+        return wrapperVisibility && (CollectionUtils.isNotEmpty(getSupportedRelations()) || isSearchScope(SearchBoxScopeType.ONE_LEVEL));
     }
 
     public boolean isIndirectVisible() {
-        return !isSearchScope(SearchBoxScopeType.SUBTREE);
+        boolean wrapperVisibility = indirectSearchItemWrapper == null || indirectSearchItemWrapper.isVisible();
+        return wrapperVisibility && !isSearchScope(SearchBoxScopeType.SUBTREE);
+    }
+
+    public boolean isTenantVisible() {
+        boolean wrapperVisibility = tenantSearchItemWrapper == null || tenantSearchItemWrapper.isVisible();
+        return wrapperVisibility && isParameterSearchVisible();
+    }
+
+   public boolean isProjectVisible() {
+        boolean wrapperVisibility = projectSearchItemWrapper == null || projectSearchItemWrapper.isVisible();
+        return wrapperVisibility && isParameterSearchVisible();
     }
 
     public boolean isParameterSearchVisible() {

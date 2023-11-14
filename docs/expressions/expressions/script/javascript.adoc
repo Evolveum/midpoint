@@ -1,0 +1,75 @@
+= JavaScript Expressions
+:page-nav-title: JavaScript
+:page-wiki-name: ECMAScript Expressions
+:page-wiki-id: 4423698
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-04-17T19:12:53.219+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2012-10-01T12:39:34.082+02:00
+:page-upkeep-status: green
+:page-toc: top
+
+ECMAScript (JavaScript) is a supported expression language in midPoint.
+Its language URL is:
+
+ http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript
+
+[NOTE]
+====
+ECMAScript support is provided by https://github.com/openjdk/nashorn[Nashorn] engine.
+This engine fully supports ECMAScript 5.1 and many features from version 6.
+It was shipped with JDK 11, *but it is not available in JDK 15 and later*.
+If you want to run JDK 17, read on for instructions how to enable it.
+Note, that midPoint is supported only on LTS Java versions 11 and 17.
+====
+
+== Activation for version 4.4 and JDK 17
+
+Noramlly, to enable Nashorn we would need to download the `nashorn-core.jar` with the dependencies it relies on.
+There are options how to download the whole package, but the provided versions of ASM dependency are older than the one used in midPoint.
+But midPoint doesn't contain all the ASM JARs necessary for Nashorn, so some ASM JARs are still needed.
+To avoid version confusion we provided a convenient download for you in the table below.
+Just download the archive and extract it into `$MIDPOINT_HOME/lib` directory.
+
+|===
+| midPoint version | Nashorn convenience package
+
+| 4.4 | xref:../nashorn-downloads/nashorn-mp44.zip[nashorn-mp44.zip]
+|===
+
+If the download for a newer midPoint version is missing just try the last available download.
+
+To be sure that ECMAScript support is enabled you can check the `midpoint.log` during the startup for a line like this:
+----
+2021-10-15 23:10:16,136 [] [main] INFO (com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator): Script engine for 'JavaScript' initialized in 393 ms.
+----
+
+If the engine is not initialized, following warning is emitted - this does not prevent midPoint from starting:
+----
+2021-10-15 23:12:00,042 [] [main] WARN (com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator): The JSR-223 scripting engine for 'JavaScript' was not found
+----
+
+3rd party library licensing:
+
+* Nashorn is distributed under https://github.com/openjdk/nashorn/blob/main/LICENSE[GPL v2 with the Classpath exception].
+* ASM is distributed under https://asm.ow2.io/license.html[BSD-3-Clause].
+
+== Examples
+
+=== User name
+
+Following code returns a `name` property of a user.
+It is using ternary operator (`?` and `:`) to make sure this code works as expected even if user is `null`. User can be `null` is some situations, such as when evaluating outbound expression for a deleted user.
+Therefore the use of similar safe constructs is advised in almost all situations.
+
+[source,javascript]
+----
+user == null ? null : user.getName();
+----
+
+=== Create fullName
+
+[source,javascript]
+----
+user.getGivenName() + ' ' + user.getFamilyName();
+----

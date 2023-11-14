@@ -556,6 +556,7 @@ li.dropdown.user.user-menu {
 
     & > .card-header {
       border-bottom-right-radius: valid-radius($border-radius);
+      border-bottom-left-radius: valid-radius($border-radius);
     }
   }
 
@@ -1280,7 +1281,7 @@ td .prism-property-value {
 
 @include bg-variant(".search-item", $gray-300, true);
 
-// deprecated, uses should be replaced by "d-flex gap-1 pl-1 bg-light rounded-sm align-items-center"
+// deprecated, uses should be replaced by "d-flex gap-1 px-2 bg-light rounded-sm align-items-center"
 .search-item {
   display: flex;
   gap: 0.25em;
@@ -1294,6 +1295,12 @@ td .prism-property-value {
     padding-bottom: add($input-padding-y-sm, $input-border-width);
     @include font-size($input-font-size-sm);
     line-height: $input-line-height-sm;
+  }
+}
+
+.search-item-field {
+  .search-item-controls a > i {
+    font-size: 0.8rem;
   }
 }
 
@@ -1578,6 +1585,9 @@ fieldset.objectButtons {
   flex-direction: row;
   align-items: stretch;
   background-color: $white;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
 }
 
 .details-panel-navigation {
@@ -1589,7 +1599,8 @@ fieldset.objectButtons {
 .details-panel-details-form {
   order: 2;
   flex-basis: 83%;
-  padding: 5px 20px 5px 20px;
+  max-width: 83%;
+  padding: 20px; //5px 20px 5px 20px;
 }
 
 .messagePanel ::-moz-selection { /* Code for Firefox */
@@ -1740,12 +1751,30 @@ span.yui-skin-sam {
   font-weight: bold;
 }
 
-.register-box {
-  width: 600px !important;
+@media (min-width: 577px) {
+  .register-box {
+    max-width: calc(480px + 1rem)!important;
+    width:100%;
+    }
+  .login-box {
+    max-width: calc(360px + 1rem)!important;
+    width:100%;
+  }
 }
 
 .login-box {
-  width: 400px !important;
+
+  & .login-card-body .spacer hr {
+    border-color:#cbcbcb;
+  }
+
+  & .login-card-body .spacer span {
+    color:#cbcbcb;
+  }
+
+  & .login-card-body .user-panel.info-box .image img {
+    width:2.4rem;
+  }
 }
 
 .info-box.activity-item-processing > .info-box-content > .progress-description {
@@ -1803,7 +1832,11 @@ th.debug-list-buttons {
     width: 220px;
     height: 220px;
   }
-
+  & .simple-tile.vertical {
+    width: 100%;
+    height: auto;
+    padding: 0.65rem 1rem;
+  }
   & .role-catalog-tiles-table .catalog-tile-panel {
     height: 376px;
     margin-bottom: $grid-gutter-width;
@@ -1897,13 +1930,13 @@ th.debug-list-buttons {
       color: $value;
       background-color: mix(#ffffff, $value, 85%);
       border-color: $value;
+      border:1px solid;
 
       option {
         background: $white;
         color: $dark;
       }
-    }
-
+  }
 }
 
 #toastsContainerTopRight.toasts-top-right {
@@ -1920,4 +1953,27 @@ th.debug-list-buttons {
 
 .lh-2 {
   line-height: 1.5;
+}
+
+//Grouped classes with smooth-transition function
+.details-menu a,
+.details-menu a:hover,
+.nav-sidebar .nav-item > .nav-link,
+.nav-sidebar .nav-item > .nav-link:hover,
+div > a > div > i.fas
+{
+  @include smooth-transition(0.08s);
+}
+
+//Accessibility classes and overrides
+.btn:focus-visible, a:focus-visible, div[role="button"]:focus-visible, button:focus-visible, div[role="option"].simple-tile:focus:visible{
+  outline: 2px orange;
+  outline-style: auto;
+  border-radius: 1px;
+  outline-offset: 2px;
+  @include smooth-transition(0.08s);
+}
+div.show > a > div > i.fas {
+  rotate: -90deg;
+  @include smooth-transition(0.08s);
 }

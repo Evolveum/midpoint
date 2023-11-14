@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -54,15 +55,24 @@ public class ResourceTilePanel<O extends Serializable, T extends TemplateTile<O>
         icon.add(AttributeAppender.append("class", () -> getModelObject().getIcon()));
         add(icon);
 
-        add(new Label(ID_TITLE, () -> {
-            String title = getModelObject().getTitle();
-            return title != null ? getString(title, null, title) : null;
-        }));
+        IModel<String> titleModel = () -> {
+            String titleText = getModelObject().getTitle();
+            return titleText != null ? getString(titleText, null, titleText) : null;
+        };
 
-        Label descriptionPanel = new Label(ID_DESCRIPTION, () -> {
+        Label title = new Label(ID_TITLE, titleModel);
+        title.add(AttributeAppender.append("title", titleModel));
+        title.add(new TooltipBehavior());
+        add(title);
+
+        IModel<String> descriptionModel = () -> {
             String description = getModelObject().getDescription();
             return description != null ? getString(description, null, description) : null;
-        });
+        };
+
+        Label descriptionPanel = new Label(ID_DESCRIPTION, descriptionModel);
+        descriptionPanel.add(AttributeAppender.append("title", descriptionModel));
+        descriptionPanel.add(new TooltipBehavior());
         descriptionPanel.add(new VisibleBehaviour(() -> getModelObject().getDescription() != null));
         add(descriptionPanel);
 

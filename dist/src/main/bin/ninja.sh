@@ -13,7 +13,7 @@ BASE_DIR=$(cd "${SCRIPT_DIR}/.." && pwd -P)
 : "${MIDPOINT_HOME:="${BASE_DIR}/var"}"
 
 if [[ ! -f "${BASE_DIR}/lib/ninja.jar" ]]; then
-  echo "ERROR: ninja.jar not found in ${BASE_DIR}/lib directory"
+  echo "ERROR: ninja.jar not found in ${BASE_DIR}/lib directory" >&2
   exit 1
 fi
 
@@ -27,20 +27,22 @@ JAVA_OPTS="${JAVA_OPTS:- }"
 
 JAVA_def_Xms="1g"
 JAVA_def_Xmx="2g"
+JAVA_def_trustStore="keystore.jceks"
+JAVA_def_trustStoreType="jceks"
 ENV_MAP_PREFIX="MP_SET_"
 ENV_UNMAP_PREFIX="MP_UNSET_"
 
 # Apply bin/setenv.sh if it exists. This setenv.sh does not depend on MIDPOINT_HOME.
 # The script can either append or overwrite JAVA_OPTS, e.g. to set -Dmidpoint.nodeId.
 if [[ -r "${SCRIPT_DIR}/setenv.sh" ]]; then
-  echo "Applying setenv.sh from ${SCRIPT_DIR} directory."
+  echo "Applying setenv.sh from ${SCRIPT_DIR} directory." >&2
   # shellcheck disable=SC1091
   . "${SCRIPT_DIR}/setenv.sh"
 fi
 
 # Apply $MIDPOINT_HOME/setenv.sh if it exists. This is flexible and related to chosen MIDPOINT_HOME.
 if [[ -r "${MIDPOINT_HOME}/setenv.sh" ]]; then
-  echo "Applying setenv.sh from ${MIDPOINT_HOME} directory."
+  echo "Applying setenv.sh from ${MIDPOINT_HOME} directory." >&2
   # shellcheck disable=SC1091
   . "${MIDPOINT_HOME}/setenv.sh"
 fi
@@ -55,20 +57,20 @@ fi
 
 if [ "${MP_ENTRY_POINT:-}" != "" ]; then # /opt/midpoint-dirs-docker-entrypoint
   if [ -e "${MP_ENTRY_POINT}" ]; then
-    echo "Processing ${MP_ENTRY_POINT} directory..."
+    echo "Processing ${MP_ENTRY_POINT} directory..." >&2
     for i in $(find "${MP_ENTRY_POINT}" -mindepth 1 -maxdepth 1 -type d); do
       l_name="$(basename "${i}")"
       [ ! -e "${MIDPOINT_HOME}/${l_name}" ] && mkdir -p "${MIDPOINT_HOME}/${l_name}"
       for s in $(find "${i}" -mindepth 1 -maxdepth 1 -type f -follow -exec basename \{\} \;); do
         if [ ! -e "${MIDPOINT_HOME}/${l_name}/${s}" -a ! -e "${MIDPOINT_HOME}/${l_name}/${s}.done" ]; then
-          echo "COPY ${i}/${s} => ${MIDPOINT_HOME}/${l_name}/${s}"
+          echo "COPY ${i}/${s} => ${MIDPOINT_HOME}/${l_name}/${s}" >&2
           cp "${i}/${s}" "${MIDPOINT_HOME}/${l_name}/${s}"
         else
-          echo "SKIP: ${i}/${s}"
+          echo "SKIP: ${i}/${s}" >&2
         fi
       done
     done
-    echo "- - - - - - - - - - - - - - - - - - - - -"
+    echo "- - - - - - - - - - - - - - - - - - - - -" >&2
     unset l_name
   fi
 fi
@@ -108,7 +110,7 @@ if [ "${MP_NO_ENV_COMPAT:-}" != "1" ]; then
       ;;
     *)
       if [ "${db_port:-}" == "" -a "${REPO_URL:-}" == "" ]; then
-        echo "~~~~~ please supply JDBC port for your repository ~~~~~"
+        echo "~~~~~ please supply JDBC port for your repository ~~~~~" >&2
         exit 1
       fi
       ;;
@@ -142,7 +144,7 @@ while read line; do
   [ "${_key: -5}" = ".FILE" ] && _key="${_key::$((${#_key} - 5))}_FILE"
   ###
 
-  echo "Processing variable (MAP) ... ${_key} .:. ${_val}"
+  echo "Processing variable (MAP) ... ${_key} .:. ${_val}" >&2
 
   if [ "${_key:0:1}" = "." ]; then
     JAVA_OPTS="${JAVA_OPTS:-} -D${_key:1}=\"${_val}\""
@@ -160,7 +162,7 @@ while read line; do
   [ "${_key: -5}" = ".FILE" ] && _key="${_key::$((${#_key} - 5))}_FILE"
   ###
 
-  echo "Processing variable (UNMAP) ... ${_key} .:. ${_val}"
+  echo "Processing variable (UNMAP) ... ${_key} .:. ${_val}" >&2
 
   JAVA_OPTS="$(echo -n "${JAVA_OPTS:-}" | sed "s/ -D${_key}=\"[^\"]*\"//g;s/ -D${_key}=[^[:space:]]*//g")"
 done < <(env | grep "^${ENV_UNMAP_PREFIX}")
@@ -187,6 +189,8 @@ if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Xms[0-9]"); then
 fi
 
 if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Dmidpoint.home="); then JAVA_OPTS="${JAVA_OPTS:-} -Dmidpoint.home=\"${MIDPOINT_HOME}\""; fi
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Djavax.net.ssl.trustStore="); then JAVA_OPTS="${JAVA_OPTS:-} -Djavax.net.ssl.trustStore=\"${MIDPOINT_HOME}/${JAVA_def_trustStore}\""; fi
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Djavax.net.ssl.trustStoreType="); then JAVA_OPTS="${JAVA_OPTS:-} -Djavax.net.ssl.trustStoreType=${JAVA_def_trustStoreType}"; fi
 
 # clean up white spaces in case of key/value removal from the original JAVA_OPTS parameter set
 JAVA_OPTS="$(echo "${JAVA_OPTS:-}" | tr -s [[:space:]] " " | sed "s/^[[:space:]]//;s/[[:space:]]$//")"
@@ -210,7 +214,7 @@ done
 # Technically we could do one exec, but then we can't quote -Dloader.path argument, because it
 # would be empty and considered a class name by the "java -jar" command.
 if [ -n "${JDBC_DRIVER:-}" ]; then
-  echo "Using JDBC driver path: ${JDBC_DRIVER}"
+  echo "Using JDBC driver path: ${JDBC_DRIVER}" >&2
   eval "${_RUNJAVA}" ${JAVA_OPTS} "-Dloader.path=${JDBC_DRIVER}" -jar "${BASE_DIR}/lib/ninja.jar" -m "${MIDPOINT_HOME}" "$@"
 else
   eval "${_RUNJAVA}" ${JAVA_OPTS} -jar "${BASE_DIR}/lib/ninja.jar" -m "${MIDPOINT_HOME}" "$@"

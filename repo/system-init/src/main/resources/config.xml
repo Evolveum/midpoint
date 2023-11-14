@@ -65,6 +65,7 @@ to a file, not its content, is the actual value.
         <icf>
             <scanClasspath>true</scanClasspath>
             <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
+            <scanDirectory>${midpoint.home}/connid-connectors</scanDirectory>
         </icf>
         <keystore>
             <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>

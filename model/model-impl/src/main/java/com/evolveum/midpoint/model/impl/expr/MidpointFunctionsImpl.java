@@ -21,6 +21,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecution
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -521,6 +522,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @NotNull
     private static <O extends ObjectType> LensFocusContext<O> getFocusContextRequired() {
+        //noinspection unchecked
         return (LensFocusContext<O>) ModelExpressionThreadLocalHolder.getLensContextRequired().getFocusContextRequired();
     }
 
@@ -699,8 +701,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = getCurrentResult(CLASS_DOT + "countAccounts");
-        ResourceType resourceType = modelObjectResolver.getObjectSimple(ResourceType.class, resourceOid, null, null, result);
-        return countAccounts(resourceType, attributeName, attributeValue, getCurrentTask(), result);
+        // Intentionally ignoring authorizations, as we are not interested in the resource as such.
+        ResourceType resource = modelObjectResolver.getObjectSimple(ResourceType.class, resourceOid, null, null, result);
+        return countAccounts(resource, attributeName, attributeValue, getCurrentTask(), result);
     }
 
     @Override
@@ -725,12 +728,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return new QName(MidPointConstants.NS_RI, attributeName);
     }
 
-    private <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue, Task task,
-            OperationResult result)
+    private <T> Integer countAccounts(
+            ResourceType resource, QName attributeName, T attributeValue, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        ObjectQuery query = createAttributeQuery(resourceType, attributeName, attributeValue);
-        return modelObjectResolver.countObjects(ShadowType.class, query, null, task, result);
+        ObjectQuery query = createAttributeQuery(resource, attributeName, attributeValue);
+        return modelService.countObjects(ShadowType.class, query, null, task, result);
     }
 
     @Override
@@ -743,45 +746,49 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return isUniquePropertyValue(objectType, propertyPath, propertyValue, getCurrentTask(), result);
     }
 
-    private <T> boolean isUniquePropertyValue(final ObjectType objectType, ItemPath propertyPath, T propertyValue, Task task,
-            OperationResult result)
+    private <T> boolean isUniquePropertyValue(
+            ObjectType object, ItemPath propertyPath, T propertyValue, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        List<? extends ObjectType> conflictingObjects = getObjectsInConflictOnPropertyValue(objectType, propertyPath,
-                propertyValue, null, false, task, result);
+        List<? extends ObjectType> conflictingObjects = getObjectsInConflictOnPropertyValue(
+                object, propertyPath, propertyValue, null, false, task, result);
         return conflictingObjects.isEmpty();
     }
 
     @Override
-    public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString,
-            T propertyValue, boolean getAllConflicting)
+    public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(
+            O object, String propertyPathString, T propertyValue, boolean getAllConflicting)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        return getObjectsInConflictOnPropertyValue(objectType, propertyPathString, propertyValue,
+        return getObjectsInConflictOnPropertyValue(object, propertyPathString, propertyValue,
                 PrismConstants.DEFAULT_MATCHING_RULE_NAME.getLocalPart(), getAllConflicting);
     }
 
-    public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString,
-            T propertyValue, String matchingRuleName, boolean getAllConflicting)
+    private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(
+            O object, String propertyPathString, T propertyValue, String matchingRuleName, boolean getAllConflicting)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         Validate.notEmpty(propertyPathString, "Empty property path");
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "getObjectsInConflictOnPropertyValue");
         ItemPath propertyPath = prismContext.itemPathParser().asItemPath(propertyPathString);
         QName matchingRuleQName = new QName(matchingRuleName);      // no namespace for now
-        return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, matchingRuleQName, getAllConflicting,
+        return getObjectsInConflictOnPropertyValue(object, propertyPath, propertyValue, matchingRuleQName, getAllConflicting,
                 getCurrentTask(), result);
     }
 
-    private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(final O objectType, ItemPath propertyPath,
-            T propertyValue, QName matchingRule, final boolean getAllConflicting, Task task, OperationResult result)
+    private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(
+            @NotNull O object,
+            @NotNull ItemPath propertyPath,
+            @NotNull T propertyValue,
+            QName matchingRule,
+            boolean getAllConflicting,
+            Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        Validate.notNull(objectType, "Null object");
         Validate.notNull(propertyPath, "Null property path");
-        Validate.notNull(propertyValue, "Null property value");
-        PrismPropertyDefinition<T> propertyDefinition = objectType.asPrismObject().getDefinition()
-                .findPropertyDefinition(propertyPath);
+        Validate.notNull(propertyValue, "Null property value"); // we must check this explicitly
+        PrismPropertyDefinition<T> propertyDefinition =
+                object.asPrismObject().getDefinition().findPropertyDefinition(propertyPath);
         if (matchingRule == null) {
             if (propertyDefinition != null && PolyStringType.COMPLEX_TYPE.equals(propertyDefinition.getTypeName())) {
                 matchingRule = PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME;
@@ -789,78 +796,67 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 matchingRule = PrismConstants.DEFAULT_MATCHING_RULE_NAME;
             }
         }
-        ObjectQuery query = prismContext.queryFor(objectType.getClass())
+        ObjectQuery query = prismContext.queryFor(object.getClass())
                 .item(propertyPath, propertyDefinition).eq(propertyValue).matching(matchingRule)
                 .build();
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Determining uniqueness of property {} using query:\n{}", propertyPath, query.debugDump());
-        }
+        LOGGER.trace("Determining uniqueness of property {} using query:\n{}", propertyPath, query.debugDumpLazily());
 
         final List<O> conflictingObjects = new ArrayList<>();
-        ResultHandler<O> handler = (object, parentResult) -> {
-            if (objectType.getOid() == null) {
-                // We have found a conflicting object
-                conflictingObjects.add(object.asObjectable());
-                return getAllConflicting;
+        ResultHandler<O> handler = (foundObject, lResult) -> {
+            if (object.getOid() != null && object.getOid().equals(foundObject.getOid())) {
+                // We have found ourselves. No conflict (yet). Just go on.
+                return true;
             } else {
-                if (objectType.getOid().equals(object.getOid())) {
-                    // We have found ourselves. No conflict (yet). Just go on.
-                    return true;
-                } else {
-                    // We have found someone else. Conflict.
-                    conflictingObjects.add(object.asObjectable());
-                    return getAllConflicting;
-                }
+                // We have found someone else. Conflict.
+                conflictingObjects.add(foundObject.asObjectable());
+                return getAllConflicting;
             }
         };
 
-        //noinspection unchecked,rawtypes
-        modelObjectResolver.searchIterative((Class) objectType.getClass(), query, null, handler, task, result);
+        //noinspection unchecked
+        modelService.searchObjectsIterative((Class<O>) object.getClass(), query, handler, null, task, result);
 
+        LOGGER.trace("Found {} conflicting objects", conflictingObjects.size());
         return conflictingObjects;
     }
 
     @Override
-    public <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName,
-            T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+    public <T> boolean isUniqueAccountValue(
+            ResourceType resource, ShadowType shadow, String attributeName, T attributeValue)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         Validate.notEmpty(attributeName, "Empty attribute name");
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "isUniqueAccountValue");
         QName attributeQName = getRiAttributeQName(attributeName);
-        return isUniqueAccountValue(resourceType, shadowType, attributeQName, attributeValue, getCurrentTask(), result);
+        return isUniqueAccountValue(resource, shadow, attributeQName, attributeValue, getCurrentTask(), result);
     }
 
-    private <T> boolean isUniqueAccountValue(ResourceType resourceType, final ShadowType shadowType,
-            QName attributeName, T attributeValue, Task task, OperationResult result)
+    private <T> boolean isUniqueAccountValue(
+            ResourceType resource, ShadowType shadow, QName attributeName, T attributeValue,
+            Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        Validate.notNull(resourceType, "Null resource");
-        Validate.notNull(shadowType, "Null shadow");
+        Validate.notNull(resource, "Null resource");
+        Validate.notNull(shadow, "Null shadow");
         Validate.notNull(attributeName, "Null attribute name");
         Validate.notNull(attributeValue, "Null attribute value");
 
-        ObjectQuery query = createAttributeQuery(resourceType, attributeName, attributeValue);
+        ObjectQuery query = createAttributeQuery(resource, attributeName, attributeValue);
         LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.debugDumpLazily());
 
         final Holder<Boolean> isUniqueHolder = new Holder<>(true);
         ResultHandler<ShadowType> handler = (object, parentResult) -> {
-            if (shadowType.getOid() == null) {
-                // We have found a conflicting object
+            if (shadow.getOid() != null && shadow.getOid().equals(object.getOid())) {
+                // We have found ourselves. No conflict (yet). Just go on.
+                return true;
+            } else {
+                // We have found someone else. Conflict.
                 isUniqueHolder.setValue(false);
                 return false;
-            } else {
-                if (shadowType.getOid().equals(object.getOid())) {
-                    // We have found ourselves. No conflict (yet). Just go on.
-                    return true;
-                } else {
-                    // We have found someone else. Conflict.
-                    isUniqueHolder.setValue(false);
-                    return false;
-                }
             }
         };
 
-        modelObjectResolver.searchIterative(ShadowType.class, query, createReadOnlyCollection(), handler, task, result);
+        modelService.searchObjectsIterative(ShadowType.class, query, handler, createReadOnlyCollection(), task, result);
 
         return isUniqueHolder.getValue();
     }
@@ -1536,7 +1532,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public <F extends FocusType> String computeProjectionLifecycle(F focus, ShadowType shadow, ResourceType resource) {
+    public <F extends FocusType> ShadowPurposeType computeDefaultProjectionPurpose(F focus, ShadowType shadow, ResourceType resource) {
         if (focus == null || shadow == null) {
             return null;
         }
@@ -1562,7 +1558,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (passwordCapabilityType.isEnabled() == Boolean.FALSE) {
             return null;
         }
-        return SchemaConstants.LIFECYCLE_PROPOSED;
+        return ShadowPurposeType.INCOMPLETE;
     }
 
     public MidPointPrincipal getPrincipal() throws SecurityViolationException {
@@ -1594,7 +1590,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 ObjectDelta<ShadowType> shadowDelta = executedOperation.getObjectDelta();
                 if (isAdd(shadowDelta) && executedOperation.getStatus() == OperationResultStatus.SUCCESS) {
                     ShadowType shadow = shadowDelta.getObjectToAdd().asObjectable();
-                    if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadow.getLifecycleState())) {
+                    if (shadow.getPurpose() == ShadowPurposeType.INCOMPLETE) {
                         shadows.add(shadow);
                     }
                 }
@@ -1612,11 +1608,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
             SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
             if (selfRegistrationPolicy != null) {
-                String resetPasswordSequenceName = selfRegistrationPolicy.getAdditionalAuthenticationSequence();
-                if (resetPasswordSequenceName != null) {
+                String selfReqistrationSequenceName = selfRegistrationPolicy.getAdditionalAuthenticationSequence();
+                if (selfReqistrationSequenceName != null) {
                     String prefix = createPrefixLinkByAuthSequence(
                             SchemaConstants.CHANNEL_SELF_REGISTRATION_URI,
-                            resetPasswordSequenceName,
+                            selfReqistrationSequenceName,
                             securityPolicy.getAuthentication().getSequence());
                     if (prefix != null) {
                         return createTokenConfirmationLink(prefix, userType);
@@ -1821,7 +1817,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     private SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user) {
         return securityContextManager.runPrivileged(new Producer<>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public SecurityPolicyType run() {
@@ -1996,6 +1992,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    @Deprecated
     public TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
@@ -2003,6 +2000,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    @Deprecated
     public TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
@@ -2082,6 +2080,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return null;
         }
         return scriptContext.isEvaluateNew();
+    }
+
+    @Override
+    public Boolean getEvaluateNew() {
+        return isEvaluateNew();
     }
 
     @Override
@@ -2394,6 +2397,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Experimental
     @NotNull
     private <T extends ObjectType> T getFocusObjectAny() {
+        //noinspection unchecked
         LensContext<T> lensContext = (LensContext<T>) getModelContext();
         if (lensContext == null) {
             throw new IllegalStateException("No model context present. Are you calling this method within model operation?");
@@ -2477,11 +2481,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
 
         ObjectType object = resolveReferenceInternal(ref, true);
-        if (!(object instanceof ResourceType)) {
+        if (!(object instanceof ResourceType resource)) {
             return null;
         }
-
-        ResourceType resource = (ResourceType) object;
 
         StringBuilder sb = new StringBuilder();
         sb.append(resource.getName().getOrig());

@@ -28,6 +28,11 @@ public class TestOpenDj extends AbstractLdapConnTest {
 
     private static final String OPENDJ_TEMPLATE_NAME = "opendj-4000.template";
 
+    /**
+     * Before 4.9, the number here was 24. However, some (unrelated) changes in provisioning module fixed some behaviors,
+     * causing duplicate changes of `evil` group in {@link #test314ModifyUserBarbossaRenameBack()}. As the redundant change
+     * is done, the correct value for initial sync token is now 23.
+     */
     private static final int INITIAL_SYNC_TOKEN = 23;
 
     @Override

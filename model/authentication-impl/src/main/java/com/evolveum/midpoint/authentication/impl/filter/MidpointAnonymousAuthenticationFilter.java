@@ -9,7 +9,9 @@ package com.evolveum.midpoint.authentication.impl.filter;
 import static com.evolveum.midpoint.schema.util.SecurityPolicyUtil.NO_CUSTOM_IGNORED_LOCAL_PATH;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,6 +20,8 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,17 +57,19 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
     private final AuthChannelRegistryImpl authChannelRegistry;
     private final PrismContext prismContext;
     private final String key;
+    private final Map<Class<?>, Object> sharedObjects = new HashMap<>();
 
     private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
 
     public MidpointAnonymousAuthenticationFilter(AuthModuleRegistryImpl authRegistry,
             AuthChannelRegistryImpl authChannelRegistry, PrismContext prismContext,
-            String key, Object principal, List<GrantedAuthority> authorities) {
+            String key, Object principal, List<GrantedAuthority> authorities, Map<Class<?>, Object> sharedObjects) {
         super(key, principal, authorities);
         this.key = key;
         this.authRegistry = authRegistry;
         this.authChannelRegistry = authChannelRegistry;
         this.prismContext = prismContext;
+        this.sharedObjects.putAll(sharedObjects);
     }
 
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -116,6 +122,7 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
         AuthenticationSequenceType sequence = SecurityPolicyUtil.createDefaultSequence();
         AuthenticationChannel authenticationChannel = AuthSequenceUtil.buildAuthChannel(authChannelRegistry, sequence);
 
+        sharedObjects.remove(AuthenticationManagerBuilder.class);
         List<AuthModule<?>> authModules =
                 new AuthenticationSequenceModuleCreator(
                         authRegistry,
@@ -123,6 +130,7 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
                         request,
                         authenticationsPolicy.getModules(),
                         authenticationChannel)
+                        .sharedObjects(sharedObjects)
                         .create();
 
         authentication.setAuthModules(authModules);

@@ -92,6 +92,7 @@ public class JobExecutor implements InterruptableJob {
 
         fetchTheTask(oid, result);
 
+        checkTaskSanity(result);
         checkTaskReady();
         fixTaskExecutionInformation(result);
         checkLocalSchedulerRunning(result);
@@ -149,6 +150,15 @@ public class JobExecutor implements InterruptableJob {
             // this is only a safety net; because we've waited for children just after executing a handler
             waitForTransientChildrenAndCloseThem(result);
         }
+    }
+
+    private void checkTaskSanity(OperationResult result) throws StopJobException {
+        if (task.getTaskIdentifier() == null) {
+            result.recordFatalError("Task without identifier cannot be executed");
+            suspendFlawedTaskRecordingResult(result);
+            throw new StopJobException(ERROR, "Task without identifier cannot be executed: %s", null, task);
+        }
+        // Consider checking e.g. ownerRef.oid here
     }
 
     private void executeHandler(TaskHandler handler, OperationResult result) throws StopJobException {

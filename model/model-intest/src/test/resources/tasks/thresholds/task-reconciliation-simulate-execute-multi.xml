@@ -30,6 +30,11 @@
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>
+                <reporting>
+                    <simulationResult>
+                        <enabled>false</enabled>
+                    </simulationResult>
+                </reporting>
             </change>
             <change>
                 <reference>remainingShadowsPreview</reference>
@@ -46,6 +51,11 @@
                         </workersPerNode>
                     </workers>
                 </distribution>
+                <reporting>
+                    <simulationResult>
+                        <enabled>false</enabled>
+                    </simulationResult>
+                </reporting>
             </change>
             <change>
                 <reference>resourceObjects</reference>

@@ -1,0 +1,116 @@
+= Example of Collection report: Audit report with changed attributes
+:page-nav-title: Audit report with changed attributes
+:page-wiki-name: Example of new report: Audit report with changed attributes
+:page-wiki-id: 52003081
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-08-18T15:06:52.473+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-09-07T09:26:13.342+02:00
+:page-upkeep-status: yellow
+
+Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
+
+== Usecase
+
+We need create report for audit events of modification with column for changed items.
+
+
+== Configuration
+
+We need import only report, because we use object collection from initial objects.
+
+.Report XML
+[source,xml]
+----
+<report>
+    <name>Audit report with changed attributes</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
+            <!-- Collection report -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
+        <!-- Collection report -->
+    </archetypeRef>
+    <roleMembershipRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
+        <!-- Collection report -->
+    </roleMembershipRef>
+    <objectCollection>
+        <collection>
+            <collectionRef oid="00000000-0000-0000-0001-000000000002" relation="default" type="ObjectCollectionType">
+                <!-- Modification audit records -->
+            </collectionRef>
+        </collection>
+        <view>
+            <column>
+                <name>timestampColumn</name>
+                <path>timestamp</path>
+            </column>
+            <column>
+                <name>targetColumn</name>
+                <path>targetRef</path>
+                <previousColumn>timestampColumn</previousColumn>
+            </column>
+            <column>
+                <name>changedAttributesColumn</name>
+                <path>delta</path>
+                <display>
+                    <label>Changed attributes</label>
+                </display>
+                <previousColumn>targetColumn</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                           import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+                           import com.evolveum.midpoint.prism.delta.ItemDelta;
+                           import com.evolveum.midpoint.prism.path.ItemPath;
+                           import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+                           import com.evolveum.midpoint.schema.DeltaConvertor;
+
+                           ret = new ArrayList();
+                           for (ObjectDeltaOperationType deltaType : input) {
+                              delta = DeltaConvertor.createObjectDeltaOperation(deltaType, midpoint.getPrismContext());
+                              for (ItemDelta itemDelta : delta.getObjectDelta().getModifications()){
+                                 if(!itemDelta.getPath().toString().startsWith("metadata")) {
+                                    stringItem = itemDelta.getElementName().toString();
+                                    if (itemDelta.isAdd()) {
+                                       stringItem = stringItem + " (Add values: ";
+                                       for (addValue in itemDelta.getValuesToAdd()) {
+                                          stringItem = stringItem + addValue.getRealValue()
+                                          stringItem = stringItem + ","
+                                       }
+                                       stringItem = stringItem.substring(0, (stringItem.length()-1)) + ")"
+                                    }
+
+                                    if (itemDelta.isDelete()) {
+                                       stringItem = stringItem + " (Delete values: ";
+                                       for (deleteValue in itemDelta.getValuesToDelete()) {
+                                          stringItem = stringItem + deleteValue.getRealValue()
+                                          stringItem = stringItem + "'"
+                                       }
+                                       stringItem = stringItem.substring(0, (stringItem.length()-1)) + ")"
+                                    }
+
+                                    if (itemDelta.isReplace()) {
+                                       stringItem = stringItem + " (Replace values: ";
+                                       for (replaceValue in itemDelta.getValuesToReplace()) {
+                                          stringItem = stringItem + replaceValue.getRealValue()
+                                          stringItem = stringItem + ","
+                                       }
+                                       stringItem = stringItem.substring(0, (stringItem.length()-1)) + ")"
+                                    }
+                                    ret.add(stringItem);
+                                 }
+                              }
+                           }
+                           return ret
+                       </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+        </view>
+    </objectCollection>
+</report>
+----

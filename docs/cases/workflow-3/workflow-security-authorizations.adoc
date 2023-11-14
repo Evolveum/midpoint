@@ -1,0 +1,328 @@
+= Workflow security (authorizations)
+:page-wiki-name: Workflow security (authorizations)
+:page-wiki-id: 22741355
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-05-24T11:21:14.676+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-10-16T19:46:24.251+02:00
+:page-obsolete: true
+:page-obsolete-since: "4.0"
+
+== Model level
+
+Workflows (approvals) work with two basic kinds of objects: *approval requests* and *work items*.
+
+. *Approval requests* are implemented as background tasks, i.e. `TaskType`.
+Approval-related part is stored in task's workflowContext container.
+
+. *Work items* are separate entities.
+They are not stored in repository.
+They are not prism objects in the strict sense.
+So, for example, they cannot be retrieved by `getObject` or `searchObjects`, nor updated via `modifyObject` method.
+They can be accessed by `searchContainers` method, and manipulated by specific methods in `WorkflowService`.
+
+Therefore, for approval requests the basic task-related security mechanisms apply.
+
+Security for work items is currently implemented in very simple way:
+
+. No special authorizations are needed at a model level to:
+
+.. approve or reject an allocated work item - this action is available to each user that has directly allocated a work item,
+
+.. claim a work item - this action is available to each user who is a candidate actor for a work item.
+He can also release it later;
+
+.. see own work items (allocated or offered to current user).
+
+. Other actions require authorizations listed in the following table.
+
+Note that *<prefix>* is the standard prefix denoting authorization actions at the *model* level, i.e. "*http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3".*
+
+[%autowidth]
+|===
+| Operation | Action URI | Comment
+
+| Approve or reject any work item
+| `<prefix>#completeAllWorkItems`
+| Means ability to approve of work items that have not been explicitly delegated to a user.
+
+
+
+| Delegate any work item
+| `<prefix>#delegateAllWorkItems`
+|
+
+
+
+| Delegate own work item
+| `<prefix>#delegateOwnWorkItems`
+| Means delegation of work items assigned or delegated to a user.
+
+
+| View any work item
+| `<prefix>#readAllWorkItems`
+|
+
+
+
+|===
+
+It is expected that these authorizations will be replaced by something more generic in near future.
+
+
+=== GUI level
+
+At the GUI level, there are the following action URIs available.
+*<prefix>* is the standard prefix for GUI authorization actions, i.e. "*http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3"*.
+
+
+==== Before 4.0
+
+[%autowidth]
+|===
+| GUI page | Action URI | Comment
+
+| My work items
+| <prefix>#myWorkItems
+|
+
+
+
+| Items claimable by me
+| <prefix>#claimableWorkItems
+|
+
+
+
+| All work items
+| <prefix>#allWorkItems
+|
+
+
+
+| Work item details
+| <prefix>#workItem
+|
+
+
+
+| My requests
+| <prefix>#myRequests
+|
+
+
+
+| Requests about me
+| <prefix>#requestsAboutMe
+|
+
+
+
+| All requests
+| <prefix>#allRequests
+|
+
+
+
+| All approval-related pages
+| <prefix>#approvalsAll
+| Request details page is governed by #task action URI.
+
+
+|===
+
+Please note that these action URIs were changed in midPoint 3.4.
+
+
+==== 4.0 and after
+
+[%autowidth]
+|===
+| GUI page | Action URI | Alternate action URI | Page class | Before 4.0 | Before 4.0 - Alternate action URI
+
+| All cases
+| <prefix>#cases
+| <prefix>#casesAll
+| PageCases
+| <prefix>#allRequests
+| <prefix>#approvalsAll
+
+
+| My cases (requested by me)
+| <prefix>#casesView
+| <prefix>#casesAll
+| PageCases
+| <prefix>#myRequests
+| <prefix>#approvalsAll
+
+
+| Specific case collections (e.g. All manual cases, All requests, All approvals)
+| <prefix>#casesView
+| <prefix>#casesAll
+| PageCases
+|
+
+|
+
+
+
+| Single case details
+| <prefix>#case
+| <prefix>#casesAll
+| PageCase
+| <prefix>#task
+|
+
+
+
+| All work items
+| <prefix>#allWorkItems
+| <prefix>#workItemsAll
+| PageCaseWorkItemsAll
+| <prefix>#allWorkItems
+| <prefix>#approvalsAll
+
+
+| My work items
+| <prefix>#myWorkItems
+| <prefix>#workItemsAll
+| PageCaseWorkItemsAllocatedToMe
+| <prefix>#myWorkItems
+| <prefix>#approvalsAll
+
+
+| Attorney items
+| <prefix>#attorneyWorkItems
+| <prefix>#workItemsAll
+| PageAttorneySelection + PageCaseWorkItems
+| <prefix>#attorneyWorkItems
+| <prefix>#approvalsAll
+
+
+| Work items claimable by me
+| <prefix>#claimableWorkItems
+| <prefix>#workItemsAll
+| PageWorkItemsClaimable
+| <prefix>#claimableWorkItems
+| <prefix>#approvalsAll
+
+
+| Single work item details
+| <prefix>#workItem
+| <prefix>#workItemsAll
+| PageCaseWorkItem
+| <prefix>#workItem
+| <prefix>#approvalsAll
+
+
+|===
+
+Notes (Q&A):
+
+. Q: Should we use "caseWorkItems" or simply "workItems"? *A: Simply workItems.* +
+
+
+.. Work items in midPoint are always *case-related*: they are either related to `CaseType` (i.e. `CaseWorkItemType` - used for approvals and manual resources) or to `AccessCertificationCaseType`  (i.e. `AccessCertificationWorkItemType` - used for certifications).
+
+.. `CaseWorkItemType` and `AccessCertificationWorkItemType` are subtypes of `AbstractWorkItemType` . The latter (`ccessCertificationWorkItemType`) should be perhaps named `AccessCertificationCaseWorkItemType`, to achieve consistency.
+
+.. So using "caseWorkItems" in GUI authorization is a bit misleading.
+But it can be accepted as a short form of "case management work items" (which is perhaps the most precise term).
+
+
+
+. Q: Should we use one catch-all action URI (#casesAll) or two of them (#casesAll for cases, #caseWorkItemsAll for work items)? I am not sure.
+*A: For now, let's keep two. Maybe work items will be separated in GUI in the future.*
+
+. When implementing Attorney items authorization, we would perhaps need to create a special subclass of `PageCaseWorkItems` (e.g. `PageCaseWorkItemsAttorney`) to be able to attach <prefix>#attorneyCaseWorkItems action URI to it.
+
+. Q: Although the structure of certifications is a bit similar to the one of case management (case  work items), in GUI they have a different terminology - see xref:/midpoint/reference/roles-policies/certification/authorization/[Access Certification Security]:
++
+
+[%autowidth]
+|===
+| Operation | Action URI | Comment
+
+| Certification definitions
+| <prefix>#certificationDefinitions
+|
+
+
+
+| Add/edit certification definition
+| <prefix>#certificationDefinition
+| Currently there is no way how to distinguish between add and edit at the GUI level.
+
+
+| Certification campaigns
+| <prefix>#certificationCampaigns
+|
+
+
+
+| View specific campaign
+| <prefix>#certificationCampaign
+|
+
+
+
+| My cases to decide
+| <prefix>#certificationDecisions
+| Note: in GUI these are labeled My work items.
+
+
+|All certification-related pages
+| <prefix>#certificationAll
+|
+
+
+|===
+
+I think these can stay as they are, at least for 4.0. *A: Yes, this will be dealt with later.*
+
+This role seems to provide typical approval authorizations for an end user:
+
+[source,xml]
+----
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      oid="35b3dc4c-4ad5-4914-8c0c-eb1d30903145">
+    <name>wf-autz</name>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#casesView</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#case</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#claimableWorkItems</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItem</action>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>CaseType</type>
+            <requester>
+                <special>self</special>
+            </requester>
+        </object>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>CaseType</type>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <object>
+            <type>ObjectCollectionType</type>
+            <filter>
+                <q:inOid>
+                    <q:value>00000000-0000-0000-0000-000000000344</q:value>	<!-- My cases -->
+                </q:inOid>
+            </filter>
+        </object>
+    </authorization>
+</role>
+----

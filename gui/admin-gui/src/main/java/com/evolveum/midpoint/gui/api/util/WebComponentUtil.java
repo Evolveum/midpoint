@@ -201,7 +201,6 @@ public final class WebComponentUtil {
     private static final String KEY_BOOLEAN_TRUE = "Boolean.TRUE";
     private static final String KEY_BOOLEAN_FALSE = "Boolean.FALSE";
 
-
     public static RestartResponseException restartOnLoginPageException() {
         return new RestartResponseException(PageLogin.class);
     }
@@ -2455,14 +2454,18 @@ public final class WebComponentUtil {
         }
         //TODO trigger
 
-        IconType lifecycleStateIcon = IconAndStylesUtil.getIconForLifecycleState(obj);
-        IconType activationStatusIcon = IconAndStylesUtil.getIconForActivationStatus(obj);
-
         String iconColor = GuiDisplayTypeUtil.getIconColor(basicIconDisplayType);
 
         CompositedIconBuilder builder = iconBuilder.setBasicIcon(
                         GuiDisplayTypeUtil.getIconCssClass(basicIconDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(StringUtils.isNotEmpty(iconColor) ? iconColor : "");
+
+        if (obj instanceof ResourceType) {
+            return builder.build();
+        }
+
+        IconType lifecycleStateIcon = IconAndStylesUtil.getIconForLifecycleState(obj);
+        IconType activationStatusIcon = IconAndStylesUtil.getIconForActivationStatus(obj);
 
         StringBuilder title = new StringBuilder(getOrigStringFromPolyOrEmpty(basicIconDisplayType.getTooltip()));
         if (lifecycleStateIcon != null) {
@@ -2594,7 +2597,7 @@ public final class WebComponentUtil {
         if (isColumn) {
             builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
         } else {
-            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_MAX_ICON_STYLE);
         }
         builder.setTitle(pageBase.createStringResource("FocusProjectionsTabPanel.deadShadow").getString()
                 + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
@@ -2626,7 +2629,7 @@ public final class WebComponentUtil {
             if (isColumn) {
                 builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
             } else {
-                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_STYLE);
+                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_MAX_ICON_STYLE);
             }
         }
     }
@@ -2678,11 +2681,23 @@ public final class WebComponentUtil {
             return;
         }
 
-        if (title.length() > 0) {
+        if (!title.isEmpty()) {
             title.append("\n");
         }
         String lockedStatus = LockoutStatusType.LOCKED == activation.getLockoutStatus() ? activation.getLockoutStatus().value() : "";
         String effectiveStatus = activation.getEffectiveStatus() != null ? activation.getEffectiveStatus().value() : "";
+
+        if (!effectiveStatus.isEmpty()) {
+            String localeEffectiveStatus = pageBase
+                    .createStringResource("ActivationDescriptionHandler.ActivationStatusType."
+                            + effectiveStatus.toUpperCase())
+                    .getString();
+
+            if (localeEffectiveStatus != null) {
+                effectiveStatus = localeEffectiveStatus;
+            }
+        }
+
         title.append(pageBase.createStringResource("CapabilitiesType.activationStatus").getString())
                 .append(": ")
                 .append(StringUtils.isNotEmpty(lockedStatus) ? lockedStatus : effectiveStatus);
@@ -2741,8 +2756,8 @@ public final class WebComponentUtil {
         if (StringUtils.isNotEmpty(GuiDisplayTypeUtil.getIconCssClass(objectTypeDisplay))) {
             builder.setBasicIcon(objectTypeDisplay.getIcon(), IconCssStyle.IN_ROW_STYLE)
                     .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(objectTypeDisplay))
-                    .appendLayerIcon(actionButtonIcon, IconCssStyle.BOTTOM_RIGHT_STYLE)
-                    .appendLayerIcon(relationIcon, IconCssStyle.TOP_RIGHT_STYLE);
+                    .appendLayerIcon(actionButtonIcon, IconCssStyle.BOTTOM_RIGHT_MAX_ICON_STYLE)
+                    .appendLayerIcon(relationIcon, IconCssStyle.TOP_RIGHT_MAX_ICON_STYLE);
         } else {
             builder.setBasicIcon(actionButtonIcon, IconCssStyle.IN_ROW_STYLE)
                     .appendColorHtmlValue(actionButtonIcon.getColor());
@@ -2860,7 +2875,8 @@ public final class WebComponentUtil {
      * in the list will contain not more than 1 relation, not more than 1 object type and not more than one archetype reference.
      * This will simplify creating of a new_assignment_button
      */
-    public static List<AssignmentObjectRelation> divideAssignmentRelationsByAllValues(List<AssignmentObjectRelation> initialAssignmentRelationsList) {
+    public static List<AssignmentObjectRelation> divideAssignmentRelationsByAllValues(
+            List<AssignmentObjectRelation> initialAssignmentRelationsList, boolean isMemberAssignment) {
         if (initialAssignmentRelationsList == null) {
             return null;
         }
@@ -2870,13 +2886,15 @@ public final class WebComponentUtil {
             if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getObjectTypes())) {
                 assignmentObjectRelation.getObjectTypes().forEach(objectType -> {
                     if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getArchetypeRefs())) {
-                        //add at first type+relation combination without archetypeRef to cover default views (e.g. all users)
-                        AssignmentObjectRelation defaultViewRelation = new AssignmentObjectRelation();
-                        defaultViewRelation.setObjectTypes(Collections.singletonList(objectType));
-                        defaultViewRelation.setRelations(assignmentObjectRelation.getRelations());
-                        defaultViewRelation.setDescription(assignmentObjectRelation.getDescription());
-                        if (!assignmentObjectRelationAlreadyExists(resultList, defaultViewRelation)) {
-                            resultList.add(defaultViewRelation);
+                        if (isMemberAssignment) {
+                            //add at first type+relation combination without archetypeRef to cover default views (e.g. all users)
+                            AssignmentObjectRelation defaultViewRelation = new AssignmentObjectRelation();
+                            defaultViewRelation.setObjectTypes(Collections.singletonList(objectType));
+                            defaultViewRelation.setRelations(assignmentObjectRelation.getRelations());
+                            defaultViewRelation.setDescription(assignmentObjectRelation.getDescription());
+                            if (!assignmentObjectRelationAlreadyExists(resultList, defaultViewRelation)) {
+                                resultList.add(defaultViewRelation);
+                            }
                         }
                         assignmentObjectRelation.getArchetypeRefs().forEach(archetypeRef -> {
                             AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
@@ -4017,13 +4035,13 @@ public final class WebComponentUtil {
         return session.getSessionStorage().getMode() == SessionStorage.Mode.DARK;
     }
 
-    public static LookupTableType loadLookupTable(String lookupTableOid, PageBase pageBase) {
-        Task task = pageBase.createSimpleTask("Load lookup table");
+    public static LookupTableType loadLookupTable(String lookupTableOid, PageAdminLTE parentPage) {
+        Task task = parentPage.createSimpleTask("Load lookup table");
         OperationResult result = task.getResult();
         Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                .createLookupTableRetrieveOptions(pageBase.getSchemaService());
+                .createLookupTableRetrieveOptions(parentPage.getSchemaService());
         PrismObject<LookupTableType> prismLookupTable =
-                WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, pageBase, task, result);
+                WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, parentPage, task, result);
         if (prismLookupTable != null) {
             return prismLookupTable.asObjectable();
         }

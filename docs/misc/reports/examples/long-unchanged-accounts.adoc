@@ -1,0 +1,112 @@
+= Example of Collection report: Long unchanged accounts
+:page-nav-title: Long unchanged accounts
+:page-wiki-name: Example of new report: Long unchanged accounts
+:page-wiki-id: 52003078
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-08-18T14:55:17.864+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-08-18T15:06:44.581+02:00
+:page-upkeep-status: yellow
+
+Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
+
+
+== Usecase
+
+We need create report of users which have not changed in sometime.
+
+
+== Configuration
+
+We need import object collection and report.
+
+
+.Object collection XML
+[source,xml]
+----
+<objectCollection oid="da51efb6-7d8d-43e5-9ea9-c55cf9b528e0">
+    <name>Account shadow-raw</name>
+    <type>ShadowType</type>
+    <filter>
+        <and>
+            <ref>
+                <path>resourceRef</path>
+                <value oid="----OID_OF_YOUR_RESOURCE----"/>
+            </ref>
+            <equal>
+                <path>kind</path>
+                <value>account</value>
+            </equal>
+            <less>
+                <q:path>synchronizationTimestamp</q:path>
+                <q:value>2020-05-14T08:10:30.693+02:00</q:value>
+            </less>
+        </and>
+    </filter>
+    <getOptions>
+        <option>
+            <options>
+                <raw>true</raw>
+            </options>
+        </option>
+    </getOptions>
+</objectCollection>
+----
+
+Please replace '----OID_OF_YOUR_RESOURCE----' with oid of your resource.
+
+
+.Report XML
+[source,xml]
+----
+<report>
+    <name>Unchanged accounts</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
+            <!-- Collection report -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
+        <!-- Collection report -->
+    </archetypeRef>
+    <roleMembershipRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
+        <!-- Collection report -->
+    </roleMembershipRef>
+    <objectCollection>
+        <collection>
+            <collectionRef oid="da51efb6-7d8d-43e5-9ea9-c55cf9b528e0" relation="default" type="ObjectCollectionType">
+                <!-- Account shadow R2 RAW -->
+            </collectionRef>
+        </collection>
+        <view>
+            <identifier>default-shadow</identifier>
+            <column>
+                <name>nameColumn</name>
+                <path>name</path>
+            </column>
+            <column>
+                <name>resourceRefColumn</name>
+                <path>resourceRef</path>
+                <previousColumn>nameColumn</previousColumn>
+            </column>
+            <column>
+                <name>kindColumn</name>
+                <path>kind</path>
+                <previousColumn>resourceRefColumn</previousColumn>
+            </column>
+            <column>
+                <name>intentColumn</name>
+                <path xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">intent</path>
+                <previousColumn>kindColumn</previousColumn>
+            </column>
+            <column>
+                <name>synchronizationSituationColumn</name>
+                <path>synchronizationSituation</path>
+                <previousColumn>intentColumn</previousColumn>
+            </column>
+            <type>ShadowType</type>
+        </view>
+        <useOnlyReportView>true</useOnlyReportView>
+    </objectCollection>
+</report>
+----

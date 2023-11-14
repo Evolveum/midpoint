@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
@@ -312,11 +313,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         return RESOURCE_DUMMY_AZURE_FILE;
     }
 
-    @Override
-    protected PrismObject<UserType> getDefaultActor() {
-        return userAdministrator;
-    }
-
     protected void loginImportUser() throws CommonException {
         loginAdministrator();
     }
@@ -485,7 +481,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 2, usersAfter.size());
 
@@ -562,7 +558,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 2, users.size());
 
@@ -590,7 +586,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
 
         loginImportUser();
 
@@ -643,7 +639,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
 
         // These are protected accounts, they should not be imported
         assertNoImportedUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -767,7 +763,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
         assertNoAssignments(userRappBefore);
 
         assertUsers(getNumberOfUsers() + 4);
@@ -811,9 +807,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATION,
-                createPolyString(ORG_SCUMM_BAR_NAME));
+                PolyString.fromOrig(ORG_SCUMM_BAR_NAME));
 
         // These are protected accounts, they should not be imported
         assertNoImportedUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -849,9 +845,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATION,
-                createPolyString(ORG_SCUMM_BAR_NAME));
+                PolyString.fromOrig(ORG_SCUMM_BAR_NAME));
         assertAssignedOrg(userRappBefore, ORG_SCUMM_BAR_OID);
         assertAssignments(userRappBefore, 1);
 
@@ -896,7 +892,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
         PrismAsserts.assertNoItem(userRappAfter, UserType.F_ORGANIZATION);
 
         // These are protected accounts, they should not be imported
@@ -947,7 +943,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
 
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
@@ -1034,7 +1030,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
 
         and("herman should be there");
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
@@ -1305,13 +1301,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Recon task result", reconTaskResult);
         TestUtil.assertStatus(reconTaskResult, OperationResultStatusType.PARTIAL_ERROR);
 
-//        OperationResult reconTaskOpResult = OperationResult.createOperationResult(reconTaskResult);
-//        // TODO reconsider this
-//        OperationResult statistics = reconTaskOpResult
-//                .findSubResultStrictly("com.evolveum.midpoint.common.operation.reconciliation.part2")
-//                .findSubResultStrictly("com.evolveum.midpoint.common.operation.reconciliation.statistics");
-//        assertTrue("Errors not mentioned in the task message", statistics.getMessage().contains("got 1 error"));
-
         // Check audit
         displayDumpable("Audit", dummyAuditService);
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
@@ -1372,7 +1361,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
 
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
         assertNoImportedUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -1683,7 +1672,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
 
         // These are protected accounts, they should not be imported
         assertNoImportedUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -1737,7 +1726,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         then();
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
-        display("Users after reconcile", users);
 
         reconciliationResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 0, 0, 1);
 
@@ -1791,7 +1779,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
 
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
@@ -1889,17 +1877,17 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of The Elaine"));
+                PolyString.fromOrig("The crew of The Elaine"));
 
         ObjectDelta<UserType> userRappDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, USER_RAPP_OID,
-                        UserType.F_ORGANIZATIONAL_UNIT, createPolyString("The six feet under crew"));
+                        UserType.F_ORGANIZATIONAL_UNIT, PolyString.fromOrig("The six feet under crew"));
         repositoryService.modifyObject(UserType.class, USER_RAPP_OID, userRappDelta.getModifications(), result);
 
         userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before (modified)", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The six feet under crew"));
+                PolyString.fromOrig("The six feet under crew"));
 
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
@@ -2590,7 +2578,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("User augustus after", userAugustusAfter);
         assertLiveLinks(userAugustusAfter, 1);
         PrismAsserts.assertPropertyValue(userAugustusAfter, UserType.F_ORGANIZATIONAL_UNIT,
-                createPolyString("The crew of Titanicum Augusticum"));
+                PolyString.fromOrig("The crew of Titanicum Augusticum"));
 
         assertImportAuditModifications(1);
     }
@@ -3324,8 +3312,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultBean);
         TestUtil.assertSuccess(deleteTaskResult);
 
-        String OP_PROCESS = "com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingGatekeeper.process";
-        List<OperationResult> processSearchResults = deleteTaskResult.findSubresultsDeeply(OP_PROCESS);
+        String opProcess = "com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingGatekeeper.process";
+        List<OperationResult> processSearchResults = deleteTaskResult.findSubresultsDeeply(opProcess);
         assertThat(processSearchResults).as("'process item' operation results").hasSize(11);
         assertThat(processSearchResults.get(processSearchResults.size() - 1).getHiddenRecordsCount())
                 .as("hidden operation results")

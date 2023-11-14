@@ -157,26 +157,21 @@ export default class MidPointTheme {
         });
     }
 
-    breakLongerTextInTableCell(cellId) {
-        $("#" + cellId).css("word-break", function (index, origValue) {
-            var textOfColumn = document.getElementById(cellId).innerText;
-            if (textOfColumn != '' && textOfColumn != ' ') {
-                var numberOfChars = 15;
-                var controlValue = numberOfChars;
-                var indexOfSpace = textOfColumn.indexOf(' ');
+breakLongerTextInTableCell(cellId) {
+    $("#" + cellId).css("word-break", function (index, origValue) {
+        var textOfColumn = document.getElementById(cellId).innerText.trim();
+        if (textOfColumn != '' && textOfColumn != ' ') {
+            var numberOfChars = 15;
+            var regex = new RegExp(`[^\\s]{${numberOfChars}}`);
 
-                while (indexOfSpace == (controlValue - numberOfChars)) {
-                    controlValue = controlValue + 1 + indexOfSpace;
-                    indexOfSpace = textOfColumn.indexOf(' ', (indexOfSpace + 1));
-                }
-
-                if (indexOfSpace + 1 != textOfColumn.length && textOfColumn.length > controlValue) {
-                    return "break-word";
-                }
+            // Check if there are 15 consecutive non-whitespace characters anywhere in the string
+            if (regex.test(textOfColumn)) {
+                return "break-all";
             }
-            return "inherit";
-        });
-    }
+        }
+        return "inherit";
+    });
+}
 
     // I'm not sure why sidebar has 15px padding -> and why I had to use 10px constant here [lazyman]
     fixContentHeight() {
@@ -470,7 +465,7 @@ export default class MidPointTheme {
             if (!popup.is(':visible')) {
                 var position = ref.position();
 
-                var left = position.left + (ref.outerWidth() - popup.outerWidth()) / 2;// - paddingRight;
+                var left = position.left + (ref.outerWidth() - popup.outerWidth() - 9) / 2;// - paddingRight;
                 var top = position.top + ref.outerHeight();
 
                 var offsetLeft = ref.offset().left - position.left;
@@ -565,4 +560,74 @@ export default class MidPointTheme {
         panel.find("option.width-tmp-option").html(panel.find("select.resizing-select option:selected").text());
         panel.find("select.resizing-select").width(panel.find("select.width-tmp-select").width());
     }
+
+    initScaleResize(containerId) {
+        let div = document.querySelector(containerId);
+        let scale = 0.5;
+        let component = null;
+
+        if (!div) {
+            console.error('Container not found');
+            return;
+        }
+
+        if (containerId === '#tableScaleContainer') {
+            component = div.querySelector('table');
+        } else if (containerId === '#imageScaleContainer') {
+            component = div.querySelector('img');
+        } else if (containerId === '#chartScaleContainer') {
+            component = div.querySelector('canvas');
+                     }
+
+        if (component) {
+            div.addEventListener('wheel', handleZoom);
+        } else {
+            console.error('Component not found');
+        }
+
+        function handleZoom(e) {
+            e.preventDefault();
+            let rectBefore = component.getBoundingClientRect();
+            let x = (e.clientX - rectBefore.left) / rectBefore.width * 100;
+            let y = (e.clientY - rectBefore.top) / rectBefore.height * 100;
+
+            if (e.deltaY < 0) {
+                zoomIn(rectBefore, x, y);
+            } else if (e.deltaY > 0) {
+                zoomOut(rectBefore);
+            }
+        }
+
+        function zoomIn(rectBefore, x, y) {
+            console.log('Zooming in');
+            scale += 0.03;
+
+            let prevScale = scale - 0.1;
+            let scaleFactor = scale / prevScale;
+
+            let deltaX = (x / 100) * rectBefore.width * (scaleFactor - 1);
+            let deltaY = (y / 100) * rectBefore.height * (scaleFactor - 1);
+
+            setTransform(x, y, scale, rectBefore, deltaX, deltaY, scaleFactor);
+        }
+
+        function zoomOut(rectBefore) {
+            console.log('Zooming out');
+            scale -= 0.03;
+            scale = Math.max(0.1, scale);
+
+            setTransform(0, 0, scale, rectBefore, 0, 0, 1);
+        }
+
+        function setTransform(x, y, scale, rectBefore, deltaX, deltaY, scaleFactor) {
+            component.style.transformOrigin = `${x}% ${y}%`;
+            component.style.transition = 'transform 0.3s';
+            component.style.transform = `scale(${scale})`;
+
+            let rectAfter = component.getBoundingClientRect();
+            div.scrollLeft += (rectAfter.left - rectBefore.left) + deltaX - (e.clientX - rectBefore.left) * (scaleFactor - 1);
+            div.scrollTop += (rectAfter.top - rectBefore.top) + deltaY - (e.clientY - rectBefore.top) * (scaleFactor - 1);
+        }
+    }
+
 }

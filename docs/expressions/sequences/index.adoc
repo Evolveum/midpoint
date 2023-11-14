@@ -1,0 +1,59 @@
+= Sequences
+:page-wiki-name: Sequences
+:page-wiki-id: 21200980
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-09-30T11:36:47.227+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2015-09-30T12:34:09.959+02:00
+:page-since: "3.3"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: green
+
+Sequences are persistent objects in midPoint repository that maintain counters.
+They are mostly equivalent in functionality to database auto-increment columns.
+The sequences can be used to assign unique identifiers to large number of midPoint objects in a very efficient and reliable fashion.
+The sequences are excellent tool for automatic assignment of UNIX uid and gid numbers, persistent user identifiers, etc.
+
+The sequence in it self is a very simple object:
+
+[source,xml]
+----
+<sequence>
+    <name>Unix UID numbers</name>
+    <counter>1001</counter>
+    <maxUnusedValues>10</maxUnusedValues>
+</sequence>
+----
+
+The sequence remembers just one important value: the counter.
+The counter value is assigned to the next object, then the counter value is (atomically) incremented.
+There are also other settings such as the maximum counter value, settings that influence the use of reclaimed values and so on.
+This may seem simple, but the real power in using sequences are in combination with xref:/midpoint/reference/expressions/[Mappings and Expressions]. The sequence can easily be used in a mapping:
+
+[source,xml]
+----
+            <mapping>
+                <name>sequenceUID</name>
+                <strength>weak</strength>
+                <expression>
+                    <sequentialValue>
+                        <sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
+                    </sequentialValue>
+                </expression>
+                <target>
+                    <path>extension/uidNumber</path>
+                </target>
+            </mapping>
+----
+
+This mapping will take a counter from the sequence and place it in the target property.
+The mapping will also make sure that the value is returned to the sequence for reclamation in case that the processing fails.
+See xref:/midpoint/reference/expressions/sequences/configuration/[Using Sequences] page for more details.
+
+
+== See Also
+
+* xref:configuration.adoc[]
+
+* xref:/midpoint/reference/samples/story-tests/unix/[Unix Story Test]

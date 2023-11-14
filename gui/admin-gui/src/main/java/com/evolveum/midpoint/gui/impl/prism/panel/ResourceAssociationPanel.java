@@ -6,11 +6,21 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MappingColumnPanel;
+import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionGroupStepPanel;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -20,6 +30,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
@@ -94,6 +105,60 @@ public class ResourceAssociationPanel extends ItemRefinedPanel<ResourceObjectAss
         ResourceAssociationPanel.this.getConfig().getPanel().add(detailsPanel);
         target.add(parent);
         parent.replacePanel(detailsPanel, target);
+        return true;
+    }
+
+    @Override
+    protected boolean customNewItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
+
+        FocusDetailsModels detailsModel = (FocusDetailsModels)
+                ((PageFocusDetails) ResourceAssociationPanel.this.getPageBase()).getObjectDetailsModels();
+        ConstructionGroupStepPanel step = new ConstructionGroupStepPanel<>(
+                detailsModel,
+                () -> ResourceAssociationPanel.this.getModelObject().getParentContainerValue(AssignmentType.class)){
+
+            @Override
+            protected boolean isExitButtonVisible() {
+                return false;
+            }
+
+            @Override
+            public VisibleEnableBehaviour getBackBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+            }
+
+            @Override
+            public VisibleEnableBehaviour getNextBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+            }
+
+            @Override
+            protected boolean isSubmitVisible() {
+                return false;
+            }
+        };
+        OnePanelPopupPanel popup = new OnePanelPopupPanel(getPageBase().getMainPopupBodyId()) {
+            @Override
+            protected WebMarkupContainer createPanel(String id) {
+                return new WizardPanel(id, new WizardModel(List.of(step)));
+            }
+
+            @Override
+            protected void processHide(AjaxRequestTarget target) {
+                target.add(ResourceAssociationPanel.this);
+                step.onNextPerformed(target);
+                super.processHide(target);
+            }
+        };
+        popup.setWithUnit("%");
+        popup.setWidth(80);
+        getPageBase().showMainPopup(popup, target);
+
+        return true;
+    }
+
+    @Override
+    protected boolean isCreateNewObjectVisible() {
         return true;
     }
 }

@@ -56,7 +56,8 @@ public class TestAsyncUpdateNoCaching extends TestAsyncUpdate {
     protected void addDummyAccount(String name) {
         try {
             dummyResourceCtl.addAccount(name);
-        } catch (ObjectAlreadyExistsException | SchemaViolationException | ConnectException | FileNotFoundException | ConflictException | InterruptedException e) {
+        } catch (ObjectAlreadyExistsException | SchemaViolationException | ConnectException | FileNotFoundException |
+                 ConflictException | InterruptedException | ObjectDoesNotExistException e) {
             throw new AssertionError(e);
         }
     }

@@ -10,13 +10,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.fromOrig;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -77,7 +77,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/audit");
 
-    public static final int INITIAL_NUMBER_OF_AUDIT_RECORDS = 26;
+    private static final int INITIAL_NUMBER_OF_AUDIT_RECORDS = 26;
 
     private XMLGregorianCalendar initialTs;
     private XMLGregorianCalendar jackKidTs;
@@ -132,7 +132,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, createPolyString("Kid"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, fromOrig("Kid"));
 
         then();
         result.computeStatus();
@@ -180,8 +180,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_TITLE,
-                createPolyString("Sailor"));
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_TITLE, fromOrig("Sailor"));
         objectDelta.addModificationReplaceProperty(UserType.F_DESCRIPTION, "Hermit on Monkey Island");
         objectDelta.addModificationReplaceProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                 ActivationStatusType.DISABLED);
@@ -207,8 +206,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE,
-                createPolyString("Marooned"));
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE, fromOrig("Marooned"));
         objectDelta.addModificationReplaceProperty(UserType.F_DESCRIPTION, "Marooned on Monkey Island");
         objectDelta.addModification(createAssignmentModification(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, true));
 
@@ -232,8 +230,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_TITLE,
-                createPolyString("Captain"));
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_TITLE, fromOrig("Captain"));
         objectDelta.addModificationReplaceProperty(UserType.F_DESCRIPTION, "Hermit on Monkey Island");
         objectDelta.addModificationReplaceProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                 ActivationStatusType.ENABLED);
@@ -259,10 +256,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE,
-                createPolyString("Hermit"));
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE, fromOrig("Hermit"));
         objectDelta.addModificationReplaceProperty(UserType.F_DESCRIPTION, "Hermit on Monkey Island");
-        objectDelta.addModificationReplaceProperty(UserType.F_HONORIFIC_PREFIX, createPolyString("His Loneliness"));
+        objectDelta.addModificationReplaceProperty(UserType.F_HONORIFIC_PREFIX, fromOrig("His Loneliness"));
         objectDelta.addModificationReplaceProperty(UserType.F_NICK_NAME);
         objectDelta.addModification(createAssignmentModification(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, false));
         objectDelta.addModification(createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE,
@@ -291,8 +287,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE,
-                createPolyString("Civilised Hermit"));
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(
+                USER_HERMAN_OID, UserType.F_TITLE, fromOrig("Civilised Hermit"));
         objectDelta.addModificationReplaceProperty(UserType.F_DESCRIPTION, "Civilised Hermit on Monkey Island");
         objectDelta.addModification(createAssignmentModification(ROLE_RED_SAILOR_OID, RoleType.COMPLEX_TYPE,
                 null, null, null, false));
@@ -323,7 +319,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         // precondition
-        PrismAsserts.assertPropertyValue(userBefore, UserType.F_TITLE, createPolyString("Captain"));
+        PrismAsserts.assertPropertyValue(userBefore, UserType.F_TITLE, fromOrig("Captain"));
 
         when();
         PrismObject<UserType> jackReconstructed = modelAuditService.reconstructObject(
@@ -334,7 +330,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         display("Reconstructed jack", jackReconstructed);
 
-        PrismAsserts.assertPropertyValue(jackReconstructed, UserType.F_TITLE, createPolyString("Sailor"));
+        PrismAsserts.assertPropertyValue(jackReconstructed, UserType.F_TITLE, fromOrig("Sailor"));
         assertAdministrativeStatusDisabled(jackReconstructed);
 
         // TODO
@@ -349,7 +345,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         // precondition
-        PrismAsserts.assertPropertyValue(userBefore, UserType.F_TITLE, createPolyString("Captain"));
+        PrismAsserts.assertPropertyValue(userBefore, UserType.F_TITLE, fromOrig("Captain"));
 
         when();
 
@@ -361,7 +357,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         display("Reconstructed jack", jackReconstructed);
 
-        PrismAsserts.assertPropertyValue(jackReconstructed, UserType.F_TITLE, createPolyString("Kid"));
+        PrismAsserts.assertPropertyValue(jackReconstructed, UserType.F_TITLE, fromOrig("Kid"));
 
         // TODO
     }
@@ -378,8 +374,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = getUser(USER_HERMAN_OID);
         display("User before", userBefore);
         // precondition
-        PrismAsserts.assertPropertyValue(userBefore, UserType.F_TITLE, createPolyString("Civilised Hermit"));
-        PrismAsserts.assertPropertyValue(userBefore, UserType.F_HONORIFIC_PREFIX, createPolyString("His Loneliness"));
+        PrismAsserts.assertPropertyValue(userBefore, UserType.F_TITLE, fromOrig("Civilised Hermit"));
+        PrismAsserts.assertPropertyValue(userBefore, UserType.F_HONORIFIC_PREFIX, fromOrig("His Loneliness"));
         PrismAsserts.assertNoItem(userBefore, UserType.F_NICK_NAME);
         assertAssignments(userBefore, 1);
 
@@ -393,10 +389,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         display("Reconstructed herman", hermanReconstructed);
 
         PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_DESCRIPTION, "Unknown");
-        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_NICK_NAME, createPolyString("HT"));
+        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_NICK_NAME, fromOrig("HT"));
         PrismAsserts.assertNoItem(hermanReconstructed, UserType.F_TITLE);
         PrismAsserts.assertNoItem(hermanReconstructed, UserType.F_HONORIFIC_PREFIX);
-        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_LOCALITY, createPolyString("Monkey Island"));
+        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_LOCALITY, fromOrig("Monkey Island"));
 
         assertNoAssignments(hermanReconstructed);
     }
@@ -418,10 +414,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         display("Reconstructed herman", hermanReconstructed);
 
-        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_TITLE, createPolyString("Marooned"));
+        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_TITLE, fromOrig("Marooned"));
         PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_DESCRIPTION, "Marooned on Monkey Island");
-        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_NICK_NAME, createPolyString("HT"));
-        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_LOCALITY, createPolyString("Monkey Island"));
+        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_NICK_NAME, fromOrig("HT"));
+        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_LOCALITY, fromOrig("Monkey Island"));
         PrismAsserts.assertNoItem(hermanReconstructed, UserType.F_HONORIFIC_PREFIX);
 
         assertAssignedAccount(hermanReconstructed, RESOURCE_DUMMY_OID);
@@ -445,11 +441,11 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         display("Reconstructed herman", hermanReconstructed);
 
-        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_TITLE, createPolyString("Hermit"));
+        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_TITLE, fromOrig("Hermit"));
         PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_DESCRIPTION, "Hermit on Monkey Island");
         PrismAsserts.assertNoItem(hermanReconstructed, UserType.F_NICK_NAME);
-        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_LOCALITY, createPolyString("Monkey Island"));
-        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_HONORIFIC_PREFIX, createPolyString("His Loneliness"));
+        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_LOCALITY, fromOrig("Monkey Island"));
+        PrismAsserts.assertPropertyValue(hermanReconstructed, UserType.F_HONORIFIC_PREFIX, fromOrig("His Loneliness"));
 
         assertAssignedRole(hermanReconstructed, ROLE_RED_SAILOR_OID);
         assertAssignedRole(hermanReconstructed, ROLE_JUDGE_OID);
@@ -516,13 +512,13 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test300ConcurrentAudits() throws Exception {
-        final int NUM_THREADS = 2;
-        final int ITERATIONS = 300;
-        final long TIMEOUT = 600_000;
+        final int numThreads = 2;
+        final int iterations = 300;
+        final long timeout = 600_000;
 
         // creating objects
-        List<String> oids = new ArrayList<>(NUM_THREADS);
-        for (int i = 0; i < NUM_THREADS; i++) {
+        List<String> oids = new ArrayList<>(numThreads);
+        for (int i = 0; i < numThreads; i++) {
             UserType user = new UserType();
             user.setName(PolyStringType.fromOrig("user-" + i));
             addObject(user.asPrismObject());
@@ -531,19 +527,19 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         display("OIDs", oids);
 
         // creating threads + starting them
-        List<Thread> threads = new ArrayList<>(NUM_THREADS);
-        List<Throwable> results = new ArrayList<>(NUM_THREADS);
-        for (int i = 0; i < NUM_THREADS; i++) {
+        List<Thread> threads = new ArrayList<>(numThreads);
+        List<Throwable> results = new ArrayList<>(numThreads);
+        for (int i = 0; i < numThreads; i++) {
             final int index = i;
             Thread thread = new Thread(() -> {
                 try {
                     login(userAdministrator.clone());
                     Task threadTask = createTask();
                     OperationResult threadResult = threadTask.getResult();
-                    for (int iteration = 0; iteration < ITERATIONS; iteration++) {
+                    for (int iteration = 0; iteration < iterations; iteration++) {
                         display("Executing iteration " + iteration + " on user " + index);
                         ObjectDelta<? extends ObjectType> delta = prismContext.deltaFor(UserType.class)
-                                .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("User " + index + " iteration " + iteration))
+                                .item(UserType.F_FULL_NAME).replace(fromOrig("User " + index + " iteration " + iteration))
                                 .asObjectDelta(oids.get(index));
                         executeChangesAssertSuccess(delta, null, threadTask, threadResult);
                     }
@@ -560,8 +556,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         threads.forEach(Thread::start);
 
         // waiting for threads
-        long deadline = System.currentTimeMillis() + TIMEOUT;
-        for (int i = 0; i < NUM_THREADS; i++) {
+        long deadline = System.currentTimeMillis() + timeout;
+        for (int i = 0; i < numThreads; i++) {
             long waitTime = deadline - System.currentTimeMillis();
             if (waitTime > 0) {
                 threads.get(i).join(waitTime);
@@ -570,14 +566,14 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         // checking results
         int fails = 0;
-        for (int i = 0; i < NUM_THREADS; i++) {
+        for (int i = 0; i < numThreads; i++) {
             if (results.get(i) != null) {
                 fails++;
                 display("Thread " + i + " produced an exception: " + results.get(i));
             }
         }
         if (fails > 0) {
-            fail(fails + " thread(s) failed: " + results.stream().filter(Objects::nonNull).collect(Collectors.toList()));
+            fail(fails + " thread(s) failed: " + results.stream().filter(Objects::nonNull).toList());
         }
 
         // TODO check audit correctness
@@ -588,30 +584,30 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test310ConcurrentAuditsRaw() throws Exception {
-        final int NUM_THREADS = 2;
-        final int ITERATIONS = 300;
-        final long TIMEOUT = 600_000;
+        final int numThreads = 2;
+        final int iterations = 300;
+        final long timeout = 600_000;
 
         // signal to kill other threads after a failure
         final AtomicBoolean failed = new AtomicBoolean(false);
 
         // creating threads + starting them
-        List<Thread> threads = new ArrayList<>(NUM_THREADS);
-        List<Throwable> results = new ArrayList<>(NUM_THREADS);
-        for (int i = 0; i < NUM_THREADS; i++) {
+        List<Thread> threads = new ArrayList<>(numThreads);
+        List<Throwable> results = new ArrayList<>(numThreads);
+        for (int i = 0; i < numThreads; i++) {
             final int index = i;
             Thread thread = new Thread(() -> {
                 try {
                     login(userAdministrator.clone());
                     Task threadTask = createTask();
                     OperationResult threadResult = threadTask.getResult();
-                    for (int iteration = 0; iteration < ITERATIONS; iteration++) {
+                    for (int iteration = 0; iteration < iterations; iteration++) {
                         display("Executing iteration " + iteration + " in worker " + index);
                         AuditEventRecord record = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.EXECUTION);
                         record.setEventIdentifier(
                                 iteration + ":" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1_000_000));
                         ObjectDelta<? extends ObjectType> delta = prismContext.deltaFor(UserType.class)
-                                .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("Hi" + iteration))
+                                .item(UserType.F_FULL_NAME).replace(fromOrig("Hi" + iteration))
                                 .item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP)
                                 .replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
                                 // OID in ascii: "audi-to-id-: -000...index"
@@ -638,8 +634,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         threads.forEach(Thread::start);
 
         // waiting for threads
-        long deadline = System.currentTimeMillis() + TIMEOUT;
-        for (int i = 0; i < NUM_THREADS; i++) {
+        long deadline = System.currentTimeMillis() + timeout;
+        for (int i = 0; i < numThreads; i++) {
             long waitTime = deadline - System.currentTimeMillis();
             if (waitTime > 0) {
                 threads.get(i).join(waitTime);
@@ -648,14 +644,14 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         // checking results
         int fails = 0;
-        for (int i = 0; i < NUM_THREADS; i++) {
+        for (int i = 0; i < numThreads; i++) {
             if (results.get(i) != null) {
                 fails++;
                 display("Thread " + i + " produced an exception: " + results.get(i));
             }
         }
         if (fails > 0) {
-            fail(fails + " thread(s) failed: " + results.stream().filter(Objects::nonNull).collect(Collectors.toList()));
+            fail(fails + " thread(s) failed: " + results.stream().filter(Objects::nonNull).toList());
         }
 
         // TODO check audit correctness
@@ -672,6 +668,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         return time;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void sleep(long millis) {
         try {
             Thread.sleep(millis);
@@ -707,7 +704,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         when("modify action is audited with delta matching audit recording script");
         // honorific suffix attribute is used to smuggle the instruction what to drop
-        traced(() -> modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, createPolyString("change-parameter")));
+        traced(() -> modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, fromOrig("change-parameter")));
 
         then("no audit is stored");
         result.computeStatus();
@@ -744,7 +741,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         when("modify action is audited with delta matching audit recording script");
         // honorific suffix attribute is used to smuggle the instruction what to drop
-        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, options, task, result, createPolyString("drop-request-audit"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, options, task, result, fromOrig("drop-request-audit"));
 
         then("request audit is skipped, only execution one is stored");
         result.computeStatus();
@@ -762,7 +759,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         when("modify action is audited with delta matching audit recording script");
         // honorific suffix attribute is used to smuggle the instruction what to drop
-        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, options, task, result, createPolyString("drop-execution-audit"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, options, task, result, fromOrig("drop-execution-audit"));
 
         then("execution audit is skipped, only request one is stored");
         result.computeStatus();
@@ -780,7 +777,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         when("modify action is audited with delta matching audit recording script");
         // honorific suffix attribute is used to smuggle the instruction what to drop
-        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, options, task, result, createPolyString("drop-audit"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, options, task, result, fromOrig("drop-audit"));
 
         then("no audit is stored");
         result.computeStatus();

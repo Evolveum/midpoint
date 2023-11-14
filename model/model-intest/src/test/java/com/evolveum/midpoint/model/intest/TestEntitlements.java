@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
@@ -1472,7 +1473,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         getDummyResourceController().addGroup(orgGroupName(OU_CLUB_SPITTERS));
         getDummyResourceController().addGroup(orgGroupName(OU_CLUB_DIVERS));
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-                createPolyString(OU_CLUB_SPITTERS), createPolyString(OU_CLUB_DIVERS), createPolyString(OU_CLUB_SCI_FI));
+                PolyString.fromOrig(OU_CLUB_SPITTERS), PolyString.fromOrig(OU_CLUB_DIVERS), PolyString.fromOrig(OU_CLUB_SCI_FI));
 
         PrismObject<UserType> userBefore = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userBefore, 0);

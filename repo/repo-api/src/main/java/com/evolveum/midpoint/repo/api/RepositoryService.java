@@ -137,6 +137,9 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
     String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
     String OP_SEARCH_OBJECTS_ITERATIVE_PAGE = "searchObjectsIterativePage";
     String OP_SEARCH_CONTAINERS = "searchContainers";
+
+    String OP_SEARCH_CONTAINERS_ITERATIVE = "searchContainersIterative";
+    String OP_SEARCH_CONTAINERS_ITERATIVE_PAGE = "searchContainersIterativePage";
     String OP_COUNT_CONTAINERS = "countContainers";
     String OP_SEARCH_REFERENCES = "searchReferences";
 
@@ -510,6 +513,23 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential,
             OperationResult parentResult)
             throws SchemaException;
+
+    /**
+     * Executes iterative container search using the provided `handler` to process each container.
+     *
+     * @param query search query
+     * @param handler result handler
+     * @param options get options to use for the search
+     * @param parentResult parent OperationResult (in/out)
+     * @return summary information about the search result
+     */
+    @Experimental
+    <T extends Containerable> SearchResultMetadata searchContainersIterative(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<T> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException;
 
     /**
      * Executes iterative reference search using the provided `handler` to process each references.

@@ -1,0 +1,217 @@
+= Provisioning Scripts
+:page-wiki-name: Provisioning Scripts
+:page-wiki-id: 24674539
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-06-29T10:32:15.023+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-01-28T17:48:26.823+01:00
+:page-upkeep-status: yellow
+:page-toc: top
+
+== Introduction
+
+Some resources has ability to execute scripts.
+MidPoint binds execution of scripts to specific operations.
+Therefore a script can be automatically executed before of after the account is created, modified or deleted.
+This is ofter used to supplement the accounts with aspects that cannot be managed directly by the connector.
+Typical use cases are creating a home directory after the account is created, creating mailbox and so on.
+
+In addition to this the provisioning script may be also used before and after reconciliation.
+In this case the script will be invoked for each reconciliation regardless whether anything changed.
+Such script can be used to internally reconcile attributes that are not exposed directly to midPoint and and only handled by provisioning scripts.
+Please note that if midPoint detects a reconciliation change then a regular operation before/after script will also be invoked regardless if there is a reconciliation script or not.
+
+
+=== Languages
+
+Languages of the provisioning scripts depend on the specific resource (target system).
+For example Unix server may support bash scripting, but Windows server will only support rough command execution or PowerShell.
+There is no universally supported language for resource-side script execution.
+
+Please see connector documentation for a list of supported script languages for each connector.
+
+[TIP]
+.Provisioning scripts and midPoint script expressions
+====
+Provisioning scripts are a different kind of animal than midPoint xref:/midpoint/reference/expressions/expressions/script/[script expressions]. Provisioning scripts are usually executed in the target system and they are mostly outside midPoint control.
+Therefore also the provisioning script languages are only those languages that are supported by target system.
+====
+
+
+=== Execution Host
+
+Scripts can be executed on _resource_ or on _connector_.
+
+Execution on resource is execution directly on the target system.
+This is what is usually needed to create home directory, manage mailboxes and so on.
+
+Execution on the connector is a rarely-used option.
+This executes the script on the "client side" which usually means midPoint host or a connector server.
+This option is not very practical.
+
+
+=== Script Arguments
+
+MidPoint can provide arguments to the scripts.
+This is almost always needed for the script to do something useful.
+For example a script must know the identifier of a created account to create home directory for that account.
+
+Argument specification may contain midPoint xref:/midpoint/reference/expressions/expressions/script/[script expressions] that determine argument values.
+There is one important thing to keep in mind: provisioning scripts are usually executed on the resource, but the midPoint expressions that determine argument values are executed in midPoint.
+These expressions are the essential glue that can pass midPoint values to the provisioning scripts.
+
+As provisioning script languages are connector-specific, also argument passing and formatting is connector specific.
+There may even be several ways how to pass arguments to the script (e.g. as command-line parameters or script variables).
+See the connector documentation for details.
+For example, for xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector (LDAP)] read also xref:/connectors/resources/active-directory/powershell/[Powershell Support in AD/LDAP Connector] for information how the arguments can be passed.
+
+
+=== Criticality
+
+++++
+{% include since.html since="3.6.1" %}
+++++
+
+Error in a provisioning script is equivalent to the error in the main provisioning operation by default.
+Therefore if there is an error in create script then midPoint cannot assume that an account was created.
+This behavior is configurable by using the `criticality` setting:
+
+[source,xml]
+----
+        <script>
+            ...
+            <criticality>partial</criticality>
+            ...
+        </script>
+----
+
+Criticality has following meaning:
+
+* *fatal*: Error in the operation will cause fatal error.
+The processing will be interrupted, fatal error will be indicated.
+
+* *partial*: The error will be indicated, composite result of the operation will be presented as partial error, but the processing will *not* be interrupted.
+The operation will try to recover and continue.
+
+== Examples
+
+The following is an example of simple powershell script configuration for Active Directory:
+
+* after the account is created (operation: add), the script will be run on the resource as a Windows PowerShell script (language: powershell)
+
+* argument (specific to the script) "username" will be set to midPoint user name
+
+.AD Resource Script Example
+[source,xml]
+----
+    <scripts>
+        <script>
+           <operation>add</operation>
+           <order>after</order>
+            <host>resource</host>
+            <language>powershell</language>
+            <argument>
+              <path>$focus/name</path>
+              <name>username</name>
+           </argument>
+           <code>Add-Content c:\conn.txt $username</code>
+        </script>
+    </scripts>
+----
+
+Of course, complex scripting expressions may be used as well:
+
+.AD Resource Script Example
+[source,xml]
+----
+    <scripts>
+        <script>
+           <operation>add</operation>
+           <order>after</order>
+            <host>resource</host>
+            <language>powershell</language>
+            <argument>
+              <script>
+                  <code>
+                     username = focus.getName().toString()
+                     log.info("username: " +username)
+                     return username
+                 </code>
+               </script>
+              <name>username</name>
+           </argument>
+           <code>Add-Content c:\conn.txt $username</code>
+        </script>
+    </scripts>
+
+----
+
+
+== Ad-hoc Provisioning Scripts
+
+++++
+{% include since.html since="3.7.1" %}
+++++
+
+
+Vast majority of provisioning scripts are coupled with provisioning operations.
+E.g. the scripts are executed before or after modification of an account.
+However, there are cases when a script has to be executed in an ad-hoc manner.
+For example there may be need to execute a provisioning script from xref:/midpoint/reference/expressions/expressions/[expression] because the script is used to determine a value used by the expression.
+For that purpose there is executeAdHocProvisioningScript function in xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[MidPoint Script Library]:
+
+[source,xml]
+----
+    <expression>
+        <script>
+            <code>
+               'homeDir=' + midpoint.executeAdHocProvisioningScript(resource, 'shell', 'echo $HOME')
+            </code>
+        </script>
+    </expression>
+----
+
+Output of the script depends on the ability of the connector to execute script and return appropriate output.
+Return type of the output also depends on the connector.
+The output of the usual provisioning scripts is not used by midPoint and it is discarded.
+Therefore some experimentation and/or connector improvement may be needed to make the ad-hoc script execution work properly.
+
+Note: both resource and resource OID can be used as the first parameter to the executeAdHocProvisioningScript function.
+
+
+== Notes
+
+[TIP]
+.Object kind and script variables
+====
+MidPoint 3.0 (and later) is designed with xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] in mind.
+Therefore the provisioning scripts are executed not just for accounts but also for other xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kinds of objects]. And there are two major consequences of this:
+
+* Please keep in mind that unless the script is limited to a particular xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kind] of objects then it will be executed for all object kinds that midPoint provisions.
+This may have unexpected side-effects therefore it is recommended to constraint the scripts to a particular object kind in midPoint 3.0 and later:
+
+[source,xml]
+----
+        <script>
+            ...
+            <operation>modify</operation>
+            <kind>account</kind>
+            ...
+        </script>
+----
+
+Unconstrained provisioning scripts are still available.
+There may be valid reasons for an "universal" script that applies to all object kinds.
+
+* The variables that are available in the script may depend on the kind of provisioned object.
+Especially the variable `$user` may not be available all the time.
+E.g. there is usually no "user" which is an owner of entitlement or organizational unit.
+The variable `$user` is therefore available only when dealing with accounts.
+Constraining the script to `account` kind will usually resolve the situation.
+If a more generic script is required then a generic variable `$focus` can be used instead of `$user`.
+====
+
+
+== See Also
+
+* xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]

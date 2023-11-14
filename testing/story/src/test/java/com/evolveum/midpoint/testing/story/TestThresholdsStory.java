@@ -17,6 +17,7 @@ import java.util.function.Consumer;
 
 import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -229,6 +230,11 @@ public abstract class TestThresholdsStory extends AbstractStoryTest {
         assertUsers(getNumberOfInitialUsers() + expectedUsersImported);
 
         assertAfterFirstImport(taskAfter);
+
+        if (isNativeRepository()) {
+            then("there are no simulation results"); // MID-8936
+            assertNoRepoObjects(SimulationResultType.class);
+        }
     }
 
     /**

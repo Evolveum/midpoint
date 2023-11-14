@@ -23,10 +23,15 @@
         </display>
         <adminGuiConfiguration>
             <objectDetails>
-                <panel>
+                <panel id="3">
                     <identifier>caseWorkItems</identifier>
                     <display>
-                        <label>Workitems</label>
+                        <label>
+                            <orig>Workitems</orig>
+                            <translation>
+                                <key>Workitems.panel.title</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>
@@ -34,10 +39,15 @@
                     <panelType>caseWorkItems</panelType>
                     <type>c:CaseType</type>
                 </panel>
-                <panel>
+                <panel id="4">
                     <identifier>approvalCase</identifier>
                     <display>
-                        <label>Approvals</label>
+                        <label>
+                            <orig>Approvals</orig>
+                            <translation>
+                                <key>Approvals.case.panel</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>
@@ -50,8 +60,9 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
             <holderType>CaseType</holderType>
         </assignmentRelation>
     </assignment>

@@ -38,7 +38,7 @@ import java.util.Map;
 
 public abstract class MidpointFocusVerificationFilter extends AbstractAuthenticationProcessingFilter {
 
-    private static final String SPRING_SECURITY_FORM_ATTRIBUTE_VALUES_KEY = "attributeValues";
+    protected static final String SPRING_SECURITY_FORM_ATTRIBUTE_VALUES_KEY = "attributeValues";
 
     protected MidpointFocusVerificationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
         super(requiresAuthenticationRequestMatcher);
@@ -83,25 +83,21 @@ public abstract class MidpointFocusVerificationFilter extends AbstractAuthentica
     }
 
     protected Map<ItemPath, String> obtainAttributeValues(HttpServletRequest request) {
-        String attrValuesString = request.getParameter(SPRING_SECURITY_FORM_ATTRIBUTE_VALUES_KEY);
-        if (StringUtils.isEmpty(attrValuesString)) {
-            return null;
-        }
-
-        JSONArray attributeValuesArray = new JSONArray(attrValuesString);
         Map<ItemPath, String> attributeValuesMap = new HashMap<>();
-        for (int i = 0; i < attributeValuesArray.length(); i++) {
-            JSONObject entry = attributeValuesArray.getJSONObject(i);
 
-            ItemPathType itemPath = PrismContext.get().itemPathParser().asItemPathType(entry.getString(AuthConstants.ATTR_VERIFICATION_J_PATH));
+       request.getParameterMap()
+                .entrySet()
+                .stream()
+                .forEach(e -> {
+                    if (e != null && e.getKey().startsWith(AuthConstants.ATTR_VERIFICATION_PARAMETER_START)) {
+                        String itemPathKey = e.getKey().substring(AuthConstants.ATTR_VERIFICATION_PARAMETER_START.length());
+                        String value = e.getValue() != null && e.getValue().length > 0 ? e.getValue()[0] : null;
+                        if (value != null) {
+                            attributeValuesMap.put(ItemPath.fromString(itemPathKey), e.getValue()[0]);
+                        }
+                    }
+                });
 
-            if (itemPath == null) {
-                continue;
-            }
-            ItemPath path = itemPath.getItemPath();
-            String value = entry.getString(AuthConstants.ATTR_VERIFICATION_J_VALUE);
-            attributeValuesMap.put(path, value);
-        }
         return attributeValuesMap;
     }
 }

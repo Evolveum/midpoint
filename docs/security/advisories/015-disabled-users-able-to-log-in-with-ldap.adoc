@@ -1,0 +1,28 @@
+= Security Advisory: Disabled Users able to log-in when LDAP authentication is enabled
+:page-display-order: 15
+:page-upkeep-status: green
+
+*Date:* 5 June 2023
+
+*Severity:* Medium (CVSS 5.7)
+
+*Affected versions:* all released midPoint versions
+
+*Fixed in versions:* 4.7.1, 4.4.5, 4.6.1
+
+
+== Description
+
+User which is disabled in midPoint, but still active in LDAP, is able to log-in to midPoint GUI if LDAP authentication was enabled and configured.
+
+== Severity and Impact
+
+This is medium-severity issue.
+
+The users perceived to not have access to the system, are still able to log in.
+
+== Mitigation
+
+* Disable LDAP authentication on affected midPoint versions
+* Automatically deactivate users in LDAP when they are disabled in midPoint.
+* Update midPoint to latest maintenance versions, which contains fix (4.7.1, 4.4.5, 4.6.1).

@@ -199,12 +199,16 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         }
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean shouldCreateSimulationResult() {
-        return bean.getSimulationResult() != null;
+    /** Are we explicitly instructed to create or not create the simulation result? */
+    Boolean getExplicitSimulationResultCreationInstruction() {
+        var resultDef = bean.getSimulationResult();
+        if (resultDef == null) {
+            return null;
+        }
+        return !Boolean.FALSE.equals(resultDef.isEnabled());
     }
 
-    public SimulationDefinitionType getSimulationDefinition() {
+    public @Nullable SimulationDefinitionType getSimulationDefinition() {
         ActivitySimulationResultDefinitionType simResultPart = bean.getSimulationResult();
         return simResultPart != null ? simResultPart.getDefinition() : null;
     }

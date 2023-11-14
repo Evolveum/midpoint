@@ -152,9 +152,11 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
                 target.add(SearchFilterConfigurationPanel.this.get(ID_CONTAINER));
                 target.add(getPageBase().getFeedbackPanel());
                 target.add(buttonLabel);
+                target.add(this);
             }
         };
         fieldTypeButton.add(buttonLabel);
+        fieldTypeButton.add(new VisibleBehaviour(() -> FieldType.XML.equals(fieldType)));
         add(fieldTypeButton);
     }
 

@@ -6,12 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.getImageScaleScript;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyImageScaleScript;
 
-import com.evolveum.midpoint.model.api.ModelService;
-
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -22,13 +19,13 @@ import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk.PrepareExpandStructure;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.image.CustomImageResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
@@ -37,9 +34,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
 public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_IMAGE = "image";
-
+    private static final String DOT_CLASS = ImageDetailsPanel.class.getName() + ".";
+    private static final String OP_PREPARE_OBJECT = DOT_CLASS + "prepareObjects";
     String clusterOid;
-    OperationResult result = new OperationResult("GetObject");
 
     public ImageDetailsPanel(String id, IModel<String> messageModel, String clusterOid) {
         super(id, messageModel);
@@ -53,16 +50,35 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
     }
 
     private void initLayout() {
-        Task task = ((PageBase) getPage()).createSimpleTask("loadObject");
-        ModelService modelService = ((PageBase) getPage()).getModelService();
+        PageBase pageBase = (PageBase) getPage();
+        Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECT);
+        OperationResult result = task.getResult();
 
-        RoleAnalysisClusterType cluster = getClusterTypeObject(modelService, clusterOid, result, task).asObjectable();
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+
+        PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = roleAnalysisService
+                .getClusterTypeObject(clusterOid, task, result);
+
+        if(clusterTypePrismObject == null) {
+            warn("Cluster with oid " + clusterOid + " not found.");
+            return;
+        }
+
+        RoleAnalysisClusterType cluster = clusterTypePrismObject.asObjectable();
+
         String oid = cluster.getRoleAnalysisSessionRef().getOid();
-        PrismObject<RoleAnalysisSessionType> parentClusterByOid = getSessionTypeObject(modelService, result, oid, task);
+        PrismObject<RoleAnalysisSessionType> parentClusterByOid = roleAnalysisService
+                .getSessionTypeObject(oid, task, result);
+
+        if(parentClusterByOid == null) {
+            warn("Session with oid " + oid + " not found.");
+            return;
+        }
+
         RoleAnalysisProcessModeType processMode = parentClusterByOid.asObjectable().getProcessMode();
 
-        MiningOperationChunk miningOperationChunk = new PrepareExpandStructure().executeOperation(cluster, true, processMode,
-                modelService, result, task);
+        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareExpandedMiningStructure(cluster,
+                true, processMode, result, task);
 
         CustomImageResource imageResource;
 
@@ -73,14 +89,14 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
         image.add(new AbstractDefaultAjaxBehavior() {
             @Override
             protected void respond(AjaxRequestTarget target) {
-                target.appendJavaScript(getImageScaleScript());
+                target.appendJavaScript(applyImageScaleScript());
 
             }
 
             @Override
             public void renderHead(Component component, IHeaderResponse response) {
                 super.renderHead(component, response);
-                response.render(OnDomReadyHeaderItem.forScript(getImageScaleScript()));
+                response.render(OnDomReadyHeaderItem.forScript(applyImageScaleScript()));
 
             }
         });

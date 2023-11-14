@@ -33,7 +33,7 @@ public class PrismConfigurationUpdater implements SystemConfigurationChangeListe
             return;
         }
         PrismConfigurationType prismConfig = value.getInternals() != null ? value.getInternals().getPrism() : null;
-        setJavaSerializationProxiesEnabled(value(Boolean.class,prismConfig, PrismConfigurationType.F_USE_SERIALIZATION_PROXIES,true));
+        setJavaSerializationProxiesEnabled(value(Boolean.class,prismConfig, PrismConfigurationType.F_USE_SERIALIZATION_PROXIES,false));
         setPropertyIndexEnabled(value(Boolean.class,prismConfig, PrismConfigurationType.F_INDEX_PROPERTY_VALUES, false));
         setPropertyIndexThreshold(value(Integer.class,prismConfig, PrismConfigurationType.F_PROPERTY_VALUES_INDEX_THRESHOLD, 50));
     }

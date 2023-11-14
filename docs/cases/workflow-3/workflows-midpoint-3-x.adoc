@@ -1,0 +1,88 @@
+= Legacy Workflows (midPoint 3.x)
+:page-wiki-name: Workflows (midPoint 3.x)
+:page-wiki-id: 6881535
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2012-12-28T12:02:27.976+01:00
+:page-wiki-metadata-modify-user: vera
+:page-wiki-metadata-modify-date: 2020-03-31T14:58:37.511+02:00
+:page-obsolete: true
+:page-obsolete-since: "4.0"
+
+[WARNING]
+.MidPoint 3.9 or earlier
+====
+This page applies to midPoint 3.9 or earlier.
+Embedded workflow engine was removed in midPoint 4.0 and midPoint is now completely xref:/midpoint/reference/cases/workflowless/[workflowless]. If you still need manual processes as part of IDM interactions please see xref:/midpoint/reference/cases/approval/policy-based-approvals/[Policy-based approvals] and xref:/midpoint/features/planned/external-workflow-integration/[Workflow Integration].
+====
+
+MidPoint is able to postpone selected actions (for example, role assignment) until they are approved by appropriate authority or authorities.
+The overall process looks then like this:
+
+. Alice creates a role assignment to Bob.
+
+. After receiving the request for role assignment (via "Save" button in GUI), midPoint finds out that assignments of this role have to be approved by Chuck, who is a person (in some way) responsible for this role.
+Therefore, Alice gets a message that the operation execution will be postponed until approved.
+
+. In order to get the approval, a new _approval process instance_ is created by midPoint.
+In its most simple form, the approval process consists of only one step: just asking the approver and obtaining his decision.
+So, in this case, a _work item_ is created for Chuck, asking him to approve or reject the particular role assignment request.
+Optionally, a mail notification can be sent to Chuck, letting him know that there's something for him to do.
+
+. When Chuck logs in, he can see that he has a work item to resolve.
+So he opens it, reads it through, and clicks on "Approve" button.
+(Or "Reject", as he decides.)
+
+. As Chuck was the only approver, the process instance ends here.
+The operation is executed, and Bob is assigned the requested role.
+Optionally, Alice and/or Bob may be notified by mail about the result.
+
+The workflows are usually used to implement xref:/midpoint/reference/cases/approval/[approval] processes.
+This usage is so frequent that midPoint has a special mechanisms to make approval implementation easy.
+See the xref:/midpoint/reference/cases/approval/[Approval] page for more details.
+
+
+== Notes
+
+. The original operation may contain more changes, not only single role assignment.
+There are basically two approaches to executing these changes:
+
+.. The default one is such that each of these changes must be approved (or rejected), and after all approvals are in place, the operation is carried out.
+Modifications that were rejected, are simply left out from the operation.
+Modifications that do not require approvals (e.g. changing Bob's name or title) also wait until all approvals are done.
+
+.. Alternatively, each change may be executed as soon as possible, i.e. changes that do not require approvals could be executed immediately, and others just after they are approved.
+
+
+
+. The approval process may involve multiple approvers, in many arrangements.
+E.g. After Chuck approves, there may be a requirement that Dan should approve as well.
+Or, either one of Chuck and Dan are sufficient to approve.
+Or, both Chuck and Dan must approve, but in any order (e.g. Dan before Chuck would be OK as well.)
+
+. Within the process, not only concrete persons might be engaged, but organization units (e.g. "board of directors") or roles (e.g. "security manager") may be as well.
+(This is not implemented yet - MID-1465)
+
+. Also, it is possible to specify an approver using an expression - like "the approver is Bob's boss".
+
+. As an ultimate level of flexibility, a custom BPMN 2.0 approval process might be used.
+However, this option should be needed to use in only rare situations.
+
+== For more information
+
+. xref:/midpoint/reference/cases/approval/examples/[Approval examples]
+
+. xref:/midpoint/reference/cases/workflow-3/legacy-approvals-examples/[Approvals examples (legacy)]
+
+. xref:/midpoint/architecture/archive/subsystems/model/workflow-3/[Architectural description of the Workflow component]
+
+.. xref:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-auditing/[Workflow auditing]
+
+. xref:/midpoint/reference/cases/workflow-3/legacy-pre-3-5-workflow-configuration/[System manager's view on workflows (i.e. workflow configuration)]
+
+. Notes
+
+.. xref:/midpoint/devel/design/how-to-use-workflows-in-a-self-service-scenario/[How to use workflows in a self-service scenario]
+
+== See Also
+
+* xref:/midpoint/reference/cases/approval/[Approval]

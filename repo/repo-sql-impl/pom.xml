@@ -13,7 +13,7 @@
     <parent>
         <artifactId>repo</artifactId>
         <groupId>com.evolveum.midpoint.repo</groupId>
-        <version>4.8-SNAPSHOT</version>
+        <version>4.9-SNAPSHOT</version>
     </parent>
 
     <artifactId>repo-sql-impl</artifactId>
@@ -172,7 +172,7 @@
                             <outputDirectory>${project.build.directory}/classes/sql</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}/../../config/sql/generic-old</directory>
+                                    <directory>${project.basedir}/../../config/sql/generic</directory>
                                     <includes>
                                         <include>*.sql</include>
                                     </includes>

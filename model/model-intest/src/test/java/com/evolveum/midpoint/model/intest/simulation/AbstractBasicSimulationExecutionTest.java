@@ -314,7 +314,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             ShadowType.F_ITERATION,
                             ShadowType.F_ITERATION_TOKEN,
                             ShadowType.F_ACTIVATION, // admin status + timestamp (by a mapping) - present only in
-                            ShadowType.F_LIFECYCLE_STATE); // "proposed" - hopefully this one will go away one day
+                            ShadowType.F_PURPOSE); // midPoint assumes the password is not known to the user
         } else {
             assertThat(projectionContext.getSecondaryDelta()).as("projection secondary delta").isNull();
         }
@@ -1316,6 +1316,38 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         } else {
             assertThat(orgs).as("user orgs").isEmpty();
         }
+    }
+
+    /**
+     * When the structural archetype is changed, the "processed object" record should refer to the old archetype.
+     *
+     * MID-8610
+     */
+    @Test
+    public void test320SimulateArchetypeChange() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("a user with archetype 'person'");
+        UserType user = new UserType()
+                .name("test320")
+                .assignment(ARCHETYPE_PERSON.assignmentTo());
+        addObject(user, task, result);
+
+        when("archetype is changed to 'customer' (in simulation)");
+        TestSimulationResult simResult =
+                executeWithSimulationResult(
+                        List.of(deltaFor(UserType.class)
+                                .item(UserType.F_ASSIGNMENT)
+                                .replace(ARCHETYPE_CUSTOMER.assignmentTo())
+                                .asObjectDelta(user.getOid())),
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
+
+        then("simulation result points still to 'person' archetype");
+        assertProcessedObjects(simResult)
+                .display()
+                .single()
+                .assertStructuralArchetypeOid(ARCHETYPE_PERSON.oid);
     }
 
     private boolean isDevelopmentConfigurationSeen() {

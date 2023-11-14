@@ -6,10 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.impl.channel;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -34,25 +30,26 @@ public class ActuatorAuthenticationChannel extends AuthenticationChannelImpl {
     }
 
     @Override
-    public Collection<Authorization> cleanupAuthorities(Collection<Authorization> authorities) {
-        ArrayList<Authorization> newAuthorities = new ArrayList<>();
-        for (Authorization authority : authorities) {
-            Authorization clone = authority.clone();
-            List<String> authoritiesString = clone.getAction();
-            List<String> newAction = new ArrayList<>();
-            for (String authorityString : authoritiesString) {
-                if (authorityString.startsWith(AuthorizationConstants.NS_AUTHORIZATION_ACTUATOR)
-                        || authorityString.equals(AuthorizationConstants.AUTZ_ALL_URL)
-                        || authorityString.equals(AuthorizationConstants.NS_AUTHORIZATION_UI)) {
-                    newAction.add(authorityString);
-                }
-            }
-            if (!newAction.isEmpty()) {
-                clone.getAction().clear();
-                clone.getAction().addAll(newAction);
-                newAuthorities.add(clone);
-            }
+    public boolean isSupportGuiConfigByChannel() {
+        return false;
+    }
+
+    @Override
+    public Authorization resolveAuthorization(Authorization autz) {
+        if (autz == null) {
+            return null;
         }
-        return newAuthorities;
+
+        Authorization retAutz = autz.clone();
+        retAutz.getAction().removeIf(action ->
+                !action.startsWith(AuthorizationConstants.NS_AUTHORIZATION_ACTUATOR)
+                        && !action.equals(AuthorizationConstants.AUTZ_ALL_URL)
+                        && !action.equals(AuthorizationConstants.NS_AUTHORIZATION_UI));
+
+        if (retAutz.getAction().isEmpty()) {
+            return null;
+        }
+
+        return retAutz;
     }
 }

@@ -17,8 +17,6 @@ import java.util.Set;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 
-import com.evolveum.midpoint.prism.PrismValue;
-
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
@@ -90,6 +88,9 @@ class ResourceExpansionOperation {
         this.beans = beans;
     }
 
+    /**
+     * Executes the expansion operation. Fails hard if e.g. `connectorRef` cannot be resolved.
+     */
     public void execute(OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
         OperationResult result = parentResult.createMinorSubresult(OP_EXPAND);
         try {
@@ -257,7 +258,7 @@ class ResourceExpansionOperation {
         private @NotNull ResourceType getResource(String oid, OperationResult result)
                 throws ObjectNotFoundException, SchemaException, ConfigurationException {
             if (firstPass) {
-                ResourceType resource = beans.cacheRepositoryService
+                ResourceType resource = beans.repositoryService
                         .getObject(ResourceType.class, oid, createReadOnlyCollection(), result)
                         .asObjectable();
                 if (resourceCache.put(oid, resource) != null) {

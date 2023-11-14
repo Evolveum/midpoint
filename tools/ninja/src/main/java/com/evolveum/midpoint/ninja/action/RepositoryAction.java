@@ -13,4 +13,10 @@ package com.evolveum.midpoint.ninja.action;
  */
 public abstract class RepositoryAction<O, R> extends Action<O, R> {
 
+    public RepositoryAction() {
+    }
+
+    public RepositoryAction(boolean partial) {
+        super(partial);
+    }
 }

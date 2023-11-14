@@ -1,0 +1,22 @@
+<roleAnalysisSession xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="c0d74ad2-f92a-40f0-b661-3c0a6a5dc225">
+    <name>role_based_analysis_session</name>
+    <processMode>role</processMode>
+    <roleModeOptions>
+        <similarityThreshold>80.0</similarityThreshold>
+        <minMembersCount>10</minMembersCount>
+        <propertiesRange>
+            <min>10.0</min>
+            <max>100.0</max>
+        </propertiesRange>
+        <minPropertiesOverlap>10</minPropertiesOverlap>
+    </roleModeOptions>
+    <defaultDetectionOption>
+        <minRolesOccupancy>10</minRolesOccupancy>
+        <minUserOccupancy>10</minUserOccupancy>
+        <frequencyRange>
+            <min>30.0</min>
+            <max>100.0</max>
+        </frequencyRange>
+    </defaultDetectionOption>
+</roleAnalysisSession>

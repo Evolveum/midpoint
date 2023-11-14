@@ -1,0 +1,32 @@
+= Security Advisory: Less privileged user able to execute custom Groovy scripts via Bulk Tasks
+:page-nav-title: Less privileged user able to execute custom Groovy scripts via Bulk Tasks
+:page-display-order: 18
+:page-upkeep-status: green
+
+*Date:* 20. 9. 2023
+
+*Severity:* High (CVSS 8.5)
+
+*Affected versions:* all midPoint versions
+
+*Fixed in versions:* 4.4.6, 4.8, 4.7.2
+
+
+== Description
+
+Non-admin users which are authorized to execute bulk actions (using `model-3#executeScript` authorization) are able to execute arbitrary Groovy code, if they have authorization to submit custom bulk actions using rest (authorization `rest#all`) or have access to Bulk Actions page (authorization `ui-3#pageBulkAction`).
+
+NOTE: Authorization `model-3#executeScript` sounds like it should allow Groovy script execution, but was intended only to enable access to bulk actions.
+
+
+== Severity and Impact
+
+This is high-severity issue.
+
+The affected feature is not enabled by default to end-users. MidPoint deployment is only affected if non-administrator users have authorization for: `#executeScript` and  `rest#all` or `#executeScript` and `ui-3#pageBulkAction`.
+
+
+== Mitigation
+
+* Update to latest maintenance midPoint release which contains fix.
+* Remove authorizations for `rest#all` or `ui-3#pageBulkAction` for those users, which have `model-3#executeScript` authorization.

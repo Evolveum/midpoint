@@ -1,0 +1,83 @@
+= Unique property value HOWTO
+:page-wiki-name: Unique property value HOWTO
+:page-wiki-id: 17072172
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-09-08T23:09:07.449+02:00
+:page-wiki-metadata-modify-user: martin.lizner
+:page-wiki-metadata-modify-date: 2018-09-18T18:21:21.780+02:00
+:page-alias: { "parent" : "/midpoint/guides/" }
+:page-toc: top
+:page-upkeep-status: yellow
+
+Imagine you want to ensure that a given property value is unique within the scope of all objects in the repository.
+For example, let the user object have the multivalued *emailAddresses* extension property, and we want to ensure uniqueness of values of this property.
+
+The schema extension should contain something like this:
+
+[source,xml]
+----
+<xsd:element name="emailAddresses" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+    <xsd:annotation>
+        <xsd:appinfo>
+            <a:indexed>true</a:indexed>            <!-- this is important! -->
+            <a:displayName>Email Addresses</a:displayName>
+        </xsd:appinfo>
+        <xsd:documentation>
+            ...
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+----
+
+How to ensure value uniqueness? We will employ two midPoint features:
+
+. target-less mappings in object template,
+
+. isUniquePropertyValue function.
+
+We will construct the following mapping in the default user template:
+
+[source,xml]
+----
+<mapping>
+    <source>
+        <path>$user/extension/emailAddresses</path>
+    </source>
+    <expression>
+         <script>
+             <relativityMode>relative</relativityMode> <!-- actually, this is the default -->
+            <code>
+                boolean isNew = com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext.getThreadLocal().isEvaluateNew()
+                log.info("considering emailAddress = {}, isNew = {}", emailAddresses, isNew)    // there is only one address at a time, because the evaluation mode is relative
+
+                if (isNew &amp;&amp; emailAddresses != null) {
+                    boolean unique = midpoint.isUniquePropertyValue(user, "extension/emailAddresses", emailAddresses)
+                    if (!unique) {
+                        throw new com.evolveum.midpoint.util.exception.PolicyViolationException("Email address " + emailAddresses + " is already used.");
+                    }
+                }
+            </code>
+        </script>
+    </expression>
+</mapping>
+----
+
+Note that there is no target for this mapping.
+Its sole responsibility is to check if the new email address(es) supplied are unique or not.
+If they are, nothing is changed.
+However, if they are not, an exception is thrown and the current operation (e.g. saving a user) is aborted.
+
+If you want to see which object(s) cause the uniqueness to be lost, you can use *getObjectsInConflictOnPropertyValue* method:
+
+[source,groovy]
+----
+// ...
+if (isNew &amp;&amp; emailAddresses != null) {
+    // last parameter of getObjectsInConflictOnPropertyValue: whether you want to see all conflicts (true) or the first one (false)
+   List conflicts = midpoint.getObjectsInConflictOnPropertyValue(user, "extension/emailAddresses", emailAddresses, true)
+    log.info("conflicts = {}", conflicts)
+    if (!conflicts.isEmpty()) {
+        throw new com.evolveum.midpoint.util.exception.PolicyViolationException("Email address " + emailAddresses + " is already used; conflicting objects = " + conflicts);
+    }
+}
+----

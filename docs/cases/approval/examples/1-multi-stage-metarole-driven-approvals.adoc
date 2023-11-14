@@ -1,0 +1,354 @@
+= Approval sample scenario 1: Multi-stage, metarole-driven approvals
+:page-wiki-name: Approval sample scenario 1: Multi-stage, metarole-driven approvals
+:page-wiki-id: 24085028
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-01-13T15:50:29.462+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-09-16T16:42:49.058+02:00
+:page-upkeep-status: yellow
+
+In this scenario we'll show four-stage approvals for role assignments.
+Assignment of each critical role will be approved at two to four stages, by the following actors:
+
+[%autowidth]
+|===
+| Stage | Approvers | Mode | Note
+
+| 1
+| manager(s) of the role assignee
+| "All must approve", i.e. if there are more managers (either because the user is a member of more organizations, or an organization has more than one manager), all of the must approve the request.
+| If there are no managers, the request will be rejected outright.
+
+
+| 2
+| members of Security Approvers organization
+| "First decides", i.e. first member that provides the decision will approve request (at this stage), or reject it altogether.
+| Applicable only for selected roles.
+
+
+| 3
+| members of SoD Approvers organization
+| "First decides"
+| Applicable only for selected roles.
+
+
+| 4
+| approvers specific for the given role
+| Either "All must approve" or "First decides", based on the configuration.
+| If there are no approvers, the request will be rejected.
+
+
+|===
+
+Files for this scenario are in the link:https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/strings[testing/story/strings directory]. Let's have a look at most important ones.
+
+Contrary to legacy (pre-3.5) approach where the approval process had to be defined as a single unit, starting from midPoint 3.5 a declarative approach, based on xref:/midpoint/reference/roles-policies/policy-rules/[policy rules], can be used.
+These policy rules can be system-wide (defined in system configuration) or specifically assigned, usually via metaroles.
+The latter approach is used in this scenario.
+
+There are five metaroles:
+
+[%autowidth]
+|===
+| Metarole | Meaning | Note
+
+| metarole-approval-line-managers
+| When assigning a role that possesses this metarole, an approval of assignee's line managers is required.
+| Priority (order) of this approval schema fragment is 10.
+
+
+| metarole-approval-security
+| When assigning a role that possesses this metarole, an approval of someone from Security Approvers org is required.
+| Order of this schema fragment is 20.
+
+
+| metarole-approval-sod
+| When assigning a role that possesses this metarole, an approval of someone from SoD Approvers org is required.
+| Order of this schema fragment is 30.Note that this is just a placeholder for future policy rule that will detect actual SoD violation, and arrange this approval only if there's some.
+
+
+| metarole-approval-role-approvers-all
+| When assigning a role that possesses this metarole, all role approvers (i.e. users that have an assignment to the role with the relation = approver) has to approve the assignment.
+| Order of this schema fragment is 40.
+
+
+| metarole-approval-role-approvers-first
+| The same as previous, but first of role approvers will decide on the request.
+It is expected that at most one of these two metaroles will be assigned to a given role.
+| Order of this schema fragment is 40.
+
+
+|===
+
+By specifying the priority (order) of approval schema fragments we can specify the ordering of steps in the overall approval schema.
+
+Let's have a look at the metaroles.
+
+.metarole-approval-line-managers
+[source,xml]
+----
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="a97f27fe-db6f-4d94-99cd-753d1cab82ca">
+    <name>metarole-approval-line-managers</name>
+    <description>Requests to assign role holding this metarole will be approved by the line manager(s)</description>
+    <displayName>Metarole: approval by the line manager(s)</displayName>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <order>10</order>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <stage>
+                            <name>Line managers</name>
+                            <approverExpression>
+                                <script>
+                                    <code>midpoint.getManagersOidsExceptUser(object)</code>
+                                </script>
+                            </approverExpression>
+                            <evaluationStrategy>allMustApprove</evaluationStrategy>
+                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</role>
+----
+
+This metarole induces a policy rule such that
+
+* *if* a role (having this policy rule) is assigned,
+
+* *then* approval of "midpoint.getManagerOidsExceptUser(object)" - i.e. managers of a given user - is requested.
+If there are none of them, the request is rejected.
+
+[NOTE]
+====
+Both `allMustApprove` and `reject` values are default ones for the particular fields, so they could be omitted if needed.
+====
+
+
+[WARNING]
+====
+MidPoint 3.5 and 3.6 differ in the interpretation of the situation when there are no approvers defined.
+In 3.5, "no approvers" means the request is automatically approved.
+In 3.6, this behavior is configurable using `outcomeIfNoApprovers` property; with the default being `reject`. (So there is a behavior change.)
+====
+
+
+.metarole-approval-security
+[source,xml]
+----
+<role oid="9c0c224f-f279-44b5-b906-8e8418a651a2"
+     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+   <name>metarole-approval-security</name>
+   <description>Requests to assign role holding this metarole will be approved by the security officer(s)</description>
+   <displayName>Metarole: approval by the security people</displayName>
+   <inducement>
+      <policyRule>
+         <policyConstraints>
+            <assignment/>
+         </policyConstraints>
+         <policyActions>
+            <approval>
+               <compositionStrategy>
+                  <order>20</order>
+               </compositionStrategy>
+               <approvalSchema>
+                  <stage>
+                     <name>Security</name>
+                     <approverRef type="OrgType">
+                        <filter>
+                           <q:equal>
+                              <q:path>name</q:path>
+                              <q:value>Security Approvers</q:value>
+                           </q:equal>
+                        </filter>
+                        <resolutionTime>run</resolutionTime>
+                     </approverRef>
+                     <evaluationStrategy>firstDecides</evaluationStrategy>
+                     <groupExpansion>onWorkItemCreation</groupExpansion>
+                     <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                  </stage>
+               </approvalSchema>
+            </approval>
+         </policyActions>
+      </policyRule>
+   </inducement>
+</role>
+----
+
+In this case we allocate the corresponding work item to all members of the *Security Approvers* org.
+When dealing with "groups" of users (either org or roles) there are two possibilities:
+
+. *A work item is created for all members of the "group" (org or role).* These users can claim the work item and complete it - or release it back.
+These users can find the work items not in "My work items", but in "Items claimable by me" menu.
+
+. *Separate work item is created for each member of the "group".* These users are added to the list of approvers for the given approval schema stage.
+Approval schema stage evaluation strategy (all must approve, first decides) is then applied to the complete list of approvers.
+
+[NOTE]
+====
+In midPoint 3.5, only orgs are supported for user grouping.
+Also, only the former option (work item per group) is supported.
+
+Starting from midPoint 3.6, both orgs and roles can be used to group users.
+Both options are provided.
+The `groupExpansion` property is used to select between them; a value of `byClaimingWorkItem` is used for the former and `onWorkItemCreation` for the latter.
+====
+
+
+.metarole-approval-role-approvers-first
+[source,xml]
+----
+<role oid="2dadd243-687d-4b4c-80cd-09ddfe4cbf59"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>metarole-approval-role-approvers-all</name>
+    <description>Requests to assign role holding this metarole will be approved by the role approver(s) using "all must approve" method</description>
+    <displayName>Metarole: approval by the role approver(s) - all must approve</displayName>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <order>40</order>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <stage>
+                            <name>Role approvers (all)</name>
+                            <approverRelation>approver</approverRelation>
+                            <evaluationStrategy>allMustApprove</evaluationStrategy>
+                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</role>
+----
+
+This is quite self-explanatory.
+In this case, we are looking for approvers for this role by gathering users that have assigned the role with a relation of `approver`. If there are no such users, the request is rejected.
+
+
+== An execution example
+
+When assigning role `test-1` to `bob`, the following can be seen in the log (at the DEBUG level):
+
+.Approval schema
+[source]
+----
+2017-01-13 22:58:15,045 [MODEL] [Thread-20] DEBUG (com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface): About to start approval process instance 'Assigning test-1 to bob'
+2017-01-13 22:58:15,046 [MODEL] [Thread-20] DEBUG (com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface): Approval schema: Approval schema: null
+  Description: null
+  Levels:
+    [
+      Order: 1
+      Name: Line managers
+      Description: null
+      Evaluation strategy: ALL_MUST_AGREE
+      Outcome if no approvers: REJECT
+      Group expansion: BY_CLAIMING_WORK_ITEMS
+      Approver refs: []
+      Approver expressions:
+        [
+          value: <expression xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+             <script>
+                <code>midpoint.getManagersOidsExceptUser(object)</code>
+             </script>
+          </expression>
+        ]
+      Automatically approved:
+        null:
+
+      Order: 2
+      Name: Security
+      Description: null
+      Evaluation strategy: FIRST_DECIDES
+      Outcome if no approvers: REJECT
+      Group expansion: ON_WORK_ITEM_CREATION
+      Approver refs:
+        [
+          LightweightObjectRef: OrgType:a14afc10-e4a2-48a4-abfd-e8a2399f98d3 (Security Approvers)
+        ]
+      Approver expressions: []
+      Automatically approved:
+        null:
+
+      Order: 3
+      Name: Role approvers (all)
+      Description: null
+      Evaluation strategy: ALL_MUST_AGREE
+      Outcome if no approvers: REJECT
+      Group expansion: BY_CLAIMING_WORK_ITEMS
+      Approver refs:
+        [
+          LightweightObjectRef: UserType:60dd9e6b-7403-4075-bcfa-d4566a552d41 (chef)
+          LightweightObjectRef: UserType:b2a3f4ad-ad7b-4691-83d9-34d5ebb50a04 (cheese)
+        ]
+      Approver expressions: []
+      Automatically approved:
+        null:
+
+    ]
+----
+
+We can see the composed approval schema there.
+Individual levels are renumbered to a sequence starting at 1. Approver expressions are not resolved yet; neither are "group" members (Security Approvers in this case).
+All of these actions are done when the particular level is executed.
+
+For example, when first level is started, the following is output:
+
+.Starting level 1
+[source]
+----
+2017-01-13 22:58:15,079 [MODEL] [Thread-20] DEBUG (com.evolveum.midpoint.wf.impl.processes.itemApproval.InitializeLoopThroughApproversInLevel): Approval process instance Assigning test-1 to bob (id 30530), level 1/Line managers: predetermined outcome: null, approvers: [null:058cf8d5-01ec-4818-87cc-6477b1a6505f (null)]
+----
+
+After `lechuck` enters his decision, it is recorded, along with level summary (as he is the only approver at this level):
+
+.Executing level 1
+[source]
+----
+2017-01-13 22:58:27,957 [WORKFLOW] [http-apr-8080-exec-5] DEBUG (com.evolveum.midpoint.wf.impl.processes.itemApproval.RecordIndividualDecision): Approval process instance Assigning test-1 to bob (id 30530), level 1/Line managers: recording decision Decision: approved=true, comment=lechuck agrees, approver=lechuck/058cf8d5-01ec-4818-87cc-6477b1a6505f, date=Fri Jan 13 22:58:27 CET 2017; level stops now: null
+2017-01-13 22:58:28,000 [WORKFLOW] [http-apr-8080-exec-5] DEBUG (com.evolveum.midpoint.wf.impl.processes.itemApproval.SummarizeDecisionsInLevel): Approval process instance Assigning test-1 to bob (id 30530), level 1/Line managers: result of this level: true
+----
+
+Now level 2 (Security) starts.
+Security Approvers org is resolved into two people, namely `elaine` and `barkeeper`.
+
+.Starting and executing level 2
+[source]
+----
+2017-01-13 22:58:28,014 [WORKFLOW] [http-apr-8080-exec-5] DEBUG (com.evolveum.midpoint.wf.impl.processes.itemApproval.InitializeLoopThroughApproversInLevel): Approval process instance Assigning test-1 to bob (id 30530), level 2/Security: predetermined outcome: null, approvers: [UserType:b87eb285-b4ae-43c0-9e4c-7ba651de81fa (null), UserType:771d00e6-792a-4296-8b4e-c4f59f712e0f (null)]
+2017-01-13 22:58:34,709 [WORKFLOW] [http-apr-8080-exec-7] DEBUG (com.evolveum.midpoint.wf.impl.processes.itemApproval.RecordIndividualDecision): Approval process instance Assigning test-1 to bob (id 30530), level 2/Security: recording decision Decision: approved=true, comment=OK, approver=elaine/771d00e6-792a-4296-8b4e-c4f59f712e0f, date=Fri Jan 13 22:58:34 CET 2017; level stops now: true
+2017-01-13 22:58:34,754 [WORKFLOW] [http-apr-8080-exec-7] DEBUG (com.evolveum.midpoint.wf.impl.processes.itemApproval.SummarizeDecisionsInLevel): Approval process instance Assigning test-1 to bob (id 30530), level 2/Security: result of this level: true
+----
+
+Finally, level 3 - Role approvers (all) - is here.
+We see that there were two approvers found (`cheese`, `chef`). Out of them, `cheese` provided a negative response.
+
+.Starting and executing level 3
+[source]
+----
+2017-01-13 22:58:34,762 [WORKFLOW] [http-apr-8080-exec-7] DEBUG (com.evolveum.midpoint.wf.impl.processes.itemApproval.InitializeLoopThroughApproversInLevel): Approval process instance Assigning test-1 to bob (id 30530), level 3/Role approvers (all): predetermined outcome: null, approvers: [UserType:b2a3f4ad-ad7b-4691-83d9-34d5ebb50a04 (cheese), UserType:60dd9e6b-7403-4075-bcfa-d4566a552d41 (chef)]
+2017-01-13 22:58:45,462 [WORKFLOW] [http-apr-8080-exec-2] DEBUG (com.evolveum.midpoint.wf.impl.processes.itemApproval.RecordIndividualDecision): Approval process instance Assigning test-1 to bob (id 30530), level 3/Role approvers (all): recording decision Decision: approved=false, comment=, approver=cheese/b2a3f4ad-ad7b-4691-83d9-34d5ebb50a04, date=Fri Jan 13 22:58:45 CET 2017; level stops now: true
+2017-01-13 22:58:45,511 [WORKFLOW] [http-apr-8080-exec-2] DEBUG (com.evolveum.midpoint.wf.impl.processes.itemApproval.SummarizeDecisionsInLevel): Approval process instance Assigning test-1 to bob (id 30530), level 3/Role approvers (all): result of this level: false
+----
+
+The process here ends; the request is not approved.

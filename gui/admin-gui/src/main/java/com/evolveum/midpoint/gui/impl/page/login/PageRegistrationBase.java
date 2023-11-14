@@ -90,7 +90,7 @@ public class PageRegistrationBase extends PageAdminLTE {
     }
 
     private void addBackButton() {
-        AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageEmailNonce.backButtonLabel")) {
+        AjaxButton back = new AjaxButton(ID_BACK) {
 
             private static final long serialVersionUID = 1L;
 
@@ -109,8 +109,8 @@ public class PageRegistrationBase extends PageAdminLTE {
 
     @Override
     protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
-        body.add(AttributeModifier.replace("class", "register-page"));
-        body.add(AttributeModifier.replace("style", "")); //TODO hack :) because PageBase has min-height defined.
+        body.add(AttributeModifier.replace("class", "register-page py-3 fp-center"));
+        body.add(AttributeModifier.remove("style")); //TODO hack :) because PageBase has min-height defined.
     }
 
     private void initSelfRegistrationConfiguration() {

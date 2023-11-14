@@ -619,6 +619,10 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         SearchContext ctx = new SearchContext();
         ctx.setAssignmentTargetType(getAssignmentType());
         ctx.setDefinitionOverride(getTypeDefinitionForSearch());
+
+        if (providerFactory().isRepositorySearchEnabled()) {
+            ctx.setAvailableSearchBoxModes(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.AXIOM_QUERY, SearchBoxModeType.FULLTEXT));
+        }
         return ctx;
     }
 

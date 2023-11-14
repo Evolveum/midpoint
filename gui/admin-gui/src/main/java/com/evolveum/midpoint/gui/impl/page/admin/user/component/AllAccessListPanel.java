@@ -204,7 +204,12 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                     String creator = null;
                     String approvers = null;
                     String approverComments = null;
+
                     Channel channel = Channel.findChannel(chanel);
+                    if (channel == null) {
+                        return "N/A";
+                    }
+
                     switch (channel) {
                         case SELF_SERVICE:
                         case USER:
