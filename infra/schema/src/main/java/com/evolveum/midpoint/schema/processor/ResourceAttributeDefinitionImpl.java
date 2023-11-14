@@ -367,6 +367,11 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public boolean isAlwaysUseForEquals() {
+        return rawDefinition.isAlwaysUseForEquals();
+    }
+
+    @Override
     public DisplayHint getDisplay() {
         if (customizationBean.getDisplay() != null) {
             return MiscSchemaUtil.toDisplayHint(customizationBean.getDisplay());
