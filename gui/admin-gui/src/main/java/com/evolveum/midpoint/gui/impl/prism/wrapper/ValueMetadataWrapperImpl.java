@@ -100,6 +100,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public boolean isAlwaysUseForEquals() {
+        return metadataValueWrapper.isAlwaysUseForEquals();
+    }
+
+    @Override
     public boolean isEmphasized() {
         return metadataValueWrapper.isEmphasized();
     }

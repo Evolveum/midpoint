@@ -39,6 +39,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     private Boolean emphasized;
     private Boolean deprecated;
     private Boolean experimental;
+    private Boolean alwaysUseForEquals;
 
     private Integer minOccurs;
     private Integer maxOccurs;
@@ -67,6 +68,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
             this.experimental = copyOf.experimental;
             this.valueEnumerationRef = copyOf.valueEnumerationRef;
             this.delegate = copyOf.delegate;
+            this.alwaysUseForEquals = copyOf.alwaysUseForEquals;
         } else {
             this.delegate = new DelegatedItem.FullySerializable<>(delegate);
         }
@@ -143,6 +145,15 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         return preferLocal(processing, delegate().getProcessing());
     }
 
+    @Override
+    public boolean isAlwaysUseForEquals() {
+        return preferLocal(alwaysUseForEquals, delegate().isAlwaysUseForEquals());
+    }
+
+    @Override
+    public void setAlwaysUseForEquals(boolean alwaysUseForEquals) {
+        this.alwaysUseForEquals = alwaysUseForEquals;
+    }
 
     @Override
     public void setCanAdd(boolean val) {

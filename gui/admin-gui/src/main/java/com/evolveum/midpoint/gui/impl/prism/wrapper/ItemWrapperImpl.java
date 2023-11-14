@@ -536,6 +536,11 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
+    public boolean isAlwaysUseForEquals() {
+        return getItemDefinition().isAlwaysUseForEquals();
+    }
+
+    @Override
     public boolean isEmphasized() {
         return getItemDefinition().isEmphasized();
     }
