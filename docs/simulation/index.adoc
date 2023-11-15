@@ -8,17 +8,17 @@
 == Introduction
 
 The "simulation" is an umbrella term covering various mechanisms of "what-if" analysis in midPoint.
-It could be characterized as an ability to see expected effects of some actions without the risk of damaging the system state.
+It could be characterized as an ability to see the expected effects of some actions without the risk of damaging the system state.
 
-Let us introduce few basic terms first: execution mode and configuration used.
+Let us introduce some basic terms first: execution mode and configuration used.
 
 . _Execution mode_ determines whether any actions carried out by an activity will have persistent effects or not.
-. _Configuration used_ tells whether the activity should use "production" or "development" configuration.
+. _Configuration used_ specifies whether the activity should use "production" or "development" configuration.
 
 .Execution modes and system configurations
 image::mode-config-matrix.drawio.png[Mode-config matrix]
 
-Let us describe these concepts in more details.
+Let us describe these concepts in more detail.
 
 == Persistent-Effects vs Simulation Execution Mode
 
@@ -38,7 +38,7 @@ But none of these contradict the basic idea that all computed operations are goi
 [NOTE]
 ====
 This mode can be sometimes (imprecisely) called _production_.
-But this term conflicts with the one of <<Production Configuration>>, so it should not be used.
+But this term conflicts with <<Production Configuration>>, so it should not be used.
 
 Overall, the "persistent-effects mode" term is not ideal either.
 We are looking for a better one.
@@ -49,8 +49,8 @@ We are looking for a better one.
 Here, no actions that could have persistent externally visible effects are executed.
 Accordingly, nothing is written to the system audit log.
 
-The changes are computed, just like in <<Persistent-Effects Mode>>, but instead of their application, they are written to so-called xref:/midpoint/reference/simulation/results/[simulation result].
-It is a special kind of object in the midPoint repository, collecting both statistical and detailed information about changes that would be applied.
+The changes are computed, just like in <<Persistent-Effects Mode>>, but instead of their application, they are written to the so-called xref:/midpoint/reference/simulation/results/[simulation result].
+It is a special kind of object in the midPoint repository that collects both statistical and detailed information about the changes that would be applied.
 
 == Production vs Development Configuration
 
@@ -104,7 +104,7 @@ Lifecycle state is currently supported on the following configuration items:
 - mapping.
 
 NOTE: For short, we will sometimes use the statement "configuration item (like a resource) is in development mode" to denote the fact that the item is part of the development configuration but not present in the production one.
-On the other hand, when we say that "item is in production mode", we mean that it is a part of the production configuration without saying anything about whether it is also part of the development configuration.
+On the other hand, when we say that "an item is in production mode", we mean that it is a part of the production configuration without saying anything about whether it is also part of the development configuration.
 
 === Examples
 
@@ -128,7 +128,7 @@ All operations that could affect this resource could only be simulated.
 
 ==== Replacing a Mapping in an Object Template
 
-The following setup can be used to preview a migration from old to new organizational unit by switching mappings in an object template.
+The following setup can be used to preview a migration from an old to a new organizational unit by switching mappings in an object template.
 
 .Listing 2: Example of switching mappings in an object template
 [source,xml]
@@ -190,14 +190,15 @@ MidPoint supports this by allowing us to evolve the definition safely in develop
 Processes directly supported in this area include:
 
 - classification of resource objects (e.g., accounts) into object types, like `account/default` or `account/person`;
-- correlation of resource objects to so-called focus objects, like users, roles, and so on;
+- correlation of resource objects to the so-called focus objects, like users, roles, and so on;
 - mapping of data between resource objects and focus objects.
 
 === Evolution of a Resource Configuration
 
-Eventually, the first version of resource configuration is completed and put into production use.
+Eventually, the first version of a resource configuration is completed and put into production use.
 Sooner or later, requirements for its evolution will emerge.
-The simulations feature supports such evolution by allowing adding pieces of the configuration (like new object types, attributes, associations, or mappings) first in the development mode and, after they have been developed and tested enough, switching them into production.
+The simulations feature supports such evolution by allowing the addition of pieces of the configuration (like new object types, attributes, associations, and mappings) first in the development mode.
+After they have been developed and tested enough, they can be switched into production.
 Also, other items can be replaced by marking them as deprecated and adding analogous proposed items.
 Yet other items can be deprecated without replacement, effectively planning for their removal.
 
