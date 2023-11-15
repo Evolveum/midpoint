@@ -97,6 +97,8 @@ public class TestObjectConstruction extends AbstractSchemaTest {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         PrismObjectDefinition<ResourceType> resourceDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
+        PrismPropertyDefinition<?> nameDef = resourceDef.findPropertyDefinition(ResourceType.F_NAME);
+        assertTrue(nameDef.isEmphasized());
 
         PrismPropertyDefinition<SchemaDefinitionType> definitionDef = resourceDef.findItemDefinition(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION));
         assertNotNull("No definition", definitionDef);
