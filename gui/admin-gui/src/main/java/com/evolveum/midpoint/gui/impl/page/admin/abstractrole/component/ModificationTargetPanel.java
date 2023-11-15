@@ -114,7 +114,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
     private BoxedTablePanel<BusinessRoleDto> generateTable(RoleMiningProvider<BusinessRoleDto> provider) {
 
         BoxedTablePanel<BusinessRoleDto> table = new BoxedTablePanel<>(
-                ID_MODIFICATION_TARGET_PANEL, provider, initColumns(provider)) {
+                ID_MODIFICATION_TARGET_PANEL, provider, initColumns()) {
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 //TODO add possibility to assign other candidate.
@@ -168,7 +168,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
         return table;
     }
 
-    private List<IColumn<BusinessRoleDto, String>> initColumns(RoleMiningProvider<BusinessRoleDto> provider) {
+    private List<IColumn<BusinessRoleDto, String>> initColumns() {
 
         List<IColumn<BusinessRoleDto, String>> columns = new ArrayList<>();
 
@@ -223,7 +223,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("Status")) {
+        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysis.modificationTargetPanel.status")) {
 
             @Override
             public String getSortProperty() {
@@ -249,7 +249,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("Added Assignment")) {
+        columns.add(new AbstractColumn<>(createStringResource(
+                "RoleAnalysis.modificationTargetPanel.added.access")) {
 
             @Override
             public String getSortProperty() {
@@ -270,7 +271,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("Replaced Assignment")) {
+        columns.add(new AbstractColumn<>(createStringResource(
+                "RoleAnalysis.modificationTargetPanel.replaced.assignments")) {
 
             @Override
             public String getSortProperty() {
@@ -291,7 +293,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("Current Assignment count")) {
+        columns.add(new AbstractColumn<>(createStringResource(
+                "RoleAnalysis.modificationTargetPanel.count.assignments")) {
 
             @Override
             public String getSortProperty() {
@@ -312,7 +315,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("Final Assignment count")) {
+        columns.add(new AbstractColumn<>(createStringResource(
+                "RoleAnalysis.modificationTargetPanel.count.assignments.final")) {
 
             @Override
             public String getSortProperty() {
