@@ -49,16 +49,6 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
     }
 
     @Override
-    protected void processObjectAndDelta(OperationResult result) {
-        // TODO why we don't do post-processing like in the case of LS and AU?
-
-        // As a minimal functionality, let us provide the exists flag if it's null
-        if (resourceObject != null && resourceObject.getBean().isExists() == null) {
-            resourceObject.getBean().setExists(true);
-        }
-    }
-
-    @Override
     protected String toStringExtra() {
         return "";
     }

@@ -58,11 +58,7 @@ public class ShadowsLocalBeans {
     @Autowired ShadowCreator shadowCreator;
     @Autowired EntitlementsHelper entitlementsHelper;
     @Autowired ExpressionFactory expressionFactory;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    RepositoryService repositoryService;
-
+    @Autowired @Qualifier("cacheRepositoryService") RepositoryService repositoryService;
     @Autowired ErrorHandlerLocator errorHandlerLocator;
     @Autowired ResourceManager resourceManager;
     @Autowired Clock clock;

@@ -74,6 +74,14 @@ public class ResourceAssociationDefinition extends AbstractFreezable
                 () -> "No association direction provided in association definition: " + this);
     }
 
+    public boolean isObjectToSubject() {
+        return getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT;
+    }
+
+    public boolean isSubjectToObject() {
+        return getDirection() == ResourceObjectAssociationDirectionType.SUBJECT_TO_OBJECT;
+    }
+
     public @NotNull Collection<String> getIntents() {
         return definitionBean.getIntent();
     }

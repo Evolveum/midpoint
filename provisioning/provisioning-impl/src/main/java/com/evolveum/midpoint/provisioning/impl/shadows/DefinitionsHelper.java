@@ -7,20 +7,19 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.util.DefinitionsUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ShadowCoordinatesQualifiedObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,8 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 class DefinitionsHelper {
 
-    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private ProvisioningContextFactory ctxFactory;
+    @Autowired private ShadowFinder shadowFinder;
 
     public void applyDefinition(
             ObjectDelta<ShadowType> delta,
@@ -46,26 +45,27 @@ class DefinitionsHelper {
             Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        PrismObject<ShadowType> shadow = null;
-        ResourceShadowCoordinates coordinates = null;
+        ShadowType shadow;
+        ResourceShadowCoordinates coordinates;
         if (delta.isAdd()) {
-            shadow = delta.getObjectToAdd();
+            shadow = delta.getObjectToAdd().asObjectable();
+            coordinates = null;
         } else if (delta.isModify()) {
-            if (delta instanceof ShadowCoordinatesQualifiedObjectDelta) {
+            if (delta instanceof ShadowCoordinatesQualifiedObjectDelta<?> coordinatesDelta) {
+                shadow = null; // not needed
                 // This one does not have OID, it has to be specially processed
-                coordinates = ((ShadowCoordinatesQualifiedObjectDelta<?>) delta).getCoordinates();
+                coordinates = coordinatesDelta.getCoordinates();
             } else {
                 String shadowOid = delta.getOid();
                 if (shadowOid == null) {
-                    if (repoShadow == null) {
-                        throw new IllegalArgumentException("No OID in object delta " + delta
-                                + " and no externally-supplied shadow is present as well.");
-                    }
-                    shadow = repoShadow.asPrismObject();
+                    shadow = argNonNull(
+                            repoShadow,
+                            "No OID in object delta %s and no externally-supplied shadow is present as well.", delta);
                 } else {
                     // TODO consider fetching only when really necessary
-                    shadow = repositoryService.getObject(delta.getObjectTypeClass(), shadowOid, null, result);
+                    shadow = shadowFinder.getShadowBean(shadowOid, result);
                 }
+                coordinates = null;
             }
         } else {
             // Delete delta, nothing to do at all
@@ -81,11 +81,12 @@ class DefinitionsHelper {
         ctx.applyAttributesDefinition(delta);
     }
 
-    public void applyDefinition(ShadowType shadow, Task task, OperationResult result)
+    public ProvisioningContext applyDefinition(ShadowType shadow, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, result);
-        ctx.applyAttributesDefinition(shadow);
+        return ctxFactory
+                .createForShadow(shadow, task, result)
+                .applyAttributesDefinition(shadow);
     }
 
     public void applyDefinition(ObjectQuery query, Task task, OperationResult result)

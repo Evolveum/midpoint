@@ -92,7 +92,9 @@ class ShadowAcquisition {
      * Returned shadow is NOT guaranteed to have all the attributes aligned and updated. That is only possible after
      * completeShadow(). But maybe, this method can later invoke completeShadow() and do all the necessary stuff?
      *
-     * It may look like this method would rather belong to ShadowManager. But it does NOT. It does too much stuff
+     * TODO completeShadow method does not exist any more, update the docs
+     *
+     * It may look like this method would rather belong to ShadowManager. But it does not. It does too much stuff
      * (e.g. change notification).
      */
     @NotNull static ShadowType acquireRepoShadow(
@@ -103,9 +105,7 @@ class ShadowAcquisition {
             throws SchemaException, ConfigurationException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
-        PrismProperty<?> primaryIdentifier = requireNonNull(
-                ProvisioningUtil.getSingleValuedPrimaryIdentifier(resourceObject),
-                () -> "No primary identifier value in " + ShadowUtil.shortDumpShadow(resourceObject));
+        PrismProperty<?> primaryIdentifier = ProvisioningUtil.getSingleValuedPrimaryIdentifierRequired(resourceObject);
         QName objectClass = requireNonNull(
                 resourceObject.getObjectClass(),
                 () -> "No object class in " + ShadowUtil.shortDumpShadow(resourceObject));
@@ -143,7 +143,7 @@ class ShadowAcquisition {
         var classification = b.classificationHelper.classify(ctx, repoShadow, resourceObject, result);
 
         // TODO We probably can avoid re-reading the shadow
-        return b.shadowUpdater.normalizeShadowAttributesInRepository(ctx, repoShadow, classification, result);
+        return b.shadowUpdater.normalizeShadowAttributesInRepositoryAfterClassification(ctx, repoShadow, classification, result);
     }
 
     // TODO is it OK to do it here? OID maybe. But resourceRef should have been there already (although without full object)
@@ -156,11 +156,9 @@ class ShadowAcquisition {
     }
 
     private @NotNull ShadowType acquireRawRepoShadow(OperationResult result)
-            throws SchemaException, ConfigurationException, EncryptionException {
+            throws SchemaException, EncryptionException {
 
-        ShadowType existingLiveRepoShadow =
-                b.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
-
+        var existingLiveRepoShadow = b.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
         if (existingLiveRepoShadow != null) {
             LOGGER.trace("Found live shadow object in the repository {}", shortDumpShadowLazily(existingLiveRepoShadow));
             if (b.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(existingLiveRepoShadow, result)) {
@@ -196,8 +194,7 @@ class ShadowAcquisition {
 
         LOGGER.debug("Attempt to create new repo shadow for {} ended up in conflict, re-trying the search for repo shadow",
                 resourceObject);
-        ShadowType conflictingLiveShadow =
-                b.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
+        var conflictingLiveShadow = b.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
 
         if (conflictingLiveShadow != null) {
             if (b.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(conflictingLiveShadow, result)) {
@@ -213,7 +210,7 @@ class ShadowAcquisition {
 
         // Do some "research" and log the results, so we have good data to diagnose this situation.
         String determinedPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, resourceObject);
-        PrismObject<ShadowType> potentialConflictingShadow =
+        ShadowType potentialConflictingShadow =
                 b.shadowFinder.lookupShadowByIndexedPrimaryIdValue(ctx, determinedPrimaryIdentifierValue, result);
 
         LOGGER.error("Unexpected repository behavior: object already exists error even after we double-checked "
@@ -227,7 +224,8 @@ class ShadowAcquisition {
         LOGGER.debug("REPO CONFLICT: potential conflicting repo shadow (by primaryIdentifierValue)\n{}",
                 DebugUtil.debugDumpLazily(potentialConflictingShadow, 1));
 
-        throw new SystemException("Unexpected repository behavior: object already exists error even after we double-checked "
-                + "shadow uniqueness: " + e.getMessage(), e);
+        throw new SystemException(
+                "Unexpected repository behavior: object already exists error even after we double-checked shadow uniqueness: "
+                        + e.getMessage(), e);
     }
 }

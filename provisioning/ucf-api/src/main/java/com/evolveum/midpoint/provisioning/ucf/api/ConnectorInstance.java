@@ -195,13 +195,13 @@ public interface ConnectorInstance {
      *
      * TODO: object not found error
      *
-     * @param resourceObjectIdentification objectClass+identifiers of the object to fetch
+     * @param resourceObjectIdentification objectClass+primary identifiers of the object to fetch
      * @return object fetched from the resource (no schema)
      * @throws CommunicationException error in communication to the resource - nothing was fetched.
      * @throws SchemaException error converting object from native (connector) format
      */
     UcfResourceObject fetchObject(
-            ResourceObjectIdentification resourceObjectIdentification,
+            ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
             AttributesToReturn attributesToReturn,
             UcfExecutionContext ctx,
             OperationResult parentResult)
@@ -313,21 +313,32 @@ public interface ConnectorInstance {
      * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
      */
     AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification identification,
+            ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
-            UcfExecutionContext ctx, OperationResult parentResult)
+            UcfExecutionContext ctx,
+            OperationResult result)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ConfigurationException;
 
-    AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition, PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers, UcfExecutionContext ctx, OperationResult parentResult)
+    /**
+     * Deletes the specified object.
+     *
+     * Currently, some implementations may accept secondary-only identification. Some (e.g. ConnId) may not.
+     */
+    AsynchronousOperationResult deleteObject(
+            @NotNull ResourceObjectIdentification<?> identification,
+            @Nullable PrismObject<ShadowType> shadow,
+            @Nullable UcfExecutionContext ctx,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException;
 
-    Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, UcfExecutionContext ctx,
-            OperationResult parentResult)
+    Object executeScript(
+            ExecuteProvisioningScriptOperation scriptOperation,
+            UcfExecutionContext ctx,
+            OperationResult result)
             throws CommunicationException, GenericFrameworkException;
 
     /**

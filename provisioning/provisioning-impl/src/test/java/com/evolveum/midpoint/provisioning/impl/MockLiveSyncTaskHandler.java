@@ -37,7 +37,8 @@ public class MockLiveSyncTaskHandler {
     @Autowired private ProvisioningService provisioningService;
     @Autowired private SynchronizationServiceMock syncServiceMock;
 
-    public void synchronize(ResourceOperationCoordinates coords, LiveSyncTokenStorage tokenStorage,
+    public void synchronize(
+            ResourceOperationCoordinates coords, LiveSyncTokenStorage tokenStorage,
             Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {

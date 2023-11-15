@@ -598,33 +598,28 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         then("unassign");
         result3.computeStatus();
-        TestUtil.assertInProgress("resource in the maintenance pending delta", result3);
+        // Before 4.9, the result was "in progress" here.
+        // But since the proposed accounts are no longer attempted to be deleted, it is "success",
+        // because the operation was not even attempted.
+        TestUtil.assertSuccess(result3);
 
         assertModelShadowNoFetch(newShadowOid)
                 .display("Shadow after delete")
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertNotDead()
+                .assertDead()
+                .assertIsNotExists()
                 .assertNoLegacyConsistency()
                 .attributes()
                 .assertHasPrimaryIdentifier()
                 .end()
                 .pendingOperations()
-                .assertOperations(2) // 1x create + 1x delete
-                .deleteOperation()
-                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
-                .assertAttemptNumber(1)
-                .delta()
-                .display()
-                .assertDelete()
-                .end()
-                .end();
+                .assertOperations(1); // completed (not applicable) "add" operation
 
         when("maintenance off");
 
         turnMaintenanceModeOff(result);
 
-        // Apply pending create + delete delta:
+        // Just repeat the recomputation (nothing should happen)
         OperationResult result4 = createOperationResult();
         modelService.recompute(UserType.class, USER2_OID, executeOptions().reconcile(), task, result4);
 

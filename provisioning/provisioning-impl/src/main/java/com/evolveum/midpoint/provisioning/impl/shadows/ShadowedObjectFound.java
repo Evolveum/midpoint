@@ -99,7 +99,7 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
             // No need to log stack trace now. It will be logged at the place where the exception is processed.
             // It is questionable whether to log anything at all.
             LOGGER.warn("Couldn't initialize {}. Continuing with previously acquired repo shadow: {}. Error: {}",
-                    getResourceObject(), repoShadow, getClassWithMessage(e));
+                    getResourceObjectRequired(), repoShadow, getClassWithMessage(e));
             shadowedObject = repoShadow;
             throw e;
         }
@@ -139,12 +139,12 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
         if (shadowedObject != null) {
             ProvisioningUtil.validateShadow(shadowedObject, true);
         } else {
-            ProvisioningUtil.validateShadow(getResourceObject().getBean(), false);
+            ProvisioningUtil.validateShadow(getResourceObjectRequired().getBean(), false);
         }
     }
 
     private @NotNull ShadowType getAdoptedOrOriginalObject() {
-        return MoreObjects.firstNonNull(shadowedObject, getResourceObject().getBean());
+        return MoreObjects.firstNonNull(shadowedObject, getResourceObjectRequired().getBean());
     }
 
     /**
@@ -204,7 +204,7 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
      * @see ResourceObjectFound#resourceObject
      */
     @Override
-    public @NotNull ResourceObject getResourceObject() {
+    public @NotNull ResourceObject getResourceObjectRequired() {
         return resourceObjectFound.getResourceObject();
     }
 

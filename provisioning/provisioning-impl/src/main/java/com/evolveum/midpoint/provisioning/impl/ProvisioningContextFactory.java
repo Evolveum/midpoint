@@ -159,9 +159,8 @@ public class ProvisioningContextFactory {
                 false); // The client has explicitly requested kind/intent, so it wants the type, not the class.
     }
 
-    @NotNull
-    private ResourceObjectDefinition getDefinition(
-            @NotNull ResourceSchema schema, @NotNull ShadowKindType kind, @NotNull String intent) {
+    private @NotNull ResourceObjectDefinition getDefinition(
+            @NotNull ResourceSchema schema, @NotNull ShadowKindType kind, @NotNull String intent) throws SchemaException {
         ResourceObjectDefinition definition = schema.findObjectDefinitionRequired(kind, intent);
         return ResourceSchemaUtil.addOwnAuxiliaryObjectClasses(definition, schema);
     }
@@ -320,7 +319,7 @@ public class ProvisioningContextFactory {
         }
     }
 
-    public @NotNull CommonBeans getCommonBeans() {
+    @NotNull CommonBeans getCommonBeans() {
         return commonBeans;
     }
 }

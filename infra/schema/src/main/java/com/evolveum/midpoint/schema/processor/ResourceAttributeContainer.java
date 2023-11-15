@@ -126,28 +126,7 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
      *
      * @return set of identifier properties
      */
-    Collection<ResourceAttribute<?>> getPrimaryIdentifiers();
-
-    /**
-     * TODO review docs
-     *
-     * Returns a (single) secondary identifier.
-     *
-     * This method returns a property that acts as an secondary identifier for
-     * the resource object. Secondary identifiers are used to confirm primary
-     * identification of resource object.
-     *
-     * Returns null if no secondary identifier is defined.
-     *
-     * Resource objects may have multiple (composite) identifiers, but this
-     * method assumes that there is only a single identifier. The method will
-     * throw exception if that assumption is not satisfied.
-     *
-     * @return secondary identifier property
-     * @throws IllegalStateException
-     *             if resource object has multiple secondary identifiers
-     */
-    <T> PrismProperty<T> getSecondaryIdentifier();
+    @NotNull Collection<ResourceAttribute<?>> getPrimaryIdentifiers();
 
     /**
      * TODO review docs
@@ -165,9 +144,9 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
      *
      * @return set of secondary identifier properties
      */
-    Collection<ResourceAttribute<?>> getSecondaryIdentifiers();
+    @NotNull Collection<ResourceAttribute<?>> getSecondaryIdentifiers();
 
-    Collection<ResourceAttribute<?>> getAllIdentifiers();
+    @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers();
 
     @NotNull
     Collection<ResourceAttribute<?>> extractAttributesByDefinitions(

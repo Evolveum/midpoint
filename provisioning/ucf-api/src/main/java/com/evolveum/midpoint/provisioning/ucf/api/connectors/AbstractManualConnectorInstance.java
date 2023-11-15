@@ -97,7 +97,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification identification,
+            ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
@@ -118,7 +118,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
             ticketIdentifier = createTicketModify(
                     identification.getResourceObjectDefinition(),
-                    shadow, identification.getAllIdentifiers(),
+                    shadow,
+                    identification.getAllIdentifiersAsAttributes(),
                     ctx.getResourceOid(),
                     changes,
                     ctx.getTask(),
@@ -142,10 +143,12 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 
     @Override
-    public AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition,
+    public AsynchronousOperationResult deleteObject(
+            @NotNull ResourceObjectIdentification<?> identification,
             PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers,
-            UcfExecutionContext ctx, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
+            UcfExecutionContext ctx,
+            OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException,
             GenericFrameworkException, SchemaException, ConfigurationException {
 
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
@@ -160,16 +163,16 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
         try {
 
             ticketIdentifier = createTicketDelete(
-                    objectDefinition,
+                    identification.getResourceObjectDefinition(),
                     shadow,
-                    identifiers,
+                    identification.getAllIdentifiersAsAttributes(),
                     ctx.getResourceOid(),
                     ctx.getTask(),
                     result);
 
         } catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
                 ConfigurationException | RuntimeException | Error e) {
-            result.recordFatalError(e);
+            result.recordException(e);
             throw e;
         }
 
@@ -201,7 +204,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     }
 
     @Override
-    public UcfResourceObject fetchObject(ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn,
+    public UcfResourceObject fetchObject(
+            ResourceObjectIdentification.WithPrimary resourceObjectIdentification, AttributesToReturn attributesToReturn,
             UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.

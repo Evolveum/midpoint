@@ -53,11 +53,10 @@ class ActivationConverter {
     private static final Trace LOGGER = TraceManager.getTrace(ActivationConverter.class);
 
     @NotNull private final ProvisioningContext ctx;
-    @NotNull private final CommonBeans beans;
+    @NotNull private final CommonBeans b = CommonBeans.get();
 
-    ActivationConverter(@NotNull ProvisioningContext ctx, @NotNull CommonBeans commonBeans) {
+    ActivationConverter(@NotNull ProvisioningContext ctx) {
         this.ctx = ctx;
-        this.beans = commonBeans;
     }
 
     //region Resource object -> midPoint (simulating/native -> activation)
@@ -201,7 +200,7 @@ class ActivationConverter {
     /**
      * Transforms activation information when an object is being added.
      */
-    void transformActivationOnAdd(ShadowType shadow, OperationResult result) throws SchemaException, CommunicationException {
+    void transformOnAdd(ShadowType shadow, OperationResult result) throws SchemaException, CommunicationException {
         ActivationType activation = shadow.getActivation();
         if (activation == null) {
             return;
@@ -234,7 +233,7 @@ class ActivationConverter {
             return;
         }
 
-        boolean converted = TwoStateRealToSimulatedConverter.create(statusCapability, simulatingAttributeName, ctx, beans)
+        boolean converted = TwoStateRealToSimulatedConverter.create(statusCapability, simulatingAttributeName, ctx, b)
                 .convertProperty(shadow.getActivation().getAdministrativeStatus(), shadow, result);
 
         if (converted) {
@@ -260,7 +259,7 @@ class ActivationConverter {
             return;
         }
 
-        boolean converted = TwoStateRealToSimulatedConverter.create(lockoutCapability, simulatingAttributeName, ctx, beans)
+        boolean converted = TwoStateRealToSimulatedConverter.create(lockoutCapability, simulatingAttributeName, ctx, b)
                 .convertProperty(shadow.getActivation().getLockoutStatus(), shadow, result);
 
         if (converted) {
@@ -273,9 +272,9 @@ class ActivationConverter {
     /**
      * Creates activation change operations, based on existing collection of changes.
      */
-    @NotNull
-    Collection<Operation> createActivationChangeOperations(ShadowType shadow, Collection<? extends ItemDelta<?, ?>> objectChange,
-            OperationResult result) throws SchemaException {
+    @NotNull Collection<Operation> transformOnModify(
+            ShadowType repoShadow, Collection<? extends ItemDelta<?, ?>> modifications, OperationResult result)
+            throws SchemaException {
 
         Collection<Operation> operations = new ArrayList<>();
         ResourceType resource = ctx.getResource();
@@ -284,12 +283,12 @@ class ActivationConverter {
         LOGGER.trace("Found activation capability: {}", PrettyPrinter.prettyPrint(activationCapability));
 
         // using simulating attributes, if defined
-        createActivationStatusChange(objectChange, shadow, activationCapability, resource, operations, result);
-        createLockoutStatusChange(objectChange, shadow, activationCapability, resource, operations, result);
+        createActivationStatusChange(modifications, repoShadow, activationCapability, resource, operations, result);
+        createLockoutStatusChange(modifications, repoShadow, activationCapability, resource, operations, result);
 
         // these are converted "as is" (no simulation)
-        createValidFromChange(objectChange, activationCapability, resource, operations, result);
-        createValidToChange(objectChange, activationCapability, resource, operations, result);
+        createValidFromChange(modifications, activationCapability, resource, operations, result);
+        createValidToChange(modifications, activationCapability, resource, operations, result);
 
         return operations;
     }
@@ -323,7 +322,7 @@ class ActivationConverter {
         LOGGER.trace("Found activation administrativeStatus change to: {}", newStatus);
 
         PropertyModificationOperation<?> simulatingAttributeModification =
-                TwoStateRealToSimulatedConverter.create(statusCapability, simulatingAttributeName, ctx, beans)
+                TwoStateRealToSimulatedConverter.create(statusCapability, simulatingAttributeName, ctx, b)
                         .convertDelta(newStatus, shadow, result);
 
         if (simulatingAttributeModification != null) {
@@ -362,7 +361,7 @@ class ActivationConverter {
         LOGGER.trace("Found activation lockout change to: {}", newStatus);
 
         PropertyModificationOperation<?> simulatingAttributeModification =
-                TwoStateRealToSimulatedConverter.create(lockoutCapability, simulatingAttributeName, ctx, beans)
+                TwoStateRealToSimulatedConverter.create(lockoutCapability, simulatingAttributeName, ctx, b)
                         .convertDelta(newStatus, shadow, result);
 
         if (simulatingAttributeModification != null) {

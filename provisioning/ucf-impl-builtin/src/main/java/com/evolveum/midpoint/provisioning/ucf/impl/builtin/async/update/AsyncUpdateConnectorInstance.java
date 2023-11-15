@@ -273,7 +273,8 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public UcfResourceObject fetchObject(
-            ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn,
+            ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
+            AttributesToReturn attributesToReturn,
             UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         return null;
@@ -297,7 +298,8 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object,
+    public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
+            PrismObject<? extends ShadowType> object,
             UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("addObject");
         return null;
@@ -305,15 +307,22 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification identification, PrismObject<ShadowType> shadow, @NotNull Collection<Operation> changes,
-            ConnectorOperationOptions options, UcfExecutionContext ctx, OperationResult parentResult) {
+            ResourceObjectIdentification.WithPrimary identification,
+            PrismObject<ShadowType> shadow,
+            @NotNull Collection<Operation> changes,
+            ConnectorOperationOptions options,
+            UcfExecutionContext ctx,
+            OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("modifyObject");
         return null;
     }
 
     @Override
-    public AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition,
-            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, UcfExecutionContext ctx, OperationResult parentResult) {
+    public AsynchronousOperationResult deleteObject(
+            @NotNull ResourceObjectIdentification<?> identification,
+            PrismObject<ShadowType> shadow,
+            UcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("deleteObject");
         return null;
     }

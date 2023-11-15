@@ -9,12 +9,10 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.schema.util.ShadowUtil.getAllIdentifiers;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -25,7 +23,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -52,7 +50,7 @@ class EntitlementsHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(EntitlementsHelper.class);
 
-    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired ShadowFinder shadowFinder;
 
     /**
      * Makes sure that all the entitlements have identifiers in them so this is
@@ -120,7 +118,7 @@ class EntitlementsHelper {
                             () -> "No identifiers and no OID specified in entitlements association " + association);
             PrismObject<ShadowType> entitlementShadow;
             try {
-                entitlementShadow = repositoryService.getObject(ShadowType.class, entitlementOid, null, result);
+                entitlementShadow = shadowFinder.getShadow(entitlementOid, result);
             } catch (ObjectNotFoundException e) {
                 throw e.wrap("Couldn't resolve entitlement association OID in " + association + " in " + desc);
             }
@@ -143,7 +141,7 @@ class EntitlementsHelper {
                             ShadowAssociationType.F_IDENTIFIERS, origContainer.getDefinition());
             association.add(identifiersContainer);
         }
-        for (ResourceAttribute<?> identifier : emptyIfNull(getAllIdentifiers(repoShadow))) {
+        for (ResourceAttribute<?> identifier : getAllIdentifiers(repoShadow)) {
             identifiersContainer.add(identifier.clone());
         }
     }
