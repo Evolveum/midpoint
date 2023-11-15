@@ -221,7 +221,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 if (miningOperationChunk == null) {
                     return null;
                 }
-                Task task = getPageBase().createSimpleTask("load objects");
+                Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
 
                 List<AssignmentType> roleAssignments = new ArrayList<>();
 
@@ -371,14 +371,14 @@ public class RoleAnalysisUserBasedTable extends Panel {
                     }
                 }
 
-                updateFrequencyUserBased(rowModel, minFrequency, maxFrequency);
+                updateFrequencyBased(rowModel, minFrequency, maxFrequency);
 
                 String title = rowModel.getObject().getChunkName();
                 AjaxLinkPanel analyzedMembersDetailsPanel = new AjaxLinkPanel(componentId,
                         createStringResource(title)) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        Task task = getPageBase().createSimpleTask("prepare objects");
+                        Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
 
                         List<PrismObject<FocusType>> objects = new ArrayList<>();
                         for (String objectOid : elements) {
@@ -518,7 +518,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                         String componentId, IModel<MiningRoleTypeChunk> model) {
                     applySquareTableCell(cellItem);
 
-                    String cellColor = resolveUserBasedCellColor(model.getObject(), userChunk);
+                    String cellColor = resolveCellColor(model.getObject(), userChunk);
                     updateCellMiningStatus(cellItem, componentId, cellColor);
                 }
 
@@ -550,7 +550,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            Task task = getPageBase().createSimpleTask("prepare objects");
+                            Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
 
                             List<PrismObject<FocusType>> objects = new ArrayList<>();
                             for (String objectOid : elements) {
