@@ -79,6 +79,10 @@
                             <xsd:documentation>
                                 Metadata about operational state of the resource.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:alwaysUseForEquals/>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="operationalStateHistory" type="tns:OperationalStateType"
@@ -93,6 +97,8 @@
                                     <a:name>user-shadow-resource</a:name>
                                     <a:form>collapsed</a:form>
                                 </a:diagram>
+                                <a:operational>true</a:operational>
+                                <a:alwaysUseForEquals/>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -427,9 +433,23 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element ref="tns:cachingMetadata" minOccurs="0"/>
+            <xsd:element ref="tns:cachingMetadata" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                        <a:alwaysUseForEquals/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="generationConstraints" type="tns:SchemaGenerationConstraintsType" minOccurs="0"/>
-            <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0"/>
+            <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                        <a:alwaysUseForEquals/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -2918,6 +2938,10 @@
                     <xsd:documentation>
                         Metadata defining the "freshness" of the cached copy of native capabilities.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                        <a:alwaysUseForEquals/>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="native" type="cap:CapabilityCollectionType" minOccurs="0">
@@ -2932,6 +2956,10 @@
 
                         The value of this element indicates what the connector can do.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                        <a:alwaysUseForEquals/>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="configured" type="cap:CapabilityCollectionType" minOccurs="0">
