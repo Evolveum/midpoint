@@ -62,7 +62,8 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     private boolean isRoleMode;
     private boolean compress = true;
 
-    public RoleAnalysisClusterOperationPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model, ContainerPanelConfigurationType config) {
+    public RoleAnalysisClusterOperationPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
+            ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 

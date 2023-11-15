@@ -211,7 +211,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 if (miningOperationChunk == null) {
                     return null;
                 }
-                Task task = getPageBase().createSimpleTask("load objects");
+                Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
 
                 List<AssignmentType> roleAssignments = new ArrayList<>();
 
@@ -352,14 +352,14 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
                 List<String> elements = rowModel.getObject().getUsers();
 
-                updateFrequencyRoleBased(rowModel, minFrequency, maxFrequency);
+                updateFrequencyBased(rowModel, minFrequency, maxFrequency);
 
                 String title = rowModel.getObject().getChunkName();
                 AjaxLinkPanel analyzedMembersDetailsPanel = new AjaxLinkPanel(componentId,
                         createStringResource(title)) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        Task task = getPageBase().createSimpleTask("prepare objects");
+                        Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
 
                         List<PrismObject<FocusType>> objects = new ArrayList<>();
                         for (String objectOid : elements) {
@@ -499,7 +499,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                         String componentId, IModel<MiningUserTypeChunk> model) {
                     applySquareTableCell(cellItem);
 
-                    String cellColor = resolveRoleBasedCellColor(roleChunk, model.getObject());
+                    String cellColor = resolveCellColor(model.getObject(), roleChunk);
                     updateCellMiningStatus(cellItem, componentId, cellColor);
 
                 }
@@ -549,7 +549,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                         @Override
                         public void onClick(AjaxRequestTarget target) {
 
-                            Task task = getPageBase().createSimpleTask("prepare objects");
+                            Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
 
                             List<PrismObject<FocusType>> objects = new ArrayList<>();
                             for (String objectOid : elements) {

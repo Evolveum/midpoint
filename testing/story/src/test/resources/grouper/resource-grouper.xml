@@ -129,7 +129,7 @@
             </attribute>
             <attribute>
                 <ref>ri:members</ref>
-                <fetchStrategy>explicit</fetchStrategy>
+                <fetchStrategy>minimal</fetchStrategy>
                 <storageStrategy>indexOnly</storageStrategy>
             </attribute>
         </objectType>
