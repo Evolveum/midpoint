@@ -7,16 +7,24 @@
 
 package com.evolveum.midpoint.common.mining.objects.handler;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.jetbrains.annotations.Nullable;
-
 import java.io.Serializable;
 import java.time.Duration;
 
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 /**
+ * <p>
+ * The `RoleAnalysisProgressIncrement` class provides a way to increment progress during role-mining operations.
+ * It allows for tracking the progress of each step within the role-mining process and provides information such as
+ * the title, subtitle, percentage completion, and duration.
+ * </p>
+ * <p>
  * Keeps the state of the role-mining activity (clustering, pattern detection, etc).
+ * </p>
+ * TODO what about serializability? Currently we assume we'll never use deserialized version of this class instance
  */
 public class RoleAnalysisProgressIncrement implements Serializable {
 

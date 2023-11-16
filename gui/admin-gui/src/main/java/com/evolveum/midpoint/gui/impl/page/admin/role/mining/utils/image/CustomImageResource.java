@@ -14,16 +14,19 @@ import java.io.IOException;
 import java.util.List;
 import javax.imageio.ImageIO;
 
+import org.apache.wicket.request.resource.DynamicImageResource;
+
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
-
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
-
-import org.apache.wicket.request.resource.DynamicImageResource;
-
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
+/**
+ * CustomImageResource generates images for role mining clusters based on a MiningOperationChunk.
+ */
 public class CustomImageResource extends DynamicImageResource {
 
     public int getWidth() {
@@ -39,6 +42,8 @@ public class CustomImageResource extends DynamicImageResource {
     MiningOperationChunk miningOperationChunk;
     RoleAnalysisProcessModeType mode;
 
+    public static final Trace LOGGER = TraceManager.getTrace(CustomImageResource.class);
+
     public CustomImageResource(MiningOperationChunk miningOperationChunk, RoleAnalysisProcessModeType mode) {
         this.miningOperationChunk = miningOperationChunk;
         this.mode = mode;
@@ -51,8 +56,10 @@ public class CustomImageResource extends DynamicImageResource {
         Graphics2D graphics;
 
         if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
-            List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(RoleAnalysisSortMode.JACCARD);
+            List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
+                    RoleAnalysisSortMode.NONE);
+            List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
+                    RoleAnalysisSortMode.JACCARD);
             width = miningRoleTypeChunks.size();
             height = miningUserTypeChunks.size();
             image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -71,8 +78,10 @@ public class CustomImageResource extends DynamicImageResource {
                 }
             }
         } else {
-            List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(RoleAnalysisSortMode.JACCARD);
-            List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
+            List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
+                    RoleAnalysisSortMode.JACCARD);
+            List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
+                    RoleAnalysisSortMode.NONE);
             width = miningUserTypeChunks.size();
             height = miningRoleTypeChunks.size();
             image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -98,7 +107,7 @@ public class CustomImageResource extends DynamicImageResource {
         try {
             ImageIO.write(image, "png", outputStream);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Couldn't write image to output stream.");
         }
 
         return outputStream.toByteArray();

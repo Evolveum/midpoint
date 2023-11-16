@@ -7,27 +7,36 @@
 
 package com.evolveum.midpoint.common.mining.utils;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * The `ExtractPatternUtils` class provides utility methods for preparing and transforming detected patterns.
+ * <p>
+ * It's a part of the `Role Analysis`.
+ * </p>
+ */
 public class ExtractPatternUtils {
 
-    public static DetectedPattern prepareDetectedPattern(Set<String> roles, Set<String> users) {
+    public static DetectedPattern prepareDetectedPattern(@NotNull Set<String> roles, @NotNull Set<String> users) {
         return new DetectedPattern(
                 roles,
                 users,
                 users.size() * roles.size());
     }
 
-    public static List<DetectedPattern> transformDefaultPattern(RoleAnalysisClusterType clusterType) {
-        List<RoleAnalysisDetectionPatternType> defaultDetection = clusterType.getDetectedPattern();
+    public static @NotNull List<DetectedPattern> transformDefaultPattern(@NotNull RoleAnalysisClusterType cluster) {
+        List<RoleAnalysisDetectionPatternType> defaultDetection = cluster.getDetectedPattern();
         List<DetectedPattern> mergedIntersection = new ArrayList<>();
 
         if (isEmptyDetectionPattern(defaultDetection)) {
@@ -40,15 +49,9 @@ public class ExtractPatternUtils {
 
             List<ObjectReferenceType> usersRef = roleAnalysisClusterDetectionType.getUserOccupancy();
 
-            Set<String> roles = new HashSet<>();
-            for (ObjectReferenceType objectReferenceType : rolesRef) {
-                roles.add(objectReferenceType.getOid());
-            }
+            Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
 
-            Set<String> users = new HashSet<>();
-            for (ObjectReferenceType objectReferenceType : usersRef) {
-                users.add(objectReferenceType.getOid());
-            }
+            Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
 
             DetectedPattern detectedPattern = prepareDetectedPattern(roles,
                     users);

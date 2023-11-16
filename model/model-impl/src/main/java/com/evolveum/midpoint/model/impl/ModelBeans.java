@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.model.impl.controller.transformer.DataAccessProcessor;
 import com.evolveum.midpoint.model.impl.lens.tasks.TaskOperationalDataManager;
@@ -153,4 +154,6 @@ public class ModelBeans {
     @Autowired public AuthorizationMigrator authorizationMigrator;
     @Autowired public ActivityHandlerRegistry activityHandlerRegistry;
     @Autowired public DataAccessProcessor dataAccessProcessor; // temporary
+    @Autowired public RoleAnalysisService roleAnalysisService;
+
 }

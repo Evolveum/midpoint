@@ -21,6 +21,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -113,7 +114,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
     private BoxedTablePanel<BusinessRoleDto> generateTable(RoleMiningProvider<BusinessRoleDto> provider) {
 
         BoxedTablePanel<BusinessRoleDto> table = new BoxedTablePanel<>(
-                ID_MODIFICATION_TARGET_PANEL, provider, initColumns(provider)) {
+                ID_MODIFICATION_TARGET_PANEL, provider, initColumns()) {
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 //TODO add possibility to assign other candidate.
@@ -167,7 +168,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
         return table;
     }
 
-    private List<IColumn<BusinessRoleDto, String>> initColumns(RoleMiningProvider<BusinessRoleDto> provider) {
+    private List<IColumn<BusinessRoleDto, String>> initColumns() {
 
         List<IColumn<BusinessRoleDto, String>> columns = new ArrayList<>();
 
@@ -222,7 +223,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("Status")) {
+        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysis.modificationTargetPanel.status")) {
 
             @Override
             public String getSortProperty() {
@@ -248,7 +249,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("Added Assignment")) {
+        columns.add(new AbstractColumn<>(createStringResource(
+                "RoleAnalysis.modificationTargetPanel.added.access")) {
 
             @Override
             public String getSortProperty() {
@@ -269,7 +271,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("Replaced Assignment")) {
+        columns.add(new AbstractColumn<>(createStringResource(
+                "RoleAnalysis.modificationTargetPanel.replaced.assignments")) {
 
             @Override
             public String getSortProperty() {
@@ -290,7 +293,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("Current Assignment count")) {
+        columns.add(new AbstractColumn<>(createStringResource(
+                "RoleAnalysis.modificationTargetPanel.count.assignments")) {
 
             @Override
             public String getSortProperty() {
@@ -311,7 +315,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("Final Assignment count")) {
+        columns.add(new AbstractColumn<>(createStringResource(
+                "RoleAnalysis.modificationTargetPanel.count.assignments.final")) {
 
             @Override
             public String getSortProperty() {
@@ -358,14 +363,19 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
                         };
 
                         AjaxIconButton ajaxIncludeButton = new AjaxIconButton(repeatingView.newChildId(), loadableIncludeModel,
-                                createStringResource("Include")) {
+                                new LoadableDetachableModel<>() {
+                                    @Override
+                                    protected String load() {
+                                        if (model.getObject().isInclude()) {
+                                            return createStringResource("RoleAnalysis.exclude").getString();
+                                        }
+                                        return createStringResource("RoleAnalysis.include").getString();
+                                    }
+                                }) {
                             @Override
                             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                 model.getObject().setInclude(!model.getObject().isInclude());
-                                BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
-                                patternDeltas.setBusinessRoleDtos(provider.getAvailableData());
                                 ajaxRequestTarget.add(this);
-                                getTable().replaceWith(generateTable(provider));
                                 ajaxRequestTarget.add(getTable().setOutputMarkupId(true));
                             }
                         };

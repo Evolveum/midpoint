@@ -7,55 +7,29 @@
 
 package com.evolveum.midpoint.common.mining.objects.chunk;
 
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
-
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
-public class MiningRoleTypeChunk implements Serializable {
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
-    private final List<String> users;
-    private final List<String> roles;
-    private final String chunkName;
-    double frequency;
-    RoleAnalysisOperationMode roleAnalysisOperationMode;
-
-    public void setStatus(RoleAnalysisOperationMode roleAnalysisOperationMode) {
-        this.roleAnalysisOperationMode = roleAnalysisOperationMode;
-    }
+/**
+ * The `MiningRoleTypeChunk` class represents a chunk of role analysis data for a specific role. It contains information
+ * about the roles, users, chunk name, frequency, and the role analysis operation mode.
+ */
+public class MiningRoleTypeChunk extends MiningBaseTypeChunk implements Serializable {
 
     public MiningRoleTypeChunk(List<String> roles, List<String> users, String chunkName, double frequency,
             RoleAnalysisOperationMode roleAnalysisOperationMode) {
-        this.roles = new ArrayList<>(roles);
-        this.users = new ArrayList<>(users);
-        this.chunkName = chunkName;
-        this.frequency = frequency;
-        this.roleAnalysisOperationMode = roleAnalysisOperationMode;
+        super(roles, users, chunkName, frequency, roleAnalysisOperationMode);
     }
 
-    public void setFrequency(double frequency) {
-        this.frequency = frequency;
-    }
-
-    public RoleAnalysisOperationMode getStatus() {
-        return roleAnalysisOperationMode;
-    }
-
-    public List<String> getRoles() {
+    @Override
+    public List<String> getMembers() {
         return roles;
     }
 
-    public List<String> getUsers() {
+    @Override
+    public List<String> getProperties() {
         return users;
     }
-
-    public String getChunkName() {
-        return chunkName;
-    }
-
-    public double getFrequency() {
-        return frequency;
-    }
-
 }

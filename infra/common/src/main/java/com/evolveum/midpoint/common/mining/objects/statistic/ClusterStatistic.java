@@ -13,6 +13,11 @@ import java.util.Set;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * The `ClusterStatistic` class provides statistics for a clustering operation, such as the number of members,
+ * properties, and various measures related to the clustered data. It contains information about the members,
+ * properties, and other clustering-related metrics.
+ */
 public class ClusterStatistic implements Serializable {
 
     private final Set<ObjectReferenceType> membersRef;

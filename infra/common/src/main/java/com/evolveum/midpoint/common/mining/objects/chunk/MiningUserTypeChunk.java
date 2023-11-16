@@ -7,55 +7,29 @@
 
 package com.evolveum.midpoint.common.mining.objects.chunk;
 
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
-
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
-public class MiningUserTypeChunk implements Serializable {
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
-    private final List<String> users;
-    private final List<String> roles;
-    private final String chunkName;
-    double frequency;
-    RoleAnalysisOperationMode roleAnalysisOperationMode;
+/**
+ * The `MiningUserTypeChunk` class represents a chunk of role analysis data for a specific user. It contains information
+ * about the users, roles, chunk name, frequency, and the role analysis operation mode.
+ */
+public class MiningUserTypeChunk extends MiningBaseTypeChunk implements Serializable {
 
     public MiningUserTypeChunk(List<String> users, List<String> roles, String chunkName, double frequency,
             RoleAnalysisOperationMode roleAnalysisOperationMode) {
-        this.users = new ArrayList<>(users);
-        this.roles = new ArrayList<>(roles);
-        this.chunkName = chunkName;
-        this.frequency = frequency;
-        this.roleAnalysisOperationMode = roleAnalysisOperationMode;
+        super(roles, users, chunkName, frequency, roleAnalysisOperationMode);
     }
 
-    public void setFrequency(double frequency) {
-        this.frequency = frequency;
-    }
-
-    public RoleAnalysisOperationMode getStatus() {
-        return roleAnalysisOperationMode;
-    }
-
-    public List<String> getRoles() {
-        return roles;
-    }
-
-    public List<String> getUsers() {
+    @Override
+    public List<String> getMembers() {
         return users;
     }
 
-    public String getChunkName() {
-        return chunkName;
+    @Override
+    public List<String> getProperties() {
+        return roles;
     }
-
-    public double getFrequency() {
-        return frequency;
-    }
-
-    public void setStatus(RoleAnalysisOperationMode roleAnalysisOperationMode) {
-        this.roleAnalysisOperationMode = roleAnalysisOperationMode;
-    }
-
 }

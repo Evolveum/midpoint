@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a role analysis cluster of data points of a specific type.
+ */
 public class Cluster<T extends Clusterable> implements Serializable {
 
     private final List<T> points = new ArrayList<>();

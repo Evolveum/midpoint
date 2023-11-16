@@ -12,10 +12,9 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +29,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+/**
+ * The BusinessRoleDto class represents a Data Transfer Object (DTO) that holds information
+ * about a user's assignment to a specific role and associated deltas.
+ */
 public class BusinessRoleDto implements Serializable {
 
     PrismObject<UserType> prismObjectUser;
@@ -52,7 +55,6 @@ public class BusinessRoleDto implements Serializable {
         this.include = include;
     }
 
-
     public BusinessRoleDto(@NotNull PrismObject<UserType> prismObjectUser,
             @NotNull PrismObject<RoleType> prismObjectRole, PageBase pageBase) {
         prepareUserDeltas(prismObjectUser, prismObjectRole, pageBase);
@@ -66,6 +68,12 @@ public class BusinessRoleDto implements Serializable {
         return deltaDtoList;
     }
 
+    /**
+     * Updates the value of the BusinessRoleDto object for new inducements.
+     *
+     * @param inducements The list of inducements to be used for updating the value.
+     * @param pageBase   The pageBase object.
+     */
     public void updateValue(List<AssignmentType> inducements, PageBase pageBase) {
         Set<String> inducementsOidSet = new HashSet<>();
         for (AssignmentType inducement : inducements) {
@@ -79,69 +87,57 @@ public class BusinessRoleDto implements Serializable {
     }
 
     private void prepareUserDeltas(@NotNull PrismObject<UserType> prismObjectUser,
-            @NotNull PrismObject<RoleType> prismObjectRole, PageBase pageBase) {
+            @NotNull PrismObject<RoleType> businessRole, PageBase pageBase) {
         List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
         UserType userObject = prismObjectUser.asObjectable();
         String userOid = userObject.getOid();
 
-        ObjectDelta<UserType> addDelta = addRoleAssignment(userOid, prismObjectRole, pageBase);
-        deltas.add(addDelta);
-
         // TODO consider using methods from RoleManagementUtil here
 
         List<String> userRolesAssignmentOids = getRolesOidAssignment(userObject);
-        List<String> roleRolesAssignmentOids = getRolesOidInducements(prismObjectRole);
+        List<String> roleRolesAssignmentOids = getRolesOidInducements(businessRole);
 
+        Set<String> appliedRoles = new HashSet<>();
         int delete = 0;
+        Collection<PrismContainerValue<AssignmentType>> unassignRoleCollection = new ArrayList<>();
         for (String assignmentOid : userRolesAssignmentOids) {
             if (roleRolesAssignmentOids.contains(assignmentOid)) {
-                ObjectDelta<UserType> deleteDelta = deleteRoleAssignment(userOid, assignmentOid, pageBase);
-                deltas.add(deleteDelta);
+                appliedRoles.add(assignmentOid);
+                AssignmentType assignmentTo = createAssignmentTo(assignmentOid, ObjectTypes.ROLE, pageBase.getPrismContext());
+                unassignRoleCollection.add(assignmentTo.asPrismContainerValue());
                 delete++;
             }
         }
+
+        AssignmentType assignmentRole = createAssignmentTo(businessRole);
+        ObjectDelta<UserType> delta = calculateUserAssignDelta(userOid, unassignRoleCollection, assignmentRole, pageBase);
+        deltas.add(delta);
+
         int roleAssignmentCount = roleRolesAssignmentOids.size();
 
-        int extraAssignmentCount = Math.max(0, roleAssignmentCount - delete);
+        int extraAssignmentCount = roleAssignmentCount - appliedRoles.size();
 
         this.include = delete > 0;
         this.prismObjectUser = prismObjectUser;
-        this.prismRoleObject = prismObjectRole;
+        this.prismRoleObject = businessRole;
         this.objectDeltas = deltas;
         this.deltaDtos = prepareDeltaDtos(objectDeltas);
         this.assignedCount = extraAssignmentCount;
         this.unassignedCount = delete;
     }
 
-    private ObjectDelta<UserType> deleteRoleAssignment(
+    private ObjectDelta<UserType> calculateUserAssignDelta(
             @NotNull String userOid,
-            @NotNull String roleOid, PageBase pageBase) {
+            Collection<PrismContainerValue<AssignmentType>> unasignCollection, AssignmentType assignRole, PageBase pageBase) {
 
-        AssignmentType assignmentTo = createAssignmentTo(roleOid, ObjectTypes.ROLE, pageBase.getPrismContext());
-        ObjectDelta<UserType> objectDelta = null;
+        ObjectDelta<UserType> objectDelta;
         try {
             objectDelta = pageBase.getPrismContext()
                     .deltaFor(UserType.class)
                     .item(UserType.F_ASSIGNMENT)
-                    .delete(assignmentTo)
-                    .asObjectDelta(userOid);
-            return objectDelta;
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private ObjectDelta<UserType> addRoleAssignment(@NotNull String userOid,
-            @NotNull PrismObject<RoleType> prismObjectRole, PageBase pageBase) {
-
-        AssignmentType assignmentTo = createAssignmentTo(prismObjectRole);
-        ObjectDelta<UserType> objectDelta = null;
-        try {
-            objectDelta = pageBase.getPrismContext()
-                    .deltaFor(UserType.class)
-                    .item(UserType.F_ASSIGNMENT)
-                    .add(assignmentTo)
+                    .delete(unasignCollection)
+                    .add(assignRole)
                     .asObjectDelta(userOid);
             return objectDelta;
         } catch (SchemaException e) {

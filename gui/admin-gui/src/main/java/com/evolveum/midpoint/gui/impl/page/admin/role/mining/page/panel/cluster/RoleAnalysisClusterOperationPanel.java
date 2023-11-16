@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getSessionTypeObject;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
 
 import java.util.List;
@@ -31,9 +30,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisRoleBasedTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisUserBasedTable;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk.PrepareChunkStructure;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk.PrepareExpandStructure;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -66,18 +62,18 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     private boolean isRoleMode;
     private boolean compress = true;
 
-    public RoleAnalysisClusterOperationPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model, ContainerPanelConfigurationType config) {
+    public RoleAnalysisClusterOperationPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
+            ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
     @Override
     protected void initLayout() {
         Task task = ((PageBase) getPage()).createSimpleTask("loadObject");
-        ModelService modelService = ((PageBase) getPage()).getModelService();
 
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
-        PrismObject<RoleAnalysisSessionType> getParent = getSessionTypeObject(modelService, cluster.getRoleAnalysisSessionRef().getOid(), task, result
-        );
+        PrismObject<RoleAnalysisSessionType> getParent = getPageBase().getRoleAnalysisService().
+                getSessionTypeObject(cluster.getRoleAnalysisSessionRef().getOid(), task, result);
 
         if (getParent != null) {
             isRoleMode = getParent.asObjectable().getProcessMode().equals(RoleAnalysisProcessModeType.ROLE);
@@ -101,13 +97,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         loadMiningTable(webMarkupContainer);
         add(webMarkupContainer);
 
-
     }
 
     private void loadMiningTableData() {
-
         Task task = ((PageBase) getPage()).createSimpleTask("loadMiningTableData");
-        ModelService modelService = ((PageBase) getPage()).getModelService();
 
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
 
@@ -119,12 +112,12 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         }
 
         if (compress) {
-            miningOperationChunk = new PrepareChunkStructure().executeOperation(cluster, true,
-                    processMode, modelService, result, task);
+            miningOperationChunk = getPageBase().getRoleAnalysisService().prepareCompressedMiningStructure(cluster, true,
+                    processMode, result, task);
 
         } else {
-            miningOperationChunk = new PrepareExpandStructure().executeOperation(cluster, true,
-                    processMode, modelService, result, task);
+            miningOperationChunk = getPageBase().getRoleAnalysisService().prepareExpandedMiningStructure(cluster, true,
+                    processMode, result, task);
         }
 
     }
@@ -151,23 +144,25 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     }
 
+    //TODO - check reset
     private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus) {
-
         RoleAnalysisDetectionOptionType detectionOption = getObjectDetailsModels().getObjectType().getDetectionOption();
         if (detectionOption == null || detectionOption.getFrequencyRange() == null) {
             return;
         }
 
-        List<MiningRoleTypeChunk> simpleMiningRoleTypeChunks = miningOperationChunk.getSimpleMiningRoleTypeChunks();
-
-        List<MiningUserTypeChunk> simpleMiningUserTypeChunks = miningOperationChunk.getSimpleMiningUserTypeChunks();
-
         if (resetStatus) {
+
+            List<MiningRoleTypeChunk> simpleMiningRoleTypeChunks = miningOperationChunk.getSimpleMiningRoleTypeChunks();
+
+            List<MiningUserTypeChunk> simpleMiningUserTypeChunks = miningOperationChunk.getSimpleMiningUserTypeChunks();
+
+
             for (MiningRoleTypeChunk miningRoleTypeChunk : simpleMiningRoleTypeChunks) {
-                miningRoleTypeChunk.setStatus(RoleAnalysisOperationMode.NEUTRAL);
+                miningRoleTypeChunk.setStatus(RoleAnalysisOperationMode.EXCLUDE);
             }
             for (MiningUserTypeChunk miningUserTypeChunk : simpleMiningUserTypeChunks) {
-                miningUserTypeChunk.setStatus(RoleAnalysisOperationMode.NEUTRAL);
+                miningUserTypeChunk.setStatus(RoleAnalysisOperationMode.EXCLUDE);
             }
         }
 
@@ -211,6 +206,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
             @Override
             protected void onPerform(AjaxRequestTarget ajaxRequestTarget) {
+                roleAnalysisSortMode = getMiningUserBasedTable().getRoleAnalysisSortMode();
                 compress = !compress;
                 loadMiningTableData();
                 updateMiningTable(ajaxRequestTarget, false);
@@ -224,9 +220,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                         Model.of("Analyzed members details panel"), detectedPatternList, cluster) {
                     @Override
                     public void onLoadPerform(AjaxRequestTarget ajaxRequestTarget, IModel<DetectedPattern> rowModel) {
-                        getPageBase().hideMainPopup(ajaxRequestTarget);
+                        RoleAnalysisUserBasedTable miningUserBasedTable = getMiningUserBasedTable();
                         analysePattern = rowModel.getObject();
-                        updateMiningTable(ajaxRequestTarget, true);
+                        miningUserBasedTable.loadDetectedPattern(ajaxRequestTarget, analysePattern);
+                        getPageBase().hideMainPopup(ajaxRequestTarget);
                     }
                 };
 
@@ -248,11 +245,14 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
             @Override
             protected String getCompressStatus() {
-                return !compress ? RoleAnalysisChunkMode.EXPAND.getDisplayString() : RoleAnalysisChunkMode.COMPRESS.getDisplayString();
+                return !compress
+                        ? RoleAnalysisChunkMode.EXPAND.getDisplayString()
+                        : RoleAnalysisChunkMode.COMPRESS.getDisplayString();
             }
 
             @Override
             protected void onPerform(AjaxRequestTarget ajaxRequestTarget) {
+                roleAnalysisSortMode = getMiningRoleBasedTable().getRoleAnalysisSortMode();
                 compress = !compress;
                 loadMiningTableData();
                 updateMiningTable(ajaxRequestTarget, false);
@@ -267,9 +267,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                         Model.of("Analyzed members details panel"), detectedPatternList, cluster) {
                     @Override
                     public void onLoadPerform(AjaxRequestTarget ajaxRequestTarget, IModel<DetectedPattern> rowModel) {
-                        getPageBase().hideMainPopup(ajaxRequestTarget);
+                        RoleAnalysisRoleBasedTable miningRoleBasedTable = getMiningRoleBasedTable();
                         analysePattern = rowModel.getObject();
-                        updateMiningTable(ajaxRequestTarget, true);
+                        miningRoleBasedTable.loadDetectedPattern(ajaxRequestTarget, analysePattern);
+                        getPageBase().hideMainPopup(ajaxRequestTarget);
                     }
                 };
 

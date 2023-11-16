@@ -15,6 +15,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
@@ -550,6 +551,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @Override
     public SimulationResultManager getSimulationResultManager() {
         return simulationResultManager;
+    }
+
+    public RoleAnalysisService getRoleAnalysisService() {
+        return getMidpointApplication().getRoleAnalysisService();
     }
 
     public CertGuiHandlerRegistry getCertGuiHandlerRegistry() {

@@ -8,26 +8,29 @@ package com.evolveum.midpoint.model.impl.tasks;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
-import com.evolveum.midpoint.repo.common.activity.run.*;
-
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringActionExecutor;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringAction;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusteringWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 /**
  * TODO
@@ -100,8 +103,8 @@ public class RoleAnalysisClusteringActivityHandler
                 String sessionOid = getWorkDefinition().sessionOid;
                 LOGGER.debug("Running role analysis clustering activity; session OID = {}", sessionOid);
 
-                ClusteringAction clusteringAction = new ClusteringAction(this);
-                clusteringAction.execute(sessionOid, result);
+                ClusteringActionExecutor clusteringActionExecutor = new ClusteringActionExecutor(this);
+                clusteringActionExecutor.execute(sessionOid, result);
 
             } catch (Throwable t) {
                 result.recordException(t);

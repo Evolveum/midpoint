@@ -9,16 +9,32 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
 import java.util.Set;
 
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * A distance measure implementation for calculating the Jaccard distance/similarity between two sets of values.
+ */
 public class JaccardDistancesMeasure implements DistanceMeasure {
     private final int minIntersection;
 
+    /**
+     * Constructs a JaccardDistancesMeasure with the specified minimum intersection size for calculation.
+     *
+     * @param minIntersection The minimum intersection size required for Jaccard distance computation.
+     */
     public JaccardDistancesMeasure(int minIntersection) {
         this.minIntersection = minIntersection;
     }
 
+    /**
+     * Computes the Jaccard distance between two sets of values.
+     *
+     * @param valueA The first set of values.
+     * @param valueB The second set of values.
+     * @return The computed Jaccard distance between the sets.
+     */
     @Override
-    public double compute(Set<String> valueA, Set<String> valueB) {
+    public double compute(@NotNull Set<String> valueA, @NotNull Set<String> valueB) {
         int intersectionCount = 0;
         int setBunique = 0;
 

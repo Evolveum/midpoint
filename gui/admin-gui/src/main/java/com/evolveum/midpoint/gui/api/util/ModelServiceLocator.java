@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -109,4 +110,6 @@ public interface ModelServiceLocator {
      * Experimental, functionality will be probably later hidden behind {@link ModelInteractionService}
      */
     SimulationResultManager getSimulationResultManager();
+
+    RoleAnalysisService getRoleAnalysisService();
 }
