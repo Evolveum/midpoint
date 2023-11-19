@@ -246,9 +246,8 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         PrismContainerValue newValue = null;
 
         boolean isItemFound = false;
-        ItemPath subPath = null;
         if (valueOfExistingDelta != null) {
-            subPath = origParentValue.getPath().rest(valueOfExistingDelta.getPath().size());
+            ItemPath subPath = origParentValue.getPath().rest(valueOfExistingDelta.getPath().size());
             if (subPath.startsWithId()) {
                 subPath = subPath.subPath(1, subPath.size());
             }
@@ -294,9 +293,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         if (!newValue.contains(newChildItem.getElementName())) {
             newChildItem.setParent(newValue);
             newValue.add(newChildItem);
-        } else if (subPath != null &&
-                subPath.isEmpty() &&
-                newChildItem instanceof PrismContainer &&
+        } else if (newChildItem instanceof PrismContainer &&
                 !newChildItem.isSingleValue()){
             PrismContainer<?> parentItem = newValue.findContainer(newChildItem.getElementName());
             parentItem.addAll(newChildItem.getClonedValues());
