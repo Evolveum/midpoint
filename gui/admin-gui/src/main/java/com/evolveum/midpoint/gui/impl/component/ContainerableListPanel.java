@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -583,7 +585,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         DisplayType displayType = customColumn.getDisplay();
         PolyStringType label = displayType != null ? displayType.getLabel() : null;
         if (label != null) {
-            return createStringResource(label);
+            return createStringResource(LocalizationUtil.translatePolyString(label));
         }
 
         return createStringResource(getItemDisplayName(customColumn));
