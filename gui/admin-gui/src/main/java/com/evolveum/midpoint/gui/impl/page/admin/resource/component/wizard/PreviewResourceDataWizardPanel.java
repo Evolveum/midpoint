@@ -73,6 +73,11 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
             }
 
             @Override
+            protected boolean isReclassifyButtonVisible() {
+                return false;
+            }
+
+            @Override
             protected Consumer<Task> createProviderSearchTaskCustomizer() {
                 return (Consumer<Task> & Serializable) (task) -> task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
             }
