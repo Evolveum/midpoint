@@ -44,8 +44,7 @@ public class InboundMappingOptionalConfigurationStepPanel
             MappingType.F_EXCLUSIVE,
             MappingType.F_AUTHORITATIVE,
             MappingType.F_CHANNEL,
-            MappingType.F_EXCEPT_CHANNEL,
-            InboundMappingType.F_USE
+            MappingType.F_EXCEPT_CHANNEL
     );
 
     public InboundMappingOptionalConfigurationStepPanel(ResourceDetailsModel model,
