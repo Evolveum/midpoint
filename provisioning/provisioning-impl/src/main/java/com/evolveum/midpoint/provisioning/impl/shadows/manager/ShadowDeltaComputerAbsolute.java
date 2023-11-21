@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
 
 /**
  * Computes deltas to be applied to repository shadows.
@@ -57,7 +58,7 @@ import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowMana
  * These two situations are discriminated by {@link DeltaComputation#fromResource} flag.
  *
  * @see ShadowDeltaComputerRelative
- * @see ShadowUpdater#updateShadowInRepository(ProvisioningContext, ResourceObject, ObjectDelta, ShadowType, OperationResult)
+ * @see ShadowUpdater#updateShadowInRepository(ProvisioningContext, ResourceObject, ObjectDelta, RepoShadow, OperationResult)
  */
 @Component
 class ShadowDeltaComputerAbsolute {
@@ -71,14 +72,12 @@ class ShadowDeltaComputerAbsolute {
     /** Shadow must have LC state present. */
     @NotNull ObjectDelta<ShadowType> computeShadowDelta(
             @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repoShadow,
+            @NotNull RepoShadow repoShadow,
             @NotNull ResourceObject resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
             boolean fromResource)
             throws SchemaException, ConfigurationException {
-        ShadowLifecycleStateType shadowState = repoShadow.getShadowLifecycleState();
-        Preconditions.checkArgument(shadowState != null, "No LC state in %s", repoShadow);
-        return new DeltaComputation(ctx, repoShadow, resourceObject, resourceObjectDelta, shadowState, fromResource)
+        return new DeltaComputation(ctx, repoShadow, resourceObject, resourceObjectDelta, fromResource)
                 .execute();
     }
 
@@ -88,10 +87,9 @@ class ShadowDeltaComputerAbsolute {
     private class DeltaComputation {
 
         @NotNull private final ProvisioningContext ctx;
-        @NotNull private final ShadowType repoShadow;
+        @NotNull private final RepoShadow repoShadow;
         @NotNull private final ResourceObject resourceObject;
         @Nullable private final ObjectDelta<ShadowType> resourceObjectDelta;
-        private final ShadowLifecycleStateType shadowState;
         @NotNull private final ObjectDelta<ShadowType> computedShadowDelta;
         private final boolean cachingEnabled; // FIXME partial caching?!
         /**
@@ -102,17 +100,15 @@ class ShadowDeltaComputerAbsolute {
 
         private DeltaComputation(
                 @NotNull ProvisioningContext ctx,
-                @NotNull ShadowType repoShadow,
+                @NotNull RepoShadow repoShadow,
                 @NotNull ResourceObject resourceObject,
                 @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
-                ShadowLifecycleStateType shadowState,
                 boolean fromResource) {
             this.ctx = ctx;
             this.repoShadow = repoShadow;
             this.resourceObject = resourceObject;
             this.resourceObjectDelta = resourceObjectDelta;
-            this.shadowState = shadowState;
-            this.computedShadowDelta = repoShadow.asPrismObject().createModifyDelta();
+            this.computedShadowDelta = repoShadow.getPrismObject().createModifyDelta();
             this.cachingEnabled = ctx.isCachingEnabled();
             this.fromResource = fromResource;
         }
@@ -154,7 +150,8 @@ class ShadowDeltaComputerAbsolute {
             if (!effectiveMarkRef.isEmpty()) {
                 // We should check if marks computed on resourceObject without exclusions should
                 // be excluded and not propagated to repository layer.
-                ItemDelta<?, ?> delta = ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(repoShadow, effectiveMarkRef);
+                ItemDelta<?, ?> delta = ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(
+                        repoShadow.getBean(), effectiveMarkRef);
                 if (delta != null) {
                     computedShadowDelta.addModification(delta);
                 }
@@ -167,14 +164,14 @@ class ShadowDeltaComputerAbsolute {
             if (resourceObjectName != null && !resourceObjectName.equalsOriginalValue(repoShadowName)) {
                 PropertyDelta<?> shadowNameDelta = prismContext.deltaFactory().property()
                         .createModificationReplaceProperty(
-                                ShadowType.F_NAME, repoShadow.asPrismObject().getDefinition(), resourceObjectName);
+                                ShadowType.F_NAME, repoShadow.getPrismDefinition(), resourceObjectName);
                 computedShadowDelta.addModification(shadowNameDelta);
             }
         }
 
         private void updateAuxiliaryObjectClasses() {
             PropertyDelta<QName> auxOcDelta = ItemUtil.diff(
-                    repoShadow.asPrismObject().findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
+                    repoShadow.getPrismObject().findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
                     resourceObject.getPrismObject().findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
             if (auxOcDelta != null) {
                 computedShadowDelta.addModification(auxOcDelta);
@@ -182,18 +179,18 @@ class ShadowDeltaComputerAbsolute {
         }
 
         private void updateExistsFlag() {
-            // Resource object obviously exists in this case. However, we do not want to mess with isExists flag in some
-            // situations (e.g. in CORPSE state) as this existence may be just a quantum illusion.
-            if (shadowState == ShadowLifecycleStateType.CONCEIVED || shadowState == ShadowLifecycleStateType.GESTATING) {
+            // Resource object obviously exists in this case. However, we do not want to mess with isExists flag in
+            // GESTATING nor CORPSE state, as this existence may be just a quantum illusion.
+            if (!repoShadow.isInQuantumState()) {
                 PropertyDelta<Boolean> existsDelta = computedShadowDelta.createPropertyModification(ShadowType.F_EXISTS);
-                existsDelta.setRealValuesToReplace(true);
+                existsDelta.setRealValuesToReplace(resourceObject.doesExist());
                 computedShadowDelta.addModification(existsDelta);
             }
         }
 
         private void updatePrimaryIdentifierValue() throws SchemaException {
             String newPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, resourceObject);
-            String existingPrimaryIdentifierValue = repoShadow.getPrimaryIdentifierValue();
+            String existingPrimaryIdentifierValue = repoShadow.getBean().getPrimaryIdentifierValue();
             if (!Objects.equals(existingPrimaryIdentifierValue, newPrimaryIdentifierValue)) {
                 LOGGER.trace("Existing primary identifier value: {}, new: {}",
                         existingPrimaryIdentifierValue, newPrimaryIdentifierValue);
@@ -206,7 +203,7 @@ class ShadowDeltaComputerAbsolute {
         }
 
         private void clearCachingMetadata() {
-            if (repoShadow.getCachingMetadata() != null) {
+            if (repoShadow.getBean().getCachingMetadata() != null) {
                 computedShadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA);
             }
         }
@@ -231,7 +228,7 @@ class ShadowDeltaComputerAbsolute {
 
         private <T> void updatePropertyIfNeeded(ItemPath itemPath) {
             PrismProperty<T> currentProperty = resourceObject.getPrismObject().findProperty(itemPath);
-            PrismProperty<T> oldProperty = repoShadow.asPrismObject().findProperty(itemPath);
+            PrismProperty<T> oldProperty = repoShadow.getPrismObject().findProperty(itemPath);
             PropertyDelta<T> itemDelta = ItemUtil.diff(oldProperty, currentProperty);
             if (itemDelta != null && !itemDelta.isEmpty()) {
                 computedShadowDelta.addModification(itemDelta);
@@ -244,7 +241,8 @@ class ShadowDeltaComputerAbsolute {
             PrismContainer<Containerable> resourceObjectAttributes =
                     resourceObject.getPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
             PrismContainer<Containerable> repoShadowAttributes =
-                    repoShadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
+                    repoShadow.getPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
+            // TODO the object should have the composite definition by now!
             ResourceObjectDefinition ocDef = ctx.computeCompositeObjectDefinition(resourceObject.getBean());
 
             // For complete attributes we can proceed as before: take resourceObjectAttributes as authoritative.

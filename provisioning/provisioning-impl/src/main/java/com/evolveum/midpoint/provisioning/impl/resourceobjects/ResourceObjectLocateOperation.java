@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import com.evolveum.midpoint.provisioning.ucf.api.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,10 +16,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectHandler;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Holder;
@@ -27,6 +25,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Locates the resource object by (arbitrary/first) secondary identifier, implementing this method:
@@ -80,14 +80,15 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
                 .item(secondaryIdentifier.getSearchPath(), secondaryIdentifier.getDefinition())
                 .eq(secondaryIdentifier.getValue())
                 .build();
-        Holder<ResourceObject> objectHolder = new Holder<>();
-        UcfObjectHandler handler = (ucfObject, lResult) -> {
+        Holder<UcfObjectFound> objectHolder = new Holder<>();
+        UcfObjectHandler handler = (ucfObjectFound, lResult) -> {
             if (!objectHolder.isEmpty()) {
                 throw new IllegalStateException(
-                        String.format("More than one object found for %s (%s)",
-                                secondaryIdentifier, ctx.getExceptionDescription()));
+                        String.format("More than one object found for %s (%s): %s and %s (probably others as well)",
+                                secondaryIdentifier, ctx.getExceptionDescription(), objectHolder.getValue(), ucfObjectFound));
             }
-            objectHolder.setValue(ResourceObject.from(ucfObject));
+            stateCheck(ucfObjectFound.getErrorState().isSuccess(), "Errored object? %s", ucfObjectFound);
+            objectHolder.setValue(ucfObjectFound);
             return true;
         };
         try {
@@ -111,7 +112,11 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
                         null,
                         ctx.isAllowNotFound());
             }
-            return complete(objectHolder.getValue(), result);
+
+            UcfObjectFound ucfObjectFound = objectHolder.getValue();
+            var resourceObject = ctx.adoptUcfResourceObject(ucfObjectFound.getResourceObject());
+            return complete(resourceObject, result);
+
         } catch (GenericFrameworkException e) {
             throw new GenericConnectorException(
                     String.format("Generic exception in connector while searching for object (%s): %s",

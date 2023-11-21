@@ -13,7 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.provisioning.impl.InitializableObjectMixin;
+import com.evolveum.midpoint.provisioning.impl.LazilyInitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.AbstractShadowedEntity;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
@@ -22,7 +22,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 
 /**
- * Processing of retrieved resource objects that is common for search and sync operations.
+ * *Lazily-initializable* representation of retrieved resource objects and resource object changes.
  *
  * Main responsibilities:
  *
@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.MiscUtil;
  *
  * @see AbstractShadowedEntity
  */
-public abstract class AbstractResourceEntity implements InitializableObjectMixin {
+public abstract class AbstractLazilyInitializableResourceEntity implements LazilyInitializableMixin {
 
     /**
      * Context of the processing that was known when the search or sync operation was invoked.
@@ -60,12 +60,12 @@ public abstract class AbstractResourceEntity implements InitializableObjectMixin
     /** Useful beans local to the Resource objects package. */
     @NotNull final ResourceObjectsBeans b = ResourceObjectsBeans.get();
 
-    AbstractResourceEntity(@NotNull ProvisioningContext originalCtx) {
+    AbstractLazilyInitializableResourceEntity(@NotNull ProvisioningContext originalCtx) {
         this.originalCtx = originalCtx;
     }
 
     @Override
-    public void initializeInternalCommon(Task task, OperationResult result) {
+    public void initializeInternalCommon(Task task, OperationResult result) throws SchemaException, ConfigurationException {
         globalCtx = originalCtx.spawn(task);
     }
 
@@ -77,7 +77,10 @@ public abstract class AbstractResourceEntity implements InitializableObjectMixin
         return MiscUtil.getFirstNonNullRequired(effectiveCtx, globalCtx, originalCtx);
     }
 
-    /** Fills-in provisioning policy, simulated activation, associations, and so on. */
+    /**
+     * Fills-in provisioning policy, simulated activation, associations, and so on.
+     * Modifies provided {@link ResourceObject} instance.
+     */
     void completeResourceObject(
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObject resourceObject,
@@ -88,10 +91,6 @@ public abstract class AbstractResourceEntity implements InitializableObjectMixin
         ShadowType resourceObjectBean = resourceObject.getBean();
 
         ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resourceObjectBean, result);
-
-        if (resourceObjectBean.isExists() == null) {
-            resourceObjectBean.setExists(true);
-        }
 
         new ActivationConverter(ctx)
                 .completeActivation(resourceObject, result);

@@ -11,10 +11,14 @@ import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isDiscoveryAllo
 
 import java.util.*;
 import java.util.function.Supplier;
-import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -228,6 +232,10 @@ public class ProvisioningContext {
         return getObjectDefinitionRequired().getObjectClassName();
     }
 
+    private @Nullable QName getObjectClassNameIfKnown() {
+        return resourceObjectDefinition != null ? resourceObjectDefinition.getObjectClassName() : null;
+    }
+
     /**
      * Returns the "raw" object class definition (if the context is not wildcard).
      *
@@ -275,10 +283,11 @@ public class ProvisioningContext {
 
     // we don't use additionalAuxiliaryObjectClassQNames as we don't know if they are initialized correctly [med] TODO: reconsider this
     public @NotNull ResourceObjectDefinition computeCompositeObjectDefinition(
+            @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull Collection<QName> auxObjectClassQNames)
             throws SchemaException, ConfigurationException {
         if (auxObjectClassQNames.isEmpty()) {
-            return getObjectDefinitionRequired();
+            return objectDefinition;
         }
         Collection<ResourceObjectDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>(auxObjectClassQNames.size());
         for (QName auxObjectClassQName : auxObjectClassQNames) {
@@ -288,15 +297,19 @@ public class ProvisioningContext {
             }
             auxiliaryObjectClassDefinitions.add(auxObjectClassDef);
         }
-        return CompositeObjectDefinition.of(getObjectDefinitionRequired(), auxiliaryObjectClassDefinitions);
+        return CompositeObjectDefinition.of(objectDefinition, auxiliaryObjectClassDefinitions);
     }
 
     /**
      * Returns either real composite type definition, or just object definition - if that's not possible.
+     *
+     * USES the assumed definition from this context.
+     *
+     * TODO reconsider this method.
      */
     public @NotNull ResourceObjectDefinition computeCompositeObjectDefinition(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
-        return computeCompositeObjectDefinition(shadow.getAuxiliaryObjectClass());
+        return computeCompositeObjectDefinition(getObjectDefinitionRequired(), shadow.getAuxiliaryObjectClass());
     }
 
     public String getChannel() {
@@ -386,6 +399,13 @@ public class ProvisioningContext {
     public ProvisioningContext spawnForShadow(ShadowType shadow)
             throws SchemaException, ConfigurationException {
         return contextFactory.spawnForShadow(this, shadow);
+    }
+
+    /**
+     * Creates a context for a (presumably refined) definition on the same resource.
+     */
+    public ProvisioningContext spawnForDefinition(@NotNull ResourceObjectDefinition newDefinition) {
+        return new ProvisioningContext(this, task, newDefinition, wholeClass);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -666,6 +686,18 @@ public class ProvisioningContext {
         return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
     }
 
+    /** Beware! Creates a new context based on the shadow kind/intent/OC. TODO check if not redundant! */
+    public ProvisioningContext applyAttributesDefinition(@NotNull ResourceObject resourceObject)
+            throws SchemaException, ConfigurationException {
+        return getCaretaker().applyAttributesDefinitionInNewContext(this, resourceObject.getBean());
+    }
+
+    /** Beware! Creates a new context based on the shadow kind/intent/OC. TODO check if not redundant! */
+    public ProvisioningContext applyAttributesDefinition(@NotNull RepoShadow repoShadow)
+            throws SchemaException, ConfigurationException {
+        return getCaretaker().applyAttributesDefinitionInNewContext(this, repoShadow.getBean());
+    }
+
     /** Beware! Creates a new context based on the shadow kind/intent/OC. */
     public ProvisioningContext applyAttributesDefinition(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
@@ -673,23 +705,76 @@ public class ProvisioningContext {
     }
 
     /**
-     * Takes kind/intent/OC from the shadow, looks up the definition, and updates the shadow accordingly.
-     * Currently that means attribute definitions and shadow state.
+     * Takes kind/intent/OC from the shadow, looks up the definition, and updates
+     * the attribute definitions and shadow state accordingly.
      */
-    public ProvisioningContext adoptShadow(
-            @NotNull ShadowType shadow, @Nullable ObjectDelta<ShadowType> delta)
+    private ProvisioningContext adoptShadowBean(
+            @NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
-        var shadowCtx = applyAttributesDefinition(shadow);
-        if (delta != null) {
-            shadowCtx.applyAttributesDefinition(delta);
-        }
-        shadowCtx.updateShadowState(shadow);
-        return shadowCtx;
+        return applyAttributesDefinition(shadow);
     }
 
-    /** Just a convenience method. */
-    public ProvisioningContext adoptShadow(@NotNull ShadowType shadow) throws SchemaException, ConfigurationException {
-        return adoptShadow(shadow, null);
+    /** Creates a well-formed {@link RepoShadow} from provided raw shadow. */
+    public @NotNull RepoShadow adoptRepoShadow(@NotNull PrismObject<ShadowType> shadowPrismObject)
+            throws SchemaException, ConfigurationException {
+        return adoptRepoShadow(shadowPrismObject.asObjectable());
+    }
+
+    /** Just a convenience variant of {@link #adoptRepoShadow(PrismObject)}. */
+    public @NotNull RepoShadow adoptRepoShadow(@NotNull ShadowType shadowBean)
+            throws SchemaException, ConfigurationException {
+        var shadowCtx = adoptShadowBean(shadowBean);
+        shadowCtx.updateShadowState(shadowBean);
+        return RepoShadow.of(shadowBean, shadowCtx.getResource());
+    }
+
+    public @NotNull ResourceObject adoptNotYetExistingResourceObject(ShadowType bean)
+            throws SchemaException, ConfigurationException {
+        var shadowCtx = adoptShadowBean(bean);
+        return ResourceObject.fromBean(bean, false, shadowCtx.getObjectDefinitionRequired());
+    }
+
+    public @NotNull ExistingResourceObject adoptUcfResourceObject(@NotNull UcfResourceObject object)
+            throws SchemaException, ConfigurationException {
+        return adoptUcfResourceObjectBean(
+                object.bean(),
+                object.primaryIdentifierValue(),
+                true,
+                object);
+    }
+
+    public @NotNull ExistingResourceObject adoptDeletedUcfResourceObject(@NotNull UcfResourceObject object)
+            throws SchemaException, ConfigurationException {
+        return adoptUcfResourceObjectBean(
+                object.bean(),
+                object.primaryIdentifierValue(),
+                false,
+                object);
+    }
+
+    public @NotNull ExistingResourceObject adoptUcfResourceObjectBean(
+            @NotNull ShadowType bean, Object primaryIdentifierValue, boolean exists, @NotNull Object errorCtx)
+            throws SchemaException, ConfigurationException {
+
+        bean.setResourceRef(getResourceRef());
+        bean.setExists(exists);
+
+        var shadowObjectClassName = MiscUtil.requireNonNull(bean.getObjectClass(), () -> "No object class in " + errorCtx);
+        QName expectedObjectClassName = getObjectClassNameIfKnown(); // null e.g. for wildcard LS
+        if (expectedObjectClassName != null && !QNameUtil.match(shadowObjectClassName, expectedObjectClassName)) {
+            throw new IllegalStateException(
+                    "Object class mismatch in %s: expected %s, but was %s".formatted(
+                            errorCtx, expectedObjectClassName, shadowObjectClassName));
+        }
+
+        ResourceObjectDefinition objectDefinition = computeCompositeObjectDefinition(bean);
+
+        getCaretaker().applyAttributesDefinition(objectDefinition, bean);
+
+        return ExistingResourceObject.of(
+                bean,
+                objectDefinition,
+                primaryIdentifierValue);
     }
 
     /**
@@ -712,22 +797,12 @@ public class ProvisioningContext {
         getCaretaker().updateShadowState(this, shadow);
     }
 
-    public ShadowLifecycleStateType determineShadowState(ShadowType shadow) {
-        return getCaretaker().determineShadowState(this, shadow);
+    public void updateShadowState(RepoShadow shadow) {
+        getCaretaker().updateShadowState(this, shadow.getBean());
     }
 
-    // TODO not sure if it's ok here
-    public @NotNull ShadowType futurizeShadow(
-            @NotNull ShadowType repoShadow,
-            ShadowType resourceShadow,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            XMLGregorianCalendar now)
-            throws SchemaException, ConfigurationException {
-        if (!ProvisioningUtil.isFuturePointInTime(options)) {
-            return Objects.requireNonNullElse(resourceShadow, repoShadow);
-        } else {
-            return getCaretaker().applyPendingOperations(this, repoShadow, resourceShadow, false, now);
-        }
+    public ShadowLifecycleStateType determineShadowState(ShadowType shadow) {
+        return getCaretaker().determineShadowState(this, shadow);
     }
 
     public boolean isAllowNotFound() {
@@ -840,36 +915,36 @@ public class ProvisioningContext {
         return ResourceTypeUtil.isAvoidDuplicateValues(resource);
     }
 
-    public void checkProtectedObjectAddition(ShadowType repoShadow, OperationResult result)
+    public void checkProtectedObjectAddition(ResourceObject object, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         if (!ProvisioningUtil.isAddShadowEnabled(
                 getProtectedAccountPatterns(result),
-                repoShadow,
+                object.getBean(),
                 result)) {
             throw new SecurityViolationException(
-                    String.format("Cannot add protected resource object %s (%s)", repoShadow, getExceptionDescription()));
+                    String.format("Cannot add protected resource object %s (%s)", object, getExceptionDescription()));
         }
     }
 
-    public void checkProtectedObjectModification(ShadowType repoShadow, OperationResult result)
+    public void checkProtectedObjectModification(RepoShadow repoShadow, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         if (!ProvisioningUtil.isModifyShadowEnabled(
                 getProtectedAccountPatterns(result),
-                repoShadow,
+                repoShadow.getBean(),
                 result)) {
             throw new SecurityViolationException(
                     String.format("Cannot modify protected resource object (%s): %s", repoShadow, getExceptionDescription()));
         }
     }
 
-    public void checkProtectedObjectDeletion(ShadowType repoShadow, OperationResult result)
+    public void checkProtectedObjectDeletion(RepoShadow repoShadow, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         if (!ProvisioningUtil.isDeleteShadowEnabled(
                 getProtectedAccountPatterns(result),
-                repoShadow,
+                repoShadow.getBean(),
                 result)) {
             throw new SecurityViolationException(
                     String.format("Cannot delete protected resource object (%s): %s", repoShadow, getExceptionDescription()));
@@ -882,5 +957,14 @@ public class ProvisioningContext {
             throw new IllegalStateException("Resource without object definitions: " + resource);
         }
         return objectDefinitions.iterator().next();
+    }
+
+    public @Nullable Duration getGracePeriod() {
+        ResourceConsistencyType consistency = getResource().getConsistency();
+        if (consistency != null) {
+            return consistency.getPendingOperationGracePeriod();
+        } else {
+            return null;
+        }
     }
 }

@@ -129,7 +129,8 @@ public class ObjectOperationPolicyHelper {
         }
     }
 
-    public void updateEffectiveMarksAndPolicies(Collection<ResourceObjectPattern> protectedAccountPatterns,
+    public void updateEffectiveMarksAndPolicies(
+            Collection<ResourceObjectPattern> protectedAccountPatterns,
             ShadowType shadow, OperationResult result) throws SchemaException {
 
         Collection<ObjectReferenceType> effectiveMarkRefs = behaviour.getEffectiveMarkRefs(shadow, result);

@@ -74,13 +74,13 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
 
     @Override
     public void addAdoptedIfNeeded(@NotNull PrismProperty<?> property) throws SchemaException {
-        ResourceAttribute<?> attribute;
-        if (property instanceof ResourceAttribute<?>) {
-            attribute = (ResourceAttribute<?>) property;
+        ResourceAttribute<?> attributeToAdd;
+        if (property instanceof ResourceAttribute<?> attribute) {
+            attributeToAdd = attribute.clone();
         } else {
-            attribute = getResourceObjectDefinitionRequired().propertyToAttribute(property);
+            attributeToAdd = getResourceObjectDefinitionRequired().propertyToAttribute(property);
         }
-        add(attribute);
+        add(attributeToAdd);
     }
 
     @Override

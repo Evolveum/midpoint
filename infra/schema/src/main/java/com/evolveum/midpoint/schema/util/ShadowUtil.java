@@ -484,8 +484,7 @@ public class ShadowUtil {
     }
 
     public static boolean isExists(ShadowType shadow) {
-        Boolean exists = shadow.isExists();
-        return exists == null || exists;
+        return !Boolean.FALSE.equals(shadow.isExists());
     }
 
     public static boolean isExists(PrismObject<ShadowType> shadow) {
@@ -720,6 +719,19 @@ public class ShadowUtil {
                         .isEmpty();
     }
 
+    public static @Nullable Object getPrimaryIdentifierValue(
+            @NotNull ShadowType shadow, @NotNull ResourceObjectDefinition objectDefinition) throws SchemaException {
+        var identifiersOptional = ResourceObjectIdentifiers.optionalOf(objectDefinition, shadow);
+        if (identifiersOptional.isEmpty()) {
+            return null;
+        }
+        var identifiers = identifiersOptional.get();
+        if (!(identifiers instanceof ResourceObjectIdentifiers.WithPrimary withPrimary)) {
+            return null;
+        }
+        return withPrimary.getPrimaryIdentifierRequired().getRealValue();
+    }
+
     // TODO: may be useful to move to ResourceObjectClassDefinition later?
     public static void validateAttributeSchema(ShadowType shadow, ResourceObjectDefinition objectDefinition)
             throws SchemaException {
@@ -808,13 +820,11 @@ public class ShadowUtil {
                 }
             }
         }
-        ShadowType shadowType = shadow.asObjectable();
-        Boolean dead = shadowType.isDead();
-        if (dead != null && dead) {
+        ShadowType shadowBean = shadow.asObjectable();
+        if (isDead(shadowBean)) {
             sb.append(";DEAD");
         }
-        Boolean exists = shadowType.isExists();
-        if (exists != null && !exists) {
+        if (!isExists(shadowBean)) {
             sb.append(";NOTEXISTS");
         }
         sb.append(")");
@@ -986,5 +996,13 @@ public class ShadowUtil {
         return MiscUtil.requireNonNull(
                 getAttributesContainer(associationValue, ShadowAssociationType.F_IDENTIFIERS),
                 () -> "No identifiers in " + associationValue);
+    }
+
+    public static List<PendingOperationType> sortPendingOperations(List<PendingOperationType> pendingOperations) {
+        // Copy to mutable list that is not bound to the prism
+        List<PendingOperationType> sortedList = new ArrayList<>(pendingOperations.size());
+        sortedList.addAll(pendingOperations);
+        sortedList.sort((o1, o2) -> XmlTypeConverter.compare(o1.getRequestTimestamp(), o2.getRequestTimestamp()));
+        return sortedList;
     }
 }

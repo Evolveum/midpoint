@@ -74,6 +74,13 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         }
     }
 
+    public static @NotNull ResourceObjectIdentification<?> of(
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull Collection<? extends ResourceAttribute<?>> identifierAttributes) throws SchemaException {
+        return of(resourceObjectDefinition,
+                ResourceObjectIdentifiers.of(resourceObjectDefinition, identifierAttributes));
+    }
+
     public static @NotNull ResourceObjectIdentification.WithPrimary of(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull ResourceObjectIdentifiers.WithPrimary primaryIdentifiers) {
@@ -304,7 +311,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
     @Override
     public String debugDump(int indent) {
         var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", resourceObjectDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
         return sb.toString();
     }

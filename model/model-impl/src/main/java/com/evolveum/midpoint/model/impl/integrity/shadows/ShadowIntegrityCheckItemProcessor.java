@@ -383,45 +383,46 @@ class ShadowIntegrityCheckItemProcessor {
     }
 
     private void doCheckNormalization(ShadowCheckResult checkResult, ResourceAttributeDefinition<?> identifier, String value) throws SchemaException {
-        QName matchingRuleQName = identifier.getMatchingRuleQName();
-        if (matchingRuleQName == null) {
-            return;
-        }
-
-        MatchingRule<Object> matchingRule;
-        try {
-            matchingRule = activityRun.getBeans().matchingRuleRegistry
-                    .getMatchingRule(matchingRuleQName, identifier.getTypeName());
-        } catch (SchemaException e) {
-            checkResult.recordError(
-                    ShadowStatistics.OTHER_FAILURE, new SchemaException("Couldn't retrieve matching rule for identifier " +
-                    identifier.getItemName() + " (rule name = " + matchingRuleQName + ")"));
-            return;
-        }
-
-        Object normalizedValue = matchingRule.normalize(value);
-        if (!(normalizedValue instanceof String)) {
-            checkResult.recordError(
-                    ShadowStatistics.OTHER_FAILURE, new SchemaException("Normalized value is not a string, it's " + normalizedValue.getClass() +
-                    " (identifier " + identifier.getItemName() + ", value " + value));
-            return;
-        }
-        if (value.equals(normalizedValue)) {
-            return;
-        }
-        String normalizedStringValue = (String) normalizedValue;
-
-        checkResult.recordError(ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE,
-                new SchemaException("Non-normalized value of identifier " + identifier.getItemName()
-                        + ": " + value + " (normalized form: " + normalizedValue + ")"));
-
-        if (getConfiguration().fixNormalization) {
-            //noinspection rawtypes
-            PropertyDelta delta = identifier.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, identifier.getItemName()));
-            //noinspection unchecked
-            delta.setRealValuesToReplace(normalizedStringValue);
-            checkResult.addFixDelta(delta, ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE);
-        }
+        // FIXME implement after resolving attribute normalization
+//        QName matchingRuleQName = identifier.getMatchingRuleQName();
+//        if (matchingRuleQName == null) {
+//            return;
+//        }
+//
+//        MatchingRule<Object> matchingRule;
+//        try {
+//            matchingRule = activityRun.getBeans().matchingRuleRegistry
+//                    .getMatchingRule(matchingRuleQName, identifier.getTypeName());
+//        } catch (SchemaException e) {
+//            checkResult.recordError(
+//                    ShadowStatistics.OTHER_FAILURE, new SchemaException("Couldn't retrieve matching rule for identifier " +
+//                    identifier.getItemName() + " (rule name = " + matchingRuleQName + ")"));
+//            return;
+//        }
+//
+//        Object normalizedValue = matchingRule.normalize(value);
+//        if (!(normalizedValue instanceof String)) {
+//            checkResult.recordError(
+//                    ShadowStatistics.OTHER_FAILURE, new SchemaException("Normalized value is not a string, it's " + normalizedValue.getClass() +
+//                    " (identifier " + identifier.getItemName() + ", value " + value));
+//            return;
+//        }
+//        if (value.equals(normalizedValue)) {
+//            return;
+//        }
+//        String normalizedStringValue = (String) normalizedValue;
+//
+//        checkResult.recordError(ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE,
+//                new SchemaException("Non-normalized value of identifier " + identifier.getItemName()
+//                        + ": " + value + " (normalized form: " + normalizedValue + ")"));
+//
+//        if (getConfiguration().fixNormalization) {
+//            //noinspection rawtypes
+//            PropertyDelta delta = identifier.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, identifier.getItemName()));
+//            //noinspection unchecked
+//            delta.setRealValuesToReplace(normalizedStringValue);
+//            checkResult.addFixDelta(delta, ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE);
+//        }
     }
 
     private void addIdentifierValue(ObjectTypeContext context, QName identifierName, String identifierValue, PrismObject<ShadowType> shadow) {

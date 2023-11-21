@@ -14,8 +14,6 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.util.exception.*;
@@ -282,16 +280,18 @@ public interface ConnectorInstance {
      * returning of new object state and the caller should explicitly invoke fetchObject() in case that the
      * information is needed.
      *
-     * @throws SchemaException resource schema violation
      * @return created object attributes. May be null.
+     * @throws SchemaException resource schema violation
      * @throws ObjectAlreadyExistsException object already exists on the resource
      */
-    AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
+    UcfAddReturnValue addObject(
             PrismObject<? extends ShadowType> object, UcfExecutionContext ctx, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException;
 
     /**
+     * TODO the meaning of the `shadow` parameter ... it seems to be required e.g. by manual connectors
+     *
      * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
      *  and what results are we not sure about.
      *
@@ -300,7 +300,7 @@ public interface ConnectorInstance {
      *
      * 1. Modifications that were requested and executed.
      * 2. Any other modifications that resulted from the operation, i.e. side effects. An example is UID change
-     *    stemming from object rename. Or DN change stemming from CN change.
+     * stemming from object rename. Or DN change stemming from CN change.
      *
      * The exact content of the returned set depends on the actual connector used. Some connectors return requested
      * and executed operations, some do not. Also some connectors return side effects, some only part of them,
@@ -312,7 +312,7 @@ public interface ConnectorInstance {
      *
      * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
      */
-    AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
+    @Nullable UcfModifyReturnValue modifyObject(
             ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
@@ -327,7 +327,7 @@ public interface ConnectorInstance {
      *
      * Currently, some implementations may accept secondary-only identification. Some (e.g. ConnId) may not.
      */
-    AsynchronousOperationResult deleteObject(
+    UcfDeleteReturnValue deleteObject(
             @NotNull ResourceObjectIdentification<?> identification,
             @Nullable PrismObject<ShadowType> shadow,
             @Nullable UcfExecutionContext ctx,

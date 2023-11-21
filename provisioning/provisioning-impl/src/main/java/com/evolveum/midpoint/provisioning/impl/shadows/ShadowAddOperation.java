@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createResourceFailureDescription;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.getAdditionalOperationDesc;
-import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
 
@@ -18,25 +17,23 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.*;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectAddReturnValue;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -48,8 +45,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
-import org.jetbrains.annotations.Nullable;
-
 /**
  * Represents/executes "add" operation on a shadow - either invoked directly, or during refresh or propagation.
  * See the variants of the `execute` method.
@@ -58,15 +53,15 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowAddOperation.class);
 
-    @NotNull private final ShadowType resourceObjectToAdd;
+    @NotNull private final ResourceObject resourceObjectToAdd;
 
     private ShadowAddOperation(
             @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType resourceObjectToAdd,
+            @NotNull ResourceObject resourceObjectToAdd,
             OperationProvisioningScriptsType scripts,
             @NotNull AddOperationState opState,
             ProvisioningOperationOptions options) {
-        super(ctx, opState, scripts, options, resourceObjectToAdd.asPrismObject().createAddDelta());
+        super(ctx, opState, scripts, options, resourceObjectToAdd.getPrismObject().createAddDelta());
         this.resourceObjectToAdd = resourceObjectToAdd;
     }
 
@@ -92,7 +87,8 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
         ctx.setOperationContext(context);
         ctx.checkExecutionFullyPersistent();
         AddOperationState opState = new AddOperationState();
-        return new ShadowAddOperation(ctx, resourceObjectToAdd, scripts, opState, options)
+        var resourceObject = ctx.adoptNotYetExistingResourceObject(resourceObjectToAdd);
+        return new ShadowAddOperation(ctx, resourceObject, scripts, opState, options)
                 .execute(result);
     }
 
@@ -118,7 +114,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
 
     static AddOperationState executeInRefresh(
             @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repoShadow,
+            @NotNull RepoShadow repoShadow,
             @NotNull ObjectDelta<ShadowType> pendingDelta,
             @NotNull PendingOperationType pendingOperation,
             ProvisioningOperationOptions options,
@@ -128,15 +124,17 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             ExpressionEvaluationException, EncryptionException {
         AddOperationState opState = AddOperationState.fromPendingOperation(repoShadow, pendingOperation);
         ShadowType resourceObjectToAdd = pendingDelta.getObjectToAdd().asObjectable();
-        new ShadowAddOperation(ctx, resourceObjectToAdd, null, opState, options)
+        ctx.applyAttributesDefinition(resourceObjectToAdd);
+        var resourceObject = ResourceObject.fromBean(resourceObjectToAdd, false, ctx.getObjectDefinitionRequired());
+        new ShadowAddOperation(ctx, resourceObject, null, opState, options)
                 .execute(result);
         return opState;
     }
 
     static void executeInPropagation(
             @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repoShadow,
-            @NotNull ShadowType resourceObjectToAdd, // May include e.g. additional modifications
+            @NotNull RepoShadow repoShadow,
+            @NotNull ResourceObject resourceObjectToAdd, // May include e.g. additional modifications
             @NotNull List<PendingOperationType> sortedOperations,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
@@ -156,8 +154,8 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
 
         try {
             checkAttributesPresent();
-            ctx.applyAttributesDefinition(resourceObjectToAdd);
-            ctx.validateSchemaIfConfigured(resourceObjectToAdd);
+            ctx.applyAttributesDefinition(resourceObjectToAdd); // TODO is this necessary?
+            ctx.validateSchemaIfConfigured(resourceObjectToAdd.getBean());
 
             accessChecker.checkAddAccess(ctx, resourceObjectToAdd, result);
 
@@ -175,6 +173,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
 
             // This is where the repo shadow is created or updated (if needed)
             resultRecorder.recordAddResult(this, result);
+
             setOid();
             sendSuccessOrInProgressNotification(opState.getRepoShadow(), result);
             setParentOperationStatus(result); // FIXME
@@ -186,9 +185,9 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             // TODO why a similar code is not present for modify and delete operations?
             ShadowsLocalBeans.get().eventDispatcher.notifyFailure(
                     createResourceFailureDescription(
-                            resourceObjectToAdd,
+                            resourceObjectToAdd.getBean(),
                             ctx.getResource(),
-                            resourceObjectToAdd.asPrismObject().createAddDelta(),
+                            resourceObjectToAdd.getPrismObject().createAddDelta(),
                             e.getMessage()),
                     ctx.getTask(), result);
             throw e;
@@ -211,7 +210,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
         } catch (ObjectAlreadyExistsException e) {
 
             LOGGER.trace("Object already exists error when trying to add {}, exploring the situation",
-                    ShadowUtil.shortDumpShadowLazily(resourceObjectToAdd));
+                    resourceObjectToAdd.shortDumpLazily());
 
             // This exception may still be OK in some cases. Such as:
             // We are trying to add a shadow to a semi-manual connector.
@@ -267,21 +266,20 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             ConnectorOperationOptions connOptions, boolean skipExplicitUniquenessCheck, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-        AsynchronousOperationReturnValue<ShadowType> asyncResult =
+        ResourceObjectAddReturnValue addOpResult =
                 resourceObjectConverter.addResourceObject(
                         ctx, resourceObjectToAdd, scripts, connOptions, skipExplicitUniquenessCheck, result);
-        opState.recordRealAsynchronousResult(asyncResult);
+        opState.recordRealAsynchronousResult(addOpResult);
 
-        ShadowType createdShadow = asyncResult.getReturnValue();
-        if (createdShadow != null) {
+        ResourceObject createdObject = addOpResult.getReturnValue();
+        if (createdObject != null) {
             setExecutedDelta(
-                    createdShadow.asPrismObject().createAddDelta());
+                    createdObject.getPrismObject().createAddDelta());
         }
     }
 
     private void checkAttributesPresent() throws SchemaException {
-        PrismContainer<?> attributesContainer = resourceObjectToAdd.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
-        if (attributesContainer == null || attributesContainer.isEmpty()) {
+        if (resourceObjectToAdd.getAttributes().isEmpty()) {
             throw new SchemaException("Attempt to add resource object without any attributes: " + resourceObjectToAdd);
         }
     }
@@ -290,7 +288,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             throws SchemaException {
 
         Collection<PrismObject<ShadowType>> previousDeadShadows =
-                shadowFinder.searchForPreviousDeadShadows(ctx, resourceObjectToAdd, result);
+                repoShadowFinder.searchForPreviousDeadShadows(ctx, resourceObjectToAdd, result);
         if (previousDeadShadows.isEmpty()) {
             return false;
         }
@@ -341,7 +339,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
 
         ConstraintsChecker checker = new ConstraintsChecker();
         checker.setProvisioningContext(ctx);
-        checker.setShadowObject(resourceObjectToAdd.asPrismObject());
+        checker.setShadowObject(resourceObjectToAdd.getPrismObject());
         checker.setShadowOid(shadowOid);
         checker.setConstraintViolationConfirmer(shadow -> isNotDeadOrReaping(shadow, ctx));
         checker.setDoNotUseCache();
@@ -384,19 +382,16 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
         return LOGGER;
     }
 
-    public @NotNull ShadowType getResourceObjectToAdd() {
+    public @NotNull ResourceObject getResourceObjectToAdd() {
         return resourceObjectToAdd;
     }
 
-    public @NotNull ResourceObject getResourceObjectAddedOrToAdd() throws SchemaException {
-        ShadowType createdShadow = opState.getCreatedShadow();
-        // TODO don't use null for dead shadows here!!!
-        if (opState.wasStarted() && createdShadow != null) {
-            @Nullable Object primaryIdentifierValue = determinePrimaryIdentifierValue(ctx, createdShadow);
-            return ResourceObject.fromBean(createdShadow, primaryIdentifierValue);
+    public @NotNull AbstractShadow getShadowAddedOrToAdd() {
+        var createdObject = opState.getCreatedObject();
+        if (opState.wasStarted() && createdObject != null) {
+            return createdObject;
         } else {
-            @Nullable Object primaryIdentifierValue = determinePrimaryIdentifierValue(ctx, resourceObjectToAdd);
-            return ResourceObject.fromBean(resourceObjectToAdd, primaryIdentifierValue);
+            return resourceObjectToAdd;
         }
     }
 
@@ -404,10 +399,11 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
         String oid = Objects.requireNonNull(opState.getRepoShadowOid(), "No shadow OID after ADD operation");
 
         // Setting OID everywhere is a bit brutal. But we want to make sure all returned objects/deltas will have it.
+        // TODO is this really correct? We don't need/want it in resource objects, only in the shadows.
         resourceObjectToAdd.setOid(oid);
         requestedDelta.setOid(oid);
-        if (opState.getCreatedShadow() != null) {
-            opState.getCreatedShadow().setOid(oid);
+        if (opState.getCreatedObject() != null) {
+            opState.getCreatedObject().setOid(oid);
         }
         if (executedDelta != null) {
             executedDelta.setOid(oid);

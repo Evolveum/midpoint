@@ -7,14 +7,14 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import com.evolveum.midpoint.provisioning.impl.AlreadyInitializedObject;
-
-import com.evolveum.midpoint.provisioning.util.ErrorState;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.provisioning.impl.InitializableObjectMixin;
+import com.evolveum.midpoint.provisioning.impl.AlreadyInitializedObject;
+import com.evolveum.midpoint.provisioning.impl.LazilyInitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectFound;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
@@ -25,14 +25,14 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * Represents a lazily-initializable resource object (e.g. an account) found by
+ * Represents a *lazily-initializable* resource object (e.g. an account) found by
  * {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResourceObjectHandler, ObjectQuery,
  * boolean, FetchErrorReportingMethodType, OperationResult)}.
  *
@@ -40,37 +40,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @see CompleteResourceObject
  */
 @Experimental
-public class ResourceObjectFound extends AbstractResourceEntity {
+public class ResourceObjectFound extends AbstractLazilyInitializableResourceEntity {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectFound.class);
 
+    /** The source information. */
+    @NotNull private final UcfObjectFound ucfObjectFound;
+
     /**
-     * Resource object that has been found.
+     * If success:
      *
-     * 1. When created: Object as received from UCF.
+     * - Resource object that has been found and properly initialized by
+     * {@link AbstractLazilyInitializableResourceEntity#completeResourceObject(ProvisioningContext, ResourceObject,
+     * boolean, OperationResult)}.
      *
-     * 2. When initialized-OK: The same object, with:
-     *    a. protected flag set,
-     *    b. exists flag not null,
-     *    c. simulated activation done,
-     *    d. associations fetched (if requested).
+     * If error (either in lower layers or in this one):
      *
-     * 3. When initialized-error:
-     *    a. has primary identifier present, assuming: object class known + primary identifier value known.
+     * - anything that was available (may be even almost empty object)
      *
-     * 4. When initialized-not-applicable:
-     *    a. Nothing guaranteed.
-     *
-     * 5. If initialization failed:
-     *    a. Nothing guaranteed.
+     * Filled-in at the start of the initialization, right after {@link #globalCtx}.
      */
-    @NotNull private final ResourceObject resourceObject;
+    private ExistingResourceObject resourceObject;
 
     /** State of the initialization of this object. */
     @NotNull private final InitializationState initializationState = InitializationState.created();
-
-    /** Status of the UCF-level processing of the object. It serves as a prerequisite for the processing on this level. */
-    @NotNull private final AlreadyInitializedObject ucfObjectStatus;
 
     /** Should the associations be fetched during initialization? Probably will be replaced by "retrieve" options. */
     private final boolean fetchAssociations;
@@ -79,38 +72,38 @@ public class ResourceObjectFound extends AbstractResourceEntity {
     private final ResourceObjectsBeans b = ResourceObjectsBeans.get();
 
     ResourceObjectFound(
-            @NotNull UcfObjectFound ucfObject,
+            @NotNull UcfObjectFound ucfObjectFound,
             @NotNull ProvisioningContext ctx,
             boolean fetchAssociations) {
         super(ctx);
-        this.resourceObject = ResourceObject.from(ucfObject);
-        this.ucfObjectStatus = AlreadyInitializedObject.fromUcfErrorState(ucfObject.getErrorState());
-        this.fetchAssociations = fetchAssociations;
-    }
-
-    ResourceObjectFound(
-            @NotNull ResourceObject resourceObject,
-            @NotNull ProvisioningContext ctx,
-            boolean fetchAssociations) {
-        super(ctx);
-        this.resourceObject = resourceObject;
-        this.ucfObjectStatus = AlreadyInitializedObject.of(ErrorState.ok());
+        this.ucfObjectFound = ucfObjectFound;
         this.fetchAssociations = fetchAssociations;
     }
 
     @Override
-    public @NotNull InitializableObjectMixin getPrerequisite() {
-        return ucfObjectStatus;
+    public @NotNull LazilyInitializableMixin getPrerequisite() {
+        return AlreadyInitializedObject.fromUcfErrorState(
+                ucfObjectFound.getErrorState());
+    }
+
+    @Override
+    public void initializeInternalCommon(Task task, OperationResult result) throws SchemaException, ConfigurationException {
+        super.initializeInternalCommon(task, result);
+        resourceObject = globalCtx.adoptUcfResourceObject(
+                ucfObjectFound.getResourceObject());
     }
 
     @Override
     public void initializeInternalForPrerequisiteOk(Task task, OperationResult result) throws CommonException {
-        completeResourceObject(globalCtx, resourceObject, fetchAssociations, result);
+        completeResourceObject(
+                globalCtx, resourceObject, fetchAssociations, result);
     }
 
     @Override
     public void initializeInternalForPrerequisiteError(Task task, OperationResult result) throws CommonException {
-        addFakePrimaryIdentifierIfNeeded();
+        ResourceObjectDefinition definition = globalCtx.getObjectDefinitionRequired();
+        ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(resourceObject.bean, definition);
+        b.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(attrContainer, getPrimaryIdentifierValue(), definition);
     }
 
     @Override
@@ -118,33 +111,21 @@ public class ResourceObjectFound extends AbstractResourceEntity {
         throw new IllegalStateException("UCF does not signal 'not applicable' state");
     }
 
-    private void addFakePrimaryIdentifierIfNeeded() throws SchemaException {
-        ResourceObjectDefinition definition = globalCtx.getObjectDefinitionRequired();
-        ResourceAttributeContainer attrContainer =
-                ShadowUtil.getOrCreateAttributesContainer(resourceObject.getBean(), definition);
-        b.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(attrContainer, getPrimaryIdentifierValue(), definition);
-    }
-
-    public @NotNull ResourceObject getResourceObject() {
+    public @NotNull ExistingResourceObject getResourceObject() {
         return resourceObject;
     }
 
     public @NotNull ShadowType getBean() {
-        return resourceObject.getBean();
+        return getResourceObject().getBean();
     }
 
     public Object getPrimaryIdentifierValue() {
-        return resourceObject.getPrimaryIdentifierValue();
+        return getResourceObject().getPrimaryIdentifierValue();
     }
 
     @Override
     public Trace getLogger() {
         return LOGGER;
-    }
-
-    @NotNull CompleteResourceObject asCompleteResourceObject() {
-        checkInitialized();
-        return CompleteResourceObject.of(resourceObject, initializationState.getErrorState());
     }
 
     @Override
@@ -154,7 +135,7 @@ public class ResourceObjectFound extends AbstractResourceEntity {
 
     @Override
     public String toString() {
-        return "FetchedResourceObject{" +
+        return getClass().getSimpleName() + "{" +
                 "resourceObject=" + resourceObject +
                 ", initializationState=" + initializationState +
                 '}';
@@ -167,9 +148,13 @@ public class ResourceObjectFound extends AbstractResourceEntity {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(getClass().getSimpleName());
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "initializationState", String.valueOf(initializationState), indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "ucfProcessingStatus", String.valueOf(ucfObjectStatus), indent + 1);
+        if (resourceObject != null) {
+            DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
+            DebugUtil.debugDumpWithLabelLn(sb, "UCF object error state", ucfObjectFound.getErrorState(), indent + 1);
+        } else {
+            DebugUtil.debugDumpWithLabelLn(sb, "ucfObjectFound", ucfObjectFound, indent + 1);
+        }
+        DebugUtil.debugDumpWithLabel(sb, "initializationState", String.valueOf(initializationState), indent + 1);
         return sb.toString();
     }
 }

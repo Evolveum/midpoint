@@ -7,23 +7,18 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.util.SimulationUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.google.common.base.Preconditions;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.util.SimulationUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Information about a resource attribute that is available from the connector and
@@ -340,8 +335,7 @@ public interface ResourceAttributeDefinition<T>
         return SimulationUtil.isVisible(getLifecycleState(), taskExecutionMode);
     }
 
-    default @NotNull MatchingRule<T> getMatchingRule() throws SchemaException {
-        return SchemaService.get().matchingRuleRegistry()
-                .getMatchingRule(getMatchingRuleQName(), getTypeName());
-    }
+    /** Note that attributes must always have static Java type. */
+    @Override
+    @NotNull Class<T> getTypeClass();
 }

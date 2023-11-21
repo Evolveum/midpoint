@@ -21,12 +21,14 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.normalization.Normalizer;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.AssertJUnit;
@@ -262,6 +264,11 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
                 @Override
                 public PolyString normalize(PolyString original) throws SchemaException {
                     return new PolyString(nameMatchingRule.normalize(original.getOrig()));
+                }
+
+                @Override
+                public @NotNull Normalizer<?> getNormalizer() {
+                    throw new UnsupportedOperationException();
                 }
 
             };

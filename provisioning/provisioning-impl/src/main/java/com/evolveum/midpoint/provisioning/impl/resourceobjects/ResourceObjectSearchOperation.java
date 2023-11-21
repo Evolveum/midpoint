@@ -108,7 +108,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
                         "Security violation communicating with the connector " + connector + ": " + ex.getMessage(), ex);
             } catch (TunnelException e) {
                 Throwable cause = e.getCause();
-                String message = "Problem while communicating with the connector " + connector + ": " + cause.getMessage();
+                String message = "Problem while executing the search using connector " + connector + ": " + cause.getMessage();
                 Throwable enriched = MiscUtil.createSame(cause, message);
                 if (cause instanceof SchemaException) {
                     throw (SchemaException) enriched;
@@ -145,7 +145,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
     private boolean handleObjectFound(UcfObjectFound ucfObject, OperationResult parentResult) {
         ResourceObjectFound objectFound = new ResourceObjectFound(ucfObject, ctx, fetchAssociations);
 
-        // in order to utilize the cache right from the beginning...
+        // In order to utilize the cache right from the beginning.
         RepositoryCache.enterLocalCaches(b.cacheConfigurationManager);
         try {
 

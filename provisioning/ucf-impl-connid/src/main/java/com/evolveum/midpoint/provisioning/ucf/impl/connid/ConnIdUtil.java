@@ -175,11 +175,10 @@ public class ConnIdUtil {
             return newEx;
         }
 
-        if (connIdException instanceof InvalidAttributeValueException) {
+        if (connIdException instanceof InvalidAttributeValueException iave) {
             // This is quite a special and flexible exception (one of the newer exceptions in ConnId).
             // Therefore it desires a special handling.
             Exception newEx;
-            InvalidAttributeValueException iave = (InvalidAttributeValueException)connIdException;
             if (iave.getAffectedAttributeNames() == null || iave.getAffectedAttributeNames().isEmpty()) {
                 newEx = new SchemaException(iave.getMessage());
             } else {

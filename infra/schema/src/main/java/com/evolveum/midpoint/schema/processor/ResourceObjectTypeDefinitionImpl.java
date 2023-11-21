@@ -386,4 +386,9 @@ public final class ResourceObjectTypeDefinitionImpl
         sb.append(",kind=").append(getKind().value());
         sb.append(",intent=").append(getIntent());
     }
+
+    @Override
+    public @NotNull String getShortIdentification() {
+        return identification.toString();
+    }
 }

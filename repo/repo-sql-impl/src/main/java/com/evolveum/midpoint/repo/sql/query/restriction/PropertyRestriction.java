@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.sql.query.restriction;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang3.ClassUtils;
+import com.evolveum.midpoint.util.MiscUtil;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ComparativeFilter;
@@ -132,25 +132,18 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
             return value;   // nothing to check here
         }
 
-        Class<?> expectedWrappedType;
-        if (expectedType.isPrimitive()) {
-            expectedWrappedType = ClassUtils.primitiveToWrapper(expectedType);
-        } else {
-            expectedWrappedType = expectedType;
-        }
+        Class<?> expectedWrappedType = MiscUtil.resolvePrimitiveIfNecessary(expectedType);
 
         Object adaptedValue;
         //todo remove after some time [lazyman]
         //attempt to fix value type for polystring (if it was string in filter we create polystring from it)
-        if (PolyString.class.equals(expectedWrappedType) && value instanceof String) {
+        if (PolyString.class.equals(expectedWrappedType) && value instanceof String orig) {
             LOGGER.debug("Trying to query PolyString value but filter contains String '{}'.", filter);
-            String orig = (String) value;
             adaptedValue = new PolyString(orig, context.getPrismContext().getDefaultPolyStringNormalizer().normalize(orig));
-        } else if (PolyString.class.equals(expectedWrappedType) && value instanceof PolyStringType) {
+        } else if (PolyString.class.equals(expectedWrappedType) && value instanceof PolyStringType polyString) {
             //attempt to fix value type for polystring (if it was polystring type in filter we create polystring from it)
             LOGGER.debug("Trying to query PolyString value but filter contains PolyStringType '{}'.", filter);
-            PolyStringType type = (PolyStringType) value;
-            adaptedValue = new PolyString(type.getOrig(), type.getNorm());
+            adaptedValue = new PolyString(polyString.getOrig(), polyString.getNorm());
         } else if (String.class.equals(expectedWrappedType) && value instanceof QName) {
             //eg. shadow/objectClass
             adaptedValue = RUtil.qnameToString((QName) value);

@@ -840,7 +840,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         // WHEN
         when();
-        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+        provisioningService.modifyObject(
+                ShadowType.class, delta.getOid(), delta.getModifications(),
                 null, null, task, result);
 
         // THEN

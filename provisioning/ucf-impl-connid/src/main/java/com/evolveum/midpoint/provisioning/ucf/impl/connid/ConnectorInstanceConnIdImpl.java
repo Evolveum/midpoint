@@ -64,8 +64,6 @@ import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -699,7 +697,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
+    public UcfAddReturnValue addObject(
             PrismObject<? extends ShadowType> shadow, UcfExecutionContext ctx, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException {
@@ -857,19 +855,18 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         connIdResult.recordSuccess();
 
         result.computeStatus();
-        return AsynchronousOperationReturnValue.wrap(attributesContainer.getAttributes(), result);
+        return UcfAddReturnValue.of(attributesContainer.getAttributes(), result);
     }
 
     private void validateShadow(PrismObject<? extends ShadowType> shadow, String operation, boolean requireUid) {
         if (shadow == null) {
-            throw new IllegalArgumentException("Cannot " + operation + " null " + shadow);
+            throw new IllegalArgumentException("Cannot " + operation + " null shadow");
         }
         PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer == null) {
             throw new IllegalArgumentException("Cannot " + operation + " shadow without attributes container");
         }
-        ResourceAttributeContainer resourceAttributesContainer = ShadowUtil
-                .getAttributesContainer(shadow);
+        ResourceAttributeContainer resourceAttributesContainer = ShadowUtil.getAttributesContainer(shadow);
         if (resourceAttributesContainer == null) {
             throw new IllegalArgumentException("Cannot " + operation
                     + " shadow without attributes container of type ResourceAttributeContainer, got "
@@ -890,7 +887,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     //     (other identifiers are ignored on input and output of this method)
 
     @Override
-    public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
+    public @NotNull UcfModifyReturnValue modifyObject(
             ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
@@ -909,7 +906,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             if (changes.isEmpty()) {
                 LOGGER.debug("No modifications for connector object specified. Skipping processing.");
                 result.recordNotApplicable();
-                return AsynchronousOperationReturnValue.wrap(new ArrayList<>(0), result);
+                return UcfModifyReturnValue.of(result);
             }
 
             UcfExecutionContext.checkExecutionFullyPersistent(ctx);
@@ -933,7 +930,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     /**
      * Modifies object by using new delta update operations.
      */
-    private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObjectDelta(
+    private UcfModifyReturnValue modifyObjectDelta(
             ResourceObjectIdentification.WithPrimary identification,
             ObjectClass objClass,
             Uid uid,
@@ -1031,7 +1028,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
         Collection<PropertyModificationOperation<?>> knownExecutedOperations =
                 convertToExecutedOperations(knownExecutedChanges, identification, objectClassDef);
-        return AsynchronousOperationReturnValue.wrap(knownExecutedOperations, result);
+        return UcfModifyReturnValue.of(knownExecutedOperations, result);
     }
 
     private Collection<PropertyModificationOperation<?>> convertToExecutedOperations(
@@ -1084,7 +1081,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     /**
      * Modifies object by using old add/delete/replace attribute operations.
      */
-    private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObjectUpdate(
+    private UcfModifyReturnValue modifyObjectUpdate(
             ResourceObjectIdentification.WithPrimary identification,
             ObjectClass objClass,
             Uid uid,
@@ -1308,7 +1305,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             sideEffectChanges.add(
                     new PropertyModificationOperation<>(uidDelta));
         }
-        return AsynchronousOperationReturnValue.wrap(sideEffectChanges, result);
+        return UcfModifyReturnValue.of(sideEffectChanges, result);
     }
 
     private PropertyDelta<?> createNameDelta(
@@ -1393,7 +1390,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public AsynchronousOperationResult deleteObject(
+    public UcfDeleteReturnValue deleteObject(
             @NotNull ResourceObjectIdentification<?> identification,
             @Nullable PrismObject<ShadowType> shadow,
             @Nullable UcfExecutionContext ctx,
@@ -1462,7 +1459,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             result.close();
         }
 
-        return AsynchronousOperationResult.wrap(result);
+        return UcfDeleteReturnValue.of(result);
     }
 
     @Override

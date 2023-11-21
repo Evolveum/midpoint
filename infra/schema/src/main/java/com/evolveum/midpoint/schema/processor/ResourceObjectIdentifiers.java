@@ -85,11 +85,21 @@ public abstract class ResourceObjectIdentifiers implements Serializable, DebugDu
     public static @NotNull ResourceObjectIdentifiers of(
             @NotNull ResourceObjectDefinition objDef, @NotNull ShadowType repoShadow)
             throws SchemaException {
+        var optional = optionalOf(objDef, repoShadow);
+        MiscUtil.argCheck(optional.isPresent(), "No identifiers in %s", repoShadow);
+        return optional.get();
+    }
+
+    /** Creates identifiers from a shadow, if possible. */
+    public static @NotNull Optional<ResourceObjectIdentifiers> optionalOf(
+            @NotNull ResourceObjectDefinition objDef, @NotNull ShadowType repoShadow)
+            throws SchemaException {
 
         PrismContainer<?> attributesContainer =
-                MiscUtil.requireNonNull(
-                        repoShadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES),
-                        () -> "No attributes in " + repoShadow);
+                repoShadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
+        if (attributesContainer == null) {
+            return Optional.empty();
+        }
 
         Collection<ResourceObjectIdentifier.Primary<?>> primaryIdentifiers = new ArrayList<>();
         Collection<ResourceObjectIdentifier.Secondary<?>> secondaryIdentifiers = new ArrayList<>();
@@ -101,6 +111,33 @@ public abstract class ResourceObjectIdentifiers implements Serializable, DebugDu
             } else if (objDef.isSecondaryIdentifier(itemName)) {
                 secondaryIdentifiers.add(
                         ResourceObjectIdentifier.Secondary.of(objDef, (PrismProperty<?>) item));
+            }
+        }
+        if (primaryIdentifiers.isEmpty() && secondaryIdentifiers.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(
+                    ResourceObjectIdentifiers.of(primaryIdentifiers, secondaryIdentifiers));
+        }
+    }
+
+    /** Creates identifiers from a collection of identifying attributes. */
+    public static @NotNull ResourceObjectIdentifiers of(
+            @NotNull ResourceObjectDefinition objDef, @NotNull Collection<? extends ResourceAttribute<?>> attributes)
+            throws SchemaException {
+        Collection<ResourceObjectIdentifier.Primary<?>> primaryIdentifiers = new ArrayList<>();
+        Collection<ResourceObjectIdentifier.Secondary<?>> secondaryIdentifiers = new ArrayList<>();
+        for (var attribute : attributes) {
+            ItemName itemName = attribute.getElementName();
+            if (objDef.isPrimaryIdentifier(itemName)) {
+                primaryIdentifiers.add(
+                        ResourceObjectIdentifier.Primary.of(objDef, (PrismProperty<?>) attribute));
+            } else if (objDef.isSecondaryIdentifier(itemName)) {
+                secondaryIdentifiers.add(
+                        ResourceObjectIdentifier.Secondary.of(objDef, (PrismProperty<?>) attribute));
+            } else {
+                throw new IllegalArgumentException(
+                        "Attribute %s is not an identifier in %s".formatted(attribute, objDef));
             }
         }
 

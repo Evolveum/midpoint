@@ -53,6 +53,7 @@ public record UcfResourceObject(
     public String debugDump(int indent) {
         var sb = DebugUtil.createTitleStringBuilder(
                 this.getClass().getSimpleName() + " [" + primaryIdentifierValue + "]", indent);
+        sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "bean", bean, indent + 1);
         return sb.toString();
     }

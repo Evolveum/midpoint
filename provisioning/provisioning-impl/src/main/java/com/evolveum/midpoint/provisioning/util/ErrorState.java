@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
-import com.evolveum.midpoint.provisioning.impl.InitializableObjectMixin;
+import com.evolveum.midpoint.provisioning.impl.LazilyInitializableMixin;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 
-/** Error state of lazy-initializable objects, see {@link InitializationState} and {@link InitializableObjectMixin}. */
+/** Error state of lazy-initializable objects, see {@link InitializationState} and {@link LazilyInitializableMixin}. */
 public abstract class ErrorState implements Serializable {
 
     public static Ok ok() {

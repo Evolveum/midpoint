@@ -504,8 +504,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             T object = operationsHelper.getRepoObject(type, oid, null, result);
             LOGGER.trace("Object from repository to delete:\n{}", object.debugDumpLazily(1));
 
-            if (object instanceof ShadowType && !ProvisioningOperationOptions.isRaw(options)) {
-                return deleteShadow((ShadowType) object, options, scripts, context, task, result);
+            if (object instanceof ShadowType shadow && !ProvisioningOperationOptions.isRaw(options)) {
+                return deleteShadow(shadow, options, scripts, context, task, result);
             } else if (object instanceof ResourceType) {
                 resourceManager.deleteResource(oid, result);
                 return null;
@@ -707,10 +707,14 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, ProvisioningOperationContext context, Task task, OperationResult parentResult)
+    public void refreshShadow(
+            @NotNull PrismObject<ShadowType> shadow,
+            ProvisioningOperationOptions options,
+            ProvisioningOperationContext context,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        Validate.notNull(shadow, "Shadow for refresh must not be null.");
         OperationResult result = parentResult.createSubresult(OP_REFRESH_SHADOW);
 
         LOGGER.debug("Refreshing shadow {}", shadow);
@@ -719,8 +723,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
             shadowsFacade.refreshShadow(shadow.asObjectable(), options, context, task, result);
 
-        } catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
+        } catch (CommonException | RuntimeException | Error e) {
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(
+                    LOGGER, result,
+                    "Couldn't refresh shadow: %s: %s".formatted(
+                            e.getClass().getSimpleName(), e.getMessage()),
+                    e);
             throw e;
 
         } catch (EncryptionException e) {
@@ -729,7 +737,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         }
 
         result.computeStatus();
-        result.cleanupResult();
+        result.cleanup();
 
         LOGGER.debug("Finished refreshing shadow {}: {}", shadow, result);
     }

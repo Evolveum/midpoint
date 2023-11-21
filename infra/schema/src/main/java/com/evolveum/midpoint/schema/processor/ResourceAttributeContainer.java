@@ -33,9 +33,9 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
         QName elementName = origAttrContainer.getElementName();
         ResourceAttributeContainer attributesContainer = createEmptyContainer(elementName, resourceObjectDefinition);
         for (Item item: origAttrContainer.getValue().getItems()) {
-            if (item instanceof PrismProperty) {
+            if (item instanceof PrismProperty<?> property) {
                 attributesContainer.add(
-                        resourceObjectDefinition.propertyToAttribute((PrismProperty<?>) item));
+                        resourceObjectDefinition.propertyToAttribute(property));
             } else {
                 throw new SchemaException("Cannot process item of type "+item.getClass().getSimpleName()+", attributes can only be properties");
             }

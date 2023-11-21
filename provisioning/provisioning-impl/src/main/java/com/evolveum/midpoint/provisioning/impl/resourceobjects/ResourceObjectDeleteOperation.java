@@ -9,24 +9,21 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import static com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter.*;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
 
 /**
@@ -41,11 +38,11 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectDeleteOperation.class);
 
     private final ProvisioningContext ctx;
-    private final ShadowType shadow;
+    private final RepoShadow shadow;
 
     private ResourceObjectDeleteOperation(
             ProvisioningContext ctx,
-            ShadowType shadow,
+            RepoShadow shadow,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions) {
         super(ctx, scripts, connOptions);
@@ -53,9 +50,9 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
         this.shadow = shadow;
     }
 
-    static AsynchronousOperationResult execute(
+    static ResourceObjectDeleteReturnValue execute(
             ProvisioningContext ctx,
-            ShadowType shadow,
+            RepoShadow shadow,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions,
             OperationResult result)
@@ -65,7 +62,7 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
                 .doExecute(result);
     }
 
-    private AsynchronousOperationResult doExecute(OperationResult result)
+    private ResourceObjectDeleteReturnValue doExecute(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
         LOGGER.trace("Deleting resource object {}", shadow);
@@ -78,7 +75,7 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
 
         determineAndExecuteEntitlementObjectOperations(result);
 
-        ResourceObjectIdentification<?> identification = getIdentification();
+        ResourceObjectIdentification<?> identification = shadow.getIdentificationRequired();
 
         ConnectorInstance connector = ctx.getConnector(DeleteCapabilityType.class, result);
         AsynchronousOperationResult connectorAsyncOpRet;
@@ -91,7 +88,7 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
 
             connectorAsyncOpRet =
                     connector.deleteObject(
-                            identification, shadow.asPrismObject(), ctx.getUcfExecutionContext(), result);
+                            identification, shadow.getPrismObject(), ctx.getUcfExecutionContext(), result);
         } catch (ObjectNotFoundException ex) {
             throw ex.wrap(String.format(
                     "An error occurred while deleting resource object %s with identifiers %s (%s)",
@@ -103,7 +100,7 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
         } catch (ConfigurationException ex) {
             throw configurationException(ctx, connector, ex);
         } finally {
-            b.shadowAuditHelper.auditEvent(AuditEventType.DELETE_OBJECT, shadow, ctx, result);
+            b.shadowAuditHelper.auditEvent(AuditEventType.DELETE_OBJECT, shadow.getBean(), ctx, result);
         }
 
         LOGGER.trace("Deleted resource object {}", shadow);
@@ -113,28 +110,18 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
         computeResultStatus(result);
         LOGGER.debug("PROVISIONING DELETE result: {}", result.getStatus());
 
-        AsynchronousOperationResult aResult = AsynchronousOperationResult.wrap(result);
-        updateQuantum(ctx, connector, aResult, result); // The result is not closed, even if its status is set. So we use it.
+        ResourceObjectDeleteReturnValue rv = ResourceObjectDeleteReturnValue.of(result);
+        updateQuantum(ctx, connector, rv, result); // The result is not closed, even if its status is set. So we use it.
         if (connectorAsyncOpRet != null) {
-            aResult.setOperationType(connectorAsyncOpRet.getOperationType());
+            rv.setOperationType(connectorAsyncOpRet.getOperationType());
         }
-        return aResult;
-    }
-
-    private @NotNull ResourceObjectIdentification<?> getIdentification()
-            throws SchemaException, ConfigurationException {
-        if (ShadowUtil.isAttributesContainerRaw(shadow)) {
-            // This could occur if shadow was re-read during op state processing
-            ctx.applyAttributesDefinition(shadow);
-        }
-        return ResourceObjectIdentification.fromIncompleteShadow( // maybe we could require complete shadow here
-                ctx.getObjectDefinitionRequired(), shadow);
+        return rv;
     }
 
     private void determineAndExecuteEntitlementObjectOperations(OperationResult result) throws SchemaException {
         try {
             executeEntitlementObjectsOperations(
-                    new EntitlementConverter(ctx).transformToObjectOpsOnDelete(shadow, result),
+                    new EntitlementConverter(ctx).transformToObjectOpsOnDelete(shadow.getBean(), result),
                     result);
         } catch (SchemaException | Error e) {
             throw e; // These we want to propagate.

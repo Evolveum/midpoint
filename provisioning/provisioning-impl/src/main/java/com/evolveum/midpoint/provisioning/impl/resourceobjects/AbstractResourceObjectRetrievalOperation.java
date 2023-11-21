@@ -52,11 +52,12 @@ abstract class AbstractResourceObjectRetrievalOperation {
     /**
      * Does all the necessary processing at "resource objects" layer: activation, protected flag, associations, and so on.
      *
-     * @see ResourceObjectFound#completeResourceObject(ProvisioningContext, ResourceObject, boolean, OperationResult)
+     * @see AbstractLazilyInitializableResourceEntity#completeResourceObject(
+     * ProvisioningContext, ResourceObject, boolean, OperationResult)
      */
-    @NotNull CompleteResourceObject complete(@NotNull ResourceObject object, @NotNull OperationResult result) {
-        ResourceObjectFound objectFound = new ResourceObjectFound(object, ctx, fetchAssociations);
-        objectFound.initialize(ctx.getTask(), result);
-        return objectFound.asCompleteResourceObject();
+    @NotNull CompleteResourceObject complete(@NotNull ExistingResourceObject object, @NotNull OperationResult result) {
+        ResourceObjectFetched objectFetched = new ResourceObjectFetched(object, ctx, fetchAssociations);
+        objectFetched.initialize(ctx.getTask(), result);
+        return objectFetched.asCompleteResourceObject();
     }
 }

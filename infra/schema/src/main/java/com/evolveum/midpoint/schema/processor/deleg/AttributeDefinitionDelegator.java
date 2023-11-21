@@ -246,4 +246,9 @@ public interface AttributeDefinitionDelegator<T> extends PropertyDefinitionDeleg
     default LayerType getCurrentLayer() {
         return delegate().getCurrentLayer();
     }
+
+    @Override
+    @NotNull default Class<T> getTypeClass() {
+        return delegate().getTypeClass();
+    }
 }

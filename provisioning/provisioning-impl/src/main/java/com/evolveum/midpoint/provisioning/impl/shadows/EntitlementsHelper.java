@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.schema.util.ShadowUtil.getAllIdentifiers;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +25,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.RepoShadowFinder;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -50,20 +52,20 @@ class EntitlementsHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(EntitlementsHelper.class);
 
-    @Autowired ShadowFinder shadowFinder;
+    @Autowired RepoShadowFinder repoShadowFinder;
 
     /**
      * Makes sure that all the entitlements have identifiers in them so this is
      * usable by the ResourceObjectConverter.
      */
     void provideEntitlementsIdentifiers(
-            ProvisioningContext ctx, ShadowType resourceObjectToAdd, OperationResult result)
+            ProvisioningContext ctx, ResourceObject resourceObjectToAdd, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
         try {
             // Why using visitor? (maybe because of the similarity to deltas where the visitor is appropriate)
             String desc = resourceObjectToAdd.toString();
             //noinspection unchecked
-            resourceObjectToAdd.asPrismObject().accept(
+            resourceObjectToAdd.getPrismObject().accept(
                     (visitable) ->
                             provideEntitlementIdentifiers(
                                     ctx, (PrismContainerValue<ShadowAssociationType>) visitable, desc, result),
@@ -118,7 +120,7 @@ class EntitlementsHelper {
                             () -> "No identifiers and no OID specified in entitlements association " + association);
             PrismObject<ShadowType> entitlementShadow;
             try {
-                entitlementShadow = shadowFinder.getShadow(entitlementOid, result);
+                entitlementShadow = repoShadowFinder.getShadow(entitlementOid, result);
             } catch (ObjectNotFoundException e) {
                 throw e.wrap("Couldn't resolve entitlement association OID in " + association + " in " + desc);
             }

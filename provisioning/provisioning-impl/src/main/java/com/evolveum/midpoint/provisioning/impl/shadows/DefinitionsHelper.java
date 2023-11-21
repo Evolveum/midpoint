@@ -10,6 +10,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.RepoShadowFinder;
+
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,7 +20,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.util.DefinitionsUtil;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ShadowCoordinatesQualifiedObjectDelta;
@@ -37,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 class DefinitionsHelper {
 
     @Autowired private ProvisioningContextFactory ctxFactory;
-    @Autowired private ShadowFinder shadowFinder;
+    @Autowired private RepoShadowFinder repoShadowFinder;
 
     public void applyDefinition(
             ObjectDelta<ShadowType> delta,
@@ -63,7 +64,7 @@ class DefinitionsHelper {
                             "No OID in object delta %s and no externally-supplied shadow is present as well.", delta);
                 } else {
                     // TODO consider fetching only when really necessary
-                    shadow = shadowFinder.getShadowBean(shadowOid, result);
+                    shadow = repoShadowFinder.getShadowBean(shadowOid, result);
                 }
                 coordinates = null;
             }

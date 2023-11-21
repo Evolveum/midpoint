@@ -667,4 +667,9 @@ public class ResourceObjectClassDefinitionImpl
         DebugUtil.debugDumpWithLabelLn(sb, "native object class", getNativeObjectClass(), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "auxiliary", isAuxiliary(), indent + 1);
     }
+
+    @Override
+    public @NotNull String getShortIdentification() {
+        return getObjectClassName().getLocalPart();
+    }
 }

@@ -272,7 +272,9 @@ class SearchExecutor {
         } else if (transformed instanceof Error) {
             throw (Error) transformed;
         } else {
-            throw new SystemException("Got unexpected exception: " + original.getClass().getName() + ": " + original.getMessage(),
+            throw new SystemException(
+                    "Got unexpected exception: %s: %s".formatted(
+                            original.getClass().getName(), original.getMessage()),
                     original);
         }
     }

@@ -13,10 +13,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecyc
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.impl.AbstractShadow;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
@@ -24,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleState
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Temporary class - this functionality has to be sorted out.
@@ -37,10 +41,34 @@ public class ShadowManagerMiscUtil {
     }
 
     public static <T> T determinePrimaryIdentifierValue(ProvisioningContext ctx, ShadowType shadow) throws SchemaException {
-        if (ShadowUtil.isDead(shadow)) {
-            return null;
-        }
-        ShadowLifecycleStateType state = ctx.determineShadowState(shadow);
+        return determinePrimaryIdentifierValueInternal(
+                shadow,
+                ctx.getObjectDefinitionRequired(),
+                ctx.determineShadowState(shadow));
+    }
+
+    public static <T> T determinePrimaryIdentifierValue(RepoShadow repoShadow) throws SchemaException {
+        return determinePrimaryIdentifierValueInternal(
+                repoShadow.getBean(),
+                repoShadow.getObjectDefinition(),
+                repoShadow.getShadowLifecycleState());
+    }
+
+    public static <T> T determinePrimaryIdentifierValue(
+            @NotNull AbstractShadow shadow, @NotNull ShadowLifecycleStateType lifecycleState) throws SchemaException {
+        return determinePrimaryIdentifierValueInternal(
+                shadow.getBean(),
+                shadow.getObjectDefinition(),
+                lifecycleState);
+    }
+
+    @Nullable
+    private static <T> T determinePrimaryIdentifierValueInternal(
+            @NotNull ShadowType shadow,
+            @NotNull ResourceObjectDefinition objDef,
+            @NotNull ShadowLifecycleStateType state)
+            throws SchemaException {
+
         if (state == REAPING || state == CORPSE || state == TOMBSTONE) {
             return null;
         }
@@ -53,8 +81,7 @@ public class ShadowManagerMiscUtil {
         //noinspection unchecked
         ResourceAttributeDefinition<T> rDef =
                 (ResourceAttributeDefinition<T>)
-                        ctx.getObjectDefinitionRequired()
-                                .findAttributeDefinitionRequired(primaryIdentifier.getElementName());
+                        objDef.findAttributeDefinitionRequired(primaryIdentifier.getElementName());
 
         Collection<T> normalizedPrimaryIdentifierValues = getNormalizedAttributeValues(primaryIdentifier, rDef);
         if (normalizedPrimaryIdentifierValues.isEmpty()) {

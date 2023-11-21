@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
 import com.evolveum.midpoint.provisioning.api.ExternalResourceEventListener;
 import com.evolveum.midpoint.provisioning.impl.AlreadyInitializedObject;
-import com.evolveum.midpoint.provisioning.impl.InitializableObjectMixin;
+import com.evolveum.midpoint.provisioning.impl.LazilyInitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
@@ -47,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Usually derived from {@link UcfChange} but may be also provided externally -
  * see {@link ExternalResourceEventListener#notifyEvent(ExternalResourceEvent, Task, OperationResult)}.
  */
-public abstract class ResourceObjectChange extends AbstractResourceEntity {
+public abstract class ResourceObjectChange extends AbstractLazilyInitializableResourceEntity {
 
     /**
      * Sequence number that is local to the current live sync or async update operation.
@@ -112,7 +113,7 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
      *
      * See {@link UcfChange#resourceObject} and {@link ExternalResourceEvent#resourceObject}.
      */
-    @Nullable private final ResourceObject rawResourceObject;
+    @Nullable private final UcfResourceObject rawResourceObject;
 
     /**
      * The completed (processed, finalized) form of {@link #rawResourceObject}.
@@ -147,7 +148,7 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
             Object primaryIdentifierRealValue,
             ResourceObjectDefinition initialResourceObjectDefinition,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
-            @Nullable ResourceObject rawResourceObject,
+            @Nullable UcfResourceObject rawResourceObject,
             ObjectDelta<ShadowType> objectDelta,
             @NotNull ErrorState initialErrorState,
             @NotNull ProvisioningContext originalContext) {
@@ -166,14 +167,14 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
                 ucfChange.getPrimaryIdentifierValue(),
                 ucfChange.getResourceObjectDefinition(),
                 ucfChange.getIdentifiers(),
-                ResourceObject.from(ucfChange),
+                ucfChange.getResourceObject(),
                 ucfChange.getObjectDelta(),
                 ErrorState.fromUcfErrorState(ucfChange.getErrorState()),
                 originalContext);
     }
 
     @Override
-    public @Nullable InitializableObjectMixin getPrerequisite() {
+    public @Nullable LazilyInitializableMixin getPrerequisite() {
         return ucfChangeStatus;
     }
 
@@ -212,7 +213,12 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
         }
 
         if (isDelete()) {
-            return CompleteResourceObject.deletedNullable(rawResourceObject);
+            if (rawResourceObject != null && effectiveCtx.hasDefinition()) {
+                var existingResourceObject = effectiveCtx.adoptDeletedUcfResourceObject(rawResourceObject);
+                return CompleteResourceObject.ofDeleted(existingResourceObject);
+            } else {
+                return null;
+            }
         }
 
         AttributesToReturn actualAttributesToReturn = determineAttributesToReturn();
@@ -227,10 +233,12 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
             return fetchResourceObject(actualAttributesToReturn, result);
         }
 
-        completeResourceObject(effectiveCtx, rawResourceObject, true, result);
+        var resourceObject = effectiveCtx.adoptUcfResourceObject(rawResourceObject);
+
+        completeResourceObject(effectiveCtx, resourceObject, true, result);
 
         // No exception, so we assume everything went well
-        return CompleteResourceObject.of(rawResourceObject, ErrorState.ok());
+        return CompleteResourceObject.of(resourceObject, ErrorState.ok());
     }
 
     @Nullable AttributesToReturn determineAttributesToReturn() {
@@ -258,7 +266,6 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
                             effectiveCtx,
                             primaryIdentification,
                             attributesToReturn,
-                            null,
                             true,
                             result);
         } catch (ObjectNotFoundException ex) {
@@ -289,14 +296,18 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
      * Returns {@link CompleteResourceObject}, either right from {@link #completeResourceObject} or incomplete one.
      * May return `null` if the object was not provided in the original change, and the resource does not support reading.
      */
-    public @Nullable CompleteResourceObject getCompleteResourceObject() {
+    public @Nullable CompleteResourceObject getCompleteResourceObject() throws SchemaException, ConfigurationException {
         checkInitialized();
         if (completeResourceObject != null) {
             return completeResourceObject;
-        } else if (rawResourceObject != null) {
+        } else if (rawResourceObject != null && effectiveCtx.hasDefinition()) {
             ErrorState errorState = initializationState.getErrorState();
+            var resourceObject =
+                    isDelete() ?
+                            effectiveCtx.adoptDeletedUcfResourceObject(rawResourceObject) :
+                            effectiveCtx.adoptUcfResourceObject(rawResourceObject);
             assert errorState.isError();
-            return CompleteResourceObject.of(rawResourceObject, errorState);
+            return CompleteResourceObject.of(resourceObject, errorState);
         } else {
             return null;
         }
@@ -409,10 +420,6 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
         checkCollectionImmutable(identifiers);
         if (hasDefinition) {
             schemaCheck(!identifiers.isEmpty(), "No identifiers in the container but primary id value is known");
-        }
-
-        if (completeResourceObject != null) {
-            stateCheck(completeResourceObject.getBean().isExists() != null, "Exists is null");
         }
     }
 }

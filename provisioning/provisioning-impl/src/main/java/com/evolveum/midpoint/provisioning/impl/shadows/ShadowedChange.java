@@ -7,26 +7,15 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.provisioning.impl.InitializableObjectMixin;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
-
-import com.evolveum.midpoint.provisioning.util.InitializationState;
-
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.task.api.Task;
-
-import com.evolveum.midpoint.util.DebugUtil;
-
-import com.evolveum.midpoint.util.MiscUtil;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -34,22 +23,23 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.impl.LazilyInitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectChange;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
+import com.evolveum.midpoint.provisioning.util.InitializationState;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * A resource object change that was "shadowed".
@@ -69,12 +59,12 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
 
     /**
      * Resource object: the best that is known at given time instant.
-     * May be even null for DELETE-only, no-OC changes in wildcard LS mode.
+     * May be null for DELETE-only, no-OC changes in wildcard LS mode.
      *
      * @see #determineCurrentResourceObjectBeforeShadow()
-     * @see #determineCurrentResourceObjectAfterShadow(ProvisioningContext, ShadowType, OperationResult)
+     * @see #determineCurrentResourceObjectAfterShadow(ProvisioningContext, OperationResult)
      */
-    private ResourceObject resourceObject;
+    private ExistingResourceObject resourceObject;
 
     /**
      * Is {@link #resourceObject} temporary (like identifiers-only), so it should be re-determined after the shadow is acquired?
@@ -89,8 +79,8 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
      */
     @Nullable private ObjectDelta<ShadowType> resourceObjectDelta;
 
-    /** Always not null if the shadow was found or created (true for all successful cases for non-delete changes). */
-    private String repoShadowOid;
+    /** Not null for all successful cases for non-delete changes. */
+    private RepoShadow repoShadow;
 
     /**
      * The resulting combination of resource object and its repo shadow. Special cases:
@@ -101,7 +91,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
      *
      * The point #2 should be perhaps reconsidered.
      */
-    private ShadowType shadowedObject;
+    private ShadowType shadowedObjectBean;
 
     ShadowedChange(@NotNull ROC resourceObjectChange) {
         super(resourceObjectChange);
@@ -109,12 +99,12 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     }
 
     @Override
-    public @NotNull InitializableObjectMixin getPrerequisite() {
+    public @NotNull LazilyInitializableMixin getPrerequisite() {
         return resourceObjectChange;
     }
 
     @Override
-    public void initializeInternalCommon(Task task, OperationResult result) {
+    public void initializeInternalCommon(Task task, OperationResult result) throws SchemaException, ConfigurationException {
         super.initializeInternalCommon(task, result);
         // Delta is not cloned in the constructor, because it may be changed during resource change initialization.
         // We need to get those changes here.
@@ -126,30 +116,40 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     public void initializeInternalForPrerequisiteOk(Task task, OperationResult result)
             throws CommonException, NotApplicableException, EncryptionException {
 
-        ShadowType repoShadow = lookupOrAcquireRepoShadow(result);
+        repoShadow = lookupOrAcquireRepoShadow(result);
 
         try {
-            var shadowCtx = globalCtx.adoptShadow(repoShadow, resourceObjectDelta);
+            var shadowCtx = refineContextAndUpdateDefinitions();
 
             if (isDelete()) {
-                markRepoShadowTombstone(repoShadow, result);
-                shadowedObject = constructShadowedObjectForDeletion(repoShadow, result);
+                markRepoShadowTombstone(result);
+                shadowedObjectBean = constructShadowedObjectForDeletion(result);
             } else {
-                resourceObject = determineCurrentResourceObjectAfterShadow(shadowCtx, repoShadow, result);
-                ShadowType updatedRepoShadow = updateShadowInRepository(shadowCtx, repoShadow, result);
-                shadowedObject = createShadowedObject(shadowCtx, updatedRepoShadow, result);
+                resourceObject = determineCurrentResourceObjectAfterShadow(shadowCtx, result);
+                RepoShadow updatedRepoShadow = updateShadowInRepository(shadowCtx, repoShadow, result);
+                shadowedObjectBean =
+                        createShadowedObject(shadowCtx, updatedRepoShadow, result).getBean();
             }
 
         } catch (Exception e) {
-            shadowedObject = repoShadow;
+            shadowedObjectBean = repoShadow.getBean();
             throw e;
         }
+    }
+
+    private ProvisioningContext refineContextAndUpdateDefinitions()
+            throws SchemaException, ConfigurationException {
+        var shadowCtx = globalCtx.spawnForDefinition(repoShadow.getObjectDefinition());
+        if (resourceObjectDelta != null) {
+            shadowCtx.applyAttributesDefinition(resourceObjectDelta);
+        }
+        return shadowCtx;
     }
 
     @Override
     public void initializeInternalForPrerequisiteError(Task task, OperationResult result)
             throws CommonException, EncryptionException {
-        @Nullable ShadowType repoShadow;
+        @Nullable RepoShadow repoShadow;
         if (isDelete()) {
             repoShadow = lookupShadowForDeletionChange(result);
         } else {
@@ -164,19 +164,17 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         initializeInternalForPrerequisiteError(task, result); // To be reviewed if the processing should be the same
     }
 
-    private @NotNull ShadowType lookupOrAcquireRepoShadow(OperationResult result)
+    private @NotNull RepoShadow lookupOrAcquireRepoShadow(OperationResult result)
             throws CommonException, NotApplicableException, EncryptionException {
-        ShadowType repoShadow;
         if (isDelete()) {
-            repoShadow = lookupShadowForDeletionChange(result);
+            RepoShadow repoShadow = lookupShadowForDeletionChange(result);
             if (repoShadow == null) {
                 throw new NotApplicableException();
             }
+            return repoShadow;
         } else {
-            repoShadow = acquireRepoShadow(result);
+            return acquireRepoShadow(result);
         }
-        repoShadowOid = stateNonNull(repoShadow.getOid(), "No OID in %s", repoShadow);
-        return repoShadow;
     }
 
     /**
@@ -184,7 +182,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
      * (Maybe we could even refrain from throwing exceptions if there is no unique primary identifier in wildcard case?)
      */
     @SuppressWarnings("ExtractMethodRecommender")
-    private @Nullable ShadowType lookupShadowForDeletionChange(OperationResult result)
+    private @Nullable RepoShadow lookupShadowForDeletionChange(OperationResult result)
             throws SchemaException, ConfigurationException {
         // This context is the best we know at this moment. It is possible that it is wildcard (no OC known).
         // But the only way how to detect the OC is to read existing repo shadow. So we must take the risk
@@ -212,7 +210,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
 
         ResourceObjectIdentifier.Primary<?> primaryIdentifier = ResourceObjectIdentifier.Primary.of(primaryIdentifierAttribute);
 
-        var repoShadow = b.shadowFinder.lookupLiveOrAnyShadowByPrimaryId(globalCtx, primaryIdentifier, result);
+        var repoShadow = b.repoShadowFinder.lookupLiveOrAnyShadowByPrimaryId(globalCtx, primaryIdentifier, result);
         if (repoShadow == null) {
             getLogger().debug(
                     "No old shadow for delete synchronization event {}, we probably did not know about "
@@ -222,7 +220,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     }
 
     @Override
-    public @NotNull ResourceObject getResourceObjectRequired() {
+    public @NotNull ExistingResourceObject getExistingResourceObjectRequired() {
         return Objects.requireNonNull(resourceObject, "No resource object");
     }
 
@@ -232,9 +230,9 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     }
 
     @Override
-    public void setAcquiredRepoShadowInEmergency(ShadowType repoShadow) {
-        this.repoShadowOid = repoShadow != null ? repoShadow.getOid() : null;
-        this.shadowedObject = repoShadow;
+    public void setAcquiredRepoShadowInEmergency(@Nullable RepoShadow repoShadow) {
+        this.repoShadow = repoShadow;
+        this.shadowedObjectBean = repoShadow != null ? repoShadow.getBean() : null;
     }
 
     public void checkConsistence() {
@@ -244,7 +242,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
             return;
         }
 
-        if (repoShadowOid == null) {
+        if (repoShadow == null) {
             throw new IllegalStateException("No repository shadow in " + this);
         }
         if (globalCtx.isWildcard()) {
@@ -253,14 +251,14 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     }
 
     /** Null value can be returned only for (some) delete events in wildcard context. */
-    private @Nullable ResourceObject determineCurrentResourceObjectBeforeShadow() {
+    private @Nullable ExistingResourceObject determineCurrentResourceObjectBeforeShadow()
+            throws SchemaException, ConfigurationException {
         CompleteResourceObject completeResourceObject = resourceObjectChange.getCompleteResourceObject();
         if (completeResourceObject != null) {
             return completeResourceObject.resourceObject().clone();
         } else if (resourceObjectDelta != null && resourceObjectDelta.isAdd()) {
-            return ResourceObject.fromPrismObject(
-                    resourceObjectDelta.getObjectToAdd().clone(),
-                    getPrimaryIdentifierValue());
+            var bean = resourceObjectDelta.getObjectToAdd().clone().asObjectable();
+            return globalCtx.adoptUcfResourceObjectBean(bean, getPrimaryIdentifierValue(), true, this);
         } else if (!resourceObjectChange.getIdentifiers().isEmpty()) {
             resourceObjectIsTemporary = true;
             return createIdentifiersOnlyFakeResourceObject();
@@ -271,7 +269,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         }
     }
 
-    private @Nullable ResourceObject createIdentifiersOnlyFakeResourceObject() {
+    private @Nullable ExistingResourceObject createIdentifiersOnlyFakeResourceObject() {
         ResourceObjectDefinition objectDefinition = resourceObjectChange.getCurrentResourceObjectDefinition();
         if (objectDefinition == null) {
             if (isDelete()) {
@@ -294,37 +292,34 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
             // All the operations are schema-safe, so this is really a kind of internal error.
             throw SystemException.unexpected(e, "when creating fake resource object");
         }
-        return ResourceObject.fromBean(fakeResourceObject, getPrimaryIdentifierValue());
+        fakeResourceObject.setResourceRef(globalCtx.getResourceRef());
+        fakeResourceObject.setExists(true); // the change is not "delete", so we assume the existence
+        return ExistingResourceObject.of(
+                fakeResourceObject,
+                objectDefinition,
+                getPrimaryIdentifierValue());
     }
 
-    private @NotNull ResourceObject determineCurrentResourceObjectAfterShadow(
-            @NotNull ProvisioningContext shadowCtx, @NotNull ShadowType repoShadow, @NotNull OperationResult result)
+    private @NotNull ExistingResourceObject determineCurrentResourceObjectAfterShadow(
+            @NotNull ProvisioningContext shadowCtx, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            SecurityViolationException, EncryptionException, NotApplicableException {
+            SecurityViolationException, NotApplicableException {
+
+        assert !isDelete();
+
         if (resourceObject != null && !resourceObjectIsTemporary) {
             return resourceObject;
         }
         LOGGER.trace("Going to determine current resource object, as the previous one was temporary");
 
-        ResourceObject resourceObject;
-        ReadCapabilityType readCapability = shadowCtx.getCapability(ReadCapabilityType.class);
-        boolean canReadFromResource = readCapability != null && !Boolean.TRUE.equals(readCapability.isCachingOnly());
-        if (canReadFromResource) {
+        ExistingResourceObject resourceObject;
+        if (shadowCtx.hasRealReadCapability()) {
             // We go for the fresh object here. TODO to be reconsidered with regards to shadow caching in 4.9.
-            Collection<SelectorOptions<GetOperationOptions>> options =
-                    b.schemaService.getOperationOptionsBuilder().doNotDiscovery().build();
             try {
-                // TODO why we use shadow cache and not resource object converter?!
-                //  Because of (planned) caching? But then why don't we do this also when isCachingOnly is true?
-                var object = b.shadowsFacade.getShadow(
-                        repoShadow.getOid(),
-                        repoShadow,
-                        resourceObjectChange.getIdentifiers(),
-                        options,
-                        shadowCtx.getOperationContext(),
-                        shadowCtx.getTask(),
-                        result);
-                resourceObject = ResourceObject.fromBean(object, getPrimaryIdentifierValue());
+                resourceObject =
+                        b.resourceObjectConverter.locateResourceObject(
+                                        shadowCtx, getIdentification(), true, result)
+                                .resourceObject();
             } catch (ObjectNotFoundException e) {
                 // The object on the resource does not exist (any more?).
                 LOGGER.warn("Object {} does not exist on the resource any more", repoShadow);
@@ -333,7 +328,9 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
             LOGGER.trace("-> current object was taken from the resource:\n{}", resourceObject.debugDumpLazily());
         } else if (shadowCtx.isCachingEnabled()) {
             // This might not be correct, because of partial caching and/or index-only attributes!
-            resourceObject = ResourceObject.fromBean(repoShadow.clone(), getPrimaryIdentifierValue());
+            resourceObject = ExistingResourceObject.fromRepoShadow(
+                    repoShadow.clone(),
+                    getPrimaryIdentifierValue());
             if (resourceObjectDelta != null) {
                 resourceObjectDelta.applyTo(resourceObject.getPrismObject());
                 markIndexOnlyItemsAsIncomplete(resourceObject.getBean());
@@ -353,6 +350,11 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         return resourceObjectChange.isDelete();
     }
 
+    /** Call only when there is a definition! I.e. not in untyped LS delete. */
+    public @NotNull ResourceObjectDefinition getObjectDefinitionRequired() {
+        return MiscUtil.stateNonNull(getObjectDefinition(), "No object definition in %s", this);
+    }
+
     public ResourceObjectDefinition getObjectDefinition() {
         return resourceObjectChange.getCurrentResourceObjectDefinition();
     }
@@ -365,6 +367,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
      */
     private void markIndexOnlyItemsAsIncomplete(ShadowType resourceObject)
             throws SchemaException, ConfigurationException {
+        // TODO the object should have the composite definition by now!
         ResourceObjectDefinition ocDef = globalCtx.computeCompositeObjectDefinition(resourceObject);
         for (ResourceAttributeDefinition<?> attrDef : ocDef.getAttributeDefinitions()) {
             if (attrDef.isIndexOnly()) {
@@ -392,8 +395,15 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         return resourceObjectChange.getIdentifiers();
     }
 
-    private void markRepoShadowTombstone(ShadowType repoShadow, OperationResult result) throws SchemaException {
-        if (!ShadowUtil.isDead(repoShadow) || ShadowUtil.isExists(repoShadow)) {
+    /** Beware! Call only when applicable (if all goes well, and if the change is not untyped delete). */
+    public @NotNull ResourceObjectIdentification<?> getIdentification() throws SchemaException {
+        return ResourceObjectIdentification.of(
+                getObjectDefinitionRequired(),
+                getIdentifiers());
+    }
+
+    private void markRepoShadowTombstone(OperationResult result) throws SchemaException {
+        if (!repoShadow.isDead() || repoShadow.doesExist()) {
             b.shadowUpdater.markShadowTombstone(repoShadow, globalCtx.getTask(), result);
         }
     }
@@ -407,11 +417,11 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
      *
      * So until clarified, we provide here the shadow object, with properly applied definitions.
      */
-    private ShadowType constructShadowedObjectForDeletion(ShadowType repoShadow, OperationResult result)
+    private ShadowType constructShadowedObjectForDeletion(OperationResult result)
             throws SchemaException, ConfigurationException, NotApplicableException {
         ShadowType currentShadow;
         try {
-            currentShadow = b.shadowFinder.getShadowBean(repoShadow.getOid(), result);
+            currentShadow = b.repoShadowFinder.getShadowBean(repoShadow.getOid(), result);
         } catch (ObjectNotFoundException e) {
             LOGGER.debug("Shadow for delete synchronization event {} disappeared recently. Skipping this event.", this);
             throw new NotApplicableException();
@@ -424,19 +434,19 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     public ResourceObjectShadowChangeDescription getShadowChangeDescription() {
         checkInitialized();
 
-        if (shadowedObject == null) {
+        if (shadowedObjectBean == null) {
             stateCheck(isError() || isNotApplicable(),
                     "Non-error & applicable change without shadowed object? %s", this);
             return null; // This is because in the description the shadowed object must be present. TODO reconsider this.
         }
         ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
         if (resourceObjectDelta != null) {
-            resourceObjectDelta.setOid(shadowedObject.getOid());
+            resourceObjectDelta.setOid(shadowedObjectBean.getOid());
         }
         shadowChangeDescription.setObjectDelta(resourceObjectDelta);
         shadowChangeDescription.setResource(globalCtx.getResource().asPrismObject());
         shadowChangeDescription.setSourceChannel(getChannel());
-        shadowChangeDescription.setShadowedResourceObject(shadowedObject.asPrismObject());
+        shadowChangeDescription.setShadowedResourceObject(shadowedObjectBean.asPrismObject());
         return shadowChangeDescription;
     }
 
@@ -454,19 +464,19 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     }
 
     public String getRepoShadowOid() {
-        return repoShadowOid;
+        return RepoShadow.getOid(repoShadow);
     }
 
     public ShadowType getShadowedObject() {
-        return shadowedObject;
+        return shadowedObjectBean;
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
                 "resourceObjectChange=" + resourceObjectChange +
-                ", repoShadow OID " + repoShadowOid +
-                ", shadowedObject=" + shadowedObject +
+                ", repoShadow OID " + getRepoShadowOid() +
+                ", shadowedObject=" + shadowedObjectBean +
                 ", state=" + initializationState +
                 '}';
     }
@@ -478,8 +488,8 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         sb.append(this.getClass().getSimpleName());
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectChange", resourceObjectChange, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "repoShadowOid", repoShadowOid, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "shadowedObject", shadowedObject, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "repoShadow", repoShadow, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "shadowedObject", shadowedObjectBean, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "context", String.valueOf(globalCtx), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "initializationState", String.valueOf(initializationState), indent + 1);
         return sb.toString();

@@ -438,6 +438,9 @@ public interface ResourceObjectDefinition
      */
     String getHumanReadableName();
 
+    /** Very short identification, like the object class local name or the kind/intent pair. */
+    @NotNull String getShortIdentification();
+
     /**
      * Returns a mutable definition.
      *

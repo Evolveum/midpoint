@@ -605,7 +605,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .attributes()
                     .assertSize(1) // uid=unstorable [name was probably removed when we attempted to save the object?]
                     .end()
-                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Exception when translating", "WRONG");
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Cannot convert", "WRONG");
                 // (maybe it's not necessary to provide the unconvertible value in the message - reconsider)
 
         PrismObject<ShadowType> unstorableAfter =
@@ -719,7 +719,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .attributes()
                     .assertSize(1) // uid=unstorable
                     .end()
-                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Exception when translating", "WRONG");
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Cannot convert", "WRONG");
                 // (maybe it's not necessary to provide the unconvertible value in the message - reconsider)
 
         // name is now derived from UID

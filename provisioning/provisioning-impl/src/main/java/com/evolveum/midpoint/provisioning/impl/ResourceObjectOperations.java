@@ -9,13 +9,16 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Operations to be executed on a resource object.
+ * Operations to be executed on given resource object.
  *
  * @author semancik
  */
@@ -24,8 +27,8 @@ public class ResourceObjectOperations {
     /** Low-level (transformed, elementary) operations to be executed. */
     @NotNull private final Collection<Operation> ucfOperations = new ArrayList<>();
 
-    /** TODO */
-    private ShadowType currentShadow = null;
+    /** We store the current state here if there is a need to avoid duplicate values. */
+    private ExistingResourceObject currentResourceObject;
 
     /** The context in which the operations will be carried out. */
     @NotNull private final ProvisioningContext resourceObjectContext;
@@ -34,12 +37,12 @@ public class ResourceObjectOperations {
         this.resourceObjectContext = resourceObjectContext;
     }
 
-    public ShadowType getCurrentShadow() {
-        return currentShadow;
+    public @Nullable ExistingResourceObject getCurrentResourceObject() {
+        return currentResourceObject;
     }
 
-    public void setCurrentShadow(ShadowType currentShadow) {
-        this.currentShadow = currentShadow;
+    public void setCurrentResourceObject(ExistingResourceObject currentResourceObject) {
+        this.currentResourceObject = currentResourceObject;
     }
 
     public @NotNull ProvisioningContext getResourceObjectContext() {
@@ -60,7 +63,7 @@ public class ResourceObjectOperations {
     public String toString() {
         return "ResourceObjectOperations("
                 + "operations=" + ucfOperations
-                + ", currentShadow=" + currentShadow
+                + ", currentShadow=" + currentResourceObject
                 + ", ctx=" + resourceObjectContext + ")";
     }
 }

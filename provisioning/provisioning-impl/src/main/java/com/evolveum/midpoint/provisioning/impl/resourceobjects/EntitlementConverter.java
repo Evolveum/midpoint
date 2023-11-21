@@ -40,8 +40,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
-import org.jetbrains.annotations.Nullable;
-
 import static com.evolveum.midpoint.provisioning.impl.resourceobjects.EntitlementUtils.createEntitlementQuery;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
@@ -72,8 +70,8 @@ class EntitlementConverter {
     //region Add
 
     /** Transforms values in `association` container into subject attributes (where applicable). */
-    void transformToSubjectOpsOnAdd(ShadowType subject) throws SchemaException {
-        PrismObject<ShadowType> subjectPrismObject = subject.asPrismObject();
+    void transformToSubjectOpsOnAdd(ResourceObject subject) throws SchemaException {
+        PrismObject<ShadowType> subjectPrismObject = subject.getPrismObject();
         PrismContainer<ShadowAssociationType> associationContainer = subjectPrismObject.findContainer(ShadowType.F_ASSOCIATION);
         if (associationContainer == null || associationContainer.isEmpty()) {
             return;
@@ -88,12 +86,11 @@ class EntitlementConverter {
 
     /** Transforms values in `association` container into object operations (where applicable). */
     @NotNull EntitlementObjectsOperations transformToObjectOpsOnAdd(
-            ShadowType subject, OperationResult result)
+            ResourceObject subject, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         EntitlementObjectsOperations entitlementObjectsOperations = new EntitlementObjectsOperations();
-        PrismContainer<ShadowAssociationType> associationContainer =
-                subject.asPrismObject().findContainer(ShadowType.F_ASSOCIATION);
+        PrismContainer<ShadowAssociationType> associationContainer = subject.getAssociationsContainer();
         if (associationContainer == null || associationContainer.isEmpty()) {
             return entitlementObjectsOperations;
         }
@@ -101,7 +98,7 @@ class EntitlementConverter {
                 entitlementObjectsOperations,
                 associationContainer.getValues(),
                 null,
-                subject,
+                subject.getBean(),
                 ModificationType.ADD,
                 result);
         return entitlementObjectsOperations;
@@ -230,10 +227,8 @@ class EntitlementConverter {
                                     .formatted(def.valueAttrName, associationName, subjectCtx));
                 }
 
-                ResourceAttributeDefinition<T> valueAttrDef = valueAttr.getDefinition();
-                PrismPropertyValue<T> valueAttrValue = valueAttr.getAnyValue();
-
-                ObjectQuery query = createEntitlementQuery(valueAttrValue, valueAttrDef, assocAttrDef, associationDef);
+                PrismPropertyValue<T> valueAttrValue = valueAttr.getValue();
+                ObjectQuery query = createEntitlementQuery(valueAttrValue, assocAttrDef);
 
                 QueryWithConstraints queryWithConstraints =
                         b.delineationProcessor.determineQueryWithConstraints(def.entitlementCtx, query, result);
@@ -498,9 +493,11 @@ class EntitlementConverter {
                     ResourceObjectIdentification.WithPrimary subjectIdentification =
                             subjectCtx.getIdentificationFromShadow(subjectShadow);
                     LOGGER.trace("Fetching {} ({})", subjectShadow, subjectIdentification);
-                    subjectShadow = ResourceObject.getBean(
-                            ResourceObjectFetchOperation.executeRaw( // TODO what if there is no read capability?
-                                    subjectCtx, subjectIdentification, subjectShadow, result));
+                    if (!subjectCtx.isReadingCachingOnly()) {
+                        subjectShadow = ResourceObject.getBean(
+                                ResourceObjectFetchOperation.executeRaw( // TODO what if there is no read capability at all?
+                                        subjectCtx, subjectIdentification, result));
+                    }
                     subjectShadowAfter = subjectShadow;
                     valueAttr = ShadowUtil.getAttribute(subjectShadow, def.valueAttrName);
                 }
@@ -535,19 +532,18 @@ class EntitlementConverter {
             }
 
             if (ResourceTypeUtil.isAvoidDuplicateValues(resource)) {
-                ShadowType currentObjectShadow = objectOperations.getCurrentShadow();
-                if (currentObjectShadow == null) {
+                ExistingResourceObject currentObject = objectOperations.getCurrentResourceObject();
+                if (currentObject == null) {
                     LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})",
                             primaryEntitlementIdentification, entitlementIntent);
-                    currentObjectShadow = ResourceObject.getBean(
-                            ResourceObjectFetchOperation.executeRaw(
-                                    def.entitlementCtx, primaryEntitlementIdentification, null, result));
-                    objectOperations.setCurrentShadow(currentObjectShadow);
+                    currentObject = ResourceObjectFetchOperation.executeRaw(
+                            def.entitlementCtx, primaryEntitlementIdentification, result);
+                    objectOperations.setCurrentResourceObject(currentObject);
                 }
                 // TODO It seems that duplicate values are checked twice: once here and the second time
                 //  in ResourceObjectConverter.executeModify. Check that and fix if necessary.
                 PropertyDelta<TA> attributeDeltaAfterNarrow = ProvisioningUtil.narrowPropertyDelta(
-                        attributeDelta, currentObjectShadow, associationDef.getMatchingRule(), b.matchingRuleRegistry);
+                        attributeDelta, currentObject, associationDef.getMatchingRule(), b.matchingRuleRegistry);
                 if (attributeDeltaAfterNarrow == null || attributeDeltaAfterNarrow.isEmpty()) {
                     LOGGER.trace("Not collecting entitlement object operations ({}) association {}: "
                                     + "attribute delta is empty after narrow, orig delta: {}",

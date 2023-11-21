@@ -132,7 +132,7 @@ class ShadowSearchLikeOperation {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         if (shouldDoRepoSearch()) {
-            return b.shadowFinder.countShadows(ctx, query, options, result);
+            return b.repoShadowFinder.countShadows(ctx, query, options, result);
         } else {
             // We record the fetch operation even if it's possible that it is not supported.
             InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -273,7 +273,7 @@ class ShadowSearchLikeOperation {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         try {
-            return b.shadowFinder.searchShadowsIterative(
+            return b.repoShadowFinder.searchShadowsIterative(
                     ctx,
                     query,
                     options,
@@ -288,7 +288,7 @@ class ShadowSearchLikeOperation {
     private @NotNull SearchResultList<PrismObject<ShadowType>> executeNonIterativeSearchInRepository(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        SearchResultList<PrismObject<ShadowType>> shadows = b.shadowFinder.searchShadows(ctx, query, options, result);
+        SearchResultList<PrismObject<ShadowType>> shadows = b.repoShadowFinder.searchShadows(ctx, query, options, result);
 
         ResultHandler<ShadowType> repoShadowHandler = createRepoShadowHandler(null);
         for (PrismObject<ShadowType> shadow : shadows) {

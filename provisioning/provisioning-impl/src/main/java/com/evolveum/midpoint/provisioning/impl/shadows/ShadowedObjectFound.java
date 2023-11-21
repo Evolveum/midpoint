@@ -13,7 +13,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorRep
 import java.util.Objects;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.AbstractResourceEntity;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.AbstractLazilyInitializableResourceEntity;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 
 import com.google.common.base.MoreObjects;
@@ -74,7 +76,7 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
     }
 
     @Override
-    public @NotNull AbstractResourceEntity getPrerequisite() {
+    public @NotNull AbstractLazilyInitializableResourceEntity getPrerequisite() {
         return resourceObjectFound;
     }
 
@@ -85,22 +87,22 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
     public void initializeInternalForPrerequisiteOk(Task task, OperationResult result)
             throws CommonException, EncryptionException {
 
-        ShadowType repoShadow = acquireRepoShadow(result);
+        RepoShadow repoShadow = acquireRepoShadow(result);
         try {
 
-            // The repo shadow is properly classified at this point. So we determine the definitions (etc) definitely.
-            ProvisioningContext shadowCtx = globalCtx.adoptShadow(repoShadow);
+            // The repo shadow is properly classified at this point. Let's just update our context.
+            ProvisioningContext shadowCtx = globalCtx.spawnForDefinition(repoShadow.getObjectDefinition());
 
-            ShadowType updatedRepoShadow = updateShadowInRepository(shadowCtx, repoShadow, result);
-            shadowedObject = createShadowedObject(shadowCtx, updatedRepoShadow, result);
+            RepoShadow currentOrReloadedShadow = updateShadowInRepository(shadowCtx, repoShadow, result);
+            shadowedObject = createShadowedObject(shadowCtx, currentOrReloadedShadow, result).getBean();
 
         } catch (Exception e) {
 
             // No need to log stack trace now. It will be logged at the place where the exception is processed.
             // It is questionable whether to log anything at all.
             LOGGER.warn("Couldn't initialize {}. Continuing with previously acquired repo shadow: {}. Error: {}",
-                    getResourceObjectRequired(), repoShadow, getClassWithMessage(e));
-            shadowedObject = repoShadow;
+                    getExistingResourceObjectRequired(), repoShadow, getClassWithMessage(e));
+            shadowedObject = repoShadow.getBean();
             throw e;
         }
     }
@@ -125,8 +127,8 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
     }
 
     @Override
-    public void setAcquiredRepoShadowInEmergency(ShadowType repoShadow) {
-        this.shadowedObject = repoShadow;
+    public void setAcquiredRepoShadowInEmergency(RepoShadow repoShadow) {
+        this.shadowedObject = repoShadow.getBean();
     }
 
     @Override
@@ -139,12 +141,12 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
         if (shadowedObject != null) {
             ProvisioningUtil.validateShadow(shadowedObject, true);
         } else {
-            ProvisioningUtil.validateShadow(getResourceObjectRequired().getBean(), false);
+            ProvisioningUtil.validateShadow(getExistingResourceObjectRequired().getBean(), false);
         }
     }
 
     private @NotNull ShadowType getAdoptedOrOriginalObject() {
-        return MoreObjects.firstNonNull(shadowedObject, getResourceObjectRequired().getBean());
+        return MoreObjects.firstNonNull(shadowedObject, getExistingResourceObjectRequired().getBean());
     }
 
     /**
@@ -204,7 +206,7 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
      * @see ResourceObjectFound#resourceObject
      */
     @Override
-    public @NotNull ResourceObject getResourceObjectRequired() {
+    public @NotNull ExistingResourceObject getExistingResourceObjectRequired() {
         return resourceObjectFound.getResourceObject();
     }
 

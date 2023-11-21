@@ -1005,7 +1005,12 @@ public interface ProvisioningService {
      * And so on. However, this is NOT reconciliation function that will make sure that the resource object attributes are OK
      * with all the policies. This is just a provisioning-level operation.
      */
-    void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, ProvisioningOperationContext context, Task task, OperationResult parentResult)
+    void refreshShadow(
+            @NotNull PrismObject<ShadowType> shadow,
+            ProvisioningOperationOptions options,
+            ProvisioningOperationContext context,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException;
 
@@ -1091,26 +1096,6 @@ public interface ProvisioningService {
             @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
-
-    /**
-     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
-     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
-     */
-    default ConstraintsCheckingResult checkConstraints(
-            ResourceObjectDefinition objectTypeDefinition,
-            PrismObject<ShadowType> shadowObject,
-            PrismObject<ShadowType> shadowObjectOld,
-            ResourceType resource,
-            String shadowOid,
-            ConstraintViolationConfirmer constraintViolationConfirmer,
-            ConstraintsCheckingStrategyType strategy,
-            @NotNull Task task,
-            @NotNull OperationResult parentResult)
-            throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
-        return checkConstraints(objectTypeDefinition, shadowObject, shadowObjectOld, resource, shadowOid, constraintViolationConfirmer,
-                strategy, null, task, parentResult);
-    }
 
     void enterConstraintsCheckerCache();
 

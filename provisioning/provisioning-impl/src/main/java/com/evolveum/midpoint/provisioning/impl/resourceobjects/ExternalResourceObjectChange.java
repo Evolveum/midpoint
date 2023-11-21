@@ -9,15 +9,15 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.provisioning.util.ErrorState;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.provisioning.util.ErrorState;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -32,17 +32,17 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
     public ExternalResourceObjectChange(
             int localSequenceNumber,
             @NotNull Object primaryIdentifierRealValue,
-            ResourceObjectClassDefinition objectClassDefinition,
+            @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
-            ResourceObject resourceObject,
+            UcfResourceObject rawResourceObject,
             ObjectDelta<ShadowType> objectDelta,
             ProvisioningContext ctx) {
         super(
                 localSequenceNumber,
                 primaryIdentifierRealValue,
-                objectClassDefinition,
+                objectDefinition,
                 identifiers,
-                resourceObject,
+                rawResourceObject,
                 objectDelta,
                 ErrorState.ok(),
                 ctx);

@@ -16,6 +16,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.ConnectorFacade;
@@ -143,7 +145,7 @@ class ConnIdCapabilitiesAndSchemaParser {
      * Returns true if the resource uses legacy object class names (e.g. `pass:[__ACCOUNT__]`),
      * false if not, and null if this fact could not be determined.
      */
-    public Boolean getLegacySchema() {
+    Boolean getLegacySchema() {
         return legacySchema;
     }
 
@@ -735,42 +737,40 @@ class ConnIdCapabilitiesAndSchemaParser {
     private static QName connIdTypeToXsdType(AttributeInfo attrInfo) throws SchemaException {
         if (Map.class.isAssignableFrom(attrInfo.getType())) {
             // ConnId type is "Map". We need more precise definition on midPoint side.
-            String subtype = attrInfo.getSubtype();
-            if (subtype == null) {
-                throw new SchemaException("Attribute "+attrInfo.getName()+" defined as Map, but there is no subtype");
-            }
+            String subtype = MiscUtil.requireNonNull(
+                    attrInfo.getSubtype(),
+                    () -> "Attribute " + attrInfo.getName() + " defined as Map, but there is no subtype");
             if (SchemaConstants.ICF_SUBTYPES_POLYSTRING_URI.equals(subtype)) {
-                    return PolyStringType.COMPLEX_TYPE;
+                return PolyStringType.COMPLEX_TYPE;
             } else {
-                throw new SchemaException("Attribute "+attrInfo.getName()+" defined as Map, but there is unsupported subtype '"+subtype+"'");
+                throw new SchemaException(
+                        "Attribute %s defined as Map, but there is unsupported subtype '%s'".formatted(
+                                attrInfo.getName(), subtype));
             }
         }
         return connIdTypeToXsdType(attrInfo.getType(), false);
     }
 
+    /**
+     * Converts ConnId type (used in connector objects and configuration properties)
+     * to a midPoint type (used in XSD schemas and beans).
+     *
+     * The string attributes are treated as xsd:string at this point. Later on, they may be converted to {@link PolyStringType},
+     * if there are matching/normalization rules defined.
+     */
     static QName connIdTypeToXsdType(Class<?> type, boolean isConfidential) {
         // For arrays we are only interested in the component type
         if (isMultivaluedType(type)) {
             type = type.getComponentType();
         }
         QName propXsdType;
-        if (GuardedString.class.equals(type) ||
-                (String.class.equals(type) && isConfidential)) {
-            // GuardedString is a special case. It is a ICF-specific
-            // type
-            // implementing Potemkin-like security. Use a temporary
-            // "nonsense" type for now, so this will fail in tests and
-            // will be fixed later
-//            propXsdType = SchemaConstants.T_PROTECTED_STRING_TYPE;
+        if (GuardedString.class.equals(type)
+                || String.class.equals(type) && isConfidential) {
+            // GuardedString is a special case. It is a ICF-specific type implementing Potemkin-like security.
             propXsdType = ProtectedStringType.COMPLEX_TYPE;
-        } else if (GuardedByteArray.class.equals(type) ||
-                (Byte.class.equals(type) && isConfidential)) {
-            // GuardedString is a special case. It is a ICF-specific
-            // type
-            // implementing Potemkin-like security. Use a temporary
-            // "nonsense" type for now, so this will fail in tests and
-            // will be fixed later
-//            propXsdType = SchemaConstants.T_PROTECTED_BYTE_ARRAY_TYPE;
+        } else if (GuardedByteArray.class.equals(type)
+                || Byte.class.equals(type) && isConfidential) {
+            // GuardedByteArray is a special case. It is a ICF-specific type implementing Potemkin-like security.
             propXsdType = ProtectedByteArrayType.COMPLEX_TYPE;
         } else {
             propXsdType = XsdTypeMapper.toXsdType(type);

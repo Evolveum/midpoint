@@ -9,30 +9,25 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-
-import com.evolveum.midpoint.schema.processor.*;
 
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author Radovan Semancik
- *
  */
 @Component
 class AccessChecker {
@@ -41,13 +36,12 @@ class AccessChecker {
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessChecker.class);
 
-    void checkAddAccess(ProvisioningContext ctx, ShadowType shadow, OperationResult parentResult)
+    void checkAddAccess(ProvisioningContext ctx, ResourceObject resourceObject, OperationResult parentResult)
             throws SecurityViolationException, SchemaException {
         OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
         try {
-            ResourceAttributeContainer attributeCont = ShadowUtil.getAttributesContainer(shadow);
 
-            for (ResourceAttribute<?> attribute : attributeCont.getAttributes()) {
+            for (ResourceAttribute<?> attribute : resourceObject.getAttributes()) {
                 PropertyLimitations limitations =
                         ctx.findAttributeDefinitionRequired(attribute.getElementName())
                                 .getLimitations(LayerType.MODEL);
@@ -87,10 +81,9 @@ class AccessChecker {
         OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
         try {
             for (ItemDelta<?, ?> modification : modifications) {
-                if (!(modification instanceof PropertyDelta<?>)) {
+                if (!(modification instanceof PropertyDelta<?> attrDelta)) {
                     continue;
                 }
-                PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
                 if (!SchemaConstants.PATH_ATTRIBUTES.equivalent(attrDelta.getParentPath())) {
                     // Not an attribute
                     continue;

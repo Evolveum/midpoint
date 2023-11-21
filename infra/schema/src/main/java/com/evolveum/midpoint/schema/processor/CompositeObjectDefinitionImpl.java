@@ -585,6 +585,12 @@ public class CompositeObjectDefinitionImpl
         }
     }
 
+    @Override
+    public @NotNull String getShortIdentification() {
+        return "%s with %d aux".formatted(
+                structuralDefinition.getShortIdentification(), auxiliaryDefinitions.size());
+    }
+
     private String getTypeNameLocal() {
         return getTypeName().getLocalPart();
     }

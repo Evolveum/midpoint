@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.impl.polystring.NormalizerRegistryFactory;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 
@@ -83,7 +84,8 @@ public class TestRefinedSchema extends AbstractUnitTest {
         SchemaService.init(
                 getPrismContext(),
                 new RelationRegistryDummyImpl(),
-                MatchingRuleRegistryFactory.createRegistry());
+                MatchingRuleRegistryFactory.createRegistry(),
+                NormalizerRegistryFactory.createRegistry());
     }
 
     /**

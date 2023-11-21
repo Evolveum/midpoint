@@ -161,6 +161,11 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
             deleg.setDefinition(this);
             return deleg;
         }
+
+        @Override
+        public @NotNull Class<T> getTypeClass() {
+            return super.getTypeClass();
+        }
     }
 
     public static class RefinedAttribute<T> extends ResourceAttribute<T> implements RefinedAttributeDefinitionDelegator<T> {

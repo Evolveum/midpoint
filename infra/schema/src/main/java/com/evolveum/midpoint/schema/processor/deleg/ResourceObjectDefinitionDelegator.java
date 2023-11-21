@@ -307,4 +307,9 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     default @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy() {
         return delegate().getEffectiveShadowCachingPolicy();
     }
+
+    @Override
+    default @NotNull String getShortIdentification() {
+        return delegate().getShortIdentification();
+    }
 }

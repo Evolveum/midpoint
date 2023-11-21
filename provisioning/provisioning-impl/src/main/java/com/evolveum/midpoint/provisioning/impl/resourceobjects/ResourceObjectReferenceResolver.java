@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.RepoShadowFinder;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +27,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.provisioning.util.QueryConversionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -55,7 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Resolves resource objects or secondary identifiers.
  *
  * This class invokes functionality outside "resource objects" package by looking shadows up
- * via {@link ShadowFinder} and {@link ShadowsFacade}.
+ * via {@link RepoShadowFinder} and {@link ShadowsFacade}.
  *
  * Intentionally not a public class.
  *
@@ -68,7 +69,7 @@ class ResourceObjectReferenceResolver {
 
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
-    @Autowired private ShadowFinder shadowFinder;
+    @Autowired private RepoShadowFinder repoShadowFinder;
     @Autowired private ShadowsFacade shadowsFacade;
 
     /**
@@ -89,7 +90,7 @@ class ResourceObjectReferenceResolver {
         String shadowOid = getOid(shadowRef);
         if (shadowOid != null) {
             if (resolutionFrequency != ALWAYS) {
-                PrismObject<ShadowType> shadow = shadowFinder.getShadow(shadowOid, result);
+                PrismObject<ShadowType> shadow = repoShadowFinder.getShadow(shadowOid, result);
                 shadowsFacade.applyDefinition(shadow, ctx.getTask(), result);
                 return shadow.asObjectable();
             }
@@ -157,8 +158,9 @@ class ResourceObjectReferenceResolver {
         if (identification instanceof ResourceObjectIdentification.WithPrimary primary) {
             return primary;
         } else if (identification instanceof ResourceObjectIdentification.SecondaryOnly secondaryOnly) {
-            var repoShadows = shadowFinder.searchShadowsByAnySecondaryIdentifier(ctx, secondaryOnly, result);
-            var repoShadow = selectSingleShadow(repoShadows, lazy(() -> "while resolving " + secondaryOnly));
+            // FIXME what if there are proposed shadows here (i.e., multiple ones + without a primary identifier?)
+            var repoShadows = repoShadowFinder.searchShadowsByAnySecondaryIdentifier(ctx, secondaryOnly, result);
+            var repoShadow = selectSingleShadow(ctx, repoShadows, lazy(() -> "while resolving " + secondaryOnly));
             if (repoShadow == null) {
                 // TODO: we could attempt resource search here
                 throw new ObjectNotFoundException(
@@ -170,7 +172,7 @@ class ResourceObjectReferenceResolver {
             var shadowCtx = ctx.applyAttributesDefinition(repoShadow);
 
             ResourceObjectIdentifier.Primary<?> primaryIdentifier =
-                    ResourceObjectIdentifiers.of(shadowCtx.getObjectDefinitionRequired(), repoShadow)
+                    ResourceObjectIdentifiers.of(shadowCtx.getObjectDefinitionRequired(), repoShadow.getBean())
                             .getPrimaryIdentifierRequired();
 
             LOGGER.trace("Resolved {} to {}", identification, primaryIdentifier);
@@ -184,13 +186,18 @@ class ResourceObjectReferenceResolver {
     }
 
     /**
-     * As {@link ProvisioningUtil#selectSingleShadow(List, Object)} but allows the existence of multiple dead shadows
-     * (if single live shadow exists). Not very nice! Transitional solution until better one is found.
+     * Select single live shadow but allows the existence of multiple dead shadows
+     * (if no single live shadow exists). Not very nice! Transitional solution until better one is found.
+     *
+     * @see RepoShadow#selectLiveShadow(ProvisioningContext, List, Object)
+     * @see RepoShadow#selectSingleShadow(ProvisioningContext, List, Object)
      */
-    private static @Nullable ShadowType selectSingleShadow(@NotNull List<PrismObject<ShadowType>> shadows, Object context) {
-        var singleLive = ProvisioningUtil.selectLiveShadow(shadows, context);
+    private static @Nullable RepoShadow selectSingleShadow(
+            @NotNull ProvisioningContext ctx, @NotNull List<PrismObject<ShadowType>> shadows, Object context)
+            throws SchemaException, ConfigurationException {
+        var singleLive = RepoShadow.selectLiveShadow(ctx, shadows, context);
         if (singleLive != null) {
-            return singleLive.asObjectable();
+            return singleLive;
         }
 
         // all remaining shadows (if any) are dead
@@ -200,7 +207,7 @@ class ResourceObjectReferenceResolver {
             LOGGER.error("Cannot select from {} dead shadows {}:\n{}", shadows.size(), context, DebugUtil.debugDump(shadows));
             throw new IllegalStateException("More than one [dead] shadow for " + context);
         } else {
-            return shadows.get(0).asObjectable();
+            return ctx.adoptRepoShadow(shadows.get(0));
         }
     }
 }

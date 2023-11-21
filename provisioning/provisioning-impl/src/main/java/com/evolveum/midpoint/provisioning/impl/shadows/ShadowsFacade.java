@@ -23,6 +23,7 @@ import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.Shadow;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -61,7 +62,7 @@ public class ShadowsFacade {
      * the ones (if any) in the shadow.
      * @param options "read only" option is ignored
      */
-    public @NotNull ShadowType getShadow(
+    public @NotNull Shadow getShadow(
             @NotNull String oid,
             @Nullable ShadowType repositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
@@ -115,14 +116,14 @@ public class ShadowsFacade {
     }
 
     public void refreshShadow(
-            ShadowType repoShadow,
+            ShadowType rawRepoShadow,
             ProvisioningOperationOptions options,
             ProvisioningOperationContext context,
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, EncryptionException {
-        ShadowRefreshOperation.executeFull(repoShadow, options, context, task, result);
+        ShadowRefreshOperation.executeFull(rawRepoShadow, options, context, task, result);
     }
 
     public void applyDefinition(
@@ -201,12 +202,12 @@ public class ShadowsFacade {
 
     public void propagateOperations(
             @NotNull ResourceType resource,
-            @NotNull ShadowType shadow,
+            @NotNull ShadowType repoShadow,
             @NotNull Task task,
             @NotNull OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
             SecurityViolationException, PolicyViolationException, EncryptionException {
-        propagationHelper.propagateOperations(resource, shadow, task, result);
+        propagationHelper.propagateOperations(resource, repoShadow, task, result);
     }
 
     public <T> ItemComparisonResult compare(

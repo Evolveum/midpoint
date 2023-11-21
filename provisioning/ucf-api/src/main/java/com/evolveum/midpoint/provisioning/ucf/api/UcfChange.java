@@ -67,7 +67,7 @@ public abstract class UcfChange implements DebugDumpable {
      *
      * 1. The collection is unmodifiable. Its elements themselves are mutable.
      * 2. errorState.isSuccess: Always not empty.
-     * 3. errorState.isError: Should be non-empty if at all possible. However, for AU changes it is currently always empty.
+     * 3. errorState.isError: Should be non-empty if at all possible. However, for AU changes it is currently always non-empty.
      *
      * Note: The mutability of the elements was chosen because currently there are definitions applied to them
      * in the further processing. So if they were immutable, they would need to be cloned every time.

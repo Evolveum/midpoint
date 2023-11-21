@@ -26,14 +26,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents the status of an object that was already initialized by other (external) means.
  *
- * For example, {@link UcfObjectFound} and {@link UcfChange} are not of type {@link InitializableObjectMixin}, yet they have
+ * For example, {@link UcfObjectFound} and {@link UcfChange} are not of type {@link LazilyInitializableMixin}, yet they have
  * some initialization that results in an {@link ErrorState}. They can be represented
  * as {@link AlreadyInitializedObject} instances.
  *
  * Note that "initializeInternal..." methods are no-ops. This is because there is nothing to do here; the underlying object
  * was already initialized, e.g., by UCF.
  */
-public class AlreadyInitializedObject implements InitializableObjectMixin {
+public class AlreadyInitializedObject implements LazilyInitializableMixin {
 
     private static final Trace LOGGER = TraceManager.getTrace(AlreadyInitializedObject.class);
 
@@ -69,7 +69,7 @@ public class AlreadyInitializedObject implements InitializableObjectMixin {
     }
 
     @Override
-    public @Nullable InitializableObjectMixin getPrerequisite() {
+    public @Nullable LazilyInitializableMixin getPrerequisite() {
         return null;
     }
 

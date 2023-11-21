@@ -15,8 +15,8 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectCon
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.OperationResultRecorder;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.RepoShadowFinder;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -52,7 +52,7 @@ public class ShadowsLocalBeans {
     @Autowired ClassificationHelper classificationHelper;
     @Autowired ShadowsFacade shadowsFacade;
     @Autowired ShadowCaretaker shadowCaretaker;
-    @Autowired ShadowFinder shadowFinder;
+    @Autowired RepoShadowFinder repoShadowFinder;
     @Autowired OperationResultRecorder operationResultRecorder;
     @Autowired ShadowUpdater shadowUpdater;
     @Autowired ShadowCreator shadowCreator;

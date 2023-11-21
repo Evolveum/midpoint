@@ -48,6 +48,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.normalization.Normalizer;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
 import jakarta.annotation.PostConstruct;
@@ -726,10 +727,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return objects;
     }
 
-    protected <T extends ObjectType> T parseObjectTypeFromFile(String fileName, Class<T> clazz) throws SchemaException, IOException {
-        return parseObjectType(new File(fileName), clazz);
-    }
-
     protected <T extends ObjectType> T parseObjectType(File file) throws SchemaException, IOException {
         PrismObject<T> prismObject = prismContext.parseObject(file);
         return prismObject.asObjectable();
@@ -739,7 +736,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      * Just like {@link #parseObject(File)}, but helps with typing when another method is called
      * on the returned value (with version without class, local variable is needed).
      */
-    @SuppressWarnings("unused")
     protected <T extends ObjectType> T parseObjectType(File file, Class<T> clazz)
             throws SchemaException, IOException {
         return parseObjectType(file);
@@ -1186,6 +1182,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 @Override
                 public PolyString normalize(PolyString original) throws SchemaException {
                     return new PolyString(nameMatchingRule.normalize(original.getOrig()));
+                }
+
+                @Override
+                public @NotNull Normalizer<?> getNormalizer() {
+                    throw new UnsupportedOperationException();
                 }
 
             };

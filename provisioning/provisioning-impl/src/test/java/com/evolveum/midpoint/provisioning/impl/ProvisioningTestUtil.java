@@ -6,10 +6,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-
 import java.io.File;
 import java.util.Collection;
 
@@ -24,6 +20,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -70,6 +69,9 @@ public class ProvisioningTestUtil {
         if (expectedNumberOfAttributes != null) {
             assertEquals("Unexpected number of attributes in repo shadow "+repoShadow, (int)expectedNumberOfAttributes, attributes.size());
         }
+        assertThat(repoShadowType.getShadowLifecycleState())
+                .as("shadow lifecycle of " + repoShadow)
+                .isNull();
     }
 
     public static QName getDefaultAccountObjectClass(ResourceType resourceType) {

@@ -1177,6 +1177,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         assertDeletedMorgan(2, 5);
 
+        // This is just to make the "read" counters happy. Obviously, there is some difference in behavior between
+        // "normal" and "reaper" version of this test, regarding the resource read operations. In the "reaper" version,
+        // the resource is being read later. So, this dummy read just unifies the behavior; without the risk
+        // of missing eventual excessive reads (as they are checked also later).
+        provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+
         // Resource -> up
         assertResourceStatusChangeCounterIncrements();
         assertSteadyResources();

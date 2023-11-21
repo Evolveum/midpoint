@@ -227,10 +227,8 @@ class EntitlementReader {
                     "Referenced value attribute %s has more than one value; it is the attribute defined in association '%s' in %s"
                             .formatted(referencedAttrName, associationName, subjectCtx));
         }
-        ResourceAttributeDefinition<T> referencedAttrDef = referencedAttr.getDefinition();
-        PrismPropertyValue<T> referencedAttrValue = referencedAttr.getAnyValue();
-
-        ObjectQuery query = createEntitlementQuery(referencedAttrValue, referencedAttrDef, referencingAttrDef, associationDef);
+        PrismPropertyValue<T> referencedAttrValue = referencedAttr.getValue();
+        ObjectQuery query = createEntitlementQuery(referencedAttrValue, referencingAttrDef);
 
         executeSearchForEntitlements(query, associationName, entitlementCtx, result);
     }

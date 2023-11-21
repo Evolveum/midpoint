@@ -7,13 +7,13 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 /**
- /**
  * Resource Object Attribute is a Property of Resource Object. All that applies
  * to property applies also to attribute, e.g. only a whole attributes can be
  * changed, they may be simple or complex types, they should be representable in
@@ -51,7 +51,7 @@ public interface ResourceAttribute<T> extends PrismProperty<T> {
      * @return native attribute name
      */
     default String getNativeAttributeName() {
-        ResourceAttributeDefinition<T> definition = getDefinition();
+        var definition = getDefinition();
         return definition != null ? definition.getNativeAttributeName() : null;
     }
 
@@ -59,9 +59,26 @@ public interface ResourceAttribute<T> extends PrismProperty<T> {
     default @NotNull ResourceAttribute<T> forceDefinitionFrom(ResourceObjectDefinition objectDefinition) throws SchemaException {
         var attrDef = objectDefinition.findAttributeDefinitionRequired(getElementName());
         //noinspection unchecked
-        applyDefinition((ResourceAttributeDefinition<T>) attrDef, true);
+        forceDefinition((ResourceAttributeDefinition<T>) attrDef);
         return this;
     }
+
+    default void forceDefinition(@NotNull ResourceAttributeDefinition<T> attributeDefinition) throws SchemaException {
+        applyDefinition(attributeDefinition, true);
+    }
+
+    /**
+     * Forces the definition, potentially different from the current one.
+     * Executes the normalization.
+     *
+     * This may include conversion of values from {@link String} to {@link PolyString},
+     * if string normalizer is used.
+     *
+     * The returned value may be the same as this instance, or it may be a new instance.
+     * (For example, if the original value is immutable, or if the type change occurs.)
+     */
+    @NotNull <T2> ResourceAttribute<T2> forceDefinitionWithNormalization(@NotNull ResourceAttributeDefinition<T2> newDefinition)
+            throws SchemaException;
 
     @Override
     ResourceAttribute<T> clone();

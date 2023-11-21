@@ -120,9 +120,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
     };
 
     private static final File RESOURCE_OPENDJ_NO_READ_FILE = new File(TEST_DIR, "resource-opendj-no-read.xml");
-    private static final File RESOURCE_OPENDJ_NO_CREATE_FILE = new File(TEST_DIR, "/resource-opendj-no-create.xml");
-    private static final File RESOURCE_OPENDJ_NO_DELETE_FILE = new File(TEST_DIR, "/resource-opendj-no-delete.xml");
-    private static final File RESOURCE_OPENDJ_NO_UPDATE_FILE = new File(TEST_DIR, "/resource-opendj-no-update.xml");
+    private static final File RESOURCE_OPENDJ_NO_CREATE_FILE = new File(TEST_DIR, "resource-opendj-no-create.xml");
+    private static final File RESOURCE_OPENDJ_NO_DELETE_FILE = new File(TEST_DIR, "resource-opendj-no-delete.xml");
+    private static final File RESOURCE_OPENDJ_NO_UPDATE_FILE = new File(TEST_DIR, "resource-opendj-no-update.xml");
 
     private String groupSailorOid;
 
@@ -786,10 +786,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         when();
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_BAD_OID, null, task, result);
+        var shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_BAD_OID, null, task, result);
 
         then();
         ShadowAsserter.forShadow(shadow, "provisioning")
+                .display()
                 .assertTombstone();
     }
 

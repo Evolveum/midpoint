@@ -22,8 +22,8 @@
             class="com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory"
             factory-method="createRegistry"/>
 
-    <bean id="polyStringNormalizerRegistry"
-            class="com.evolveum.midpoint.prism.impl.polystring.PolyStringNormalizerRegistryFactory"
+    <bean id="normalizerRegistry"
+            class="com.evolveum.midpoint.prism.impl.polystring.NormalizerRegistryFactory"
             factory-method="createRegistry"/>
 
     <bean id="clock" class="com.evolveum.midpoint.common.Clock"/>

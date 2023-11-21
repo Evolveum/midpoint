@@ -4509,12 +4509,12 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="exists" type="xsd:boolean" minOccurs="0" default="false">
+                    <xsd:element name="exists" type="xsd:boolean" minOccurs="0" default="true">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Set to true if the object is known to exist on the resource.
                                 There may be shadows for objects that do not exist yet (e.g. create operations in progress)
-                                or shadows for objects that we known nothing about yet.
+                                or shadows for objects that we know nothing about yet.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

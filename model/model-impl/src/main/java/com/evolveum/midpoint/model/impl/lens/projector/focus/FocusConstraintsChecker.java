@@ -173,8 +173,8 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
         LOGGER.trace("Comparing {} and {}", foundObjects.get(0).getOid(), oid);
         boolean match = foundObjects.get(0).getOid().equals(oid);
         if (!match) {
-            LOGGER.trace("Found conflicting existing object with property {} = {}:\n",
-                    propPath, property, foundObjects.get(0).debugDumpLazily());
+            LOGGER.trace("Found conflicting existing object with property {} = {}:\n{}",
+                    propPath, property, foundObjects.get(0).debugDumpLazily(1));
             message("Found conflicting existing object with property "+propPath+" = " + property + ": "
                     + foundObjects.get(0));
 
@@ -185,7 +185,7 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
     }
 
     private void message(String message) {
-        if (messageBuilder.length() != 0) {
+        if (!messageBuilder.isEmpty()) {
             messageBuilder.append(", ");
         }
         messageBuilder.append(message);

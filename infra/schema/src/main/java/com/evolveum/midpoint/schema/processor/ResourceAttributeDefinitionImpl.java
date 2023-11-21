@@ -16,9 +16,12 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryImpl;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -173,8 +176,9 @@ public class ResourceAttributeDefinitionImpl<T>
      */
     private void checkReallyRaw(RawResourceAttributeDefinition<T> rawDefinition) {
         if (rawDefinition instanceof ResourceAttributeDefinition<?>) {
-            throw new IllegalStateException("Trying to use \"full\" ResourceAttributeDefinition where "
-                    + "a raw one is expected: " + rawDefinition + " (" + rawDefinition.getClass().getName() + ")");
+            throw new IllegalStateException(
+                    "Trying to use \"full\" ResourceAttributeDefinition where a raw one is expected: %s (%s)".formatted(
+                            rawDefinition, rawDefinition.getClass().getName()));
         }
     }
 
@@ -569,6 +573,13 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public @NotNull MatchingRule<T> getMatchingRule() throws SchemaException {
+        // We cannot leave the resolution to the delegator, as it would take the matching rule from the raw definition.
+        return MatchingRuleRegistryImpl.instance()
+                .getMatchingRule(getMatchingRuleQName(), getTypeName());
+    }
+
+    @Override
     public @NotNull PropertyDelta<T> createEmptyDelta(ItemPath path) {
         return new PropertyDeltaImpl<>(path, this, PrismContext.get());
     }
@@ -809,5 +820,10 @@ public class ResourceAttributeDefinitionImpl<T>
     @Override
     public @NotNull LayerType getCurrentLayer() {
         return currentLayer;
+    }
+
+    @Override
+    public @NotNull Class<T> getTypeClass() {
+        return MiscUtil.stateNonNull(rawDefinition.getTypeClass(), "No static type for %s", this);
     }
 }

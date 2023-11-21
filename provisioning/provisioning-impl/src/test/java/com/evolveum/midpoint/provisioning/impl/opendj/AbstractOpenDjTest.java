@@ -62,7 +62,7 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
     protected static final String ACCOUNT_POLY_DESCRIPTION_HR = "Papiga Poly";
     protected static final String ACCOUNT_POLY_DESCRIPTION_RU = "Попугай Поли";
 
-    private static final File ACCOUNT_BAD_FILE = new File(TEST_DIR, "account-bad.xml");
+    private static final File ACCOUNT_BAD_REPO_FILE = new File(TEST_DIR, "account-bad-repo.xml");
     static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
 
     static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack.xml");
@@ -166,7 +166,7 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
         InternalsConfig.encryptionChecks = false;
         provisioningService.postInit(initResult);
         resource = addResourceFromFile(getResourceOpenDjFile(), IntegrationTestTools.CONNECTOR_LDAP_TYPE, initResult);
-        repoAddShadowFromFile(ACCOUNT_BAD_FILE, initResult);
+        repoAddShadowFromFile(ACCOUNT_BAD_REPO_FILE, initResult);
 
         dnMatchingRule = matchingRuleRegistry.getMatchingRule(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, DOMUtil.XSD_STRING);
     }
