@@ -145,6 +145,22 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
                             }
                         });
 
+                        List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> undeletedValues = sourceItem.getValues().stream()
+                                .filter(value -> value.getStatus() != ValueStatus.DELETED)
+                                .collect(Collectors.toList());
+                        if (undeletedValues.stream().filter(value -> value.getRealValue() != null).count() > 0) {
+                            sourceItem.getValues().removeIf(value -> value.getRealValue() == null);
+                        } else if (undeletedValues.isEmpty()) {
+                            try {
+                                PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
+                                        = getPrismContext().itemFactory().createPropertyValue();
+                                newPrismValue.setValue(null);
+                                sourceItem.add(newPrismValue, getPageBase());
+                            } catch (SchemaException e) {
+                                LOGGER.error("Couldn't initialize new null value for Source item", e);
+                            }
+                        }
+
                     }
                 };
 
