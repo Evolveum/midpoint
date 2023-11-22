@@ -27,6 +27,8 @@ JAVA_OPTS="${JAVA_OPTS:- }"
 
 JAVA_def_Xms="1g"
 JAVA_def_Xmx="2g"
+JAVA_def_trustStore="keystore.jceks"
+JAVA_def_trustStoreType="jceks"
 ENV_MAP_PREFIX="MP_SET_"
 ENV_UNMAP_PREFIX="MP_UNSET_"
 
@@ -187,6 +189,8 @@ if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Xms[0-9]"); then
 fi
 
 if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Dmidpoint.home="); then JAVA_OPTS="${JAVA_OPTS:-} -Dmidpoint.home=\"${MIDPOINT_HOME}\""; fi
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Djavax.net.ssl.trustStore="); then JAVA_OPTS="${JAVA_OPTS:-} -Djavax.net.ssl.trustStore=\"${MIDPOINT_HOME}/${JAVA_def_trustStore}\""; fi
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Djavax.net.ssl.trustStoreType="); then JAVA_OPTS="${JAVA_OPTS:-} -Djavax.net.ssl.trustStoreType=${JAVA_def_trustStoreType}"; fi
 
 # clean up white spaces in case of key/value removal from the original JAVA_OPTS parameter set
 JAVA_OPTS="$(echo "${JAVA_OPTS:-}" | tr -s [[:space:]] " " | sed "s/^[[:space:]]//;s/[[:space:]]$//")"

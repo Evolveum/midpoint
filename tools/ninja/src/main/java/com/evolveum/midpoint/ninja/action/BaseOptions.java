@@ -35,7 +35,7 @@ public class BaseOptions {
     public static final String P_VERSION_LONG = "--version";
 
     public static final String P_BATCH_MODE = "-B";
-    public static final String P_BATCH_MODE_LONG= "--batch-mode";
+    public static final String P_BATCH_MODE_LONG = "--batch-mode";
 
     @Parameter(names = { P_HELP, P_HELP_LONG }, help = true, descriptionKey = "base.help")
     private boolean help = false;

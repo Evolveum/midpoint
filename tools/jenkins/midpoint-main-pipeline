@@ -52,7 +52,7 @@ podTemplate(
                             df -h
                         fi
 
-                        mvn -B -ntp -DskipTests clean deploy -DdeployAtEnd=true
+                        mvn -B -ntp -DskipTests clean ${params.SKIP_DEPLOY ? 'install' : 'deploy -DdeployAtEnd=true'}
 
                         if [ "${verbose}" -ge 1 ]; then
                             df -h

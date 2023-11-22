@@ -53,7 +53,10 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
                         description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
                         label = "PageTasks.auth.tasks.label",
-                        description = "PageTasks.auth.tasks.description") })
+                        description = "PageTasks.auth.tasks.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_VIEW_URL,
+                        label = "PageTasks.auth.tasks.view.label",
+                        description = "PageTasks.auth.tasks.view.description") })
 @CollectionInstance(identifier = "allTasks", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "PageAdmin.menu.top.tasks.list", singularLabel = "ObjectType.task", icon = GuiStyleConstants.CLASS_OBJECT_TASK_ICON))
 public class PageTasks extends PageAdmin {

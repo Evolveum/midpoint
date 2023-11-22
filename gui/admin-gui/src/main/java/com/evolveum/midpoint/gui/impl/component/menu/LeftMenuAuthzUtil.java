@@ -16,6 +16,7 @@ import com.evolveum.midpoint.web.page.admin.cases.PageCases;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 
@@ -48,6 +49,9 @@ public class LeftMenuAuthzUtil {
         pageAuthorizationMaps.put(PageCases.class,
                 Arrays.asList(AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
                         AuthorizationConstants.AUTZ_UI_CASES_URL));
+        pageAuthorizationMaps.put(PageTasks.class,
+                Arrays.asList(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_TASKS_URL));
     }
 
     static {
@@ -70,6 +74,9 @@ public class LeftMenuAuthzUtil {
         viewsAuthorizationMaps.put(PageCases.class,
                 Arrays.asList(AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
                         AuthorizationConstants.AUTZ_UI_CASES_VIEW_URL));
+        viewsAuthorizationMaps.put(PageTasks.class,
+                Arrays.asList(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_TASKS_VIEW_URL));
     }
 
     public static List<String> getAuthorizationsForPage(Class<? extends WebPage> pageClass) {
