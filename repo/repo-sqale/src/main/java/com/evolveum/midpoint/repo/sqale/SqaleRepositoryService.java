@@ -195,28 +195,55 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     }
 
     /** Read object using provided {@link JdbcSession} as a part of already running transaction. */
+
+    private static class MappedTuple<S> {
+        Tuple tuple;
+        S schemaObject;
+    }
+
     private <S extends ObjectType> S readByOid(
             @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull UUID oid,
-            Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException, ObjectNotFoundException {
-
+            Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException {
         SqaleTableMapping<S, QObject<MObject>, MObject> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
-        QObject<MObject> root = rootMapping.defaultAlias();
+        return internalReadByOid(jdbcSession, rootMapping, oid, options, false).schemaObject;
+    }
 
-        Tuple result = jdbcSession.newQuery()
+    private <S extends ObjectType, Q extends QObject<R>, R extends MObject> MappedTuple<S> internalReadByOid(
+            @NotNull JdbcSession jdbcSession,
+            SqaleTableMapping<S, Q, R> rootMapping,
+            @NotNull UUID oid,
+            Collection<SelectorOptions<GetOperationOptions>> options, boolean forUpdate)
+            throws SchemaException, ObjectNotFoundException {
+        Q root = rootMapping.defaultAlias();
+
+        var expressions = rootMapping.selectExpressions(root, options);
+        if (forUpdate) {
+            expressions = ObjectArrays.concat(expressions, root.containerIdSeq);
+        }
+        var query = jdbcSession.newQuery()
                 .from(root)
-                .select(rootMapping.selectExpressions(root, options))
-                .where(root.oid.eq(oid))
-                .fetchOne();
+                .select(expressions)
+                .where(root.oid.eq(oid));
+        if (forUpdate) {
+            query.forUpdate();
+        }
+        Tuple result = query.fetchOne();
 
         if (result == null || result.get(root.fullObject) == null) {
-            throw new ObjectNotFoundException(schemaType, oid.toString(), isAllowNotFound(options));
+            throw new ObjectNotFoundException(rootMapping.schemaType(), oid.toString(), isAllowNotFound(options));
         }
 
-        return rootMapping.toSchemaObjectComplete(result, root, options, jdbcSession, false);
+        var ret = new MappedTuple<S>();
+        ret.tuple = result;
+        var queryContext = SqaleQueryContext.from(rootMapping, sqlRepoContext, query, this::readByOid);
+        var rowTransformer = rootMapping.createRowTransformer(queryContext, jdbcSession, options);
+        rowTransformer.beforeTransformation(List.of(result), root);
+        ret.schemaObject = rowTransformer.transform(result, root);
+        rowTransformer.finishTransformation();
+        return ret;
     }
 
     @Override
@@ -688,28 +715,16 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 rootMapping.selectExpressions(entityPath, getOptions),
                 entityPath.containerIdSeq);
 
-        Tuple result = jdbcSession.newQuery()
-                .select(selectExpressions)
-                .from(entityPath)
-                .where(entityPath.oid.eq(oid))
-                .forUpdate()
-                .fetchOne();
 
-        if (result == null || result.get(entityPath.fullObject) == null) {
-            throw new ObjectNotFoundException(schemaType, oid.toString(), isAllowNotFound(getOptions));
-        }
-
-        S object = rootMapping.toSchemaObjectComplete(
-                result, entityPath, getOptions, jdbcSession, RepoModifyOptions.isForceReindex(options));
-
+        MappedTuple<S> mapped = internalReadByOid(jdbcSession, rootMapping, oid, getOptions, true);
         R rootRow = rootMapping.newRowObject();
         rootRow.oid = oid;
-        rootRow.containerIdSeq = result.get(entityPath.containerIdSeq);
+        rootRow.containerIdSeq = mapped.tuple.get(entityPath.containerIdSeq);
         // This column is generated, some sub-entities need it, but we can't push it to DB.
-        rootRow.objectType = MObjectType.fromSchemaType(object.getClass());
+        rootRow.objectType = MObjectType.fromSchemaType(mapped.schemaObject.getClass());
         // we don't care about full object in row
 
-        return new RootUpdateContext<>(sqlRepoContext, jdbcSession, object, rootRow);
+        return new RootUpdateContext<>(sqlRepoContext, jdbcSession, mapped.schemaObject, rootRow);
     }
 
     private void checkModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
