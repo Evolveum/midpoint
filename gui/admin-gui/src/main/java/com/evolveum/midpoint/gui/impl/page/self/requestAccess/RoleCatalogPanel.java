@@ -109,7 +109,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private final PageBase page;
 
-    private LoadableModel<Search> searchModel;
+    private LoadableDetachableModel<Search> searchModel;
+    private Search<?> search = null;
 
     private IModel<ListGroupMenu<RoleCatalogQueryItem>> menuModel;
 
@@ -317,31 +318,21 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         updateFalseQuery(query);
         queryModel = Model.of(query);
 
-        searchModel = new LoadableModel<>(false) {
-
-            @Override
-            public Search getObject() {
-                Search search = super.getObject();
-
-                Class<? extends ObjectType> type = queryModel.getObject().getType();
-                // make sure we'll return search object that was created for proper ObjectType class
-                if (!Objects.equals(type, search.getTypeClass())) {
-                    reset();
-
-                    search = super.getObject();
-                }
-
-                return search;
-            }
+        searchModel = new LoadableDetachableModel<>() {
 
             @Override
             protected Search<?> load() {
                 Class<? extends ObjectType> type = queryModel.getObject().getType();
+                if (search != null && type.equals(search.getTypeClass())) {
+                    return search;
+                }
+
 
                 SearchBuilder<?> searchBuilder = new SearchBuilder<>(type)
                         .modelServiceLocator(page);
 
-                return searchBuilder.build();
+                search = searchBuilder.build();
+                return search;
             }
         };
 
@@ -555,6 +546,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 super.itemSelected(target, item);
 
                 tilesTable.getViewToggleModel().setObject(item.getObject().getValue());
+                tilesTable.getTable().refreshSearch();
                 target.add(RoleCatalogPanel.this);
             }
         };
@@ -622,10 +614,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private void onMenuClickPerformed(AjaxRequestTarget target, ListGroupMenuItem<RoleCatalogQueryItem> item) {
         updateQueryModel(item);
-        searchModel.reset();
+        searchModel.detach();
 
         TileTablePanel<?, ?> tilesTable = (TileTablePanel<?, ?>) get(ID_TILES);
         tilesTable.initHeaderFragment();
+        tilesTable.getTable().refreshSearch();
 
         target.add(get(ID_TILES));
         target.add(get(ID_MENU));
