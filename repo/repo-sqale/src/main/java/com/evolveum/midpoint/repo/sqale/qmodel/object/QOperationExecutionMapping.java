@@ -12,12 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
-import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTaskMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -147,7 +141,7 @@ public class QOperationExecutionMapping<OR extends MObject>
     @Override
     public ResultListRowTransformer<OperationExecutionType, QOperationExecution<OR>, MOperationExecution> createRowTransformer(
             SqlQueryContext<OperationExecutionType, QOperationExecution<OR>, MOperationExecution> sqlQueryContext,
-            JdbcSession jdbcSession) {
+            JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         Map<UUID, ObjectType> owners = new HashMap<>();
         return new ResultListRowTransformer<>() {
             @Override
@@ -175,8 +169,7 @@ public class QOperationExecutionMapping<OR extends MObject>
             }
 
             @Override
-            public OperationExecutionType transform(Tuple rowTuple,
-                    QOperationExecution<OR> entityPath, Collection<SelectorOptions<GetOperationOptions>> options) {
+            public OperationExecutionType transform(Tuple rowTuple, QOperationExecution<OR> entityPath) {
                 MOperationExecution row = Objects.requireNonNull(rowTuple.get(entityPath));
                 ObjectType object = Objects.requireNonNull(owners.get(row.ownerOid),
                         () -> "Missing owner with OID " + row.ownerOid + " for OperationExecution with ID " + row.cid);
@@ -196,7 +189,7 @@ public class QOperationExecutionMapping<OR extends MObject>
     }
 
     @Override
-    protected ItemPath getContainerPath() {
+    public ItemPath getContainerPath() {
         return ObjectType.F_OPERATION_EXECUTION;
     }
 }

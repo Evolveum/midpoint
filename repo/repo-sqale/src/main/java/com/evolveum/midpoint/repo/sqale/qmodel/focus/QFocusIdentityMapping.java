@@ -108,7 +108,7 @@ public class QFocusIdentityMapping<OR extends MFocus>
     }
 
     @Override
-    protected ItemPath getContainerPath() {
+    public ItemPath getContainerPath() {
         return PATH;
     }
 

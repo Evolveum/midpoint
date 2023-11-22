@@ -125,9 +125,10 @@ public class QTaskMapping
         return new MTask();
     }
 
+
     @Override
-    protected PathSet fullObjectItemsToSkip() {
-        return PathSet.of(F_RESULT);
+    protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
+        mutableSet.add(F_RESULT);
     }
 
     @Override

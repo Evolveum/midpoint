@@ -290,7 +290,7 @@ public class QAssignmentMapping<OR extends MObject>
     }
 
     @Override
-    protected ItemPath getContainerPath() {
+    public ItemPath getContainerPath() {
         return path;
     }
 }

@@ -21,7 +21,7 @@ public abstract class QContainerWithFullObjectMapping<S extends Containerable, Q
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
     }
 
-    abstract protected ItemPath getContainerPath();
+    abstract public ItemPath getContainerPath();
 
     public R initRowObjectWithFullObject(S schemaObject, OR ownerRow) throws SchemaException {
         R row =  super.initRowObject(schemaObject, ownerRow);

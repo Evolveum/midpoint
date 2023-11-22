@@ -94,11 +94,6 @@ public class QAssignmentHolderMapping<
         return (Q) new QAssignmentHolder<>(MObject.class, alias);
     }
 
-    @Override
-    protected PathSet fullObjectItemsToSkip() {
-        return PathSet.of(F_ASSIGNMENT);
-    }
-
     public S toSchemaObject(@NotNull Tuple row, @NotNull Q entityPath, @NotNull JdbcSession jdbcSession,
             Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
         S holder = super.toSchemaObject(row, entityPath, jdbcSession, options);

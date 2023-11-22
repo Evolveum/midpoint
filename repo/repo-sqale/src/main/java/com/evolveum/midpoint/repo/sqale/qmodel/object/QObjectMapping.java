@@ -8,14 +8,21 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.BiFunction;
+
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleMappingMixin;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.*;
+
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -25,12 +32,10 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.RepositoryMappingException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -41,8 +46,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -59,6 +62,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     public static final String DEFAULT_ALIAS_NAME = "o";
 
     private static QObjectMapping<?, ?, ?> instance;
+    private PathSet fullObjectSkips;
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QObjectMapping<?, ?, ?> initObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -68,6 +72,8 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 repositoryContext);
         return instance;
     }
+
+    private Map<ItemName, QContainerWithFullObjectMapping<?,?,?,?>> containersWithFullObject = new HashMap<>();
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QObjectMapping<?, ?, ?> getObjectMapping() {
@@ -297,12 +303,15 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         List<OperationExecutionType> operationExecutions = schemaObject.getOperationExecution();
         if (!operationExecutions.isEmpty()) {
-            operationExecutions.forEach(oe ->
-                    QOperationExecutionMapping.get().insert(oe, row, jdbcSession));
+            for (var oe : operationExecutions) {
+                QOperationExecutionMapping.get().insert(oe, row, jdbcSession);
+            }
         }
 
         storeRefs(row, schemaObject.getParentOrgRef(),
                 QObjectReferenceMapping.getForParentOrg(), jdbcSession);
+
+        // FIXME: Store fullObjects here?
     }
 
     private @NotNull List<ObjectReferenceType> getEffectiveMarks(@NotNull S schemaObject) {
@@ -336,5 +345,39 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         row.fullObject = createFullObject(schemaObject);
     }
+
+    @Override
+    public <C extends Containerable, TQ extends QContainer<TR, R>, TR extends MContainer> SqaleMappingMixin<S, Q, R> addContainerTableMapping(
+            @NotNull ItemName itemName, @NotNull QContainerMapping<C, TQ, TR, R> containerMapping, @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
+        if (containerMapping instanceof QContainerWithFullObjectMapping mappingWithFullObject) {
+            containersWithFullObject.put(itemName, mappingWithFullObject);
+        }
+        return super.addContainerTableMapping(itemName, containerMapping, joinPredicate);
+    }
+
+    @Override
+    protected final PathSet fullObjectItemsToSkip() {
+        if (fullObjectSkips == null) {
+            var pathSet = new PathSet();
+            for (var mapping : containersWithFullObject.values()) {
+                pathSet.add(mapping.getContainerPath());
+            }
+            customizeFullObjectItemsToSkip(pathSet);
+            pathSet.freeze();
+            fullObjectSkips = pathSet;
+        }
+        return fullObjectSkips;
+    }
+
+    protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
+        // NOOP for overrides
+    }
+
+    @Override
+    public ResultListRowTransformer<S, Q, R> createRowTransformer(SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
+        // here we should load external objects
+        return super.createRowTransformer(sqlQueryContext, jdbcSession, options);
+    }
+
     // endregion
 }

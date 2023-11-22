@@ -98,8 +98,8 @@ public class QLookupTableMapping
     }
 
     @Override
-    protected PathSet fullObjectItemsToSkip() {
-        return PathSet.of(F_ROW);
+    protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
+        mutableSet.add(F_ROW);
     }
 
     @Override

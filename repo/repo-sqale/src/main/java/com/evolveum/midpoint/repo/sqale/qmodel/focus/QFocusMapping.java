@@ -156,8 +156,11 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     }
 
     @Override
-    protected PathSet fullObjectItemsToSkip() {
-        return PathSet.of(F_JPEG_PHOTO, PATH_FOCUS_IDENTITY, PATH_FOCUS_NORMALIZED_DATA, F_ASSIGNMENT);
+    protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
+        super.customizeFullObjectItemsToSkip(mutableSet);
+        mutableSet.add(F_JPEG_PHOTO);
+        mutableSet.add(PATH_FOCUS_IDENTITY);
+        mutableSet.add(PATH_FOCUS_NORMALIZED_DATA);
     }
 
     @SuppressWarnings("DuplicatedCode") // activation code duplicated with assignment

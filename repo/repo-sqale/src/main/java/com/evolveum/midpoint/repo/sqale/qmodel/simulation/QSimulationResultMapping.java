@@ -116,8 +116,8 @@ public class QSimulationResultMapping
     }
 
     @Override
-    protected PathSet fullObjectItemsToSkip() {
-        return PathSet.of(SimulationResultType.F_PROCESSED_OBJECT);
+    protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
+        mutableSet.add(F_PROCESSED_OBJECT);
     }
 
     @Override
