@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import java.sql.Types;
 import java.time.Instant;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObject;
+
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
@@ -21,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QOperationExecution<OR extends MObject> extends QContainer<MOperationExecution, OR> {
+public class QOperationExecution<OR extends MObject> extends QContainerWithFullObject<MOperationExecution, OR> {
 
     private static final long serialVersionUID = -6856661540710930040L;
 
@@ -53,9 +55,6 @@ public class QOperationExecution<OR extends MObject> extends QContainer<MOperati
             ColumnMetadata.named("taskRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata TIMESTAMP =
             ColumnMetadata.named("timestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
-    public static final ColumnMetadata FULL_OBJECT =
-            ColumnMetadata.named("fullObject").ofType(Types.BINARY);
-
 
     // attributes
 
@@ -77,8 +76,6 @@ public class QOperationExecution<OR extends MObject> extends QContainer<MOperati
             createInteger("taskRefRelationId", TASK_REF_RELATION_ID);
     public final DateTimePath<Instant> timestamp =
             createInstant("timestamp", TIMESTAMP);
-
-    public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
 
     public QOperationExecution(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

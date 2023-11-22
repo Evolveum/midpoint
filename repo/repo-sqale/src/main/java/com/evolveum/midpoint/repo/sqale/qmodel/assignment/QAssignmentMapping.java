@@ -13,6 +13,8 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -44,7 +46,7 @@ import com.evolveum.midpoint.util.MiscUtil;
  * @param <OR> type of the owner row
  */
 public class QAssignmentMapping<OR extends MObject>
-        extends QContainerMapping<AssignmentType, QAssignment<OR>, MAssignment, OR> {
+        extends QContainerWithFullObjectMapping<AssignmentType, QAssignment<OR>, MAssignment, OR> {
 
     public static final String DEFAULT_ALIAS_NAME = "a";
 
@@ -87,6 +89,7 @@ public class QAssignmentMapping<OR extends MObject>
     }
 
     private final MContainerType containerType;
+    private final ItemPath path;
 
     // We can't declare Class<QAssignment<OR>>.class, so we cheat a bit.
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -96,6 +99,7 @@ public class QAssignmentMapping<OR extends MObject>
         super(QAssignment.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AssignmentType.class, (Class) QAssignment.class, repositoryContext);
         this.containerType = containerType;
+        this.path = MContainerType.INDUCEMENT == containerType ? AbstractRoleType.F_INDUCEMENT : AbstractRoleType.F_ASSIGNMENT;
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
@@ -212,11 +216,7 @@ public class QAssignmentMapping<OR extends MObject>
     @SuppressWarnings("DuplicatedCode")
     @Override
     public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
-        MAssignment row = initRowObject(assignment, ownerRow);
-
-        // Insert full Object here
-        row.fullObject = createFullObject(assignment);
-
+        MAssignment row = initRowObjectWithFullObject(assignment, ownerRow);
 
         row.lifecycleState = assignment.getLifecycleState();
         row.orderValue = assignment.getOrder();
@@ -290,15 +290,7 @@ public class QAssignmentMapping<OR extends MObject>
     }
 
     @Override
-    public void afterModify(SqaleUpdateContext<AssignmentType, QAssignment<OR>, MAssignment> updateContext) throws SchemaException {
-        // insert fullObject here
-        PrismContainer<AssignmentType> identityContainer =
-                updateContext.findValueOrItem(FocusType.F_ASSIGNMENT);
-        // row in context already knows its CID
-        PrismContainerValue<AssignmentType> pcv = identityContainer.findValue(updateContext.row().cid);
-        byte[] fullObject = createFullObject(pcv.asContainerable());
-        updateContext.set(updateContext.entityPath().fullObject, fullObject);
-
-
+    protected ItemPath getContainerPath() {
+        return path;
     }
 }

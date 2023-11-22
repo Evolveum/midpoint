@@ -25,18 +25,16 @@ public class QObjectReference<OR extends MObject> extends QReference<MReference,
 
     private static final long serialVersionUID = -4850458578494140921L;
 
-
-    public static final ColumnMetadata FULL_OBJECT =
-            ColumnMetadata.named("fullObject").ofType(Types.BINARY);
-
-    public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
-
     public QObjectReference(String variable, String tableName) {
         this(variable, DEFAULT_SCHEMA_NAME, tableName);
     }
 
     public QObjectReference(String variable, String schema, String table) {
-        super(MReference.class, variable, schema, table);
+        this(MReference.class, variable, schema, table);
+    }
+
+    public QObjectReference(Class<? extends MReference> clazz, String variable, String schema, String table) {
+        super(clazz, variable, schema, table);
     }
 
     @Override

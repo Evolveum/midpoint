@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
 import java.sql.Types;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObject;
+
 import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.sql.ColumnMetadata;
@@ -19,7 +21,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QFocusIdentity<OR extends MFocus> extends QContainer<MFocusIdentity, OR> {
+public class QFocusIdentity<OR extends MFocus> extends QContainerWithFullObject<MFocusIdentity, OR> {
 
     private static final long serialVersionUID = -6856661540710930040L;
 
@@ -32,14 +34,11 @@ public class QFocusIdentity<OR extends MFocus> extends QContainer<MFocusIdentity
 
     public static final String TABLE_NAME = "m_focus_identity";
 
-    public static final ColumnMetadata FULL_OBJECT =
-            ColumnMetadata.named("fullObject").ofType(Types.BINARY);
     public static final ColumnMetadata SOURCE_RESOURCE_REF_TARGET_OID =
             ColumnMetadata.named("sourceResourceRefTargetOid").ofType(UuidPath.UUID_TYPE);
 
     // attributes
 
-    public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
     public final UuidPath sourceResourceRefTargetOid =
             createUuid("sourceResourceRefTargetOid", SOURCE_RESOURCE_REF_TARGET_OID);
 

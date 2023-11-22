@@ -11,6 +11,14 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExec
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionTy
  * @param <OR> type of the owner row
  */
 public class QOperationExecutionMapping<OR extends MObject>
-        extends QContainerMapping<OperationExecutionType, QOperationExecution<OR>, MOperationExecution, OR> {
+        extends QContainerWithFullObjectMapping<OperationExecutionType, QOperationExecution<OR>, MOperationExecution, OR> {
 
     public static final String DEFAULT_ALIAS_NAME = "opex";
 
@@ -105,8 +113,8 @@ public class QOperationExecutionMapping<OR extends MObject>
 
     @Override
     public MOperationExecution insert(
-            OperationExecutionType schemaObject, OR ownerRow, JdbcSession jdbcSession) {
-        MOperationExecution row = initRowObject(schemaObject, ownerRow);
+            OperationExecutionType schemaObject, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
+        MOperationExecution row = initRowObjectWithFullObject(schemaObject, ownerRow);
 
         row.status = schemaObject.getStatus();
         row.recordType = schemaObject.getRecordType();
@@ -185,5 +193,10 @@ public class QOperationExecutionMapping<OR extends MObject>
                 return pcv.asContainerable();
             }
         };
+    }
+
+    @Override
+    protected ItemPath getContainerPath() {
+        return ObjectType.F_OPERATION_EXECUTION;
     }
 }

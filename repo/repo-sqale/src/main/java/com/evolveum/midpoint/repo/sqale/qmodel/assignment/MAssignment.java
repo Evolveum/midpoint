@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerWithFullObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
@@ -18,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusTy
 /**
  * Querydsl "row bean" type related to {@link QAssignment}.
  */
-public class MAssignment extends MContainer {
+public class MAssignment extends MContainerWithFullObject {
 
     public MObjectType ownerType;
     public String lifecycleState;
@@ -62,5 +63,4 @@ public class MAssignment extends MContainer {
     public Integer modifyChannelId;
     public Instant modifyTimestamp;
 
-    public byte[] fullObject;
 }

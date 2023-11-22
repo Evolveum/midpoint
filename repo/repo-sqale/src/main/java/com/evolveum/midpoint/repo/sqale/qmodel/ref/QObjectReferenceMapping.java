@@ -11,6 +11,8 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
@@ -368,4 +370,9 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
         };
     }
 
+    @Override
+    public void afterModify(SqaleUpdateContext<ObjectReferenceType, QObjectReference<OR>, MReference> updateContext) throws SchemaException {
+        super.afterModify(updateContext);
+
+    }
 }
