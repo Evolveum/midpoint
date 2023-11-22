@@ -317,7 +317,7 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
      */
     @Override
     public ResultListRowTransformer<ObjectReferenceType, QObjectReference<OR>, MReference> createRowTransformer(
-            SqlQueryContext<ObjectReferenceType, QObjectReference<OR>, MReference> sqlQueryContext, JdbcSession jdbcSession) {
+            SqlQueryContext<ObjectReferenceType, QObjectReference<OR>, MReference> sqlQueryContext, JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         // owner OID -> (target OID -> values)
         Map<UUID, Map<String, List<ObjectReferenceType>>> refsByOwnerAndTarget = new HashMap<>();
 
@@ -350,8 +350,7 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
             }
 
             @Override
-            public ObjectReferenceType transform(Tuple rowTuple, QObjectReference<OR> entityPath,
-                    Collection<SelectorOptions<GetOperationOptions>> options) {
+            public ObjectReferenceType transform(Tuple rowTuple, QObjectReference<OR> entityPath) {
                 MReference row = Objects.requireNonNull(rowTuple.get(entityPath));
                 Map<String, List<ObjectReferenceType>> refsByTarget = refsByOwnerAndTarget.get(row.ownerOid);
                 List<ObjectReferenceType> candidates = refsByTarget.get(row.targetOid.toString());

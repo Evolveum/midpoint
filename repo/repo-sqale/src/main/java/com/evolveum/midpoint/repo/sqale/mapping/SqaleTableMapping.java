@@ -284,7 +284,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      * While public, for Sqale repo it should only be called for internal mapping purposes.
      *
      * *Do not call this in result list transformers* because the results would not have resolved reference names (if requested).
-     * Notice that the default implementation of {@link #createRowTransformer} in this class calls
+     * Notice that the default implementation of {@link QueryTableMapping#createRowTransformer} in this class calls
      * {@link #toSchemaObjectCompleteSafe} which is the right thing to call in result list transformers.
      */
     @Override
@@ -530,7 +530,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      * Prefer overriding {@link #toSchemaObject} as we want to get rid of this version and forceFull flag.
      *
      * *Do not call this in result list transformers* because the results would not have resolved reference names (if requested).
-     * Notice that the default implementation of {@link #createRowTransformer} in this class calls
+     * Notice that the default implementation of {@link QueryTableMapping#createRowTransformer} in this class calls
      * {@link #toSchemaObjectCompleteSafe} which is the right thing to call in result list transformers.
      *
      * @param forceFull true when reindex is forced on the modified object, otherwise false
@@ -593,8 +593,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     @Override
     public ResultListRowTransformer<S, Q, R> createRowTransformer(
-            SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession) {
-        return (tuple, entityPath, options) ->
+            SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
+        return (tuple, entityPath) ->
                 toSchemaObjectCompleteSafe(tuple, entityPath, options, jdbcSession, false);
     }
 }

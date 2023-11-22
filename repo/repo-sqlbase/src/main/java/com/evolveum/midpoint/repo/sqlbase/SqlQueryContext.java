@@ -533,10 +533,10 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             throws SchemaException, QueryException {
         try {
             ResultListRowTransformer<S, Q, R> rowTransformer =
-                    entityPathMapping.createRowTransformer(this, jdbcSession);
+                    entityPathMapping.createRowTransformer(this, jdbcSession, options);
 
             rowTransformer.beforeTransformation(result.content(), entityPath);
-            PageOf<S> transformedResult = result.map(row -> rowTransformer.transform(row, entityPath, options));
+            PageOf<S> transformedResult = result.map(row -> rowTransformer.transform(row, entityPath));
             rowTransformer.finishTransformation();
 
             return transformedResult;
