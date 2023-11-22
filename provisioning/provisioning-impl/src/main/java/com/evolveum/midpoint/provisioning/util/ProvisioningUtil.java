@@ -18,6 +18,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -622,7 +624,9 @@ public class ProvisioningUtil {
             LOGGER.trace("More than one live shadow found ({} out of {}) {}\n{}",
                     liveShadows.size(), shadows.size(), context, DebugUtil.debugDumpLazily(shadows, 1));
             // TODO: handle "more than one shadow" case for conflicting shadows - MID-4490
-            throw new IllegalStateException("Found more than one live shadow " + context + ": " + liveShadows);
+            throw new IllegalStateException(
+                    "Found more than one live shadow %s: %s".formatted(
+                            context, MiscUtil.getDiagInfo(liveShadows, 10, 1000)));
         } else {
             return liveShadows.get(0);
         }
