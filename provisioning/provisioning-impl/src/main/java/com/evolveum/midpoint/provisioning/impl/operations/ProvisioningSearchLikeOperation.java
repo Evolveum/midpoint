@@ -81,7 +81,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
             ConfigurationException, ObjectNotFoundException {
 
         if (filter instanceof NoneFilter) {
-            SearchResultList<PrismObject<T>> objListType = new SearchResultList<>(new ArrayList<>());
+            SearchResultList<PrismObject<T>> objListType = SearchResultList.empty();
             objListType.setMetadata(createNoneFilterMetadata());
             return objListType;
         }

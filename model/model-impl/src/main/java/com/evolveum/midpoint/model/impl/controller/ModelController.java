@@ -561,9 +561,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ObjectManager searchProvider = getObjectManager(type, options);
             result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 
+            if (checkNoneFilterBeforeAutz(query)) {
+                return SearchResultList.empty();
+            }
             ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
-            if (isFilterNone(processedQuery, result)) {
-                return new SearchResultList<>(new ArrayList<>());
+            if (checkNoneFilterAfterAutz(processedQuery, result)) {
+                return SearchResultList.empty();
             }
 
             enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
@@ -744,14 +747,18 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             var parsedOptions = preProcessOptionsSecurity(rawOptionsReadWrite, task, result);
             var options = parsedOptions.getCollection();
 
+            if (checkNoneFilterBeforeAutz(origQuery)) {
+                return SearchResultList.empty();
+            }
+
             var ctx = new ContainerSearchLikeOpContext<>(type, origQuery, parsedOptions, task, result);
 
             GetOperationOptions rootOptions = parsedOptions.getRootOptions();
 
             ObjectQuery query = ctx.securityRestrictedQuery;
 
-            if (isFilterNone(query, result)) {
-                return new SearchResultList<>(new ArrayList<>());
+            if (checkNoneFilterAfterAutz(query, result)) {
+                return SearchResultList.empty();
             }
 
             enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
@@ -824,15 +831,17 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             var parsedOptions = preProcessOptionsSecurity(rawOptionsReadWrite, task, result);
             var options = parsedOptions.getCollection();
 
+            if (checkNoneFilterBeforeAutz(query)) {
+                return null;
+            }
+
             var ctx = new ContainerSearchLikeOpContext<>(type, origQuery, parsedOptions, task, result);
 
             GetOperationOptions rootOptions = parsedOptions.getRootOptions();
 
             ObjectQuery processedQuery = ctx.securityRestrictedQuery;
 
-
-            if (isFilterNone(processedQuery, result)) {
-                LOGGER.trace("Skipping search because filter is NONE");
+            if (checkNoneFilterAfterAutz(processedQuery, result)) {
                 return null;
             }
 
@@ -914,10 +923,14 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         try {
             var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
+
+            if (checkNoneFilterBeforeAutz(query)) {
+                return 0;
+            }
             var ctx = new ContainerSearchLikeOpContext<>(type, query, parsedOptions, task, result);
             query = ctx.securityRestrictedQuery;
 
-            if (isFilterNone(query, result)) {
+            if (checkNoneFilterAfterAutz(query, result)) {
                 return 0;
             }
 
@@ -947,10 +960,18 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     // See MID-6323 in Jira
 
-    private boolean isFilterNone(ObjectQuery query, OperationResult result) {
-        if (query != null && query.getFilter() != null && query.getFilter() instanceof NoneFilter) {
-            LOGGER.trace("Security denied the search");
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Denied");
+    private boolean checkNoneFilterBeforeAutz(ObjectQuery query) {
+        if (ObjectQueryUtil.isNoneQuery(query)) {
+            LOGGER.trace("Skipping the search/count operation, as the NONE filter was requested");
+            return true;
+        }
+        return false;
+    }
+
+    private boolean checkNoneFilterAfterAutz(ObjectQuery query, OperationResult result) {
+        if (ObjectQueryUtil.isNoneQuery(query)) {
+            LOGGER.trace("Security denied the search/coount operation");
+            result.setNotApplicable("Denied"); // TODO really do we want "not applicable" here?
             return true;
         }
         return false;
@@ -1000,10 +1021,13 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ObjectManager searchProvider = getObjectManager(type, options);
             result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 
+            if (checkNoneFilterBeforeAutz(query)) {
+                return null;
+            }
+
             // see MID-6115
             ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
-            if (isFilterNone(processedQuery, result)) {
-                LOGGER.trace("Skipping search because filter is NONE");
+            if (checkNoneFilterAfterAutz(processedQuery, result)) {
                 return null;
             }
 
@@ -1109,26 +1133,22 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             var rootOptions = parsedOptions.getRootOptions();
             var options = parsedOptions.getCollection();
 
+            if (checkNoneFilterBeforeAutz(query)) {
+                return 0;
+            }
+
             ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
-            if (isFilterNone(processedQuery, result)) {
-                LOGGER.trace("Skipping count because filter is NONE");
+            if (checkNoneFilterAfterAutz(processedQuery, result)) {
                 return 0;
             }
 
             ObjectManager objectManager = getObjectManager(type, options);
-            switch (objectManager) {
-                case PROVISIONING:
-                    count = provisioning.countObjects(type, processedQuery, options, task, parentResult);
-                    break;
-                case REPOSITORY:
-                    count = cacheRepositoryService.countObjects(type, processedQuery, options, parentResult);
-                    break;
-                case TASK_MANAGER:
-                    count = taskManager.countObjects(type, processedQuery, parentResult);
-                    break;
-                default:
-                    throw new AssertionError("Unexpected objectManager: " + objectManager);
-            }
+            count = switch (objectManager) {
+                case PROVISIONING -> provisioning.countObjects(type, processedQuery, options, task, parentResult);
+                case REPOSITORY -> cacheRepositoryService.countObjects(type, processedQuery, options, parentResult);
+                case TASK_MANAGER -> taskManager.countObjects(type, processedQuery, parentResult);
+                default -> throw new AssertionError("Unexpected objectManager: " + objectManager);
+            };
         } catch (Throwable t) {
             ModelImplUtils.recordException(result, t);
             throw t;
@@ -1208,10 +1228,14 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
             var options = parsedOptions.getCollection();
 
+            if (checkNoneFilterBeforeAutz(query)) {
+                return SearchResultList.empty();
+            }
+
             query = preProcessReferenceQuerySecurity(query, task, result); // TODO not implemented yet!
 
-            if (isFilterNone(query, result)) {
-                return new SearchResultList<>(new ArrayList<>());
+            if (checkNoneFilterAfterAutz(query, result)) {
+                return SearchResultList.empty();
             }
 
             SearchResultList<ObjectReferenceType> list;
@@ -1245,16 +1269,20 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         Objects.requireNonNull(query, "Query must be provided for reference search");
         Validate.notNull(parentResult, "Result type must not be null.");
 
-        OperationResult operationResult = parentResult.createSubresult(COUNT_REFERENCES)
+        OperationResult result = parentResult.createSubresult(COUNT_REFERENCES)
                 .addParam(OperationResult.PARAM_QUERY, query);
 
         try {
-            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, operationResult);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
             var options = parsedOptions.getCollection();
 
-            query = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
+            if (checkNoneFilterBeforeAutz(query)) {
+                return 0;
+            }
 
-            if (isFilterNone(query, operationResult)) {
+            query = preProcessReferenceQuerySecurity(query, task, result); // TODO not implemented yet!
+
+            if (checkNoneFilterAfterAutz(query, result)) {
                 return 0;
             }
 
@@ -1262,16 +1290,16 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             try {
                 logQuery(query);
 
-                return cacheRepositoryService.countReferences(query, options, operationResult);
+                return cacheRepositoryService.countReferences(query, options, result);
             } catch (RuntimeException e) {
-                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
+                recordSearchException(e, ObjectManager.REPOSITORY, result);
                 throw e;
             } finally {
                 exitModelMethod();
             }
         } finally {
-            operationResult.close();
-            operationResult.cleanup();
+            result.close();
+            result.cleanup();
         }
     }
 
@@ -1295,16 +1323,18 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         OP_LOGGER.trace("MODEL OP enter searchReferencesIterative({}, {})", query, rawOptions);
 
         ModelImplUtils.validatePaging(query.getPaging());
-        OperationResult operationResult = parentResult.createSubresult(SEARCH_REFERENCES)
+        OperationResult result = parentResult.createSubresult(SEARCH_REFERENCES)
                 .addParam(OperationResult.PARAM_QUERY, query);
 
         try {
-            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, operationResult);
+            var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
             var options = parsedOptions.getCollection();
 
-            ObjectQuery processedQuery = preProcessReferenceQuerySecurity(query, task, operationResult); // TODO not implemented yet!
-            if (isFilterNone(processedQuery, operationResult)) {
-                LOGGER.trace("Skipping search because filter is NONE");
+            if (checkNoneFilterBeforeAutz(query)) {
+                return null;
+            }
+            ObjectQuery processedQuery = preProcessReferenceQuerySecurity(query, task, result); // TODO not implemented yet!
+            if (checkNoneFilterAfterAutz(processedQuery, result)) {
                 return null;
             }
 
@@ -1329,9 +1359,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 logQuery(processedQuery);
 
                 metadata = cacheRepositoryService.searchReferencesIterative(
-                        processedQuery, internalHandler, options, operationResult);
+                        processedQuery, internalHandler, options, result);
             } catch (SchemaException | RuntimeException e) {
-                recordSearchException(e, ObjectManager.REPOSITORY, operationResult);
+                recordSearchException(e, ObjectManager.REPOSITORY, result);
                 throw e;
             } finally {
                 exitModelMethodNoRepoCache();
@@ -1339,8 +1369,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
             return metadata;
         } finally {
-            operationResult.close();
-            operationResult.cleanup();
+            result.close();
+            result.cleanup();
         }
     }
     // endregion
