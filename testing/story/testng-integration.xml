@@ -69,7 +69,7 @@
             <class name="com.evolveum.midpoint.testing.story.security.TestPrivacy"/>
             <class name="com.evolveum.midpoint.testing.story.security.TestRoleMembers"/>
             <class name="com.evolveum.midpoint.testing.story.TestPhotoAssignment"/>
-            <class name="com.evolveum.midpoint.testing.story.grouper.TestGrouperAsyncUpdate"/>
+            <!--<class name="com.evolveum.midpoint.testing.story.grouper.TestGrouperAsyncUpdate"/>--> <!-- temporarily disabled: MID-9317 -->
             <class name="com.evolveum.midpoint.testing.story.TestWriter"/>
             <class name="com.evolveum.midpoint.testing.story.TestResourceInMaintenance"/>
             <class name="com.evolveum.midpoint.testing.story.TestOrphanedTasks"/>

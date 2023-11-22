@@ -222,7 +222,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
 
             OperationResult failedOperationResult = result.getLastSubresult(); // This may or may not be correct
 
-            if (hasDeadShadowWithDeleteOperation(ctx, resourceObjectToAdd, result)) {
+            if (hasDeadShadowWithDeleteOperation(result)) {
 
                 if (failedOperationResult.isError()) {
                     failedOperationResult.setStatus(OperationResultStatus.HANDLED_ERROR);
@@ -286,24 +286,20 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
         }
     }
 
-    private boolean hasDeadShadowWithDeleteOperation(
-            ProvisioningContext ctx, ShadowType shadowToAdd, OperationResult result)
+    private boolean hasDeadShadowWithDeleteOperation(OperationResult result)
             throws SchemaException {
 
         Collection<PrismObject<ShadowType>> previousDeadShadows =
-                shadowFinder.searchForPreviousDeadShadows(ctx, shadowToAdd, result);
+                shadowFinder.searchForPreviousDeadShadows(ctx, resourceObjectToAdd, result);
         if (previousDeadShadows.isEmpty()) {
             return false;
         }
         LOGGER.trace("Previous dead shadows:\n{}", DebugUtil.debugDumpLazily(previousDeadShadows, 1));
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        for (PrismObject<ShadowType> previousDeadShadow : previousDeadShadows) {
-            if (shadowCaretaker.findPendingLifecycleOperationInGracePeriod(ctx, previousDeadShadow.asObjectable(), now) == ChangeTypeType.DELETE) {
-                return true;
-            }
-        }
-        return false;
+        return previousDeadShadows.stream()
+                .anyMatch(deadShadow ->
+                        shadowCaretaker.findPendingLifecycleOperationInGracePeriod(ctx, deadShadow.asObjectable(), now) == ChangeTypeType.DELETE);
     }
 
     private OperationResultStatus handleAddError(

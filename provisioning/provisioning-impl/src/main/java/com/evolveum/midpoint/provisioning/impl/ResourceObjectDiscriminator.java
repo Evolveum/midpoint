@@ -6,82 +6,64 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import java.util.Collection;
-
+import java.io.Serializable;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.ItemCollectionsUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
+import com.evolveum.midpoint.util.QNameUtil;
 
 /**
- * @author semancik
+ * - `objectClass`: Qualified object class name.
+ * - `identifiers`: Identifiers of the object that contain the primary identifier.
  *
+ * @author semancik
  */
-public class ResourceObjectDiscriminator {
+public record ResourceObjectDiscriminator(
+        @NotNull QName objectClass,
+        @NotNull ResourceObjectIdentifiers.WithPrimary identifiers)
+        implements Serializable {
 
-    private QName objectClass;
-    private Collection<? extends ResourceAttribute<?>> primaryIdentifiers;
-
-    public ResourceObjectDiscriminator(QName objectClass, Collection<? extends ResourceAttribute<?>> primaryIdentifiers) {
-        super();
-        this.objectClass = objectClass;
-        this.primaryIdentifiers = primaryIdentifiers;
+    public static @NotNull ResourceObjectDiscriminator of(@NotNull ResourceObjectIdentification.WithPrimary identification) {
+        return new ResourceObjectDiscriminator(
+                identification.getResourceObjectDefinition().getObjectClassName(),
+                identification.getIdentifiers());
     }
 
-    public QName getObjectClass() {
-        return objectClass;
+    public ResourceObjectDiscriminator {
+        Preconditions.checkArgument(
+                QNameUtil.isQualified(objectClass), "Object class must be qualified: %s", objectClass);
     }
 
-    public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
-        return primaryIdentifiers;
-    }
-
-    public boolean matches(PrismObject<ShadowType> shadow) {
-        ShadowType shadowType = shadow.asObjectable();
-        if (!objectClass.equals(shadowType.getObjectClass())) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Collection<ResourceAttribute<?>> shadowIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
-        return ItemCollectionsUtil.compareCollectionRealValues(primaryIdentifiers, shadowIdentifiers);
+        ResourceObjectDiscriminator that = (ResourceObjectDiscriminator) o;
+        return Objects.equals(objectClass, that.objectClass)
+                && Objects.equals(getPrimaryIdentifierRealValue(), that.getPrimaryIdentifierRealValue());
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((primaryIdentifiers == null) ? 0 : primaryIdentifiers.hashCode());
-        result = prime * result + ((objectClass == null) ? 0 : objectClass.hashCode());
-        return result;
+        return Objects.hash(objectClass, getPrimaryIdentifierRealValue());
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ResourceObjectDiscriminator other = (ResourceObjectDiscriminator) obj;
-        if (primaryIdentifiers == null) {
-            if (other.primaryIdentifiers != null)
-                return false;
-        } else if (!primaryIdentifiers.equals(other.primaryIdentifiers))
-            return false;
-        if (objectClass == null) {
-            if (other.objectClass != null)
-                return false;
-        } else if (!objectClass.equals(other.objectClass))
-            return false;
-        return true;
+    private @NotNull Object getPrimaryIdentifierRealValue() {
+        return identifiers.getPrimaryIdentifier().getRealValue();
     }
 
     @Override
     public String toString() {
-        return "ResourceObjectDiscriminator(" + objectClass + ": " + primaryIdentifiers + ")";
+        return "ResourceObjectDiscriminator(" + objectClass + ": " + identifiers + ")";
     }
 
 }

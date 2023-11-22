@@ -50,6 +50,8 @@ public abstract class ErrorHandler {
     @Autowired protected PrismContext prismContext;
 
     /**
+     * The method may return null if the repository shadow is found to be no longer existing.
+     *
      * @param failedOperationResult The operation result carrying the failed operation. Should be closed.
      */
     public abstract ShadowType handleGetError(

@@ -67,11 +67,13 @@ public class ShadowManagerMiscUtil {
     }
 
     private static ResourceAttribute<String> getPrimaryIdentifier(ShadowType shadow) throws SchemaException {
+        // Note about using ResourceObjectIdentifiers et al: We are not sure if we have the non-wildcard context here,
+        // so let's go the traditional way.
         Collection<? extends ResourceAttribute<?>> primaryIdentifiers = emptyIfNull(ShadowUtil.getPrimaryIdentifiers(shadow));
         // Let's make this simple. We support single-attribute, single-value, string-only primary identifiers anyway
         if (primaryIdentifiers.isEmpty()) {
-            // No primary identifiers. This can happen in sme cases, e.g. for proposed shadows.
-            // Therefore we should be tolerating this.
+            // No primary identifiers. This can happen in some cases, e.g. for proposed shadows.
+            // Therefore we should tolerate this.
             return null;
         }
         if (primaryIdentifiers.size() > 1) {

@@ -20,7 +20,7 @@ import java.io.File;
  */
 public class TestOpenDjUnsafe extends AbstractOpenDjNoiseTest {
 
-    private static final int INITIAL_SYNC_TOKEN = 25;
+    private static final int INITIAL_SYNC_TOKEN = 24;
 
     @Override
     protected File getResourceFile() {

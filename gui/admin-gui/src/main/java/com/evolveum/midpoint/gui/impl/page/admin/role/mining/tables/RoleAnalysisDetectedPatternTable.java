@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
+import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import java.io.Serial;
 import java.util.*;
@@ -48,7 +49,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleA
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -191,7 +191,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            Task task = getPageBase().createSimpleTask("prepare objects");
+                            Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
 
                             List<PrismObject<FocusType>> objects = new ArrayList<>();
                             Set<String> roles = rowModel.getObject().getRoles();
@@ -257,7 +257,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            Task task = getPageBase().createSimpleTask("prepare objects");
+                            Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
 
                             List<PrismObject<FocusType>> objects = new ArrayList<>();
                             Set<String> users = rowModel.getObject().getUsers();
@@ -382,8 +382,19 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                             @Override
                             protected void onSubmit(AjaxRequestTarget target) {
-                                Task task = getPageBase().createSimpleTask("prepare objects");
-                                ModelService modelService = getPageBase().getModelService();
+                                Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
+                                OperationResult result = task.getResult();
+
+                                OperationResultStatusType status = getPageBase().getRoleAnalysisService()
+                                        .getOperationExecutionStatus(cluster.asPrismObject(), task, result);
+
+                                if (status != null && status.equals(OperationResultStatusType.IN_PROGRESS)) {
+                                    warn("Couldn't start detection. Some process is already in progress.");
+                                    LOGGER.error("Couldn't start detection. Some process is already in progress.");
+                                    target.add(getFeedbackPanel());
+                                    return;
+                                }
+
                                 Set<String> roles = rowModel.getObject().getRoles();
                                 Set<String> users = rowModel.getObject().getUsers();
 

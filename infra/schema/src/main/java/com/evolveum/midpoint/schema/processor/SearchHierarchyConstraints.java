@@ -11,15 +11,15 @@ package com.evolveum.midpoint.schema.processor;
  */
 public class SearchHierarchyConstraints {
 
-    private final ResourceObjectIdentification baseContext;
+    private final ResourceObjectIdentification.WithPrimary baseContext;
     private final SearchHierarchyScope scope;
 
-    public SearchHierarchyConstraints(ResourceObjectIdentification baseContext, SearchHierarchyScope scope) {
+    public SearchHierarchyConstraints(ResourceObjectIdentification.WithPrimary baseContext, SearchHierarchyScope scope) {
         this.baseContext = baseContext;
         this.scope = scope;
     }
 
-    public ResourceObjectIdentification getBaseContext() {
+    public ResourceObjectIdentification.WithPrimary getBaseContext() {
         return baseContext;
     }
 

@@ -16,6 +16,8 @@ Privileges and user assignments do not change by themselves, system administrato
 This is no small effort, as there are usually a lot of roles to maintain.
 It is no exception that there are more roles than there are users, which somehow spoils the original idea of reducing system administration effort.
 
+image::rbac-overview.png[Static RBAC]
+
 Static RBAC models have numerous drawbacks, including xref:/iam/role-explosion/[role explosion], huge role maintenance and access review effort, tendency for over-provisioning and so on.
 It is quite clear that _static_ RBAC methods are not suitable for current access control needs.
 However, it does not mean the RBAC _idea_ is wrong, or that the concept is completely useless.
@@ -52,6 +54,7 @@ Similarly `London Supervisor`, `Paris Supervisor` and `New York Supervisor` are 
 
 Both _relation_ and _role parameters_ are efficient method to reduce xref:/iam/role-explosion/[role explosion].
 
+image::pdrbac-midpoint-overview.png[Policy-driven RBAC in midPoint]
 
 == Dynamic Assignments
 

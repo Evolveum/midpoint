@@ -50,7 +50,7 @@ public interface AttributeDefinitionStore
         return getAttributeDefinitions().stream()
                 .filter(def -> type.isAssignableFrom(def.getClass()))
                 .map(def -> (AD) def)
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
     }
 
     /**
@@ -142,13 +142,6 @@ public interface AttributeDefinitionStore
         return findAttributeDefinition(attributeName) != null;
     }
 
-    default Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
-        return getAttributeDefinitions().stream()
-                .filter(attrDef -> attrDef.getOutboundMappingBean() != null)
-                .map(ItemDefinition::getItemName)
-                .collect(Collectors.toCollection(HashSet::new));
-    }
-
     default Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
         return getAttributeDefinitions().stream()
                 .filter(attrDef -> !attrDef.getInboundMappingBeans().isEmpty())
@@ -177,5 +170,15 @@ public interface AttributeDefinitionStore
         attribute.applyDefinition(attributeDefinition);
         attribute.setIncomplete(property.isIncomplete());
         return attribute;
+    }
+
+    @SuppressWarnings("unchecked")
+    default <T> @NotNull ResourceAttribute<T> instantiateAttribute(@NotNull QName attrName, @NotNull T... realValues)
+            throws SchemaException {
+        //noinspection unchecked
+        var attrDef = (ResourceAttributeDefinition<T>) findAttributeDefinitionRequired(attrName);
+        var attr = attrDef.instantiate();
+        attr.addRealValues(realValues);
+        return attr;
     }
 }

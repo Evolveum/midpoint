@@ -12,7 +12,6 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectFound;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
@@ -20,7 +19,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,25 +35,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Handles {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResourceObjectHandler, ObjectQuery,
  * boolean, FetchErrorReportingMethodType, OperationResult)} method call.
+ *
+ * @see ResourceObjectLocateOperation
  */
-class ResourceObjectSearchOperation {
+class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectSearchOperation.class);
-
-    @NotNull private final ProvisioningContext ctx;
 
     @NotNull private final ResourceObjectHandler resultHandler;
 
     /** Query as requested by the client. */
     @Nullable private final ObjectQuery clientQuery;
 
-    /** Whether associations should be fetched for the object found. */
-    private final boolean fetchAssociations;
-
-    @Nullable private final FetchErrorReportingMethodType errorReportingMethod;
-
-    @NotNull private final ResourceObjectsBeans beans;
-
+    /** Just for numbering the objects for diagnostics purposes (for now). */
     private final AtomicInteger objectCounter = new AtomicInteger(0);
 
     ResourceObjectSearchOperation(
@@ -63,14 +55,10 @@ class ResourceObjectSearchOperation {
             @NotNull ResourceObjectHandler resultHandler,
             @Nullable ObjectQuery clientQuery,
             boolean fetchAssociations,
-            @Nullable FetchErrorReportingMethodType errorReportingMethod,
-            @NotNull ResourceObjectsBeans beans) {
-        this.ctx = ctx;
+            @Nullable FetchErrorReportingMethodType errorReportingMethod) {
+        super(ctx, fetchAssociations, errorReportingMethod);
         this.resultHandler = resultHandler;
         this.clientQuery = clientQuery;
-        this.fetchAssociations = fetchAssociations;
-        this.errorReportingMethod = errorReportingMethod;
-        this.beans = beans;
     }
 
     public SearchResultMetadata execute(OperationResult parentResult)
@@ -85,7 +73,7 @@ class ResourceObjectSearchOperation {
             LOGGER.trace("Searching resource objects, query: {}, OC: {}", clientQuery, objectDefinition);
 
             QueryWithConstraints queryWithConstraints =
-                    beans.delineationProcessor.determineQueryWithConstraints(ctx, clientQuery, result);
+                    b.delineationProcessor.determineQueryWithConstraints(ctx, clientQuery, result);
 
             if (InternalsConfig.consistencyChecks && clientQuery != null && clientQuery.getFilter() != null) {
                 clientQuery.getFilter().checkConsistence(true);
@@ -154,24 +142,15 @@ class ResourceObjectSearchOperation {
         }
     }
 
-    private UcfFetchErrorReportingMethod getUcfErrorReportingMethod() {
-        if (errorReportingMethod == FetchErrorReportingMethodType.FETCH_RESULT) {
-            return UcfFetchErrorReportingMethod.UCF_OBJECT;
-        } else {
-            return UcfFetchErrorReportingMethod.EXCEPTION;
-        }
-    }
-
     private boolean handleObjectFound(UcfObjectFound ucfObject, OperationResult parentResult) {
         ResourceObjectFound objectFound = new ResourceObjectFound(ucfObject, ctx, fetchAssociations);
 
         // in order to utilize the cache right from the beginning...
-        RepositoryCache.enterLocalCaches(beans.cacheConfigurationManager);
+        RepositoryCache.enterLocalCaches(b.cacheConfigurationManager);
         try {
 
             int objectNumber = objectCounter.getAndIncrement();
 
-            Task task = ctx.getTask();
             try {
                 OperationResult objResult = parentResult
                         .subresult(OperationConstants.OPERATION_SEARCH_RESULT)

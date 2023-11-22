@@ -15,7 +15,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -33,7 +32,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -134,6 +132,7 @@ public class ProvisioningContext {
      */
     private Collection<ResourceObjectPattern> protectedObjectPatterns;
 
+    /** TODO document */
     private ObjectReferenceType associationShadowRef;
 
     private ProvisioningOperationContext operationContext;
@@ -245,8 +244,7 @@ public class ProvisioningContext {
     /**
      * Returns evaluated protected object patterns.
      */
-    public Collection<ResourceObjectPattern> getProtectedAccountPatterns(
-            ExpressionFactory expressionFactory, OperationResult result)
+    public Collection<ResourceObjectPattern> getProtectedAccountPatterns(OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
         if (protectedObjectPatterns != null) {
@@ -264,7 +262,7 @@ public class ProvisioningContext {
             variables.put(ExpressionConstants.VAR_CONFIGURATION,
                     getResourceManager().getSystemConfiguration(), SystemConfigurationType.class);
             ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
-                    filter, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory,
+                    filter, variables, MiscSchemaUtil.getExpressionProfile(), contextFactory.getCommonBeans().expressionFactory,
                      "protected filter", getTask(), result);
             protectedObjectPatterns.add(
                     new ResourceObjectPattern(
@@ -327,8 +325,7 @@ public class ProvisioningContext {
      *
      * The returned context is based on "refined" resource type definition.
      */
-    @NotNull
-    public ProvisioningContext spawnForKindIntent(
+    public @NotNull ProvisioningContext spawnForKindIntent(
             @NotNull ShadowKindType kind,
             @NotNull String intent)
             throws SchemaException, ConfigurationException {
@@ -460,8 +457,19 @@ public class ProvisioningContext {
         return getEnabledCapability(capabilityClass) != null;
     }
 
+    public <C extends CapabilityType> void checkForCapability(Class<C> capabilityClass) {
+        if (!hasCapability(capabilityClass)) {
+            throw new UnsupportedOperationException(
+                    String.format("Operation not supported %s as %s is missing", getDesc(), capabilityClass.getSimpleName()));
+        }
+    }
+
     public boolean hasReadCapability() {
         return hasCapability(ReadCapabilityType.class);
+    }
+
+    public boolean hasRealReadCapability() {
+        return hasReadCapability() && !isReadingCachingOnly();
     }
 
     public boolean isReadingCachingOnly() {
@@ -822,5 +830,57 @@ public class ProvisioningContext {
 
     public void setAssociationShadowRef(ObjectReferenceType associationShadowRef) {
         this.associationShadowRef = associationShadowRef;
+    }
+
+    public @NotNull ResourceObjectIdentification.WithPrimary getIdentificationFromShadow(@NotNull ShadowType shadow) {
+        return ResourceObjectIdentification.fromCompleteShadow(getObjectDefinitionRequired(), shadow);
+    }
+
+    public boolean isAvoidDuplicateValues() {
+        return ResourceTypeUtil.isAvoidDuplicateValues(resource);
+    }
+
+    public void checkProtectedObjectAddition(ShadowType repoShadow, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (!ProvisioningUtil.isAddShadowEnabled(
+                getProtectedAccountPatterns(result),
+                repoShadow,
+                result)) {
+            throw new SecurityViolationException(
+                    String.format("Cannot add protected resource object %s (%s)", repoShadow, getExceptionDescription()));
+        }
+    }
+
+    public void checkProtectedObjectModification(ShadowType repoShadow, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (!ProvisioningUtil.isModifyShadowEnabled(
+                getProtectedAccountPatterns(result),
+                repoShadow,
+                result)) {
+            throw new SecurityViolationException(
+                    String.format("Cannot modify protected resource object (%s): %s", repoShadow, getExceptionDescription()));
+        }
+    }
+
+    public void checkProtectedObjectDeletion(ShadowType repoShadow, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (!ProvisioningUtil.isDeleteShadowEnabled(
+                getProtectedAccountPatterns(result),
+                repoShadow,
+                result)) {
+            throw new SecurityViolationException(
+                    String.format("Cannot delete protected resource object (%s): %s", repoShadow, getExceptionDescription()));
+        }
+    }
+
+    public @NotNull ResourceObjectDefinition getAnyDefinition() throws SchemaException, ConfigurationException {
+        Collection<ResourceObjectDefinition> objectDefinitions = getResourceSchema().getResourceObjectDefinitions();
+        if (objectDefinitions.isEmpty()) {
+            throw new IllegalStateException("Resource without object definitions: " + resource);
+        }
+        return objectDefinitions.iterator().next();
     }
 }

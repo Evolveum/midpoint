@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import java.util.Collection;
-
 import com.evolveum.midpoint.provisioning.impl.AlreadyInitializedObject;
+
+import com.evolveum.midpoint.provisioning.util.ErrorState;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -32,14 +32,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingM
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * Represents a resource object (e.g. an account) found by the {@link ResourceObjectConverter#searchResourceObjects(
- * ProvisioningContext, ResourceObjectHandler, ObjectQuery, boolean, FetchErrorReportingMethodType, OperationResult)} method.
+ * Represents a lazily-initializable resource object (e.g. an account) found by
+ * {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResourceObjectHandler, ObjectQuery,
+ * boolean, FetchErrorReportingMethodType, OperationResult)}.
  *
- * See also {@link ResourceObjectChange}.
- *
- * In the future we might create also analogous data structure for objects retrieved by
- * {@link ResourceObjectConverter#getResourceObject(ProvisioningContext, Collection, ShadowType, boolean, OperationResult)}
- * method.
+ * @see ResourceObjectChange
+ * @see CompleteResourceObject
  */
 @Experimental
 public class ResourceObjectFound extends AbstractResourceEntity {
@@ -81,12 +79,22 @@ public class ResourceObjectFound extends AbstractResourceEntity {
     private final ResourceObjectsBeans b = ResourceObjectsBeans.get();
 
     ResourceObjectFound(
-            UcfObjectFound ucfObject,
-            ProvisioningContext ctx,
+            @NotNull UcfObjectFound ucfObject,
+            @NotNull ProvisioningContext ctx,
             boolean fetchAssociations) {
         super(ctx);
         this.resourceObject = ResourceObject.from(ucfObject);
         this.ucfObjectStatus = AlreadyInitializedObject.fromUcfErrorState(ucfObject.getErrorState());
+        this.fetchAssociations = fetchAssociations;
+    }
+
+    ResourceObjectFound(
+            @NotNull ResourceObject resourceObject,
+            @NotNull ProvisioningContext ctx,
+            boolean fetchAssociations) {
+        super(ctx);
+        this.resourceObject = resourceObject;
+        this.ucfObjectStatus = AlreadyInitializedObject.of(ErrorState.ok());
         this.fetchAssociations = fetchAssociations;
     }
 
@@ -97,7 +105,7 @@ public class ResourceObjectFound extends AbstractResourceEntity {
 
     @Override
     public void initializeInternalForPrerequisiteOk(Task task, OperationResult result) throws CommonException {
-        b.resourceObjectConverter.postProcessResourceObjectRead(globalCtx, resourceObject, fetchAssociations, result);
+        completeResourceObject(globalCtx, resourceObject, fetchAssociations, result);
     }
 
     @Override
@@ -121,6 +129,10 @@ public class ResourceObjectFound extends AbstractResourceEntity {
         return resourceObject;
     }
 
+    public @NotNull ShadowType getBean() {
+        return resourceObject.getBean();
+    }
+
     public Object getPrimaryIdentifierValue() {
         return resourceObject.getPrimaryIdentifierValue();
     }
@@ -128,6 +140,11 @@ public class ResourceObjectFound extends AbstractResourceEntity {
     @Override
     public Trace getLogger() {
         return LOGGER;
+    }
+
+    @NotNull CompleteResourceObject asCompleteResourceObject() {
+        checkInitialized();
+        return CompleteResourceObject.of(resourceObject, initializationState.getErrorState());
     }
 
     @Override

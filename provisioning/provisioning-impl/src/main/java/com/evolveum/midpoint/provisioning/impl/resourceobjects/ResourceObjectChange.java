@@ -13,6 +13,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,6 +27,7 @@ import com.evolveum.midpoint.provisioning.impl.AlreadyInitializedObject;
 import com.evolveum.midpoint.provisioning.impl.InitializableObjectMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
+import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfChange;
 import com.evolveum.midpoint.provisioning.util.ErrorState;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
@@ -31,6 +36,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -82,6 +88,8 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
      * The collection is unmodifiable after this object is initialized.
      * The elements should be mutable because of possible future definition (re)application.
      *
+     * This is why we don't use immutable {@link ResourceObjectIdentifiers} here (for now).
+     *
      * See {@link UcfChange#identifiers}.
      *
      * After initialization it should contain either "real" identifiers, or an artificially crafted
@@ -99,31 +107,34 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
 
     /**
      * Resource object after the change - if known.
-     *
-     * The following conditions apply for LS/AU. The Ext is in "half-implementation" state.
-     *
-     * 1. When created: Object as received from UCF.
-     *
-     * 2. When initialized-OK: The same object, with:
-     *    a. protected flag set,
-     *    b. exists flag not null,
-     *    c. simulated activation done,
-     *    d. associations fetched,
-     *    e. for LS: correct attributes-to-get present
-     *    f. for AU: definitions from the resource schema are applied (TODO clarify)
-     *
-     * 3. When initialized-error:
-     *    a. has primary identifier present, assuming: object class known + primary identifier value known.
-     *
-     * 4. When initialized-not-applicable:
-     *    a. Nothing guaranteed.
-     *
-     * 5. If initialization failed:
-     *    a. Nothing guaranteed.
+     * This is the reference to the original resource object as received from UCF.
+     * It may be modified during initialization of this instance.
      *
      * See {@link UcfChange#resourceObject} and {@link ExternalResourceEvent#resourceObject}.
      */
-    protected ResourceObject resourceObject;
+    @Nullable private final ResourceObject rawResourceObject;
+
+    /**
+     * The completed (processed, finalized) form of {@link #rawResourceObject}.
+     *
+     * NOTE: The following conditions apply for LS/AU. The Ext is in "half-implementation" state.
+     *
+     * 1. When initialized-OK: The same object, with:
+     *    a. protected flag set,
+     *    b. exists flag not null,
+     *    c. simulated activation done,
+     *    d. associations fetched (if requested),
+     *    e. definitions from the resource schema are applied,
+     *    f. for LS: correct attributes-to-get present.
+     *
+     * 2. When initialized with error:
+     *    a. has primary identifier present, assuming: object class known + primary identifier value known.
+     *
+     * 3. When not applicable or when the prerequisite initialization failed: this value is `null`.
+     *
+     * @see #getCompleteResourceObject()
+     */
+    CompleteResourceObject completeResourceObject;
 
     /** The initialization state for this change. */
     @NotNull private final InitializationState initializationState = InitializationState.created();
@@ -136,7 +147,7 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
             Object primaryIdentifierRealValue,
             ResourceObjectDefinition initialResourceObjectDefinition,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
-            ResourceObject resourceObject,
+            @Nullable ResourceObject rawResourceObject,
             ObjectDelta<ShadowType> objectDelta,
             @NotNull ErrorState initialErrorState,
             @NotNull ProvisioningContext originalContext) {
@@ -145,18 +156,17 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.initialResourceObjectDefinition = initialResourceObjectDefinition;
         this.identifiers = new ArrayList<>(identifiers);
-        this.resourceObject = resourceObject;
+        this.rawResourceObject = rawResourceObject;
         this.objectDelta = objectDelta;
         this.ucfChangeStatus = AlreadyInitializedObject.of(initialErrorState);
     }
 
-    ResourceObjectChange(
-            UcfChange ucfChange, @NotNull ProvisioningContext originalContext) {
+    ResourceObjectChange(@NotNull UcfChange ucfChange, @NotNull ProvisioningContext originalContext) {
         this(ucfChange.getLocalSequenceNumber(),
                 ucfChange.getPrimaryIdentifierValue(),
                 ucfChange.getResourceObjectDefinition(),
                 ucfChange.getIdentifiers(),
-                ResourceObject.fromNullable(ucfChange.getResourceObject()),
+                ResourceObject.from(ucfChange),
                 ucfChange.getObjectDelta(),
                 ErrorState.fromUcfErrorState(ucfChange.getErrorState()),
                 originalContext);
@@ -171,8 +181,8 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
     public void initializeInternalForPrerequisiteOk(Task task, OperationResult result)
             throws CommonException, NotApplicableException {
         effectiveCtx = refineProvisioningContext();
-        setResourceObjectDefinition();
-        processObjectAndDelta(result); // this is different for subclasses
+        resourceObjectDefinition = effectiveCtx.getObjectDefinition();
+        completeResourceObject = processObjectAndDelta(result);
         freezeIdentifiers();
     }
 
@@ -188,12 +198,76 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
         throw new IllegalStateException("UCF does not signal 'not applicable' state");
     }
 
-    /**
-     * TODO there are strange differences among LS, AU, Ext implementations. Investigate.
-     */
-    protected abstract void processObjectAndDelta(OperationResult result)
+    /** Returns the complete resource object, if present in the original change or it could be fetched. */
+    private @Nullable CompleteResourceObject processObjectAndDelta(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, NotApplicableException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException;
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+
+        if (rawResourceObject != null) {
+            // This may be required for AU, but does not hurt for other cases.
+            effectiveCtx.applyAttributesDefinition(rawResourceObject.getPrismObject());
+        }
+        if (objectDelta != null) {
+            effectiveCtx.applyAttributesDefinition(objectDelta);
+        }
+
+        if (isDelete()) {
+            return CompleteResourceObject.deletedNullable(rawResourceObject);
+        }
+
+        AttributesToReturn actualAttributesToReturn = determineAttributesToReturn();
+        if (rawResourceObject == null) {
+            getLogger().trace("Trying to fetch object {} because it is not in the change", identifiers);
+            return fetchResourceObject(actualAttributesToReturn, result);
+        }
+
+        // This is a specialty of live synchronization
+        if (originalCtx.isWildcard() && attributesToReturnAreDifferent(actualAttributesToReturn)) {
+            getLogger().trace("Trying to re-fetch object {} because mismatching attributesToReturn", identifiers);
+            return fetchResourceObject(actualAttributesToReturn, result);
+        }
+
+        completeResourceObject(effectiveCtx, rawResourceObject, true, result);
+
+        // No exception, so we assume everything went well
+        return CompleteResourceObject.of(rawResourceObject, ErrorState.ok());
+    }
+
+    @Nullable AttributesToReturn determineAttributesToReturn() {
+        return effectiveCtx.createAttributesToReturn();
+    }
+
+    boolean attributesToReturnAreDifferent(AttributesToReturn actualAttributesToReturn) {
+        return false;
+    }
+
+    private @Nullable CompleteResourceObject fetchResourceObject(AttributesToReturn attributesToReturn, OperationResult result)
+            throws CommunicationException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException, NotApplicableException {
+        if (!effectiveCtx.hasRealReadCapability()) {
+            getLogger().trace("NOT fetching object {} because the resource does not support it", identifiers);
+            return null;
+        }
+        var primaryIdentification =
+                ResourceObjectIdentification.fromAttributes(effectiveCtx.getObjectDefinitionRequired(), identifiers)
+                        .ensurePrimary();
+        try {
+            // todo consider whether it is always necessary to fetch the entitlements
+            return b.resourceObjectConverter
+                    .fetchResourceObject(
+                            effectiveCtx,
+                            primaryIdentification,
+                            attributesToReturn,
+                            null,
+                            true,
+                            result);
+        } catch (ObjectNotFoundException ex) {
+            result.recordHandledError(
+                    "Object related to the change no longer exists on the resource - skipping it.", ex);
+            getLogger().warn("Object related to the change no longer exists on the resource - skipping it: " + ex.getMessage());
+            throw new NotApplicableException();
+        }
+    }
 
     public boolean isDelete() {
         return ObjectDelta.isDelete(objectDelta);
@@ -211,8 +285,21 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
         return objectDelta;
     }
 
-    public @Nullable ResourceObject getResourceObject() {
-        return resourceObject;
+    /**
+     * Returns {@link CompleteResourceObject}, either right from {@link #completeResourceObject} or incomplete one.
+     * May return `null` if the object was not provided in the original change, and the resource does not support reading.
+     */
+    public @Nullable CompleteResourceObject getCompleteResourceObject() {
+        checkInitialized();
+        if (completeResourceObject != null) {
+            return completeResourceObject;
+        } else if (rawResourceObject != null) {
+            ErrorState errorState = initializationState.getErrorState();
+            assert errorState.isError();
+            return CompleteResourceObject.of(rawResourceObject, errorState);
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -223,7 +310,7 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
                 + ", class=" + getObjectClassLocalName()
                 + ", identifiers=" + identifiers
                 + ", objectDelta=" + objectDelta
-                + ", resourceObject=" + resourceObject
+                + ", resourceObject=" + MiscUtil.getFirstNonNull(completeResourceObject, rawResourceObject)
                 + ", state=" + initializationState
                 + toStringExtra() + ")";
     }
@@ -241,10 +328,6 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
         } else {
             return globalCtx;
         }
-    }
-
-    private void setResourceObjectDefinition() {
-        resourceObjectDefinition = effectiveCtx.getObjectDefinition();
     }
 
     public int getLocalSequenceNumber() {
@@ -275,7 +358,7 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "identifiers", identifiers, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectDelta", objectDelta, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", getFirstNonNull(completeResourceObject, rawResourceObject), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "context", String.valueOf(effectiveCtx), indent + 1);
 
         debugDumpExtra(sb, indent);
@@ -328,9 +411,8 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
             schemaCheck(!identifiers.isEmpty(), "No identifiers in the container but primary id value is known");
         }
 
-        if (resourceObject != null) {
-            stateCheck(resourceObject.getBean().isExists() != null, "Exists is null");
-            // Unfortunately, other aspects cannot be checked here.
+        if (completeResourceObject != null) {
+            stateCheck(completeResourceObject.getBean().isExists() != null, "Exists is null");
         }
     }
 }

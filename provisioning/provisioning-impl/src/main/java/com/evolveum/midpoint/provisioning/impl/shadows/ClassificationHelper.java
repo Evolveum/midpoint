@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -19,7 +20,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -29,7 +29,6 @@ import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -53,9 +52,9 @@ class ClassificationHelper {
     private static final Trace LOGGER = TraceManager.getTrace(ClassificationHelper.class);
 
     @Autowired private PrismContext prismContext;
-    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private ResourceObjectClassifier classifier;
     @Autowired private ShadowTagGenerator shadowTagGenerator;
+    @Autowired private ShadowUpdater shadowUpdater;
 
     /**
      * Classifies the current shadow, based on information from the resource object.
@@ -159,7 +158,7 @@ class ClassificationHelper {
             sendSimulationData(combinedObject, itemDeltas, ctx.getTask(), result);
         } else {
             try {
-                repositoryService.modifyObject(ShadowType.class, combinedObject.getOid(), itemDeltas, result);
+                shadowUpdater.executeRepoShadowModificationsRaw(combinedObject, itemDeltas, result);
             } catch (ObjectAlreadyExistsException e) {
                 throw SystemException.unexpected(e, "when updating classification and tag");
             }

@@ -64,6 +64,7 @@ class PendingOperationsHelper {
     private static final Trace LOGGER = TraceManager.getTrace(PendingOperationsHelper.class);
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired ShadowFinder shadowFinder;
     @Autowired private Clock clock;
     @Autowired private PrismContext prismContext;
 
@@ -444,9 +445,7 @@ class PendingOperationsHelper {
 
         // We have to re-read shadow here. We need to get the pending operation in a form as it was stored.
         // We need id in the operation. Otherwise we won't be able to update it.
-        ShadowType updatedShadow = repositoryService
-                .getObject(ShadowType.class, shadow.getOid(), null, result)
-                .asObjectable();
+        ShadowType updatedShadow = shadowFinder.getShadowBean(shadow.getOid(), result);
         opState.setRepoShadow(updatedShadow);
         return requireNonNull(
                 findEquivalentPendingOperation(updatedShadow, pendingDelta),

@@ -382,9 +382,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         assertShadow(findShadowByPrismName("jim", getDummyResourceObject(), result), "after deletion")
                 .display()
                 .pendingOperations()
-                    .assertUnfinishedOperation()
-                        .deleteOperation()
-                            .display();
+                    .assertNoUnfinishedOperations(); // the deletion is finished (it is not applicable)
         // @formatter:on
 
         when("jim is re-created");

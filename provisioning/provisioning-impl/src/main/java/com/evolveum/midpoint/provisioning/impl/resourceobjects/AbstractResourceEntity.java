@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.impl.InitializableObjectMixin;
@@ -71,5 +75,29 @@ public abstract class AbstractResourceEntity implements InitializableObjectMixin
 
     public @NotNull ProvisioningContext getEffectiveCtx() {
         return MiscUtil.getFirstNonNullRequired(effectiveCtx, globalCtx, originalCtx);
+    }
+
+    /** Fills-in provisioning policy, simulated activation, associations, and so on. */
+    void completeResourceObject(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ResourceObject resourceObject,
+            boolean fetchAssociations,
+            @NotNull OperationResult result)
+            throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        ShadowType resourceObjectBean = resourceObject.getBean();
+
+        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resourceObjectBean, result);
+
+        if (resourceObjectBean.isExists() == null) {
+            resourceObjectBean.setExists(true);
+        }
+
+        new ActivationConverter(ctx)
+                .completeActivation(resourceObject, result);
+
+        if (fetchAssociations) {
+            EntitlementReader.read(resourceObject, ctx, result);
+        }
     }
 }

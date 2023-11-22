@@ -19,6 +19,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -39,7 +40,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -73,17 +73,17 @@ public class ProvisioningUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningUtil.class);
 
-    public static ExecuteProvisioningScriptOperation convertToScriptOperation(
-            ProvisioningScriptType scriptType, String desc, PrismContext prismContext) throws SchemaException {
+    public static ExecuteProvisioningScriptOperation convertToScriptOperation(ProvisioningScriptType scriptBean, String desc)
+            throws SchemaException {
         ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
         MutablePrismPropertyDefinition<?> scriptArgumentDefinition =
-                prismContext.definitionFactory().createPropertyDefinition(
+                PrismContext.get().definitionFactory().createPropertyDefinition(
                         FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING);
         scriptArgumentDefinition.setMinOccurs(0);
         scriptArgumentDefinition.setMaxOccurs(-1);
 
-        for (ProvisioningScriptArgumentType argument : scriptType.getArgument()) {
+        for (ProvisioningScriptArgumentType argument : scriptBean.getArgument()) {
             ExecuteScriptArgument arg = new ExecuteScriptArgument(
                     argument.getName(),
                     StaticExpressionUtil.getStaticOutput(
@@ -91,25 +91,25 @@ public class ProvisioningUtil {
             scriptOperation.getArgument().add(arg);
         }
 
-        scriptOperation.setLanguage(scriptType.getLanguage());
-        scriptOperation.setTextCode(scriptType.getCode());
+        scriptOperation.setLanguage(scriptBean.getLanguage());
+        scriptOperation.setTextCode(scriptBean.getCode());
 
-        if (scriptType.getHost() != null && scriptType.getHost().equals(ProvisioningScriptHostType.CONNECTOR)) {
+        if (scriptBean.getHost() != null && scriptBean.getHost().equals(ProvisioningScriptHostType.CONNECTOR)) {
             scriptOperation.setConnectorHost(true);
             scriptOperation.setResourceHost(false);
         }
-        if (scriptType.getHost() == null || scriptType.getHost().equals(ProvisioningScriptHostType.RESOURCE)) {
+        if (scriptBean.getHost() == null || scriptBean.getHost().equals(ProvisioningScriptHostType.RESOURCE)) {
             scriptOperation.setConnectorHost(false);
             scriptOperation.setResourceHost(true);
         }
 
-        scriptOperation.setCriticality(scriptType.getCriticality());
+        scriptOperation.setCriticality(scriptBean.getCriticality());
 
         return scriptOperation;
     }
 
     // To be called via ProvisioningContext
-    public static AttributesToReturn createAttributesToReturn(ProvisioningContext ctx) {
+    public static @Nullable AttributesToReturn createAttributesToReturn(@NotNull ProvisioningContext ctx) {
 
         ResourceObjectDefinition resourceObjectDefinition = ctx.getObjectDefinitionRequired();
 
@@ -348,11 +348,11 @@ public class ProvisioningUtil {
     }
 
     public static void setEffectiveProvisioningPolicy (
-            ProvisioningContext ctx, ShadowType shadow, ExpressionFactory factory, OperationResult result)
+            ProvisioningContext ctx, ShadowType shadow, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
         ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
-                ctx.getProtectedAccountPatterns(factory, result), shadow, result);
+                ctx.getProtectedAccountPatterns(result), shadow, result);
     }
 
     public static void recordWarningNotRethrowing(Trace logger, OperationResult result, String message, Exception ex) {
@@ -545,8 +545,7 @@ public class ProvisioningUtil {
     }
 
     // TODO better place?
-    @Nullable
-    public static PrismObject<ShadowType> selectSingleShadow(@NotNull List<PrismObject<ShadowType>> shadows, Object context) {
+    public static @Nullable ShadowType selectSingleShadow(@NotNull List<PrismObject<ShadowType>> shadows, Object context) {
         LOGGER.trace("Selecting from {} objects", shadows.size());
 
         if (shadows.isEmpty()) {
@@ -556,31 +555,7 @@ public class ProvisioningUtil {
             LOGGER.debug("Shadows:\n{}", DebugUtil.debugDumpLazily(shadows));
             throw new IllegalStateException("More than one shadow for " + context);
         } else {
-            return shadows.get(0);
-        }
-    }
-
-    /**
-     * As {@link #selectSingleShadow(List, Object)} but allows the existence of multiple dead shadows
-     * (if single live shadow exists). Not very nice! Transitional solution until better one is found.
-     */
-    @Nullable
-    public static PrismObject<ShadowType> selectSingleShadowRelaxed(
-            @NotNull List<PrismObject<ShadowType>> shadows, Object context) {
-        var singleLive = selectLiveShadow(shadows, context);
-        if (singleLive != null) {
-            return singleLive;
-        }
-
-        // all remaining shadows (if any) are dead
-        if (shadows.isEmpty()) {
-            return null;
-        } else if (shadows.size() > 1) {
-            LOGGER.error("Cannot select from dead shadows ({}) for {}", shadows.size(), context);
-            LOGGER.debug("Shadows:\n{}", DebugUtil.debugDumpLazily(shadows));
-            throw new IllegalStateException("More than one [dead] shadow for " + context);
-        } else {
-            return shadows.get(0);
+            return shadows.get(0).asObjectable();
         }
     }
 
@@ -598,7 +573,7 @@ public class ProvisioningUtil {
         if (liveShadows.isEmpty()) {
             return null;
         } else if (liveShadows.size() > 1) {
-            LOGGER.trace("More than one live shadow found ({} out of {}) {}\n{}",
+            LOGGER.error("More than one live shadow found ({} out of {}) {}\n{}",
                     liveShadows.size(), shadows.size(), context, DebugUtil.debugDumpLazily(shadows, 1));
             // TODO: handle "more than one shadow" case for conflicting shadows - MID-4490
             throw new IllegalStateException("Found more than one live shadow " + context + ": " + liveShadows);
@@ -622,6 +597,13 @@ public class ProvisioningUtil {
         } else {
             return shadows.get(0).asObjectable();
         }
+    }
+
+    // TODO better place?
+    public static @NotNull PrismProperty<?> getSingleValuedPrimaryIdentifierRequired(ShadowType shadow) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                getSingleValuedPrimaryIdentifier(shadow),
+                () -> "No primary identifier value in " + ShadowUtil.shortDumpShadow(shadow));
     }
 
     // TODO better place?
@@ -676,17 +658,5 @@ public class ProvisioningUtil {
         if (InternalsConfig.encryptionChecks) {
             CryptoUtil.checkEncrypted(shadow);
         }
-    }
-
-    public static Collection<ResourceAttribute<?>> selectPrimaryIdentifiers(
-            Collection<ResourceAttribute<?>> identifiers, ResourceObjectDefinition def) {
-
-        Collection<ItemName> primaryIdentifiers = def.getPrimaryIdentifiers().stream()
-                .map(ItemDefinition::getItemName)
-                .collect(Collectors.toSet());
-
-        return identifiers.stream()
-                .filter(attr -> QNameUtil.matchAny(attr.getElementName(), primaryIdentifiers))
-                .collect(Collectors.toList());
     }
 }

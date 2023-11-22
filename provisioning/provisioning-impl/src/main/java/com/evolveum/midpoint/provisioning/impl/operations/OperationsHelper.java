@@ -37,14 +37,14 @@ public class OperationsHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationsHelper.class);
 
-    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     @NotNull
     public <T extends ObjectType> T getRepoObject(Class<T> type, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         try {
-            return cacheRepositoryService.getObject(type, oid, options, result).asObjectable();
+            return repositoryService.getObject(type, oid, options, result).asObjectable();
         } catch (Throwable e) {
             ProvisioningUtil.recordExceptionWhileRethrowing(
                     LOGGER,
