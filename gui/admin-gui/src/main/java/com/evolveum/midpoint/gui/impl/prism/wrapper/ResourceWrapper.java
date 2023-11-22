@@ -293,6 +293,10 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         if (!newValue.contains(newChildItem.getElementName())) {
             newChildItem.setParent(newValue);
             newValue.add(newChildItem);
+        } else if (newChildItem instanceof PrismContainer &&
+                !newChildItem.isSingleValue()){
+            PrismContainer<?> parentItem = newValue.findContainer(newChildItem.getElementName());
+            parentItem.addAll(newChildItem.getClonedValues());
         }
 
         if (valueOfExistingDelta != null && isItemFound) {
