@@ -9,10 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import java.sql.Types;
 import java.time.Instant;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.DateTimePath;
-import com.querydsl.core.types.dsl.EnumPath;
-import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
@@ -56,6 +53,9 @@ public class QOperationExecution<OR extends MObject> extends QContainer<MOperati
             ColumnMetadata.named("taskRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata TIMESTAMP =
             ColumnMetadata.named("timestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata FULL_OBJECT =
+            ColumnMetadata.named("fullObject").ofType(Types.BINARY);
+
 
     // attributes
 
@@ -77,6 +77,8 @@ public class QOperationExecution<OR extends MObject> extends QContainer<MOperati
             createInteger("taskRefRelationId", TASK_REF_RELATION_ID);
     public final DateTimePath<Instant> timestamp =
             createInstant("timestamp", TIMESTAMP);
+
+    public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
 
     public QOperationExecution(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

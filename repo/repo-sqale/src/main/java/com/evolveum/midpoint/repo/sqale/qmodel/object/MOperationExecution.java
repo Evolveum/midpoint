@@ -27,4 +27,6 @@ public class MOperationExecution extends MContainer {
     public MObjectType taskRefTargetType;
     public Integer taskRefRelationId;
     public Instant timestamp;
+
+    public byte[] fullObject;
 }

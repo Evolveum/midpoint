@@ -131,7 +131,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         addContainerTableMapping(F_OPERATION_EXECUTION,
                 QOperationExecutionMapping.init(repositoryContext),
-                joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
+                joinOn((o, trg) -> o.oid.eq(trg.ownerOid))); // TODO: separate fullObject fields
         addContainerTableMapping(F_TRIGGER,
                 QTriggerMapping.init(repositoryContext),
                 joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));

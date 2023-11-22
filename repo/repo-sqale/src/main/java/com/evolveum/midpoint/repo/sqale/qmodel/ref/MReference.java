@@ -23,6 +23,7 @@ public class MReference {
     public UUID targetOid;
     public MObjectType targetType;
     public Integer relationId;
+    public byte[] fullObject;
 
     @Override
     public String toString() {

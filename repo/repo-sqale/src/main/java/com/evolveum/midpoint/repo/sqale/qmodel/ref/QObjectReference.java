@@ -6,9 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
+import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.BooleanExpression;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+
+import com.querydsl.sql.ColumnMetadata;
+
+import java.sql.Types;
 
 /**
  * Querydsl query type for object owned references.
@@ -19,6 +24,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 public class QObjectReference<OR extends MObject> extends QReference<MReference, OR> {
 
     private static final long serialVersionUID = -4850458578494140921L;
+
+
+    public static final ColumnMetadata FULL_OBJECT =
+            ColumnMetadata.named("fullObject").ofType(Types.BINARY);
+
+    public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
 
     public QObjectReference(String variable, String tableName) {
         this(variable, DEFAULT_SCHEMA_NAME, tableName);
@@ -32,4 +43,5 @@ public class QObjectReference<OR extends MObject> extends QReference<MReference,
     public BooleanExpression isOwnedBy(OR ownerRow) {
         return ownerOid.eq(ownerRow.oid);
     }
+
 }

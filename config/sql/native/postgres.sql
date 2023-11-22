@@ -497,6 +497,7 @@ CREATE TABLE m_ref_role_membership (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('ROLE_MEMBERSHIP') STORED
         CHECK (referenceType = 'ROLE_MEMBERSHIP'),
+    fullObject BYTEA,
 
     PRIMARY KEY (ownerOid, relationId, targetOid)
 )
@@ -562,7 +563,7 @@ CREATE TABLE m_ref_projection (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('PROJECTION') STORED
         CHECK (referenceType = 'PROJECTION'),
-
+    fullObject BYTEA,
     PRIMARY KEY (ownerOid, relationId, targetOid)
 )
     INHERITS (m_reference);
@@ -2003,6 +2004,7 @@ CREATE TABLE m_operation_execution (
     taskRefTargetType ObjectType,
     taskRefRelationId INTEGER REFERENCES m_uri(id),
     timestamp TIMESTAMPTZ,
+    fullObject BYTEA,
 
     PRIMARY KEY (ownerOid, cid)
 )
