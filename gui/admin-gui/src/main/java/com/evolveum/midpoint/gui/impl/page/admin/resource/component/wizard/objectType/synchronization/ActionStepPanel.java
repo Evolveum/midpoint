@@ -94,7 +94,11 @@ public class ActionStepPanel extends AbstractWizardStepPanel {
                     if (containers.size() == 1) {
                         for (PrismContainerWrapper container : containers) {
                             if (AbstractSynchronizationActionType.class.isAssignableFrom(container.getItem().getDefinition().getTypeClass())) {
-                                return (PrismContainerValueWrapper) container.getValues().iterator().next();
+                                PrismContainerValueWrapper value = (PrismContainerValueWrapper) container.getValues().iterator().next();
+                                if (value != null) {
+                                    value.setExpanded(true);
+                                }
+                                return value;
                             }
                         }
                     }

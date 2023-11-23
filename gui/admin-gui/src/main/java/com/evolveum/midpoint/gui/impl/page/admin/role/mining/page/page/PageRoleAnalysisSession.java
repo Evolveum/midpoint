@@ -11,8 +11,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Form;
@@ -21,6 +19,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -37,12 +36,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.SessionSummaryPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.RoleAnalysisSessionWizardPanel;
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -89,8 +87,8 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     @Override
     public void afterDeletePerformed(AjaxRequestTarget target) {
         PageBase pageBase = (PageBase) getPage();
-        Task task = pageBase.createSimpleTask("deleteCleanup");
-        OperationResult result = new OperationResult(OP_DELETE_CLEANUP);
+        Task task = pageBase.createSimpleTask(OP_DELETE_CLEANUP);
+        OperationResult result = task.getResult();
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
         RoleAnalysisSessionType session = getModelWrapperObject().getObjectOld().asObjectable();
@@ -135,51 +133,20 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         }
     }
 
-    public void clusteringPerform(AjaxRequestTarget target) {
+    public void clusteringPerform(@NotNull AjaxRequestTarget target) {
 
         Task task = getPageBase().createSimpleTask(OP_PERFORM_CLUSTERING);
         OperationResult result = task.getResult();
 
-        String sessionOid = getObjectDetailsModels().getObjectType().getOid();
+        RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
 
-        executeClusteringTask(result, task, sessionOid);
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+        roleAnalysisService.executeClusteringTask(session.asPrismObject(), null, null, task, result);
 
         result.recordSuccessIfUnknown();
         setResponsePage(PageRoleAnalysis.class);
         ((PageBase) getPage()).showResult(result);
         target.add(getFeedbackPanel());
-    }
-
-    private void executeClusteringTask(OperationResult result, Task task, String sessionOid) {
-        try {
-            ActivityDefinitionType activity = createActivity(sessionOid);
-
-            getPageBase().getModelInteractionService().submit(
-                    activity,
-                    ActivitySubmissionOptions.create()
-                            .withTaskTemplate(new TaskType()
-                                    .name("Session clustering  (" + sessionOid + ")"))
-                            .withArchetypes(
-                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
-                    task, result);
-
-        } catch (CommonException e) {
-            //TODO
-        }
-    }
-
-    private ActivityDefinitionType createActivity(String sessionOid) {
-
-        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
-        objectReferenceType.setType(RoleAnalysisSessionType.COMPLEX_TYPE);
-        objectReferenceType.setOid(sessionOid);
-
-        RoleAnalysisClusteringWorkDefinitionType rdw = new RoleAnalysisClusteringWorkDefinitionType();
-        rdw.setSessionRef(objectReferenceType);
-
-        return new ActivityDefinitionType()
-                .work(new WorkDefinitionsType()
-                        .roleAnalysisClustering(rdw));
     }
 
     public StringResourceModel setDetectionButtonTitle() {

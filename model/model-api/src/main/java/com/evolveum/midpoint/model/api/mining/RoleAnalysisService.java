@@ -1,9 +1,17 @@
+/*
+ * Copyright (C) 2010-2023 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.model.api.mining;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.Objectable;
 
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +22,6 @@ import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -83,6 +90,20 @@ public interface RoleAnalysisService {
      * @return The PrismObject of RoleAnalysisSessionType object, or null if not found.
      */
     @Nullable PrismObject<RoleAnalysisSessionType> getSessionTypeObject(
+            @NotNull String oid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Retrieves a PrismObject based on its OID.
+     *
+     * @param oid The OID of the object to retrieve.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     * @return The PrismObject of object, or null if not found.
+     */
+    @Nullable <T extends ObjectType> PrismObject<T> getObject(
+            @NotNull Class<T> objectTypeClass,
             @NotNull String oid,
             @NotNull Task task,
             @NotNull OperationResult result);
@@ -284,19 +305,29 @@ public interface RoleAnalysisService {
      * Recompute role analysis cluster (RoleAnalysisClusterType) parameters.
      * This method should be called after migration to business role.
      *
-     * @param repositoryService The RepositoryService for accessing role analysis data.
      * @param clusterRefOid The cluster OID.
      * @param roleRefOid The role OID.
      * @param task The task associated with this operation.
      * @param result The operation result.
      */
     void clusterObjectMigrationRecompute(
-            @NotNull RepositoryService repositoryService,
             @NotNull String clusterRefOid,
             @NotNull String roleRefOid,
             @NotNull Task task,
             @NotNull OperationResult result);
 
+    /**
+     * Method for preparing a compressed mining structure for role analysis.
+     *
+     * @param cluster The cluster for which the mining structure is prepared.
+     * @param fullProcess The full process flag.
+     * If true, the entire structure is prepared.
+     * If false, only a partial structure (members) is prepared.
+     * @param processMode The process mode.
+     * @param result The operation result.
+     * @param task The task associated with this operation.
+     * @return A MiningOperationChunk containing user and role chunks for further processing.
+     */
     @NotNull MiningOperationChunk prepareCompressedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
             boolean fullProcess,
@@ -304,6 +335,18 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result,
             @NotNull Task task);
 
+    /**
+     * Method for preparing an expanded mining structure for role analysis.
+     *
+     * @param cluster The cluster for which the mining structure is prepared.
+     * @param fullProcess The full process flag.
+     * If true, the entire structure is prepared.
+     * If false, only a partial structure (members) is prepared.
+     * @param processMode The process mode.
+     * @param result The operation result.
+     * @param task The task associated with this operation.
+     * @return A MiningOperationChunk containing user and role chunks for further processing.
+     */
     @NotNull MiningOperationChunk prepareExpandedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
             boolean fullProcess,
@@ -345,4 +388,140 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
+    /**
+     * This method is used to execute a migration task.
+     * It replaces the role assignment with business role assignment.
+     *
+     * @param cluster The cluster under which the migration task is executed.
+     * @param activityDefinition The activity definition.
+     * @param roleObject The role object for migration.
+     * @param taskOid The OID of the task.
+     * @param taskName The name of the task.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
+    void executeMigrationTask(
+            @NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            @NotNull ActivityDefinitionType activityDefinition,
+            @NotNull PrismObject<RoleType> roleObject,
+            @Nullable String taskOid,
+            @Nullable PolyStringType taskName,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * This method is used to execute a detection task.
+     * Detected patterns are stored in the cluster.
+     *
+     * @param cluster The cluster under which the detection task is executed.
+     * @param taskOid The OID of the task.
+     * @param taskName The name of the task.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
+    void executeDetectionTask(
+            @NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            @Nullable String taskOid,
+            @Nullable PolyStringType taskName,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * This method is used to execute a clustering task.
+     * It creates a new cluster and stores it in the session.
+     *
+     * @param session The session under which the clustering task is executed.
+     * @param taskOid The OID of the task.
+     * @param taskName The name of the task.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
+    void executeClusteringTask(
+            @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @Nullable String taskOid,
+            @Nullable PolyStringType taskName,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Extracts task reference from operation executions.
+     * Also check if task reference and object id (oid) is not null.
+     *
+     * @param operationExecutions The operation executions.
+     * @return The task reference.
+     */
+    ObjectReferenceType extractTaskRef(List<OperationExecutionType> operationExecutions);
+
+    /**
+     * This method is used to update the cluster detected patterns.
+     * Currently, it is used to update the cluster detected patterns
+     * after the migration task in the cluster.
+     *
+     * @param clusterRefOid The cluster OID.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
+    void updateClusterPatterns(
+            @NotNull String clusterRefOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Recompute and resolve the cluster operation status.
+     * This method also update the cluster operation status if detect some changes.
+     *
+     * @param clusterPrismObject The cluster for recompute and resolve.
+     * @param result The operation result.
+     * @param task The task associated with this operation.
+     * @return The cluster operation status.
+     */
+    @NotNull String recomputeAndResolveClusterOpStatus(
+            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
+            @NotNull OperationResult result,
+            @NotNull Task task);
+
+    /**
+     * Recompute and resolve the cluster operation status.
+     * This method also update the cluster operation status if detect some changes.
+     *
+     * @param clusterPrismObject The cluster for recompute and resolve.
+     * @param result The operation result.
+     * @param task The task associated with this operation.
+     * @return The cluster operation status.
+     */
+    @NotNull String recomputeAndResolveSessionOpStatus(
+            @NotNull PrismObject<RoleAnalysisSessionType> clusterPrismObject,
+            @NotNull OperationResult result,
+            @NotNull Task task);
+
+    /**
+     * This method is used to update the cluster operation status.
+     *
+     * @param object The assignment holder object.
+     * @param taskOid The OID of the task.
+     * @param operationResultStatusType The operation result status type.
+     * @param message The message to set.
+     * @param result The operation result.
+     * @param task The task associated with this operation.
+     */
+    <T extends AssignmentHolderType & Objectable> void setOpStatus(
+            @NotNull PrismObject<T> object,
+            @NotNull String taskOid,
+            OperationResultStatusType operationResultStatusType,
+            String message, @NotNull OperationResult result,
+            @NotNull Task task);
+
+    /**
+     * This method is used to get operation status if existed.
+     *
+     * @param object The assignment holder object.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     * @param <T> The assignment holder type.
+     * @return The operation execution status.
+     */
+    <T extends AssignmentHolderType & Objectable> OperationResultStatusType getOperationExecutionStatus(
+            @NotNull PrismObject<T> object,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 }

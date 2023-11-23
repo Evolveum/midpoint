@@ -97,7 +97,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     private void initLayout() {
         setOutputMarkupId(true);
 
-        add(createHeaderFragment(ID_HEADER));
+        initHeaderFragment();
 
         ISortableDataProvider<O, String> provider = createProvider();
         WebMarkupContainer tilesContainer = createTilesContainer(ID_TILES_CONTAINER, provider, tableId);
@@ -126,6 +126,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         BoxedTablePanel table = createTablePanel(ID_TABLE, provider, tableId);
         table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
         add(table);
+    }
+
+    public void initHeaderFragment() {
+        addOrReplace(createHeaderFragment(ID_HEADER));
     }
 
     protected boolean showFooter() {

@@ -90,26 +90,17 @@ public class DefaultPatternResolver {
                 users = clusterStatistic.getMembersRef();
             }
 
-            ObjectReferenceType objectReferenceType;
-            for (ObjectReferenceType propertiesRef : roles) {
-                objectReferenceType = new ObjectReferenceType();
-                objectReferenceType.setOid(propertiesRef.getOid());
-                objectReferenceType.setType(RoleType.COMPLEX_TYPE);
-                roleAnalysisClusterDetectionType.getRolesOccupancy().add(objectReferenceType);
-            }
+            List<ObjectReferenceType> rolesOccupancy = roleAnalysisClusterDetectionType.getRolesOccupancy();
+            roles.stream().map(ObjectReferenceType::clone).forEach(rolesOccupancy::add);
 
-            for (ObjectReferenceType processedObjectOid : users) {
-                objectReferenceType = new ObjectReferenceType();
-                objectReferenceType.setOid(processedObjectOid.getOid());
-                objectReferenceType.setType(UserType.COMPLEX_TYPE);
-                roleAnalysisClusterDetectionType.getUserOccupancy().add(objectReferenceType);
-            }
+            List<ObjectReferenceType> userOccupancy = roleAnalysisClusterDetectionType.getUserOccupancy();
+            users.stream().map(ObjectReferenceType::clone).forEach(userOccupancy::add);
 
             int propertiesCount = roles.size();
             int membersCount = users.size();
 
             roleAnalysisClusterDetectionType.setClusterMetric((double) propertiesCount * membersCount);
-            roleAnalysisClusterDetectionTypeList.add(roleAnalysisClusterDetectionType);
+            roleAnalysisClusterDetectionTypeList.add(roleAnalysisClusterDetectionType.clone());
         } else {
             List<RoleAnalysisDetectionPatternType> clusterDetectionTypeList = resolveDefaultIntersection(session,
                     clusterType, result, task);

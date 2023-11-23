@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ResourceObjectClassChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
@@ -211,8 +212,12 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
         reclassify.add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
         reclassify.setOutputMarkupId(true);
         reclassify.showTitleAsLabel(true);
-        reclassify.add(new VisibleBehaviour(() -> getSelectedObjectClass() != null));
+        reclassify.add(new VisibleBehaviour(() -> isReclassifyButtonVisible() && getSelectedObjectClass() != null));
         return reclassify;
+    }
+
+    protected boolean isReclassifyButtonVisible() {
+        return true;
     }
 
     private TaskAwareExecutor.Executable<String> createReclassifyTask() throws RestartResponseException {

@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.util.exception.*;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
@@ -23,7 +21,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,7 +31,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -128,14 +128,18 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
                     String sessionOid = ObjectDeltaOperation.findAddDeltaOidRequired(objectDeltaOperations,
                             RoleAnalysisSessionType.class);
 
-                    executeClusteringTask(result, task, sessionOid);
+                    RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
-                }
-                catch (Throwable e) {
+                    PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(sessionOid, task, result);
+
+                    if (sessionTypeObject != null) {
+                        roleAnalysisService.executeClusteringTask(sessionTypeObject, null, null, task, result);
+                    }
+                } catch (Throwable e) {
                     LoggingUtils.logException(LOGGER, "Couldn't process clustering", e);
                     result.recordFatalError(
                             createStringResource("RoleAnalysisSessionWizardPanel.message.clustering.error").getString()
-                                    , e);
+                            , e);
                 }
 
                 setResponsePage(PageRoleAnalysis.class);
@@ -150,38 +154,6 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
     private void onExitPerformed() {
         setResponsePage(PageRoleAnalysis.class);
-    }
-
-    private void executeClusteringTask(OperationResult result, Task task, String sessionOid) {
-        try {
-            ActivityDefinitionType activity = createActivity(sessionOid);
-
-            getPageBase().getModelInteractionService().submit(
-                    activity,
-                    ActivitySubmissionOptions.create()
-                            .withTaskTemplate(new TaskType()
-                                    .name("Session clustering  (" + sessionOid + ")"))
-                            .withArchetypes(
-                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
-                    task, result);
-
-        } catch (CommonException e) {
-            //TODO
-        }
-    }
-
-    private ActivityDefinitionType createActivity(String sessionOid) {
-
-        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
-        objectReferenceType.setType(RoleAnalysisSessionType.COMPLEX_TYPE);
-        objectReferenceType.setOid(sessionOid);
-
-        RoleAnalysisClusteringWorkDefinitionType rdw = new RoleAnalysisClusteringWorkDefinitionType();
-        rdw.setSessionRef(objectReferenceType);
-
-        return new ActivityDefinitionType()
-                .work(new WorkDefinitionsType()
-                        .roleAnalysisClustering(rdw));
     }
 
     private void exitToPreview(AjaxRequestTarget target) {

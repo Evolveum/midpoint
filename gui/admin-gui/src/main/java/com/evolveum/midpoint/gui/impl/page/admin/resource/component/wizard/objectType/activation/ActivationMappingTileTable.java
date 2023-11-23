@@ -96,4 +96,9 @@ public abstract class ActivationMappingTileTable extends AbstractSpecificMapping
             }
         };
     }
+
+    @Override
+    protected String getNoRuleMessageKey() {
+        return "AbstractSpecificMappingTileTable.noActivationRules";
+    }
 }
