@@ -1,6 +1,11 @@
 = The `items` Correlator
 :page-toc: top
 :page-since: "4.6"
+:page-upkeep-status: orange
+
+// TODO: modify to reflect that this is not a new mechanisms any more (e.g remove "newly-introduced")
+// describe correlators as a primary correlation mechanism
+// Missing: general introduction to correlation
 
 == Introduction
 
