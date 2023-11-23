@@ -1011,19 +1011,21 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private void addAllItemsPerformed(AjaxRequestTarget target) {
-        TileTablePanel tiles = (TileTablePanel) get(ID_TILES);
-        ObjectDataProvider provider = (ObjectDataProvider) tiles.getProvider();
-        List<SelectableBean<ObjectType>> objects = provider.getAvailableData();
+        TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tiles
+                = (TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>>) get(ID_TILES);
+        List<CatalogTile<SelectableBean<ObjectType>>> tilesModel = tiles.getTilesModel().getObject();
+        List<ObjectType> objects = tilesModel
+                .stream()
+                .map(tile -> tile.getValue().getValue())
+                .toList();
 
-        if (objects == null) {
+        if (CollectionUtils.isEmpty(objects)) {
             page.warn(getString("RoleCatalogPanel.noItemsAvailable"));
             target.add(page.getFeedbackPanel());
             return;
         }
 
-        List<ObjectType> items = objects.stream().map(s -> s.getValue()).collect(Collectors.toList());
-
-        addItemsPerformed(target, items);
+        addItemsPerformed(target, objects);
     }
 
     private AssignmentType createNewAssignment(ObjectType object, QName relation) {
