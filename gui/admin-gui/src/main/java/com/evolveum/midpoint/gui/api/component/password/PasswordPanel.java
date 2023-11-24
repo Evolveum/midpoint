@@ -76,6 +76,7 @@ public class PasswordPanel extends InputPanel {
     private final PrismObject<? extends FocusType> prismObject;
     private final IModel<ProtectedStringType> passwordModel;
     protected boolean isReadOnly;
+    private boolean shouldTrimInput = false;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel) {
         this(id, passwordModel, false, passwordModel == null || passwordModel.getObject() == null);
@@ -135,6 +136,12 @@ public class PasswordPanel extends InputPanel {
                 tag.remove("value");
             }
 
+            @Override
+            protected boolean shouldTrimInput() {
+                return shouldTrimInput;
+            }
+
+
         };
         password1.add(AttributeAppender.append("onfocus", initPasswordValidation()));
         password1.setRequired(false);
@@ -143,7 +150,16 @@ public class PasswordPanel extends InputPanel {
         inputContainer.add(password1);
 
         final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO,
-                new ProtectedStringModel(Model.of(new ProtectedStringType())));
+                new ProtectedStringModel(Model.of(new ProtectedStringType()))) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean shouldTrimInput() {
+                return shouldTrimInput;
+            }
+
+        };
         password2.setRequired(false);
         password2.setOutputMarkupId(true);
         password2.add(new EnableBehaviour(this::canEditPassword));
