@@ -81,6 +81,8 @@ public class PasswordPanel extends InputPanel {
     private final IModel<ProtectedStringType> model;
 
     private boolean isReadOnly;
+    private boolean shouldTrimInput = false;
+
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
         this(id, model, false, model == null || model.getObject() == null);
@@ -143,6 +145,10 @@ public class PasswordPanel extends InputPanel {
                 }
             }
 
+            @Override
+            protected boolean shouldTrimInput() {
+                return shouldTrimInput;
+            }
         };
         password1.add(AttributeAppender.append("onfocus", initPasswordValidation()));
         password1.setRequired(false);
@@ -150,7 +156,16 @@ public class PasswordPanel extends InputPanel {
         password1.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         inputContainer.add(password1);
 
-        final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO, new PasswordModel(Model.of(new ProtectedStringType())));
+        final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO,
+                new PasswordModel(Model.of(new ProtectedStringType()))) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean shouldTrimInput() {
+                return shouldTrimInput;
+            }
+        };
         password2.setRequired(false);
         password2.setOutputMarkupId(true);
         inputContainer.add(password2);
