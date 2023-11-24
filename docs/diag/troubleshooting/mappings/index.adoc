@@ -68,7 +68,7 @@ We call this a wave.
 This can be repeated several times, e.g. if xref:/midpoint/reference/resources/provisioning-dependencies/[provisioning dependencies] are used.
 There are also hooks that can take place at some stages of the processing.
 The hooks may interrupt or change the processing.
-E.g. xref:/midpoint/reference/cases/workflow-3/[workflows] and xref:/midpoint/reference/misc/notifications/[notifications] are implemented as hooks.
+E.g. xref:/midpoint/reference/cases/approval/[approvals] and xref:/midpoint/reference/misc/notifications/[notifications] are implemented as hooks.
 However the simplified description is enough for basic understanding of the troubleshooting process.
 
 
