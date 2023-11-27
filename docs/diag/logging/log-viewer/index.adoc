@@ -8,7 +8,7 @@
 :page-experimental: true
 :page-tag: guide
 :page-toc: top
-:page-upkeep-status: green
+:page-upkeep-status: red
 
 
 In order to facilitate viewing large log files we have created a tool called midPoint Log Viewer.
@@ -590,8 +590,8 @@ java com.evolveum.logviewer.utils.truncater.Truncater idm.log
 
 == Installation
 
-The log viewer is now part of Eclipse plugin.
-For installation instructions, please see xref:/midpoint/reference/legacy/eclipse-plugin/install/install/[Eclipse plugin installation HOWTO].
+The log viewer is now part of midPoint Studio.
+For installation instructions, please see xref:/midpoint/tools/studio/[midPoint Studio].
 
 Note: when working with any non-trivial log files, increase the heap for Eclipse to at least 2 GB.
 The larger files, the bigger heap is required.
