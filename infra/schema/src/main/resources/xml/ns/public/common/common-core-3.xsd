@@ -5174,6 +5174,7 @@
                         Short name of the mapping. Used for debugging purposes.
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:displayOrder>110</a:displayOrder>
                         <a:displayName>MappingType.name</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -5288,6 +5289,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:displayOrder>120</a:displayOrder>
                         <a:displayName>MappingType.strength</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -9299,6 +9301,7 @@
                                     If present, it overrides any default evaluation phases.
                                 </xsd:documentation>
                                 <xsd:appinfo>
+                                    <a:displayOrder>130</a:displayOrder>
                                     <a:displayName>InboundMappingType.use</a:displayName>
                                     <a:since>4.8</a:since>
                                 </xsd:appinfo>

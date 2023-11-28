@@ -39,6 +39,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -50,6 +51,7 @@ public abstract class AbstractSpecificMappingTileTable<C extends Containerable> 
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSpecificMappingTileTable.class);
     private static final String ID_ADD_RULE_CONTAINER = "addRuleContainer";
+    private static final String ID_NO_RULE_MESSAGE = "noRuleMessage";
     private static final String ID_ADD_BUTTON = "addButton";
 
     private final IModel<PrismContainerWrapper<C>> containerModel;
@@ -213,9 +215,15 @@ public abstract class AbstractSpecificMappingTileTable<C extends Containerable> 
         WebMarkupContainer addRuleContainer = new WebMarkupContainer(ID_ADD_RULE_CONTAINER);
         addRuleContainer.add(new VisibleBehaviour(() -> getTilesModel().getObject().isEmpty()));
 
+        addRuleContainer.add(new Label(ID_NO_RULE_MESSAGE, getPageBase().createStringResource(getNoRuleMessageKey())));
+
         addRuleContainer.add(createAddButton(ID_ADD_BUTTON));
 
         return addRuleContainer;
+    }
+
+    protected String getNoRuleMessageKey() {
+        return "AbstractSpecificMappingTileTable.noRules";
     }
 
     private AjaxIconButton createAddButton(String buttonId) {

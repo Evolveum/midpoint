@@ -162,34 +162,6 @@ There are some information and examples how to use this interface:
 
 * *TODO*: example usage from scripts
 
-== Web Service Interface
-
-Main article: xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface]
-
-xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] is a SOAP-based web service interface to midPoint.
-It provides operations that are very similar to Java-based xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface], however there are some necessary adjustments.
-The xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] is strongly RPC-based as this approach is dictated by the technology (SOAP, WSDL).
-Also input-output objects (pass-by-reference) cannot be used and the use of callbacks is beyond practical usability therefore the interface is slightly simplified to overcome these limitations.
-The objects and deltas are expected to be presented as XML objects.
-Full WSDL and XSD definitions are available.
-The interface was developed in a contract-first fashion therefore the WSDL and XSD are authoritative definitions.
-
-There is also a xref:/midpoint/reference/legacy/soap-client/[Model Web Service Client] library based on Java and pure JAX-WS and JAX-B.
-It is designed to be used outside midPoint, e.g. in applications that need to invoke midPoint services.
-
-There are few examples of the interface use:
-
-* xref:/midpoint/reference/legacy/soap-client/sample/[Model Web Service Client Sample] describes a sample code which is part of midPoint source code.
-This sample code is using model client library to invoke midPoint web service.
-
-Note: xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] is still "version 1" interface.
-While the other interfaces were updated to midPoint version 2 releases this interface remains in roughly the state as it was in midPoint version 1 releases.
-One of the reasons is compatibility.
-Basic midPoint architecture haven't changed much from version 1 to version 2 and therefore we have decided it is not worth to update this interface and that it is better to keep it in the same "XML" spirit of midPoint version 1 (this is SOAP which means it is heavily based on XML anyway).
-There was also very little user demand to update it.
-Currently we have no plans to expand this interface in any significant manner.
-However we will still maintain it and it will remain in this form as part of midPoint for any foreseeable future.
-We do not rule out even the extension and update of this interface in case there is a user demand.
 
 == REST Interface
 
@@ -211,7 +183,5 @@ However informal documentation is (will be) available and there is also a xref:/
 * xref:/midpoint/architecture/[Architecture and Design]
 
 * xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]
-
-* xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface]
 
 * xref:/midpoint/reference/interfaces/rest/[REST API]
