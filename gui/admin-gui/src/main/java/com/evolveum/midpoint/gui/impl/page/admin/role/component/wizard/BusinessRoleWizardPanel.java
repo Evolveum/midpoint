@@ -95,7 +95,7 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
 
             @Override
             protected boolean isSubmitEnable() {
-                return super.isSubmitEnable();
+                return true;
             }
 
             @Override

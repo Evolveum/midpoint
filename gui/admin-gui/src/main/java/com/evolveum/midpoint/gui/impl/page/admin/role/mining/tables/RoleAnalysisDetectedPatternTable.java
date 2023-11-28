@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import java.io.Serial;
@@ -34,6 +35,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -49,6 +51,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleA
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -66,6 +69,7 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -377,7 +381,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                                 GuiStyleConstants.CLASS_PLUS_CIRCLE, LayeredIconCssStyle.IN_ROW_STYLE);
                         AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(componentId,
                                 iconBuilder.build(),
-                                createStringResource("RoleMining.button.title.process")) {
+                                createStringResource("RoleMining.button.title.candidate")) {
                             @Serial private static final long serialVersionUID = 1L;
 
                             @Override
@@ -452,6 +456,58 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
             });
 
+            columns.add(new AbstractExportableColumn<>(createStringResource("RoleMining.button.title.load")) {
+
+                @Override
+                public IModel<?> getDataModel(IModel<DetectedPattern> iModel) {
+                    return null;
+                }
+
+                @Override
+                public boolean isSortable() {
+                    return false;
+                }
+
+                @Override
+                public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                        IModel<DetectedPattern> rowModel) {
+
+                    if (rowModel.getObject() == null) {
+                        item.add(new EmptyPanel(componentId));
+                    }
+
+                    CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                            GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
+                    AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(componentId,
+                            iconBuilder.build(),
+                            createStringResource("RoleMining.button.title.load")) {
+                        @Serial private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected void onSubmit(AjaxRequestTarget target) {
+                            PageParameters parameters = new PageParameters();
+                            String clusterOid = cluster.getOid();
+                            parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+                            parameters.add("panelId", "clusterDetails");
+                            parameters.add(PARAM_DETECTED_PATER_ID, rowModel.getObject().getPatternId());
+                            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                                    .getObjectDetailsPage(RoleAnalysisClusterType.class);
+                            getPageBase().navigateToNext(detailsPageClass, parameters);
+                        }
+
+                        @Override
+                        protected void onError(AjaxRequestTarget target) {
+                            target.add(((PageBase) getPage()).getFeedbackPanel());
+                        }
+                    };
+                    migrationButton.titleAsLabel(true);
+                    migrationButton.setOutputMarkupId(true);
+                    migrationButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+
+                    item.add(migrationButton);
+                }
+
+            });
         }
         return columns;
     }

@@ -412,7 +412,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
                     LayeredIconCssStyle.IN_ROW_STYLE);
             AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton("process_selections_id",
                     iconBuilder.build(),
-                    createStringResource("RoleMining.button.title.process")) {
+                    createStringResource("RoleMining.button.title.candidate")) {
                 @Serial private static final long serialVersionUID = 1L;
 
                 @Override

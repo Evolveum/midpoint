@@ -8,9 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
@@ -200,19 +198,47 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
             return;
         }
 
+        RoleAnalysisService roleAnalysisService = getRoleAnalysisService();
+
         Task task = createSimpleTask(OP_PERFORM_MIGRATION);
 
         String roleOid = ObjectDeltaOperation.findAddDeltaOidRequired(executedDeltas, RoleType.class);
 
         BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
-        RoleAnalysisService roleAnalysisService = getRoleAnalysisService();
 
         PrismObject<RoleType> roleObject = roleAnalysisService
                 .getRoleTypeObject(roleOid, task, result);
         if (roleObject != null) {
+
+            if (!patternDeltas.isCandidate()) {
+
+                List<BusinessRoleDto> businessRoleDtos = patternDeltas.getBusinessRoleDtos();
+
+                Set<ObjectReferenceType> candidateMembers = new HashSet<>();
+
+                for (BusinessRoleDto businessRoleDto : businessRoleDtos) {
+                    PrismObject<UserType> prismObjectUser = businessRoleDto.getPrismObjectUser();
+                    if (prismObjectUser != null) {
+                        candidateMembers.add(new ObjectReferenceType()
+                                .oid(prismObjectUser.getOid())
+                                .type(UserType.COMPLEX_TYPE).clone());
+                    }
+                }
+
+                RoleAnalysisCandidateRoleType candidateRole = new RoleAnalysisCandidateRoleType();
+                candidateRole.getCandidateMembers().addAll(candidateMembers);
+                candidateRole.setAnalysisMetric(0.0);
+                candidateRole.setCandidateRoleRef(new ObjectReferenceType()
+                        .oid(roleOid)
+                        .type(RoleType.COMPLEX_TYPE).clone());
+
+                roleAnalysisService.addCandidateRole(
+                        patternDeltas.getCluster().getOid(), candidateRole, task, result);
+                return;
+            }
+
             roleAnalysisService.clusterObjectMigrationRecompute(
                     patternDeltas.getCluster().getOid(), roleOid, task, result);
-
 
             String taskOid = UUID.randomUUID().toString();
 

@@ -19,10 +19,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.prism.Objectable;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
@@ -33,10 +29,14 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.mining.chunk.CompressedMiningStructure;
 import com.evolveum.midpoint.model.impl.mining.chunk.ExpandedMiningStructure;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -45,10 +45,12 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -878,6 +880,53 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         return stateString == null || stateString.isEmpty() ? "enable" : stateString;
     }
 
+    public @NotNull String recomputeAndResolveClusterCandidateRoleOpStatus(
+            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
+            @NotNull RoleAnalysisCandidateRoleType candidateRole,
+            @NotNull OperationResult result, Task task) {
+        OperationExecutionType operationExecution = candidateRole.getOperationExecution();
+
+        if (operationExecution == null) {
+            return "enable";
+        }
+
+        ObjectReferenceType taskRef = operationExecution.getTaskRef();
+        String stateString = operationExecution.getMessage();
+        PrismObject<TaskType> object = null;
+
+        boolean taskExist = true;
+
+        if (taskRef != null && taskRef.getOid() != null) {
+            try {
+                object = repositoryService.getObject(TaskType.class, taskRef.getOid(), null, result);
+            } catch (ObjectNotFoundException | SchemaException e) {
+                LOGGER.warn("Error retrieving TaskType object for oid: {}", taskRef.getOid(), e);
+                taskExist = false;
+            }
+
+            if (!taskExist) {
+                if (stateString != null && !stateString.isEmpty()) {
+                    return stateString;
+                } else {
+                    return "enable";
+                }
+            }
+
+            TaskType taskObject = object.asObjectable();
+            OperationResultStatusType resultStatus = taskObject.getResultStatus();
+
+            stateString = updateClusterStateMessage(stateString, taskObject);
+
+            if (resultStatus != null) {
+                setCandidateRoleOpStatus(clusterPrismObject, candidateRole, object.getOid(),
+                        resultStatus, stateString, result, task, OperationExecutionRecordTypeType.SIMPLE);
+            }
+
+        }
+
+        return stateString == null || stateString.isEmpty() ? "enable" : stateString;
+    }
+
     private String updateClusterStateMessage(String stateString, TaskType taskObject) {
         String expectedTotalString = "0";
         String actual = "0";
@@ -1180,6 +1229,69 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
     }
 
+    public void setCandidateRoleOpStatus(
+            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrism,
+            @NotNull RoleAnalysisCandidateRoleType candidateRoleContainer,
+            @NotNull String taskOid,
+            OperationResultStatusType operationResultStatusType,
+            String message,
+            @NotNull OperationResult result, Task task, OperationExecutionRecordTypeType recordTypeType) {
+
+        OperationExecutionType opsOld = candidateRoleContainer.getOperationExecution();
+        if (opsOld != null
+                && opsOld.getStatus() != null
+                && opsOld.getMessage() != null
+                && opsOld.getTaskRef() != null) {
+            String oldTaskOid = opsOld.getTaskRef().getOid();
+            OperationResultStatusType oldStatus = opsOld.getStatus();
+            String oldMessage = opsOld.getMessage();
+
+            if (oldTaskOid.equals(taskOid)
+                    && oldStatus.equals(operationResultStatusType)
+                    && oldMessage.equals(message)) {
+                return;
+            }
+        }
+
+        OperationExecutionType operationExecutionType = buildOpExecution(
+                taskOid, operationResultStatusType, message, recordTypeType);
+        try {
+            ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_CANDIDATE_ROLES.append(
+                            candidateRoleContainer.getId(), RoleAnalysisCandidateRoleType.F_OPERATION_EXECUTION))
+                    .replace(operationExecutionType.clone())
+                    .asObjectDelta(clusterPrism.getOid());
+
+            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+            ModelExecuteOptions retVal = ModelExecuteOptions.create();
+            retVal.raw(true);
+            modelService.executeChanges(deltas, null, task, result);
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't modify RoleAnalysisClusterType {}", clusterPrism.getOid(), e);
+        }
+    }
+
+    @NotNull
+    private static OperationExecutionType buildOpExecution(
+            @NotNull String taskOid,
+            OperationResultStatusType operationResultStatusType,
+            String message,
+            OperationExecutionRecordTypeType recordType) {
+        OperationExecutionType operationExecutionType = new OperationExecutionType();
+        operationExecutionType.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+        operationExecutionType.setStatus(operationResultStatusType);
+        operationExecutionType.setRecordType(recordType);
+        operationExecutionType.setTaskRef(
+                new ObjectReferenceType()
+                        .oid(taskOid)
+                        .type(TaskType.COMPLEX_TYPE));
+        if (message != null) {
+            operationExecutionType.setMessage(message);
+        }
+        return operationExecutionType;
+    }
+
     @Override
     public <T extends AssignmentHolderType & Objectable> OperationResultStatusType getOperationExecutionStatus(
             @NotNull PrismObject<T> object,
@@ -1280,4 +1392,25 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
         return updatedReductionMetric;
     }
+
+    @Override
+    public void addCandidateRole(
+            @NotNull String clusterRefOid,
+            @NotNull RoleAnalysisCandidateRoleType candidateRole,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        try {
+            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+            modifications.add(PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_CANDIDATE_ROLES).add(candidateRole.clone())
+                    .asItemDelta());
+
+            repositoryService.modifyObject(RoleAnalysisClusterType.class, clusterRefOid, modifications, result);
+        } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+            LOGGER.error("Couldn't update detection pattern {}", clusterRefOid, e);
+        }
+
+    }
+
 }

@@ -511,6 +511,13 @@ public interface RoleAnalysisService {
             String message, @NotNull OperationResult result,
             @NotNull Task task);
 
+    void setCandidateRoleOpStatus(
+            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrism,
+            @NotNull RoleAnalysisCandidateRoleType candidateRoleContainer,
+            @NotNull String taskOid,
+            OperationResultStatusType operationResultStatusType,
+            String message,
+            @NotNull OperationResult result, Task task, OperationExecutionRecordTypeType recordTypeType);
     /**
      * This method is used to get operation status if existed.
      *
@@ -524,4 +531,23 @@ public interface RoleAnalysisService {
             @NotNull PrismObject<T> object,
             @NotNull Task task,
             @NotNull OperationResult result);
+    /**
+     * This method is used to update detected patterns in the cluster.
+     * When the detected patterns are mark as candidate roles, it is necessary to store reference to the role.
+     *
+     * @param clusterRefOid The cluster OID.
+     * @param candidateRole The candidate role OID.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
+    void addCandidateRole(
+            @NotNull String clusterRefOid,
+            @NotNull RoleAnalysisCandidateRoleType candidateRole,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    @NotNull String recomputeAndResolveClusterCandidateRoleOpStatus(
+            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
+            @NotNull RoleAnalysisCandidateRoleType candidateRole,
+            @NotNull OperationResult result, Task task);
 }
