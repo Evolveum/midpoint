@@ -294,6 +294,13 @@ public class RoleAnalysisAlgorithmUtils {
         AnalysisClusterStatisticType roleAnalysisClusterStatisticType = createClusterStatisticType(clusterStatistic,
                 session.getProcessMode());
 
+        boolean detect = isDetectable(session, clusterStatistic);
+        return generateClusterObject(roleAnalysisService, clusterStatistic, session, roleAnalysisClusterStatisticType, detect,
+                task, result);
+
+    }
+
+    private static boolean isDetectable(@NotNull RoleAnalysisSessionType session, ClusterStatistic clusterStatistic) {
         boolean detect = true;
         RoleAnalysisDetectionProcessType detectMode = session.getDefaultDetectionOption().getDetectionProcessMode();
 
@@ -308,9 +315,7 @@ public class RoleAnalysisAlgorithmUtils {
         } else if (detectMode.equals(RoleAnalysisDetectionProcessType.SKIP)) {
             detect = false;
         }
-        return generateClusterObject(roleAnalysisService, clusterStatistic, session, roleAnalysisClusterStatisticType, detect,
-                task, result);
-
+        return detect;
     }
 
     private PrismObject<RoleAnalysisClusterType> prepareOutlierClusters(

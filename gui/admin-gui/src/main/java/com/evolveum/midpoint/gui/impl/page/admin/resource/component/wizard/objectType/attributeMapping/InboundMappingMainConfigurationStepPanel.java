@@ -16,10 +16,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -46,7 +43,8 @@ public class InboundMappingMainConfigurationStepPanel
             MappingType.F_TARGET,
             MappingType.F_STRENGTH,
             MappingType.F_EXPRESSION,
-            MappingType.F_CONDITION
+            MappingType.F_CONDITION,
+            InboundMappingType.F_USE
     );
 
     public InboundMappingMainConfigurationStepPanel(ResourceDetailsModel model,

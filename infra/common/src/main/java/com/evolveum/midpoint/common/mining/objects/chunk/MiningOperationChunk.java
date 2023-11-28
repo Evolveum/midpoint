@@ -49,9 +49,9 @@ public class MiningOperationChunk implements Serializable {
     public List<MiningUserTypeChunk> getMiningUserTypeChunks(RoleAnalysisSortMode roleAnalysisSortMode) {
         this.sortModeUserChunk = roleAnalysisSortMode;
         if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.JACCARD)) {
-            this.miningUserTypeChunks = JaccardSorter.jaccardUserBasedSorter(miningUserTypeChunks);
+            this.miningUserTypeChunks = JaccardSorter.jaccardSorter(miningUserTypeChunks);
         } else if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.FREQUENCY)) {
-            this.miningUserTypeChunks = JaccardSorter.frequencyUserBasedSort(miningUserTypeChunks);
+            this.miningUserTypeChunks = JaccardSorter.frequencyBasedSort(miningUserTypeChunks);
         }
         return miningUserTypeChunks;
     }
@@ -59,9 +59,9 @@ public class MiningOperationChunk implements Serializable {
     public List<MiningRoleTypeChunk> getMiningRoleTypeChunks(RoleAnalysisSortMode roleAnalysisSortMode) {
         this.sortModeRoleChunk = roleAnalysisSortMode;
         if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.JACCARD)) {
-            this.miningRoleTypeChunks = JaccardSorter.jaccardRoleBasedSorter(miningRoleTypeChunks);
+            this.miningRoleTypeChunks = JaccardSorter.jaccardSorter(miningRoleTypeChunks);
         } else if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.FREQUENCY)) {
-            this.miningRoleTypeChunks = JaccardSorter.frequencyRoleBasedSort(miningRoleTypeChunks);
+            this.miningRoleTypeChunks = JaccardSorter.frequencyBasedSort(miningRoleTypeChunks);
         }
         return miningRoleTypeChunks;
     }

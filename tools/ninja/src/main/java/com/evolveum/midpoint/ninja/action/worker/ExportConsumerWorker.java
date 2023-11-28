@@ -8,16 +8,19 @@ package com.evolveum.midpoint.ninja.action.worker;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 import com.evolveum.midpoint.ninja.action.ExportOptions;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismSerializer;
-import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -45,6 +48,11 @@ public class ExportConsumerWorker extends AbstractWriterConsumerWorker<ExportOpt
 
     @Override
     protected void write(Writer writer, ObjectType object) throws SchemaException, IOException {
+        PrismObject<? extends ObjectType> prismObject = object.asPrismObject();
+
+        @NotNull List<ItemPath> itemsPaths = getExcludeItemsPaths();
+        removeItemPathsIfPresent(itemsPaths, prismObject);
+
         String xml = serializer.serialize(object.asPrismObject());
         writer.write(xml);
     }
@@ -52,6 +60,18 @@ public class ExportConsumerWorker extends AbstractWriterConsumerWorker<ExportOpt
     @Override
     protected String getEpilog() {
         return NinjaUtils.XML_OBJECTS_SUFFIX;
+    }
+
+    protected @NotNull List<ItemPath> getExcludeItemsPaths() {
+        return options.getExcludeItems();
+    }
+
+    private static void removeItemPathsIfPresent(
+            @NotNull List<ItemPath> itemsToSkip,
+            PrismObject<? extends ObjectType> prismObject) throws SchemaException {
+        if (!itemsToSkip.isEmpty()) {
+            prismObject.getValue().removePaths(itemsToSkip);
+        }
     }
 
 }

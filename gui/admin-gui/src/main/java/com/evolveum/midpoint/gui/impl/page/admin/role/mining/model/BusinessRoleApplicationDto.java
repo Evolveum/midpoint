@@ -17,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * The BusinessRoleApplicationDto class represents a Data Transfer Object (DTO) that holds
  * information about a specific role, its associated cluster, and a list of BusinessRoleDtos that holds information
@@ -28,8 +30,10 @@ public class BusinessRoleApplicationDto implements Serializable {
     PrismObject<RoleType> businessRole;
     List<BusinessRoleDto> businessRoleDtos;
 
-    public BusinessRoleApplicationDto(PrismObject<RoleAnalysisClusterType> cluster, PrismObject<RoleType> businessRole,
-            List<BusinessRoleDto> businessRoleDtos) {
+    public BusinessRoleApplicationDto(
+            @NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            @NotNull PrismObject<RoleType> businessRole,
+            @NotNull List<BusinessRoleDto> businessRoleDtos) {
         this.cluster = cluster;
         this.businessRole = businessRole;
         this.businessRoleDtos = businessRoleDtos;

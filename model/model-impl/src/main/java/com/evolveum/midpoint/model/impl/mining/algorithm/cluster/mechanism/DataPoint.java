@@ -17,12 +17,8 @@ import java.util.Set;
  */
 public class DataPoint implements Clusterable, Serializable {
 
-    //(USER Type)
     Set<String> members;
-
-    //(ROLE Type)
     Set<String> properties;
-
     int membersCount;
 
     /**
