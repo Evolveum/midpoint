@@ -627,6 +627,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
+    public boolean isOptionalCleanup() {
+        return false;
+    }
+
+    @Override
     public String getRemovedSince() {
         return null;
     }

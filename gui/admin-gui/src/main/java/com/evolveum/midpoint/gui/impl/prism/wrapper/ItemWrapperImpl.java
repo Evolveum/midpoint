@@ -174,6 +174,11 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
+    public boolean isOptionalCleanup() {
+        return getItemDefinition().isOptionalCleanup();
+    }
+
+    @Override
     public boolean isRemoved() {
         return getItemDefinition().isRemoved();
     }

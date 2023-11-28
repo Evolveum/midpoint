@@ -25,6 +25,11 @@ import com.google.common.annotations.VisibleForTesting;
 interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefinition {
 
     @Override
+    default void setOptionalCleanup(boolean optionalCleanup) {
+        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+    }
+
+    @Override
     default void setInstantiationOrder(Integer order) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 

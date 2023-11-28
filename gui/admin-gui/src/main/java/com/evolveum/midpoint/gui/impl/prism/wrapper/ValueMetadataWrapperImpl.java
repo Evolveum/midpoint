@@ -50,6 +50,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public boolean isOptionalCleanup() {
+        return metadataValueWrapper.isOptionalCleanup();
+    }
+
+    @Override
     public ItemProcessing getProcessing() {
         return metadataValueWrapper.getProcessing();
     }

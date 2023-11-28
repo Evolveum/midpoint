@@ -102,7 +102,8 @@ public class TestObjectConstruction extends AbstractSchemaTest {
 
         PrismPropertyDefinition<SchemaDefinitionType> definitionDef = resourceDef.findItemDefinition(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION));
         assertNotNull("No definition", definitionDef);
-        assertTrue("definition should be operational", definitionDef.isOperational());
-        assertTrue("definition should always use equals", definitionDef.isAlwaysUseForEquals());
+        assertFalse("definition should be operational", definitionDef.isOperational());
+        assertFalse("definition should always use equals", definitionDef.isAlwaysUseForEquals());
+        assertTrue("definition should be optional cleanup", definitionDef.isOptionalCleanup());
     }
 }

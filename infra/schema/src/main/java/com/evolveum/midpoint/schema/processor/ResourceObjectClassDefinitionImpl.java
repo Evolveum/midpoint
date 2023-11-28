@@ -426,6 +426,11 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
+    public void setOptionalCleanup(boolean optionalCleanup) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void setRemovedSince(String removedSince) {
         throw new UnsupportedOperationException();
     }

@@ -168,6 +168,11 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public boolean isOptionalCleanup() {
+        return structuralDefinition.isOptionalCleanup();
+    }
+
+    @Override
     public String getRemovedSince() {
         return structuralDefinition.getRemovedSince();
     }

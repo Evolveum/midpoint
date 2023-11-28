@@ -445,8 +445,7 @@
             <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:operational>true</a:operational>
-                        <a:alwaysUseForEquals/>
+                        <a:optionalCleanup>true</a:optionalCleanup>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
