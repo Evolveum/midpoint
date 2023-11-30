@@ -196,6 +196,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -220,6 +221,7 @@
                             <xsd:appinfo>
                                 <a:since>3.8</a:since>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -232,6 +234,7 @@
                             <xsd:appinfo>
                                 <a:since>4.3</a:since>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -243,6 +246,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -257,6 +261,7 @@
                             <xsd:appinfo>
                                 <a:displayName>TaskType.nodeAsObserved</a:displayName>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -293,6 +298,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -305,6 +311,7 @@
                             <xsd:appinfo>
                                 <a:displayName>TaskType.resultStatus</a:displayName>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -327,6 +334,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -338,6 +346,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -350,6 +359,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -376,6 +386,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -391,6 +402,7 @@
                             <xsd:appinfo>
                                 <a:since>3.5</a:since>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -404,6 +416,7 @@
                             <xsd:appinfo>
                                 <a:displayName>TaskType.progress</a:displayName>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -414,6 +427,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -426,6 +440,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -446,6 +461,7 @@
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -524,6 +540,7 @@
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
                                 <a:removedSince>4.8</a:removedSince>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -614,6 +631,7 @@
                             <xsd:appinfo>
                                 <a:since>3.8</a:since>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -633,6 +651,7 @@
                             <xsd:appinfo>
                                 <a:since>4.8</a:since>
                                 <a:operational>true</a:operational>
+                                <a:display>regular</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
