@@ -69,8 +69,8 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
 
     public static final File TEST_DIR = new File("src/test/resources/security");
 
-    protected static final TestObject<RoleType> ARCHETYPE_BUSINESS_ROLE = TestObject.file(TEST_DIR, "archetype-business-role.xml", "00000000-0000-0000-0000-000000000321");
-    protected static final TestObject<RoleType> ARCHETYPE_APPLICATION_ROLE = TestObject.file(TEST_DIR, "archetype-application-role.xml", "32073084-65d0-11e9-baff-bbb479bb05b7");
+    protected static final TestObject<ArchetypeType> ARCHETYPE_BUSINESS_ROLE = TestObject.file(TEST_DIR, "archetype-business-role.xml", "00000000-0000-0000-0000-000000000321");
+    protected static final TestObject<ArchetypeType> ARCHETYPE_APPLICATION_ROLE = TestObject.file(TEST_DIR, "archetype-application-role.xml", "32073084-65d0-11e9-baff-bbb479bb05b7");
     protected static final TestObject<UserType> USER_LECHUCK = TestObject.file(TEST_DIR, "user-lechuck.xml", "c0c010c0-d34d-b33f-f00d-1c1c11cc11c2");
 
     // Persona of LeChuck

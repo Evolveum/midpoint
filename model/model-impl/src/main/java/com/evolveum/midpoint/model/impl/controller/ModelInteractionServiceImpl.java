@@ -522,10 +522,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             result.recordFatalError(e);
             throw e;
         }
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Security constrains for getAssignableRoleSpecification on {}:\n{}",
-                    focus, securityConstraints.debugDump(1));
-        }
+        LOGGER.trace("Security constrains for getAssignableRoleSpecification on {}:\n{}",
+                focus, securityConstraints.debugDumpLazily(1));
 
         // Global decisions: processing #modify authorizations: allow/deny for all items or allow/deny for assignment/inducement item.
         ItemPath assignmentPath;
