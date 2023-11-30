@@ -100,8 +100,8 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public DisplayHint getDisplay() {
-        return metadataValueWrapper.getDisplay();
+    public DisplayHint getDisplayHint() {
+        return metadataValueWrapper.getDisplayHint();
     }
 
     @Override

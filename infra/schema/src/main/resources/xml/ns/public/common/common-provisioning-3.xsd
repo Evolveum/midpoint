@@ -82,7 +82,7 @@
                             <xsd:appinfo>
                                 <a:operational>true</a:operational>
                                 <a:alwaysUseForEquals/>
-                                <a:display>regular</a:display>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -100,7 +100,7 @@
                                 </a:diagram>
                                 <a:operational>true</a:operational>
                                 <a:alwaysUseForEquals/>
-                                <a:display>regular</a:display>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2960,7 +2960,7 @@
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
                         <a:alwaysUseForEquals/>
-                        <a:display>regular</a:display>
+                        <a:displayHint>regular</a:displayHint>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -4322,7 +4322,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.dead</a:displayName>
-                                <a:display>emphasized</a:display>
+                                <a:displayHint>emphasized</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4370,7 +4370,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.synchronizationSituation</a:displayName>
-                                <a:display>emphasized</a:display>
+                                <a:displayHint>emphasized</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4440,7 +4440,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.objectClass</a:displayName>
-                                <a:display>emphasized</a:display>
+                                <a:displayHint>emphasized</a:displayHint>
                                 <a:diagram>
                                     <a:name>user-shadow-resource</a:name>
                                 </a:diagram>
@@ -4493,7 +4493,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.intent</a:displayName>
-                                <a:display>emphasized</a:display>
+                                <a:displayHint>emphasized</a:displayHint>
                                 <a:diagram>
                                     <a:name>user-shadow-resource</a:name>
                                 </a:diagram>

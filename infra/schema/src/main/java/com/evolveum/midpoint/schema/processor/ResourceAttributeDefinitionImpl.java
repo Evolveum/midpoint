@@ -372,11 +372,11 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    public DisplayHint getDisplay() {
-        if (customizationBean.getDisplay() != null) {
-            return MiscSchemaUtil.toDisplayHint(customizationBean.getDisplay());
+    public DisplayHint getDisplayHint() {
+        if (customizationBean.getDisplayHint() != null) {
+            return MiscSchemaUtil.toDisplayHint(customizationBean.getDisplayHint());
         } else {
-            return rawDefinition.getDisplay();
+            return rawDefinition.getDisplayHint();
         }
     }
 

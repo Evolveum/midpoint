@@ -657,7 +657,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public DisplayHint getDisplay() {
+    public DisplayHint getDisplayHint() {
         return null;
     }
 

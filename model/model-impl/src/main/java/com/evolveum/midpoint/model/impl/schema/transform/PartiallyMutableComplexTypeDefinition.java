@@ -62,7 +62,7 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
     }
 
     @Override
-    default void setDisplay(DisplayHint display) {
+    default void setDisplayHint(DisplayHint displayHint) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 

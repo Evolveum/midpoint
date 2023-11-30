@@ -441,7 +441,7 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public void setDisplay(DisplayHint display) {
+    public void setDisplayHint(DisplayHint displayHint) {
         throw new UnsupportedOperationException();
     }
 

@@ -133,8 +133,8 @@ public class CompositeObjectDefinitionImpl
     public List<ItemDiagramSpecification> getDiagrams() { return structuralDefinition.getDiagrams(); }
 
     @Override
-    public DisplayHint getDisplay() {
-        return structuralDefinition.getDisplay();
+    public DisplayHint getDisplayHint() {
+        return structuralDefinition.getDisplayHint();
     }
 
     @Override

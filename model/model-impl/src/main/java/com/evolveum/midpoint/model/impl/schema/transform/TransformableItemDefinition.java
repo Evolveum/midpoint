@@ -35,7 +35,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     private String help;
     private Integer displayOrder;
-    private DisplayHint display;
+    private DisplayHint displayHint;
     private Boolean emphasized;
     private Boolean deprecated;
     private Boolean experimental;
@@ -62,7 +62,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
             this.help = copyOf.help;
             this.displayOrder = copyOf.displayOrder;
-            this.display = copyOf.display;
+            this.displayHint = copyOf.displayHint;
             this.emphasized = copyOf.emphasized;
             this.deprecated = copyOf.deprecated;
             this.experimental = copyOf.experimental;
@@ -206,8 +206,8 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         if (apply.getHelp() != null) {
             this.setHelp(apply.getHelp());
         }
-        if (apply.getDisplay() != null) {
-            this.setDisplay(MiscSchemaUtil.toDisplayHint(apply.getDisplay()));
+        if (apply.getDisplayHint() != null) {
+            this.setDisplayHint(MiscSchemaUtil.toDisplayHint(apply.getDisplayHint()));
         }
         if (apply.getDisplayOrder() != null) {
             this.setDisplayOrder(apply.getDisplayOrder());
@@ -239,8 +239,8 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     }
 
     @Override
-    public DisplayHint getDisplay() {
-        return preferLocal(this.display, delegate().getDisplay());
+    public DisplayHint getDisplayHint() {
+        return preferLocal(this.displayHint, delegate().getDisplayHint());
     }
 
     @Override
@@ -295,8 +295,8 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     }
 
     @Override
-    public void setDisplay(DisplayHint display) {
-        this.display = display;
+    public void setDisplayHint(DisplayHint displayHint) {
+        this.displayHint = displayHint;
     }
 
     @Override
