@@ -194,6 +194,10 @@
                                 If the task is waiting (i.e. schedulingState = WAITING), what is this task waiting for?
                                 Must be null if the task is not waiting for anything.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="unpauseAction" type="tns:TaskUnpauseActionType" minOccurs="0">
@@ -216,6 +220,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.8</a:since>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -227,6 +233,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.3</a:since>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -236,6 +244,10 @@
                                 Identifier of the node that currently executes this task.
                                 (In case of node crash, the value here may be out-of-date.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="nodeAsObserved" type="xsd:string" minOccurs="0">
@@ -248,6 +260,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>TaskType.nodeAsObserved</a:displayName>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -282,6 +296,10 @@
                             <xsd:documentation>
                                 OperationResult that is used to compile task results (parent result).
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
@@ -292,6 +310,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>TaskType.resultStatus</a:displayName>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -312,6 +332,10 @@
                             <xsd:documentation>
                                 The time when the task run was last started.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="lastRunFinishTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -320,6 +344,10 @@
                                 The time when the (last) task run was finished, successfully or unsuccessfully.
                                 (If node crashes, this attribute is not updated.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="completionTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -329,6 +357,10 @@
                                 lastRunFinishTimestamp, e.g. when task waits for its children to finish
                                 and then closes automatically.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="cleanupAfterCompletion" type="xsd:duration" minOccurs="0">
@@ -352,6 +384,10 @@
                                 TRANSIENT. This value is not stored in the repo, it is queried dynamically.
                                 (It is currently not possible to use it for filtering or sorting.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="nextRetryTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -365,6 +401,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.5</a:since>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -377,6 +415,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>TaskType.progress</a:displayName>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -385,6 +425,10 @@
                             <xsd:documentation>
                                 Task-level operation statistics.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
@@ -394,6 +438,10 @@
                                 TRANSIENT. This value is not stored in the repo, it is queried dynamically.
                                 (It is currently not possible to use it for filtering or sorting.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="expectedTotal" type="xsd:long" minOccurs="0">
@@ -412,6 +460,8 @@
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -489,6 +539,8 @@
                                 <a:removed>true</a:removed>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
                                 <a:removedSince>4.8</a:removedSince>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -578,6 +630,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.8</a:since>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -596,6 +650,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.8</a:since>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.intest.security;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
@@ -20,7 +21,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
-import org.assertj.core.api.Assertions;
+import com.evolveum.midpoint.test.TestObject;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -609,6 +611,10 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
     @Test
     public void test208AutzJackReadSomeRoles() throws Exception {
         testAutzJackReadSomeRoles(ROLE_READ_SOME_ROLES.oid);
+
+        assertNewRoleGetAllow(ARCHETYPE_BUSINESS_ROLE);
+        assertNewRoleGetAllow(ARCHETYPE_APPLICATION_ROLE);
+        assertNewRoleGetDeny(ARCHETYPE_PERSONA_ROLE);
     }
 
     /**
@@ -651,6 +657,24 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertGetAllow(RoleType.class, ROLE_BUSINESS_3.oid);
 
         assertGlobalStateUntouched();
+    }
+
+    private void assertNewRoleGetAllow(TestObject<ArchetypeType> archetype) throws CommonException {
+        assertNewRoleGet(archetype, true);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void assertNewRoleGetDeny(TestObject<ArchetypeType> archetype) throws CommonException {
+        assertNewRoleGet(archetype, false);
+    }
+
+    private void assertNewRoleGet(TestObject<ArchetypeType> archetype, boolean expected) throws CommonException {
+        var role = new RoleType()
+                .assignment(archetype.assignmentTo())
+                .asPrismObject();
+        PrismObjectDefinition<RoleType> def = getEditObjectDefinition(role);
+        var canRead = def.findItemDefinition(RoleType.F_NAME).canRead();
+        assertThat(canRead).as("canRead role name for " + archetype).isEqualTo(expected);
     }
 
     /**
@@ -3151,8 +3175,8 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
 
         assertGetDeny(TaskType.class, TASK_USELESS_ADMINISTRATOR.oid);
         var task = assertGetAllow(TaskType.class, TASK_USELESS_JACK.oid).asObjectable();
-        Assertions.assertThat(task.getActivity()).as("activity in the task").isNotNull();
-        Assertions.assertThat(task.getActivityState()).as("activity state in the task, denied by the autz").isNull();
+        assertThat(task.getActivity()).as("activity in the task").isNotNull();
+        assertThat(task.getActivityState()).as("activity state in the task, denied by the autz").isNull();
 
         assertOwnTaskEditSchema(task.asPrismObject());
 
