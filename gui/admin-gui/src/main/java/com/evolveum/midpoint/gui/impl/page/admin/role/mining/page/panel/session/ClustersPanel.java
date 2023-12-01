@@ -58,6 +58,8 @@ import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 @PanelType(name = "clusters")
 @PanelInstance(
         identifier = "clusters",
@@ -341,25 +343,13 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                         RoleAnalysisClusterType cluster = model.getObject().getValue();
 
                         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-                        String stateString = roleAnalysisService.recomputeAndResolveClusterOpStatus(
+                        @NotNull String stateString = roleAnalysisService.recomputeAndResolveClusterOpStatus(
                                 cluster.asPrismObject(),
                                 result, task);
 
-                        ObjectReferenceType taskRef = roleAnalysisService.extractTaskRef(cluster.getOperationExecution());
-
-                        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId, Model.of(stateString)) {
-                            @Override
-                            public void onClick(AjaxRequestTarget target) {
-                                super.onClick(target);
-                                if (taskRef != null) {
-                                    DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskRef.getOid(),
-                                            this, true);
-                                }
-                            }
-                        };
-                        ajaxLinkPanel.setEnabled(taskRef != null);
-                        ajaxLinkPanel.setOutputMarkupId(true);
-                        cellItem.add(ajaxLinkPanel);
+                        Label label = new Label(componentId, Model.of(stateString));
+                        label.setOutputMarkupId(true);
+                        cellItem.add(label);
 
                     }
 

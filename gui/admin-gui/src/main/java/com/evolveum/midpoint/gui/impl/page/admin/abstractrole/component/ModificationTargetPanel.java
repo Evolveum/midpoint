@@ -118,7 +118,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 //TODO add possibility to assign other candidate.
-                AjaxIconButton ajaxButton = new AjaxIconButton(id, Model.of(" fe fe-assignment"), createStringResource("idk")) {
+                AjaxIconButton ajaxButton = new AjaxIconButton(id, Model.of(" fe fe-assignment"),
+                        createStringResource("RoleAnalysis.modificationTargetPanel.assign")) {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 

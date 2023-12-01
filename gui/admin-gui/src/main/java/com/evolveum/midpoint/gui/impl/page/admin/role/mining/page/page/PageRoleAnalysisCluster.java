@@ -44,6 +44,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
+import org.jetbrains.annotations.NotNull;
+
 //TODO correct authorizations
 @PageDescriptor(
         urls = {
@@ -120,9 +122,9 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         DetectionOption detectionOption = new DetectionOption(cluster);
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
-        OperationResultStatusType status = roleAnalysisService.getOperationExecutionStatus(clusterPrismObject, task, result);
+        @NotNull String status = roleAnalysisService.recomputeAndResolveClusterOpStatus(clusterPrismObject, result, task);
 
-        if (status != null && status.equals(OperationResultStatusType.IN_PROGRESS)) {
+        if (status.equals("processing")) {
             warn("Couldn't start detection. Some process is already in progress.");
             target.add(getFeedbackPanel());
             return;
@@ -134,13 +136,19 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         roleAnalysisService.executeDetectionTask(cluster.asPrismObject(), null,
                 null, task, result);
 
-        PageParameters params = new PageParameters();
-        params.add(OnePageParameterEncoder.PARAMETER, clusterOid);
-        Class<? extends PageBase> detailsPageClass = DetailsPageUtil.getObjectDetailsPage(RoleAnalysisClusterType.class);
-        ((PageBase) getPage()).navigateToNext(detailsPageClass, params);
+        if (result.isWarning()) {
+            warn(result.getMessage());
+            target.add(pageBase.getFeedbackPanel());
+        } else {
+            PageParameters params = new PageParameters();
+            params.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+            Class<? extends PageBase> detailsPageClass = DetailsPageUtil.getObjectDetailsPage(RoleAnalysisClusterType.class);
+            pageBase.navigateToNext(detailsPageClass, params);
 
-        ((PageBase) getPage()).showResult(result);
-        target.add(getFeedbackPanel());
+            pageBase.showResult(result);
+            target.add(getFeedbackPanel());
+        }
+
     }
 
     public StringResourceModel setDetectionButtonTitle() {

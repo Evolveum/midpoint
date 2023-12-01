@@ -258,7 +258,14 @@ public class RoleAnalysisUserBasedTable extends Panel {
                     }
                 }
 
-                return new BusinessRoleApplicationDto(cluster, businessRole, roleApplicationDtos);
+                BusinessRoleApplicationDto businessRoleApplicationDto = new BusinessRoleApplicationDto(
+                        cluster, businessRole, roleApplicationDtos);
+                if (detectedPattern != null
+                        && detectedPattern.getPatternId() != null) {
+                    businessRoleApplicationDto.setPatternId(detectedPattern.getPatternId());
+                }
+
+                return businessRoleApplicationDto;
             }
 
             @Override
@@ -520,6 +527,11 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                     String cellColor = resolveCellColor(model.getObject(), userChunk);
                     updateCellMiningStatus(cellItem, componentId, cellColor);
+                }
+
+                @Override
+                public String getCssClass() {
+                    return super.getCssClass();
                 }
 
                 @Override

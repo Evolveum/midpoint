@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Objectable;
-
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -444,15 +442,6 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result);
 
     /**
-     * Extracts task reference from operation executions.
-     * Also check if task reference and object id (oid) is not null.
-     *
-     * @param operationExecutions The operation executions.
-     * @return The task reference.
-     */
-    ObjectReferenceType extractTaskRef(List<OperationExecutionType> operationExecutions);
-
-    /**
      * This method is used to update the cluster detected patterns.
      * Currently, it is used to update the cluster detected patterns
      * after the migration task in the cluster.
@@ -495,43 +484,6 @@ public interface RoleAnalysisService {
             @NotNull Task task);
 
     /**
-     * This method is used to update the cluster operation status.
-     *
-     * @param object The assignment holder object.
-     * @param taskOid The OID of the task.
-     * @param operationResultStatusType The operation result status type.
-     * @param message The message to set.
-     * @param result The operation result.
-     * @param task The task associated with this operation.
-     */
-    <T extends AssignmentHolderType & Objectable> void setOpStatus(
-            @NotNull PrismObject<T> object,
-            @NotNull String taskOid,
-            OperationResultStatusType operationResultStatusType,
-            String message, @NotNull OperationResult result,
-            @NotNull Task task);
-
-    void setCandidateRoleOpStatus(
-            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrism,
-            @NotNull RoleAnalysisCandidateRoleType candidateRoleContainer,
-            @NotNull String taskOid,
-            OperationResultStatusType operationResultStatusType,
-            String message,
-            @NotNull OperationResult result, Task task, OperationExecutionRecordTypeType recordTypeType);
-    /**
-     * This method is used to get operation status if existed.
-     *
-     * @param object The assignment holder object.
-     * @param task The task associated with this operation.
-     * @param result The operation result.
-     * @param <T> The assignment holder type.
-     * @return The operation execution status.
-     */
-    <T extends AssignmentHolderType & Objectable> OperationResultStatusType getOperationExecutionStatus(
-            @NotNull PrismObject<T> object,
-            @NotNull Task task,
-            @NotNull OperationResult result);
-    /**
      * This method is used to update detected patterns in the cluster.
      * When the detected patterns are mark as candidate roles, it is necessary to store reference to the role.
      *
@@ -550,4 +502,19 @@ public interface RoleAnalysisService {
             @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
             @NotNull RoleAnalysisCandidateRoleType candidateRole,
             @NotNull OperationResult result, Task task);
+
+    void deleteSingleCandidateRole(
+            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrism,
+            @NotNull RoleAnalysisCandidateRoleType candidateRoleBean,
+            @NotNull OperationResult result, Task task);
+
+    void setCandidateRoleOpStatus(
+            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrism,
+            @NotNull RoleAnalysisCandidateRoleType candidateRoleContainer,
+            @NotNull String taskOid,
+            @Nullable OperationResultStatusType operationResultStatusType,
+            @Nullable String message,
+            @NotNull OperationResult result, Task task,
+            @NotNull RoleAnalysisOperation operationType,
+            @Nullable FocusType focus);
 }

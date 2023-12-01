@@ -397,14 +397,19 @@ public class PageRoleAnalysis extends PageAdmin {
                                 session.asPrismObject(),
                                 result, task);
 
-                        ObjectReferenceType taskRef = roleAnalysisService.extractTaskRef(session.getOperationExecution());
+                        ObjectReferenceType taskRef = null;
+                        RoleAnalysisOperationStatus operationStatus = session.getOperationStatus();
+                        if (operationStatus != null) {
+                            taskRef = operationStatus.getTaskRef();
+                        }
 
+                        ObjectReferenceType finalTaskRef = taskRef;
                         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId, Model.of(stateString)) {
                             @Override
                             public void onClick(AjaxRequestTarget target) {
                                 super.onClick(target);
-                                if (taskRef != null) {
-                                    DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskRef.getOid(),
+                                if (finalTaskRef != null && finalTaskRef.getOid() != null) {
+                                    DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, finalTaskRef.getOid(),
                                             this, true);
                                 }
                             }

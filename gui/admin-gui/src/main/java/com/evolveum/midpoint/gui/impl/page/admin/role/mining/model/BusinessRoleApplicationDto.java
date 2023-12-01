@@ -30,6 +30,7 @@ public class BusinessRoleApplicationDto implements Serializable {
     PrismObject<RoleType> businessRole;
     List<BusinessRoleDto> businessRoleDtos;
     boolean isCandidate = false;
+    Long patternId;
 
     public BusinessRoleApplicationDto(
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
@@ -88,7 +89,6 @@ public class BusinessRoleApplicationDto implements Serializable {
         this.patternId = patternId;
     }
 
-    Long patternId;
     public boolean isCandidate() {
         return isCandidate;
     }

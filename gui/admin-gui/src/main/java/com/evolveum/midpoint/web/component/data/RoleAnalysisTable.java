@@ -417,26 +417,12 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
                 @Override
                 protected void onSubmit(AjaxRequestTarget target) {
-                    Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
-                    OperationResult result = task.getResult();
 
                     BusinessRoleApplicationDto operationData = getOperationData();
 
                     if (operationData == null) {
                         warn(createStringResource("RoleAnalysis.candidate.not.selected").getString());
                         target.add(getPageBase().getFeedbackPanel());
-                        return;
-                    }
-
-                    PrismObject<RoleAnalysisClusterType> cluster = operationData.getCluster();
-
-                    OperationResultStatusType status = getPageBase().getRoleAnalysisService()
-                            .getOperationExecutionStatus(cluster, task, result);
-
-                    if (status != null && status.equals(OperationResultStatusType.IN_PROGRESS)) {
-                        warn("Couldn't start detection. Some process is already in progress.");
-                        LOGGER.error("Couldn't start detection. Some process is already in progress.");
-                        target.add(getFeedbackPanel());
                         return;
                     }
 

@@ -15,6 +15,8 @@ import static com.evolveum.midpoint.model.common.expression.functions.BasicExpre
 import java.io.Serial;
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
@@ -72,6 +74,10 @@ import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.jetbrains.annotations.NotNull;
+
+import javax.management.modelmbean.ModelMBean;
 
 public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
@@ -388,37 +394,43 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                             protected void onSubmit(AjaxRequestTarget target) {
                                 Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
                                 OperationResult result = task.getResult();
+                                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
-                                OperationResultStatusType status = getPageBase().getRoleAnalysisService()
-                                        .getOperationExecutionStatus(cluster.asPrismObject(), task, result);
+                                @NotNull String status = roleAnalysisService
+                                        .recomputeAndResolveClusterOpStatus(cluster.asPrismObject(), result, task);
 
-                                if (status != null && status.equals(OperationResultStatusType.IN_PROGRESS)) {
+                                if (status.equals("processing")) {
                                     warn("Couldn't start detection. Some process is already in progress.");
                                     LOGGER.error("Couldn't start detection. Some process is already in progress.");
                                     target.add(getFeedbackPanel());
                                     return;
                                 }
+                                DetectedPattern pattern = rowModel.getObject();
+                                if (pattern == null) {
+                                    return;
+                                }
 
-                                Set<String> roles = rowModel.getObject().getRoles();
-                                Set<String> users = rowModel.getObject().getUsers();
+                                Set<String> roles = pattern.getRoles();
+                                Set<String> users = pattern.getUsers();
+                                Long patternId = pattern.getPatternId();
 
                                 List<AssignmentType> roleAssignments = new ArrayList<>();
 
                                 for (String roleOid : roles) {
-                                    PrismObject<RoleType> roleObject = getPageBase().getRoleAnalysisService()
+                                    PrismObject<RoleType> roleObject = roleAnalysisService
                                             .getRoleTypeObject(roleOid, task, result);
                                     if (roleObject != null) {
                                         roleAssignments.add(ObjectTypeUtil.createAssignmentTo(roleOid, ObjectTypes.ROLE));
                                     }
                                 }
 
-                                PrismObject<RoleType> businessRole = getPageBase().getRoleAnalysisService()
+                                PrismObject<RoleType> businessRole = roleAnalysisService
                                         .generateBusinessRole(roleAssignments, PolyStringType.fromOrig(""));
 
                                 List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
 
                                 for (String userOid : users) {
-                                    PrismObject<UserType> userObject = getPageBase().getRoleAnalysisService()
+                                    PrismObject<UserType> userObject = roleAnalysisService
                                             .getUserTypeObject(userOid, task, result);
                                     if (userObject != null) {
                                         roleApplicationDtos.add(new BusinessRoleDto(userObject,
@@ -430,6 +442,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                                 BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
                                         prismObjectCluster, businessRole, roleApplicationDtos);
+                                operationData.setPatternId(patternId);
 
                                 PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
                                 setResponsePage(pageRole);

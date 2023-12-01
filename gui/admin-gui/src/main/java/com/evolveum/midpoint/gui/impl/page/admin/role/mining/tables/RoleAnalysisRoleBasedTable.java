@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -248,7 +249,14 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                     }
                 }
 
-                return new BusinessRoleApplicationDto(cluster, businessRole, roleApplicationDtos);
+                BusinessRoleApplicationDto businessRoleApplicationDto = new BusinessRoleApplicationDto(
+                        cluster, businessRole, roleApplicationDtos);
+
+                if (detectedPattern.getPatternId() != null) {
+                    businessRoleApplicationDto.setPatternId(detectedPattern.getPatternId());
+                }
+
+                return businessRoleApplicationDto;
             }
 
             @Override

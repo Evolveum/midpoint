@@ -74,7 +74,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-
                     <xsd:element name="clusterStatistics" type="c:AnalysisClusterStatisticType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -138,6 +137,16 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="operationStatus" type="tns:RoleAnalysisOperationStatus" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Description of recent operations executed on this object (or related objects in special
+                                    cases). The number of operations to be kept here is configurable.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -268,6 +277,17 @@
                             <xsd:appinfo>
                                 <a:displayName>RoleAnalysisDetectionOptionType.defaultDetectionOption</a:displayName>
                             </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="operationStatus" type="tns:RoleAnalysisOperationStatus" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Description of recent operations executed on this object (or related objects in special
+                                    cases). The number of operations to be kept here is configurable.
+                                </p>
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -683,7 +703,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="operationExecution" type="tns:OperationExecutionType" minOccurs="0">
+            <xsd:element name="operationStatus" type="tns:RoleAnalysisOperationStatus" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -900,5 +920,112 @@
         </xsd:annotation>
     </xsd:element>
 
+
+    <xsd:complexType name="RoleAnalysisOperationStatus">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about an operation executed on an object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task that was used to initiate the operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operationChannel" type="tns:RoleAnalysisOperation" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of operation that was executed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="createTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was this information recorded. It is expected that it was when
+                        the operation finished (successfully or not).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="modifyTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was this information recorded. It is expected that it was when
+                        the operation finished (successfully or not).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Result status of the whole operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="message" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message connected to the reported result status.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="initiatorRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        User that initiated the operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+
+    <xsd:simpleType name="RoleAnalysisOperation">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role analysis operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="clustering">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLUSTERING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="detection">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DETECTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="migration">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MIGRATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>

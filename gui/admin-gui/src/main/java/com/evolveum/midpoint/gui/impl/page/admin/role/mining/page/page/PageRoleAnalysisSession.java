@@ -143,10 +143,16 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         roleAnalysisService.executeClusteringTask(session.asPrismObject(), null, null, task, result);
 
-        result.recordSuccessIfUnknown();
-        setResponsePage(PageRoleAnalysis.class);
-        ((PageBase) getPage()).showResult(result);
-        target.add(getFeedbackPanel());
+        if (result.isWarning()) {
+            warn(result.getMessage());
+            target.add(getPageBase().getFeedbackPanel());
+        } else {
+            result.recordSuccessIfUnknown();
+            setResponsePage(PageRoleAnalysis.class);
+            ((PageBase) getPage()).showResult(result);
+            target.add(getFeedbackPanel());
+        }
+
     }
 
     public StringResourceModel setDetectionButtonTitle() {

@@ -33,12 +33,13 @@ public class PatternDetailsPanel extends BasePanel<String> implements Popupable 
     }
 
     public void initLayout(List<DetectedPattern> detection, RoleAnalysisClusterType cluster) {
-        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL, new LoadableDetachableModel<List<DetectedPattern>>() {
-            @Override
-            protected List<DetectedPattern> load() {
-                return detection;
-            }
-        }, true, cluster) {
+        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL,
+                new LoadableDetachableModel<>() {
+                    @Override
+                    protected List<DetectedPattern> load() {
+                        return detection;
+                    }
+                }, true, cluster) {
             @Override
             protected void onLoad(AjaxRequestTarget ajaxRequestTarget, IModel<DetectedPattern> rowModel) {
                 onLoadPerform(ajaxRequestTarget, rowModel);
