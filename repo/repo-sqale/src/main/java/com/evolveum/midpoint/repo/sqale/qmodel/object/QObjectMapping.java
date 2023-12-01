@@ -10,23 +10,32 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHol
 
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleMappingMixin;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.*;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.util.exception.SystemException;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -48,6 +57,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.jetbrains.annotations.VisibleForTesting;
+
+import javax.xml.namespace.QName;
 
 /**
  * Mapping between {@link QObject} and {@link ObjectType}.
@@ -73,7 +86,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         return instance;
     }
 
-    private Map<ItemName, QContainerWithFullObjectMapping<?,?,?,?>> containersWithFullObject = new HashMap<>();
+    private Map<ItemName, FullObjectItemMapping> separatellySerializedItems = new HashMap<>();
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QObjectMapping<?, ?, ?> getObjectMapping() {
@@ -350,23 +363,87 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     public <C extends Containerable, TQ extends QContainer<TR, R>, TR extends MContainer> SqaleMappingMixin<S, Q, R> addContainerTableMapping(
             @NotNull ItemName itemName, @NotNull QContainerMapping<C, TQ, TR, R> containerMapping, @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
         if (containerMapping instanceof QContainerWithFullObjectMapping mappingWithFullObject) {
-            containersWithFullObject.put(itemName, mappingWithFullObject);
+            return addFullObjectContainerTableMapping(itemName, (QContainerWithFullObjectMapping) containerMapping, true, (BiFunction) joinPredicate);
         }
         return super.addContainerTableMapping(itemName, containerMapping, joinPredicate);
     }
 
     @Override
+    public <TQ extends QReference<TR, R>, TR extends MReference> SqaleMappingMixin<S, Q, R> addRefMapping(@NotNull QName itemName, @NotNull QReferenceMapping<TQ, TR, Q, R> referenceMapping) {
+        if (referenceMapping instanceof QSeparatelySerializedItem<?,?> casted) {
+            separatellySerializedItems.put((ItemName) itemName, new FullObjectItemMapping(casted, true));
+        }
+        return super.addRefMapping(itemName, referenceMapping);
+    }
+
+    public <C extends Containerable, TQ extends QContainerWithFullObject<TR, R>, TR extends MContainerWithFullObject> SqaleMappingMixin<S, Q, R> addFullObjectContainerTableMapping(
+            @NotNull ItemName itemName, @NotNull QContainerWithFullObjectMapping<C, TQ, TR, R> containerMapping, boolean includeByDefault, @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
+        separatellySerializedItems.put(itemName, new FullObjectItemMapping(containerMapping, includeByDefault));
+        return super.addContainerTableMapping(itemName, containerMapping, joinPredicate);
+    }
+
+        @Override
     protected final PathSet fullObjectItemsToSkip() {
         if (fullObjectSkips == null) {
             var pathSet = new PathSet();
-            for (var mapping : containersWithFullObject.values()) {
-                pathSet.add(mapping.getContainerPath());
+            for (var mapping : separatellySerializedItems.values()) {
+                pathSet.add(mapping.getPath());
             }
             customizeFullObjectItemsToSkip(pathSet);
             pathSet.freeze();
             fullObjectSkips = pathSet;
         }
         return fullObjectSkips;
+    }
+
+
+    private class FullObjectItemMapping<IQ extends FlexibleRelationalPathBase<IR>, IR> {
+
+        protected final QSeparatelySerializedItem<IQ,IR> mapping;
+        protected final boolean includedByDefault;
+
+        public FullObjectItemMapping(QSeparatelySerializedItem mapping, boolean includedByDefault) {
+            this.mapping = mapping;
+            this.includedByDefault = includedByDefault;
+        }
+
+        public ItemPath getPath() {
+            return mapping.getItemPath();
+        }
+
+        public boolean isIncluded(Collection<SelectorOptions<GetOperationOptions>> options) {
+            if (includedByDefault) {
+                // FIXME: Check Excludes
+                return true;
+            }
+            return SelectorOptions.hasToFetchPathNotRetrievedByDefault(getPath(), options);
+        }
+
+        public Multimap<UUID, PrismValue> fetchChildren(List<UUID> oidList, JdbcSession jdbcSession) throws SchemaException {
+            Multimap<UUID, PrismValue> ret = HashMultimap.create();
+
+            var q = mapping.createAlias();
+            var query = jdbcSession.newQuery()
+                    .from(q)
+                    .select(q) // no complications here, we load it whole
+                    .where(mapping.allOwnedBy(q, oidList));
+            for (var row : query.fetch()) {
+                // All assignments should have full object present / legacy assignments should be kept
+                if (mapping.hasFullObject(row)) {
+                    ret.put(mapping.getOwner(row), mapping.toSchemaObjectEmbedded(row));
+                }
+            }
+            return ret;
+        }
+
+        public void applyToSchemaObject(S target, Collection<PrismValue> values) throws SchemaException {
+            var container = target.asPrismObject().findOrCreateItem(getPath(), (Class) mapping.getPrismItemType());
+            container.setIncomplete(false);
+            for (var containerable : values) {
+                // FIXME: Some better addition method should be necessary.
+                ((Item) container).addIgnoringEquivalents(containerable);
+            }
+        }
     }
 
     protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
@@ -376,8 +453,48 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     @Override
     public ResultListRowTransformer<S, Q, R> createRowTransformer(SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         // here we should load external objects
-        return super.createRowTransformer(sqlQueryContext, jdbcSession, options);
+
+        Map<FullObjectItemMapping, Multimap<UUID, PrismValue>> mappingToData = new HashMap<>();
+
+        for (var mapping : separatellySerializedItems.values()) {
+            if (mapping.isIncluded(options)) {
+                mappingToData.put(mapping, ImmutableMultimap.of());
+            }
+        }
+
+        return new ResultListRowTransformer<S, Q, R>() {
+
+            @Override
+            public void beforeTransformation(List<Tuple> tuples, Q entityPath) throws SchemaException {
+                // get uuids?
+                var oidList = tuples.stream().map(t -> t.get(entityPath.oid)).collect(Collectors.toList());
+                for (var mapping : mappingToData.entrySet()) {
+                    mapping.setValue(mapping.getKey().fetchChildren(oidList, jdbcSession));
+                }
+
+            }
+
+            @Override
+            public S transform(Tuple tuple, Q entityPath) {
+                S baseObject = toSchemaObjectCompleteSafe(tuple, entityPath, options, jdbcSession, false);
+                var uuid = tuple.get(entityPath.oid);
+                for (var entry : mappingToData.entrySet()) {
+                    var mapping = entry.getKey();
+                    try {
+                        mapping.applyToSchemaObject(baseObject, entry.getValue().get(uuid));
+                    } catch (SchemaException e) {
+                        throw new SystemException(e);
+                    }
+                }
+                return baseObject;
+            }
+        };
     }
 
+    @VisibleForTesting
+    public int additionalSelectsByDefault() {
+        return (int) separatellySerializedItems.entrySet().stream().filter(e -> e.getValue().includedByDefault).count();
+
+    }
     // endregion
 }

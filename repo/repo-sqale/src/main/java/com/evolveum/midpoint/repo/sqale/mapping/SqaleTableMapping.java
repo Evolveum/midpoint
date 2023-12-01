@@ -429,7 +429,13 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull OR ownerRow, @NotNull List<ObjectReferenceType> refs,
             @NotNull QReferenceMapping<?, REF, OQ, OR> mapping, @NotNull JdbcSession jdbcSession) {
         if (!refs.isEmpty()) {
-            refs.forEach(ref -> mapping.insert(ref, ownerRow, jdbcSession));
+            refs.forEach(ref -> {
+                try {
+                    mapping.insert(ref, ownerRow, jdbcSession);
+                } catch (SchemaException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
     }
 

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +43,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRowMappin
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.notification.QMessageTemplateMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QOperationExecutionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;

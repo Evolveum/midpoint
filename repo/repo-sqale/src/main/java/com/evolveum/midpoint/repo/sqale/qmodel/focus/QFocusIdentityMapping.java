@@ -108,12 +108,12 @@ public class QFocusIdentityMapping<OR extends MFocus>
     }
 
     @Override
-    public ItemPath getContainerPath() {
+    public ItemPath getItemPath() {
         return PATH;
     }
 
     @Override
-    public FocusIdentityType toSchemaObject(MFocusIdentity row) throws SchemaException {
+    public FocusIdentityType toSchemaObjectLegacy(MFocusIdentity row) throws SchemaException {
         return parseSchemaObject(
                 row.fullObject,
                 "identity for " + row.ownerOid + "," + row.cid,

@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExec
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
 
@@ -127,7 +128,7 @@ public class QOperationExecutionMapping<OR extends MObject>
     }
 
     @Override
-    public OperationExecutionType toSchemaObject(MOperationExecution row) {
+    public OperationExecutionType toSchemaObjectLegacy(MOperationExecution row) {
         return new OperationExecutionType()
                 .status(row.status)
                 .recordType(row.recordType)
@@ -179,9 +180,21 @@ public class QOperationExecutionMapping<OR extends MObject>
                 if (opexContainer == null) {
                     throw new SystemException("Object " + object + " has no operation execution as expected from " + row);
                 }
+                // New format of value
+                if (hasFullObject(row)) {
+                    try {
+                        var embedded = (PrismContainerValue<OperationExecutionType>) toSchemaObjectEmbedded(row);
+                        opexContainer.add(embedded);
+                        return embedded.getRealValue();
+                    } catch (SchemaException e) {
+                        throw new SystemException(e);
+                    }
+                }
+
                 PrismContainerValue<OperationExecutionType> pcv = opexContainer.findValue(row.cid);
                 if (pcv == null) {
                     throw new SystemException("Object " + object + " has no operation execution with ID " + row.cid);
+
                 }
                 return pcv.asContainerable();
             }
@@ -189,7 +202,7 @@ public class QOperationExecutionMapping<OR extends MObject>
     }
 
     @Override
-    public ItemPath getContainerPath() {
+    public ItemPath getItemPath() {
         return ObjectType.F_OPERATION_EXECUTION;
     }
 }

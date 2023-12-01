@@ -3600,7 +3600,11 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_MODIFY_OBJECT);
     }
 
-    @Test
+    /**
+        Disabled: This type of edit (remove of assignment row) does not survive reindex if assignments are not stored in
+        full object.
+     */
+    @Test(enabled = false)
     public void test951ReindexAfterManualChangeOfFullObject()
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();

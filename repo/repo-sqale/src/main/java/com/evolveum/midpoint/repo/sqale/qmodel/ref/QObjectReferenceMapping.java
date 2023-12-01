@@ -146,7 +146,9 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
     public static <Q extends QObject<R>, R extends MObject> QObjectReferenceMapping<?, Q, R>
     initForProjection(@NotNull SqaleRepoContext repositoryContext) {
         if (needsInitialization(instanceProjection, repositoryContext)) {
-            instanceProjection = new QObjectReferenceMapping<>(
+            instanceProjection = new QObjectReferenceFullObjectMapping<>(
+                    FocusType.class,
+                    FocusType.F_LINK_REF,
                     "m_ref_projection", "refpj", repositoryContext,
                     QShadowMapping::getShadowMapping,
                     QFocusMapping::getFocusMapping,
@@ -245,7 +247,9 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
     public static <OS extends ObjectType, OQ extends QObject<OR>, OR extends MObject> QObjectReferenceMapping<OS, OQ, OR>
     initForRoleMembership(@NotNull SqaleRepoContext repositoryContext) {
         if (needsInitialization(instanceRoleMembership, repositoryContext)) {
-            instanceRoleMembership = new QObjectReferenceMapping<>(
+            instanceRoleMembership = new QObjectReferenceFullObjectMapping<>(
+                    AssignmentHolderType.class,
+                    AssignmentHolderType.F_ROLE_MEMBERSHIP_REF,
                     "m_ref_role_membership", "refrm", repositoryContext,
                     QAbstractRoleMapping::getAbstractRoleMapping,
                     QAssignmentHolderMapping::getAssignmentHolderMapping,
@@ -294,6 +298,24 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
         this.ownerMappingSupplier = ownerMappingSupplier;
     }
 
+    protected  <TQ extends QObject<TR>, TR extends MObject> QObjectReferenceMapping(
+            String tableName,
+            String defaultAliasName,
+            @NotNull SqaleRepoContext repositoryContext,
+            Class<? extends QObjectReference<?>> referenceType,
+            @NotNull Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier,
+            @Nullable Supplier<QueryTableMapping<OS, OQ, OR>> ownerMappingSupplier,
+            @Nullable BiFunction<QObjectReference<OR>, OQ, Predicate> ownerJoin,
+            @Nullable Class<?> ownerType,
+            @Nullable ItemPath referencePath) {
+        super(tableName, defaultAliasName, (Class) referenceType,
+                repositoryContext, targetMappingSupplier,
+                ownerMappingSupplier, ownerJoin,
+                ownerType, referencePath);
+
+        this.ownerMappingSupplier = ownerMappingSupplier;
+    }
+
     @Override
     protected QObjectReference<OR> newAliasInstance(String alias) {
         return new QObjectReference<>(alias, tableName());
@@ -320,7 +342,7 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
             SqlQueryContext<ObjectReferenceType, QObjectReference<OR>, MReference> sqlQueryContext, JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         // owner OID -> (target OID -> values)
         Map<UUID, Map<String, List<ObjectReferenceType>>> refsByOwnerAndTarget = new HashMap<>();
-
+        Map<UUID, ObjectType> owners = new HashMap<>();
         return new ResultListRowTransformer<>() {
             @Override
             public void beforeTransformation(List<Tuple> rowTuples, QObjectReference<OR> entityPath) throws SchemaException {
@@ -341,6 +363,8 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
                     for (Tuple row : result) {
                         UUID oid = Objects.requireNonNull(row.get(o.oid));
                         OS owner = parseSchemaObject(row.get(o.fullObject), oid.toString(), mapping.schemaType());
+                        owners.put(oid, owner);
+
                         PrismReference reference = owner.asPrismObject().findReference(referencePath);
                         refsByOwnerAndTarget.put(oid, reference.getRealValues().stream()
                                 .map(r -> (ObjectReferenceType) r)
@@ -353,7 +377,19 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
             public ObjectReferenceType transform(Tuple rowTuple, QObjectReference<OR> entityPath) {
                 MReference row = Objects.requireNonNull(rowTuple.get(entityPath));
                 Map<String, List<ObjectReferenceType>> refsByTarget = refsByOwnerAndTarget.get(row.ownerOid);
-                List<ObjectReferenceType> candidates = refsByTarget.get(row.targetOid.toString());
+                List<ObjectReferenceType> candidates = refsByTarget != null ? refsByTarget.get(row.targetOid.toString()) : null;
+                if (candidates == null || candidates.isEmpty()) {
+                    // Row was stored separatelly.
+                    try {
+                        var candidate = toSchemaObject(row);
+                        var owner = owners.get(row.ownerOid);
+                        applyToOwner(owner, candidate);
+                        return candidate;
+                    } catch (SchemaException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }
+
                 if (candidates.size() == 1) {
                     return candidates.get(0);
                 }
@@ -367,6 +403,14 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
                         + row + "! This should not have happened.");
             }
         };
+    }
+
+    protected void applyToOwner(ObjectType owner, ObjectReferenceType candidate) throws SchemaException {
+        //
+    }
+
+    protected boolean requiresParent(Tuple t, QObjectReference<OR> entityPath) {
+        return true;
     }
 
     @Override

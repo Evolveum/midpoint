@@ -186,14 +186,6 @@ public class QAssignmentMapping<OR extends MObject>
     }
 
     @Override
-    public AssignmentType toSchemaObject(MAssignment row) throws SchemaException {
-        return parseSchemaObject(
-                row.fullObject,
-                "assignment for " + row.ownerOid + "," + row.cid,
-                AssignmentType.class);
-    }
-
-    @Override
     protected QAssignment<OR> newAliasInstance(String alias) {
         return new QAssignment<>(alias);
     }
@@ -211,6 +203,74 @@ public class QAssignmentMapping<OR extends MObject>
         row.ownerOid = ownerRow.oid;
         row.ownerType = ownerRow.objectType;
         return row;
+    }
+
+    @Override
+    public AssignmentType toSchemaObjectLegacy(MAssignment row) {
+        // TODO is there any place we can put row.ownerOid reasonably?
+        //  repositoryContext().prismContext().itemFactory().createObject(... definition?)
+        //  assignment.asPrismContainerValue().setParent(new ObjectType().oid(own)); abstract not possible
+        //  For assignments we can use ownerType, but this is not general for all containers.
+        //  Inspiration: com.evolveum.midpoint.repo.sql.helpers.CertificationCaseHelper.updateLoadedCertificationCase
+        //  (if even possible with abstract type definition)
+        AssignmentType assignment = new AssignmentType()
+                .id(row.cid)
+                .lifecycleState(row.lifecycleState)
+                .order(row.orderValue)
+                .orgRef(objectReference(row.orgRefTargetOid,
+                        row.orgRefTargetType, row.orgRefRelationId))
+                .targetRef(objectReference(row.targetRefTargetOid,
+                        row.targetRefTargetType, row.targetRefRelationId))
+                .tenantRef(objectReference(row.tenantRefTargetOid,
+                        row.tenantRefTargetType, row.tenantRefRelationId));
+
+        // TODO ext... wouldn't serialized fullObject part of the assignment be better after all?
+
+        if (row.policySituations != null) {
+            for (Integer policySituationId : row.policySituations) {
+                assignment.policySituation(resolveIdToUri(policySituationId));
+            }
+        }
+        if (row.subtypes != null) {
+            for (String subtype : row.subtypes) {
+                assignment.subtype(subtype);
+            }
+        }
+
+        if (row.resourceRefTargetOid != null) {
+            assignment.construction(new ConstructionType()
+                    .resourceRef(objectReference(row.resourceRefTargetOid,
+                            row.resourceRefTargetType, row.resourceRefRelationId)));
+        }
+
+        ActivationType activation = new ActivationType()
+                .administrativeStatus(row.administrativeStatus)
+                .effectiveStatus(row.effectiveStatus)
+                .enableTimestamp(asXMLGregorianCalendar(row.enableTimestamp))
+                .disableTimestamp(asXMLGregorianCalendar(row.disableTimestamp))
+                .disableReason(row.disableReason)
+                .validityStatus(row.validityStatus)
+                .validFrom(asXMLGregorianCalendar(row.validFrom))
+                .validTo(asXMLGregorianCalendar(row.validTo))
+                .validityChangeTimestamp(asXMLGregorianCalendar(row.validityChangeTimestamp))
+                .archiveTimestamp(asXMLGregorianCalendar(row.archiveTimestamp));
+        if (!activation.asPrismContainerValue().isEmpty()) {
+            assignment.activation(activation);
+        }
+
+        MetadataType metadata = new MetadataType()
+                .creatorRef(objectReference(row.creatorRefTargetOid,
+                        row.creatorRefTargetType, row.creatorRefRelationId))
+                .createChannel(resolveIdToUri(row.createChannelId))
+                .createTimestamp(asXMLGregorianCalendar(row.createTimestamp))
+                .modifierRef(objectReference(row.modifierRefTargetOid,
+                        row.modifierRefTargetType, row.modifierRefRelationId))
+                .modifyChannel(resolveIdToUri(row.modifyChannelId))
+                .modifyTimestamp(asXMLGregorianCalendar(row.modifyTimestamp));
+        if (!metadata.asPrismContainerValue().isEmpty()) {
+            assignment.metadata(metadata);
+        }
+        return assignment;
     }
     // about duplication see the comment in QObjectMapping.toRowObjectWithoutFullObject
     @SuppressWarnings("DuplicatedCode")
@@ -290,7 +350,7 @@ public class QAssignmentMapping<OR extends MObject>
     }
 
     @Override
-    public ItemPath getContainerPath() {
+    public ItemPath getItemPath() {
         return path;
     }
 }

@@ -16,6 +16,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
+
 import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.dsl.Expressions;
 import org.testng.Assert;
@@ -487,8 +489,8 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(users).isNotEmpty();
 
         queryBuffer = queryRecorder.getQueryBuffer();
-        // 1 query if assignments are inlined, 11 if assignments are separate table
-        assertThat(queryBuffer).hasSize(11);
+        // 1 query for user, plus additional queries for items in  separate table (linkRef, roleMembershipRef, assignmentRef, operationExecution)
+        assertThat(queryBuffer).hasSize(1 + QUserMapping.getUserMapping().additionalSelectsByDefault());
         entry = queryBuffer.remove();
         assertThat(entry.sql).startsWith("select u.oid, u.fullObject");
     }
@@ -528,9 +530,8 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                 .isEqualToIgnoringWhitespace("select u.oid, u.fullObject from m_user u"
                         + " where u.nameNorm = ? and u.nameOrig = ? and u.administrativeStatus = ?"
                         + " limit ?");
-
-        // assignments are in separate table, so 2 queries
-        assertThat(queryRecorder.getQueryBuffer()).hasSize(2);
+        // 1 query for user, plus additional queries for items in  separate table (linkRef, roleMembershipRef, assignmentRef, operationExecution)
+        assertThat(queryRecorder.getQueryBuffer()).hasSize(QUserMapping.getUserMapping().additionalSelectsByDefault() + 1);
     }
 
     @Test

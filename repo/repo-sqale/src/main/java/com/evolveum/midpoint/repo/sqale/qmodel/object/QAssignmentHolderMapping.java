@@ -94,17 +94,6 @@ public class QAssignmentHolderMapping<
         return (Q) new QAssignmentHolder<>(MObject.class, alias);
     }
 
-    public S toSchemaObject(@NotNull Tuple row, @NotNull Q entityPath, @NotNull JdbcSession jdbcSession,
-            Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
-        S holder = super.toSchemaObject(row, entityPath, jdbcSession, options);
-
-        var includeAssignments = true;
-        if (includeAssignments) {
-            loadAssignments(holder, jdbcSession);
-        }
-        return holder;
-    }
-
     private void loadAssignments(S focus, JdbcSession jdbcSession) throws SchemaException {
         // Currently we don't consider container ids and load all identities/identity values.
         // FIXME: This should be probably API concept now - something like fetchNestedFullObjects
