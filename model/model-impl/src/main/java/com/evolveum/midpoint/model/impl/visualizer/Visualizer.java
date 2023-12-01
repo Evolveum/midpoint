@@ -459,7 +459,8 @@ public class Visualizer {
         if (delta.isEmpty()) {
             return;
         }
-        if (delta.getDefinition() != null && delta.getDefinition().isOperational() && !context.isIncludeOperationalItems()) {
+        PrismContainerDefinition def = delta.getDefinition();
+        if (def != null && def.isOperational() && !context.isIncludeOperationalItems() && def.getDisplayHint() != DisplayHint.REGULAR) {
             return;
         }
         Collection<PrismContainerValue<C>> valuesToAdd;

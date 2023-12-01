@@ -5,7 +5,7 @@
 :page-wiki-metadata-create-date: 2011-09-27T10:53:12.691+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2019-09-08T14:02:14.858+02:00
-:page-upkeep-status: orange
+:page-upkeep-status: red
 :page-upkeep-note: is this s right concept to describe interfaces?
 
 *Version:* 4.4 +
@@ -25,9 +25,6 @@ This is the primary and most important midPoint interface.
 Implementation of this interface are enforcing a consistency of access control decisions and model, e.g. to enforcing Role-Based Access Control (RBAC) and other policies, making sure that the mappings are applied properly, etc.
 
 For general introduction to interface concepts please see xref:/midpoint/architecture/concepts/common-interface-concepts/[Common Interface Concepts] page.
-
-There is also a web service version of this interface.
-See xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface] for description.
 
 
 == History
@@ -129,7 +126,7 @@ Update to adapt to midPoint 3.0 changes.
 
 | 0.1
 | September 2011
-| Initial version derived from xref:/midpoint/reference/legacy/soap/[IDM Model Web Service Interface]
+| Initial version derived from xref:/midpoint/reference/before-4.8/legacy/soap/[IDM Model Web Service Interface]
 | Radovan Semancik
 
 

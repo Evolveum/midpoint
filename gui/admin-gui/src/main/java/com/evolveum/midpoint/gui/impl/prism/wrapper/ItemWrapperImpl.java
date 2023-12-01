@@ -174,6 +174,11 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
+    public boolean isOptionalCleanup() {
+        return getItemDefinition().isOptionalCleanup();
+    }
+
+    @Override
     public boolean isRemoved() {
         return getItemDefinition().isRemoved();
     }
@@ -528,6 +533,16 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public boolean isElaborate() {
         return getItemDefinition().isElaborate();
+    }
+
+    @Override
+    public DisplayHint getDisplayHint() {
+        return getItemDefinition().getDisplayHint();
+    }
+
+    @Override
+    public boolean isAlwaysUseForEquals() {
+        return getItemDefinition().isAlwaysUseForEquals();
     }
 
     @Override

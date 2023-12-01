@@ -148,12 +148,10 @@ This type should only be present in `REQUEST` stage, the `EXECUTION` stage of th
 | `WORK_ITEM`
 | 8
 | Creation or completion of a work item (e.g. a request to approve particular assignment).
-See xref:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-auditing/[Workflow Auditing].
 
 | `WORKFLOW_PROCESS_INSTANCE`
 | 9
 | Creation or completion of a workflow process instance (may include 0, 1 or many work items).
-See xref:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-auditing/[Workflow Auditing].
 
 | `RECONCILIATION`
 | 10

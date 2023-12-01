@@ -10,6 +10,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.deleg.ItemDefinitionDelegator;
@@ -33,9 +35,11 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     private String help;
     private Integer displayOrder;
+    private DisplayHint displayHint;
     private Boolean emphasized;
     private Boolean deprecated;
     private Boolean experimental;
+    private Boolean alwaysUseForEquals;
 
     private Integer minOccurs;
     private Integer maxOccurs;
@@ -58,11 +62,13 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
             this.help = copyOf.help;
             this.displayOrder = copyOf.displayOrder;
+            this.displayHint = copyOf.displayHint;
             this.emphasized = copyOf.emphasized;
             this.deprecated = copyOf.deprecated;
             this.experimental = copyOf.experimental;
             this.valueEnumerationRef = copyOf.valueEnumerationRef;
             this.delegate = copyOf.delegate;
+            this.alwaysUseForEquals = copyOf.alwaysUseForEquals;
         } else {
             this.delegate = new DelegatedItem.FullySerializable<>(delegate);
         }
@@ -139,6 +145,15 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         return preferLocal(processing, delegate().getProcessing());
     }
 
+    @Override
+    public boolean isAlwaysUseForEquals() {
+        return preferLocal(alwaysUseForEquals, delegate().isAlwaysUseForEquals());
+    }
+
+    @Override
+    public void setAlwaysUseForEquals(boolean alwaysUseForEquals) {
+        this.alwaysUseForEquals = alwaysUseForEquals;
+    }
 
     @Override
     public void setCanAdd(boolean val) {
@@ -191,6 +206,9 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         if (apply.getHelp() != null) {
             this.setHelp(apply.getHelp());
         }
+        if (apply.getDisplayHint() != null) {
+            this.setDisplayHint(MiscSchemaUtil.toDisplayHint(apply.getDisplayHint()));
+        }
         if (apply.getDisplayOrder() != null) {
             this.setDisplayOrder(apply.getDisplayOrder());
         }
@@ -218,6 +236,11 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     @Override
     public Integer getDisplayOrder() {
         return preferLocal(this.displayOrder, delegate().getDisplayOrder());
+    }
+
+    @Override
+    public DisplayHint getDisplayHint() {
+        return preferLocal(this.displayHint, delegate().getDisplayHint());
     }
 
     @Override
@@ -271,6 +294,10 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         this.displayOrder = displayOrder;
     }
 
+    @Override
+    public void setDisplayHint(DisplayHint displayHint) {
+        this.displayHint = displayHint;
+    }
 
     @Override
     public void setEmphasized(boolean emphasized) {

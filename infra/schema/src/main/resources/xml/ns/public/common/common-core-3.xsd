@@ -220,7 +220,7 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectType.name</a:displayName>
                         <a:displayOrder>0</a:displayOrder>
-                        <a:emphasized>true</a:emphasized>
+                        <a:displayHint>emphasized</a:displayHint>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2044,7 +2044,7 @@
                             <xsd:appinfo>
                                 <a:displayName>UserType.fullName</a:displayName>
                                 <a:displayOrder>100</a:displayOrder>
-                                <a:emphasized>true</a:emphasized>
+                                <a:displayHint>emphasized</a:displayHint>
                                 <a:diagram>
                                     <a:name>user-overview</a:name>
                                     <a:inclusion>include</a:inclusion>
@@ -2076,7 +2076,7 @@
                             <xsd:appinfo>
                                 <a:displayName>UserType.givenName</a:displayName>
                                 <a:displayOrder>110</a:displayOrder>
-                                <a:emphasized>true</a:emphasized>
+                                <a:displayHint>emphasized</a:displayHint>
                                 <a:diagram>
                                     <a:name>user-overview</a:name>
                                     <a:inclusion>include</a:inclusion>
@@ -2108,7 +2108,7 @@
                             <xsd:appinfo>
                                 <a:displayName>UserType.familyName</a:displayName>
                                 <a:displayOrder>120</a:displayOrder>
-                                <a:emphasized>true</a:emphasized>
+                                <a:displayHint>emphasized</a:displayHint>
                                 <a:diagram>
                                     <a:name>user-overview</a:name>
                                     <a:inclusion>include</a:inclusion>
@@ -4301,6 +4301,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="displayHint" type="tns:DisplayHintType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- todo -->
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                        <a:displayName>ItemRefinedDefinitionType.displayHint</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="emphasized" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4309,6 +4320,8 @@
                          interfaces (even if they are empty), they will always be included in the dumps, etc.
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.9</a:deprecatedSince>
                         <a:since>3.4</a:since>
                         <a:displayName>ItemRefinedDefinitionType.emphasized</a:displayName>
                     </xsd:appinfo>
@@ -4577,6 +4590,55 @@
             <!-- delete does not make sense here -->
         </xsd:sequence>
     </xsd:complexType>
+
+    <!-- TODO: somehow align with DisplayHintType in annotation-3.xsd -->
+    <xsd:simpleType name="DisplayHintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Display hints for an item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="hidden">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HIDDEN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="regular">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REGULAR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="emphasized">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EMPHASIZED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="collapsed">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COLLAPSED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="expanded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXPANDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <!-- TODO: somehow align with ItemProcessingType in annotation-3.xsd -->
     <xsd:simpleType name="ItemProcessingType">

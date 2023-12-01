@@ -50,6 +50,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public boolean isOptionalCleanup() {
+        return metadataValueWrapper.isOptionalCleanup();
+    }
+
+    @Override
     public ItemProcessing getProcessing() {
         return metadataValueWrapper.getProcessing();
     }
@@ -92,6 +97,16 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public String getDeprecatedSince() {
         return metadataValueWrapper.getDeprecatedSince();
+    }
+
+    @Override
+    public DisplayHint getDisplayHint() {
+        return metadataValueWrapper.getDisplayHint();
+    }
+
+    @Override
+    public boolean isAlwaysUseForEquals() {
+        return metadataValueWrapper.isAlwaysUseForEquals();
     }
 
     @Override
