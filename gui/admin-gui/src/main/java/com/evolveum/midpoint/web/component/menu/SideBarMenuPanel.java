@@ -12,16 +12,19 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
@@ -156,7 +159,25 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
                 onMenuClick(model);
             }
         });
+        header.add(new Behavior() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void bind(Component component) {
+                super.bind(component);
+
+                component.add(AttributeModifier.replace("onkeydown",
+                        Model.of(
+                                "if (event.keyCode == 13){"
+                                        + "this.click();"
+                                        + "}"
+                        )));
+            }
+        });
         header.add(AttributeAppender.append("class", () -> isMenuExpanded(model.getObject()) ? "" : "closed"));
+        header.add(AttributeAppender.append("aria-expanded", () -> isMenuExpanded(model.getObject())));
+
         Label name = new Label(ID_NAME, () -> {
             String key = model.getObject().getName();
             return getString(key, null, key);

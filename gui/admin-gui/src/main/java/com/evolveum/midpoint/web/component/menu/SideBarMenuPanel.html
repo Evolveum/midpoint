@@ -7,7 +7,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="user-panel my-3 pb-2 d-flex align-items-center">
+    <div class="user-panel my-3 pb-2 d-flex align-items-center" tabindex="0">
         <div class="image">
             <img wicket:id="menuPhoto" class="user-image img-circle elevation-2"/>
         </div>
@@ -20,9 +20,13 @@
     <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" wicket:id="sidebar">
             <wicket:container wicket:id="menuItems">
-                <li class="nav-header" wicket:id="header">
-                    <span wicket:id="name"/>
-                    <i class="fa fa-chevron-down ml-2"></i>
+                <li class="nav-header pr-3" wicket:id="header" role="separator" aria-haspopup="true" tabindex="0">
+                    <div class="d-flex">
+                        <span wicket:id="name"/>
+                        <span class="ml-auto">
+                            <i class="fa fa-chevron-down"></i>
+                        </span>
+                    </div>
                 </li>
                 <wicket:container wicket:id="items">
                     <wicket:container wicket:id="item"/>

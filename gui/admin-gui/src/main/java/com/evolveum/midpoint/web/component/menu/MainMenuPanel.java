@@ -91,6 +91,26 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
             return mmi.hasActiveSubmenu(getPageBase()) || mmi.isMenuActive(getPageBase()) ? "active" : null;
         }));
+
+        if (getModelObject().containsSubMenu()) {
+            item.add(AttributeAppender.append(
+                    "aria-expanded",
+                    () -> {
+                        MainMenuItem mmi = getModelObject();
+                        return mmi.hasActiveSubmenu(getPageBase());
+                    }));
+        }
+
+        link.add(AttributeModifier.append(
+                "aria-current",
+                () -> {
+                    MainMenuItem mmi = getModelObject();
+                    if (mmi.isMenuActive(getPageBase())) {
+                        return "page";
+                    }
+                    return null;
+                }));
+
         link.add(AttributeModifier.append("title", labelModel));
         item.add(link);
 
@@ -111,6 +131,10 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         WebMarkupContainer arrow = new WebMarkupContainer(ID_ARROW);
         arrow.add(new VisibleBehaviour(() -> getModelObject().containsSubMenu() && bubbleModel.getObject() == null));
         link.add(arrow);
+
+        item.add(AttributeAppender.append(
+                "aria-haspopup",
+                () -> getModelObject().containsSubMenu() && bubbleModel.getObject() == null));
 
         WebMarkupContainer submenu = new WebMarkupContainer(ID_SUBMENU);
         item.add(submenu);
@@ -141,7 +165,17 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         };
         subLink.setEnabled(!menuItem.getObject().isDynamic());
         subLink.add(AttributeModifier.append("class", () -> menuItem.getObject().isMenuActive(getPageBase()) ? "active" : null));
+
         listItem.add(subLink);
+
+        subLink.add(AttributeModifier.append(
+                "aria-current",
+                () -> {
+                    if (menuItem.getObject().isMenuActive(getPageBase())) {
+                        return "page";
+                    }
+                    return null;
+                }));
 
         WebMarkupContainer subLinkIcon = new WebMarkupContainer(ID_SUB_LINK_ICON);
         subLinkIcon.add(AttributeAppender.append("class", new PropertyModel<>(menuItem, MainMenuItem.F_ICON_CLASS)));
