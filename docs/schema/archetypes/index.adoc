@@ -55,10 +55,21 @@ Following table lists commonly-used archetypes and their mapping to primary midP
 
 
 | ServiceType
-| Application, Device, Printer, Provider, Network, Web API endpoint
+| Application, Device, Printer, Provider, Network, Web API endpoint, Robot
 
 
 |===
+
+== Birthrights
+
+Archetypes are the primary tool to define a glossref:birthright[birthright provisioning].
+Archetypes behave as xref:../roles-policies/rbac/[roles].
+Therefore, any privileges specified in archetype xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[inducements] are automatically applied to all the objects that have the archetype.
+This approach can be used to apply _birthright_ to the objects, e.g. it can specify baseline privileges for all employees or students.
+
+Moreover, archetypes may work as xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles], specifying common behavior for object types.
+For example, `Project` archetypes may specify common behavior for all projects, including baseline authorization for project members and managers.
+Overall, archetypes provide very flexible and powerful mechanism to specify _birthrights_.
 
 == Archetype Definition
 
