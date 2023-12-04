@@ -9,7 +9,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -20,6 +22,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -352,5 +355,10 @@ public class QAssignmentMapping<OR extends MObject>
     @Override
     public ItemPath getItemPath() {
         return path;
+    }
+
+    @Override
+    public Predicate allOwnedBy(QAssignment<OR> orqAssignment, List<UUID> oidList) {
+        return orqAssignment.containerType.eq(this.containerType).and(super.allOwnedBy(orqAssignment, oidList));
     }
 }
