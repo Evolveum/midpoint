@@ -32,14 +32,14 @@
             </ul>
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item d-none d-md-inline">
-                    <ol class="breadcrumb">
-                        <li wicket:id="breadcrumb">
-                            <a wicket:id="bcLink">
-                                <i wicket:id="bcIcon"></i>&nbsp;
-                                <span wicket:id="bcName"/>
-                            </a>
-                        </li>
-                    </ol>
+                        <ol class="breadcrumb" wicket:message="aria-label:PageBase.breadcrumb" role="navigation">
+                            <li wicket:id="breadcrumb">
+                                <a wicket:id="bcLink">
+                                    <i wicket:id="bcIcon"></i>&nbsp;
+                                    <span wicket:id="bcName"/>
+                                </a>
+                            </li>
+                        </ol>
                 </li>
                 <wicket:enclosure child="cartLink">
                     <li class="nav-item">
@@ -50,12 +50,12 @@
                     </li>
                 </wicket:enclosure>
                 <wicket:remove>
-                <li class="nav-item notification">
-                    <a class="nav-link">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge badge-danger">1</span>
-                    </a>
-                </li>
+                    <li class="nav-item notification">
+                        <a class="nav-link">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge badge-danger">1</span>
+                        </a>
+                    </li>
                 </wicket:remove>
                 <li class="nav-item dropdown">
                     <div wicket:id="locale"/>
@@ -95,7 +95,7 @@
             <span class="pull-right hidden-xs" wicket:id="version">
                 <b><wicket:message key="PageTemplate.version"/></b> <wicket:message key="midpoint.system.build"/>
             </span>
-            <span wicket:id="copyrightMessage" class="pull-left"><wicket:message key="PageTemplate.copyright" /></span>
+            <span wicket:id="copyrightMessage" class="pull-left"><wicket:message key="PageTemplate.copyright"/></span>
             <span wicket:id="subscriptionMessage"/>
         </footer>
     </div>

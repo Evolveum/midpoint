@@ -7,12 +7,15 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="user-panel my-3 pb-2 d-flex align-items-center" tabindex="0">
+    <div class="user-panel my-3 pb-2 d-flex align-items-center">
         <div class="image">
             <img wicket:id="menuPhoto" class="user-image img-circle elevation-2"/>
         </div>
-        <div class="info">
+        <div class="info" tabindex="0">
+            <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUser"/></div>
+            <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUserUsername"/></div>
             <div class="text-lightblue" wicket:id="username"/>
+            <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUserDescription"/></div>
             <div class="text-sm text-gray text-truncate" wicket:id="usernameDescription"/>
         </div>
     </div>

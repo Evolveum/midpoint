@@ -320,6 +320,10 @@ public abstract class PageBase extends PageAdminLTE {
                 item.add(bcLink);
                 bcLink.add(new EnableBehaviour(() -> item.getModelObject().isUseLink()));
 
+                if (item.getIndex() == getModelObject().size()-1) {
+                    bcLink.add(AttributeAppender.append("aria-current", "page"));
+                }
+
                 WebMarkupContainer bcIcon = new WebMarkupContainer(ID_BC_ICON);
                 bcIcon.add(new VisibleBehaviour(() -> item.getModelObject().getIcon() != null && item.getModelObject().getIcon().getObject() != null));
                 bcIcon.add(AttributeModifier.replace("class", item.getModelObject().getIcon()));
