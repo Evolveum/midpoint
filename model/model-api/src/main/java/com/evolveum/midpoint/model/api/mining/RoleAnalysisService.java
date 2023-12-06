@@ -257,7 +257,7 @@ public interface RoleAnalysisService {
      * @return The PrismObject of RoleType object.
      */
     @NotNull PrismObject<RoleType> generateBusinessRole(
-            @NotNull List<AssignmentType> assignmentTypes,
+            @NotNull Set<AssignmentType> assignmentTypes,
             @NotNull PolyStringType name);
 
     /**
@@ -517,4 +517,13 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result, Task task,
             @NotNull RoleAnalysisOperation operationType,
             @Nullable FocusType focus);
+
+     void executeChangesOnCandidateRole(PrismObject<RoleAnalysisClusterType> cluster,
+            RoleAnalysisCandidateRoleType roleAnalysisCandidateRoleType,
+            Set<PrismObject<UserType>> members,
+            Set<AssignmentType> inducements,
+            Task task,
+            OperationResult result);
+
+
 }

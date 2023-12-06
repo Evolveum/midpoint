@@ -136,17 +136,34 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
     @Override
     protected void exitFromWizard() {
         if (existPatternDeltas()) {
-            navigateToRoleAnalysisCluster();
+            navigateToClusterOperationPanel();
             return;
         }
         super.exitFromWizard();
     }
 
-    private void navigateToRoleAnalysisCluster() {
+    private void navigateToClusterOperationPanel() {
+        if(!existPatternDeltas()){
+            return;
+        }
+        PageParameters parameters = new PageParameters();
+        BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
+        PrismObject<RoleAnalysisClusterType> cluster = patternDeltas.getCluster();
+        if(cluster == null){
+            return;
+        }
+        parameters.add(OnePageParameterEncoder.PARAMETER, cluster.getOid());
+        parameters.add("panelId", "clusterDetails");
+        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                .getObjectDetailsPage(RoleAnalysisClusterType.class);
+        navigateToNext(detailsPageClass, parameters);
+    }
+
+    private void navigateToClusterCandidateRolePanel() {
         PageParameters parameters = new PageParameters();
         String clusterOid = getObjectDetailsModels().getPatternDeltas().getCluster().getOid();
         parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
-        parameters.add("panelId", "clusterDetails");
+        parameters.add("panelId", "candidateRoles");
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                 .getObjectDetailsPage(RoleAnalysisClusterType.class);
         navigateToNext(detailsPageClass, parameters);
@@ -180,7 +197,9 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
             AjaxRequestTarget target) {
         businessRoleMigrationPerform(result, executedDeltas, target);
 
-        super.postProcessResult(result, executedDeltas, target);
+        result.computeStatus();
+        showResult(result);
+//        navigateToClusterCandidateRolePanel();
     }
 
     private void businessRoleMigrationPerform(

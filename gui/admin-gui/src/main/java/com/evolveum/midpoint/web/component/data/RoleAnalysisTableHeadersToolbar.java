@@ -37,6 +37,7 @@ public class RoleAnalysisTableHeadersToolbar<T> extends AjaxFallbackHeadersToolb
             }
         }
 
+
         return new AjaxFallbackOrderByBorder(headerId, property, locator) {
 
             @Override
@@ -52,21 +53,6 @@ public class RoleAnalysisTableHeadersToolbar<T> extends AjaxFallbackHeadersToolb
             @Override
             public void onComponentTag(ComponentTag tag) {
                 super.onComponentTag(tag);
-                ISortState sortState = locator.getSortState();
-                SortOrder dir = sortState.getPropertySortOrder(property);
-                String cssClass;
-                if (dir == SortOrder.ASCENDING) {
-                    cssClass = "sortable asc role-mining-rotated-header";
-                } else if (dir == SortOrder.DESCENDING) {
-                    cssClass = "sortable desc role-mining-rotated-header";
-                } else {
-                    cssClass = "sortable";
-                }
-
-                if (!Strings.isEmpty(cssClass)) {
-                    tag.remove("class");
-                    tag.append("class", cssClass, " ");
-                }
             }
         };
     }

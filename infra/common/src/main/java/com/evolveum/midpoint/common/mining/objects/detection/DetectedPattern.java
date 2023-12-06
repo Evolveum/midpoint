@@ -27,6 +27,7 @@ public class DetectedPattern implements Serializable {
     private final Set<String> users;
     private final Double clusterMetric;
     private final Long patternId;
+    private Long candidateRoleId = null;
 
     public DetectedPattern(Set<String> roles, Set<String> users,
             double clusterMetric, Long patternId) {
@@ -36,7 +37,7 @@ public class DetectedPattern implements Serializable {
         this.patternId = patternId;
     }
 
-    public DetectedPattern(RoleAnalysisDetectionPatternType detectionPatternType){
+    public DetectedPattern(RoleAnalysisDetectionPatternType detectionPatternType) {
         this.roles = detectionPatternType.getRolesOccupancy()
                 .stream().map(AbstractReferencable::getOid).collect(java.util.stream.Collectors.toSet());
         this.users = detectionPatternType.getUserOccupancy()
@@ -59,6 +60,14 @@ public class DetectedPattern implements Serializable {
 
     public Long getPatternId() {
         return patternId;
+    }
+
+    public Long getCandidateRoleId() {
+        return candidateRoleId;
+    }
+
+    public void setCandidateRoleId(Long candidateRoleId) {
+        this.candidateRoleId = candidateRoleId;
     }
 
 }

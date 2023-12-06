@@ -8,6 +8,9 @@
 package com.evolveum.midpoint.common.mining.utils.values;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Enumeration representing different operation modes for role analysis.
@@ -20,6 +23,20 @@ public enum RoleAnalysisOperationMode implements Serializable {
     EXCLUDE("fa fa-plus"),
     INCLUDE("fa fa-minus"),
     DISABLE("fa fa-ban");
+
+    public Set<String> getContainerId() {
+        return containerId;
+    }
+
+    public void setContainerId(Set<String> containerId) {
+        this.containerId = containerId;
+    }
+
+    public void addContainerId(String containerId) {
+      this.containerId.add(containerId);
+    }
+
+    private Set<String> containerId = new HashSet<>();
 
     private final String displayString;
 

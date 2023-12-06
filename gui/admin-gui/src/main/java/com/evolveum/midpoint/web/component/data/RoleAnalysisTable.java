@@ -8,13 +8,19 @@
 package com.evolveum.midpoint.web.component.data;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
-import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCandidateRoleType;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -33,7 +39,6 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -43,13 +48,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -57,10 +56,6 @@ import com.evolveum.midpoint.web.component.util.RoleAnalysisTablePageable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
@@ -411,31 +406,24 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE,
                     LayeredIconCssStyle.IN_ROW_STYLE);
             AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton("process_selections_id",
-                    iconBuilder.build(),
-                    createStringResource("RoleMining.button.title.candidate")) {
+                    iconBuilder.build(), new LoadableModel<>() {
+                @Override
+                protected String load() {
+                    RoleAnalysisCandidateRoleType candidateRoleContainer = getCandidateRoleContainer();
+                    if (candidateRoleContainer != null) {
+                        PolyStringType targetName = candidateRoleContainer.getCandidateRoleRef().getTargetName();
+                        return createStringResource("RoleMining.button.title.edit.candidate", targetName).getString();
+                    } else {
+                        return createStringResource("RoleMining.button.title.candidate").getString();
+                    }
+                }
+            }) {
                 @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void onSubmit(AjaxRequestTarget target) {
 
-                    BusinessRoleApplicationDto operationData = getOperationData();
-
-                    if (operationData == null) {
-                        warn(createStringResource("RoleAnalysis.candidate.not.selected").getString());
-                        target.add(getPageBase().getFeedbackPanel());
-                        return;
-                    }
-
-                    @NotNull RoleType businessRole = operationData.getBusinessRole().asObjectable();
-                    List<BusinessRoleDto> businessRoleDtos = operationData.getBusinessRoleDtos();
-                    List<AssignmentType> inducement = businessRole.getInducement();
-                    if (!inducement.isEmpty() && !businessRoleDtos.isEmpty()) {
-                        PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
-                        setResponsePage(pageRole);
-                    } else {
-                        warn(createStringResource("RoleAnalysis.candidate.not.selected").getString());
-                        target.add(getPageBase().getFeedbackPanel());
-                    }
+                    onSubmitEditButton(target);
 
                 }
 
@@ -444,6 +432,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
                     target.add(((PageBase) getPage()).getFeedbackPanel());
                 }
             };
+            migrationButton.add(new AttributeModifier("style", "min-width: 150px;"));
             migrationButton.titleAsLabel(true);
             migrationButton.setOutputMarkupId(true);
             migrationButton.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
@@ -560,10 +549,6 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     public void onChangeSortMode(RoleAnalysisSortMode roleAnalysisSortModeMode, AjaxRequestTarget target) {
     }
 
-    protected BusinessRoleApplicationDto getOperationData() {
-        return null;
-    }
-
     protected void onChangeSize(int value, AjaxRequestTarget target) {
     }
 
@@ -580,6 +565,14 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
     protected int getColumnPageCount() {
         return 100;
+    }
+
+    protected void onSubmitEditButton(AjaxRequestTarget target) {
+
+    }
+
+    protected RoleAnalysisCandidateRoleType getCandidateRoleContainer() {
+        return null;
     }
 
 }

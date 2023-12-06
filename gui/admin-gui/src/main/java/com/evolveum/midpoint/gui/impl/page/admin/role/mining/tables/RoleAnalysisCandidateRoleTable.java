@@ -92,9 +92,13 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
-                List<InlineMenuItem> menuItems = new ArrayList<>();
-                menuItems.add(RoleAnalysisCandidateRoleTable.this.createDeleteInlineMenu(cacheCandidate, cluster));
-                return menuItems;
+                if (isDeleteOperationEnabled()) {
+                    List<InlineMenuItem> menuItems = new ArrayList<>();
+                    menuItems.add(RoleAnalysisCandidateRoleTable.this.createDeleteInlineMenu(cacheCandidate, cluster));
+                    return menuItems;
+                } else {
+                    return null;
+                }
             }
 
             @Override
@@ -150,6 +154,9 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
                         RoleType role = object.getValue();
 
                         String lifecycleState = role.getLifecycleState();
+                        if (lifecycleState == null) {
+                            lifecycleState = DisplayForLifecycleState.ACTIVE.name();
+                        }
                         Label label = new Label(componentId, lifecycleState);
                         label.add(AttributeAppender.append("class",
                                 "badge " + DisplayForLifecycleState.valueOfOrDefault(lifecycleState).getCssClass()));
@@ -268,120 +275,121 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(
-                        createStringResource("")) {
+                if (isMigrateButtonEnabled()) {
+                    column = new AbstractExportableColumn<>(
+                            createStringResource("")) {
 
-                    @Override
-                    public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
-                        return null;
-                    }
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return new Label(componentId,
-                                createStringResource("RoleAnalysisCandidateRoleTable.migrate.perform"));
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleType>> model) {
-                        SelectableBean<RoleType> object = model.getObject();
-                        if (object == null) {
-                            cellItem.add(new EmptyPanel(componentId));
-                            return;
+                        @Override
+                        public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
+                            return null;
                         }
 
-                        RoleType role = object.getValue();
+                        @Override
+                        public Component getHeader(String componentId) {
+                            return new Label(componentId,
+                                    createStringResource("RoleMining.button.title.execute.migration"));
+                        }
 
-                        Task task = getPageBase().createSimpleTask(OP_UPDATE_STATUS);
-                        OperationResult result = task.getResult();
-                        RoleAnalysisCandidateRoleType candidateRoleType = cacheCandidate.get(role.getOid());
-                        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-                        String stateString = roleAnalysisService.recomputeAndResolveClusterCandidateRoleOpStatus(
-                                cluster.asPrismObject(), candidateRoleType,
-                                result, task);
+                        @Override
+                        public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
+                                String componentId, IModel<SelectableBean<RoleType>> model) {
+                            SelectableBean<RoleType> object = model.getObject();
+                            if (object == null) {
+                                cellItem.add(new EmptyPanel(componentId));
+                                return;
+                            }
 
-                        RoleAnalysisOperationStatus operationStatus = candidateRoleType.getOperationStatus();
-                        if (operationStatus != null
-                                && operationStatus.getTaskRef() != null
-                                && operationStatus.getTaskRef().getOid() != null) {
-                            AjaxLinkPanel ajaxLinkPanel = taskLinkPanel(componentId, stateString, operationStatus);
-                            cellItem.add(ajaxLinkPanel);
-                        } else {
-                            CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                                    GuiStyleConstants.CLASS_PLUS_CIRCLE, LayeredIconCssStyle.IN_ROW_STYLE);
-                            AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(componentId,
-                                    iconBuilder.build(),
-                                    createStringResource("RoleMining.button.title.process")) {
-                                @Serial private static final long serialVersionUID = 1L;
+                            RoleType role = object.getValue();
 
-                                @Override
-                                protected void onSubmit(AjaxRequestTarget target) {
-                                    Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
-                                    OperationResult result = task.getResult();
+                            Task task = getPageBase().createSimpleTask(OP_UPDATE_STATUS);
+                            OperationResult result = task.getResult();
+                            RoleAnalysisCandidateRoleType candidateRoleType = cacheCandidate.get(role.getOid());
+                            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                            String stateString = roleAnalysisService.recomputeAndResolveClusterCandidateRoleOpStatus(
+                                    cluster.asPrismObject(), candidateRoleType,
+                                    result, task);
 
-                                    String taskOid = UUID.randomUUID().toString();
-                                    RoleAnalysisCandidateRoleType candidateRoleType = cacheCandidate.get(role.getOid());
-                                    List<ObjectReferenceType> candidateMembers = candidateRoleType.getCandidateMembers();
-                                    ObjectSetType members = new ObjectSetType();
-                                    candidateMembers.forEach(member -> members.getObjectRef().add(member.clone()));
-                                    RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                            RoleAnalysisOperationStatus operationStatus = candidateRoleType.getOperationStatus();
+                            if (operationStatus != null
+                                    && operationStatus.getTaskRef() != null
+                                    && operationStatus.getTaskRef().getOid() != null) {
+                                AjaxLinkPanel ajaxLinkPanel = taskLinkPanel(componentId, stateString, operationStatus);
+                                cellItem.add(ajaxLinkPanel);
+                            } else {
+                                CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                                        GuiStyleConstants.CLASS_PLUS_CIRCLE, LayeredIconCssStyle.IN_ROW_STYLE);
+                                AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(componentId,
+                                        iconBuilder.build(),
+                                        createStringResource("RoleMining.button.title.execute.migration")) {
+                                    @Serial private static final long serialVersionUID = 1L;
 
-                                    roleAnalysisService.clusterObjectMigrationRecompute(
-                                            cluster.getOid(), role.getOid(), task, result);
+                                    @Override
+                                    protected void onSubmit(AjaxRequestTarget target) {
+                                        Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
+                                        OperationResult result = task.getResult();
 
-                                    ActivityDefinitionType activity = null;
-                                    try {
-                                        activity = createActivity(members, role.getOid());
-                                    } catch (SchemaException e) {
-                                        LOGGER.error("Couldn't create activity for role migration: " + role.getOid(), e);
-                                    }
-                                    if (activity != null) {
-                                        roleAnalysisService.executeMigrationTask(
-                                                cluster.asPrismObject(), activity, role.asPrismObject(), taskOid,
-                                                null, task, result);
-                                        if (result.isWarning()) {
-                                            warn(result.getMessage());
-                                            target.add(((PageBase) getPage()).getFeedbackPanel());
-                                        } else {
-                                            MidPointPrincipal user = AuthUtil.getPrincipalUser();
-                                            roleAnalysisService.setCandidateRoleOpStatus(cluster.asPrismObject(),
-                                                    candidateRoleType,
-                                                    taskOid,
-                                                    OperationResultStatusType.IN_PROGRESS,
-                                                    null,
-                                                    result,
-                                                    task,
-                                                    RoleAnalysisOperation.MIGRATION,
-                                                    user.getFocus());
-                                            navigateToRoleAnalysisCluster(cluster.getOid());
+                                        String taskOid = UUID.randomUUID().toString();
+                                        RoleAnalysisCandidateRoleType candidateRoleType = cacheCandidate.get(role.getOid());
+                                        List<ObjectReferenceType> candidateMembers = candidateRoleType.getCandidateMembers();
+                                        ObjectSetType members = new ObjectSetType();
+                                        candidateMembers.forEach(member -> members.getObjectRef().add(member.clone()));
+                                        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+
+                                        roleAnalysisService.clusterObjectMigrationRecompute(
+                                                cluster.getOid(), role.getOid(), task, result);
+
+                                        ActivityDefinitionType activity = null;
+                                        try {
+                                            activity = createActivity(members, role.getOid());
+                                        } catch (SchemaException e) {
+                                            LOGGER.error("Couldn't create activity for role migration: " + role.getOid(), e);
                                         }
+                                        if (activity != null) {
+                                            roleAnalysisService.executeMigrationTask(
+                                                    cluster.asPrismObject(), activity, role.asPrismObject(), taskOid,
+                                                    null, task, result);
+                                            if (result.isWarning()) {
+                                                warn(result.getMessage());
+                                                target.add(((PageBase) getPage()).getFeedbackPanel());
+                                            } else {
+                                                MidPointPrincipal user = AuthUtil.getPrincipalUser();
+                                                roleAnalysisService.setCandidateRoleOpStatus(cluster.asPrismObject(),
+                                                        candidateRoleType,
+                                                        taskOid,
+                                                        OperationResultStatusType.IN_PROGRESS,
+                                                        null,
+                                                        result,
+                                                        task,
+                                                        RoleAnalysisOperation.MIGRATION,
+                                                        user.getFocus());
+                                                navigateToRoleAnalysisCluster(cluster.getOid());
+                                            }
+                                        }
+
                                     }
 
-                                }
+                                    @Override
+                                    protected void onError(AjaxRequestTarget target) {
+                                        target.add(((PageBase) getPage()).getFeedbackPanel());
+                                    }
 
-                                @Override
-                                protected void onError(AjaxRequestTarget target) {
-                                    target.add(((PageBase) getPage()).getFeedbackPanel());
-                                }
+                                };
+                                migrationButton.titleAsLabel(true);
+                                migrationButton.setOutputMarkupId(true);
+                                migrationButton.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
 
-                            };
-                            migrationButton.titleAsLabel(true);
-                            migrationButton.setOutputMarkupId(true);
-                            migrationButton.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
-
-                            cellItem.add(migrationButton);
+                                cellItem.add(migrationButton);
+                            }
                         }
-                    }
 
-                    @Override
-                    public boolean isSortable() {
-                        return false;
-                    }
+                        @Override
+                        public boolean isSortable() {
+                            return false;
+                        }
 
-                };
-                columns.add(column);
-
+                    };
+                    columns.add(column);
+                }
                 column = new AbstractExportableColumn<>(
                         createStringResource("")) {
 
@@ -419,6 +427,7 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
 
                             @Override
                             protected void onSubmit(AjaxRequestTarget target) {
+                                getPageBase().clearBreadcrumbs();
                                 PageParameters parameters = new PageParameters();
                                 String clusterOid = cluster.getOid();
                                 parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
@@ -536,6 +545,7 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
     }
 
     private void navigateToRoleAnalysisCluster(String clusterOid) {
+        getPageBase().clearBreadcrumbs();
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
         parameters.add("panelId", "candidateRoles");
@@ -655,6 +665,14 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
 
     protected void onRefresh(AjaxRequestTarget target) {
 
+    }
+
+    protected boolean isMigrateButtonEnabled() {
+        return true;
+    }
+
+    protected boolean isDeleteOperationEnabled() {
+        return true;
     }
 
 }

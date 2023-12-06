@@ -6,9 +6,25 @@
  */
 
 
+$role-mining-static-header-level-1: 40px;
+$role-mining-static-header-level-2: 55px;
+$role-mining-static-header-level-3: 70px;
+$role-mining-static-header-level-4: 85px;
+$role-mining-static-header-level-5: 100px;
+
+// Usage example:
 .role-mining-static-header {
-  width: 40px;
-  height: 150px;
+    &.level-1 {
+        width: $role-mining-static-header-level-1;
+    }
+
+    &.level-2 {
+        width: $role-mining-static-header-level-2;
+    }
+
+    &.level-3 {
+        width: $role-mining-static-header-level-3;
+    }
 }
 
 

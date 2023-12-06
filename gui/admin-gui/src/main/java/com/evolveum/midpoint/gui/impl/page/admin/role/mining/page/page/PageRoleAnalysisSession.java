@@ -9,7 +9,17 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 import java.io.Serial;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -66,6 +76,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     private static final String OP_PERFORM_CLUSTERING = DOT_CLASS + "performClustering";
     public static final String PARAM_IS_WIZARD = "isWizard";
     boolean isWizardPanel = false;
+    private static final Trace LOGGER = TraceManager.getTrace(PageRoleAnalysisSession.class);
 
     public boolean isWizardPanel() {
         StringValue stringValue = getPageParameters().get(PARAM_IS_WIZARD);
@@ -138,9 +149,24 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         Task task = getPageBase().createSimpleTask(OP_PERFORM_CLUSTERING);
         OperationResult result = task.getResult();
 
-        RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
+        AssignmentHolderDetailsModel<RoleAnalysisSessionType> objectDetailsModels = getObjectDetailsModels();
+
+        RoleAnalysisSessionType session = objectDetailsModels.getObjectType();
 
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+
+        try {
+            ModelService modelService = getPageBase().getModelService();
+
+            Collection<ObjectDelta<? extends ObjectType>> objectDeltas = objectDetailsModels.collectDeltas(result);
+            if (objectDeltas != null && !objectDeltas.isEmpty()) {
+                modelService.executeChanges(objectDeltas, null, task, result);
+            }
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't execute changes on RoleAnalysisSessionType object: {}", session.getOid(), e);
+        }
+
         roleAnalysisService.executeClusteringTask(session.asPrismObject(), null, null, task, result);
 
         if (result.isWarning()) {

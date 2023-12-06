@@ -339,6 +339,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                             @Override
                             protected void onSubmit(AjaxRequestTarget target) {
+                                getPageBase().clearBreadcrumbs();
                                 onLoad(target, rowModel);
                             }
 
@@ -414,7 +415,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                                 Set<String> users = pattern.getUsers();
                                 Long patternId = pattern.getPatternId();
 
-                                List<AssignmentType> roleAssignments = new ArrayList<>();
+                                Set<AssignmentType> roleAssignments = new HashSet<>();
 
                                 for (String roleOid : roles) {
                                     PrismObject<RoleType> roleObject = roleAnalysisService

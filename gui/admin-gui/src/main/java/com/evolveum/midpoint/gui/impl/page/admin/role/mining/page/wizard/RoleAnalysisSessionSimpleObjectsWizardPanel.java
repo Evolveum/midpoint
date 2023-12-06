@@ -12,8 +12,11 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
@@ -36,8 +39,27 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
     @Override
     protected void onInitialize() {
         try {
+            Task task = getPageBase().createSimpleTask("countObjects");
+            OperationResult result = task.getResult();
+            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
+            RoleAnalysisProcessModeType processMode = objectWrapperModel.getObject().getObject().asObjectable().getProcessMode();
+
             PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType = getContainerFormModel().getObject()
                     .getValue();
+
+            Class<? extends ObjectType> classForCount = UserType.class;
+            if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+                classForCount = RoleType.class;
+            }
+
+            Integer maxObjects;
+            ModelService modelService = getPageBase().getModelService();
+
+            maxObjects = modelService.countObjects(classForCount, null, null, task, result);
+
+            if (maxObjects == null) {
+                maxObjects = 1000000;
+            }
 
             if (sessionType.getNewValue().getValue().getSimilarityThreshold() == null) {
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD, 80.0);
@@ -47,18 +69,23 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, 10);
             }
 
+            double minObject = maxObjects < 10 ? 1.0 : 10;
+
             if (sessionType.getNewValue().getValue().getPropertiesRange() == null
                     || sessionType.getNewValue().getValue().getPropertiesRange().getMin() == null
                     || sessionType.getNewValue().getValue().getPropertiesRange().getMax() == null) {
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, new RangeType()
-                        .min(10.0)
-                        .max(100.0));
+                        .min(minObject)
+                        .max(maxObjects.doubleValue()));
             }
             if (sessionType.getNewValue().getValue().getMinPropertiesOverlap() == null) {
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, 10);
             }
         } catch (SchemaException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to update values session clustering options values", e);
+        } catch (ObjectNotFoundException | SecurityViolationException | ConfigurationException |
+                CommunicationException | ExpressionEvaluationException e) {
+            throw new RuntimeException("Cloud not count objects", e);
         }
 
         super.onInitialize();

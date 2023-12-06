@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.mining;
 
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
+
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getCurrentXMLGregorianCalendar;
@@ -24,6 +26,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectState;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -552,7 +556,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     @Override
     public @NotNull PrismObject<RoleType> generateBusinessRole(
-            @NotNull List<AssignmentType> assignmentTypes,
+            @NotNull Set<AssignmentType> assignmentTypes,
             @NotNull PolyStringType name) {
         PrismObject<RoleType> roleTypePrismObject = null;
         try {
@@ -1283,6 +1287,92 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("Couldn't delete candidate role container {}", clusterPrism.getOid(), e);
         }
+    }
+
+    public void executeChangesOnCandidateRole(PrismObject<RoleAnalysisClusterType> cluster,
+            RoleAnalysisCandidateRoleType roleAnalysisCandidateRoleType,
+            Set<PrismObject<UserType>> members,
+            Set<AssignmentType> inducements,
+            Task task,
+            OperationResult result) {
+
+        ObjectReferenceType candidateRoleRef = roleAnalysisCandidateRoleType.getCandidateRoleRef();
+
+        PrismObject<RoleType> roleTypeObject = getRoleTypeObject(candidateRoleRef.getOid(), task, result);
+        if (roleTypeObject == null) {
+            LOGGER.error("Couldn't get candidate role object{}", candidateRoleRef.getOid());
+            return;
+        }
+
+        Set<String> inducementsOid = inducements.stream().map(AssignmentType::getTargetRef)
+                .filter(Objects::nonNull)
+                .map(AbstractReferencable::getOid)
+                .collect(Collectors.toSet());
+
+        Collection<PrismReferenceValue> memberscCollection = new ArrayList<>();
+        for (PrismObject<UserType> member : members) {
+            ObjectReferenceType objectReferenceType = new ObjectReferenceType()
+                    .oid(member.getOid())
+                    .type(UserType.COMPLEX_TYPE);
+            memberscCollection.add(objectReferenceType.asReferenceValue());
+        }
+
+        RoleType role = roleTypeObject.asObjectable();
+        List<AssignmentType> inducement = role.getInducement();
+        Set<String> unassignedRoles = new HashSet<>();
+        for (AssignmentType assignmentType : inducement) {
+            ObjectReferenceType targetRef = assignmentType.getTargetRef();
+            if (targetRef != null) {
+                QName type = targetRef.getType();
+                if (type != null && type.equals(RoleType.COMPLEX_TYPE)) {
+
+                    String oid = targetRef.getOid();
+                    if (!inducementsOid.contains(oid)) {
+                        unassignedRoles.add(oid);
+                    } else {
+                        inducementsOid.remove(oid);
+                    }
+                }
+            }
+        }
+
+        try {
+            String candidateRoleOid = roleTypeObject.getOid();
+
+            for (String inducementForAdd : inducementsOid) {
+                ObjectDelta<RoleType> roleD = PrismContext.get().deltaFor(RoleType.class)
+                        .item(RoleType.F_INDUCEMENT)
+                        .add(createAssignmentTo(inducementForAdd, ObjectTypes.ROLE, PrismContext.get()))
+                        .asObjectDelta(candidateRoleOid);
+                Collection<ObjectDelta<? extends ObjectType>> deltas2 = MiscSchemaUtil.createCollection(roleD);
+                modelService.executeChanges(deltas2, null, task, result);
+
+            }
+
+            for (String unassignedRole : unassignedRoles) {
+                ObjectDelta<RoleType> roleD = PrismContext.get().deltaFor(RoleType.class)
+                        .item(RoleType.F_INDUCEMENT)
+                        .delete(createAssignmentTo(unassignedRole, ObjectTypes.ROLE, PrismContext.get()))
+                        .asObjectDelta(candidateRoleOid);
+                Collection<ObjectDelta<? extends ObjectType>> deltas2 = MiscSchemaUtil.createCollection(roleD);
+                modelService.executeChanges(deltas2, null, task, result);
+            }
+
+
+            Long id = roleAnalysisCandidateRoleType.getId();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+            ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_CANDIDATE_ROLES.append(id), RoleAnalysisCandidateRoleType.F_CANDIDATE_MEMBERS)
+                    .replace(memberscCollection)
+                    .asObjectDelta(cluster.getOid());
+
+            deltas.add(delta);
+            modelService.executeChanges(deltas, null, task, result);
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't modify candidate role container {}", cluster.getOid(), e);
+        }
+
     }
 
 }

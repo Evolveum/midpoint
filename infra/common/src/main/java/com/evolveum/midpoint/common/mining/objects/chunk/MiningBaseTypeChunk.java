@@ -9,6 +9,8 @@ package com.evolveum.midpoint.common.mining.objects.chunk;
 
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +26,12 @@ public abstract class MiningBaseTypeChunk implements Serializable {
     protected double frequency;
     protected RoleAnalysisOperationMode roleAnalysisOperationMode;
 
-    public MiningBaseTypeChunk(List<String> roles, List<String> users, String chunkName, double frequency,
-            RoleAnalysisOperationMode roleAnalysisOperationMode) {
+    public MiningBaseTypeChunk(
+            @NotNull List<String> roles,
+            @NotNull List<String> users,
+            @NotNull String chunkName,
+            double frequency,
+            @NotNull RoleAnalysisOperationMode roleAnalysisOperationMode) {
         this.roles = new ArrayList<>(roles);
         this.users = new ArrayList<>(users);
         this.chunkName = chunkName;
@@ -43,6 +49,14 @@ public abstract class MiningBaseTypeChunk implements Serializable {
 
     public List<String> getMembers() {
         return new ArrayList<>();
+    }
+
+    public boolean isMemberPresent(@NotNull String member) {
+        return getMembers().contains(member);
+    }
+
+    public boolean isPropertiesPresent(@NotNull String member) {
+        return getProperties().contains(member);
     }
 
     public List<String> getProperties() {
@@ -65,7 +79,7 @@ public abstract class MiningBaseTypeChunk implements Serializable {
         this.frequency = frequency;
     }
 
-    public void setStatus(RoleAnalysisOperationMode roleAnalysisOperationMode) {
+    public void setStatus(@NotNull RoleAnalysisOperationMode roleAnalysisOperationMode) {
         this.roleAnalysisOperationMode = roleAnalysisOperationMode;
     }
 }

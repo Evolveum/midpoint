@@ -45,7 +45,7 @@ public class RangePanelFactory extends AbstractInputGuiComponentFactory<RangeTyp
             doubleType = true;
             max = 100.0;
         } else {
-            max = 10000.0;
+            max = 1000000.0;
         }
 
         RangeSimplePanel rangeSliderPanel = new RangeSimplePanel(panelCtx.getComponentId(),

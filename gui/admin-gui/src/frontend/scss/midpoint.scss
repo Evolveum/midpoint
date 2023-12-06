@@ -37,16 +37,6 @@
 @import "role-mining-no-border";
 
 
-.role-mining-rotated-header{
-  display:flex;	  display:flex;
-  justify-content:center;	  justify-content:center;
-  align-items:center;	  align-items:center;
-  transform: rotate(180deg);	  transform: rotate(180deg);
-  writing-mode: vertical-lr;	  writing-mode: vertical-lr;
-  width: 40px;	  width: 40px;
-  height: 150px;	  height: 150px;
-  border: 1px solid #f4f4f4;	  border: 1px solid #f4f4f4;
-}
 
 .role-mining-no-border {
     border-left: none !important;
@@ -54,9 +44,50 @@
 }
 
 .role-mining-static-header {
-  width: 40px;
-  height: 150px;
+    &.level-1 {
+        width: $role-mining-static-header-level-1;
+    }
+
+    &.level-2 {
+        width: $role-mining-static-header-level-2;
+    }
+
+    &.level-3 {
+        width: $role-mining-static-header-level-3;
+    }
 }
+
+.role-mining-rotated-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: rotate(180deg);
+    writing-mode: vertical-lr;
+    width: $role-mining-static-header-level-1; // Default width is set to level 1 width
+    height: 150px;
+    border: 1px solid #f4f4f4;
+
+    &.level-1 {
+        width: $role-mining-static-header-level-1;
+    }
+
+    &.level-2 {
+        width: $role-mining-static-header-level-2;
+    }
+
+    &.level-3 {
+        width: $role-mining-static-header-level-3;
+    }
+
+    &.level-4 {
+        width: $role-mining-static-header-level-4;
+    }
+
+    &.level-5 {
+        width: $role-mining-static-header-level-5;
+    }
+}
+
 
 .role-mining-static-header-name {
   display: flex;
