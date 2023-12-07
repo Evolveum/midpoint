@@ -41,6 +41,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
     private static final String ID_ITEM = "item";
     private static final String ID_LINK = "link";
+    private static final String ID_SR_CURRENT_MESSAGE = "srCurrentMessage";
     private static final String ID_LABEL = "label";
     private static final String ID_ICON = "icon";
     private static final String ID_SUBMENU = "submenu";
@@ -48,6 +49,8 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     private static final String ID_BUBBLE = "bubble";
     private static final String ID_SUB_ITEM = "subItem";
     private static final String ID_SUB_LINK = "subLink";
+
+    private static final String ID_SR_CURRENT_MESSAGE_SUB_ITEM = "srCurrentMessageSubItem";
     private static final String ID_SUB_LABEL = "subLabel";
     private static final String ID_SUB_LINK_ICON = "subLinkIcon";
 
@@ -95,17 +98,13 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         if (getModelObject().containsSubMenu()) {
             item.add(AttributeAppender.append(
                     "aria-expanded",
-                    () -> {
-                        MainMenuItem mmi = getModelObject();
-                        return mmi.hasActiveSubmenu(getPageBase());
-                    }));
+                    () -> getModelObject().hasActiveSubmenu(getPageBase())));
         }
 
         link.add(AttributeModifier.append(
                 "aria-current",
                 () -> {
-                    MainMenuItem mmi = getModelObject();
-                    if (mmi.isMenuActive(getPageBase())) {
+                    if (getModelObject().isMenuActive(getPageBase())) {
                         return "page";
                     }
                     return null;
@@ -117,6 +116,19 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(AttributeModifier.append("class", new PropertyModel<>(getModel(), MainMenuItem.F_ICON_CLASS)));
         link.add(icon);
+
+        Label srCurrentMessage = new Label(ID_SR_CURRENT_MESSAGE, () -> {
+            String key = "MainMenuPanel.srCurrentMessage";
+            if (getModelObject().hasActiveSubmenu(getPageBase())) {
+                key = "MainMenuPanel.srActiveSubItemMessage";
+            }
+            return getPageBase().createStringResource(key);
+        });
+        srCurrentMessage.add(new VisibleBehaviour(() -> {
+            MainMenuItem mmi = getModelObject();
+            return mmi.hasActiveSubmenu(getPageBase()) || mmi.isMenuActive(getPageBase());
+        }));
+        link.add(srCurrentMessage);
 
         Label label = new Label(ID_LABEL, labelModel);
         label.setRenderBodyOnly(true);
@@ -168,6 +180,9 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
         listItem.add(subLink);
 
+        if (menuItem.getObject().isMenuActive(getPageBase())) {
+
+        }
         subLink.add(AttributeModifier.append(
                 "aria-current",
                 () -> {
@@ -181,6 +196,10 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         subLinkIcon.add(AttributeAppender.append("class", new PropertyModel<>(menuItem, MainMenuItem.F_ICON_CLASS)));
         subLink.add(subLinkIcon);
         subLink.add(AttributeModifier.append("title", labelModel));
+
+        Label srCurrentMessage = new Label(ID_SR_CURRENT_MESSAGE_SUB_ITEM);
+        srCurrentMessage.add(new VisibleBehaviour(() -> listItem.getModelObject().isMenuActive(getPageBase())));
+        subLink.add(srCurrentMessage);
 
         Label subLabel = new Label(ID_SUB_LABEL, labelModel);
         subLink.add(subLabel);

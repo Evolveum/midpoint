@@ -14,6 +14,7 @@
             </span>
             <div class="d-flex flex-grow-1 text-truncate">
                 <div class="text-truncate">
+                    <span class="sr-only" wicket:id="srCurrentMessage"/>
                     <span wicket:id="label"/>
                 </div>
                 <wicket:enclosure child="arrow">
@@ -30,6 +31,7 @@
                     <span>
                         <i class="nav-icon" style="min-width: 20px;" wicket:id="subLinkIcon"/>
                     </span>
+                    <span class="sr-only" wicket:id="srCurrentMessageSubItem"><wicket:message key="MainMenuPanel.srCurrentMessage"/></span>
                     &nbsp;
                     <div class="text-truncate" wicket:id="subLabel"/>
                 </a>
