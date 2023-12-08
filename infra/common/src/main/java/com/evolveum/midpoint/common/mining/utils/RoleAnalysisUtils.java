@@ -138,7 +138,7 @@ public class RoleAnalysisUtils {
                 );
             }
 
-            roleAnalysisClusterDetectionType.setClusterMetric(detectedPattern.getClusterMetric());
+            roleAnalysisClusterDetectionType.setClusterMetric(detectedPattern.getMetric());
             roleAnalysisClusterDetectionTypeList.add(roleAnalysisClusterDetectionType);
         }
     }

@@ -7,43 +7,38 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisCandidateRoleTable;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisDetectedPatternTable;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCandidateRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import java.util.HashMap;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import java.util.HashMap;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisCandidateRoleTable;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCandidateRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
-public class CandidateRolesSimplePanel extends BasePanel<String> implements Popupable {
+public class CandidateRolesPopupPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_PANEL = "panel";
 
-    public CandidateRolesSimplePanel(String id, IModel<String> messageModel,
+    public CandidateRolesPopupPanel(String id, IModel<String> messageModel,
             RoleAnalysisClusterType cluster, HashMap<String,
             RoleAnalysisCandidateRoleType> cacheCandidate,
-            List<RoleType> roles) {
+            List<RoleType> roles, List<String> selectedCandidates) {
         super(id, messageModel);
 
-        initLayout(cluster, cacheCandidate, roles);
+        initLayout(cluster, cacheCandidate, roles, selectedCandidates);
     }
 
     public void initLayout(RoleAnalysisClusterType cluster, HashMap<String, RoleAnalysisCandidateRoleType> cacheCandidate,
-            List<RoleType> roles) {
+            List<RoleType> roles, List<String> selectedCandidates) {
         RoleAnalysisCandidateRoleTable components = new RoleAnalysisCandidateRoleTable(ID_PANEL,
-                cluster, cacheCandidate, roles){
+                cluster, cacheCandidate, roles,selectedCandidates) {
             @Override
             protected boolean isMigrateButtonEnabled() {
                 return false;

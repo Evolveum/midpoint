@@ -7,13 +7,15 @@
 
 package com.evolveum.midpoint.common.mining.objects.chunk;
 
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
-
-import org.jetbrains.annotations.NotNull;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
 /**
  * The `MiningBaseTypeChunk` class represents a common base for role and user based analysis data chunks.
@@ -24,19 +26,19 @@ public abstract class MiningBaseTypeChunk implements Serializable {
     protected final List<String> roles;
     protected final String chunkName;
     protected double frequency;
-    protected RoleAnalysisOperationMode roleAnalysisOperationMode;
+    protected RoleAnalysisObjectStatus objectStatus;
 
     public MiningBaseTypeChunk(
             @NotNull List<String> roles,
             @NotNull List<String> users,
             @NotNull String chunkName,
             double frequency,
-            @NotNull RoleAnalysisOperationMode roleAnalysisOperationMode) {
+            @NotNull RoleAnalysisObjectStatus objectStatus) {
         this.roles = new ArrayList<>(roles);
         this.users = new ArrayList<>(users);
         this.chunkName = chunkName;
         this.frequency = frequency;
-        this.roleAnalysisOperationMode = roleAnalysisOperationMode;
+        this.objectStatus = objectStatus;
     }
 
     public List<String> getRoles() {
@@ -71,15 +73,30 @@ public abstract class MiningBaseTypeChunk implements Serializable {
         return frequency;
     }
 
-    public RoleAnalysisOperationMode getStatus() {
-        return roleAnalysisOperationMode;
-    }
-
     public void setFrequency(double frequency) {
         this.frequency = frequency;
     }
 
+    public void setObjectStatus(@NotNull RoleAnalysisObjectStatus objectStatus) {
+        this.objectStatus = objectStatus;
+    }
+
     public void setStatus(@NotNull RoleAnalysisOperationMode roleAnalysisOperationMode) {
-        this.roleAnalysisOperationMode = roleAnalysisOperationMode;
+        this.objectStatus = new RoleAnalysisObjectStatus(roleAnalysisOperationMode);
+    }
+
+    public RoleAnalysisOperationMode getStatus() {
+        return objectStatus.getRoleAnalysisOperationMode();
+    }
+
+    public RoleAnalysisObjectStatus getObjectStatus() {
+        return objectStatus;
+    }
+
+    public Set<String> getCandidateRolesIds() {
+        if (objectStatus != null) {
+            return objectStatus.getContainerId();
+        }
+        return null;
     }
 }

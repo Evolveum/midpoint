@@ -7,67 +7,30 @@
 
 package com.evolveum.midpoint.common.mining.objects.detection;
 
-import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
-
 import java.io.Serializable;
 import java.util.Set;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
 
 /**
  * The `DetectedPattern` class represents a detected pattern in role analysis. It contains information about the roles,
  * users, and the cluster metric associated with the detected pattern.
  */
-public class DetectedPattern implements Serializable {
+public class DetectedPattern extends BasePattern implements Serializable {
 
-    public static final String F_METRIC = "clusterMetric";
+    public static final String F_METRIC = "metric";
 
     public static final String F_TYPE = "searchMode";
 
-    private final Set<String> roles;
-    private final Set<String> users;
-    private final Double clusterMetric;
-    private final Long patternId;
-    private Long candidateRoleId = null;
-
-    public DetectedPattern(Set<String> roles, Set<String> users,
-            double clusterMetric, Long patternId) {
-        this.roles = roles;
-        this.users = users;
-        this.clusterMetric = clusterMetric;
-        this.patternId = patternId;
+    public DetectedPattern(Set<String> roles, Set<String> users, Double metric, Long id, String identifier, String associatedColor) {
+        super(roles, users, metric, id, identifier, associatedColor);
     }
 
-    public DetectedPattern(RoleAnalysisDetectionPatternType detectionPatternType) {
-        this.roles = detectionPatternType.getRolesOccupancy()
-                .stream().map(AbstractReferencable::getOid).collect(java.util.stream.Collectors.toSet());
-        this.users = detectionPatternType.getUserOccupancy()
-                .stream().map(AbstractReferencable::getOid).collect(java.util.stream.Collectors.toSet());
-        this.clusterMetric = detectionPatternType.getClusterMetric();
-        this.patternId = detectionPatternType.getId();
+    public DetectedPattern(RoleAnalysisDetectionPatternType detectionPattern) {
+        super(detectionPattern);
     }
 
-    public Set<String> getRoles() {
-        return roles;
+    public DetectedPattern(Set<String> roles, Set<String> users, double clusterMetric, Long patternId) {
+        super(roles, users, clusterMetric, patternId);
     }
-
-    public Set<String> getUsers() {
-        return users;
-    }
-
-    public double getClusterMetric() {
-        return clusterMetric;
-    }
-
-    public Long getPatternId() {
-        return patternId;
-    }
-
-    public Long getCandidateRoleId() {
-        return candidateRoleId;
-    }
-
-    public void setCandidateRoleId(Long candidateRoleId) {
-        this.candidateRoleId = candidateRoleId;
-    }
-
 }

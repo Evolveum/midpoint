@@ -13,6 +13,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
@@ -57,6 +58,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
+import org.jetbrains.annotations.Nullable;
+
 public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -81,9 +84,6 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     int columnCount;
     static boolean isRoleMining = false;
     RoleAnalysisSortMode roleAnalysisSortModeMode;
-
-    private static final String DOT_CLASS = RoleAnalysisTable.class.getName() + ".";
-    private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
 
     public RoleAnalysisTable(String id, ISortableDataProvider<T, ?> provider, List<IColumn<T, String>> columns,
             UserProfileStorage.TableId tableId, boolean isRoleMining, int columnCount, RoleAnalysisSortMode roleAnalysisSortModeMode) {
@@ -405,14 +405,21 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
             CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE,
                     LayeredIconCssStyle.IN_ROW_STYLE);
-            AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton("process_selections_id",
+
+            AjaxCompositedIconSubmitButton editButton = new AjaxCompositedIconSubmitButton("process_selections_id",
                     iconBuilder.build(), new LoadableModel<>() {
                 @Override
                 protected String load() {
-                    RoleAnalysisCandidateRoleType candidateRoleContainer = getCandidateRoleContainer();
-                    if (candidateRoleContainer != null) {
-                        PolyStringType targetName = candidateRoleContainer.getCandidateRoleRef().getTargetName();
-                        return createStringResource("RoleMining.button.title.edit.candidate", targetName).getString();
+                    @Nullable Set<RoleAnalysisCandidateRoleType> candidateRoleContainers = getCandidateRoleContainer();
+                    if (candidateRoleContainers != null) {
+                        List<RoleAnalysisCandidateRoleType> candidateRoleTypes = new ArrayList<>(candidateRoleContainers);
+                        if (candidateRoleTypes.size() == 1) {
+                            PolyStringType targetName = candidateRoleTypes.get(0).getCandidateRoleRef().getTargetName();
+                            return createStringResource("RoleMining.button.title.edit.candidate",
+                                    targetName).getString();
+                        } else {
+                            return createStringResource("RoleMining.button.title.edit.candidate").getString();
+                        }
                     } else {
                         return createStringResource("RoleMining.button.title.candidate").getString();
                     }
@@ -432,12 +439,13 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
                     target.add(((PageBase) getPage()).getFeedbackPanel());
                 }
             };
-            migrationButton.add(new AttributeModifier("style", "min-width: 150px;"));
-            migrationButton.titleAsLabel(true);
-            migrationButton.setOutputMarkupId(true);
-            migrationButton.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
+            editButton.add(new AttributeModifier("style", "min-width: 150px;"));
+            editButton.add(new VisibleBehaviour(RoleAnalysisTable.this::getMigrationButtonVisibility));
+            editButton.titleAsLabel(true);
+            editButton.setOutputMarkupId(true);
+            editButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
 
-            formBsProcess.add(migrationButton);
+            formBsProcess.add(editButton);
 
             Form<?> formSortMode = new MidpointForm<>("form_sort_model");
             footerContainer.add(formSortMode);
@@ -571,8 +579,12 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
     }
 
-    protected RoleAnalysisCandidateRoleType getCandidateRoleContainer() {
+    protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleContainer() {
         return null;
+    }
+
+    protected boolean getMigrationButtonVisibility() {
+        return true;
     }
 
 }

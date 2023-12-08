@@ -10,6 +10,7 @@ package com.evolveum.midpoint.common.mining.objects.chunk;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,8 +26,17 @@ public class MiningUserTypeChunk extends MiningBaseTypeChunk implements Serializ
             @NotNull List<String> roles,
             @NotNull String chunkName,
             double frequency,
-            @NotNull RoleAnalysisOperationMode roleAnalysisOperationMode) {
-        super(roles, users, chunkName, frequency, roleAnalysisOperationMode);
+            @NotNull RoleAnalysisObjectStatus objectStatus) {
+        super(roles, users, chunkName, frequency, objectStatus);
+    }
+
+    public MiningUserTypeChunk(
+            @NotNull List<String> users,
+            @NotNull List<String> roles,
+            @NotNull String chunkName,
+            double frequency,
+            @NotNull RoleAnalysisOperationMode operationMode) {
+        super(roles, users, chunkName, frequency, new RoleAnalysisObjectStatus(operationMode));
     }
 
     @Override
@@ -47,5 +57,25 @@ public class MiningUserTypeChunk extends MiningBaseTypeChunk implements Serializ
     @Override
     public boolean isPropertiesPresent(@NotNull String member) {
         return roles.contains(member);
+    }
+
+    @Override
+    public RoleAnalysisOperationMode getStatus() {
+        return super.getStatus();
+    }
+
+    @Override
+    public RoleAnalysisObjectStatus getObjectStatus() {
+        return objectStatus;
+    }
+
+    @Override
+    public void setObjectStatus(@NotNull RoleAnalysisObjectStatus objectStatus) {
+        super.setObjectStatus(objectStatus);
+    }
+
+    @Override
+    public void setStatus(@NotNull RoleAnalysisOperationMode roleAnalysisOperationMode) {
+        super.setStatus(roleAnalysisOperationMode);
     }
 }

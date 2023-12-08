@@ -12,11 +12,9 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
 import com.evolveum.midpoint.gui.impl.component.icon.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 
@@ -72,6 +70,8 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
+
 public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
     private static final String ID_DATATABLE = "datatable";
@@ -89,13 +89,13 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
     private final MiningOperationChunk miningOperationChunk;
     double minFrequency;
     double maxFrequency;
-    DetectedPattern detectedPattern;
+    List<DetectedPattern> detectedPattern;
 
     RoleAnalysisSortMode roleAnalysisSortMode;
 
     public RoleAnalysisRoleBasedTable(String id,
             MiningOperationChunk miningOperationChunk,
-            DetectedPattern detectedPattern,
+            List<DetectedPattern> detectedPattern,
             RoleAnalysisSortMode roleAnalysisSortMode,
             @NotNull PrismObject<RoleAnalysisClusterType> cluster) {
         super(id);
@@ -152,8 +152,19 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 null, true, specialColumnCount, roleAnalysisSortMode) {
 
             @Override
-            protected RoleAnalysisCandidateRoleType getCandidateRoleContainer() {
+            protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleContainer() {
                 return getCandidateRole();
+            }
+
+            @Override
+            protected boolean getMigrationButtonVisibility() {
+                Set<RoleAnalysisCandidateRoleType> candidateRole = getCandidateRole();
+                if (candidateRole != null) {
+                    if (candidateRole.size() > 1) {
+                        return false;
+                    }
+                }
+                return super.getMigrationButtonVisibility();
             }
 
             @Override
@@ -187,7 +198,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
                 repeatingView.add(detectionPanel);
 
-                 iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                iconBuilder = new CompositedIconBuilder().setBasicIcon(
                         "fa fa-users", LayeredIconCssStyle.IN_ROW_STYLE);
                 AjaxCompositedIconButton createCandidateRolePanelButton = new AjaxCompositedIconButton(
                         repeatingView.newChildId(), iconBuilder.build(), createStringResource("")) {
@@ -298,6 +309,13 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
     public List<IColumn<MiningUserTypeChunk, String>> initColumns(List<MiningRoleTypeChunk> roles,
             List<ObjectReferenceType> reductionObjects) {
+
+        int detectedPatternCount;
+        if (detectedPattern != null) {
+            detectedPatternCount = detectedPattern.size();
+        } else {
+            detectedPatternCount = 0;
+        }
 
         List<IColumn<MiningUserTypeChunk, String>> columns = new ArrayList<>();
 
@@ -475,6 +493,9 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 LinkIconPanelStatus linkIconPanel = new LinkIconPanelStatus(componentId, new LoadableDetachableModel<>() {
                     @Override
                     protected RoleAnalysisOperationMode load() {
+                        if (detectedPatternCount > 1) {
+                            return RoleAnalysisOperationMode.DISABLE;
+                        }
                         return rowModel.getObject().getStatus();
                     }
                 }) {
@@ -482,7 +503,11 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                     protected RoleAnalysisOperationMode onClickPerformed(
                             AjaxRequestTarget target,
                             RoleAnalysisOperationMode status) {
-                        rowModel.getObject().setStatus(status.toggleStatus());
+
+                        MiningUserTypeChunk object = rowModel.getObject();
+                        RoleAnalysisObjectStatus objectStatus = new RoleAnalysisObjectStatus(status.toggleStatus());
+                        objectStatus.setContainerId(new HashSet<>(getPatternIdentifiers()));
+                        object.setObjectStatus(objectStatus);
                         target.add(getTable().setOutputMarkupId(true));
                         return rowModel.getObject().getStatus();
                     }
@@ -498,6 +523,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
             }
         });
 
+        Map<String, String> map = generateObjectColors(getPatternIdentifiers());
+
         IColumn<MiningUserTypeChunk, String> column;
         for (int i = fromCol - 1; i < toCol; i++) {
             MiningRoleTypeChunk roleChunk = roles.get(i);
@@ -509,7 +536,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 @Override
                 public void populateItem(Item<ICellPopulator<MiningUserTypeChunk>> cellItem,
                         String componentId, IModel<MiningUserTypeChunk> model) {
-                    List<String> users = model.getObject().getUsers();
+                    MiningUserTypeChunk object = model.getObject();
+                    List<String> users = object.getUsers();
                     int propertiesCount = users.size();
                     RoleAnalysisTableTools.StyleResolution styleHeight = RoleAnalysisTableTools
                             .StyleResolution
@@ -517,8 +545,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
                     applySquareTableCell(cellItem, styleWidth, styleHeight);
 
-                    String cellColor = resolveCellColor(model.getObject(), roleChunk);
-                    updateCellMiningStatus(cellItem, componentId, cellColor);
+                    resolveCellTypeRoleTable(componentId, cellItem, object, roleChunk, map);
 
                 }
 
@@ -558,6 +585,9 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                             new LoadableDetachableModel<>() {
                                 @Override
                                 protected RoleAnalysisOperationMode load() {
+                                    if (detectedPatternCount > 1) {
+                                        return RoleAnalysisOperationMode.DISABLE;
+                                    }
                                     return roleChunk.getStatus();
                                 }
                             }) {
@@ -566,7 +596,11 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                         protected RoleAnalysisOperationMode onClickPerformedAction(
                                 AjaxRequestTarget target,
                                 RoleAnalysisOperationMode status) {
-                            roleChunk.setStatus(status.toggleStatus());
+
+                            RoleAnalysisObjectStatus objectStatus = new RoleAnalysisObjectStatus(status.toggleStatus());
+                            objectStatus.setContainerId(new HashSet<>(getPatternIdentifiers()));
+                            roleChunk.setObjectStatus(objectStatus);
+
                             target.add(getTable().setOutputMarkupId(true));
                             return roleChunk.getStatus();
                         }
@@ -633,7 +667,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
     }
 
-    public void loadDetectedPattern(AjaxRequestTarget target, DetectedPattern detectedPattern) {
+    public void loadDetectedPattern(AjaxRequestTarget target, List<DetectedPattern> detectedPattern) {
         this.detectedPattern = detectedPattern;
         List<MiningUserTypeChunk> users = miningOperationChunk.getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
         List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
@@ -642,12 +676,11 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
             Task task = getPageBase().createSimpleTask("InitPattern");
             OperationResult result = task.getResult();
             initRoleBasedDetectionPattern(
-                    users,
+                    getPageBase(), users,
                     roles,
                     this.detectedPattern,
                     minFrequency,
                     maxFrequency,
-                    getPageBase(),
                     task,
                     result);
         }
@@ -675,19 +708,20 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
     }
 
     private boolean isPatternDetected() {
-        return detectedPattern != null && detectedPattern.getUsers() != null;
+        return detectedPattern != null && !detectedPattern.isEmpty();
     }
 
     public RoleAnalysisSortMode getRoleAnalysisSortMode() {
         return roleAnalysisSortMode;
     }
 
-    protected RoleAnalysisCandidateRoleType getCandidateRole() {
+    protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRole() {
         return null;
     }
 
     private void onSubmitCandidateRolePerform(@NotNull AjaxRequestTarget target,
             @NotNull PrismObject<RoleAnalysisClusterType> cluster) {
+
         if (miningOperationChunk == null) {
             warn(createStringResource("RoleAnalysis.candidate.not.selected").getString());
             target.add(getPageBase().getFeedbackPanel());
@@ -725,16 +759,18 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
             }
         }
 
-        RoleAnalysisCandidateRoleType candidateRole = getCandidateRole();
-        if (candidateRole != null) {
-            getPageBase().getRoleAnalysisService().executeChangesOnCandidateRole(cluster,
-                    candidateRole,
-                    candidateMembers,
-                    candidateInducements, task, result);
-            result.computeStatus();
-            getPageBase().showResult(result);
-            navigateToClusterCandidateRolePanel(cluster);
-            return;
+        if (getCandidateRole() != null) {
+            @Nullable List<RoleAnalysisCandidateRoleType> candidateRole = new ArrayList<>(getCandidateRole());
+            if (candidateRole.size() == 1) {
+                getPageBase().getRoleAnalysisService().executeChangesOnCandidateRole(cluster,
+                        candidateRole.get(0),
+                        candidateMembers,
+                        candidateInducements, task, result);
+                result.computeStatus();
+                getPageBase().showResult(result);
+                navigateToClusterCandidateRolePanel(cluster);
+                return;
+            }
         }
 
         PrismObject<RoleType> businessRole = getPageBase().getRoleAnalysisService()
@@ -751,8 +787,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
         BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
                 cluster, businessRole, roleApplicationDtos);
 
-        if (detectedPattern != null && detectedPattern.getPatternId() != null) {
-            operationData.setPatternId(detectedPattern.getPatternId());
+        if (detectedPattern != null && detectedPattern.get(0).getId() != null) {
+            operationData.setPatternId(detectedPattern.get(0).getId());
         }
 
         @NotNull RoleType candidateBusinessRole = operationData.getBusinessRole().asObjectable();
@@ -767,4 +803,14 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
         }
     }
 
+    public List<String> getPatternIdentifiers() {
+        List<String> patternIds = new ArrayList<>();
+        if (detectedPattern != null) {
+            for (DetectedPattern pattern : detectedPattern) {
+                String identifier = pattern.getIdentifier();
+                patternIds.add(identifier);
+            }
+        }
+        return patternIds;
+    }
 }

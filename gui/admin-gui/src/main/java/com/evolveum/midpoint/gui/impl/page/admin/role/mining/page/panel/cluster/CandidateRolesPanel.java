@@ -81,7 +81,7 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
         }
 
         RoleAnalysisCandidateRoleTable components = new RoleAnalysisCandidateRoleTable(ID_PANEL,
-                getObjectDetailsModels().getObjectType(), cacheCandidate, roles) {
+                getObjectDetailsModels().getObjectType(), cacheCandidate, roles, null) {
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
                 performRefresh();

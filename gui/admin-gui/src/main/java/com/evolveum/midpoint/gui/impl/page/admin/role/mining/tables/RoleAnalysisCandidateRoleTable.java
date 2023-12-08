@@ -9,18 +9,19 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.resolveDateAndTime;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_CANDIDATE_ROLE_ID;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.generateObjectColors;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import java.io.Serial;
 import java.util.*;
 
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.LegendPanel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -31,26 +32,31 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.DisplayForLifecycleState;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -67,22 +73,49 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
     private static final String OP_UPDATE_STATUS = DOT_CLASS + "updateOperationStatus";
     private static final String OP_DELETE_PERFORM = DOT_CLASS + "deletePerformed";
 
+    private Map<String, String> colorPalete;
+
     public RoleAnalysisCandidateRoleTable(String id,
             @NotNull RoleAnalysisClusterType cluster,
             HashMap<String, RoleAnalysisCandidateRoleType> cacheCandidate,
-            List<RoleType> roles) {
+            List<RoleType> roles, List<String> selectedCandidates) {
         super(id);
-
+        this.colorPalete = generateObjectColors(selectedCandidates);
         createTable(cacheCandidate, cluster, roles);
     }
 
     private void createTable(HashMap<String, RoleAnalysisCandidateRoleType> cacheCandidate,
             RoleAnalysisClusterType cluster, List<RoleType> roles) {
+
         MainObjectListPanel<RoleType> table = new MainObjectListPanel<>(ID_DATATABLE, RoleType.class, null) {
 
             @Override
             protected IColumn<SelectableBean<RoleType>, String> createCheckboxColumn() {
-                return super.createCheckboxColumn();
+                return new CheckBoxHeaderColumn<>() {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem, String componentId,
+                            IModel<SelectableBean<RoleType>> rowModel) {
+                        super.populateItem(cellItem, componentId, rowModel);
+                    }
+
+                    @Override
+                    protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
+                        super.onUpdateHeader(target, selected, table);
+                        prepareColorsPalete(cacheCandidate, getSelectedObjects());
+                    }
+
+                    @Override
+                    protected void onUpdateRow(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem, AjaxRequestTarget target,
+                            DataTable table, IModel<SelectableBean<RoleType>> rowModel, IModel<Boolean> selected) {
+                        super.onUpdateRow(cellItem, target, table, rowModel, selected);
+
+                        prepareColorsPalete(cacheCandidate, getSelectedObjects());
+
+                        TableUtil.updateRows(table, target);
+
+                    }
+                };
             }
 
             @Override
@@ -389,6 +422,52 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
 
                     };
                     columns.add(column);
+                } else {
+                    column = new AbstractExportableColumn<>(
+                            createStringResource("")) {
+
+                        @Override
+                        public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
+                            return null;
+                        }
+
+                        @Override
+                        public Component getHeader(String componentId) {
+                            return new Label(componentId,
+                                    createStringResource("RoleAnalysisCandidateRoleTable.legend"));
+                        }
+
+                        @Override
+                        public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
+                                String componentId, IModel<SelectableBean<RoleType>> model) {
+                            SelectableBean<RoleType> object = model.getObject();
+                            RoleType role = object.getValue();
+                            RoleAnalysisCandidateRoleType candidateRoleType = cacheCandidate.get(role.getOid());
+                            Long id = candidateRoleType.getId();
+
+                            LoadableModel<String> loadableModel = new LoadableModel<>() {
+                                @Override
+                                protected String load() {
+                                    if (colorPalete == null || colorPalete.isEmpty()) {
+                                        return "#00A65A";
+                                    } else {
+                                        return colorPalete.get(id.toString());
+                                    }
+                                }
+                            };
+
+                            LegendPanel label = new LegendPanel(componentId, loadableModel);
+                            label.setOutputMarkupId(true);
+                            cellItem.add(label);
+                        }
+
+                        @Override
+                        public boolean isSortable() {
+                            return false;
+                        }
+
+                    };
+                    columns.add(column);
                 }
                 column = new AbstractExportableColumn<>(
                         createStringResource("")) {
@@ -400,8 +479,55 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
 
                     @Override
                     public Component getHeader(String componentId) {
-                        return new Label(componentId,
-                                createStringResource("RoleMining.button.title.load"));
+
+                        if (isMigrateButtonEnabled()) {
+                            return new Label(componentId,
+                                    createStringResource("RoleMining.button.title.load"));
+                        }
+
+                        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                                GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
+                        AjaxCompositedIconSubmitButton exploreSelected = new AjaxCompositedIconSubmitButton(componentId,
+                                iconBuilder.build(),
+                                createStringResource("RoleMining.button.title.load")) {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void onSubmit(AjaxRequestTarget target) {
+                                List<SelectableBean<RoleType>> selectedObjects = getSelectedObjects();
+                                if (!selectedObjects.isEmpty()) {
+
+                                    StringBuilder stringBuilder = new StringBuilder();
+                                    for (SelectableBean<RoleType> selectedObject : selectedObjects) {
+                                        String rolOid = selectedObject.getValue().getOid();
+                                        cacheCandidate.get(rolOid);
+                                        RoleAnalysisCandidateRoleType candidateRole = cacheCandidate.get(rolOid);
+                                        Long id = candidateRole.getId();
+                                        stringBuilder.append(id).append(",");
+                                    }
+                                    getPageBase().clearBreadcrumbs();
+                                    PageParameters parameters = new PageParameters();
+                                    String clusterOid = cluster.getOid();
+                                    parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+                                    parameters.add("panelId", "clusterDetails");
+                                    parameters.add(PARAM_CANDIDATE_ROLE_ID, stringBuilder.toString());
+                                    Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                                            .getObjectDetailsPage(RoleAnalysisClusterType.class);
+                                    getPageBase().navigateToNext(detailsPageClass, parameters);
+                                }
+                            }
+
+                            @Override
+                            protected void onError(AjaxRequestTarget target) {
+                                target.add(((PageBase) getPage()).getFeedbackPanel());
+                            }
+                        };
+
+                        exploreSelected.setEnabled(true);
+                        exploreSelected.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+                        exploreSelected.titleAsLabel(true);
+                        exploreSelected.setOutputMarkupId(true);
+                        return exploreSelected;
                     }
 
                     @Override
@@ -415,12 +541,13 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
                         }
 
                         RoleType role = object.getValue();
-
                         String oid = role.getOid();
+                        RoleAnalysisCandidateRoleType candidateRole = cacheCandidate.get(oid);
+                        Long id = candidateRole.getId();
 
                         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
                                 GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
-                        AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(componentId,
+                        AjaxCompositedIconSubmitButton exploreButton = new AjaxCompositedIconSubmitButton(componentId,
                                 iconBuilder.build(),
                                 createStringResource("RoleMining.button.title.load")) {
                             @Serial private static final long serialVersionUID = 1L;
@@ -432,7 +559,7 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
                                 String clusterOid = cluster.getOid();
                                 parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
                                 parameters.add("panelId", "clusterDetails");
-                                parameters.add(PARAM_CANDIDATE_ROLE_ID, oid);
+                                parameters.add(PARAM_CANDIDATE_ROLE_ID, id.toString());
                                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                                         .getObjectDetailsPage(RoleAnalysisClusterType.class);
                                 getPageBase().navigateToNext(detailsPageClass, parameters);
@@ -444,10 +571,10 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
                             }
                         };
 
-                        migrationButton.setEnabled(true);
-                        migrationButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
-                        migrationButton.titleAsLabel(true);
-                        migrationButton.setOutputMarkupId(true);
+                        exploreButton.setEnabled(true);
+                        exploreButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+                        exploreButton.titleAsLabel(true);
+                        exploreButton.setOutputMarkupId(true);
 
                         RoleAnalysisCandidateRoleType candidateRoleType = cacheCandidate.get(oid);
                         RoleAnalysisOperationStatus operationStatus = candidateRoleType.getOperationStatus();
@@ -456,17 +583,17 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
                             if (status != null
                                     && (status.equals(OperationResultStatusType.IN_PROGRESS)
                                     || status.equals(OperationResultStatusType.SUCCESS))) {
-                                migrationButton.setEnabled(false);
-                                migrationButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                                exploreButton.setEnabled(false);
+                                exploreButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
 
                             } else {
-                                migrationButton.setEnabled(true);
-                                migrationButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+                                exploreButton.setEnabled(true);
+                                exploreButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
                             }
 
                         }
 
-                        cellItem.add(migrationButton);
+                        cellItem.add(exploreButton);
 
                     }
 
@@ -484,6 +611,21 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
 
         table.setOutputMarkupId(true);
         add(table);
+    }
+
+    private void prepareColorsPalete(HashMap<String, RoleAnalysisCandidateRoleType> cacheCandidate,
+            List<SelectableBean<RoleType>> selectedObjects) {
+
+        if (selectedObjects == null || selectedObjects.isEmpty()) {
+            return;
+        }
+        List<String> containerIds = new ArrayList<>();
+        for (SelectableBean<RoleType> selectedObject : selectedObjects) {
+            RoleAnalysisCandidateRoleType candidateRoleType = cacheCandidate.get(selectedObject.getValue().getOid());
+            String id = candidateRoleType.getId().toString();
+            containerIds.add(id);
+        }
+        colorPalete = generateObjectColors(containerIds);
     }
 
     private AjaxIconButton createRefreshButton(String buttonId) {
