@@ -7,27 +7,31 @@
   -->
 
 <html xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:wicket="http://wicket.apache.org">
-    <wicket:panel>
-        <ul class="details-menu">
-            <wicket:container wicket:id="menu">
-                <li class="navigation-details" wicket:id="navLinkStyle">
-                    <a wicket:id="navItemLink" class="d-flex align-items-center">
-                        <div class="d-flex flex-grow-1 mr-auto align-items-center">
-                            <i wicket:id="navItemIcon"></i>
-                            <div class="text-truncate" wicket:id="navItem"></div>
-                        </div>
-                        <div class="d-flex gap-1 flex-grow-1 details-menu-items align-items-center">
+        xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <ul class="details-menu" role="menu" wicket:message="aria-label:DetailsNavigationPanel.label">
+        <wicket:container wicket:id="menu">
+            <li class="navigation-details" wicket:id="navLinkStyle" role="menuitem">
+                <a wicket:id="navItemLink" class="d-flex align-items-center">
+                    <div class="d-flex flex-grow-1 mr-auto align-items-center">
+                        <i wicket:id="navItemIcon"></i>
+                        <div class="sr-only" wicket:id="navItemSrCurrentMessage"/>
+                        <div class="text-truncate" wicket:id="navItem"/>
+                    </div>
+                    <div class="d-flex gap-1 flex-grow-1 details-menu-items align-items-center">
+                        <wicket:enclosure key="count">
+                            <span class="sr-only"><wicket:message key="DetailsNavigationPanel.count"/></span>
                             <span class="badge bg-blue" wicket:id="count"></span>
-                            <span class="details-caret">
+                        </wicket:enclosure>
+                        <span class="details-caret">
                                 <i class="fa fa-angle-left" wicket:id="submenuLink"></i>
                             </span>
-                        </div>
-                    </a>
-                    <div wicket:id="subNavigation"/>
-                </li>
-            </wicket:container>
-        </ul>
-    </wicket:panel>
+                    </div>
+                </a>
+                <div wicket:id="subNavigation"/>
+            </li>
+        </wicket:container>
+    </ul>
+</wicket:panel>
 </html>
 

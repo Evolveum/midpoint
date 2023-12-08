@@ -108,6 +108,7 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_BREADCRUMB = "breadcrumb";
     private static final String ID_BC_LINK = "bcLink";
     private static final String ID_BC_ICON = "bcIcon";
+    private static final String ID_BC_SR_CURRENT_MESSAGE = "bcSrCurrentMessage";
     private static final String ID_BC_NAME = "bcName";
     private static final String ID_MAIN_POPUP = "mainPopup";
     private static final String ID_DEPLOYMENT_NAME = "deploymentName";
@@ -319,6 +320,15 @@ public abstract class PageBase extends PageAdminLTE {
                 };
                 item.add(bcLink);
                 bcLink.add(new EnableBehaviour(() -> item.getModelObject().isUseLink()));
+
+                WebMarkupContainer bcSrCurrentMessage = new WebMarkupContainer(ID_BC_SR_CURRENT_MESSAGE);
+                bcLink.add(bcSrCurrentMessage);
+
+                if (item.getIndex() == getModelObject().size()-1) {
+                    bcLink.add(AttributeAppender.append("aria-current", "page"));
+                } else {
+                    bcSrCurrentMessage.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+                }
 
                 WebMarkupContainer bcIcon = new WebMarkupContainer(ID_BC_ICON);
                 bcIcon.add(new VisibleBehaviour(() -> item.getModelObject().getIcon() != null && item.getModelObject().getIcon().getObject() != null));
