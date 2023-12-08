@@ -116,6 +116,9 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
 
     public CompositedIcon getIcon() {
         return this.icon;
+    }
 
+    public IModel<String> getTitle() {
+        return title;
     }
 }

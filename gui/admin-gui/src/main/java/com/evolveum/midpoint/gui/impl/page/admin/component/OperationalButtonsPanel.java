@@ -84,11 +84,18 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
         repeatingView.streamChildren()
                 .forEach(button -> {
-                    button.add(AttributeAppender.append(
-                            "aria-label",
-                            getPageBase().createStringResource(
-                                    "OperationalButtonsPanel.buttons.main.label",
-                                    button.getDefaultModelObjectAsString())));
+                    String title = null;
+                    if (button instanceof AjaxIconButton) {
+                        title = ((AjaxIconButton)button).getTitle().getObject();
+                    } else if (button instanceof AjaxCompositedIconSubmitButton){
+                        title = ((AjaxCompositedIconSubmitButton)button).getTitle().getObject();
+                    }
+
+                    if (StringUtils.isNotEmpty(title)) {
+                        button.add(AttributeAppender.append(
+                                "aria-label",
+                                getPageBase().createStringResource("OperationalButtonsPanel.buttons.main.label", title)));
+                    }
 
                     button.add(new Behavior() {
 
