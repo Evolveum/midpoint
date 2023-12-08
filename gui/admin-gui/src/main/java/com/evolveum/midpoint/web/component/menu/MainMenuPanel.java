@@ -180,9 +180,6 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
         listItem.add(subLink);
 
-        if (menuItem.getObject().isMenuActive(getPageBase())) {
-
-        }
         subLink.add(AttributeModifier.append(
                 "aria-current",
                 () -> {
