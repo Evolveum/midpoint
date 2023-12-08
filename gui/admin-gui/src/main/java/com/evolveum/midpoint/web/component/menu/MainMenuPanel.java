@@ -122,7 +122,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
             if (getModelObject().hasActiveSubmenu(getPageBase())) {
                 key = "MainMenuPanel.srActiveSubItemMessage";
             }
-            return getPageBase().createStringResource(key);
+            return getPageBase().createStringResource(key).getString();
         });
         srCurrentMessage.add(new VisibleBehaviour(() -> {
             MainMenuItem mmi = getModelObject();
@@ -197,7 +197,9 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         subLink.add(subLinkIcon);
         subLink.add(AttributeModifier.append("title", labelModel));
 
-        Label srCurrentMessage = new Label(ID_SR_CURRENT_MESSAGE_SUB_ITEM);
+        Label srCurrentMessage = new Label(
+                ID_SR_CURRENT_MESSAGE_SUB_ITEM,
+                getPageBase().createStringResource("MainMenuPanel.srCurrentMessage"));
         srCurrentMessage.add(new VisibleBehaviour(() -> listItem.getModelObject().isMenuActive(getPageBase())));
         subLink.add(srCurrentMessage);
 
