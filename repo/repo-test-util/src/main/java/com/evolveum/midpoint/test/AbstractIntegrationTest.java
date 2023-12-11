@@ -1714,7 +1714,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         var identifier = identifierDef.instantiateFromRealValue(identifierValue);
         var q = Resource.of(resource)
                 .queryFor(objectDef.getTypeName())
-                .and().filter(forRepository ? identifier.normalizationAwareEqFilter() : identifier.eqFilter());
+                .and().filter(forRepository ? identifier.normalizationAwareEqFilter() : identifier.plainEqFilter());
         if (mustBeLive) {
             q = q.and().block()
                     .item(ShadowType.F_DEAD).eq(Boolean.FALSE)

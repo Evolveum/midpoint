@@ -121,13 +121,16 @@ public interface ResourceAttribute<T> extends PrismProperty<T> {
         return ItemPath.create(ShadowType.F_ATTRIBUTES, getElementName());
     }
 
-    /** Creates "eq" filter for the current value of this attribute. It must have a definition and exactly one value. */
-    default @NotNull ObjectFilter eqFilter() {
+    /**
+     * Creates "eq" filter for the current value of this attribute. It must have a definition and exactly one value.
+     * Matching rule is not specified. We assume this filter will be evaluated on the resource.
+     */
+    default @NotNull ObjectFilter plainEqFilter() {
         ResourceAttributeDefinition<T> def = getDefinitionRequired();
         var realValue = MiscUtil.argNonNull(getRealValue(), "no value of %s", this);
         return PrismContext.get().queryFor(ShadowType.class)
                 .item(getStandardPath(), def)
-                .eq(realValue).matching(def.getMatchingRuleQName())
+                .eq(realValue)
                 .buildFilter();
     }
 
@@ -140,7 +143,8 @@ public interface ResourceAttribute<T> extends PrismProperty<T> {
         var normAwareRealValue = MiscUtil.extractSingletonRequired(normAwareDef.adoptRealValues(getRealValues()));
         return PrismContext.get().queryFor(ShadowType.class)
                 .item(getStandardPath(), normAwareDef)
-                .eq(normAwareRealValue).matching(normAwareDef.getMatchingRuleQName())
+                .eq(normAwareRealValue)
+                .matching(normAwareDef.getMatchingRuleQName())
                 .buildFilter();
     }
 

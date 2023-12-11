@@ -174,8 +174,8 @@ class ShadowedObjectConstruction {
         resultingShadowedBean.setCachingMetadata(resourceObject.getBean().getCachingMetadata());
     }
 
-    private void copyAndAdoptAssociations(OperationResult result) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException,
+    private void copyAndAdoptAssociations(OperationResult result) throws SchemaException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException, SecurityViolationException,
             EncryptionException {
 
         if (resourceObjectAssociations == null) {
@@ -319,7 +319,7 @@ class ShadowedObjectConstruction {
      * @return false if the association value does not fit and should be removed
      */
     private boolean adoptAssociationValue(PrismContainerValue<ShadowAssociationType> associationValue, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            throws SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException, EncryptionException {
 
         LOGGER.trace("Determining shadowRef for {}", associationValue);
@@ -387,7 +387,7 @@ class ShadowedObjectConstruction {
             ProvisioningContext ctxEntitlement,
             OperationResult result)
             throws ConfigurationException, CommunicationException, ExpressionEvaluationException, SecurityViolationException,
-            EncryptionException, SchemaException, ObjectNotFoundException {
+            EncryptionException, SchemaException {
 
         // TODO should we fully cache the entitlement shadow (~ attribute/shadow caching)?
         //  (If yes, maybe we should retrieve also the associations below?)
@@ -403,10 +403,13 @@ class ShadowedObjectConstruction {
             ResourceObjectDefinition entitlementObjDef = ctxEntitlement.getObjectDefinitionRequired();
 
             List<ResourceAttribute<?>> identifyingAttributes = new ArrayList<>();
+            // TODO most probably these definitions should be already applied, reconsider this code
             for (ResourceAttribute<?> rawIdentifyingAttribute : identifierContainer.getAttributes()) {
                 identifyingAttributes.add(
                         rawIdentifyingAttribute.clone().applyDefinitionFrom(entitlementObjDef));
             }
+
+            // it looks like here should be exactly one attribute
 
             var existingLiveRepoShadow =
                     b.shadowFinder.lookupLiveShadowByAllAttributes(ctxEntitlement, identifyingAttributes, result);

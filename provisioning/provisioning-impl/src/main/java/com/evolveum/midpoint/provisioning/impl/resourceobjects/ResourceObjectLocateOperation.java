@@ -71,14 +71,15 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
+        // TODO why we are using only the first secondary identifier for the search on resource?
+
         LOGGER.trace("Locating resource object by secondary identification {}", identification);
         var secondaryIdentifier = identification.getSecondaryIdentifiers().iterator().next(); // there must be at least one
 
         ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
 
         ObjectQuery query = PrismContext.get().queryFor(ShadowType.class)
-                .item(secondaryIdentifier.getSearchPath(), secondaryIdentifier.getDefinition())
-                .eq(secondaryIdentifier.getValue())
+                .filter(secondaryIdentifier.plainEqFilter())
                 .build();
         Holder<UcfObjectFound> objectHolder = new Holder<>();
         UcfObjectHandler handler = (ucfObjectFound, lResult) -> {

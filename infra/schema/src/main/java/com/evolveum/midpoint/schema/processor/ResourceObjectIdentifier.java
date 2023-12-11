@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -156,6 +155,10 @@ public abstract class ResourceObjectIdentifier<T> implements Serializable, Short
     /** See {@link ResourceAttribute#normalizationAwareEqFilter()}. */
     public @NotNull ObjectFilter normalizationAwareEqFilter() throws SchemaException {
         return attribute.normalizationAwareEqFilter();
+    }
+
+    public @NotNull ObjectFilter plainEqFilter() {
+        return attribute.plainEqFilter();
     }
 
     /** Identifier that is a primary one. */
