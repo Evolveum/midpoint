@@ -138,7 +138,6 @@ class ShadowedObjectConstruction {
 
         copyIgnored();
         mergeCredentials();
-        setEffectiveProvisioningPolicy(result);
 
         // exists, dead
         // This may seem strange, but always take exists and dead flags from the repository.
@@ -153,7 +152,14 @@ class ShadowedObjectConstruction {
 
         checkConsistence();
 
-        return resourceObject.updateWith(resultingShadowedBean);
+        var updatedObject = resourceObject.withNewContent(resultingShadowedBean);
+
+        // Called here, as we need AbstractShadow to be present.
+        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, updatedObject, result);
+
+        LOGGER.trace("Shadowed resource object:\n{}", updatedObject.debugDumpLazily(1));
+
+        return updatedObject;
     }
 
     private void checkConsistence() {
@@ -186,11 +192,6 @@ class ShadowedObjectConstruction {
                 associationIterator.remove();
             }
         }
-    }
-
-    private void setEffectiveProvisioningPolicy(OperationResult result) throws SchemaException, ConfigurationException,
-            ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
-        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resultingShadowedBean, result);
     }
 
     /**
@@ -287,7 +288,7 @@ class ShadowedObjectConstruction {
     /** The real definition may be different than that of repo shadow (e.g. because of different auxiliary object classes). */
     private void applyDefinition() throws SchemaException {
         resultingShadowedBean.asPrismObject().applyDefinition(
-                ctx.getObjectDefinitionRequired().getPrismObjectDefinition(), true);
+                ctx.getObjectDefinitionRequired().getPrismObjectDefinition());
     }
 
     private void copyAttributes(OperationResult result) throws SchemaException, ConfigurationException {
@@ -372,10 +373,9 @@ class ShadowedObjectConstruction {
         for (ResourceAttributeDefinition<?> identifierDef : identifierDefinitions) {
             ItemName identifierName = identifierDef.getItemName();
             if (!identifiersContainer.containsAttribute(identifierName)) {
-                var shadowIdentifier =
-                        shadow.getPrismObject().findProperty(ShadowType.F_ATTRIBUTES.append(identifierName));
+                var shadowIdentifier = shadow.findAttribute(identifierName);
                 if (shadowIdentifier != null) {
-                    identifiersContainer.addAdoptedIfNeeded(shadowIdentifier);
+                    identifiersContainer.add(shadowIdentifier.clone());
                 }
             }
         }
@@ -396,7 +396,7 @@ class ShadowedObjectConstruction {
         if (providedResourceObject != null) {
             var resourceObject = ctxEntitlement.adoptUcfResourceObject(providedResourceObject);
             return ShadowAcquisition.acquireRepoShadow(
-                    ctxEntitlement, resourceObject, false, result);
+                    ctxEntitlement, resourceObject, result); // TODO not doing classification here?
         }
 
         try {
@@ -405,11 +405,11 @@ class ShadowedObjectConstruction {
             List<ResourceAttribute<?>> identifyingAttributes = new ArrayList<>();
             for (ResourceAttribute<?> rawIdentifyingAttribute : identifierContainer.getAttributes()) {
                 identifyingAttributes.add(
-                        rawIdentifyingAttribute.clone().forceDefinitionFrom(entitlementObjDef));
+                        rawIdentifyingAttribute.clone().applyDefinitionFrom(entitlementObjDef));
             }
 
             var existingLiveRepoShadow =
-                    b.repoShadowFinder.lookupLiveShadowByAllAttributes(ctxEntitlement, identifyingAttributes, result);
+                    b.shadowFinder.lookupLiveShadowByAllAttributes(ctxEntitlement, identifyingAttributes, result);
             if (existingLiveRepoShadow != null) {
                 return existingLiveRepoShadow;
             }
@@ -427,8 +427,8 @@ class ShadowedObjectConstruction {
             // Try to look up repo shadow again, this time with full resource shadow. When we
             // have searched before we might have only some identifiers. The shadow
             // might still be there, but it may be renamed
-            return ShadowAcquisition.acquireRepoShadow(
-                    ctxEntitlement, fetchedResourceObject.resourceObject(), false, result);
+            return ShadowAcquisition.acquireRepoShadow( // TODO not doing classification?
+                    ctxEntitlement, fetchedResourceObject.resourceObject(), result);
 
         } catch (ObjectNotFoundException e) {
             // The entitlement to which we point is not there. Simply ignore this association value.

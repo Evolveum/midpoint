@@ -400,8 +400,8 @@ class ConnIdCapabilitiesAndSchemaParser {
             ocDef.setDefaultAccountDefinition(true);
         }
 
-        RawResourceAttributeDefinition<?> uidDefinition = null;
-        RawResourceAttributeDefinition<?> nameDefinition = null;
+        MutableRawResourceAttributeDefinition<?> uidDefinition = null;
+        MutableRawResourceAttributeDefinition<?> nameDefinition = null;
         boolean hasUidDefinition = false;
 
         int displayOrder = ConnectorFactoryConnIdImpl.ATTR_DISPLAY_ORDER_START;
@@ -433,7 +433,7 @@ class ConnIdCapabilitiesAndSchemaParser {
                         PrettyPrinter.prettyPrint(attrXsdName), PrettyPrinter.prettyPrint(attrXsdType));
             }
 
-            MutableRawResourceAttributeDefinition<?> attrDef =
+            RawResourceAttributeDefinition<?> attrDef =
                     createRawResourceAttributeDefinition(attrXsdName, attrXsdType);
 
             attrDef.setMatchingRuleQName(
@@ -456,12 +456,12 @@ class ConnIdCapabilitiesAndSchemaParser {
 
             } else if (Uid.NAME.equals(icfName)) {
                 // UID can be the same as other attribute
-                ResourceAttributeDefinition<?> existingDefinition = ocDef.findAttributeDefinition(attrXsdName);
+                //noinspection rawtypes
+                var existingDefinition = (MutableRawResourceAttributeDefinition) ocDef.findAttributeDefinition(attrXsdName);
                 if (existingDefinition != null) {
                     hasUidDefinition = true;
-                    uidDefinition = existingDefinition.spawnModifyingRaw(
-                            def -> def.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER));
-                    ocDef.replaceDefinition(attrXsdName, uidDefinition);
+                    existingDefinition.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
+                    uidDefinition = existingDefinition;
                     continue;
                 } else {
                     uidDefinition = attrDef;
@@ -714,7 +714,8 @@ class ConnIdCapabilitiesAndSchemaParser {
         if (AttributeInfo.Subtypes.STRING_UUID.toString().equals(connIdSubtype)) {
             return PrismConstants.UUID_MATCHING_RULE_NAME;
         }
-        LOGGER.debug("Unknown subtype {} defined for attribute {}, ignoring (no matching rule definition)", connIdSubtype, attributeInfo.getName());
+        LOGGER.debug("Unknown subtype {} defined for attribute {}, ignoring (no matching rule definition)",
+                connIdSubtype, attributeInfo.getName());
         return null;
     }
 

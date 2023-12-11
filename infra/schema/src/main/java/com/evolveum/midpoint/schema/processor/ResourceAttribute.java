@@ -7,13 +7,27 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.util.Collection;
+
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
+ * TODO update this doc
+ *
  * Resource Object Attribute is a Property of Resource Object. All that applies
  * to property applies also to attribute, e.g. only a whole attributes can be
  * changed, they may be simple or complex types, they should be representable in
@@ -30,6 +44,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public interface ResourceAttribute<T> extends PrismProperty<T> {
 
     ResourceAttributeDefinition<T> getDefinition();
+
+    default @NotNull ResourceAttributeDefinition<T> getDefinitionRequired() {
+        return MiscUtil.stateNonNull(
+                getDefinition(),
+                "No definition in %s", this);
+    }
 
     /**
      * Returns native attribute name.
@@ -56,30 +76,94 @@ public interface ResourceAttribute<T> extends PrismProperty<T> {
     }
 
     /** Returns self to be usable in chained calls. */
-    default @NotNull ResourceAttribute<T> forceDefinitionFrom(ResourceObjectDefinition objectDefinition) throws SchemaException {
+    default @NotNull ResourceAttribute<T> applyDefinitionFrom(@NotNull ResourceObjectDefinition objectDefinition)
+            throws SchemaException {
         var attrDef = objectDefinition.findAttributeDefinitionRequired(getElementName());
         //noinspection unchecked
-        forceDefinition((ResourceAttributeDefinition<T>) attrDef);
+        applyDefinition((ResourceAttributeDefinition<T>) attrDef);
         return this;
     }
 
-    default void forceDefinition(@NotNull ResourceAttributeDefinition<T> attributeDefinition) throws SchemaException {
-        applyDefinition(attributeDefinition, true);
-    }
-
     /**
-     * Forces the definition, potentially different from the current one.
-     * Executes the normalization.
+     * Creates a clone with the new definition applied. (Including the normalization.)
      *
-     * This may include conversion of values from {@link String} to {@link PolyString},
-     * if string normalizer is used.
+     * This may involve conversion of values from {@link String} to {@link PolyString}, if string normalizer is used.
      *
-     * The returned value may be the same as this instance, or it may be a new instance.
-     * (For example, if the original value is immutable, or if the type change occurs.)
+     * TODO remove eventually if not needed
      */
-    @NotNull <T2> ResourceAttribute<T2> forceDefinitionWithNormalization(@NotNull ResourceAttributeDefinition<T2> newDefinition)
+    @NotNull <T2> ResourceAttribute<T2> cloneWithNewDefinition(@NotNull ResourceAttributeDefinition<T2> newDefinition)
             throws SchemaException;
 
     @Override
     ResourceAttribute<T> clone();
+
+    /** Returns the original real values. Assumes the definition is present. */
+    @NotNull Collection<?> getOrigValues();
+
+    /** Returns the normalized real values. Assumes the definition is present. */
+    @NotNull Collection<?> getNormValues() throws SchemaException;
+
+    /**
+     * Returns true if the attribute is a PolyString-typed one - either native, or "simulated" (with a normalizer).
+     * Assumes the definition is present.
+     */
+    default boolean isPolyString() {
+        return QNameUtil.match(
+                getDefinitionRequired().getTypeName(),
+                PolyStringType.COMPLEX_TYPE);
+    }
+
+    /** There must be no duplicates or nulls among the real values. {@link RawType} values are tried to be converted. */
+    void addNormalizedValues(@NotNull Collection<?> realValues, @NotNull ResourceAttributeDefinition<T> newDefinition)
+            throws SchemaException;
+
+    default @NotNull ItemPath getStandardPath() {
+        return ItemPath.create(ShadowType.F_ATTRIBUTES, getElementName());
+    }
+
+    /** Creates "eq" filter for the current value of this attribute. It must have a definition and exactly one value. */
+    default @NotNull ObjectFilter eqFilter() {
+        ResourceAttributeDefinition<T> def = getDefinitionRequired();
+        var realValue = MiscUtil.argNonNull(getRealValue(), "no value of %s", this);
+        return PrismContext.get().queryFor(ShadowType.class)
+                .item(getStandardPath(), def)
+                .eq(realValue).matching(def.getMatchingRuleQName())
+                .buildFilter();
+    }
+
+    /**
+     * Creates normalization-aware "eq" filter (i.e., suitable for the execution against the repository) for the current
+     * value of this attribute. It must have a definition and exactly one value.
+     */
+    default <N> @NotNull ObjectFilter normalizationAwareEqFilter() throws SchemaException {
+        var normAwareDef = getDefinitionRequired().toNormalizationAware();
+        var normAwareRealValue = MiscUtil.extractSingletonRequired(normAwareDef.adoptRealValues(getRealValues()));
+        return PrismContext.get().queryFor(ShadowType.class)
+                .item(getStandardPath(), normAwareDef)
+                .eq(normAwareRealValue).matching(normAwareDef.getMatchingRuleQName())
+                .buildFilter();
+    }
+
+    /** Creates normalization-aware version of this attribute: one that is suitable to be used in the repository. */
+    default <N> @NotNull PrismProperty<N> normalizationAwareVersion() throws SchemaException {
+        return getDefinitionRequired()
+                .<N>toNormalizationAware()
+                .adoptRealValuesAndInstantiate(getRealValues());
+    }
+
+    /** TODO decide on this. */
+    default void checkDefinitionConsistence(@NotNull ResourceObjectDefinition objectDefinition) {
+        ResourceAttributeDefinition<Object> expectedDefinition;
+        try {
+            expectedDefinition = objectDefinition.findAttributeDefinitionRequired(getElementName());
+        } catch (SchemaException e) {
+            throw new IllegalStateException(e);
+        }
+
+        var actualDefinition = getDefinition();
+        stateCheck(
+                expectedDefinition.equals(actualDefinition),
+                "Definition of %s is %s, expected %s",
+                this, actualDefinition, expectedDefinition);
+    }
 }

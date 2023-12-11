@@ -10,7 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.RepoShadowFinder;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 class DefinitionsHelper {
 
     @Autowired private ProvisioningContextFactory ctxFactory;
-    @Autowired private RepoShadowFinder repoShadowFinder;
+    @Autowired private ShadowFinder shadowFinder;
 
     public void applyDefinition(
             ObjectDelta<ShadowType> delta,
@@ -64,7 +64,7 @@ class DefinitionsHelper {
                             "No OID in object delta %s and no externally-supplied shadow is present as well.", delta);
                 } else {
                     // TODO consider fetching only when really necessary
-                    shadow = repoShadowFinder.getShadowBean(shadowOid, result);
+                    shadow = shadowFinder.getShadowBean(shadowOid, result);
                 }
                 coordinates = null;
             }
@@ -82,12 +82,12 @@ class DefinitionsHelper {
         ctx.applyAttributesDefinition(delta);
     }
 
-    public ProvisioningContext applyDefinition(ShadowType shadow, Task task, OperationResult result)
+    public void applyDefinition(ShadowType shadow, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        return ctxFactory
+        ctxFactory
                 .createForShadow(shadow, task, result)
-                .applyAttributesDefinition(shadow);
+                .applyAttributesDefinitionHere(shadow);
     }
 
     public void applyDefinition(ObjectQuery query, Task task, OperationResult result)

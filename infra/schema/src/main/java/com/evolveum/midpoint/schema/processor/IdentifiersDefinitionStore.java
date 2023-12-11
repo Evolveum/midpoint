@@ -101,8 +101,13 @@ public interface IdentifiersDefinitionStore {
     /**
      * Returns both primary and secondary identifiers.
      */
-    default Collection<? extends ResourceAttributeDefinition<?>> getAllIdentifiers() {
+    default @NotNull Collection<? extends ResourceAttributeDefinition<?>> getAllIdentifiers() {
         return MiscUtil.unionExtends(
                 getPrimaryIdentifiers(), getSecondaryIdentifiers());
+    }
+
+    default @NotNull Collection<QName> getAllIdentifiersNames() {
+        return MiscUtil.union(
+                getPrimaryIdentifiersNames(), getSecondaryIdentifiersNames());
     }
 }

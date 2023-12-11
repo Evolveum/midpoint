@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.RepoShadowFinder;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Resolves resource objects or secondary identifiers.
  *
  * This class invokes functionality outside "resource objects" package by looking shadows up
- * via {@link RepoShadowFinder} and {@link ShadowsFacade}.
+ * via {@link ShadowFinder} and {@link ShadowsFacade}.
  *
  * Intentionally not a public class.
  *
@@ -69,7 +70,7 @@ class ResourceObjectReferenceResolver {
 
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
-    @Autowired private RepoShadowFinder repoShadowFinder;
+    @Autowired private ShadowFinder shadowFinder;
     @Autowired private ShadowsFacade shadowsFacade;
 
     /**
@@ -90,9 +91,7 @@ class ResourceObjectReferenceResolver {
         String shadowOid = getOid(shadowRef);
         if (shadowOid != null) {
             if (resolutionFrequency != ALWAYS) {
-                PrismObject<ShadowType> shadow = repoShadowFinder.getShadow(shadowOid, result);
-                shadowsFacade.applyDefinition(shadow, ctx.getTask(), result);
-                return shadow.asObjectable();
+                return shadowFinder.getRepoShadow(ctx, shadowOid, result).getBean();
             }
         } else if (resolutionFrequency == NEVER) {
             throw new ConfigurationException("No shadowRef OID in " + desc + " and resolution frequency set to NEVER");
@@ -159,7 +158,7 @@ class ResourceObjectReferenceResolver {
             return primary;
         } else if (identification instanceof ResourceObjectIdentification.SecondaryOnly secondaryOnly) {
             // FIXME what if there are proposed shadows here (i.e., multiple ones + without a primary identifier?)
-            var repoShadows = repoShadowFinder.searchShadowsByAnySecondaryIdentifier(ctx, secondaryOnly, result);
+            var repoShadows = shadowFinder.searchShadowsByAnySecondaryIdentifier(ctx, secondaryOnly, result);
             var repoShadow = selectSingleShadow(ctx, repoShadows, lazy(() -> "while resolving " + secondaryOnly));
             if (repoShadow == null) {
                 // TODO: we could attempt resource search here
@@ -179,7 +178,7 @@ class ResourceObjectReferenceResolver {
 
             // The secondary identifiers may be different between the fetched shadow and original values provided by client.
             // Let us ignore that for now, and provide the original values with the resolved primary identifier.
-            return identification.withPrimary(primaryIdentifier);
+            return identification.withPrimaryAdded(primaryIdentifier);
         } else {
             throw new AssertionError(identification);
         }
@@ -189,15 +188,15 @@ class ResourceObjectReferenceResolver {
      * Select single live shadow but allows the existence of multiple dead shadows
      * (if no single live shadow exists). Not very nice! Transitional solution until better one is found.
      *
-     * @see RepoShadow#selectLiveShadow(ProvisioningContext, List, Object)
-     * @see RepoShadow#selectSingleShadow(ProvisioningContext, List, Object)
+     * @see RawRepoShadow#selectLiveShadow(List, Object)
+     * @see ShadowFinder#selectSingleShadow(ProvisioningContext, List, Object)
      */
     private static @Nullable RepoShadow selectSingleShadow(
             @NotNull ProvisioningContext ctx, @NotNull List<PrismObject<ShadowType>> shadows, Object context)
             throws SchemaException, ConfigurationException {
-        var singleLive = RepoShadow.selectLiveShadow(ctx, shadows, context);
+        var singleLive = RawRepoShadow.selectLiveShadow(shadows, context);
         if (singleLive != null) {
-            return singleLive;
+            return ctx.adoptRawRepoShadow(singleLive);
         }
 
         // all remaining shadows (if any) are dead
@@ -207,7 +206,7 @@ class ResourceObjectReferenceResolver {
             LOGGER.error("Cannot select from {} dead shadows {}:\n{}", shadows.size(), context, DebugUtil.debugDump(shadows));
             throw new IllegalStateException("More than one [dead] shadow for " + context);
         } else {
-            return ctx.adoptRepoShadow(shadows.get(0));
+            return ctx.adoptRawRepoShadow(shadows.get(0));
         }
     }
 }

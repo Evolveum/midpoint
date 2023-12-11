@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectIdenti
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectIdentityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import javax.xml.namespace.QName;
+
 /**
  * Identification of a resource object using its primary and/or secondary identifiers.
  *
@@ -126,7 +128,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
     }
 
     /** Enriches current identification with a primary identifier. */
-    public WithPrimary withPrimary(@NotNull ResourceObjectIdentifier.Primary<?> primaryIdentifier) {
+    public WithPrimary withPrimaryAdded(@NotNull ResourceObjectIdentifier.Primary<?> primaryIdentifier) {
         return new WithPrimary(resourceObjectDefinition, identifiers.withPrimary(primaryIdentifier));
     }
 
@@ -314,6 +316,10 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
         return sb.toString();
+    }
+
+    public @NotNull QName getObjectClassName() {
+        return resourceObjectDefinition.getObjectClassName();
     }
 
     /** Identification that contains a primary identifier. Some methods are redeclared as returning a non-null value. */

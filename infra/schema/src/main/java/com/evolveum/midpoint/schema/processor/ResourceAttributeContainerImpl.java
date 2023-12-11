@@ -16,10 +16,11 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.Checks;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -72,29 +73,22 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         super.add(attribute);
     }
 
-    @Override
-    public void addAdoptedIfNeeded(@NotNull PrismProperty<?> property) throws SchemaException {
-        ResourceAttribute<?> attributeToAdd;
-        if (property instanceof ResourceAttribute<?> attribute) {
-            attributeToAdd = attribute.clone();
-        } else {
-            attributeToAdd = getResourceObjectDefinitionRequired().propertyToAttribute(property);
-        }
-        add(attributeToAdd);
-    }
+    //    @Override
+//    public void addAdoptedIfNeeded(@NotNull PrismProperty<?> property) throws SchemaException {
+//        ResourceAttribute<?> attributeToAdd;
+//        if (property instanceof ResourceAttribute<?> attribute) {
+//            attributeToAdd = attribute.clone();
+//        } else {
+//            attributeToAdd = getResourceObjectDefinitionRequired().propertyToAttribute(property);
+//        }
+//        add(attributeToAdd);
+//    }
 
     @Override
-    public PrismProperty<?> getPrimaryIdentifier() {
-        Collection<ResourceAttribute<?>> attrDefs = getPrimaryIdentifiers();
-        if (attrDefs.size() > 1){
-            throw new IllegalStateException("Resource object has more than one identifier.");
-        }
-
-        for (PrismProperty<?> p : attrDefs){
-            return p;
-        }
-
-        return null;
+    public ResourceAttribute<?> getPrimaryIdentifier() {
+        return MiscUtil.extractSingleton(
+                getPrimaryIdentifiers(),
+                () -> new IllegalStateException("Resource object has no identifier"));
     }
 
     @Override
@@ -119,6 +113,7 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         for (ResourceAttributeDefinition attrDef : definitions) {
             for (ResourceAttribute<?> property : getAttributes()){
                 if (attrDef.getItemName().equals(property.getElementName())){
+                    //noinspection unchecked
                     property.setDefinition(attrDef);
                     attributes.add(property);
                 }
@@ -235,13 +230,12 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
     }
 
     @Override
-    public void applyDefinition(PrismContainerDefinition<ShadowAttributesType> definition, boolean force)
-            throws SchemaException {
-        if (definition != null) {
-            Checks.checkSchema(definition instanceof ResourceAttributeContainerDefinition, "Definition should be %s not %s" ,
-                    ResourceAttributeContainerDefinition.class.getSimpleName(), definition.getClass().getName());
-        }
-        super.applyDefinition(definition, force);
+    protected void checkDefinition(@NotNull PrismContainerDefinition<ShadowAttributesType> def) {
+        super.checkDefinition(def);
+        Preconditions.checkArgument(
+                def instanceof ResourceAttributeContainerDefinition,
+                "Definition should be %s not %s" ,
+                ResourceAttributeContainerDefinition.class.getSimpleName(), def.getClass().getName());
     }
 
     @Override

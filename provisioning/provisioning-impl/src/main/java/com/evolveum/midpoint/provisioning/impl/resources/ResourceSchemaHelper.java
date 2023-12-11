@@ -152,7 +152,7 @@ class ResourceSchemaHelper {
         PrismContainer<ConnectorConfigurationType> targetConfigurationContainer =
                 targetConnectorSpec != null ? targetConnectorSpec.getConnectorConfiguration() : null;
         if (targetConfigurationContainer != null) {
-            targetConfigurationContainer.applyDefinition(configurationContainerDefinition, true);
+            targetConfigurationContainer.applyDefinition(configurationContainerDefinition);
         }
 
         if (sourceConnectorSpec.isMain()) {

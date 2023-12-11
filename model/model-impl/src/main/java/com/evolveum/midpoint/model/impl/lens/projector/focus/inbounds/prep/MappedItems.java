@@ -332,7 +332,7 @@ class MappedItems<F extends FocusType> {
                     .collect(Collectors.toList());
             context.beans.prismContext.adopt(filteredAssociations);
             // Make sure all the modified/cloned associations have proper definition
-            filteredAssociations.applyDefinition(currentAssociation.getDefinition(), false);
+            filteredAssociations.applyDefinitionIfMissing(currentAssociation.getDefinition());
             filteredAssociations.addAll(filteredAssociationValues);
             return filteredAssociations;
         } else {

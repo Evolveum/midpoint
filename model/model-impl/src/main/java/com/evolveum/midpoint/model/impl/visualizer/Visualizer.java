@@ -829,7 +829,7 @@ public class Visualizer {
 
         D def = itemDelta.getDefinition();
         if (def != null) {
-            Item<V, D> item = def.instantiate();
+            Item<V, D> item = (Item<V, D>) def.instantiate();
             if (itemDelta.getEstimatedOldValues() != null) {
                 item.addAll(CloneUtil.cloneCollectionMembers(itemDelta.getEstimatedOldValues()));
             }

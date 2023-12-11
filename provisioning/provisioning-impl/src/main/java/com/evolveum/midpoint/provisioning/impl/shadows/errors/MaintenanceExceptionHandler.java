@@ -10,10 +10,11 @@ package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.*;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.RepoShadowFinder;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -42,7 +43,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
     private static final String OPERATION_HANDLE_MODIFY_ERROR = MaintenanceExceptionHandler.class.getName() + ".handleModifyError";
     private static final String OPERATION_HANDLE_DELETE_ERROR = MaintenanceExceptionHandler.class.getName() + ".handleDeleteError";
 
-    @Autowired private RepoShadowFinder repoShadowFinder;
+    @Autowired private ShadowFinder shadowFinder;
 
     @Override
     public RepoShadow handleGetError(
@@ -80,16 +81,16 @@ class MaintenanceExceptionHandler extends ErrorHandler {
 
             ObjectQuery query = ObjectAlreadyExistHandler.createQueryBySecondaryIdentifier(operation.getResourceObjectToAdd());
             LOGGER.trace("Going to find matching shadows using the query:\n{}", query.debugDumpLazily(1));
-            List<PrismObject<ShadowType>> matchingShadows = repoShadowFinder.searchShadows(ctx, query, null, result);
+            List<PrismObject<ShadowType>> matchingShadows = shadowFinder.searchShadows(ctx, query, null, result);
             LOGGER.trace("Found {}: {}", matchingShadows.size(), matchingShadows);
-            RepoShadow liveShadow =
-                    RepoShadow.selectLiveShadow(
-                            ctx,
+            RawRepoShadow rawLiveShadow =
+                    RawRepoShadow.selectLiveShadow(
                             matchingShadows,
                             DebugUtil.lazy(() -> "when looking by secondary identifier: " + query));
-            LOGGER.trace("Live shadow found: {}", liveShadow);
+            LOGGER.trace("Live shadow found: {}", rawLiveShadow);
 
-            if (liveShadow != null) {
+            if (rawLiveShadow != null) {
+                var liveShadow = ctx.adoptRawRepoShadow(rawLiveShadow);
                 if (liveShadow.doesExist()) {
                     LOGGER.trace("Found a live shadow that seems to exist on the resource: {}", liveShadow);
                     status = OperationResultStatus.SUCCESS;

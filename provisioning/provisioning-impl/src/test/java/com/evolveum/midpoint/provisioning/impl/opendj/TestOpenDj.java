@@ -6,15 +6,15 @@
  */
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_PASSWORD;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
+
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.serializeToXml;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-
 import static com.evolveum.midpoint.test.IntegrationTestTools.createEntitleDelta;
-
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,12 +29,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
-import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.prism.impl.polystring.DistinguishedNameNormalizer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -62,10 +57,14 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -75,11 +74,11 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
-import com.evolveum.midpoint.test.util.MidPointAsserts;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
@@ -130,17 +129,14 @@ public class TestOpenDj extends AbstractOpenDjTest {
         return 0;
     }
 
-    @Override
-    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        super.initSystem(initTask, initResult);
-    }
-
     @BeforeClass
     public void startLdap() throws Exception {
         doStartLdap();
-        openDJController.addEntry("dn: ou=specialgroups,dc=example,dc=com\n" +
-                "objectclass: organizationalUnit\n" +
-                "ou: specialgroups\n");
+        openDJController.addEntry("""
+                dn: ou=specialgroups,dc=example,dc=com
+                objectclass: organizationalUnit
+                ou: specialgroups
+                """);
     }
 
     @AfterClass
@@ -205,10 +201,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         ResourceObjectClassDefinition inetOrgPersonDefinition =
                 parsedSchema.findObjectClassDefinitionRequired(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
-        assertNull("The _PASSWORD_ attribute sneaked into schema", inetOrgPersonDefinition.findAttributeDefinition(
-                new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-        assertNull("The userPassword attribute sneaked into schema", inetOrgPersonDefinition.findAttributeDefinition(
-                new QName(NS_RI, "userPassword")));
+        assertNull("The _PASSWORD_ attribute sneaked into schema",
+                inetOrgPersonDefinition.findAttributeDefinition(ICFS_PASSWORD));
+        assertNull("The userPassword attribute sneaked into schema",
+                inetOrgPersonDefinition.findAttributeDefinition(new QName(NS_RI, "userPassword")));
 
         assertShadows(1);
     }
@@ -444,7 +440,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNull("Wrong description matching rule", descriptionDef.getMatchingRuleQName());
 
         assertNull("The _PASSWORD_ attribute sneaked into schema",
-                accountClassDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+                accountClassDef.findAttributeDefinition(ICFS_PASSWORD));
 
         assertNull("The userPassword attribute sneaked into schema",
                 accountClassDef.findAttributeDefinition(new QName(accountClassDef.getTypeName().getNamespaceURI(), "userPassword")));
@@ -604,7 +600,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("ds-pwp-account-disabled is NOT ignored", dsDef.isIgnored());
 
         assertNull("The _PASSWORD_ attribute sneaked into schema",
-                accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+                accountDef.findAttributeDefinition(ICFS_PASSWORD));
 
         ResourceObjectClassDefinition posixAccountObjectClassDef =
                 refinedSchema.findObjectClassDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
@@ -684,24 +680,23 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         assertSuccess(result);
 
-        assertNotNull(provisioningShadow);
-        display("Account provisioning", provisioningShadow);
+        and("provisioning-level shadow is OK");
+        ShadowAsserter.forAbstractShadow(provisioningShadow)
+                .display()
+                .assertOrigValues(QNAME_DN, "uid=jbond,ou=People,dc=example,dc=com")
+                .assertNormValues(QNAME_DN, "uid=jbond,ou=people,dc=example,dc=com")
+                .assertOrigValues(QNAME_UID, "jbond")
+                .assertOrigValues(QNAME_CN, "James Bond")
+                .assertOrigValues(QNAME_SN, "Bond")
+                .assertOid(ACCOUNT_JBOND_OID)
+                .assertName("uid=jbond,ou=People,dc=example,dc=com")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertObjectClass(OBJECT_CLASS_INETORGPERSON_QNAME)
+                .assertResource(RESOURCE_OPENDJ_OID)
+                .assertHasPrimaryIdentifierAttribute()
+                .assertHasIndexedPrimaryIdentifierValue();
 
-        PrismAsserts.assertEqualsPolyString("Name not equals.", "uid=jbond,ou=People,dc=example,dc=com", provisioningShadow.getName());
-
-        assertNotNull(provisioningShadow.getOid());
-        assertNotNull(provisioningShadow.getName());
-        assertEquals(OBJECT_CLASS_INETORGPERSON_QNAME, provisioningShadow.getObjectClass());
-        assertEquals(RESOURCE_OPENDJ_OID, provisioningShadow.getResourceRef().getOid());
-        String idPrimaryVal = getAttributeValue(provisioningShadow, getPrimaryIdentifierQName());
-        assertNotNull("No primary identifier (" + getPrimaryIdentifierQName().getLocalPart() + ")", idPrimaryVal);
-        String idSecondaryVal = getAttributeValue(provisioningShadow, getSecondaryIdentifierQName());
-        assertNotNull("No secondary (" + getSecondaryIdentifierQName().getLocalPart() + ")", idSecondaryVal);
-        // Capitalization is the same as returned by OpenDJ
-        assertEquals("Wrong secondary identifier", "uid=jbond,ou=People,dc=example,dc=com", idSecondaryVal);
-        assertEquals("Wrong LDAP uid", "jbond", getAttributeValue(provisioningShadow, new QName(NS_RI, "uid")));
-        assertEquals("Wrong LDAP cn", "James Bond", getAttributeValue(provisioningShadow, new QName(NS_RI, "cn")));
-        assertEquals("Wrong LDAP sn", "Bond", getAttributeValue(provisioningShadow, new QName(NS_RI, "sn")));
+        // TODO create assertions for these eventually
         assertNotNull("Missing activation", provisioningShadow.getActivation());
         assertNotNull("Missing activation status", provisioningShadow.getActivation().getAdministrativeStatus());
         assertEquals("Not enabled", ActivationStatusType.ENABLED, provisioningShadow.getActivation().getAdministrativeStatus());
@@ -709,17 +704,41 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Object createTimestamp = ShadowUtil.getAttributeValue(provisioningShadow, new QName(NS_RI, "createTimestamp"));
         assertTimestamp("createTimestamp", createTimestamp);
 
-        ShadowType repoShadow = getShadowRepo(provisioningShadow.getOid()).asObjectable();
-        display("Account repo", repoShadow);
-        assertEquals(OBJECT_CLASS_INETORGPERSON_QNAME, repoShadow.getObjectClass());
-        assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
-        idPrimaryVal = getAttributeValue(repoShadow, getPrimaryIdentifierQName());
-        assertNotNull("No primary identifier (" + getPrimaryIdentifierQName().getLocalPart() + ") (repo)", idPrimaryVal);
-        idSecondaryVal = getAttributeValue(repoShadow, getSecondaryIdentifierQName());
-        assertNotNull("No secondary (" + getSecondaryIdentifierQName().getLocalPart() + ") (repo)", idSecondaryVal);
-        // must be all lowercase
-        assertEquals("Wrong secondary identifier (repo)", "uid=jbond,ou=people,dc=example,dc=com", idSecondaryVal);
+        and("repo shadow is OK");
+        assertRepoShadowNew(provisioningShadow.getOid())
+                .display()
+                .assertCachedOrigValues(QNAME_DN, "uid=jbond,ou=People,dc=example,dc=com")
+                // No norm value here (yet) because it's not in the fullObject
+                .assertCachedOrigValues(QNAME_UID, "jbond")
+                .assertCachedOrigValues(QNAME_CN, "James Bond")
+                .assertCachedOrigValues(QNAME_SN, "Bond")
+                .assertOid(ACCOUNT_JBOND_OID)
+                .assertName("uid=jbond,ou=People,dc=example,dc=com")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertObjectClass(OBJECT_CLASS_INETORGPERSON_QNAME)
+                .assertResource(RESOURCE_OPENDJ_OID)
+                .assertHasIndexedPrimaryIdentifierValue();
 
+        and("search by DN norm value works");
+
+        var query = Resource.of(resourceBean)
+                .queryFor(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT)
+                .and().item(
+                        PATH_DN,
+                        getAccountAttributeDefinitionRequired(QNAME_DN).toNormalizationAware())
+                .eq(DistinguishedNameNormalizer.instance().poly("uid=jbond,ou=People,dc=example,dc=com"))
+                .matchingNorm()
+                .build();
+        var objects = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertThat(objects)
+                .as("objects found")
+                .hasSize(1)
+                .element(0)
+                .extracting(PrismObject::getOid)
+                .as("OID")
+                .isEqualTo(ACCOUNT_JBOND_OID);
+
+        and("Number of shadows is OK");
         assertShadows(2 + getNumberOfBaseContextShadows());
     }
 
@@ -822,13 +841,17 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
-        ShadowType repoShadowTypeAfter = getShadowRepo(ACCOUNT_WILL_OID).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowTypeAfter.getName());
-        assertAttribute(repoShadowTypeAfter, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_WILL_DN));
+        assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .display()
+                .assertName("uid=will,ou=People,dc=example,dc=com")
+                .assertCachedOrigValues(OpenDJController.RESOURCE_OPENDJ_DN, ACCOUNT_WILL_DN);
+                //.assertCachedNormValues(OpenDJController.RESOURCE_OPENDJ_DN, StringUtils.lowerCase(ACCOUNT_WILL_DN)); //not yet
 
-        ShadowType provisioningAccountTypeAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
-                null, task, result).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will,ou=People,dc=example,dc=com", provisioningAccountTypeAfter.getName());
+        ShadowType accountAfter = provisioningService
+                .getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result)
+                .asObjectable();
+        ShadowAsserter.forAbstractShadow(accountAfter)
+                .assertName("uid=will,ou=People,dc=example,dc=com");
 
         assertShadows(1 + getNumberOfBaseContextShadows());
     }
@@ -838,24 +861,37 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+//        result.tracingProfile(
+//                tracer.compileProfile(
+//                        addRepositoryAndSqlLogging(
+//                                createModelAndProvisioningLoggingTracingProfile()),
+//                        result));
+
+        given("account is renamed on the resource");
         openDJController.executeRenameChange(new File(TEST_DIR, "rename.ldif").getPath());
 
         Entry entry = openDJController.fetchEntry("uid=will123,ou=People,dc=example,dc=com");
         assertNotNull("Entry with dn uid=will123,ou=People,dc=example,dc=com does not exist", entry);
 
-        ShadowType repoShadowType = getShadowRepo(ACCOUNT_WILL_OID).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowType.getName());
-        assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_WILL_DN));
+        then("old name is still present in the repo");
+        assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .assertName(ACCOUNT_WILL_DN)
+                .assertCachedOrigValues(QNAME_DN, ACCOUNT_WILL_DN);
 
-        ShadowType provisioningAccountType = provisioningService
+        when("account is fetched via provisioning");
+        ShadowType provisioningAccount = provisioningService
                 .getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result)
                 .asObjectable();
-        PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will123,ou=People,dc=example,dc=com", provisioningAccountType.getName());
-        assertAttribute(provisioningAccountType, getSecondaryIdentifierQName(), "uid=will123,ou=People,dc=example,dc=com");
 
-        repoShadowType = getShadowRepo(ACCOUNT_WILL_OID).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Name not equal (repo after provisioning)", "uid=will123,ou=People,dc=example,dc=com", repoShadowType.getName());
-        assertAttribute(repoShadowType, getSecondaryIdentifierQName(), "uid=will123,ou=people,dc=example,dc=com");
+        then("new name is returned");
+        assertShadowNew(provisioningAccount)
+                .assertName("uid=will123,ou=People,dc=example,dc=com")
+                .assertOrigValues(QNAME_DN, "uid=will123,ou=People,dc=example,dc=com");
+
+        and("the name is updated in the repo");
+        assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .assertName("uid=will123,ou=People,dc=example,dc=com")
+                .assertCachedOrigValues(QNAME_DN, "uid=will123,ou=People,dc=example,dc=com");
 
         assertShadows(1 + getNumberOfBaseContextShadows());
     }
@@ -882,6 +918,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        when("account is added");
         ShadowType object = parseObjectType(ACCOUNT_SPARROW_FILE, ShadowType.class);
 
         System.out.println(SchemaDebugUtil.prettyPrint(object));
@@ -890,11 +927,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
         assertEquals(ACCOUNT_SPARROW_OID, addedObjectOid);
 
-        when();
+        and("it is deleted");
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_SPARROW_OID, null, null, task, result);
 
-        then();
-
+        then("the 'provisioning get' should fail with an exception");
         try {
             provisioningService.getObject(ShadowType.class, ACCOUNT_SPARROW_OID, null, task, result);
             Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
@@ -902,8 +938,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
             displayExpectedException(ex);
         }
 
+        and("the 'repo get' should fail with an exception");
         try {
-            getShadowRepo(ACCOUNT_SPARROW_OID).asObjectable();
+            getShadowRepoLegacy(ACCOUNT_SPARROW_OID);
             Assert.fail("Expected exception, but haven't got one.");
         } catch (ObjectNotFoundException ex) {
             displayExpectedException(ex);
@@ -931,8 +968,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 
         ItemPath icfNamePath = ItemPath.create(ShadowType.F_ATTRIBUTES, getSecondaryIdentifierQName());
-        PrismPropertyDefinition<?> icfNameDef = object
-                .asPrismObject().getDefinition().findPropertyDefinition(icfNamePath);
+        PrismPropertyDefinition<?> icfNameDef = object.asPrismObject().getDefinition().findPropertyDefinition(icfNamePath);
         ItemDelta<?, ?> renameDelta = prismContext.deltaFactory().property()
                 .createModificationReplaceProperty(icfNamePath, icfNameDef, "uid=rename,ou=People,dc=example,dc=com");
         //noinspection unchecked,rawtypes
@@ -948,25 +984,21 @@ public class TestOpenDj extends AbstractOpenDjTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        ShadowType accountType = provisioningService
+        ShadowType provisioningAccount = provisioningService
                 .getObject(ShadowType.class, ACCOUNT_JACK_OID, null, task, result)
                 .asObjectable();
 
-        display("Object after change", accountType);
+        display("Object after change", provisioningAccount);
 
-        String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());
-        List<Object> snValues = ShadowUtil.getAttributeValues(accountType, MidPointTestConstants.QNAME_SN);
-        assertNotNull("No 'sn' attribute", snValues);
-        assertFalse("Surname attributes must not be empty", snValues.isEmpty());
-        assertEquals(1, snValues.size());
+        String uid = assertShadowNew(provisioningAccount)
+                .assertOrigValues(QNAME_DN, "uid=rename,ou=People,dc=example,dc=com")
+                .assertOrigValues(QNAME_SN, "First")
+                .getOrigValue(QNAME_ENTRY_UUID);
 
-        //check icf_name in the shadow object fetched only from the repository
-        ShadowType repoShadow = getShadowRepo(objectChange.getOid()).asObjectable();
-        String name = ShadowUtil.getSingleStringAttributeValue(repoShadow, getSecondaryIdentifierQName());
-        assertEquals("After rename, dn is not equal.", "uid=rename,ou=people,dc=example,dc=com", name);
-        assertEquals("shadow name not changed after rename", "uid=rename,ou=People,dc=example,dc=com", repoShadow.getName().getOrig());
-
-        String changedSn = (String) snValues.get(0);
+        assertRepoShadowNew(objectChange.getOid())
+                .assertCachedOrigValues(QNAME_DN, "uid=rename,ou=People,dc=example,dc=com")
+                .assertCachedNormValues(QNAME_DN, "uid=rename,ou=people,dc=example,dc=com")
+                .assertName("uid=rename,ou=People,dc=example,dc=com");
 
         assertNotNull(uid);
 
@@ -976,8 +1008,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
         display("LDAP account", response);
 
         OpenDJController.assertAttribute(response, "sn", "First");
-
-        assertEquals("First", changedSn);
 
         assertShadows(3);
     }
@@ -1144,22 +1174,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
         String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
         assertEquals(ACCOUNT_NEW_WITH_PASSWORD_OID, addedObjectOid);
 
-        ShadowType accountType = getShadowRepo(ACCOUNT_NEW_WITH_PASSWORD_OID).asObjectable();
-//            assertEquals("lechuck", accountType.getName());
-        PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=lechuck,ou=People,dc=example,dc=com", accountType.getName());
+        assertRepoShadowNew(ACCOUNT_NEW_WITH_PASSWORD_OID)
+                .assertName("uid=lechuck,ou=People,dc=example,dc=com");
 
-        ShadowType provisioningAccountType = provisioningService
-                .getObject(ShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID, null, task, result)
-                .asObjectable();
-        PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=lechuck,ou=People,dc=example,dc=com", provisioningAccountType.getName());
-//            assertEquals("lechuck", provisioningAccountType.getName());
+        String uid = assertProvisioningShadowNew(ACCOUNT_NEW_WITH_PASSWORD_OID)
+                .assertName("uid=lechuck,ou=People,dc=example,dc=com")
+                .getOrigValue(QNAME_ENTRY_UUID);
 
-        String uid = null;
-        for (Object e : accountType.getAttributes().getAny()) {
-            if (getPrimaryIdentifierQName().equals(JAXBUtil.getElementQName(e))) {
-                uid = ((Element) e).getTextContent();
-            }
-        }
         assertNotNull(uid);
 
         // Check if object was created in LDAP and that there is a password
@@ -1376,7 +1397,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         assertEquals("ds-pwp-account-disabled not set to \"TRUE\"", "TRUE", disabled);
 
-        PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_DISABLE_SIMULATED_OID);
+        PrismObject<ShadowType> repoShadow = getShadowRepoLegacy(ACCOUNT_DISABLE_SIMULATED_OID);
         ActivationType repoActivation = repoShadow.asObjectable().getActivation();
         assertNotNull("No activation in repo", repoActivation);
         XMLGregorianCalendar repoDisableTimestamp = repoActivation.getDisableTimestamp();
@@ -1401,16 +1422,14 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         assertEquals(ACCOUNT_NEW_DISABLED_OID, addedObjectOid);
 
-        ShadowType accountType = getShadowRepo(ACCOUNT_NEW_DISABLED_OID).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", "uid=rapp,ou=People,dc=example,dc=com", accountType.getName());
+        var repoShadow = assertRepoShadowNew(ACCOUNT_NEW_DISABLED_OID)
+                .assertName("uid=rapp,ou=People,dc=example,dc=com")
+                .assertHasIndexedPrimaryIdentifierValue()
+                .getObjectable();
+        String uid = repoShadow.getPrimaryIdentifierValue();
 
-        ShadowType provisioningAccountType = provisioningService
-                .getObject(ShadowType.class, ACCOUNT_NEW_DISABLED_OID, null, task, result)
-                .asObjectable();
-        PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", "uid=rapp,ou=People,dc=example,dc=com", provisioningAccountType.getName());
-
-        String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());
-        assertNotNull(uid);
+        assertRepoShadowNew(ACCOUNT_NEW_DISABLED_OID)
+                .assertName("uid=rapp,ou=People,dc=example,dc=com");
 
         // Check if object was modified in LDAP
 
@@ -1424,7 +1443,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         assertEquals("ds-pwp-account-disabled not set to \"TRUE\"", "TRUE", disabled);
 
-        ActivationType repoActivation = accountType.getActivation();
+        ActivationType repoActivation = repoShadow.getActivation();
         assertNotNull("No activation in repo", repoActivation);
         XMLGregorianCalendar repoDisableTimestamp = repoActivation.getDisableTimestamp();
         assertNotNull("No activation disableTimestamp in repo", repoDisableTimestamp);
@@ -1450,17 +1469,14 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         assertEquals(ACCOUNT_NEW_ENABLED_OID, addedObjectOid);
 
-        ShadowType accountType = getShadowRepo(ACCOUNT_NEW_ENABLED_OID).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", "uid=cook,ou=People,dc=example,dc=com", accountType.getName());
+        var repoShadow = assertRepoShadowNew(ACCOUNT_NEW_ENABLED_OID)
+                .assertName("uid=cook,ou=People,dc=example,dc=com")
+                .assertHasIndexedPrimaryIdentifierValue()
+                .getObjectable();
+        String uid = repoShadow.getPrimaryIdentifierValue();
 
-        ShadowType provisioningAccountType =
-                provisioningService
-                        .getObject(ShadowType.class, ACCOUNT_NEW_ENABLED_OID, null, task, result)
-                        .asObjectable();
-        PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", "uid=cook,ou=People,dc=example,dc=com", provisioningAccountType.getName());
-
-        String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());
-        assertNotNull(uid);
+        assertRepoShadowNew(ACCOUNT_NEW_ENABLED_OID)
+                .assertName("uid=cook,ou=People,dc=example,dc=com");
 
         // Check if object was modified in LDAP
 
@@ -1658,7 +1674,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(ACCOUNT_BARBOSSA_DN, resource, false);
+        ObjectQuery query =
+                createAccountShadowQuerySecondaryIdentifier(ACCOUNT_BARBOSSA_DN, resource, false, false);
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
@@ -1695,7 +1712,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(
-                "uid=DoesNOTeXXXiSt,ou=People,dc=example,dc=com", resource, false);
+                "uid=DoesNOTeXXXiSt,ou=People,dc=example,dc=com", resource, false, false);
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
@@ -1762,11 +1779,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = queryFor(ShadowType.class)
-                .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_OPENDJ_OID)
-                .and().item(ShadowType.F_KIND).eq(ShadowKindType.ENTITLEMENT)
-                .and().item(ShadowType.F_INTENT).eq("unlimitedGroup")
-                .and().item(MidPointTestConstants.PATH_CN, getAccountAttributeDefinitionRequired(MidPointTestConstants.QNAME_CN)).eq("Will Turner")
+        var query = Resource.of(resourceBean)
+                .queryFor(ShadowKindType.ENTITLEMENT, "unlimitedGroup")
+                .and().item(MidPointTestConstants.PATH_CN).eq("Will Turner")
                 .build();
 
         when();
@@ -2069,24 +2084,24 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         assertEquals(ACCOUNT_POSIX_MCMUTTON_OID, addedObjectOid);
 
-        ShadowType repoShadowType = getShadowRepo(ACCOUNT_POSIX_MCMUTTON_OID).asObjectable();
-        display("Repo shadow", repoShadowType);
-        PrismAsserts.assertEqualsPolyString("Name not equal (repo)", ACCOUNT_POSIX_MCMUTTON_DN, repoShadowType.getName());
-        assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_POSIX_MCMUTTON_DN));
-        MidPointAsserts.assertObjectClass(repoShadowType, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
+        String uid = assertRepoShadowNew(ACCOUNT_POSIX_MCMUTTON_OID)
+                .display()
+                .assertName(ACCOUNT_POSIX_MCMUTTON_DN)
+                .assertCachedOrigValues(QNAME_DN, ACCOUNT_POSIX_MCMUTTON_DN)
+                .assertCachedNormValues(QNAME_DN, ACCOUNT_POSIX_MCMUTTON_DN.toLowerCase())
+                .assertObjectClass(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS)
+                .assertAuxiliaryObjectClasses(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS)
+                .getIndexedPrimaryIdentifierValueRequired();
 
-        ShadowType provisioningShadowType = provisioningService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID,
-                null, task, result).asObjectable();
-        display("Provisioning shadow", provisioningShadowType);
-        PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_POSIX_MCMUTTON_DN, provisioningShadowType.getName());
-        MidPointAsserts.assertObjectClass(provisioningShadowType, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
-        assertAttribute(provisioningShadowType, "cn", "Haggis McMutton");
-        assertAttribute(provisioningShadowType, "sn", "McMutton");
-        assertAttribute(provisioningShadowType, "homeDirectory", "/home/scotland");
-        assertAttribute(provisioningShadowType, "uidNumber", BigInteger.valueOf(1001));
-
-        String uid = ShadowUtil.getSingleStringAttributeValue(repoShadowType, getPrimaryIdentifierQName());
-        assertNotNull(uid);
+        assertProvisioningShadowNew(ACCOUNT_POSIX_MCMUTTON_OID)
+                .display()
+                .assertName(ACCOUNT_POSIX_MCMUTTON_DN)
+                .assertObjectClass(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS)
+                .assertAuxiliaryObjectClasses(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS)
+                .assertOrigValues(QNAME_CN, "Haggis McMutton")
+                .assertOrigValues(QNAME_SN, "McMutton")
+                .assertOrigValues("homeDirectory", "/home/scotland")
+                .assertOrigValues("uidNumber", BigInteger.valueOf(1001));
 
         // Check if object was modified in LDAP
 
@@ -2230,25 +2245,19 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         assertEquals(GROUP_SWASHBUCKLERS_OID, addedObjectOid);
 
-        ShadowType shadowType = getShadowRepo(GROUP_SWASHBUCKLERS_OID).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", GROUP_SWASHBUCKLERS_DN, shadowType.getName());
+        String uid = assertRepoShadowNew(GROUP_SWASHBUCKLERS_OID)
+                .assertName(GROUP_SWASHBUCKLERS_DN_ORIG)
+                .getIndexedPrimaryIdentifierValueRequired();
 
-        PrismObject<ShadowType> provisioningShadow =
-                provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID, null, task, result);
-        ShadowType provisioningShadowType = provisioningShadow.asObjectable();
-        assertEquals("Wrong ICF name (provisioning)", dnMatchingRule.normalize(GROUP_SWASHBUCKLERS_DN),
-                dnMatchingRule.normalize(provisioningShadowType.getName().getOrig()));
-
-        String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());
-        assertNotNull(uid);
-        ResourceAttribute<Object> memberAttr = ShadowUtil.getAttribute(provisioningShadow, GROUP_MEMBER_ATTR_QNAME);
-        assertNull("Member attribute sneaked in", memberAttr);
+        assertProvisioningShadowNew(GROUP_SWASHBUCKLERS_OID)
+                .assertName(GROUP_SWASHBUCKLERS_DN_ORIG)
+                .assertOrigValues(GROUP_MEMBER_ATTR_QNAME); // should be no values for members attribute
 
         Entry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
         display("LDAP group", ldapEntry);
         assertNotNull("No LDAP group entry", ldapEntry);
         String groupDn = ldapEntry.getDN().toString();
-        assertEquals("Wrong group DN", dnMatchingRule.normalize(GROUP_SWASHBUCKLERS_DN), dnMatchingRule.normalize(groupDn));
+        assertEquals("Wrong group DN", GROUP_SWASHBUCKLERS_DN_ORIG, groupDn);
 
         assertShadows(18);
     }
@@ -2267,10 +2276,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
 
-        assertRepoShadow(ACCOUNT_MORGAN_OID)
+        assertRepoShadowNew(ACCOUNT_MORGAN_OID)
                 .assertName(ACCOUNT_MORGAN_DN);
 
-        ShadowType swashbucklersShadow = getShadowRepo(GROUP_SWASHBUCKLERS_OID).asObjectable();
+        String swashbucklersUid = assertRepoShadowNew(GROUP_SWASHBUCKLERS_OID)
+                .getIndexedPrimaryIdentifierValueRequired();
 
         // @formatter:off
         ShadowAsserter<Void> provisioningShadowAsserter = assertShadowProvisioning(ACCOUNT_MORGAN_OID)
@@ -2280,8 +2290,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
                     .association(ASSOCIATION_GROUP_NAME)
                         .assertSize(1)
                         .forShadowOid(GROUP_SWASHBUCKLERS_OID)
-                            .assertIdentifierValueMatching(QNAME_DN, GROUP_SWASHBUCKLERS_DN)
-                            .assertIdentifierValueMatching(QNAME_ENTRY_UUID, swashbucklersShadow.getPrimaryIdentifierValue())
+                            .assertIdentifierValueMatching(QNAME_DN, GROUP_SWASHBUCKLERS_DN_ORIG)
+                            .assertIdentifierValueMatching(QNAME_ENTRY_UUID, swashbucklersUid)
                         .end()
                     .end()
                 .end();
@@ -2298,7 +2308,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         String accountDn = accountEntry.getDN().toString();
         assertEquals("Wrong account DN", ACCOUNT_MORGAN_DN, accountDn);
 
-        Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
+        Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN_ORIG);
         display("LDAP group", groupEntry);
         assertNotNull("No LDAP group entry", groupEntry);
         openDJController.assertUniqueMember(groupEntry, accountDn);
@@ -2324,7 +2334,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         }
 
         then();
-        assertRepoShadow(ACCOUNT_MORGAN_OID)
+        assertRepoShadowNew(ACCOUNT_MORGAN_OID)
                 .assertName(ACCOUNT_MORGAN_DN);
 
         ShadowAsserter<Void> provisioningShadowAsserter = assertShadowProvisioning(ACCOUNT_MORGAN_OID)
@@ -2347,7 +2357,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         String accountDn = accountEntry.getDN().toString();
         assertEquals("Wrong account DN", ACCOUNT_MORGAN_DN, accountDn);
 
-        Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
+        Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN_ORIG);
         display("LDAP group", groupEntry);
         assertNotNull("No LDAP group entry", groupEntry);
         openDJController.assertUniqueMember(groupEntry, accountDn);
@@ -2365,21 +2375,19 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID, null, task, result);
 
         then();
-        ShadowType provisioningShadowType = provisioningShadow.asObjectable();
-        assertEquals("Wrong ICF name (provisioning)", dnMatchingRule.normalize(GROUP_SWASHBUCKLERS_DN),
-                dnMatchingRule.normalize(provisioningShadowType.getName().getOrig()));
+        String uid = assertShadowNew(provisioningShadow.asObjectable())
+                .assertName(GROUP_SWASHBUCKLERS_DN_ORIG)
+                .attributes()
+                .assertNoAttribute(GROUP_MEMBER_ATTR_QNAME)
+                .getValue(getPrimaryIdentifierQName());
 
-        String uid = ShadowUtil.getSingleStringAttributeValue(provisioningShadowType, getPrimaryIdentifierQName());
-        assertNotNull(uid);
-        ResourceAttribute<Object> memberAttr = ShadowUtil.getAttribute(provisioningShadow, GROUP_MEMBER_ATTR_QNAME);
-        assertNull("Member attribute sneaked in", memberAttr);
+        assertThat(uid).as("uid").isNotNull();
 
-        // TODO entry? group? not account? seems like copy/paste error from cases above
         Entry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
         display("LDAP group", ldapEntry);
         assertNotNull("No LDAP group entry", ldapEntry);
         String groupDn = ldapEntry.getDN().toString();
-        assertEquals("Wrong group DN", dnMatchingRule.normalize(GROUP_SWASHBUCKLERS_DN), dnMatchingRule.normalize(groupDn));
+        assertEquals("Wrong group DN", GROUP_SWASHBUCKLERS_DN_ORIG, groupDn);
 
         assertShadows(19);
     }
@@ -2419,15 +2427,15 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        openDJController.addEntry("dn: cn=sailor,ou=Groups,dc=example,dc=com\n" +
-                "objectClass: groupOfUniqueNames\n" +
-                "objectClass: top\n" +
-                "cn: sailor\n" +
-                "uniqueMember: uid=MOrgan,ou=PEOPLE,dc=example,dc=com");
+        openDJController.addEntry("""
+                dn: cn=sailor,ou=Groups,dc=example,dc=com
+                objectClass: groupOfUniqueNames
+                objectClass: top
+                cn: sailor
+                uniqueMember: uid=MOrgan,ou=PEOPLE,dc=example,dc=com""");
 
         when();
-        PrismObject<ShadowType> shadow =
-                provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_MORGAN_OID, null, task, result);
 
         then();
         assertSuccess(result);
@@ -2435,13 +2443,12 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         assertShadows(21);
 
-        PrismObject<ShadowType> groupSailorShadow =
-                findShadowByName(
-                        RESOURCE_OPENDJ_GROUP_OBJECTCLASS, "cn=sailor,ou=groups,dc=example,dc=com", resource, result);
-        display("Group shadow", groupSailorShadow);
-        groupSailorOid = groupSailorShadow.getOid();
+        var sailorRepoShadow = findShadowByName(
+                RESOURCE_OPENDJ_GROUP_OBJECTCLASS, "cn=sailor,ou=groups,dc=example,dc=com", resource, result);
+        display("Group shadow", sailorRepoShadow);
+        groupSailorOid = sailorRepoShadow.getOid();
 
-        assertEntitlementGroup(shadow, groupSailorOid);
+        assertEntitlementGroup(shadow.getPrismObject(), groupSailorOid);
 
         assertShadows(21);
     }
@@ -2460,8 +2467,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         assertEquals(GROUP_CORSAIRS_OID, addedObjectOid);
 
-        ShadowType shadowType = getShadowRepo(GROUP_CORSAIRS_OID).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", GROUP_CORSAIRS_DN, shadowType.getName());
+        assertRepoShadowNew(GROUP_CORSAIRS_OID)
+                .assertName(GROUP_CORSAIRS_DN);
 
         // Do NOT read provisioning shadow here. We want everything to be "fresh"
 
@@ -2525,9 +2532,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = deltaFor(ShadowType.class)
-                .item(PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
-                .replace("uid=morgan,ou=People,dc=example,dc=com")
+        var delta = Resource.of(resourceBean)
+                .deltaFor(OBJECT_CLASS_INETORGPERSON_QNAME)
+                .item(PATH_DN).replace("uid=morgan,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
 
         when();
@@ -2559,16 +2566,18 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        var normAwareDef = getAccountAttributeDefinitionRequired(QNAME_DN).toNormalizationAware();
+        var normAwareAttr = normAwareDef.instantiateFromUniqueRealValues(List.of("uid=morgan-rotten,ou=People,dc=example,dc=com"));
         ObjectDelta<ShadowType> rotDelta = deltaFor(ShadowType.class)
-                .item(PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
-                .replace("uid=morgan-rotten,ou=People,dc=example,dc=com")
+                .item(PATH_DN, normAwareDef)
+                .replaceRealValues(normAwareAttr.getRealValues())
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
         repositoryService.modifyObject(ShadowType.class, ACCOUNT_MORGAN_OID, rotDelta.getModifications(), result);
 
         // This is no-op on resource. (The DN on resource has not changed.)
-        ObjectDelta<ShadowType> delta = deltaFor(ShadowType.class)
-                .item(PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
-                .replace("uid=morgan,ou=People,dc=example,dc=com")
+        ObjectDelta<ShadowType> delta = Resource.of(resourceBean)
+                .deltaFor(OBJECT_CLASS_INETORGPERSON_QNAME)
+                .item(PATH_DN).replace("uid=morgan,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
 
         when();
@@ -2600,29 +2609,24 @@ public class TestOpenDj extends AbstractOpenDjTest {
         when();
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, null, task, result);
 
-        ShadowType objType = null;
-
         try {
-            objType = provisioningService
+            provisioningService
                     .getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, task, result)
                     .asObjectable();
             Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
         } catch (ObjectNotFoundException ex) {
             displayExpectedException(ex);
-            assertNull(objType);
         }
 
         try {
-            objType = getShadowRepo(ACCOUNT_MORGAN_OID).asObjectable();
-            // objType = container.getObject();
+            getShadowRepoLegacy(ACCOUNT_MORGAN_OID);
             Assert.fail("Expected exception, but haven't got one.");
         } catch (Exception ex) {
-            assertNull(objType);
             assertEquals(ex.getClass(), ObjectNotFoundException.class);
             assertTrue(ex.getMessage().contains(ACCOUNT_MORGAN_OID));
         }
 
-        Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
+        Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN_NORM);
         display("LDAP group", groupEntry);
         assertNotNull("No LDAP group entry", groupEntry);
         openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
@@ -2715,26 +2719,20 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         assertEquals(GROUP_SPECIALISTS_OID, addedObjectOid);
 
-        ShadowType shadowType = getShadowRepo(GROUP_SPECIALISTS_OID).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", GROUP_SPECIALISTS_DN, shadowType.getName());
+        var uid = assertRepoShadowNew(GROUP_SPECIALISTS_OID)
+                .assertName(GROUP_SPECIALISTS_DN_ORIG)
+                .getIndexedPrimaryIdentifierValueRequired();
 
-        PrismObject<ShadowType> provisioningShadow =
-                provisioningService.getObject(ShadowType.class, GROUP_SPECIALISTS_OID, null, task, result);
-        ShadowType provisioningShadowType = provisioningShadow.asObjectable();
-        assertEquals("Wrong ICF name (provisioning)", dnMatchingRule.normalize(GROUP_SPECIALISTS_DN),
-                dnMatchingRule.normalize(provisioningShadowType.getName().getOrig()));
-
-        String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());
-        assertNotNull(uid);
-        ResourceAttribute<Object> memberAttr =
-                ShadowUtil.getAttribute(provisioningShadow, GROUP_MEMBER_ATTR_QNAME);
-        assertNull("Member attribute sneaked in", memberAttr);
+        assertProvisioningShadowNew(GROUP_SPECIALISTS_OID)
+                .assertName(GROUP_SPECIALISTS_DN_ORIG)
+                .attributes()
+                .assertNoAttribute(GROUP_MEMBER_ATTR_QNAME);
 
         Entry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
         display("LDAP group", ldapEntry);
         assertNotNull("No LDAP group entry", ldapEntry);
         String groupDn = ldapEntry.getDN().toString();
-        assertEquals("Wrong group DN", dnMatchingRule.normalize(GROUP_SPECIALISTS_DN), dnMatchingRule.normalize(groupDn));
+        assertEquals("Wrong group DN", GROUP_SPECIALISTS_DN_NORM, dnMatchingRule.normalize(groupDn));
 
         assertShadows(23);
     }
@@ -3156,23 +3154,18 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         assertEquals(OU_SUPER_OID, addedObjectOid);
 
-        ShadowType shadowType = getShadowRepo(OU_SUPER_OID).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", OU_SUPER_DN, shadowType.getName());
+        var uid = assertRepoShadowNew(OU_SUPER_OID)
+                .assertName(OU_SUPER_DN_ORIG)
+                .getIndexedPrimaryIdentifierValueRequired();
 
-        PrismObject<ShadowType> provisioningShadow =
-                provisioningService.getObject(ShadowType.class, OU_SUPER_OID, null, task, result);
-        ShadowType provisioningShadowType = provisioningShadow.asObjectable();
-        assertEquals("Wrong ICF name (provisioning)", dnMatchingRule.normalize(OU_SUPER_DN),
-                dnMatchingRule.normalize(provisioningShadowType.getName().getOrig()));
-
-        String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());
-        assertNotNull(uid);
+        assertProvisioningShadowNew(OU_SUPER_OID)
+                .assertName(OU_SUPER_DN_ORIG);
 
         Entry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
         display("LDAP ou", ldapEntry);
         assertNotNull("No LDAP ou entry", ldapEntry);
         String groupDn = ldapEntry.getDN().toString();
-        assertEquals("Wrong ou DN", dnMatchingRule.normalize(OU_SUPER_DN), dnMatchingRule.normalize(groupDn));
+        assertEquals("Wrong ou DN", OU_SUPER_DN_ORIG, groupDn);
 
         assertShadows(26);
     }
@@ -3199,15 +3192,16 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertSuccess(result);
 
         assertNoRepoShadow(OU_SUPER_OID);
-        openDJController.assertNoEntry(OU_SUPER_DN);
+        openDJController.assertNoEntry(OU_SUPER_DN_ORIG);
 
         assertShadows(25);
     }
 
     void createSubOrg() throws IOException, LDIFException {
-        openDJController.addEntry("dn: ou=sub,ou=Super,dc=example,dc=com\n" +
-                "objectClass: organizationalUnit\n" +
-                "ou: sub");
+        openDJController.addEntry("""
+                dn: ou=sub,ou=Super,dc=example,dc=com
+                objectClass: organizationalUnit
+                ou: sub""");
     }
 
     @Test
@@ -3505,11 +3499,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OpenDJController.assertAttributeLang(entry, ATTRIBUTE_DESCRIPTION_NAME, expectedOrigValue, params);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private <T> ResourceAttributeDefinition<T> getAccountAttributeDefinitionRequired(QName attrName) throws SchemaException {
-        //noinspection unchecked
-        return (ResourceAttributeDefinition<T>)
-                ResourceSchemaFactory.getRawSchema(resourceBean)
-                        .findObjectClassDefinitionRequired(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS)
-                        .findAttributeDefinitionRequired(attrName);
+        return ResourceSchemaFactory.getRawSchema(resourceBean)
+                .findObjectClassDefinitionRequired(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS)
+                .findAttributeDefinitionRequired(attrName);
     }
 }

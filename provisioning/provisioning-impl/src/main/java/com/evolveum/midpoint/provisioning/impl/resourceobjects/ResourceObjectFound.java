@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Represents a *lazily-initializable* resource object (e.g. an account) found by
@@ -89,8 +89,13 @@ public class ResourceObjectFound extends AbstractLazilyInitializableResourceEnti
     @Override
     public void initializeInternalCommon(Task task, OperationResult result) throws SchemaException, ConfigurationException {
         super.initializeInternalCommon(task, result);
-        resourceObject = globalCtx.adoptUcfResourceObject(
-                ucfObjectFound.getResourceObject());
+        try {
+            resourceObject = globalCtx.adoptUcfResourceObject(
+                    ucfObjectFound.getResourceObject());
+        } catch (Throwable t) {
+            resourceObject = getMinimalResourceObject();
+            throw t;
+        }
     }
 
     @Override
@@ -111,17 +116,26 @@ public class ResourceObjectFound extends AbstractLazilyInitializableResourceEnti
         throw new IllegalStateException("UCF does not signal 'not applicable' state");
     }
 
-    public @NotNull ExistingResourceObject getResourceObject() {
+    public ExistingResourceObject getResourceObject() {
         return resourceObject;
     }
 
-    public @NotNull ShadowType getBean() {
-        return getResourceObject().getBean();
+    @Override
+    public ResourceObjectDefinition getResourceObjectDefinition() {
+        if (resourceObject != null) {
+            return resourceObject.getObjectDefinition();
+        } else {
+            return getEffectiveCtx().getObjectDefinition();
+        }
     }
 
     public Object getPrimaryIdentifierValue() {
-        return getResourceObject().getPrimaryIdentifierValue();
+        return ucfObjectFound.getPrimaryIdentifierValue();
     }
+
+//    public @NotNull ResourceObjectIdentification.WithPrimary getPrimaryIdentification() throws SchemaException {
+//        return resourceObject.getPrimaryIdentification();
+//    }
 
     @Override
     public Trace getLogger() {
@@ -131,6 +145,12 @@ public class ResourceObjectFound extends AbstractLazilyInitializableResourceEnti
     @Override
     public void checkConsistence() {
         // nothing here now
+    }
+
+    @Override
+    boolean objectDoesExist() {
+        // We assume that the object exists. The call to doesExist here is just for 100% certainty.
+        return resourceObject == null || resourceObject.doesExist();
     }
 
     @Override

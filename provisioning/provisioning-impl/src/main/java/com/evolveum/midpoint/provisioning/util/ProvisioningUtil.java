@@ -17,6 +17,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -315,37 +317,38 @@ public class ProvisioningUtil {
     }
 
     public static boolean isAddShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
+            Collection<ResourceObjectPattern> protectedAccountPatterns, ResourceObject object, OperationResult result)
             throws SchemaException {
-        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getAdd().isEnabled();
+        return getEffectiveProvisioningPolicy(protectedAccountPatterns, object, result).getAdd().isEnabled();
     }
 
     public static boolean isModifyShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
+            Collection<ResourceObjectPattern> protectedAccountPatterns, RepoShadow shadow, OperationResult result)
             throws SchemaException {
         return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getModify().isEnabled();
     }
 
     public static boolean isDeleteShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
+            Collection<ResourceObjectPattern> protectedAccountPatterns, RepoShadow shadow, OperationResult result)
             throws SchemaException {
         return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getDelete().isEnabled();
     }
 
     private static ObjectOperationPolicyType getEffectiveProvisioningPolicy(
-            Collection<ResourceObjectPattern> protectedAccountPatterns,
-            ShadowType shadow,
+            @NotNull Collection<ResourceObjectPattern> protectedAccountPatterns,
+            @NotNull AbstractShadow shadow,
             @NotNull OperationResult result) throws SchemaException {
-        if (shadow.getEffectiveOperationPolicy() != null) {
-            return shadow.getEffectiveOperationPolicy();
+        ObjectOperationPolicyType existingPolicy = shadow.getBean().getEffectiveOperationPolicy();
+        if (existingPolicy != null) {
+            return existingPolicy;
         }
         ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
                 protectedAccountPatterns, shadow, result);
-        return shadow.getEffectiveOperationPolicy();
+        return shadow.getBean().getEffectiveOperationPolicy();
     }
 
     public static void setEffectiveProvisioningPolicy (
-            ProvisioningContext ctx, ShadowType shadow, OperationResult result)
+            ProvisioningContext ctx, AbstractShadow shadow, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
         ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(

@@ -68,11 +68,6 @@ class ConnIdConvertor {
      *
      * @param co ICF ConnectorObject to convert
      *
-     * @param full If true it describes if the returned resource object should
-     *             contain all of the attributes defined in the schema, if false
-     *             the returned resource object will contain only attributed with
-     *             the non-null values.
-     *
      * @param ucfErrorReportingMethod If EXCEPTIONS (the default), any exceptions are thrown as such. But if FETCH_RESULT,
      *                             exceptions are represented in fetchResult property of the returned resource object.
      *                             Generally, when called as part of "searchObjectsIterative" in the context of
@@ -84,7 +79,6 @@ class ConnIdConvertor {
     @NotNull UcfObjectFound convertToUcfObject(
             @NotNull ConnectorObject co,
             @NotNull PrismObjectDefinition<ShadowType> objectDefinition,
-            boolean full,
             boolean caseIgnoreAttributeNames,
             boolean legacySchema,
             UcfFetchErrorReportingMethod ucfErrorReportingMethod,
@@ -92,11 +86,10 @@ class ConnIdConvertor {
 
         // This is because of suspicion that this operation sometimes takes a long time.
         // If it will not be the case, we can safely remove subresult construction here.
-        OperationResult result = parentResult.subresult(ConnIdConvertor.class.getName() + ".convertToResourceObject")
+        OperationResult result = parentResult.subresult(ConnIdConvertor.class.getName() + ".convertToUcfObject")
                 .setMinor()
                 .addArbitraryObjectAsParam("uid", co.getUid())
                 .addArbitraryObjectAsParam("objectDefinition", objectDefinition)
-                .addParam("full", full)
                 .addParam("caseIgnoreAttributeNames", caseIgnoreAttributeNames)
                 .addParam("legacySchema", legacySchema)
                 .addArbitraryObjectAsParam("ucfErrorReportingMethod", ucfErrorReportingMethod)
@@ -105,8 +98,8 @@ class ConnIdConvertor {
             // UID value is not null according to ConnId
             @NotNull String uidValue = co.getUid().getUidValue();
 
-            ConnIdToMidPointConversion conversion = new ConnIdToMidPointConversion(co, objectDefinition.instantiate(), full,
-                    caseIgnoreAttributeNames, legacySchema, this);
+            ConnIdToMidPointConversion conversion = new ConnIdToMidPointConversion(
+                    co, objectDefinition.instantiate(), caseIgnoreAttributeNames, legacySchema, this);
 
             try {
                 conversion.execute();

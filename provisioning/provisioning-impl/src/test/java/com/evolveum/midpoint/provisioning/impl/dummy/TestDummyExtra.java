@@ -20,6 +20,8 @@ import java.util.concurrent.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -70,7 +72,7 @@ public class TestDummyExtra extends TestDummy {
 
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME = "mate";
 
-    protected static final QName ASSOCIATION_CREW_NAME = new QName(RESOURCE_DUMMY_NS, "crew");
+    private static final QName ASSOCIATION_CREW_NAME = new QName(RESOURCE_DUMMY_NS, "crew");
 
     @Override
     protected File getResourceDummyFile() {
@@ -107,7 +109,7 @@ public class TestDummyExtra extends TestDummy {
         PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
         assertNotNull("password native capability not present", passwordCapabilityType);
         Boolean readable = passwordCapabilityType.isReadable();
-        assertNotNull("No 'readable' inducation in password capability", readable);
+        assertNotNull("No 'readable' indication in password capability", readable);
         assertTrue("Password not 'readable' in password capability", readable);
     }
 
@@ -118,14 +120,14 @@ public class TestDummyExtra extends TestDummy {
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ELIZABETH_FILE);
-        account.checkConsistence();
+        PrismObject<ShadowType> accountToAdd = prismContext.parseObject(ACCOUNT_ELIZABETH_FILE);
+        accountToAdd.checkConsistence();
 
-        display("Adding shadow", account);
+        display("Adding shadow", accountToAdd);
 
         // WHEN
         when();
-        String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
+        String addedObjectOid = provisioningService.addObject(accountToAdd, null, null, task, result);
 
         // THEN
         then();
@@ -133,20 +135,19 @@ public class TestDummyExtra extends TestDummy {
 
         assertEquals(ACCOUNT_ELIZABETH_OID, addedObjectOid);
 
-        account.checkConsistence();
+        accountToAdd.checkConsistence();
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
-                ACCOUNT_ELIZABETH_OID, null, task, result);
+        var accountAfter = provisioningService.getShadow(ACCOUNT_ELIZABETH_OID, null, task, result);
 
-        display("Account will from provisioning", accountProvisioning);
+        display("Account will from provisioning", accountAfter);
 
         DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH_USERNAME);
         assertNotNull("No dummy account", dummyAccount);
         assertTrue("The account is not enabled", dummyAccount.isEnabled());
 
-        checkUniqueness(accountProvisioning);
+        checkUniqueness(accountAfter);
         assertSteadyResource();
     }
 
@@ -184,10 +185,9 @@ public class TestDummyExtra extends TestDummy {
         assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
         assertDummyAttributeValues(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, ACCOUNT_ELIZABETH_USERNAME);
 
-        PrismObject<ShadowType> accountWillProvisioning = provisioningService.getObject(ShadowType.class,
-                ACCOUNT_WILL_OID, null, task, result);
-        display("Account will from provisioning", accountWillProvisioning);
-        assertAssociation(accountWillProvisioning, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
+        var accountWill = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
+        display("Account will from provisioning", accountWill);
+        assertAssociation(accountWill, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
 
         assertSteadyResource();
     }
@@ -312,9 +312,9 @@ public class TestDummyExtra extends TestDummy {
 
     @Override
     protected void checkAccountWill(
-            PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs)
+            AbstractShadow shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs)
             throws SchemaException, EncryptionException, ConfigurationException {
         super.checkAccountWill(shadow, result, startTs, endTs);
-        assertPassword(shadow.asObjectable(), accountWillCurrentPassword);
+        assertPassword(shadow.getBean(), accountWillCurrentPassword);
     }
 }

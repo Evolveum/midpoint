@@ -8,6 +8,10 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
+
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +58,7 @@ public class ShadowsFacade {
     @Autowired private DefinitionsHelper definitionsHelper;
     @Autowired private ShadowOperationPropagationHelper propagationHelper;
     @Autowired private ShadowCompareHelper compareHelper;
+    @Autowired private ShadowFinder shadowFinder;
 
     /**
      * @param oid OID of the shadow to be fetched
@@ -64,7 +69,7 @@ public class ShadowsFacade {
      */
     public @NotNull Shadow getShadow(
             @NotNull String oid,
-            @Nullable ShadowType repositoryShadow,
+            @Nullable RawRepoShadow repositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull ProvisioningOperationContext context,
@@ -89,7 +94,7 @@ public class ShadowsFacade {
     }
 
     public String modifyShadow(
-            @NotNull ShadowType repoShadow,
+            @NotNull ShadowType rawRepoShadow,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
@@ -99,11 +104,12 @@ public class ShadowsFacade {
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
             EncryptionException, ObjectAlreadyExistsException {
-        return ShadowModifyOperation.executeDirectly(repoShadow, modifications, scripts, options, context, task, result);
+        return ShadowModifyOperation.executeDirectly(
+                RawRepoShadow.of(rawRepoShadow), modifications, scripts, options, context, task, result);
     }
 
     public ShadowType deleteShadow(
-            @NotNull ShadowType repoShadow,
+            @NotNull RawRepoShadow rawRepoShadow,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
             @NotNull ProvisioningOperationContext context,
@@ -112,17 +118,19 @@ public class ShadowsFacade {
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
             SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, EncryptionException {
-        return ShadowDeleteOperation.executeDirectly(repoShadow, options, scripts, context, task, result);
+        return ShadowDeleteOperation.executeDirectly(rawRepoShadow, options, scripts, context, task, result);
     }
 
     public void refreshShadow(
-            ShadowType rawRepoShadow,
+            @NotNull String shadowOid,
             ProvisioningOperationOptions options,
             ProvisioningOperationContext context,
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, EncryptionException {
+        // Re-reading the shadow in order to get the really "raw" version.
+        var rawRepoShadow = shadowFinder.getRepoShadow(shadowOid, null, result);
         ShadowRefreshOperation.executeFull(rawRepoShadow, options, context, task, result);
     }
 
@@ -200,6 +208,7 @@ public class ShadowsFacade {
                 .executeCount(result);
     }
 
+    /** We assume that the `repoShadow` was retrieved right from the repository. */
     public void propagateOperations(
             @NotNull ResourceType resource,
             @NotNull ShadowType repoShadow,
@@ -207,7 +216,7 @@ public class ShadowsFacade {
             @NotNull OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
             SecurityViolationException, PolicyViolationException, EncryptionException {
-        propagationHelper.propagateOperations(resource, repoShadow, task, result);
+        propagationHelper.propagateOperations(resource, RawRepoShadow.of(repoShadow), task, result);
     }
 
     public <T> ItemComparisonResult compare(

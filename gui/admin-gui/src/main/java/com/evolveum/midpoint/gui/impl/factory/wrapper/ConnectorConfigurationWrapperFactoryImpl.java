@@ -111,7 +111,7 @@ public class ConnectorConfigurationWrapperFactoryImpl extends PrismContainerWrap
                         }
 
 //                        childItem = definitionFixed.instantiate();
-                        childItem.applyDefinition(definitionFixed, true);
+                        childItem.applyDefinition(definitionFixed);
 //                        parent.getNewValue().addReplaceExisting(childItem);
                     }
                 } catch (Exception e) {

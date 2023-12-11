@@ -165,9 +165,10 @@ public class QShadowMapping
             return shadowType;
         }
 
-        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ATTRIBUTES, retrieveOptions)) {
-            addIndexOnlyAttributes(shadowType, row, entityPath);
-        }
+        // FIXME temporarily disabled
+//        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ATTRIBUTES, retrieveOptions)) {
+//            addIndexOnlyAttributes(shadowType, row, entityPath);
+//        }
         return shadowType;
     }
 
@@ -226,7 +227,7 @@ public class QShadowMapping
             ItemName itemName = attribute.getElementName();
             MExtItem itemInfo = definitions.get(itemName);
             if (itemInfo != null && attribute.getDefinition() == null) {
-                ((Item) attribute).applyDefinition(ExtUtils.createDefinition(itemName, itemInfo, false), true);
+                ((Item) attribute).applyDefinition(ExtUtils.createDefinition(itemName, itemInfo, false));
             }
         }
     }

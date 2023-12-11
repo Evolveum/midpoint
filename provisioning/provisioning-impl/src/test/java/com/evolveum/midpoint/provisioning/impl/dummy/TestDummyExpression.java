@@ -34,11 +34,6 @@ public class TestDummyExpression extends TestDummy {
     public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
     @Override
-    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        super.initSystem(initTask, initResult);
-    }
-
-    @Override
     protected File getResourceDummyFile() {
         return RESOURCE_DUMMY_FILE;
     }

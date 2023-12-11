@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,6 +84,21 @@ public class ResourceObjectFetched extends AbstractLazilyInitializableResourceEn
     @NotNull CompleteResourceObject asCompleteResourceObject() {
         checkInitialized();
         return CompleteResourceObject.of(resourceObject, initializationState.getErrorState());
+    }
+
+    public Object getPrimaryIdentifierValue() {
+        return resourceObject.getPrimaryIdentifierValue();
+    }
+
+    @Override
+    public ResourceObjectDefinition getResourceObjectDefinition() {
+        return resourceObject.getObjectDefinition();
+    }
+
+    @Override
+    boolean objectDoesExist() {
+        // We assume that the object exists. The call to doesExist here is just for 100% certainty.
+        return resourceObject.doesExist();
     }
 
     @Override

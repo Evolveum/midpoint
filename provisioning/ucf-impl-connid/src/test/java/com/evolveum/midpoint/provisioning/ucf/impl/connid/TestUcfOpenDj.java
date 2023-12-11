@@ -106,7 +106,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
     @Override
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
@@ -242,29 +242,23 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         assertNotNull("No object class definition " + objectClassQname, accountDefinition);
         ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ShadowType.F_ATTRIBUTES);
 
-        //noinspection unchecked
         ResourceAttributeDefinition<String> attributeDefinition =
-                (ResourceAttributeDefinition<String>)
                         accountDefinition.findAttributeDefinitionRequired(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         ResourceAttribute<String> attribute = attributeDefinition.instantiate();
         attribute.setRealValue("uid=" + name + ",ou=people,dc=example,dc=com");
         resourceObject.add(attribute);
 
-        //noinspection unchecked
-        attributeDefinition = (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinitionRequired(QNAME_SN);
+        attributeDefinition = accountDefinition.findAttributeDefinitionRequired(QNAME_SN);
         attribute = attributeDefinition.instantiate();
         attribute.setRealValue(familyName);
         resourceObject.add(attribute);
 
-        //noinspection unchecked
-        attributeDefinition = (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinitionRequired(QNAME_CN);
+        attributeDefinition = accountDefinition.findAttributeDefinitionRequired(QNAME_CN);
         attribute = attributeDefinition.instantiate();
         attribute.setRealValue(givenName + " " + familyName);
         resourceObject.add(attribute);
 
-        //noinspection unchecked
-        attributeDefinition = (ResourceAttributeDefinition<String>)
-                accountDefinition.findAttributeDefinitionRequired(QNAME_GIVEN_NAME);
+        attributeDefinition = accountDefinition.findAttributeDefinitionRequired(QNAME_GIVEN_NAME);
         attribute = attributeDefinition.instantiate();
         attribute.setRealValue(givenName);
         resourceObject.add(attribute);
@@ -711,24 +705,17 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         // Determine identifier from the schema
         ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ShadowType.F_ATTRIBUTES);
 
-        //noinspection unchecked
-        ResourceAttributeDefinition<String> road =
-                (ResourceAttributeDefinition<String>)
-                        accountDefinition.findAttributeDefinitionRequired(QNAME_SN);
+        ResourceAttributeDefinition<String> road = accountDefinition.findAttributeDefinitionRequired(QNAME_SN);
         ResourceAttribute<String> roa = road.instantiate();
         roa.setRealValue(sn);
         resourceObject.add(roa);
 
-        //noinspection unchecked
-        road = (ResourceAttributeDefinition<String>)
-                accountDefinition.findAttributeDefinitionRequired(QNAME_CN);
+        road = accountDefinition.findAttributeDefinitionRequired(QNAME_CN);
         roa = road.instantiate();
         roa.setRealValue(cn);
         resourceObject.add(roa);
 
-        //noinspection unchecked
-        road = (ResourceAttributeDefinition<String>)
-                accountDefinition.findAttributeDefinitionRequired(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
+        road = accountDefinition.findAttributeDefinitionRequired(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         roa = road.instantiate();
         roa.setRealValue(dn);
         resourceObject.add(roa);
@@ -736,7 +723,8 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         return resourceObject;
     }
 
-    private <T extends ShadowType> PrismObject<T> wrapInShadow(Class<T> type, ResourceAttributeContainer resourceObject) throws SchemaException {
+    private <T extends ShadowType> PrismObject<T> wrapInShadow(
+            Class<T> type, ResourceAttributeContainer resourceObject) throws SchemaException {
         PrismObjectDefinition<T> shadowDefinition = getShadowDefinition(type);
         PrismObject<T> shadow = shadowDefinition.instantiate();
         resourceObject.setElementName(ShadowType.F_ATTRIBUTES);

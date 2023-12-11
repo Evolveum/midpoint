@@ -44,7 +44,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author katka
  */
-public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapper> implements ItemWrapper<I, VW>, Serializable {
+public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValueWrapper>
+        implements ItemWrapper<I, VW>, Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -485,7 +486,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public boolean canBeDefinitionOf(PrismValue pvalue) {
+    public boolean canBeDefinitionOf(@NotNull PrismValue pvalue) {
         return getItemDefinition().canBeDefinitionOf(pvalue);
     }
 
@@ -700,20 +701,22 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void removeValue(VW valueWrapper) {
+        Item rawItem = getItem(); // using not parameterized version to make compiler happy
         switch (valueWrapper.getStatus()) {
             case ADDED:
             case MODIFIED:
                 values.remove(valueWrapper);
-                getItem().remove(valueWrapper.getOldValue());
-                getItem().remove(valueWrapper.getNewValue());
+                rawItem.remove(valueWrapper.getOldValue());
+                rawItem.remove(valueWrapper.getNewValue());
                 break;
             case NOT_CHANGED:
 //                if (isSingleValue()) {
 //                    valueWrapper.setRealValue(null);
 //                    valueWrapper.setStatus(ValueStatus.MODIFIED);
 //                } else {
-                    getItem().remove(valueWrapper.getNewValue());
+                    rawItem.remove(valueWrapper.getNewValue());
                     valueWrapper.setStatus(ValueStatus.DELETED);
 //                }
                 break;
@@ -724,7 +727,8 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     @Override
     public <PV extends PrismValue> void add(PV newValue, ModelServiceLocator locator) throws SchemaException {
-        getItem().add(newValue);
+        //noinspection unchecked,rawtypes
+        ((Item) getItem()).add(newValue);
         VW newItemValue = WebPrismUtil.createNewValueWrapper(this, newValue, locator);
         values.add(newItemValue);
     }

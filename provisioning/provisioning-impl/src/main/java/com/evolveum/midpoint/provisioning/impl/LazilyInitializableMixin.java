@@ -56,7 +56,7 @@ public interface LazilyInitializableMixin extends DebugDumpable {
 
         initializePrerequisite(task, result);
 
-        getLogger().trace("Item before its own initialization:\n{}", debugDumpLazily());
+        getLogger().trace("OWN INITIALIZATION STARTING. State before:\n{}", debugDumpLazily());
 
         try {
             initializationState.moveFromCreatedToInitializing();
@@ -78,7 +78,7 @@ public interface LazilyInitializableMixin extends DebugDumpable {
         }
 
         initializationState.checkInitialized();
-        getLogger().trace("Item after its own initialization:\n{}", debugDumpLazily());
+        getLogger().trace("INTIALIZATION FINISHED. State after:\n{}", debugDumpLazily());
     }
 
     private void initializePrerequisite(Task task, OperationResult result) {
@@ -106,7 +106,8 @@ public interface LazilyInitializableMixin extends DebugDumpable {
         }
     }
 
-    default void initializeInternalCommon(Task task, OperationResult result) throws SchemaException, ConfigurationException {
+    default void initializeInternalCommon(Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, EncryptionException {
         // to be overridden in the implementations
     }
 

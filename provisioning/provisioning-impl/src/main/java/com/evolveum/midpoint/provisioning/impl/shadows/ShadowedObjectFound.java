@@ -7,24 +7,21 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import static com.evolveum.midpoint.util.MiscUtil.getClassWithMessage;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType.FETCH_RESULT;
 
 import java.util.Objects;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.google.common.base.MoreObjects;
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.AbstractLazilyInitializableResourceEntity;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
-
-import com.google.common.base.MoreObjects;
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectFound;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,45 +29,45 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.jetbrains.annotations.Nullable;
-
 /**
  * Represents the processing of an object found on the resource using `searchObjects` call
  * and then "shadowed" by connecting with repo shadow; updating the shadow if necessary.
  */
-public class ShadowedObjectFound extends AbstractShadowedEntity {
+public class ShadowedObjectFound extends AbstractLazilyInitializableShadowedEntity {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowedObjectFound.class);
 
     /** The resource object that corresponds to this instance. */
     @NotNull private final ResourceObjectFound resourceObjectFound;
 
-    /**
-     * The object after "shadowization". Fulfills the following:
-     *
-     * In initialized/OK state:
-     *
-     * 1. has an OID and exists in repository,
-     * 2. has classification applied (plus all the other things done when acquiring a shadow),
-     * 3. the repo shadow is updated: meaning cached attributes and activation, shadow name, aux object classes,
-     * exists flag, caching metadata,
-     * 4. contains all information merged from the resource object and the pre-existing shadow,
-     *
-     * In all other states:
-     *
-     * All reasonable attempts are done in order to create at least minimalistic shadow (because of error handling).
-     * This object points to such a shadow. The other parts (from resource object) can be missing.
-     */
-    private ShadowType shadowedObject;
+//    /**
+//     * The object after "shadowization". Fulfills the following:
+//     *
+//     * In initialized/OK state:
+//     *
+//     * 1. has an OID and exists in repository,
+//     * 2. has classification applied (plus all the other things done when acquiring a shadow),
+//     * 3. the repo shadow is updated: meaning cached attributes and activation, shadow name, aux object classes,
+//     * exists flag, caching metadata,
+//     * 4. contains all information merged from the resource object and the pre-existing shadow,
+//     *
+//     * In all other states:
+//     *
+//     * All reasonable attempts are done in order to create at least minimalistic shadow (because of error handling).
+//     * This object points to such a shadow. The other parts (from resource object) can be missing.
+//     */
 
-    ShadowedObjectFound(@NotNull ResourceObjectFound resourceObjectFound, @NotNull ProvisioningContext globalCtx) {
+    ShadowedObjectFound(@NotNull ResourceObjectFound resourceObjectFound) {
         super(resourceObjectFound);
         this.resourceObjectFound = resourceObjectFound;
     }
@@ -80,55 +77,26 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
         return resourceObjectFound;
     }
 
-    /**
-     * Acquires repo shadow, updates it, and prepares the shadowedObject.
-     */
+    /** Executed for both OK and error scenarios. */
     @Override
-    public void initializeInternalForPrerequisiteOk(Task task, OperationResult result)
-            throws CommonException, EncryptionException {
-
-        RepoShadow repoShadow = acquireRepoShadow(result);
-        try {
-
-            // The repo shadow is properly classified at this point. Let's just update our context.
-            ProvisioningContext shadowCtx = globalCtx.spawnForDefinition(repoShadow.getObjectDefinition());
-
-            RepoShadow currentOrReloadedShadow = updateShadowInRepository(shadowCtx, repoShadow, result);
-            shadowedObject = createShadowedObject(shadowCtx, currentOrReloadedShadow, result).getBean();
-
-        } catch (Exception e) {
-
-            // No need to log stack trace now. It will be logged at the place where the exception is processed.
-            // It is questionable whether to log anything at all.
-            LOGGER.warn("Couldn't initialize {}. Continuing with previously acquired repo shadow: {}. Error: {}",
-                    getExistingResourceObjectRequired(), repoShadow, getClassWithMessage(e));
-            shadowedObject = repoShadow.getBean();
-            throw e;
-        }
-    }
-
-    /**
-     * The object is somehow flawed. However, we try to create a shadow.
-     *
-     * To avoid any harm, we are minimalistic here: If a shadow can be found, it is used "as is". No updates here.
-     * If it cannot be found, it is created. We will skip kind/intent/tag determination. Most probably these would
-     * not be correct anyway.
-     */
-    @Override
-    public void initializeInternalForPrerequisiteError(Task task, OperationResult result)
-            throws CommonException, EncryptionException {
-        acquireAndSetRepoShadowInEmergency(result);
+    protected RepoShadow acquireOrLookupRepoShadow(OperationResult result)
+            throws SchemaException, ConfigurationException, EncryptionException {
+        return acquireRepoShadow(resourceObjectFound.getResourceObject(), result);
     }
 
     @Override
-    public void initializeInternalForPrerequisiteNotApplicable(Task task, OperationResult result)
+    public void classifyUpdateAndCombine(Task task, OperationResult result)
             throws CommonException, EncryptionException {
-        acquireAndSetRepoShadowInEmergency(result);
-    }
 
-    @Override
-    public void setAcquiredRepoShadowInEmergency(RepoShadow repoShadow) {
-        this.shadowedObject = repoShadow.getBean();
+        assert repoShadow != null;
+
+        shadowPostProcessor = new ShadowPostProcessor(
+                effectiveCtx,
+                repoShadow,
+                resourceObjectFound.getResourceObject(),
+                null);
+
+        shadowPostProcessor.execute(result);
     }
 
     @Override
@@ -138,15 +106,18 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
 
     @Override
     public void checkConsistence() {
-        if (shadowedObject != null) {
-            ProvisioningUtil.validateShadow(shadowedObject, true);
+        var combinedObject = shadowPostProcessor.getCombinedObject();
+        if (combinedObject != null) {
+            ProvisioningUtil.validateShadow(combinedObject.getBean(), true);
         } else {
             ProvisioningUtil.validateShadow(getExistingResourceObjectRequired().getBean(), false);
         }
     }
 
     private @NotNull ShadowType getAdoptedOrOriginalObject() {
-        return MoreObjects.firstNonNull(shadowedObject, getExistingResourceObjectRequired().getBean());
+        return MoreObjects
+                .firstNonNull(shadowPostProcessor.getCombinedObject(), getExistingResourceObjectRequired())
+                .getBean();
     }
 
     /**
@@ -210,11 +181,6 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
         return resourceObjectFound.getResourceObject();
     }
 
-    @Override
-    public @Nullable ObjectDelta<ShadowType> getResourceObjectDelta() {
-        return null; // no delta for searched resource objects
-    }
-
     /** @see ResourceObject#primaryIdentifierValue */
     private Object getPrimaryIdentifierValue() {
         return resourceObjectFound.getPrimaryIdentifierValue();
@@ -227,7 +193,7 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
         sb.append(this.getClass().getSimpleName());
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectFound", resourceObjectFound, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "shadowedObject", shadowedObject, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "shadowedObject", shadowPostProcessor != null ? shadowPostProcessor.getCombinedObject() : null, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "initializationState", String.valueOf(initializationState), indent + 1);
         return sb.toString();
     }
@@ -236,7 +202,7 @@ public class ShadowedObjectFound extends AbstractShadowedEntity {
     public String toString() {
         return getClass().getSimpleName() + "{" +
                 "resourceObjectFound=" + resourceObjectFound +
-                ", shadowedObject=" + shadowedObject +
+                ", shadowedObject=" + (shadowPostProcessor != null ? shadowPostProcessor.getCombinedObject() : null) +
                 ", state=" + initializationState +
                 '}';
     }

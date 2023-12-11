@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifier;
@@ -26,13 +27,13 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.provisioning.impl.AbstractShadow;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowAddOperation;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.RepoShadowFinder;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -55,7 +56,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectAlreadyExistHandler.class);
 
     @Autowired ProvisioningService provisioningService;
-    @Autowired RepoShadowFinder repoShadowFinder;
+    @Autowired ShadowFinder shadowFinder;
 
     @Override
     public OperationResultStatus handleAddError(
@@ -110,15 +111,15 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
             // In theory, during ADD conflict resolution, there may be no identifiers in object being added (targetObjectState).
             // But in practice, let's ignore this. We will simply throw an exception in that case here.
             ObjectQuery query = createQueryBySecondaryIdentifier(targetObjectState);
-            List<PrismObject<ShadowType>> conflictingRepoShadows = repoShadowFinder.searchShadows(ctx, query, null, result);
-            RepoShadow oldShadow = RepoShadow.selectLiveShadow(ctx, conflictingRepoShadows, "(conflicting repo shadows)");
+            List<PrismObject<ShadowType>> conflictingRepoShadows = shadowFinder.searchShadows(ctx, query, null, result);
+            RawRepoShadow oldShadow = RawRepoShadow.selectLiveShadow(conflictingRepoShadows, "(conflicting repo shadows)");
 
             LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}", targetObjectState.shortDumpLazily());
 
             final List<PrismObject<ShadowType>> conflictingResourceShadows =
                     findConflictingShadowsOnResource(query, ctx.getTask(), result);
-            RepoShadow conflictingShadow =
-                    RepoShadow.selectLiveShadow(ctx, conflictingResourceShadows, "(conflicting shadows)");
+            RawRepoShadow conflictingShadow =
+                    RawRepoShadow.selectLiveShadow(conflictingResourceShadows, "(conflicting shadows)");
 
             LOGGER.trace("DISCOVERY: found conflicting shadow for {}:\n{}", targetObjectState,
                     conflictingShadow == null ? "  no conflicting shadow" : conflictingShadow.debugDumpLazily(1));
@@ -172,7 +173,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
         }
         q = q.none().endBlock().and();
         q = q.item(ShadowType.F_RESOURCE_REF).ref(shadow.getResourceOid()).and();
-        return q.item(ShadowType.F_OBJECT_CLASS).eq(shadow.getObjectClass()).build();
+        return q.item(ShadowType.F_OBJECT_CLASS).eq(shadow.getObjectClassName()).build();
     }
 
     /**

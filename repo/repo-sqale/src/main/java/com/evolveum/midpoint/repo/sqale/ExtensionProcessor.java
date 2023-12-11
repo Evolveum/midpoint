@@ -223,8 +223,8 @@ public class ExtensionProcessor {
                     repositoryContext.getExtensionItem(Integer.valueOf(attribute.getKey())));
             QName itemName = QNameUtil.uriToQName(mapping.itemName);
             ItemDefinition<?> definition = ExtUtils.createDefinition(itemName, mapping, true);
-            if (definition instanceof PrismPropertyDefinition) {
-                var item = pcv.findOrCreateProperty((PrismPropertyDefinition<?>) definition);
+            if (definition instanceof PrismPropertyDefinition<?> propertyDefinition) {
+                var item = pcv.findOrCreateProperty(propertyDefinition);
                 // In theory single-value can overwrite multi-value in the same item (with the same name) when both
                 // variants are written in JSONB - but both variants are only written when single value is present
                 // and definition is not provided. If the multi-value is changed later the single-value variant

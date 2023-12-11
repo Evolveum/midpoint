@@ -10,6 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createResourceFailureDescription;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.getAdditionalOperationDesc;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
 
 import java.util.Collection;
@@ -78,6 +79,10 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             ExpressionEvaluationException, EncryptionException {
 
         InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT); // TODO is it OK here?
+
+        schemaCheck(
+                !ShadowUtil.getAttributesRaw(resourceObjectToAdd).isEmpty(),
+                "No attributes in resource object to add: %s", resourceObjectToAdd);
 
         LOGGER.trace("Start adding shadow object{}:\n{}",
                 lazy(() -> getAdditionalOperationDesc(scripts, options)),
@@ -153,6 +158,8 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             ExpressionEvaluationException, EncryptionException {
 
         try {
+            resourceObjectToAdd.checkConsistence();
+
             checkAttributesPresent();
             ctx.applyAttributesDefinition(resourceObjectToAdd); // TODO is this necessary?
             ctx.validateSchemaIfConfigured(resourceObjectToAdd.getBean());
@@ -288,7 +295,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             throws SchemaException {
 
         Collection<PrismObject<ShadowType>> previousDeadShadows =
-                repoShadowFinder.searchForPreviousDeadShadows(ctx, resourceObjectToAdd, result);
+                shadowFinder.searchForPreviousDeadShadows(ctx, resourceObjectToAdd, result);
         if (previousDeadShadows.isEmpty()) {
             return false;
         }
@@ -386,7 +393,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
         return resourceObjectToAdd;
     }
 
-    public @NotNull AbstractShadow getShadowAddedOrToAdd() {
+    public @NotNull ResourceObject getShadowAddedOrToAdd() {
         var createdObject = opState.getCreatedObject();
         if (opState.wasStarted() && createdObject != null) {
             return createdObject;

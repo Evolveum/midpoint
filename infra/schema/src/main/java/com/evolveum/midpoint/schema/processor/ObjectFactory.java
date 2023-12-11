@@ -38,10 +38,10 @@ public class ObjectFactory {
     }
 
     /**
-     * Creates {@link RawResourceAttributeDefinition}. It is mutable but not directly instantiable.
+     * Creates {@link ResourceAttributeDefinition}. It is mutable but not directly instantiable.
      */
-    public static <T> MutableRawResourceAttributeDefinition<T> createRawResourceAttributeDefinition(QName name, QName typeName) {
-        return new RawResourceAttributeDefinitionImpl<>(name, typeName);
+    public static <T> RawResourceAttributeDefinition<T> createRawResourceAttributeDefinition(QName name, QName typeName) {
+        return new RawResourceAttributeDefinition<>(name, typeName);
     }
 
     public static ResourceAttributeContainer createResourceAttributeContainer(

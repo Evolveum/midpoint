@@ -289,7 +289,7 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
 
         // Check account
@@ -1382,7 +1382,7 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
 
         // Check account
@@ -1755,7 +1755,7 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType());
 
         // Check account
@@ -2053,7 +2053,7 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, task.getResult());
+        var accountShadow = getShadowRepo(accountOid);
         display("Repo shadow", accountShadow);
         assertAccountShadowRepo(accountShadow, accountOid, name, resourceCtl.getResource().asObjectable());
 

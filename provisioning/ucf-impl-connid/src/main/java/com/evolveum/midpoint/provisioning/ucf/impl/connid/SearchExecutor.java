@@ -184,15 +184,15 @@ class SearchExecutor {
                 //
                 // Limitations/assumptions: there is exactly one identifier - either secondary (and it's DN in that case)
                 // or primary which is the same as secondary (for the particular resource).
-                String identifierValue;
+                ResourceObjectIdentifier<?> identifierToUse;
                 var secIdentifiers = baseContextIdentification.getSecondaryIdentifiers();
                 if (secIdentifiers.size() == 1) {
                     // the standard case
-                    identifierValue = secIdentifiers.iterator().next().getRealValue().toString();
+                    identifierToUse = secIdentifiers.iterator().next();
                 } else if (secIdentifiers.isEmpty()) {
                     if (resourceObjectDefinition.getSecondaryIdentifiers().isEmpty()) {
                         // This object class obviously has __NAME__ and __UID__ the same. Primary identifier will work here.
-                        identifierValue = baseContextIdentification.getPrimaryIdentifier().getRealValue().toString();
+                        identifierToUse = baseContextIdentification.getPrimaryIdentifier();
                     } else {
                         throw new SchemaException(
                                 "No secondary identifier in base context identification " + baseContextIdentification);
@@ -205,7 +205,7 @@ class SearchExecutor {
                 ObjectClass baseContextIcfObjectClass = connectorInstance.objectClassToConnId(
                         baseContextIdentification.getResourceObjectDefinition());
                 optionsBuilder.setContainer(
-                        new QualifiedUid(baseContextIcfObjectClass, new Uid(identifierValue)));
+                        new QualifiedUid(baseContextIcfObjectClass, new Uid(identifierToUse.getStringOrigValue())));
             }
             SearchHierarchyScope scope = searchHierarchyConstraints.getScope();
             if (scope != null) {
@@ -356,7 +356,7 @@ class SearchExecutor {
                 }
 
                 UcfObjectFound ucfObject = connectorInstance.connIdConvertor.convertToUcfObject(
-                        connectorObject, prismObjectDefinition, false, connectorInstance.isCaseIgnoreAttributeNames(),
+                        connectorObject, prismObjectDefinition, connectorInstance.isCaseIgnoreAttributeNames(),
                         connectorInstance.isLegacySchema(), errorReportingMethod, result);
 
                 return handler.handle(ucfObject, result);

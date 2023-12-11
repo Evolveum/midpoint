@@ -8,6 +8,7 @@ package com.evolveum.midpoint.provisioning.impl.opendj;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
@@ -17,15 +18,23 @@ import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTe
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
@@ -114,11 +123,13 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
 
     static final File GROUP_SWASHBUCKLERS_FILE = new File(TEST_DIR, "group-swashbucklers.xml");
     static final String GROUP_SWASHBUCKLERS_OID = "3d96846e-c570-11e3-a80f-001e8c717e5b";
-    static final String GROUP_SWASHBUCKLERS_DN = "cn=swashbucklers,ou=groups,dc=example,dc=com";
+    static final String GROUP_SWASHBUCKLERS_DN_ORIG = "cn=SwashBucklers,ou=GrOuPs,dc=example,dc=COM";
+    static final String GROUP_SWASHBUCKLERS_DN_NORM = "cn=swashbucklers,ou=groups,dc=example,dc=com";
 
     static final File GROUP_SPECIALISTS_FILE = new File(TEST_DIR, "group-specialists.xml");
     static final String GROUP_SPECIALISTS_OID = "3da6ddca-cc0b-11e5-9b3f-2b7f453dbfb3";
-    static final String GROUP_SPECIALISTS_DN = "cn=specialists,ou=specialgroups,dc=example,dc=com";
+    static final String GROUP_SPECIALISTS_DN_ORIG = "cn=specialists,ou=specialgroups,dc=example,dc=COM";
+    static final String GROUP_SPECIALISTS_DN_NORM = "cn=specialists,ou=specialgroups,dc=example,dc=com";
 
     static final File GROUP_CORSAIRS_FILE = new File(TEST_DIR, "group-corsairs.xml");
     static final String GROUP_CORSAIRS_OID = "70a1f3ee-4b5b-11e5-95d0-001e8c717e5b";
@@ -126,7 +137,8 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
 
     static final File OU_SUPER_FILE = new File(TEST_DIR, "ou-super.xml");
     static final String OU_SUPER_OID = "1d1e519e-0d22-11ea-8cdf-3f09f7f3a585";
-    static final String OU_SUPER_DN = "ou=Super,dc=example,dc=com";
+    static final String OU_SUPER_DN_ORIG = "ou=Super,dc=example,dc=com";
+    static final String OU_SUPER_DN_NORM = "ou=super,dc=example,dc=com";
 
     static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 
@@ -161,10 +173,8 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        // We need to switch off the encryption checks. Some values cannot be encrypted as we do
-        // not have a definition here
-        InternalsConfig.encryptionChecks = false;
-        provisioningService.postInit(initResult);
+        super.initSystem(initTask, initResult);
+
         resource = addResourceFromFile(getResourceOpenDjFile(), IntegrationTestTools.CONNECTOR_LDAP_TYPE, initResult);
         repoAddShadowFromFile(ACCOUNT_BAD_REPO_FILE, initResult);
 
@@ -172,13 +182,8 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
     }
 
     @SafeVarargs
-    protected final <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {
-        assertAttribute(resource, shadow, attrName, expectedValues);
-    }
-
-    @SafeVarargs
     protected final <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
-        assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
+        assertAttribute(shadow.asObjectable(), attrName, expectedValues);
     }
 
     ItemName getPrimaryIdentifierQName() {
@@ -206,5 +211,23 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
         logger.info("------------------------------------------------------------------------------");
         logger.info("STOP:  {}", getClass().getSimpleName());
         logger.info("------------------------------------------------------------------------------");
+    }
+
+    @NotNull ResourceObjectDefinition getAccountDefaultDefinition() throws SchemaException, ConfigurationException {
+        return MiscUtil.stateNonNull(
+                Resource.of(resourceBean)
+                        .getCompleteSchemaRequired()
+                        .getObjectTypeDefinition(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT),
+                "No account/default definition in %s", resourceBean);
+    }
+
+    @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
+        return getAccountDefaultDefinition().getAllIdentifiersNames();
+    }
+
+    /** TODO reconcile with {@link #assertRepoShadow(String)} */
+    RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull String oid)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        return assertRepoShadow(oid, getCachedAccountAttributes());
     }
 }

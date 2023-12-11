@@ -25,8 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * It is basically a collection of attribute definitions, with a couple of other properties.
  */
 public interface ResourceObjectClassDefinition
-        extends
-            ResourceObjectDefinition {
+        extends ResourceObjectDefinition {
 
     /**
      * Returns the native object class name.

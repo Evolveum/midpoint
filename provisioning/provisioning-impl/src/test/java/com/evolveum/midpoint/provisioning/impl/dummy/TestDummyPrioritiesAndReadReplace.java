@@ -34,8 +34,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import javax.xml.namespace.QName;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,6 +43,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_PASSWORD;
 import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -82,6 +81,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         InternalMonitor.setTrace(InternalOperationClasses.CONNECTOR_OPERATIONS, true);
         // in order to have schema available here
         resourceBean = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, taskManager.createTaskInstance(), initResult).asObjectable();
+        addAccountDaemon(initResult);
     }
 
     // copied from TestDummy
@@ -92,21 +92,19 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        PrismObject<ShadowType> account = prismContext.parseObject(getAccountWillFile());
-        account.checkConsistence();
+        PrismObject<ShadowType> accountToAdd = prismContext.parseObject(getAccountWillFile());
+        accountToAdd.checkConsistence();
 
-        display("Adding shadow", account);
+        display("Adding shadow", accountToAdd);
 
         // WHEN
-        String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
+        String addedObjectOid = provisioningService.addObject(accountToAdd, null, null, task, result);
 
         // THEN
-        result.computeStatus();
-        display("add object result", result);
-        TestUtil.assertSuccess("addObject has failed (result)", result);
+        assertSuccessVerbose(result);
         assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
-        account.checkConsistence();
+        accountToAdd.checkConsistence();
 
         PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
         willIcfUid = getIcfUid(accountRepo);
@@ -121,27 +119,26 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
-                ACCOUNT_WILL_OID, null, task, result);
-        display("Account provisioning", accountProvisioning);
-        ShadowType accountTypeProvisioning = accountProvisioning.asObjectable();
-        display("account from provisioning", accountTypeProvisioning);
-        PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeProvisioning.getName());
-        assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountTypeProvisioning.getKind());
-        assertAttribute(accountProvisioning, SchemaConstants.ICFS_NAME, ACCOUNT_WILL_USERNAME);
-        assertAttribute(accountProvisioning, getUidMatchingRule(), SchemaConstants.ICFS_UID, willIcfUid);
+        var accountAfter = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
+        display("Account provisioning", accountAfter);
+        ShadowType accountBeanAfter = accountAfter.getBean();
+        display("account from provisioning", accountBeanAfter);
+        PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountBeanAfter.getName());
+        assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountBeanAfter.getKind());
+        assertAttribute(accountAfter, SchemaConstants.ICFS_NAME, ACCOUNT_WILL_USERNAME);
+        assertAttribute(accountAfter, SchemaConstants.ICFS_UID, willIcfUid);
 
-        ActivationType activationProvisioning = accountTypeProvisioning.getActivation();
+        ActivationType activationProvisioning = accountBeanAfter.getActivation();
         if (supportsActivation()) {
-            assertNotNull("No activation in "+accountProvisioning+" (provisioning)", activationProvisioning);
-            assertEquals("Wrong activation administrativeStatus in "+accountProvisioning+" (provisioning)", ActivationStatusType.ENABLED, activationProvisioning.getAdministrativeStatus());
-            TestUtil.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountProvisioning+" (provisioning)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
+            assertNotNull("No activation in "+accountAfter+" (provisioning)", activationProvisioning);
+            assertEquals("Wrong activation administrativeStatus in "+accountAfter+" (provisioning)", ActivationStatusType.ENABLED, activationProvisioning.getAdministrativeStatus());
+            TestUtil.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountAfter+" (provisioning)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
         } else {
             assertNull("Activation sneaked in (provisioning)", activationProvisioning);
         }
 
-        assertNull("The _PASSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-                accountTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+        assertNull("The _PASSWORD_ attribute sneaked into shadow",
+                ShadowUtil.getAttributeValue(accountBeanAfter, ICFS_PASSWORD));
 
         // Check if the account was created in the dummy resource
 
@@ -153,14 +150,13 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
-                addedObjectOid, null, result);
-        assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        displayValue("Repository shadow", shadowFromRepo.debugDump());
+        var repoShadow = getShadowRepo(addedObjectOid);
+        assertNotNull("Shadow was not created in the repository", repoShadow);
+        displayValue("Repository shadow", repoShadow.debugDump());
 
-        ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
+        ProvisioningTestUtil.checkRepoAccountShadow(repoShadow);
 
-        checkUniqueness(accountProvisioning);
+        checkUniqueness(accountAfter);
         //assertSteadyResource();
     }
 

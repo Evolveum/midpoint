@@ -13,6 +13,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 public class ProvisioningOperationContext {
 
+    public static ProvisioningOperationContext empty() {
+        return new ProvisioningOperationContext();
+    }
+
     /**
      * Request identifier used through multiple audit records for complex operations. E.g. from DISCOVER_OBJECT,
      * through REQUEST, EXECUTION RESOURCE stage.

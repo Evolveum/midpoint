@@ -161,8 +161,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
         PrismObject<? extends ShadowType> currentShadow = lastChange.getShadowedResourceObject();
         assertNotNull("No current shadow in change notification", currentShadow);
 
-        // TODO why is the value lowercased? Is it because it was taken from the change and not fetched from the resource?
-        assertEquals("Wrong shadow name", ACCOUNT_WILL_NAME.toLowerCase(), currentShadow.asObjectable().getName().getOrig());
+        assertEquals("Wrong shadow name", ACCOUNT_WILL_NAME, currentShadow.asObjectable().getName().getOrig());
 
         ShadowType shadow = currentShadow.asObjectable();
         MetadataType metadata = shadow.getMetadata();

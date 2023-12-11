@@ -6,19 +6,14 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_PATH;
-
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_PATH;
-
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_PATH;
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_PATH;
 
 import java.util.Collection;
-import java.util.List;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -29,9 +24,11 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -204,18 +201,13 @@ public class TestDummySecurity extends AbstractDummyTest {
         OperationResult result = createOperationResult();
 
         // WHEN
-        PrismObject<ShadowType> shadow =
-                provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
 
         // THEN
         assertSuccess(result);
-
         display("Retrieved account shadow", shadow);
 
-        assertNotNull("No dummy account", shadow);
-
         checkAccountWill(shadow);
-
         checkUniqueness(shadow);
     }
 
@@ -225,12 +217,11 @@ public class TestDummySecurity extends AbstractDummyTest {
         Task task = getTestTask();
         OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
-                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
+                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
         displayDumpable("All shadows query", query);
 
         // WHEN
-        List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-                query, null, task, result);
+        var allShadows = provisioningService.searchShadows(query, null, task, result);
 
         // THEN
         assertSuccess(result);
@@ -241,7 +232,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
         checkUniqueness(allShadows);
 
-        for (PrismObject<ShadowType> shadow: allShadows) {
+        for (var shadow : allShadows) {
             assertNoAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
             assertNoAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME);
         }
@@ -251,8 +242,8 @@ public class TestDummySecurity extends AbstractDummyTest {
 
     // TODO: search
 
-    private void checkAccountWill(PrismObject<ShadowType> shadow) {
-        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
+    private void checkAccountWill(AbstractShadow shadow) {
+        Collection<ResourceAttribute<?>> attributes = shadow.getAttributes();
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);

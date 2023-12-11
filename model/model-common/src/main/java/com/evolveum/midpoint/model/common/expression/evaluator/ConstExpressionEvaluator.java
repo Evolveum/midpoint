@@ -52,7 +52,7 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
         String stringValue = constantsManager.getConstantValue(constName);
 
         //noinspection unchecked
-        Item<V, D> output = outputDefinition.instantiate();
+        Item<V, D> output = (Item<V, D>) outputDefinition.instantiate();
 
         Object realValue = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
 
@@ -60,6 +60,7 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
             if (realValue != null) {
                 PrismPropertyValue<Object> prismValue = prismContext.itemFactory().createPropertyValue(realValue);
                 addInternalOrigin(prismValue, context);
+                //noinspection unchecked
                 ((PrismProperty<Object>) output).add(prismValue);
             }
         } else {

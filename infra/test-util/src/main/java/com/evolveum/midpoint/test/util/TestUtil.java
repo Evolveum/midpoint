@@ -28,7 +28,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.processor.RawResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -111,7 +114,7 @@ public class TestUtil {
     public static void setAttribute(PrismObject<ShadowType> account, QName attrName, QName typeName, String value)
             throws SchemaException {
         PrismContainer<Containerable> attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-        RawResourceAttributeDefinition<String> attrDef = ObjectFactory.createResourceAttributeDefinition(attrName, typeName);
+        ResourceAttributeDefinition<String> attrDef = ObjectFactory.createResourceAttributeDefinition(attrName, typeName);
         ResourceAttribute<String> attribute = attrDef.instantiate();
         attribute.setRealValue(value);
         attributesContainer.add(attribute);
@@ -542,6 +545,13 @@ public class TestUtil {
     public static void assertCreateTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
             XMLGregorianCalendar end) {
         MetadataType metadata = object.asObjectable().getMetadata();
+        assertNotNull("No metadata in " + object, metadata);
+        assertBetween("createTimestamp in " + object, start, end, metadata.getCreateTimestamp());
+    }
+
+    public static void assertCreateTimestamp(RawRepoShadow object, XMLGregorianCalendar start,
+            XMLGregorianCalendar end) {
+        MetadataType metadata = object.getBean().getMetadata();
         assertNotNull("No metadata in " + object, metadata);
         assertBetween("createTimestamp in " + object, start, end, metadata.getCreateTimestamp());
     }

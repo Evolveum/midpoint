@@ -1449,7 +1449,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             return null;
         }
         //noinspection unchecked
-        Item<V, D> output = getOutputDefinition().instantiate();
+        Item<V, D> output = (Item<V, D>) getOutputDefinition().instantiate();
         output.addAll(PrismValueCollectionsUtil.cloneCollection(outputTriple.getNonNegativeValues()));
         return output;
     }

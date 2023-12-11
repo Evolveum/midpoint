@@ -383,7 +383,7 @@ public interface ResourceObjectDefinition
     /**
      * Creates {@link ResourceAttributeContainerDefinition} with this definition as a complex type definition.
      */
-    default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
+    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
         return toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES);
     }
 
@@ -391,7 +391,7 @@ public interface ResourceObjectDefinition
      * Creates {@link ResourceAttributeContainerDefinition} (with given item name) with this definition
      * as a complex type definition.
      */
-    default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
+    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
         return ObjectFactory.createResourceAttributeContainerDefinition(elementName, this);
     }
 
@@ -534,4 +534,9 @@ public interface ResourceObjectDefinition
                 "Object definition %s is not attached to a resource", this);
     }
     //endregion
+
+    default @NotNull PrismObjectDefinition<ShadowType> computePrismObjectDefinition() {
+        return ObjectFactory.constructObjectDefinition(
+                toResourceAttributeContainerDefinition());
+    }
 }

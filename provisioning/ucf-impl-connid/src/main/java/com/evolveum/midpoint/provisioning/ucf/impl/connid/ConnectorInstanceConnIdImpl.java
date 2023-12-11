@@ -506,7 +506,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             // TODO configure error reporting method
             return connIdConvertor
                     .convertToUcfObject(
-                            co, shadowDefinition, false, caseIgnoreAttributeNames,
+                            co, shadowDefinition, caseIgnoreAttributeNames,
                             legacySchema, UcfFetchErrorReportingMethod.EXCEPTION, result)
                     .getResourceObject();
 
@@ -1939,7 +1939,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     // UTILITY METHODS
 
     private @NotNull Uid getUid(ResourceObjectIdentification.WithPrimary identification) throws SchemaException {
-        String uidValue = (String) identification.getPrimaryIdentifier().getRealValue();
+        // We hope that the value is String. But it perhaps should be OK to use toString() method if it's not.
+        String uidValue = identification.getPrimaryIdentifier().getStringOrigValue();
         String nameValue = getNameValue(identification);
         if (nameValue == null) {
             return new Uid(uidValue);
@@ -1951,11 +1952,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     private String getNameValue(ResourceObjectIdentification<?> identification) throws SchemaException {
         var secondaryIdentifiers = identification.getSecondaryIdentifiers();
         if (secondaryIdentifiers.size() == 1) {
-            return (String) secondaryIdentifiers.iterator().next().getRealValue();
+            return secondaryIdentifiers.iterator().next().getStringOrigValue();
         } else if (secondaryIdentifiers.size() > 1) {
             for (var secondaryIdentifier : secondaryIdentifiers) {
                 if (Name.NAME.equals(secondaryIdentifier.getDefinition().getFrameworkAttributeName())) {
-                    return secondaryIdentifier.getRealValue().toString();
+                    return secondaryIdentifier.getStringOrigValue();
                 }
             }
             throw new SchemaException(
@@ -2213,7 +2214,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         } else {
             ResourceObjectIdentifier<?> primaryIdentifier = identification.getPrimaryIdentifier();
             assert primaryIdentifier != null;
-            return primaryIdentifier.getRealValue().toString();
+            return primaryIdentifier.getStringOrigValue();
         }
     }
 

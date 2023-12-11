@@ -13,6 +13,7 @@ import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -20,14 +21,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -67,10 +66,10 @@ public class TestDummyIncomplete extends TestDummy {
 
     @Override
     protected void checkAccountWill(
-            PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs)
-            throws SchemaException, EncryptionException, ConfigurationException {
+            AbstractShadow shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs)
+            throws EncryptionException, SchemaException, ConfigurationException {
         super.checkAccountWill(shadow, result, startTs, endTs);
-        CredentialsType credentials = shadow.asObjectable().getCredentials();
+        CredentialsType credentials = shadow.getBean().getCredentials();
         assertNotNull("No credentials in "+shadow, credentials);
         PasswordType password = credentials.getPassword();
         assertNotNull("No password in "+shadow, password);

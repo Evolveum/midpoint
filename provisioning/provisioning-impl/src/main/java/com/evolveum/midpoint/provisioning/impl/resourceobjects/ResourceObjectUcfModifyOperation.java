@@ -188,7 +188,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(
-                        "PROVISIONING MODIFY operation on {}\n MODIFY object, object type {}, identified by:\n{}\n changes:\n{}",
+                        "PROVISIONING MODIFY operation on {}\nMODIFY object, object type {}, identified by:\n{}\n changes:\n{}",
                         ctx.getResource(), objectDefinition.getHumanReadableName(),
                         identification.debugDump(1), SchemaDebugUtil.debugDump(operations, 1));
             }

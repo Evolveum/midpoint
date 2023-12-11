@@ -18,16 +18,18 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.polystring.NormalizerRegistryFactory;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
+
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
@@ -79,7 +81,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         resetPrismContext(MidPointPrismContextFactory.FACTORY);
         SchemaService.init(
                 getPrismContext(),
@@ -354,7 +356,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         // WHEN
         //noinspection unchecked,rawtypes
         attributesContainer.applyDefinition(
-                (PrismContainerDefinition) defaultAccountDefinition.toResourceAttributeContainerDefinition(), true);
+                (PrismContainerDefinition) defaultAccountDefinition.toResourceAttributeContainerDefinition());
 
         // THEN
         System.out.println("Parsed account:");
@@ -529,7 +531,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
     }
 
     private void assertProtectedAccount(String message, ResourceObjectPattern protectedPattern, String identifierValue, ResourceObjectTypeDefinition rAccount) throws SchemaException {
-        ObjectFilter filter = protectedPattern.getObjectFilter();
+        ObjectFilter filter = protectedPattern.getFilter();
         assertNotNull("Null objectFilter in " + message, filter);
         assertTrue("Wrong filter class " + filter.getClass().getSimpleName() + " in " + message, filter instanceof EqualFilter);
         assertNotNull("Null filter path in " + message, ((EqualFilter) filter).getPath());
@@ -544,14 +546,17 @@ public class TestRefinedSchema extends AbstractUnitTest {
         attributesContainer.add(nameAttr);
         ResourceAttribute<String> confusingAttr2 = createStringAttribute(new QName("http://whatever.com", "confuseMeAgain"), "WoodchuckWouldChuckNoWoodAsWoodchuckCannotChuckWood");
         attributesContainer.add(confusingAttr2);
+        shadow.asObjectable().resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE);
 
-        assertTrue("Test attr not matched in " + message, protectedPattern.matches(shadow.asObjectable()));
+        var abstractShadow = AbstractShadow.of(shadow.asObjectable());
+
+        assertTrue("Test attr not matched in " + message, protectedPattern.matches(abstractShadow));
         nameAttr.setRealValue("huhulumululul");
-        assertFalse("Test attr nonsense was matched in " + message, protectedPattern.matches(shadow.asObjectable()));
+        assertFalse("Test attr nonsense was matched in " + message, protectedPattern.matches(abstractShadow));
     }
 
     private ResourceAttribute<String> createStringAttribute(QName attrName, String value) {
-        RawResourceAttributeDefinition<String> testAttrDef =
+        ResourceAttributeDefinition<String> testAttrDef =
                 ObjectFactory.createResourceAttributeDefinition(attrName, DOMUtil.XSD_STRING);
         ResourceAttribute<String> testAttr = testAttrDef.instantiate();
         testAttr.setRealValue(value);
@@ -585,10 +590,18 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertTrue(rAccountDef.isDefaultForKind());
 
         Collection<? extends ResourceAttributeDefinition<?>> rAccountAttrs = rAccountDef.getAttributeDefinitions();
+        Collection<? extends ResourceAttributeDefinition<?>> rAccountAttrsRaw =
+                rAccountDef.getRawObjectClassDefinition().getAttributeDefinitions();
         assertFalse(rAccountAttrs.isEmpty());
 
+        assertAttributeDef(rAccountAttrsRaw, QNAME_DN,
+                DOMUtil.XSD_STRING, 1, 1, "dn", 110,
+                false, false,
+                true, true, true, // Access: create, read, update
+                LayerType.SCHEMA, LayerType.PRESENTATION);
+
         assertAttributeDef(rAccountAttrs, QNAME_DN,
-                DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", 110,
+                PolyStringType.COMPLEX_TYPE, 1, 1, "Distinguished Name", 110,
                 true, false,
                 true, true, true, // Access: create, read, update
                 LayerType.SCHEMA, LayerType.PRESENTATION);
@@ -605,8 +618,14 @@ public class TestRefinedSchema extends AbstractUnitTest {
                 true, true, true, // Access: create, read, update
                 LayerType.SCHEMA, LayerType.PRESENTATION);
 
+        assertAttributeDef(rAccountAttrsRaw, QNAME_UID,
+                DOMUtil.XSD_STRING, 0, -1, "uid", 300,
+                false, false,
+                true, true, true, // Access: create, read, update
+                LayerType.SCHEMA, LayerType.PRESENTATION);
+
         assertAttributeDef(rAccountAttrs, QNAME_UID,
-                DOMUtil.XSD_STRING, 0, -1, "Login Name", 300,
+                PolyStringType.COMPLEX_TYPE, 0, -1, "Login Name", 300,
                 true, false,
                 true, true, true, // Access: create, read, update
                 LayerType.SCHEMA, LayerType.PRESENTATION);
@@ -617,7 +636,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
                 true, true, true, // Access: create, read, update
                 LayerType.SCHEMA, LayerType.PRESENTATION);
 
-        System.out.println("Refined account definitionn:");
+        System.out.println("Refined account definition:");
         System.out.println(rAccountDef.debugDump());
 
         assertEquals("Wrong kind", ShadowKindType.ACCOUNT, rAccountDef.getKind());

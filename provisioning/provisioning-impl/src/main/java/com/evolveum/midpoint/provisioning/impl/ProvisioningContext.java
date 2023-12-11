@@ -130,11 +130,9 @@ public class ProvisioningContext {
     private ResourceSchema resourceSchema;
 
     /**
-     * Cached patterns for protected objects in given object type.
-     *
-     * TODO
+     * Cached patterns for protected objects in given object type with their filter expressions evaluated.
      */
-    private Collection<ResourceObjectPattern> protectedObjectPatterns;
+    private Collection<ResourceObjectPattern> evaluatedProtectedObjectPatterns;
 
     /** TODO document */
     private ObjectReferenceType associationShadowRef;
@@ -255,16 +253,16 @@ public class ProvisioningContext {
     public Collection<ResourceObjectPattern> getProtectedAccountPatterns(OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
-        if (protectedObjectPatterns != null) {
-            return protectedObjectPatterns;
+        if (evaluatedProtectedObjectPatterns != null) {
+            return evaluatedProtectedObjectPatterns;
         }
 
-        protectedObjectPatterns = new ArrayList<>();
+        evaluatedProtectedObjectPatterns = new ArrayList<>();
 
         ResourceObjectDefinition objectDefinition = getObjectDefinitionRequired();
         Collection<ResourceObjectPattern> rawPatterns = objectDefinition.getProtectedObjectPatterns();
         for (ResourceObjectPattern rawPattern : rawPatterns) {
-            ObjectFilter filter = rawPattern.getObjectFilter();
+            ObjectFilter filter = rawPattern.getFilter();
             VariablesMap variables = new VariablesMap();
             variables.put(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
             variables.put(ExpressionConstants.VAR_CONFIGURATION,
@@ -272,13 +270,13 @@ public class ProvisioningContext {
             ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
                     filter, variables, MiscSchemaUtil.getExpressionProfile(), contextFactory.getCommonBeans().expressionFactory,
                      "protected filter", getTask(), result);
-            protectedObjectPatterns.add(
+            evaluatedProtectedObjectPatterns.add(
                     new ResourceObjectPattern(
-                            rawPattern.getResourceObjectDefinition(),
+                            rawPattern.getObjectDefinition(),
                             evaluatedFilter));
         }
 
-        return protectedObjectPatterns;
+        return evaluatedProtectedObjectPatterns;
     }
 
     // we don't use additionalAuxiliaryObjectClassQNames as we don't know if they are initialized correctly [med] TODO: reconsider this
@@ -704,30 +702,61 @@ public class ProvisioningContext {
         return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
     }
 
+    /** Does not create a new context. The current context should be derived from the shadow. TODO reconsider */
+    public void applyAttributesDefinitionHere(@NotNull ShadowType shadow) throws SchemaException {
+        getCaretaker().applyAttributesDefinition(getObjectDefinitionRequired(), shadow);
+    }
+
     /**
-     * Takes kind/intent/OC from the shadow, looks up the definition, and updates
-     * the attribute definitions and shadow state accordingly.
+     * Takes kind/intent/OC from the shadow, looks up the definition, and updates the attribute definitions accordingly.
+     *
+     * TODO reconsider
+     *
+     * TODO what about the shadow state?
      */
-    private ProvisioningContext adoptShadowBean(
-            @NotNull ShadowType shadow)
+    private ProvisioningContext adoptShadowBean(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
         return applyAttributesDefinition(shadow);
     }
 
-    /** Creates a well-formed {@link RepoShadow} from provided raw shadow. */
-    public @NotNull RepoShadow adoptRepoShadow(@NotNull PrismObject<ShadowType> shadowPrismObject)
+    /**
+     * Creates a well-formed {@link RepoShadow} from provided raw shadow bean. The embedded {@link RawRepoShadow}
+     * is not filled in - to avoid object cloning if not really necessary.
+     *
+     * TODO reconsider
+     *
+     * @see #adoptRawRepoShadow(PrismObject)
+     */
+    public @NotNull RepoShadow adoptRawRepoShadowSimple(@NotNull PrismObject<ShadowType> shadowPrismObject)
             throws SchemaException, ConfigurationException {
-        return adoptRepoShadow(shadowPrismObject.asObjectable());
-    }
-
-    /** Just a convenience variant of {@link #adoptRepoShadow(PrismObject)}. */
-    public @NotNull RepoShadow adoptRepoShadow(@NotNull ShadowType shadowBean)
-            throws SchemaException, ConfigurationException {
+        @NotNull ShadowType shadowBean = shadowPrismObject.asObjectable();
         var shadowCtx = adoptShadowBean(shadowBean);
         shadowCtx.updateShadowState(shadowBean);
-        return RepoShadow.of(shadowBean, shadowCtx.getResource());
+        return RepoShadow.of(shadowBean, null, shadowCtx.getResource());
     }
 
+    /** TODO */
+    public @NotNull RepoShadow adoptRawRepoShadow(@NotNull ShadowType bean)
+            throws SchemaException, ConfigurationException {
+        return adoptRawRepoShadow(RawRepoShadow.of(bean));
+    }
+
+    /** TODO */
+    public @NotNull RepoShadow adoptRawRepoShadow(@NotNull PrismObject<ShadowType> prismObject)
+            throws SchemaException, ConfigurationException {
+        return adoptRawRepoShadow(RawRepoShadow.of(prismObject));
+    }
+
+    /** TODO */
+    public @NotNull RepoShadow adoptRawRepoShadow(@NotNull RawRepoShadow rawRepoShadow)
+            throws SchemaException, ConfigurationException {
+        var shadowBean = rawRepoShadow.getBean().clone();
+        var shadowCtx = adoptShadowBean(shadowBean);
+        shadowCtx.updateShadowState(shadowBean);
+        return RepoShadow.of(shadowBean, rawRepoShadow, shadowCtx.getResource());
+    }
+
+    /** The shadow should be a bean usable as a {@link ResourceObject} (except for the attribute definitions). */
     public @NotNull ResourceObject adoptNotYetExistingResourceObject(ShadowType bean)
             throws SchemaException, ConfigurationException {
         var shadowCtx = adoptShadowBean(bean);
@@ -773,7 +802,6 @@ public class ProvisioningContext {
 
         return ExistingResourceObject.of(
                 bean,
-                objectDefinition,
                 primaryIdentifierValue);
     }
 
@@ -915,12 +943,13 @@ public class ProvisioningContext {
         return ResourceTypeUtil.isAvoidDuplicateValues(resource);
     }
 
+    // The object should correspond to the raw schema to avoid comparison issues related to polystrings
     public void checkProtectedObjectAddition(ResourceObject object, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         if (!ProvisioningUtil.isAddShadowEnabled(
                 getProtectedAccountPatterns(result),
-                object.getBean(),
+                object,
                 result)) {
             throw new SecurityViolationException(
                     String.format("Cannot add protected resource object %s (%s)", object, getExceptionDescription()));
@@ -932,7 +961,7 @@ public class ProvisioningContext {
             ConfigurationException, ObjectNotFoundException {
         if (!ProvisioningUtil.isModifyShadowEnabled(
                 getProtectedAccountPatterns(result),
-                repoShadow.getBean(),
+                repoShadow,
                 result)) {
             throw new SecurityViolationException(
                     String.format("Cannot modify protected resource object (%s): %s", repoShadow, getExceptionDescription()));
@@ -944,7 +973,7 @@ public class ProvisioningContext {
             ConfigurationException, ObjectNotFoundException {
         if (!ProvisioningUtil.isDeleteShadowEnabled(
                 getProtectedAccountPatterns(result),
-                repoShadow.getBean(),
+                repoShadow,
                 result)) {
             throw new SecurityViolationException(
                     String.format("Cannot delete protected resource object (%s): %s", repoShadow, getExceptionDescription()));

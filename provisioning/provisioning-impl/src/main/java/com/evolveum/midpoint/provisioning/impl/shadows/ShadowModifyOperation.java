@@ -18,6 +18,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 
 import com.google.common.collect.ImmutableList;
@@ -105,7 +106,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
 
     /** Executes when called explicitly from the client. */
     static String executeDirectly(
-            @NotNull ShadowType rawRepoShadow,
+            @NotNull RawRepoShadow rawRepoShadow,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
@@ -127,14 +128,14 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
         ProvisioningContext ctx = ShadowsLocalBeans.get().ctxFactory.createForShadow(
-                rawRepoShadow,
+                rawRepoShadow.getBean(),
                 getAdditionalAuxObjectClassNames(modifications),
                 task,
                 result);
         ctx.setOperationContext(context);
         ctx.assertDefinition();
         ctx.checkExecutionFullyPersistent();
-        var repoShadow = ctx.adoptRepoShadow(rawRepoShadow);
+        var repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
 
         ModifyOperationState opState = new ModifyOperationState(repoShadow);
 
@@ -263,8 +264,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
     }
 
     private void refreshBeforeExecution(OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
         RepoShadow repoShadow = opState.getRepoShadowRequired();
         if (inRefreshOrPropagation || !repoShadow.hasRetryableOperation()) {
             return;
@@ -273,7 +273,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         shadowRefreshOperation =
                 ShadowRefreshOperation.executeFull(repoShadow, options, ctx.getOperationContext(), ctx.getTask(), result);
         var shadowAfterRefresh = shadowRefreshOperation.getShadow();
-        if (shadowAfterRefresh == null) {
+        if (shadowAfterRefresh.isDeleted()) {
             LOGGER.trace("Shadow is gone. Nothing more to do");
             throw new ObjectNotFoundException(
                     "Shadow disappeared during modify", null, ShadowType.class, repoShadow.getOid(), PARTIAL_ERROR);
@@ -293,7 +293,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             return true;
         }
 
-        if (shadowRefreshOperation.getShadow() == null) {
+        if (shadowRefreshOperation.getShadow().isDeleted()) {
             LOGGER.trace("Shadow is gone. Probably it was deleted during refresh. Finishing modify operation now.");
             return false;
         }

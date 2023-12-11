@@ -36,12 +36,12 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default @Nullable ResourceAttributeDefinition<?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+    default <T> @Nullable ResourceAttributeDefinition<T> findAttributeDefinition(QName name, boolean caseInsensitive) {
         return delegate().findAttributeDefinition(name, caseInsensitive);
     }
 
     @Override
-    default ResourceAttributeDefinition<?> findAttributeDefinition(String name) {
+    default <T> ResourceAttributeDefinition<T> findAttributeDefinition(String name) {
         return delegate().findAttributeDefinition(name);
     }
 
@@ -81,12 +81,12 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
+    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
         return delegate().toResourceAttributeContainerDefinition();
     }
 
     @Override
-    default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
+    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
         return delegate().toResourceAttributeContainerDefinition(elementName);
     }
 

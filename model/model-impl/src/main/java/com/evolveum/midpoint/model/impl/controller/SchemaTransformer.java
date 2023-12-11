@@ -469,8 +469,7 @@ public class SchemaTransformer {
         dataPolicyProcessor.applyItemsConstraints(objectDefinition, archetypePolicy);
     }
 
-    @NotNull
-    <O extends Objectable> TransformableObjectDefinition<O> transformableDefinition(PrismObjectDefinition<O> definition) {
+    <O extends Objectable> @NotNull TransformableObjectDefinition<O> transformableDefinition(PrismObjectDefinition<O> definition) {
         return TransformableObjectDefinition.of(definition);
     }
 }

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.schema.transform;
 
+import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
@@ -19,9 +20,8 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.deleg.ContainerDefinitionDelegator;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.deleg.AttributeContainerDefinitionDelegator;
+import com.evolveum.midpoint.schema.processor.deleg.ResourceAttributeContainerDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.google.common.base.Preconditions;
@@ -30,7 +30,7 @@ public class TransformableContainerDefinition<C extends Containerable>
         extends TransformableItemDefinition<PrismContainer<C>, PrismContainerDefinition<C>>
         implements ContainerDefinitionDelegator<C>, PartiallyMutableItemDefinition.Container<C> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     protected final TransformableComplexTypeDefinition complexTypeDefinition;
 
@@ -50,7 +50,7 @@ public class TransformableContainerDefinition<C extends Containerable>
             return (TransformableContainerDefinition<C>) originalItem;
         }
         if (originalItem instanceof ResourceAttributeContainerDefinition) {
-            return (TransformableContainerDefinition) new AttributeContainer((ResourceAttributeContainerDefinition) originalItem);
+            return (TransformableContainerDefinition) new ResourceAttributeContainer((ResourceAttributeContainerDefinition) originalItem);
         }
 
         return new TransformableContainerDefinition<>(originalItem);
@@ -103,7 +103,8 @@ public class TransformableContainerDefinition<C extends Containerable>
     }
 
     @Override
-    public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(@NotNull ItemPath path) {
+    public <C2 extends Containerable> PrismContainerDefinition<C2> findContainerDefinition(@NotNull ItemPath path) {
+        //noinspection unchecked
         return findItemDefinition(path, PrismContainerDefinition.class);
     }
 
@@ -230,19 +231,17 @@ public class TransformableContainerDefinition<C extends Containerable>
         return (TransformableContainerDefinition<C>) assocContainer;
     }
 
-    public static class AttributeContainer extends TransformableContainerDefinition<ShadowAttributesType> implements AttributeContainerDefinitionDelegator {
+    public static class ResourceAttributeContainer
+            extends TransformableContainerDefinition<ShadowAttributesType>
+            implements ResourceAttributeContainerDefinitionDelegator {
 
-        /**
-         *
-         */
-        private static final long serialVersionUID = 2L;
+        @Serial private static final long serialVersionUID = 2L;
 
-        protected AttributeContainer(ResourceAttributeContainerDefinition delegate) {
+        ResourceAttributeContainer(ResourceAttributeContainerDefinition delegate) {
             super(delegate);
         }
 
-        public AttributeContainer(AttributeContainer copy,
-                TransformableComplexTypeDefinition typeDef) {
+        ResourceAttributeContainer(ResourceAttributeContainer copy, TransformableComplexTypeDefinition typeDef) {
             super(copy, typeDef);
         }
 
@@ -268,7 +267,7 @@ public class TransformableContainerDefinition<C extends Containerable>
                 QName itemName, ItemDefinition<?> newDefinition) {
             TransformableComplexTypeDefinition typeDefCopy = complexTypeDefinition.copy();
             typeDefCopy.replaceDefinition(itemName, newDefinition);
-            return new AttributeContainer(this, typeDefCopy);
+            return new ResourceAttributeContainer(this, typeDefCopy);
         }
 
         @Override
@@ -277,13 +276,13 @@ public class TransformableContainerDefinition<C extends Containerable>
         }
 
         @Override
-        public @NotNull ResourceAttributeContainer instantiate() {
+        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttributeContainer instantiate() {
             return instantiate(getItemName());
         }
 
         @Override
-        public @NotNull ResourceAttributeContainer instantiate(QName elementName) {
-            ResourceAttributeContainer deleg = delegate().instantiate(elementName);
+        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttributeContainer instantiate(QName elementName) {
+            com.evolveum.midpoint.schema.processor.ResourceAttributeContainer deleg = delegate().instantiate(elementName);
             deleg.setDefinition(this);
             return deleg;
         }

@@ -194,7 +194,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
         try {
             PrismObjectDefinition<O> objectDef = getModelInteractionService().getEditObjectDefinition(object, phase, task, result);
-            object.applyDefinition(objectDef, true);
+            object.applyDefinition(objectDef);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
                 | CommunicationException | SecurityViolationException e) {
             LOGGER.error("Exception while applying security constraints: {}", e.getMessage(), e);

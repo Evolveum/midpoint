@@ -563,7 +563,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertSelectedAccountByName(objects, GOOD_ACCOUNT)
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertPrimaryIdentifierValue(GOOD_ACCOUNT)
+                .assertIndexedPrimaryIdentifierValue(GOOD_ACCOUNT)
                 .attributes()
                     .assertSize(3)
                     .end()
@@ -574,7 +574,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .display()
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertPrimaryIdentifierValue(GOOD_ACCOUNT)
+                .assertIndexedPrimaryIdentifierValue(GOOD_ACCOUNT)
                 .attributes()
                     .assertSize(3)
                     .end();
@@ -582,7 +582,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT)
+                .assertIndexedPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT)
                 .attributes()
                     .assertSize(2) // uid=inconvertible + number=2
                     .end()
@@ -594,14 +594,14 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT)
+                .assertIndexedPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT)
                 .attributes()
                     .assertSize(2)
                     .end();
 
         assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT)
                 .assertOid()
-                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
+                .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
                 .attributes()
                     .assertSize(1) // uid=unstorable [name was probably removed when we attempted to save the object?]
                     .end()
@@ -613,7 +613,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
+                .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
                 .attributes()
                     .assertSize(1)
                     .end();
@@ -673,7 +673,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertSelectedAccountByName(objects, GOOD_ACCOUNT)
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
                 .assertName(GOOD_ACCOUNT)
                 .attributes()
                     .assertSize(3)
@@ -686,14 +686,14 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .display()
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
                 .attributes()
                     .assertSize(3)
                     .end();
 
         assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT_UID)
                 .assertOid()
-                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
                 .assertName(INCONVERTIBLE_ACCOUNT_UID)
                 .attributes()
                     .assertSize(2) // uid=uid:inconvertible + number=2
@@ -707,14 +707,14 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
                 .attributes()
                     .assertSize(2)
                     .end();
 
         assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT_UID)
                 .assertOid()
-                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
                 .assertName(UNSTORABLE_ACCOUNT_UID)
                 .attributes()
                     .assertSize(1) // uid=unstorable
@@ -728,7 +728,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
                 .attributes()
                     .assertSize(1)
                     .end();
@@ -797,7 +797,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertSelectedAccountByName(objects, GOOD_ACCOUNT)
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
                 .assertName(GOOD_ACCOUNT)
                 .attributes()
                     .assertSize(3)
@@ -810,14 +810,14 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .display()
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
                 .attributes()
                     .assertSize(3)
                     .end();
 
         assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT_UID)
                 .assertOid()
-                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
                 .assertName(INCONVERTIBLE_ACCOUNT_UID)
                 .attributes()
                     .assertSize(1) // uid=uid:inconvertible (for some reason number=2 is not there)
@@ -829,14 +829,14 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
                 .attributes()
                     .assertSize(1)
                     .end();
 
         assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT_UID)
                 .assertOid()
-                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
                 .assertName(UNSTORABLE_ACCOUNT_UID)
                 .attributes()
                     .assertSize(1) // uid=unstorable
@@ -848,7 +848,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
                 .attributes()
                     .assertSize(1)
                     .end();

@@ -248,7 +248,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(
+    public <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinition(
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException {
@@ -272,7 +272,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             }
             return objectDefinition;
         } catch (ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | SchemaException e) {
-            result.recordFatalError(e);
+            result.recordException(e);
             throw e;
         } finally {
             result.computeStatusIfUnknown();

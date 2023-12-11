@@ -354,7 +354,7 @@ public class TestDummyLimited extends TestDummy {
 
     @Test
     @Override
-    public void test159GetLockedoutAccount() {
+    public void test159GetLockedOutAccount() {
         // Not relevant
     }
 

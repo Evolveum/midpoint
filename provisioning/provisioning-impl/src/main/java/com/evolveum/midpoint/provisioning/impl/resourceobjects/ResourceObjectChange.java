@@ -14,9 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
+import com.evolveum.midpoint.schema.processor.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,8 +30,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfChange;
 import com.evolveum.midpoint.provisioning.util.ErrorState;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -113,10 +109,10 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
      *
      * See {@link UcfChange#resourceObject} and {@link ExternalResourceEvent#resourceObject}.
      */
-    @Nullable private final UcfResourceObject rawResourceObject;
+    @Nullable private final UcfResourceObject ucfResourceObject;
 
     /**
-     * The completed (processed, finalized) form of {@link #rawResourceObject}.
+     * The completed (processed, finalized) form of {@link #ucfResourceObject}.
      *
      * NOTE: The following conditions apply for LS/AU. The Ext is in "half-implementation" state.
      *
@@ -137,9 +133,6 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
      */
     CompleteResourceObject completeResourceObject;
 
-    /** The initialization state for this change. */
-    @NotNull private final InitializationState initializationState = InitializationState.created();
-
     /** Represents the status if the original UCF change. */
     @NotNull private final AlreadyInitializedObject ucfChangeStatus;
 
@@ -148,7 +141,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
             Object primaryIdentifierRealValue,
             ResourceObjectDefinition initialResourceObjectDefinition,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
-            @Nullable UcfResourceObject rawResourceObject,
+            @Nullable UcfResourceObject ucfResourceObject,
             ObjectDelta<ShadowType> objectDelta,
             @NotNull ErrorState initialErrorState,
             @NotNull ProvisioningContext originalContext) {
@@ -157,9 +150,24 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.initialResourceObjectDefinition = initialResourceObjectDefinition;
         this.identifiers = new ArrayList<>(identifiers);
-        this.rawResourceObject = rawResourceObject;
+        this.ucfResourceObject = determineUcfResourceObject(ucfResourceObject, primaryIdentifierRealValue, objectDelta);
         this.objectDelta = objectDelta;
         this.ucfChangeStatus = AlreadyInitializedObject.of(initialErrorState);
+    }
+
+    /**
+     * Although the UCF change of ADD type should contain the object in {@link UcfChange#resourceObject}, let us try to
+     * obtain one from ADD delta if it's not the case.
+     */
+    private static UcfResourceObject determineUcfResourceObject(
+            UcfResourceObject ucfResourceObject, Object primaryIdentifierRealValue, ObjectDelta<ShadowType> objectDelta) {
+        if (ucfResourceObject != null) {
+            return ucfResourceObject;
+        } else if (ObjectDelta.isAdd(objectDelta)) {
+            return UcfResourceObject.of(objectDelta.getObjectToAdd(), primaryIdentifierRealValue);
+        } else {
+            return null;
+        }
     }
 
     ResourceObjectChange(@NotNull UcfChange ucfChange, @NotNull ProvisioningContext originalContext) {
@@ -199,22 +207,30 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
         throw new IllegalStateException("UCF does not signal 'not applicable' state");
     }
 
-    /** Returns the complete resource object, if present in the original change or it could be fetched. */
+    /**
+     * TODO description
+     * Returns the complete resource object, if present in the original change or it could be fetched.
+     */
     private @Nullable CompleteResourceObject processObjectAndDelta(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, NotApplicableException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
-        if (rawResourceObject != null) {
+        if (ucfResourceObject != null) {
             // This may be required for AU, but does not hurt for other cases.
-            effectiveCtx.applyAttributesDefinition(rawResourceObject.getPrismObject());
+            effectiveCtx.applyAttributesDefinition(ucfResourceObject.getPrismObject());
         }
         if (objectDelta != null) {
             effectiveCtx.applyAttributesDefinition(objectDelta);
         }
 
+        var definition = effectiveCtx.getObjectDefinition();
+        if (definition != null) {
+            applyDefinitionToIdentifiers(definition);
+        }
+
         if (isDelete()) {
-            if (rawResourceObject != null && effectiveCtx.hasDefinition()) {
-                var existingResourceObject = effectiveCtx.adoptDeletedUcfResourceObject(rawResourceObject);
+            if (ucfResourceObject != null && definition != null) {
+                var existingResourceObject = effectiveCtx.adoptDeletedUcfResourceObject(ucfResourceObject);
                 return CompleteResourceObject.ofDeleted(existingResourceObject);
             } else {
                 return null;
@@ -222,7 +238,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
         }
 
         AttributesToReturn actualAttributesToReturn = determineAttributesToReturn();
-        if (rawResourceObject == null) {
+        if (ucfResourceObject == null) {
             getLogger().trace("Trying to fetch object {} because it is not in the change", identifiers);
             return fetchResourceObject(actualAttributesToReturn, result);
         }
@@ -233,7 +249,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
             return fetchResourceObject(actualAttributesToReturn, result);
         }
 
-        var resourceObject = effectiveCtx.adoptUcfResourceObject(rawResourceObject);
+        var resourceObject = effectiveCtx.adoptUcfResourceObject(ucfResourceObject);
 
         completeResourceObject(effectiveCtx, resourceObject, true, result);
 
@@ -288,6 +304,20 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
         return identifiers;
     }
 
+    public Object getPrimaryIdentifierValue() {
+        return primaryIdentifierRealValue;
+    }
+
+    @Override
+    boolean objectDoesExist() {
+        return !isDelete();
+    }
+
+    @Override
+    public ResourceObjectDefinition getResourceObjectDefinition() {
+        return getEffectiveCtx().getObjectDefinition();
+    }
+
     public ObjectDelta<ShadowType> getObjectDelta() {
         return objectDelta;
     }
@@ -300,12 +330,12 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
         checkInitialized();
         if (completeResourceObject != null) {
             return completeResourceObject;
-        } else if (rawResourceObject != null && effectiveCtx.hasDefinition()) {
+        } else if (ucfResourceObject != null && effectiveCtx.hasDefinition()) {
             ErrorState errorState = initializationState.getErrorState();
             var resourceObject =
                     isDelete() ?
-                            effectiveCtx.adoptDeletedUcfResourceObject(rawResourceObject) :
-                            effectiveCtx.adoptUcfResourceObject(rawResourceObject);
+                            effectiveCtx.adoptDeletedUcfResourceObject(ucfResourceObject) :
+                            effectiveCtx.adoptUcfResourceObject(ucfResourceObject);
             assert errorState.isError();
             return CompleteResourceObject.of(resourceObject, errorState);
         } else {
@@ -321,7 +351,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
                 + ", class=" + getObjectClassLocalName()
                 + ", identifiers=" + identifiers
                 + ", objectDelta=" + objectDelta
-                + ", resourceObject=" + MiscUtil.getFirstNonNull(completeResourceObject, rawResourceObject)
+                + ", resourceObject=" + MiscUtil.getFirstNonNull(completeResourceObject, ucfResourceObject)
                 + ", state=" + initializationState
                 + toStringExtra() + ")";
     }
@@ -349,6 +379,49 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
         return primaryIdentifierRealValue;
     }
 
+//    public @NotNull ResourceObjectIdentification.WithPrimary determinePrimaryIdentification()
+//            throws SchemaException, ConfigurationException {
+//
+//        ResourceObjectDefinition effectiveObjectDefinition = determineEffectiveObjectDefinition();
+//
+//        List<ResourceAttribute<?>> primaryIdentifierAttributes = identifiers.stream()
+//                .filter(identifier -> effectiveObjectDefinition.isPrimaryIdentifier(identifier.getElementName()))
+//                .toList();
+//
+//        ResourceAttribute<?> primaryIdentifierAttribute = MiscUtil.extractSingletonRequired(
+//                primaryIdentifierAttributes,
+//                () -> new SchemaException("Multiple primary identifiers among " + identifiers + " in " + this),
+//                () -> new SchemaException("No primary identifier in " + this));
+//
+//        // We need to learn about correct matching rule (among others).
+//        primaryIdentifierAttribute.applyDefinitionFrom(effectiveObjectDefinition);
+//
+//        ResourceObjectIdentifier.Primary<?> primaryIdentifier = ResourceObjectIdentifier.Primary.of(primaryIdentifierAttribute);
+//
+//        return ResourceObjectIdentification.WithPrimary.of(
+//                effectiveObjectDefinition,
+//                ResourceObjectIdentifiers.withPrimary(primaryIdentifier, List.of()));
+//    }
+
+//    private @NotNull ResourceObjectDefinition determineEffectiveObjectDefinition() throws SchemaException, ConfigurationException {
+//        @NotNull var ctx = getEffectiveCtx();
+//
+//        // This context is the best we know at this moment. It is possible that it is wildcard (no OC known).
+//        // But the only way how to detect the OC is to read existing repo shadow. So we must take the risk
+//        // of guessing identifiers' definition correctly - in other words, assuming that these definitions are
+//        // the same for all the object classes on the given resource.
+//        @Nullable ResourceObjectDefinition objectDefinition = ctx.getObjectDefinition();
+//        ResourceObjectDefinition effectiveObjectDefinition;
+//        if (objectDefinition != null) {
+//            effectiveObjectDefinition = objectDefinition;
+//        } else if (isDelete()) {
+//            effectiveObjectDefinition = ctx.getAnyDefinition();
+//        } else {
+//            throw new IllegalStateException("No object definition in NON-DELETE change: " + this);
+//        }
+//        return effectiveObjectDefinition;
+//    }
+
     protected abstract String toStringExtra();
 
     private String getObjectClassLocalName() {
@@ -369,7 +442,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "identifiers", identifiers, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectDelta", objectDelta, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", getFirstNonNull(completeResourceObject, rawResourceObject), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", getFirstNonNull(completeResourceObject, ucfResourceObject), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "context", String.valueOf(effectiveCtx), indent + 1);
 
         debugDumpExtra(sb, indent);
@@ -379,6 +452,12 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
     }
 
     protected abstract void debugDumpExtra(StringBuilder sb, int indent);
+
+    private void applyDefinitionToIdentifiers(@NotNull ResourceObjectDefinition definition) throws SchemaException {
+        for (ResourceAttribute<?> identifier : identifiers) {
+            identifier.applyDefinitionFrom(definition);
+        }
+    }
 
     private void freezeIdentifiers() {
         identifiers = Collections.unmodifiableCollection(identifiers);
@@ -420,6 +499,9 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
         checkCollectionImmutable(identifiers);
         if (hasDefinition) {
             schemaCheck(!identifiers.isEmpty(), "No identifiers in the container but primary id value is known");
+            for (ResourceAttribute<?> identifier : identifiers) {
+                identifier.checkDefinitionConsistence(getCurrentResourceObjectDefinition());
+            }
         }
     }
 }

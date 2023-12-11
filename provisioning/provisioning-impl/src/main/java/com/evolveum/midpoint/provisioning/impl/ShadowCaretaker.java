@@ -199,24 +199,24 @@ public class ShadowCaretaker {
         }
     }
 
-    public static void applyAttributesDefinitionToContainer(
-            ResourceObjectDefinition objectDefinition,
-            PrismContainer<ShadowAttributesType> attributesContainer,
-            PrismContainerValue<?> parentPcv,
+    /** The container can be a shadow or "identifiers" container for an association value. */
+    static void applyAttributesDefinitionToContainer(
+            @NotNull ResourceObjectDefinition objectDefinition,
+            @NotNull PrismContainer<ShadowAttributesType> attributesContainer,
+            @NotNull PrismContainerValue<?> parentPcv,
             Object context) throws SchemaException {
-        if (attributesContainer instanceof ResourceAttributeContainer) {
-            if (attributesContainer.getDefinition() == null) {
+        try {
+            if (attributesContainer instanceof ResourceAttributeContainer) {
+                // Intentionally forcing the definition. We want to make sure that everything is up to date.
                 attributesContainer.applyDefinition(objectDefinition.toResourceAttributeContainerDefinition());
-            }
-        } else {
-            try {
+            } else {
                 // We need to convert <attributes> to ResourceAttributeContainer
-                ResourceAttributeContainer convertedContainer =
-                        ResourceAttributeContainer.convertFromContainer(attributesContainer, objectDefinition);
-                parentPcv.replace(attributesContainer, convertedContainer);
-            } catch (SchemaException e) {
-                throw e.wrap("Couldn't apply attributes definitions in " + context);
+                parentPcv.replace(
+                        attributesContainer,
+                        ResourceAttributeContainer.convertFromPrismContainer(attributesContainer, objectDefinition));
             }
+        } catch (SchemaException e) {
+            throw e.wrap("Couldn't apply attributes definitions in " + context);
         }
     }
 
@@ -238,8 +238,7 @@ public class ShadowCaretaker {
         shadowCtx.assertDefinition();
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(rawResourceObject);
         attributesContainer.applyDefinition(
-                shadowCtx.getObjectDefinitionRequired()
-                        .toResourceAttributeContainerDefinition());
+                shadowCtx.getObjectDefinitionRequired().toResourceAttributeContainerDefinition());
         return shadowCtx;
     }
 

@@ -19,6 +19,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.expression.*;
 
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 import org.testng.SkipException;
@@ -74,7 +76,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 

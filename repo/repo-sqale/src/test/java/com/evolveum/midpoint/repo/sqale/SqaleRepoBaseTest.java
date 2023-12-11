@@ -715,7 +715,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                     prismContext.definitionFactory()
                             .createContainerDefinition(ShadowType.F_ATTRIBUTES, ctd);
             object.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES)
-                    .applyDefinition(attrsDefinition, true);
+                    .applyDefinition(attrsDefinition);
         }
 
         /** Creates definition for attribute (first parameters) and sets the value(s) (vararg). */

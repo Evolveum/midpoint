@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import static com.evolveum.midpoint.prism.delta.PropertyDeltaCollectionsUtil.findPropertyDelta;
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil.getMatchingRule;
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 
@@ -17,11 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
-
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,24 +24,27 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.api.ShadowDeathEvent;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -68,8 +66,7 @@ public class ShadowUpdater {
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
     @Autowired private Protector protector;
-    @Autowired private ShadowDeltaComputerAbsolute shadowDeltaComputerAbsolute;
-    @Autowired private RepoShadowFinder repoShadowFinder;
+    @Autowired private ShadowFinder shadowFinder;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
     @Autowired private EventDispatcher eventDispatcher;
     @Autowired private Clock clock;
@@ -216,6 +213,7 @@ public class ShadowUpdater {
         return values != null && values.contains(Boolean.TRUE);
     }
 
+    /** Issues the shadow death event as well! */
     public @Nullable RepoShadow markShadowTombstone(RepoShadow repoShadow, Task task, OperationResult result)
             throws SchemaException {
         if (repoShadow == null) {
@@ -243,7 +241,7 @@ public class ShadowUpdater {
             // Maybe we should catch ObjectNotFoundException here and issue death event. But unless such deletion occurred
             // in raw mode by the administrator, we shouldn't care, because the thread that deleted the shadow should have
             // updated the links accordingly.
-            return null;
+            return null; // TODO mark shadow as deleted instead!
         }
         issueShadowDeathEvent(repoShadow.getOid(), task, result);
         repoShadow.updateWith(shadowChanges);
@@ -298,7 +296,7 @@ public class ShadowUpdater {
 
         var shadowBean = repoShadow.getBean();
         String currentPrimaryIdentifierValue = shadowBean.getPrimaryIdentifierValue();
-        String expectedPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, shadowBean);
+        String expectedPrimaryIdentifierValue = determinePrimaryIdentifierValue(repoShadow);
 
         if (Objects.equals(currentPrimaryIdentifierValue, expectedPrimaryIdentifierValue)) {
             // Everything is all right
@@ -317,6 +315,12 @@ public class ShadowUpdater {
             executeRepoShadowModificationsRaw(repoShadow, modifications, result);
 
         } catch (ObjectAlreadyExistsException e) {
+
+            if (expectedPrimaryIdentifierValue == null) {
+                throw SystemException.unexpected(
+                        e, "Conflict while resetting primary identifier value? For: " + repoShadow + " in " + ctx);
+            }
+
             if (!resolveDuplicates) {
                 throw e; // Client will take care of this
             }
@@ -327,7 +331,7 @@ public class ShadowUpdater {
                     shadowBean, expectedPrimaryIdentifierValue, e.getMessage(), e);
 
             RepoShadow potentialConflictingShadow =
-                    repoShadowFinder.lookupShadowByIndexedPrimaryIdValue(ctx, expectedPrimaryIdentifierValue, result);
+                    shadowFinder.lookupShadowByIndexedPrimaryIdValue(ctx, expectedPrimaryIdentifierValue, result);
             if (potentialConflictingShadow == null) {
                 throw new SystemException("Duplicate shadow conflict, but no conflicting shadow found for: " + shadowBean);
             }
@@ -416,32 +420,53 @@ public class ShadowUpdater {
      *
      * Retrieves index-only attributes from repo if needed.
      *
-     * Shadow must have its state set up!
+     * The object definition in the context should correspond to the one in resource object.
      *
-     * @param currentResourceObject Current state of the resource object. Not shadowized yet.
+     * @param resourceObject Current state of the resource object. Not shadowized yet.
      * @param resourceObjectDelta Delta coming from the resource (if known).
+     * @param newClassification
      * @return repository shadow as it should look like after the update
      * @see ShadowDeltaComputerAbsolute
      */
     public @NotNull RepoShadow updateShadowInRepository(
             @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObject currentResourceObject,
-            @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
             @NotNull RepoShadow repoShadow,
+            @NotNull ResourceObject resourceObject,
+            @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
+            @Nullable ResourceObjectClassification newClassification,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
 
-        LOGGER.trace("updateShadowInRepository starting");
+        LOGGER.trace(
+                """
+                        updateShadowInRepository starting.
+                        Repository shadow:
+                        {}
+                        Object fetched from the resource:
+                        {}
+                        Known resource object delta (for changes):
+                        {}
+                        New classification (if applicable): {}""",
+                repoShadow.debugDumpLazily(1),
+                resourceObject.debugDumpLazily(1),
+                DebugUtil.debugDumpLazily(resourceObjectDelta, 1),
+                newClassification);
+
+        Preconditions.checkArgument(
+                Objects.equals(ctx.getObjectDefinitionRequired(), resourceObject.getObjectDefinition()),
+                "Inconsistent object definitions in ctx and object: %s vs %s",
+                ctx.getObjectDefinition(), resourceObject.getObjectDefinition());
+
         if (resourceObjectDelta == null) {
             repoShadow = retrieveIndexOnlyAttributesIfNeeded(ctx, repoShadow, result);
         } else {
             LOGGER.trace("Resource object delta is present. We assume we will be able to update the shadow without "
-                    + "explicitly reading index-only attributes first."); // TODO check if this assumption is correct
+                    + "explicitly reading all index-only attributes."); // TODO check if this assumption is correct
         }
 
         ObjectDelta<ShadowType> computedShadowDelta =
-                shadowDeltaComputerAbsolute.computeShadowDelta(
-                        ctx, repoShadow, currentResourceObject, resourceObjectDelta, true);
+                ShadowDeltaComputerAbsolute.computeShadowDelta(
+                        ctx, repoShadow, resourceObject, resourceObjectDelta, newClassification, true);
 
         if (!computedShadowDelta.isEmpty()) {
             LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadow, computedShadowDelta.debugDumpLazily(1));
@@ -455,12 +480,7 @@ public class ShadowUpdater {
     private @NotNull RepoShadow retrieveIndexOnlyAttributesIfNeeded(
             @NotNull ProvisioningContext shadowCtx, @NotNull RepoShadow repoShadow, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
-        ResourceObjectDefinition objectDefinition = shadowCtx.getObjectDefinition();
-        if (objectDefinition == null) {
-            // TODO consider throwing an exception
-            LOGGER.warn("No resource object definition for {}", shadowCtx);
-            return repoShadow;
-        }
+        ResourceObjectDefinition objectDefinition = shadowCtx.getObjectDefinitionRequired();
 
         if (!objectDefinition.hasIndexOnlyAttributes()) {
             LOGGER.trace("No index only attributes -> nothing to retrieve");
@@ -479,7 +499,7 @@ public class ShadowUpdater {
                         .item(ShadowType.F_ATTRIBUTES).retrieve(RetrieveOption.INCLUDE)
                         .build();
 
-        RepoShadow retrievedRepoShadow = repoShadowFinder.getRepoShadow(shadowCtx, repoShadow.getOid(), options, result);
+        RepoShadow retrievedRepoShadow = shadowFinder.getRepoShadow(shadowCtx, repoShadow.getOid(), options, result);
 
         LOGGER.trace("Full repo shadow:\n{}", retrievedRepoShadow.debugDumpLazily(1));
 
@@ -488,109 +508,6 @@ public class ShadowUpdater {
 
     public void deleteShadow(RepoShadow oldRepoShadow, Task task, OperationResult result) {
         executeRepoShadowDeletion(oldRepoShadow, task, result);
-    }
-
-    /**
-     * Re-reads the shadow, re-evaluates the identifiers and stored values (including their normalization under matching rules),
-     * updates them if necessary in the repository.
-     *
-     * Returns fixed shadow, with the updated definition.
-     *
-     * See also {@link ShadowsNormalizationUtil}. (However, this code is too specific to be put there.)
-     */
-    public @NotNull RepoShadow normalizeShadowAttributesInRepositoryAfterClassification(
-            @NotNull ProvisioningContext ctx,
-            @NotNull String shadowOid,
-            @Nullable ResourceObjectClassification newClassification,
-            @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
-        ShadowType currentRepoShadowBean = repoShadowFinder.getShadowBean(shadowOid, result);
-        if (newClassification != null && ctx.areShadowChangesSimulated()) {
-            // In shadow simulation, we would lose kind/intent on repository re-read here.
-            // So we have to manually set the new values into the shadow.
-            currentRepoShadowBean
-                    .kind(newClassification.getKind())
-                    .intent(newClassification.getIntent());
-        }
-        // FIXME the normalization has to be done while adopting the shadow, as it will incorporate the type change
-        var currentRepoShadow = ctx.adoptRepoShadow(currentRepoShadowBean);
-        var newObjectDef = currentRepoShadow.getObjectDefinition();
-        List<ItemDelta<?, ?>> normalizationDeltas = new ArrayList<>();
-        for (ResourceAttribute<?> attribute : currentRepoShadow.getAttributes()) {
-            addNormalizationDeltas(normalizationDeltas, attribute, newObjectDef);
-        }
-        if (!normalizationDeltas.isEmpty()) {
-            LOGGER.trace("Normalizing shadow {} with deltas:\n{}", currentRepoShadow, debugDumpLazily(normalizationDeltas));
-            executeRepoShadowModifications(ctx, currentRepoShadow, normalizationDeltas, result);
-        } else {
-            LOGGER.trace("No need to normalize shadow {} (no differences)", currentRepoShadow);
-        }
-        return currentRepoShadow;
-    }
-
-    private <T> void addNormalizationDeltas(
-            List<ItemDelta<?, ?>> normalizationDeltas, Item<?, ?> attribute, ResourceObjectDefinition objectDef)
-            throws SchemaException {
-        if (!(attribute instanceof PrismProperty<?>)) {
-            LOGGER.trace("Ignoring non-property item in attribute container: {}", attribute);
-        } else {
-            //noinspection unchecked
-            ResourceAttributeDefinition<T> attrDef =
-                    (ResourceAttributeDefinition<T>) objectDef.findAttributeDefinition(attribute.getElementName());
-            if (attrDef != null) {
-                //noinspection unchecked
-                addNormalizationDeltas(normalizationDeltas, (PrismProperty<T>) attribute, attrDef);
-            } else {
-                addDeletionDelta(normalizationDeltas, (PrismProperty<?>) attribute);
-            }
-        }
-    }
-
-    private <T> void addNormalizationDeltas(
-            List<ItemDelta<?, ?>> normalizationDeltas,
-            PrismProperty<T> attribute,
-            ResourceAttributeDefinition<T> attrDef) throws SchemaException {
-        attribute.applyDefinition(attrDef);
-        MatchingRule<T> matchingRule = getMatchingRule(attrDef);
-        List<T> valuesToAdd = null;
-        List<T> valuesToDelete = null;
-        boolean anyChange = false;
-        for (PrismPropertyValue<T> attrVal : attribute.getValues()) {
-            T currentRealValue = attrVal.getValue();
-            T normalizedRealValue = matchingRule.normalize(currentRealValue);
-            if (!normalizedRealValue.equals(currentRealValue)) {
-                if (attrDef.isSingleValue()) {
-                    PropertyDelta<T> attrDelta = attribute.createDelta(attribute.getPath());
-                    //noinspection unchecked
-                    attrDelta.setRealValuesToReplace(normalizedRealValue);
-                    normalizationDeltas.add(attrDelta);
-                    return;
-                } else {
-                    if (!anyChange) {
-                        valuesToAdd = new ArrayList<>();
-                        valuesToDelete = new ArrayList<>();
-                    }
-                    valuesToAdd.add(normalizedRealValue);
-                    valuesToDelete.add(currentRealValue);
-                    anyChange = true;
-                }
-            }
-        }
-        if (anyChange) {
-            PropertyDelta<T> attrDelta = attribute.createDelta(attribute.getPath());
-            attrDelta.addRealValuesToAdd(valuesToAdd);
-            attrDelta.addRealValuesToDelete(valuesToDelete);
-            normalizationDeltas.add(attrDelta);
-        }
-    }
-
-    private <T> void addDeletionDelta(List<ItemDelta<?, ?>> normalizationDeltas, PrismProperty<T> attribute) {
-        // No definition for this property, it should not be in the shadow
-        PropertyDelta<?> delta = attribute.createDelta();
-        //noinspection unchecked,rawtypes
-        delta.addValuesToDelete(
-                (Collection) PrismValueCollectionsUtil.cloneCollection(attribute.getValues()));
-        normalizationDeltas.add(delta);
     }
 
     public void cancelAllPendingOperations(ProvisioningContext ctx, RepoShadow repoShadow, OperationResult result)

@@ -10,6 +10,7 @@ import java.io.File;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
@@ -70,7 +71,7 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest
 
     @BeforeClass
     public void setup() throws Exception {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
         dummyResourceCtl = DummyResourceContoller.create(null);

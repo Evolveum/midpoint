@@ -325,7 +325,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
             addObject(shadow, task, result);
 
             if (i == 0) {
-                PrismObject<ShadowType> createdShadow = getShadowRepo(shadow.getOid());
+                PrismObject<ShadowType> createdShadow = getShadowRepoLegacy(shadow.getOid());
                 assertShadow(createdShadow, "after creation")
                         .display()
                         .assertObjectClass(rOcDef.getTypeName())

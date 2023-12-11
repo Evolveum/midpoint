@@ -48,10 +48,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAsserter<RA> {
 
-    private PrismObject<O> object;
+    private final PrismObject<O> object;
 
     // Cache of focus-related objects: projections, targets, orgs, ...
-    private Map<String,PrismObject<? extends ObjectType>> objectCache = new HashMap<>();
+    private final Map<String,PrismObject<? extends ObjectType>> objectCache = new HashMap<>();
 
     public PrismObjectAsserter(PrismObject<O> object) {
         super();

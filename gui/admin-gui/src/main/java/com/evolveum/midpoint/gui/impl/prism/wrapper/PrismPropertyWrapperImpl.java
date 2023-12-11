@@ -64,7 +64,7 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     }
 
     @Override
-    public @NotNull MatchingRule<T> getMatchingRule() throws SchemaException {
+    public @NotNull MatchingRule<T> getMatchingRule() {
         return getItemDefinition().getMatchingRule();
     }
 

@@ -17,11 +17,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.google.common.base.Preconditions;
 
+import java.io.Serial;
+
 public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends ItemDefinition<I>>
         extends TransformableDefinition
         implements ItemDefinitionDelegator<I>, PrismItemAccessDefinition.Mutable, PartiallyMutableItemDefinition<I> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private DelegatedItem<D> delegate;
 

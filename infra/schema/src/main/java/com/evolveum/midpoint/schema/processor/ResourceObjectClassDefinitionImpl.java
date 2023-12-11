@@ -268,7 +268,7 @@ public class ResourceObjectClassDefinitionImpl
             @NotNull QName name,
             @NotNull QName typeName,
             @NotNull Consumer<MutableRawResourceAttributeDefinition<?>> consumer) {
-        RawResourceAttributeDefinitionImpl<T> rawDefinition = new RawResourceAttributeDefinitionImpl<>(name, typeName);
+        RawResourceAttributeDefinition<T> rawDefinition = new RawResourceAttributeDefinition<>(name, typeName);
         consumer.accept(rawDefinition);
         //noinspection unchecked
         return (ResourceAttributeDefinition<T>) addInternal(rawDefinition);

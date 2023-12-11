@@ -61,9 +61,6 @@ class ConnIdToMidPointConversion {
     /** The definition of the attributes container */
     @NotNull private final ResourceAttributeContainerDefinition attributesContainerDefinition;
 
-    /** Whether to convert empty and not present attributes (according to the schema) */
-    private final boolean full;
-
     /** True if attribute names are case-insensitive */
     private final boolean caseIgnoreAttributeNames;
 
@@ -75,8 +72,9 @@ class ConnIdToMidPointConversion {
 
     private final List<ResourceObjectDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
 
-    ConnIdToMidPointConversion(@NotNull ConnectorObject connectorObject, @NotNull PrismObject<ShadowType> resourceObject,
-            boolean full, boolean caseIgnoreAttributeNames, boolean legacySchema, ConnIdConvertor connIdConvertor)
+    ConnIdToMidPointConversion(
+            @NotNull ConnectorObject connectorObject, @NotNull PrismObject<ShadowType> resourceObject,
+            boolean caseIgnoreAttributeNames, boolean legacySchema, ConnIdConvertor connIdConvertor)
             throws SchemaException {
         this.connectorObject = connectorObject;
         this.resourceObject = resourceObject;
@@ -84,7 +82,6 @@ class ConnIdToMidPointConversion {
         this.attributesContainer = (ResourceAttributeContainer) (PrismContainer)
                 resourceObject.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
         this.attributesContainerDefinition = attributesContainer.getDefinition();
-        this.full = full;
         this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
         this.legacySchema = legacySchema;
         this.connIdConvertor = connIdConvertor;
@@ -275,16 +272,16 @@ class ConnIdToMidPointConversion {
         if (connIdValue == null) {
             return null;
         }
-        if (connIdValue instanceof ZonedDateTime) {
-            return XmlTypeConverter.createXMLGregorianCalendar((ZonedDateTime) connIdValue);
+        if (connIdValue instanceof ZonedDateTime zonedDateTime) {
+            return XmlTypeConverter.createXMLGregorianCalendar(zonedDateTime);
         }
-        if (connIdValue instanceof GuardedString) {
-            return fromGuardedString((GuardedString) connIdValue);
+        if (connIdValue instanceof GuardedString guardedString) {
+            return fromGuardedString(guardedString);
         }
-        if (connIdValue instanceof Map) {
+        if (connIdValue instanceof Map<?, ?> map) {
             // TODO: check type that this is really PolyString
             //noinspection unchecked
-            return polyStringFromConnIdMap((Map<String, String>) connIdValue);
+            return polyStringFromConnIdMap((Map<String, String>) map);
         }
         return connIdValue;
     }
@@ -350,31 +347,17 @@ class ConnIdToMidPointConversion {
         // Note: we skip uniqueness checks here because the attribute in the resource object is created from scratch.
         // I.e. its values will be unique (assuming that values coming from the resource are unique).
 
-        // if full == true, we need to convert whole connector object to the
-        // resource object also with the null-values attributes
-        if (full) {
-            for (Object connIdValue : values) {
+        for (Object connIdValue : values) {
+            if (connIdValue != null) {
                 // Convert the value. While most values do not need conversions, some of them may need it (e.g. GuardedString)
                 Object convertedValue = convertValueFromConnId(connIdValue);
                 convertedAttribute.addRealValueSkipUniquenessCheck(convertedValue);
             }
+        }
 
+        if (!convertedAttribute.getValues().isEmpty() || convertedAttribute.isIncomplete()) {
             LOGGER.trace("Converted attribute {}", convertedAttribute);
             attributesContainer.getValue().add(convertedAttribute);
-        } else {
-            // In this case (full=false) we need only the attributes with non-null values.
-            for (Object connIdValue : values) {
-                if (connIdValue != null) {
-                    // Convert the value. While most values do not need conversions, some of them may need it (e.g. GuardedString)
-                    Object convertedValue = convertValueFromConnId(connIdValue);
-                    convertedAttribute.addRealValueSkipUniquenessCheck(convertedValue);
-                }
-            }
-
-            if (!convertedAttribute.getValues().isEmpty() || convertedAttribute.isIncomplete()) {
-                LOGGER.trace("Converted attribute {}", convertedAttribute);
-                attributesContainer.getValue().add(convertedAttribute);
-            }
         }
     }
 

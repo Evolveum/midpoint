@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +53,7 @@ public abstract class AbstractSchemaPerformanceTest extends AbstractUnitTest imp
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
         PrismTestUtil.getPrismContext().setExtraValidation(false);
         assert !InternalsConfig.isConsistencyChecks();

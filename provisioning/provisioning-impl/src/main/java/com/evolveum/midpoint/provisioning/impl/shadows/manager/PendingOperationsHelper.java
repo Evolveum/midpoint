@@ -61,7 +61,7 @@ class PendingOperationsHelper {
     private static final Trace LOGGER = TraceManager.getTrace(PendingOperationsHelper.class);
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-    @Autowired RepoShadowFinder repoShadowFinder;
+    @Autowired ShadowFinder shadowFinder;
     @Autowired private Clock clock;
     @Autowired private PrismContext prismContext;
 
@@ -357,7 +357,7 @@ class PendingOperationsHelper {
             return runner.run(
                     (object) -> {
 
-                        var currentRepoShadow = ctx.adoptRepoShadow(object);
+                        var currentRepoShadow = ctx.adoptRawRepoShadow(object);
 
                         // The runner itself could have updated the shadow (in case of precondition violation).
                         opState.setRepoShadow(currentRepoShadow);
@@ -441,7 +441,7 @@ class PendingOperationsHelper {
 
         // We have to re-read shadow here. We need to get the pending operation in a form as it was stored.
         // We need id in the operation. Otherwise we won't be able to update it.
-        RepoShadow updatedShadow = repoShadowFinder.getRepoShadow(ctx, shadow.getOid(), result);
+        RepoShadow updatedShadow = shadowFinder.getRepoShadow(ctx, shadow.getOid(), result);
         opState.setRepoShadow(updatedShadow);
         return MiscUtil.stateNonNull(
                 findEquivalentPendingOperation(updatedShadow, pendingDelta),

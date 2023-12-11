@@ -10,6 +10,8 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismObject;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -49,5 +51,14 @@ public class UcfAddReturnValue extends AsynchronousOperationReturnValue<Collecti
 
     public static UcfAddReturnValue of(@NotNull OperationResult operationResult) {
         return new UcfAddReturnValue(List.of(), operationResult, null);
+    }
+
+    /**
+     * Some or all attributes of the created object - if the UCF connector supports this.
+     *
+     * @see ConnectorInstance#addObject(PrismObject, UcfExecutionContext, OperationResult)
+     */
+    public @Nullable Collection<ResourceAttribute<?>> getKnownCreatedObjectAttributes() {
+        return getReturnValue();
     }
 }

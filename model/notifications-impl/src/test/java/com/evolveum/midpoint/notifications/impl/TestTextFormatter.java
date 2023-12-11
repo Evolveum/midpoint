@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeSuite;
@@ -80,7 +82,7 @@ public class TestTextFormatter extends AbstractSpringTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 

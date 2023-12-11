@@ -81,7 +81,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        InternalsConfig.setSanityChecks(true);
+
         resource = addResourceFromFile(getResourceFile(), singletonList(ASYNC_PROVISIONING_CONNECTOR), false, initResult);
     }
 

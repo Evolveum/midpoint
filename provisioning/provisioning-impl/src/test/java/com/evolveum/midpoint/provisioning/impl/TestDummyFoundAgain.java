@@ -65,12 +65,6 @@ public class TestDummyFoundAgain extends AbstractBasicDummyTest {
         return ItemComparisonResult.NOT_APPLICABLE;
     }
 
-    @Override
-    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        super.initSystem(initTask, initResult);
-//        InternalMonitor.setTraceConnectorOperation(true);
-    }
-
     @Test
     public void test101AddAccountWithoutName() throws Exception {
         // GIVEN

@@ -21,7 +21,7 @@ import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.OperationResultRecorder;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.RepoShadowFinder;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
 
@@ -55,7 +55,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
     // Useful Spring beans
 
     final AccessChecker accessChecker = ShadowsLocalBeans.get().accessChecker;
-    final RepoShadowFinder repoShadowFinder = ShadowsLocalBeans.get().repoShadowFinder;
+    final ShadowFinder shadowFinder = ShadowsLocalBeans.get().shadowFinder;
     final ShadowCreator shadowCreator = ShadowsLocalBeans.get().shadowCreator;
     final OperationResultRecorder resultRecorder = ShadowsLocalBeans.get().operationResultRecorder;
     final ShadowUpdater shadowUpdater = ShadowsLocalBeans.get().shadowUpdater;
@@ -231,7 +231,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         }
         PrismObject<ShadowType> runAsShadow;
         try {
-            runAsShadow = repoShadowFinder.getShadow(runAsAccountOid, result);
+            runAsShadow = shadowFinder.getShadow(runAsAccountOid, result);
         } catch (ObjectNotFoundException e) {
             throw new ConfigurationException("Requested non-existing 'runAs' shadow", e);
         }

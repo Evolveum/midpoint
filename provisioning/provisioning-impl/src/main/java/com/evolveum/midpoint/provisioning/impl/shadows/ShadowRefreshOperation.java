@@ -20,14 +20,12 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.PrismContext;
-
-import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -41,12 +39,12 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
@@ -75,8 +73,8 @@ class ShadowRefreshOperation {
     /** Shadow-specific provisioning context. */
     @NotNull private final ProvisioningContext ctx;
 
-    /** The shadow being refreshed. Should not be null at the beginning; but is cleared when dead shadow is deleted from repo. */
-    private RepoShadow shadow;
+    /** The shadow being refreshed. The value may change but should never be `null`. */
+    @NotNull private RepoShadow shadow;
 
     /** ODOs for retried pending operations. */
     @NotNull private final Collection<ObjectDeltaOperation<ShadowType>> retriedOperations = new ArrayList<>();
@@ -102,22 +100,21 @@ class ShadowRefreshOperation {
             ProvisioningOperationContext context,
             Task task,
             OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
         ProvisioningContext ctx = ShadowsLocalBeans.get().ctxFactory.createForRepoShadow(repoShadow, task);
         return executeFullInternal(ctx, repoShadow, options, context, result);
     }
 
     static void executeFull(
-            @NotNull ShadowType rawRepoShadow,
+            @NotNull RawRepoShadow rawRepoShadow,
             ProvisioningOperationOptions options,
             ProvisioningOperationContext context,
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        ProvisioningContext ctx = ShadowsLocalBeans.get().ctxFactory.createForShadow(rawRepoShadow, task, result);
-        var repoShadow = ctx.adoptRepoShadow(rawRepoShadow);
+        ProvisioningContext ctx = ShadowsLocalBeans.get().ctxFactory.createForShadow(rawRepoShadow.getBean(), task, result);
+        var repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
         executeFullInternal(ctx, repoShadow, options, context, result);
     }
 
@@ -127,8 +124,7 @@ class ShadowRefreshOperation {
             ProvisioningOperationOptions options,
             ProvisioningOperationContext context,
             OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
         ctx.setOperationContext(context);
         ctx.assertDefinition();
         ctx.applyAttributesDefinition(repoShadow.getBean());
@@ -141,16 +137,15 @@ class ShadowRefreshOperation {
     /**
      * Used to quickly and efficiently refresh shadow before GET operations.
      */
-    static RepoShadow executeQuick(ProvisioningContext ctx, RepoShadow repoShadow, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    static @NotNull RepoShadow executeQuick(ProvisioningContext ctx, RepoShadow repoShadow, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
         var op = new ShadowRefreshOperation(ctx, repoShadow, null);
         op.executeQuick(result);
         return op.shadow;
     }
 
     private void executeFull(OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            throws ObjectNotFoundException, SchemaException, ConfigurationException,
             ExpressionEvaluationException {
         LOGGER.trace("Fully refreshing {}", shadow);
 
@@ -174,8 +169,7 @@ class ShadowRefreshOperation {
     }
 
     private void executeQuick(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException {
+            throws SchemaException, ObjectNotFoundException {
         LOGGER.trace("Quickly refreshing {}", shadow);
 
         ObjectDelta<ShadowType> shadowDelta = shadow.getPrismObject().createModifyDelta();
@@ -313,39 +307,31 @@ class ShadowRefreshOperation {
                 if (pendingDelta.isModify()) {
 
                     // Apply shadow naming attribute modification
-                    PrismContainer<ShadowAttributesType> shadowAttributesContainer =
-                            shadow.getPrismObject().findContainer(ItemPath.create(ShadowType.F_ATTRIBUTES));
+                    ResourceAttributeContainerDefinition resourceAttrDefinition = shadow.getAttributesContainerDefinition();
 
-                    ResourceAttributeContainer resourceAttributeContainer =
-                            ResourceAttributeContainer.convertFromContainer(
-                                    shadowAttributesContainer, ctx.getObjectDefinitionRequired());
-                    ResourceAttributeContainerDefinition resourceAttrDefinition = resourceAttributeContainer.getDefinition();
-                    if (resourceAttrDefinition != null) {
+                    // If naming attribute is present in delta...
+                    ResourceAttributeDefinition<?> namingAttribute = resourceAttrDefinition.getNamingAttribute();
+                    if (namingAttribute != null) {
+                        ItemPath namingAttributePath =
+                                ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getItemName());
+                        if (pendingDelta.hasItemDelta(namingAttributePath)) {
 
-                        // If naming attribute is present in delta...
-                        ResourceAttributeDefinition<?> namingAttribute = resourceAttrDefinition.getNamingAttribute();
-                        if (namingAttribute != null) {
-                            ItemPath namingAttributePath =
-                                    ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getItemName());
-                            if (pendingDelta.hasItemDelta(namingAttributePath)) {
+                            // Retrieve a possible changed name per the defined naming attribute for the resource
+                            ItemDelta<?, ?> namingAttributeDelta = pendingDelta.findItemDelta(namingAttributePath);
+                            Collection<?> valuesToReplace = namingAttributeDelta.getValuesToReplace();
+                            Optional<?> valueToReplace = valuesToReplace.stream().findFirst();
 
-                                // Retrieve a possible changed name per the defined naming attribute for the resource
-                                ItemDelta namingAttributeDelta = pendingDelta.findItemDelta(namingAttributePath);
-                                Collection<?> valuesToReplace = namingAttributeDelta.getValuesToReplace();
-                                Optional<?> valueToReplace = valuesToReplace.stream().findFirst();
+                            if (valueToReplace.isPresent()) {
+                                Object valueToReplaceObj = ((PrismPropertyValue<?>) valueToReplace.get()).getValue();
+                                if (valueToReplaceObj instanceof String) {
 
-                                if (valueToReplace.isPresent()) {
-                                    Object valueToReplaceObj = ((PrismPropertyValue) valueToReplace.get()).getValue();
-                                    if (valueToReplaceObj instanceof String) {
-
-                                        // Apply the new naming attribute value to the shadow name by adding the change to the modification set for shadow delta
-                                        PropertyDelta<PolyString> nameDelta = shadowDelta.createPropertyModification(ItemPath.create(ShadowType.F_NAME));
-                                        Collection<PolyString> modificationSet = new ArrayList<>();
-                                        PolyString nameAttributeReplacement = new PolyString((String) valueToReplaceObj);
-                                        modificationSet.add(nameAttributeReplacement);
-                                        nameDelta.setValuesToReplace(PrismValueCollectionsUtil.createCollection(modificationSet));
-                                        shadowDelta.addModification(nameDelta);
-                                    }
+                                    // Apply the new naming attribute value to the shadow name by adding the change to the modification set for shadow delta
+                                    PropertyDelta<PolyString> nameDelta = shadowDelta.createPropertyModification(ItemPath.create(ShadowType.F_NAME));
+                                    Collection<PolyString> modificationSet = new ArrayList<>();
+                                    PolyString nameAttributeReplacement = new PolyString((String) valueToReplaceObj);
+                                    modificationSet.add(nameAttributeReplacement);
+                                    nameDelta.setValuesToReplace(PrismValueCollectionsUtil.createCollection(modificationSet));
+                                    shadowDelta.addModification(nameDelta);
                                 }
                             }
                         }
@@ -470,8 +456,7 @@ class ShadowRefreshOperation {
 
             OperationResult result = parentResult.createSubresult(OP_OPERATION_RETRY);
             try {
-                ProvisioningOperationState<?> opState = retryOperation(pendingDelta, pendingOperation, result);
-                shadow = opState.getRepoShadow();
+                shadow = retryOperation(pendingDelta, pendingOperation, result);
                 result.computeStatus();
                 if (result.isError()) {
                     retriedOperationsResult.setStatus(result.getStatus());
@@ -506,7 +491,7 @@ class ShadowRefreshOperation {
         }
     }
 
-    private @NotNull ProvisioningOperationState<?> retryOperation(
+    private @NotNull RepoShadow retryOperation(
             @NotNull ObjectDelta<ShadowType> pendingDelta,
             PendingOperationType pendingOperation,
             @NotNull OperationResult result)
@@ -517,12 +502,17 @@ class ShadowRefreshOperation {
         // TODO scripts, options
         ProvisioningOperationOptions options = ProvisioningOperationOptions.createForceRetry(false);
         if (pendingDelta.isAdd()) {
-            return ShadowAddOperation.executeInRefresh(ctx, shadow, pendingDelta, pendingOperation, options, result);
+            return ShadowAddOperation
+                    .executeInRefresh(ctx, shadow, pendingDelta, pendingOperation, options, result)
+                    .getRepoShadow();
         } else if (pendingDelta.isModify()) {
-            return ShadowModifyOperation.executeInRefresh(
-                    ctx, shadow, pendingDelta.getModifications(), pendingOperation, options, result);
+            return ShadowModifyOperation
+                    .executeInRefresh(ctx, shadow, pendingDelta.getModifications(), pendingOperation, options, result)
+                    .getRepoShadow();
         } else if (pendingDelta.isDelete()) {
-            return ShadowDeleteOperation.executeInRefresh(ctx, shadow, pendingOperation, options, result);
+            return ShadowDeleteOperation
+                    .executeInRefresh(ctx, shadow, pendingOperation, options, result)
+                    .getRepoShadow();
         } else {
             throw new IllegalStateException("Unknown type of delta: " + pendingDelta);
         }
@@ -533,8 +523,7 @@ class ShadowRefreshOperation {
         return XmlTypeConverter.compare(now, scheduledRetryTime) == DatatypeConstants.GREATER;
     }
 
-    private void deleteDeadShadowIfPossible(OperationResult result) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void deleteDeadShadowIfPossible(OperationResult result) {
         if (!shadow.isDead()) {
             return;
         }
@@ -571,7 +560,7 @@ class ShadowRefreshOperation {
             ResourceOperationDescription operationDescription =
                     createSuccessOperationDescription(ctx, shadow, shadow.getPrismObject().createDeleteDelta());
             b.eventDispatcher.notifySuccess(operationDescription, task, result);
-            shadow = null;
+            shadow.setDeleted();
             return;
         }
 
@@ -604,7 +593,7 @@ class ShadowRefreshOperation {
      */
     private void updateProvisioningIndexesAfterDeletion(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
-        if (shadow == null) {
+        if (shadow.isDeleted()) {
             LOGGER.trace("updateProvisioningIndexesAfterDeletion: no shadow");
             return;
         }
@@ -622,7 +611,7 @@ class ShadowRefreshOperation {
         }
     }
 
-    public @Nullable RepoShadow getShadow() {
+    public @NotNull RepoShadow getShadow() {
         return shadow;
     }
 

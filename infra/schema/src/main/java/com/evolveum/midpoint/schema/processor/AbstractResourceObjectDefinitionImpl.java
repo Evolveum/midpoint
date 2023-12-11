@@ -198,11 +198,12 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public @Nullable ResourceAttributeDefinition<?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+    public <T> @Nullable ResourceAttributeDefinition<T> findAttributeDefinition(QName name, boolean caseInsensitive) {
         if (caseInsensitive || isMutable() || QNameUtil.isUnqualified(name)) {
             return ResourceObjectDefinition.super.findAttributeDefinition(name, caseInsensitive);
         } else {
-            return attributeDefinitionMap.get(name);
+            //noinspection unchecked
+            return (ResourceAttributeDefinition<T>) attributeDefinitionMap.get(name);
         }
     }
 
@@ -322,11 +323,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     private void invalidatePrismObjectDefinition() {
         prismObjectDefinition = null;
-    }
-
-    @NotNull PrismObjectDefinition<ShadowType> computePrismObjectDefinition() {
-        return ObjectFactory.constructObjectDefinition(
-                toResourceAttributeContainerDefinition());
     }
 
     //region Accessing parts of schema handling ========================================================
@@ -755,13 +751,13 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @NotNull ResourceAttributeDefinition<?> addInternal(@NotNull ItemDefinition<?> definition) {
         ResourceAttributeDefinition<?> definitionToAdd;
-        if (definition instanceof ResourceAttributeDefinition<?>) {
+        if (definition instanceof ResourceAttributeDefinition<?> resourceAttributeDefinition) {
             // Can occur during definition replacement.
-            definitionToAdd = (ResourceAttributeDefinition<?>) definition;
-        } else if (definition instanceof RawResourceAttributeDefinition<?>) {
-            // This is the case during parsing. We get the really raw (and mutable) definition.
-            // The following call will convert it into usable form, including freezing.
-            definitionToAdd = ResourceAttributeDefinitionImpl.create((RawResourceAttributeDefinition<?>) definition);
+            definitionToAdd = resourceAttributeDefinition;
+//        } else if (definition instanceof RawResourceAttributeDefinition<?>) {
+//            // This is the case during parsing. We get the really raw (and mutable) definition.
+//            // The following call will convert it into usable form, including freezing.
+//            definitionToAdd = ResourceAttributeDefinitionImpl.create((RawResourceAttributeDefinition<?>) definition);
         } else {
             throw new IllegalArgumentException(
                     "Only ResourceAttributeDefinitions should be put into a ResourceObjectClassDefinition. "

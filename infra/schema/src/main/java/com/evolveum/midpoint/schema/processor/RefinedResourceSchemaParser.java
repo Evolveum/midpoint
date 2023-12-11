@@ -470,9 +470,9 @@ public class RefinedResourceSchemaParser {
 
             LOGGER.trace("Parsing attributes of {}", definition);
 
-            parseAttributesFromObjectClass(definition.getRawObjectClassDefinition(), false);
+            parseAttributesFromRawObjectClass(definition.getRawObjectClassDefinition(), false);
             for (ResourceObjectDefinition auxDefinition : definition.getAuxiliaryDefinitions()) {
-                parseAttributesFromObjectClass(auxDefinition.getRawObjectClassDefinition(), true);
+                parseAttributesFromRawObjectClass(auxDefinition.getRawObjectClassDefinition(), true);
             }
 
             assertNoOtherAttributes();
@@ -501,19 +501,26 @@ public class RefinedResourceSchemaParser {
          * Takes all attributes from resource object class definition, and pairs (enriches)
          * them with `schemaHandling` information.
          */
-        private void parseAttributesFromObjectClass(@NotNull ResourceObjectClassDefinition rawClassDef, boolean auxiliary)
+        private void parseAttributesFromRawObjectClass(@NotNull ResourceObjectClassDefinition rawClassDef, boolean auxiliary)
                 throws SchemaException {
-            for (ResourceAttributeDefinition<?> rawAttrDef : rawClassDef.getAttributeDefinitions()) {
-                parseAttributeFromObjectClass(rawAttrDef, auxiliary);
+            assert rawClassDef.isRaw();
+            for (ResourceAttributeDefinition<?> attrDef : rawClassDef.getAttributeDefinitions()) {
+                if (attrDef instanceof RawResourceAttributeDefinition<?> rawAttrDef) {
+                    parseRawAttribute(rawAttrDef, auxiliary);
+                } else {
+                    throw new IllegalStateException(
+                            "Non-raw attribute in raw object class? %s in %s; as defined in %s".formatted(
+                                    attrDef, rawClassDef, contextDescription));
+                }
             }
         }
 
-        private void parseAttributeFromObjectClass(
-                @NotNull ResourceAttributeDefinition<?> rawAttrDef, boolean auxiliary) throws SchemaException {
+        private void parseRawAttribute(@NotNull RawResourceAttributeDefinition<?> rawAttrDef, boolean fromAuxClass)
+                throws SchemaException {
 
             ItemName attrName = rawAttrDef.getItemName();
 
-            LOGGER.trace("Parsing attribute {} (auxiliary = {})", attrName, auxiliary);
+            LOGGER.trace("Parsing attribute {} (auxiliary = {})", attrName, fromAuxClass);
 
             // TODO make this context description lazily evaluated
             String attrContextDescription = attrName + ", in " + contextDescription;
@@ -523,11 +530,12 @@ public class RefinedResourceSchemaParser {
             // well with them. They may also be mandatory. We cannot pretend that they do not exist.
 
             if (definition.containsAttributeDefinition(attrName)) {
-                if (auxiliary) {
+                if (fromAuxClass) {
                     return;
                 } else {
-                    throw new SchemaException("Duplicate definition of attribute " + attrName + " in "
-                            + definition.getHumanReadableName() + ", in " + contextDescription);
+                    throw new SchemaException(
+                            "Duplicate definition of attribute %s in %s, in %s".formatted(
+                                    attrName, definition.getHumanReadableName(), contextDescription));
                 }
             }
 
@@ -597,10 +605,10 @@ public class RefinedResourceSchemaParser {
             if (definitionBean.getProtected().isEmpty()) {
                 return;
             }
-            PrismObjectDefinition<ShadowType> prismObjectDef = definition.computePrismObjectDefinition();
+            var prismObjectDef = definition.computePrismObjectDefinition();
             for (ResourceObjectPatternType protectedPatternBean : definitionBean.getProtected()) {
-                ResourceObjectPattern protectedPattern = convertToPattern(protectedPatternBean, prismObjectDef);
-                definition.addProtectedObjectPattern(protectedPattern);
+                definition.addProtectedObjectPattern(
+                        convertToPattern(protectedPatternBean, prismObjectDef));
             }
         }
 

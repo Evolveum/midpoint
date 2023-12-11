@@ -7,16 +7,22 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -30,28 +36,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * . the `exists` flag is correctly set (usually `true`; but can be `false` for objects related to `DELETE` changes)
  *
  * NOTE: In some cases, the object may be "shadowed". (TODO is that ok?)
+ *
+ * @see #checkConsistence()
  */
 public class ExistingResourceObject extends ResourceObject {
 
-    private ExistingResourceObject(
-            @NotNull ShadowType bean, @NotNull ResourceObjectDefinition objectDefinition, Object primaryIdentifierValue) {
-        super(bean, objectDefinition, primaryIdentifierValue);
-        MiscUtil.stateNonNull(bean.isExists(), "The 'exists' flag is not present in %s", this);
+    private ExistingResourceObject(@NotNull ShadowType bean, Object primaryIdentifierValue) {
+        super(bean, primaryIdentifierValue);
     }
 
     /** To be used only by informed clients, e.g. the adoption methods in {@link ProvisioningContext}. */
-    public static ExistingResourceObject of(
-            @NotNull ShadowType bean,
-            @NotNull ResourceObjectDefinition objectDefinition,
-            Object primaryIdentifierValue) {
-        return new ExistingResourceObject(bean, objectDefinition, primaryIdentifierValue);
+    public static ExistingResourceObject of(@NotNull ShadowType bean, Object primaryIdentifierValue) {
+        return new ExistingResourceObject(bean, primaryIdentifierValue);
     }
 
     /** TODO we should perhaps indicate that the source is repo! OR REMOVE THIS BRUTAL HACK SOMEHOW! */
     public static ExistingResourceObject fromRepoShadow(
             @NotNull RepoShadow repoShadow,
             Object primaryIdentifierValue) {
-        return new ExistingResourceObject(repoShadow.getBean(), repoShadow.getObjectDefinition(), primaryIdentifierValue);
+        return new ExistingResourceObject(repoShadow.getBean(), primaryIdentifierValue);
     }
 
     /** TODO we should perhaps indicate that the source is repo! OR REMOVE THIS BRUTAL HACK SOMEHOW! */
@@ -59,8 +62,27 @@ public class ExistingResourceObject extends ResourceObject {
             @NotNull RepoShadow repoShadow) throws SchemaException {
         return new ExistingResourceObject(
                 repoShadow.getBean(),
-                repoShadow.getObjectDefinition(),
                 repoShadow.getPrimaryIdentifierValueFromAttributes());
+    }
+
+    /** E.g. for shadowization of fatally corrupted objects. */
+    public static ExistingResourceObject minimal(
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull Object primaryIdentifierValue,
+            boolean doesExist,
+            @NotNull String resourceOid) throws SchemaException {
+
+        var shadowBean = definition.getObjectClassDefinition()
+                .createBlankShadow(resourceOid, null)
+                .asObjectable();
+
+        //noinspection unchecked
+        ResourceAttribute<Object> primaryIdAttr = (ResourceAttribute<Object>) definition.getPrimaryIdentifierRequired().instantiate();
+        primaryIdAttr.setRealValue(primaryIdentifierValue);
+        ShadowUtil.getOrCreateAttributesContainer(shadowBean, definition).add(primaryIdAttr);
+        shadowBean.setExists(doesExist);
+
+        return new ExistingResourceObject(shadowBean, primaryIdentifierValue);
     }
 
     public @NotNull PrismProperty<?> getSingleValuedPrimaryIdentifier() {
@@ -69,39 +91,51 @@ public class ExistingResourceObject extends ResourceObject {
                 () -> "No primary identifier value in " + this);
     }
 
-    public @NotNull ExistingResourceObject minimize() {
-        ShadowType minimizedBean = bean.clone();
-        ShadowUtil.removeAllAttributesExceptPrimaryIdentifier(minimizedBean, objectDefinition);
-        if (ShadowUtil.hasPrimaryIdentifier(minimizedBean, objectDefinition)) {
-            return new ExistingResourceObject(minimizedBean, objectDefinition, primaryIdentifierValue);
-        } else {
-            throw new IllegalStateException("No primary identifier in " + this);
-        }
-    }
-
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ExistingResourceObject clone() {
-        return new ExistingResourceObject(
-                bean.clone(),
-                objectDefinition,
-                primaryIdentifierValue);
+        return new ExistingResourceObject(bean.clone(), primaryIdentifierValue);
     }
 
-    public @NotNull ExistingResourceObject updateWith(@NotNull ShadowType newData) {
+    public @NotNull ExistingResourceObject withNewContent(@NotNull ShadowType newData) {
         // TODO shouldn't we check the consistence of new data vs. old metadata?
-        return new ExistingResourceObject(
-                newData,
-                objectDefinition,
-                primaryIdentifierValue);
+        return new ExistingResourceObject(newData, primaryIdentifierValue);
+    }
+
+    /** For creating shadows in emergency situations. */
+    public @NotNull ExistingResourceObject withIdentifiersOnly() {
+        var clone = clone();
+        clone.removeAttributesExcept(getObjectDefinition().getAllIdentifiersNames());
+        return clone;
+    }
+
+    /** For creating shadows in ultra emergency situations. */
+    public @NotNull ExistingResourceObject withPrimaryIdentifierOnly() {
+        var clone = clone();
+        clone.removeAttributesExcept(getObjectDefinition().getPrimaryIdentifiersNames());
+        return clone;
+    }
+
+    private void removeAttributesExcept(Collection<? extends QName> attributesToKeep) {
+        for (ResourceAttribute<?> attribute : List.copyOf(getAttributesContainer().getAttributes())) {
+            if (!QNameUtil.matchAny(attribute.getElementName(), attributesToKeep)) {
+                getAttributesContainer().remove(attribute);
+            }
+        }
+    }
+
+    @Override
+    public @NotNull ResourceObjectIdentification.WithPrimary getPrimaryIdentification() throws SchemaException {
+        return Objects.requireNonNull(super.getPrimaryIdentification());
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("ExistingResourceObject[");
+        sb.append("ExistingResourceObject[id: ");
         sb.append(primaryIdentifierValue);
-        sb.append(" (").append(objectDefinition.getShortIdentification()).append(") ");
+        // TODO what if the getObjectDefinition itself throws an exception?
+        sb.append(" (").append(getObjectDefinition().getShortIdentification()).append(") ");
         sb.append("@").append(getResourceOid());
         var shadowOid = bean.getOid();
         if (shadowOid != null) {
@@ -117,5 +151,11 @@ public class ExistingResourceObject extends ResourceObject {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    @Override
+    public void checkConsistence() {
+        super.checkConsistence();
+        MiscUtil.stateNonNull(bean.isExists(), "The 'exists' flag is not present in %s", this);
     }
 }

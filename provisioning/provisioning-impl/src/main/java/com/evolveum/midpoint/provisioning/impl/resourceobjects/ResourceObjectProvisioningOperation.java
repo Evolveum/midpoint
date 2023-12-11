@@ -242,7 +242,7 @@ abstract class ResourceObjectProvisioningOperation {
         }
         ShadowType resourceObjectBean = resourceObject.getBean();
         resourceObjectBean.setName( // TODO why this?
-                ShadowUtil.determineShadowNameRequired(resourceObjectBean));
+                ShadowUtil.determineShadowNameRequired(resourceObject.resourceObject()));
 
         return resourceObject.resourceObject();
     }

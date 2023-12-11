@@ -2288,11 +2288,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         }
     }
 
-    protected <T> void assertAttribute(
-            PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
-        assertAttribute(shadow.asObjectable(), attrName, expectedValues);
-    }
-
     protected void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {
         assertNoAttribute(shadow.asObjectable(), attrName);
     }

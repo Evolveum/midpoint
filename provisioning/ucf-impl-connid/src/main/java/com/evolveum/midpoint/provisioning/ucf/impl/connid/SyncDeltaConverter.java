@@ -96,7 +96,7 @@ class SyncDeltaConverter {
                 // We can consider using "fetch result" error reporting method here, and go along with a partial object.
                 resourceObject = connIdConvertor
                         .convertToUcfObject(
-                                connIdDelta.getObject(), objectDefinition, false,
+                                connIdDelta.getObject(), objectDefinition,
                                 connectorInstance.isCaseIgnoreAttributeNames(), connectorInstance.isLegacySchema(),
                                 UcfFetchErrorReportingMethod.EXCEPTION, result)
                         .getPrismObject();

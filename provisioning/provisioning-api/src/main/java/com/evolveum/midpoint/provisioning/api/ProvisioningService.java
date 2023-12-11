@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.merger.OriginMarker;
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -41,6 +42,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext.empty;
 
 /**
  * Provisioning Service Interface
@@ -317,6 +320,18 @@ public interface ProvisioningService {
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
+
+    /** A convenience method. */
+    default @NotNull AbstractShadow getShadow(
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return AbstractShadow.of(
+                getObject(ShadowType.class, oid, options, new ProvisioningOperationContext(), task, result));
+    }
 
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
@@ -622,6 +637,18 @@ public interface ProvisioningService {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /** A convenience method. */
+    default @NotNull SearchResultList<? extends AbstractShadow> searchShadows(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return searchObjects(ShadowType.class, query, options, empty(), task, result)
+                .transform(AbstractShadow::of);
+    }
+
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
      * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
@@ -732,6 +759,26 @@ public interface ProvisioningService {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         return searchObjectsIterative(type, query, options, handler, new ProvisioningOperationContext(), task, parentResult);
+    }
+
+    /** A convenience method. */
+    @Experimental
+    default <T extends ObjectType> SearchResultMetadata searchShadowsIterative(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ObjectHandler<AbstractShadow> handler,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return searchObjectsIterative(
+                ShadowType.class,
+                query,
+                options,
+                (object, lResult) -> handler.handle(AbstractShadow.of(object), lResult),
+                new ProvisioningOperationContext(),
+                task,
+                result);
     }
 
     /**

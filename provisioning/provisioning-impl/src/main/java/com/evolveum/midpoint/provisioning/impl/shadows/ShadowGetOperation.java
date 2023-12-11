@@ -27,6 +27,7 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 import com.google.common.base.Preconditions;
@@ -70,7 +71,7 @@ class ShadowGetOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowGetOperation.class);
 
-    /** Provisioning context derived from the repository shadow. May be updated after classification (if there's one). */
+    /** Provisioning context derived from the repository shadow. Reflecting also the eventual (re)classification. */
     @NotNull private ProvisioningContext ctx;
 
     /** OID of the shadow to be gotten. */
@@ -84,9 +85,6 @@ class ShadowGetOperation {
      * Note that the content of the resource object that was really fetched is not stored here.
      */
     @NotNull private RepoShadow repoShadow;
-
-    /** Original value of {@link #repoShadow}, to be used for diagnostics should that one be overwritten with `null`. */
-    @NotNull private final RepoShadow originalRepoShadow;
 
     /** If present, overwrites the identifiers from the {@link #repoShadow}. */
     @Nullable private final Collection<ResourceAttribute<?>> identifiersOverride;
@@ -108,7 +106,6 @@ class ShadowGetOperation {
         this.ctx = ctx;
         this.oid = repoShadow.getOid();
         this.repoShadow = repoShadow;
-        this.originalRepoShadow = repoShadow;
         this.identifiersOverride = identifiersOverride;
         this.options = GetOperationOptions.updateToReadWrite(options);
         this.rootOptions = SelectorOptions.findRootOptions(this.options);
@@ -118,7 +115,7 @@ class ShadowGetOperation {
 
     static Shadow execute(
             @NotNull String oid,
-            @Nullable ShadowType providedRepositoryShadow,
+            @Nullable RawRepoShadow providedRepositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull ProvisioningOperationContext context,
@@ -126,9 +123,9 @@ class ShadowGetOperation {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, SecurityViolationException, EncryptionException {
-        ShadowType rawRepoShadow = obtainRepositoryShadow(oid, providedRepositoryShadow, options, result);
+        RawRepoShadow rawRepoShadow = obtainRepositoryShadow(oid, providedRepositoryShadow, options, result);
         ProvisioningContext ctx = createProvisioningContext(rawRepoShadow, options, context, task, result);
-        var repoShadow = ctx.adoptRepoShadow(rawRepoShadow);
+        var repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
         return new ShadowGetOperation(ctx, repoShadow, identifiersOverride, options)
                 .executeInternal(result);
     }
@@ -161,7 +158,7 @@ class ShadowGetOperation {
 
         var identification = getPrimaryIdentification();
         if (identification == null) {
-            return returnCached("no primary identifiers but can return repository shadow");
+            return returnCached("no primary identifier but can return repository shadow");
         }
 
         ExistingResourceObject resourceObject;
@@ -178,9 +175,8 @@ class ShadowGetOperation {
             result.recordException(ex);
             result.close(); // This is necessary before invoking the error handler
             try {
-                var shadowAfterErrorProcessing = invokeErrorHandler(ex, result, parentResult);
-                if (shadowAfterErrorProcessing != null) {
-                    repoShadow = shadowAfterErrorProcessing;
+                invokeErrorHandler(ex, result, parentResult);
+                if (!repoShadow.isDeleted()) {
                     return returnCached(
                             "(handled) exception during resource object retrieval: " + formatExceptionMessage(ex));
                 } else {
@@ -193,15 +189,18 @@ class ShadowGetOperation {
             result.close();
         }
 
-        classifyIfNeeded(resourceObject, parentResult);
-        updateShadowInRepository(resourceObject, parentResult);
-        ExistingResourceObject shadowedObject = constructShadowedObject(resourceObject, parentResult);
-        return returnRetrieved(shadowedObject);
+        var shadowPostProcessor = new ShadowPostProcessor(ctx, repoShadow, resourceObject, null);
+
+        // FIXME maybe special object type for combined object could be created
+        var combinedObject = shadowPostProcessor.execute(parentResult);
+        ctx = shadowPostProcessor.getCurrentProvisioningContext();
+
+        return returnRetrieved(combinedObject);
     }
 
-    private static @NotNull ShadowType obtainRepositoryShadow(
+    private static @NotNull RawRepoShadow obtainRepositoryShadow(
             @NotNull String oid,
-            @Nullable ShadowType providedRepositoryShadow,
+            @Nullable RawRepoShadow providedRepositoryShadow,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (providedRepositoryShadow != null) {
@@ -209,17 +208,15 @@ class ShadowGetOperation {
             argCheck(
                     oid.equals(providedRepositoryShadow.getOid()),
                     "Provided OID is not equal to OID of repository shadow");
-            if (providedRepositoryShadow.isImmutable()) {
-                return providedRepositoryShadow.clone();
-            } else {
-                return providedRepositoryShadow;
-            }
+            argCheck(!providedRepositoryShadow.getBean().isImmutable(),
+                    "Provided shadow is immutable, it cannot be used for GET operation: %s", providedRepositoryShadow);
+            return providedRepositoryShadow;
         } else {
             LOGGER.trace("Start getting shadow '{}' (opts {})", oid, options);
             // Get the shadow from repository. There are identifiers that we need for accessing the object by UCF.
-            var fetchedRepositoryShadow = b().repoShadowFinder.getShadowBean(oid, disableReadOnly(options), result);
-            LOGGER.trace("Got repository shadow object:\n{}", fetchedRepositoryShadow.debugDumpLazily());
-            return fetchedRepositoryShadow;
+            RawRepoShadow repoShadow = b().shadowFinder.getRepoShadow(oid, disableReadOnly(options), result);
+            LOGGER.trace("Got repository shadow:\n{}", repoShadow.debugDumpLazily());
+            return repoShadow;
         }
     }
 
@@ -228,14 +225,14 @@ class ShadowGetOperation {
     }
 
     private static @NotNull ProvisioningContext createProvisioningContext(
-            @NotNull ShadowType repositoryShadow,
+            @NotNull RawRepoShadow repositoryShadow,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull ProvisioningOperationContext operationContext,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException {
-        ProvisioningContext ctx = b().ctxFactory.createForShadow(repositoryShadow, task, result);
+        ProvisioningContext ctx = b().ctxFactory.createForShadow(repositoryShadow.getBean(), task, result);
         ctx.setGetOperationOptions(options);
         ctx.setOperationContext(operationContext);
         ctx.assertDefinition();
@@ -251,8 +248,7 @@ class ShadowGetOperation {
     }
 
     private void refreshBeforeReading(@NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
         if (isForceRefresh(rootOptions)
                 || isForceRetry(rootOptions)
                 || ResourceTypeUtil.isRefreshOnRead(ctx.getResource())) {
@@ -264,12 +260,11 @@ class ShadowGetOperation {
         }
     }
 
-    private void doQuickShadowRefresh(OperationResult result) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void doQuickShadowRefresh(OperationResult result) throws ObjectNotFoundException, SchemaException {
         var refreshedShadow = ShadowRefreshOperation.executeQuick(ctx, repoShadow, result);
-        if (refreshedShadow == null) {
+        if (refreshedShadow.isDeleted()) {
             throw new ObjectNotFoundException(
-                    "Resource object not found (after quick refresh)",
+                    "Shadow was deleted (during quick refresh)",
                     ShadowType.class,
                     oid,
                     ctx.isAllowNotFound());
@@ -278,8 +273,8 @@ class ShadowGetOperation {
         repoShadow = refreshedShadow;
     }
 
-    private void doFullShadowRefresh(OperationResult result) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void doFullShadowRefresh(OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
         ProvisioningOperationOptions refreshOpts = toProvisioningOperationOptions(rootOptions);
         var refreshedShadow =
                 ShadowRefreshOperation
@@ -287,10 +282,10 @@ class ShadowGetOperation {
                         .getShadow();
         LOGGER.trace("Refreshed repository shadow:\n{}", DebugUtil.debugDumpLazily(refreshedShadow, 1));
 
-        if (refreshedShadow == null) {
+        if (refreshedShadow.isDeleted()) {
             // Most probably a dead shadow was just removed
             // TODO: is this OK? What about re-appeared objects
-            LOGGER.debug("Shadow (no longer) exists: {}", originalRepoShadow);
+            LOGGER.debug("Shadow (no longer) exists: {}", refreshedShadow);
             throw new ObjectNotFoundException("Resource object does not exist", ShadowType.class, oid);
         }
 
@@ -427,22 +422,15 @@ class ShadowGetOperation {
         }
     }
 
-    private @Nullable RepoShadow invokeErrorHandler(Exception cause, OperationResult failedOpResult, OperationResult result)
+    private void invokeErrorHandler(Exception cause, OperationResult failedOpResult, OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException {
         LOGGER.debug("Handling provisioning GET exception {}: {}", cause.getClass(), cause.getMessage());
-        assert repoShadow != null;
-        var shadowAfterErrorProcessing = b.errorHandlerLocator
+        assert !repoShadow.isDeleted();
+        repoShadow = b.errorHandlerLocator
                 .locateErrorHandlerRequired(cause)
                 .handleGetError(ctx, repoShadow, cause, failedOpResult, result);
-        // the shadow may be null here if it's found to be no longer existing
-        if (shadowAfterErrorProcessing != null) {
-            // We update the shadow lifecycle state because we are not sure if the shadow after handling the exception
-            // is the same as it was before (that has its state set).
-            ctx.updateShadowState(shadowAfterErrorProcessing);
-        }
-        return shadowAfterErrorProcessing;
     }
 
     /**
@@ -470,52 +458,6 @@ class ShadowGetOperation {
     private Shadow createShadow(ProvisioningContext ctx, ResourceObject resourceObject) {
         validateShadow(resourceObject.getBean(), true);
         return resourceObject.asShadow(ctx.getResource());
-    }
-
-    private @NotNull ExistingResourceObject constructShadowedObject(
-            @NotNull ExistingResourceObject resourceObject, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException, EncryptionException {
-        // Complete the shadow by adding attributes from the resource object
-        // This also completes the associations by adding shadowRefs
-        ExistingResourceObject shadowedObject =
-                ShadowedObjectConstruction.construct(
-                        ctx, repoShadow, resourceObject, result);
-        LOGGER.trace("Shadowed resource object:\n{}", shadowedObject.debugDumpLazily(1));
-        return shadowedObject;
-    }
-
-    private void classifyIfNeeded(ExistingResourceObject resourceObject, @NotNull OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-        if (b.classificationHelper.shouldClassify(ctx, repoShadow.getBean())) {
-            ResourceObjectClassification classification =
-                    b.classificationHelper.classify(ctx, repoShadow, resourceObject, result);
-            if (classification.isKnown()) {
-                // TODO deduplicate this code somehow
-                LOGGER.debug("Classified {} as {}", repoShadow, classification.getDefinition());
-                repoShadow = b.shadowUpdater.normalizeShadowAttributesInRepositoryAfterClassification(
-                        ctx, repoShadow.getOid(), classification, result);
-                ctx = ctx.spawnForDefinition(repoShadow.getObjectDefinition());
-            }
-        }
-        // Resource shadow may have different auxiliary object classes than the original repo shadow. Make sure we have the
-        // definition that applies to resource shadow. We will fix repo shadow later. BUT we need also information about
-        // kind/intent and these information is only in repo shadow, therefore the following 2 lines...
-        resourceObject.getBean().setKind(repoShadow.getBean().getKind());
-        resourceObject.getBean().setIntent(repoShadow.getBean().getIntent());
-    }
-
-    private void updateShadowInRepository(ResourceObject resourceObject, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("updateShadowInRepository starting; shadow from repository:\n{}", repoShadow.debugDump(1));
-            LOGGER.trace("Resource object fetched from resource:\n{}", resourceObject.debugDump(1));
-        }
-        repoShadow =
-                b.shadowUpdater.updateShadowInRepository(
-                        ctx, resourceObject, null, repoShadow, result);
-        LOGGER.trace("Repository shadow after update:\n{}", repoShadow.debugDumpLazily(1));
     }
 
     private String getReasonForReturningCachedShadow() throws ConfigurationException {

@@ -715,7 +715,7 @@ public class ObjectRetriever {
             if (item != null && item.getDefinition() == null) {
                 MutableItemDefinition<?> def = createDynamicDefinition(extItem, name);
                 //noinspection unchecked
-                item.applyDefinition(def, true);
+                item.applyDefinition(def);
             }
         }
     }

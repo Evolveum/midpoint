@@ -12,19 +12,13 @@ import java.util.Objects;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import javax.xml.namespace.QName;
-
 /**
- * TODO decide about this class
+ * TODO decide about this class; probably should be removed
  *
  * Currently, it is used as a return value from "shadows" package, internally in `provisioning-impl` module.
  *
@@ -39,38 +33,32 @@ public class Shadow implements AbstractShadow {
 
     @NotNull private final ShadowType bean;
     @NotNull private final Resource resource;
-    @NotNull private final ResourceObjectDefinition objectDefinition;
 
     private Shadow(
             @NotNull ShadowType bean,
-            @NotNull Resource resource,
-            @NotNull ResourceObjectDefinition objectDefinition) {
+            @NotNull Resource resource) {
         Preconditions.checkNotNull(bean.getShadowLifecycleState(), "No shadow lifecycle state in %s", bean);
         this.bean = bean;
         this.resource = resource;
-        this.objectDefinition = objectDefinition;
+
+        checkConsistence();
     }
 
     public static @NotNull Shadow of(
-            @NotNull ShadowType bean,
-            @NotNull Resource resource,
-            @NotNull ResourceObjectDefinition objectDefinition) {
-        return new Shadow(bean, resource, objectDefinition);
+            @NotNull ShadowType bean, @NotNull Resource resource) {
+        return new Shadow(bean, resource);
     }
 
-    public static @NotNull Shadow of(
-            @NotNull ResourceType resourceBean, @NotNull ShadowType shadowBean)
-            throws SchemaException, ConfigurationException {
-        Resource resource = Resource.of(resourceBean);
-        var resourceSchema = resource.getCompleteSchemaRequired();
-        var objectDefinition = MiscUtil.requireNonNull(
-                resourceSchema.findDefinitionForShadow(shadowBean),
-                () -> "No object definition for shadow " + shadowBean);
-        return new Shadow(
-                shadowBean,
-                resource,
-                objectDefinition);
-    }
+//    public static @NotNull Shadow of(
+//            @NotNull ResourceType resourceBean, @NotNull ShadowType shadowBean)
+//            throws SchemaException, ConfigurationException {
+//        Resource resource = Resource.of(resourceBean);
+//        var resourceSchema = resource.getCompleteSchemaRequired();
+//        var objectDefinition = MiscUtil.requireNonNull(
+//                resourceSchema.findDefinitionForShadow(shadowBean),
+//                () -> "No object definition for shadow " + shadowBean);
+//        return new Shadow(shadowBean, resource);
+//    }
 
     @NotNull
     public ShadowLifecycleStateType getShadowLifecycleState() {
@@ -85,8 +73,15 @@ public class Shadow implements AbstractShadow {
         return resource;
     }
 
-    public @NotNull ResourceObjectDefinition getObjectDefinition() {
-        return objectDefinition;
+    @Override
+    public @NotNull AbstractShadow withNewContent(@NotNull ShadowType newBean) {
+        return new Shadow(newBean, resource);
+    }
+
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
+    public Shadow clone() {
+        return new Shadow(bean.clone(), resource);
     }
 
     @Override
@@ -99,21 +94,19 @@ public class Shadow implements AbstractShadow {
         }
         var that = (Shadow) obj;
         return Objects.equals(this.bean, that.bean)
-                && Objects.equals(this.resource, that.resource)
-                && Objects.equals(this.objectDefinition, that.objectDefinition);
+                && Objects.equals(this.resource, that.resource);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bean, resource, objectDefinition);
+        return Objects.hash(bean, resource);
     }
 
     @Override
     public String toString() {
         return "Shadow[" +
                 "bean=" + bean + ", " +
-                "resource=" + resource + ", " +
-                "objectDefinition=" + objectDefinition + ']';
+                "resource=" + resource + ']';
     }
 
     public String debugDump(int indent) {
@@ -123,10 +116,5 @@ public class Shadow implements AbstractShadow {
     @Override
     public @NotNull String getResourceOid() {
         return resource.getOid();
-    }
-
-    @Override
-    public @NotNull QName getObjectClass() throws SchemaException {
-        return MiscUtil.stateNonNull(bean.getObjectClass(), "No object class in %s", this);
     }
 }

@@ -83,7 +83,7 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
 
             LOGGER.debug(
                     "PROVISIONING DELETE operation on {}\n DELETE object, object class {}, identified by:\n{}",
-                    ctx.getResource(), shadow.getObjectClass(),
+                    ctx.getResource(), shadow.getObjectClassName(),
                     identification);
 
             connectorAsyncOpRet =

@@ -320,8 +320,8 @@ public class TestUuidClient extends AbstractUuidTest {
         // TODO: cn, sn, givenName
 
         // MID-5114
-        assertAttribute(resourceOpenDj, shadow.asObjectable(), ATTR_ROOM_NUMBER, user.getOid());
-        assertAttribute(resourceOpenDj, shadow.asObjectable(), ATTR_MOBILE, user.getOid());
+        assertAttribute(shadow.asObjectable(), ATTR_ROOM_NUMBER, user.getOid());
+        assertAttribute(shadow.asObjectable(), ATTR_MOBILE, user.getOid());
     }
 
     private void assertNoLdapClient(PrismObject<UserType> user) throws DirectoryException {

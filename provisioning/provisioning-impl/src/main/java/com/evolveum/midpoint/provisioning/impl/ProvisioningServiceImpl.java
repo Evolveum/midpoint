@@ -12,6 +12,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -505,7 +508,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LOGGER.trace("Object from repository to delete:\n{}", object.debugDumpLazily(1));
 
             if (object instanceof ShadowType shadow && !ProvisioningOperationOptions.isRaw(options)) {
-                return deleteShadow(shadow, options, scripts, context, task, result);
+                return deleteShadow(RawRepoShadow.of(shadow), options, scripts, context, task, result);
             } else if (object instanceof ResourceType) {
                 resourceManager.deleteResource(oid, result);
                 return null;
@@ -524,7 +527,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     private <T extends ObjectType> PrismObject<T> deleteShadow(
-            ShadowType shadow,
+            RawRepoShadow rawRepoShadow,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationContext context,
@@ -538,7 +541,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             //noinspection unchecked
             return (PrismObject<T>)
                     asPrismObject(
-                            shadowsFacade.deleteShadow(shadow, options, scripts, context, task, result));
+                            shadowsFacade.deleteShadow(rawRepoShadow, options, scripts, context, task, result));
 
             // TODO improve the error reporting. It is good that we want to provide some context for the error ("Couldn't delete
             //  object: ... problem: ...") but this is just too verbose in code. We need a better approach.
@@ -721,7 +724,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         try {
 
-            shadowsFacade.refreshShadow(shadow.asObjectable(), options, context, task, result);
+            shadowsFacade.refreshShadow(shadow.getOid(), options, context, task, result);
 
         } catch (CommonException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(

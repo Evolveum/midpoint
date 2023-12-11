@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -28,10 +30,9 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.AbstractShadow;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.shadows.*;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -63,7 +64,6 @@ public class OperationResultRecorder {
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
     @Autowired private ProvisioningService provisioningService;
-    @Autowired private ShadowDeltaComputerAbsolute shadowDeltaComputerAbsolute;
     @Autowired private ShadowUpdater shadowUpdater;
     @Autowired private ShadowCreator shadowCreator;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
@@ -103,7 +103,8 @@ public class OperationResultRecorder {
         AddOperationState opState = operation.getOpState();
         AbstractShadow shadow = operation.getShadowAddedOrToAdd();
 
-        ShadowType repoShadowBeanToAdd = shadowCreator.createShadowForRepoStorage(ctx, shadow);
+        RawRepoShadow rawRepoShadowToAdd = shadowCreator.createShadowForRepoStorage(ctx, shadow);
+        var repoShadowBeanToAdd = rawRepoShadowToAdd.getBean(); // to be updated below
 
         if (opState.isCompleted()) {
             repoShadowBeanToAdd.setExists(true);
@@ -132,7 +133,7 @@ public class OperationResultRecorder {
         }
         repoShadowBeanToAdd.setOid(oid);
         opState.setRepoShadow(
-                ctx.adoptRepoShadow(repoShadowBeanToAdd));
+                ctx.adoptRawRepoShadow(repoShadowBeanToAdd));
 
         LOGGER.trace("Active shadow added to the repository: {}", repoShadowBeanToAdd);
     }
@@ -147,17 +148,15 @@ public class OperationResultRecorder {
         var repoShadow = addOperation.getOpState().getRepoShadow();
         ctx.updateShadowState(repoShadow); // TODO is this needed?
 
-        if (addOperation.getShadowAddedOrToAdd() instanceof ResourceObject resourceObject) {
-            // Here we compute the deltas that would align the repository shadow with the "full" version of the resource object.
-            // We use the same mechanism (shadow delta computer) as is used for shadows coming from the resource.
-            shadowModifications.addAll(
-                    shadowDeltaComputerAbsolute
-                            .computeShadowDelta(
-                                    ctx, repoShadow, resourceObject, null, false)
-                            .getModifications());
-        } else {
-            // There is nothing to update here. The resource was not involved (yet).
-        }
+        var resourceObject = addOperation.getShadowAddedOrToAdd();
+
+        // Here we compute the deltas that would align the repository shadow with the "full" version of the resource object.
+        // We use the same mechanism (shadow delta computer) as is used for shadows coming from the resource.
+        shadowModifications.addAll(
+                ShadowDeltaComputerAbsolute
+                        .computeShadowDelta(
+                                ctx, repoShadow, resourceObject, null, null, false)
+                        .getModifications());
 
         addModificationMetadataDeltas(shadowModifications, repoShadow);
 
@@ -201,7 +200,7 @@ public class OperationResultRecorder {
      * Returns updated repo shadow, or null if shadow is deleted from repository.
      */
     public RepoShadow recordDeleteResult(ShadowDeleteOperation operation, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException {
 
         ProvisioningContext ctx = operation.getCtx();
         ProvisioningOperationState<AsynchronousOperationResult> opState = operation.getOpState();

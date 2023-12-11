@@ -15,6 +15,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 
 import org.apache.commons.lang3.Validate;
@@ -61,7 +62,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
 
     /** Executes when called explicitly from the client. */
     static ShadowType executeDirectly(
-            @NotNull ShadowType rawRepoShadow,
+            @NotNull RawRepoShadow rawRepoShadow,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
             @NotNull ProvisioningOperationContext context,
@@ -79,7 +80,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
 
         ProvisioningContext ctx;
         try {
-            ctx = ShadowsLocalBeans.get().ctxFactory.createForShadow(rawRepoShadow, task, result);
+            ctx = ShadowsLocalBeans.get().ctxFactory.createForShadow(rawRepoShadow.getBean(), task, result);
             ctx.setOperationContext(context);
             ctx.assertDefinition();
             ctx.checkExecutionFullyPersistent();
@@ -97,7 +98,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
             }
         }
 
-        RepoShadow repoShadow = ctx.adoptRepoShadow(rawRepoShadow);
+        RepoShadow repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
         ShadowsLocalBeans.get().shadowUpdater.cancelAllPendingOperations(ctx, repoShadow, result);
 
         DeleteOperationState opState = new DeleteOperationState(repoShadow);

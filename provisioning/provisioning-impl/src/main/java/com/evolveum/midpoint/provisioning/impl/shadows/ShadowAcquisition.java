@@ -8,17 +8,16 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
-import static com.evolveum.midpoint.schema.util.ShadowUtil.shortDumpShadowLazily;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -53,7 +52,7 @@ class ShadowAcquisition {
     @NotNull private final ProvisioningContext ctx;
 
     /** Primary identifier of the shadow. */
-    @NotNull private final PrismProperty<?> primaryIdentifier;
+    @NotNull private final ResourceObjectIdentification.WithPrimary primaryIdentification;
 
     /**
      * In theory, this is the same as the object class in the provisioning context.
@@ -65,31 +64,22 @@ class ShadowAcquisition {
     /** The resource object we try to acquire shadow for. May be minimalistic in extreme cases (sync changes, emergency). */
     @NotNull private final ExistingResourceObject resourceObject;
 
-    /** Whether we want to skip the classification. It is used e.g. in emergency shadow creation. */
-    private final boolean skipClassification;
-
     private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
 
     private ShadowAcquisition(
             @NotNull ProvisioningContext ctx,
-            @NotNull ExistingResourceObject resourceObject,
-            boolean skipClassification) throws SchemaException {
+            @NotNull ExistingResourceObject resourceObject) throws SchemaException {
         this.ctx = ctx;
-        this.primaryIdentifier = resourceObject.getSingleValuedPrimaryIdentifier();
-        this.objectClass = resourceObject.getObjectClass();
+        this.primaryIdentification = resourceObject.getPrimaryIdentification();
+        this.objectClass = resourceObject.getObjectClassName();
         this.resourceObject = resourceObject;
-        this.skipClassification = skipClassification;
     }
+
 
     /**
      * Acquires repository shadow for a provided resource object. The repository shadow is located or created.
      * In case that the shadow is created, all additional ceremonies for a new shadow are done, e.g. invoking
      * change notifications (discovery).
-     *
-     * Returned shadow is NOT guaranteed to have all the attributes aligned and updated. That is only possible after
-     * completeShadow(). But maybe, this method can later invoke completeShadow() and do all the necessary stuff?
-     *
-     * TODO completeShadow method does not exist any more, update the docs
      *
      * It may look like this method would rather belong to ShadowManager. But it does not. It does too much stuff
      * (e.g. change notification).
@@ -97,61 +87,24 @@ class ShadowAcquisition {
     @NotNull static RepoShadow acquireRepoShadow(
             @NotNull ProvisioningContext ctx,
             @NotNull ExistingResourceObject resourceObject,
-            boolean skipClassification,
             @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
+            throws SchemaException, ConfigurationException, EncryptionException {
 
-        return new ShadowAcquisition(ctx, resourceObject, skipClassification)
+        return new ShadowAcquisition(ctx, resourceObject)
                 .execute(result);
     }
 
     public @NotNull RepoShadow execute(OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            GenericConnectorException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
+            throws SchemaException, ConfigurationException, EncryptionException {
 
-        RepoShadow repoShadow = acquireRawRepoShadow(result);
-
-        if (skipClassification) {
-            LOGGER.trace("Acquired repo shadow (skipping classification as requested):\n{}", repoShadow.debugDumpLazily(1));
-            return repoShadow;
-        } else if (!b.classificationHelper.shouldClassify(ctx, repoShadow.getBean())) {
-            LOGGER.trace("Acquired repo shadow (no need to classify):\n{}", repoShadow.debugDumpLazily(1));
-            return repoShadow;
-        } else {
-            RepoShadow fixedRepoShadow = classifyAndFixTheShadow(repoShadow, result);
-            LOGGER.trace("Acquired repo shadow (after classification and re-reading):\n{}",
-                    fixedRepoShadow.debugDumpLazily(1));
-            return fixedRepoShadow;
-        }
-    }
-
-    private @NotNull RepoShadow classifyAndFixTheShadow(RepoShadow repoShadow, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
-            ExpressionEvaluationException, SecurityViolationException {
-
-        var classification = b.classificationHelper.classify(ctx, repoShadow, resourceObject, result);
-
-        // TODO We probably can avoid re-reading the shadow
-        return b.shadowUpdater.normalizeShadowAttributesInRepositoryAfterClassification(
-                ctx, repoShadow.getOid(), classification, result);
-    }
-
-    private @NotNull RepoShadow acquireRawRepoShadow(OperationResult result)
-            throws SchemaException, EncryptionException, ConfigurationException {
-
-        var existingLiveRepoShadow = b.repoShadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
+        var existingLiveRepoShadow = b.shadowFinder.lookupLiveRepoShadowByPrimaryId(ctx, primaryIdentification, result);
         if (existingLiveRepoShadow != null) {
             LOGGER.trace("Found live shadow object in the repository {}", existingLiveRepoShadow.shortDumpLazily());
-            if (b.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(existingLiveRepoShadow, result)) {
-                return existingLiveRepoShadow;
-            } else {
-                LOGGER.trace("The shadow disappeared, we will create a new one: {}", existingLiveRepoShadow);
-            }
+            return existingLiveRepoShadow;
         }
 
         LOGGER.trace("Shadow object (in repo) corresponding to the resource object (on the resource) was not found. "
-                + "The repo shadow will be created. The resource object:\n{}", resourceObject);
+                + "The repo shadow will be created. The resource object:\n{}", resourceObject.debugDumpLazily(1));
 
         // The resource object obviously exists on the resource, but appropriate shadow does not exist in the repository.
         // We need to create the shadow to align repo state to the reality (resource).
@@ -161,7 +114,31 @@ class ShadowAcquisition {
         } catch (ObjectAlreadyExistsException e) {
             return findConflictingShadow(e, result);
         }
+
+//        if (skipClassification) {
+//            LOGGER.trace("Acquired repo shadow (skipping classification as requested):\n{}", repoShadow.debugDumpLazily(1));
+//            return repoShadow;
+//        } else if (!b.classificationHelper.shouldClassify(ctx, repoShadow.getBean())) {
+//            LOGGER.trace("Acquired repo shadow (no need to classify):\n{}", repoShadow.debugDumpLazily(1));
+//            return repoShadow;
+//        } else {
+//            RepoShadow fixedRepoShadow = classifyAndFixTheShadow(repoShadow, result);
+//            LOGGER.trace("Acquired repo shadow (after classification and re-reading):\n{}",
+//                    fixedRepoShadow.debugDumpLazily(1));
+//            return fixedRepoShadow;
+//        }
     }
+
+//    private @NotNull RepoShadow classifyAndFixTheShadow(RepoShadow repoShadow, OperationResult result)
+//            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
+//            ExpressionEvaluationException, SecurityViolationException {
+//
+//        var classification = b.classificationHelper.classify(ctx, repoShadow, resourceObject, result);
+//
+//        // TODO We probably can avoid re-reading the shadow
+//        return b.shadowUpdater.normalizeShadowAttributesInRepositoryAfterClassification(
+//                ctx, repoShadow.getOid(), classification, result);
+//    }
 
     private @NotNull RepoShadow findConflictingShadow(ObjectAlreadyExistsException e, OperationResult result)
             throws SchemaException, ConfigurationException {
@@ -175,7 +152,7 @@ class ShadowAcquisition {
 
         LOGGER.debug("Attempt to create new repo shadow for {} ended up in conflict, re-trying the search for repo shadow",
                 resourceObject);
-        var conflictingLiveShadow = b.repoShadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
+        var conflictingLiveShadow = b.shadowFinder.lookupLiveRepoShadowByPrimaryId(ctx, primaryIdentification, result);
 
         if (conflictingLiveShadow != null) {
             if (b.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(conflictingLiveShadow, result)) {
@@ -191,8 +168,6 @@ class ShadowAcquisition {
 
         // Do some "research" and log the results, so we have good data to diagnose this situation.
         String determinedPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, resourceObject);
-        RepoShadow potentialConflictingShadow =
-                b.repoShadowFinder.lookupShadowByIndexedPrimaryIdValue(ctx, determinedPrimaryIdentifierValue, result);
 
         LOGGER.error("Unexpected repository behavior: object already exists error even after we double-checked "
                 + "shadow uniqueness: {}", e.getMessage(), e);
@@ -202,8 +177,12 @@ class ShadowAcquisition {
         }
         LOGGER.debug("REPO CONFLICT: resource shadow\n{}", resourceObject.debugDumpLazily(1));
         LOGGER.debug("REPO CONFLICT: resource shadow: determined primaryIdentifierValue: {}", determinedPrimaryIdentifierValue);
-        LOGGER.debug("REPO CONFLICT: potential conflicting repo shadow (by primaryIdentifierValue)\n{}",
-                DebugUtil.debugDumpLazily(potentialConflictingShadow, 1));
+        if (determinedPrimaryIdentifierValue != null) {
+            RepoShadow potentialConflictingShadow =
+                    b.shadowFinder.lookupShadowByIndexedPrimaryIdValue(ctx, determinedPrimaryIdentifierValue, result);
+            LOGGER.debug("REPO CONFLICT: potential conflicting repo shadow (by primaryIdentifierValue)\n{}",
+                    DebugUtil.debugDumpLazily(potentialConflictingShadow, 1));
+        }
 
         throw new SystemException(
                 "Unexpected repository behavior: object already exists error even after we double-checked shadow uniqueness: "

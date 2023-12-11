@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import java.io.Serializable;
-import java.util.Collection;
-import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,19 +15,16 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.provisioning.impl.AbstractShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.Shadow;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
@@ -59,29 +54,22 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
      */
     @NotNull final ShadowType bean;
 
-    /** TODO what about consistency with the definition in {@link #bean}? */
-    @NotNull final ResourceObjectDefinition objectDefinition;
-
     /**
      * Real value of the object primary identifier (e.g. ConnId UID).
      * Usually not null (e.g. in ConnId 1.x), but this can change in the future.
      *
      * We assume it's immutable, like a {@link String}, {@link Long}, and so on.
      *
+     * The reason it is here is because of malformed objects ... TODO is this still true?
+     *
      * See {@link UcfResourceObject#primaryIdentifierValue}.
      */
     final Object primaryIdentifierValue;
 
-    /** Resource OID derived at the object creation. We assume it will not change in the bean. */
-    @NotNull private final String resourceOid;
-
-    ResourceObject(@NotNull ShadowType bean, @NotNull ResourceObjectDefinition objectDefinition, Object primaryIdentifierValue) {
+    ResourceObject(@NotNull ShadowType bean, Object primaryIdentifierValue) {
         this.bean = bean;
         this.primaryIdentifierValue = primaryIdentifierValue;
-        this.objectDefinition = objectDefinition;
-        this.resourceOid = MiscUtil.argNonNull(
-                Referencable.getOid(bean.getResourceRef()),
-                "No resource OID in %s", this);
+        this.checkConsistence();
     }
 
     /** To be used only by informed clients! */
@@ -91,14 +79,13 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
             @NotNull ResourceObjectDefinition objectDefinition)
             throws SchemaException {
         bean.setExists(exists);
-        return new ResourceObject(bean, objectDefinition, ShadowUtil.getPrimaryIdentifierValue(bean, objectDefinition));
+        return new ResourceObject(bean, ShadowUtil.getPrimaryIdentifierValue(bean, objectDefinition));
     }
 
     public static ResourceObject fromRepoShadow(RepoShadow repoShadow) throws SchemaException {
         // TODO what about the "exists" flag?
         return new ResourceObject(
                 repoShadow.getBean(),
-                repoShadow.getObjectDefinition(),
                 repoShadow.getPrimaryIdentifierValueFromAttributes());
     }
 
@@ -110,12 +97,17 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
         return primaryIdentifierValue;
     }
 
+    public @NotNull ResourceObject withNewContent(@NotNull ShadowType newData) {
+        return new ResourceObject(
+                newData,
+                primaryIdentifierValue);
+    }
+
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ResourceObject clone() {
         return new ResourceObject(
                 bean.clone(),
-                objectDefinition,
                 primaryIdentifierValue);
     }
 
@@ -127,20 +119,10 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
     @Override
     public String debugDump(int indent) {
         var sb = DebugUtil.createTitleStringBuilder(
-                this.getClass().getSimpleName() + " [" + primaryIdentifierValue + "]", indent);
+                this.getClass().getSimpleName() + " [primary id: " + primaryIdentifierValue + "]", indent);
         sb.append('\n');
         DebugUtil.debugDumpWithLabel(sb, "bean", bean, indent + 1);
         return sb.toString();
-    }
-
-    public @NotNull ResourceAttributeContainer getAttributesContainer() {
-        return MiscUtil.stateNonNull(
-                ShadowUtil.getAttributesContainer(bean),
-                "No attributes container in %s", this);
-    }
-
-    public @NotNull Collection<ResourceAttribute<?>> getAttributes() {
-        return ShadowUtil.getAttributes(bean);
     }
 
     public @Nullable PrismProperty<?> getSingleValuedPrimaryIdentifier() {
@@ -167,22 +149,12 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
         }
     }
 
-    @NotNull public QName getObjectClass() throws SchemaException {
-        return MiscUtil.requireNonNull(
-                bean.getObjectClass(),
-                () -> "No object class in " + ShadowUtil.shortDumpShadow(bean));
-    }
-
     public @Nullable PrismContainer<ShadowAssociationType> getAssociationsContainer() {
         return getPrismObject().findContainer(ShadowType.F_ASSOCIATION);
     }
 
-    public @NotNull ResourceObjectDefinition getObjectDefinition() {
-        return objectDefinition;
-    }
-
     public @NotNull Shadow asShadow(@NotNull ResourceType resource) {
-        return Shadow.of(bean, Resource.of(resource), objectDefinition);
+        return Shadow.of(bean, Resource.of(resource));
     }
 
     public static @Nullable ShadowType getBean(@Nullable ResourceObject resourceObject) {
@@ -199,10 +171,5 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
 
     public String getOid() {
         return bean.getOid();
-    }
-
-    @Override
-    public @NotNull String getResourceOid() {
-        return resourceOid;
     }
 }

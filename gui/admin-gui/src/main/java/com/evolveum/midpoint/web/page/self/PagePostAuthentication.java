@@ -102,9 +102,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
                 PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, principal.getOid(), PagePostAuthentication.this, task, task.getResult());
                 try {
                     PrismObjectDefinition<UserType> userDef = getModelInteractionService().getEditObjectDefinition(user, null, task, task.getResult());
-                    if (userDef != null) {
-                        user.applyDefinition(userDef, true);
-                    }
+                    user.applyDefinition(userDef, true);
                 } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
                         | CommunicationException | SecurityViolationException e) {
                     //TODO: nothing critical even by the error. for now just log it

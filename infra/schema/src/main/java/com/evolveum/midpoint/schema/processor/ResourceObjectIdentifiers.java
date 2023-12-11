@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -61,7 +62,7 @@ public abstract class ResourceObjectIdentifiers implements Serializable, DebugDu
         }
     }
 
-    static @NotNull WithPrimary withPrimary(
+    public static @NotNull WithPrimary withPrimary(
             @NotNull ResourceObjectIdentifier.Primary<?> primaryIdentifier,
             @NotNull Collection<? extends ResourceObjectIdentifier.Secondary<?>> secondaryIdentifiers) {
         return new WithPrimary(primaryIdentifier, secondaryIdentifiers);
@@ -88,6 +89,12 @@ public abstract class ResourceObjectIdentifiers implements Serializable, DebugDu
         var optional = optionalOf(objDef, repoShadow);
         MiscUtil.argCheck(optional.isPresent(), "No identifiers in %s", repoShadow);
         return optional.get();
+    }
+
+    /** Creates identifiers from a shadow, if possible. The shadow must have schema applied. */
+    public static @NotNull Optional<ResourceObjectIdentifiers> optionalOf(@NotNull ShadowType bean)
+            throws SchemaException {
+        return optionalOf(ShadowUtil.getResourceObjectDefinition(bean), bean);
     }
 
     /** Creates identifiers from a shadow, if possible. */

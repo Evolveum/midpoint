@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +54,7 @@ class ShadowOperationPropagationHelper {
 
     void propagateOperations(
             @NotNull ResourceType resource,
-            @NotNull ShadowType rawRepoShadow,
+            @NotNull RawRepoShadow rawRepoShadow,
             @NotNull Task task,
             @NotNull OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
@@ -68,7 +69,7 @@ class ShadowOperationPropagationHelper {
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
-        List<PendingOperationType> execPendingOperations = rawRepoShadow.getPendingOperation().stream()
+        List<PendingOperationType> execPendingOperations = rawRepoShadow.getBean().getPendingOperation().stream()
                 .filter(op -> op.getExecutionStatus() == EXECUTION_PENDING)
                 .collect(Collectors.toList());
 
@@ -84,9 +85,9 @@ class ShadowOperationPropagationHelper {
 
         List<PendingOperationType> sortedOperations = ShadowUtil.sortPendingOperations(execPendingOperations);
 
-        ProvisioningContext ctx = ctxFactory.createForShadow(rawRepoShadow, task, result);
+        ProvisioningContext ctx = ctxFactory.createForShadow(rawRepoShadow.getBean(), task, result);
         ctx.setPropagation(true);
-        RepoShadow repoShadow = ctx.adoptRepoShadow(rawRepoShadow);
+        RepoShadow repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
         ObjectDelta<ShadowType> aggregateDelta = computeAggregatedDelta(ctx, sortedOperations);
 
         LOGGER.trace("Merged operation for {}:\n{} ", repoShadow, aggregateDelta.debugDumpLazily(1));

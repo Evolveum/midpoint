@@ -369,9 +369,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(GROUP_DUMMY_LANDLUBERS_NAME, USER_WALLY_NAME, getDummyResource());
         assertGroupMember(GROUP_DUMMY_MAPMAKERS_NAME, USER_WALLY_NAME, getDummyResource());
 
-        PrismObject<ShadowType> groupLandlubersShadow = findShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_LANDLUBERS_NAME, getDummyResourceObject(), result);
-        PrismObject<ShadowType> groupMapmakersShadow = findLiveShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_MAPMAKERS_NAME, getDummyResourceObject(), result);
-        assertShadow(groupMapmakersShadow, "mapmakers shadow")
+        var groupLandlubersShadow = findShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_LANDLUBERS_NAME, getDummyResourceObject(), result);
+        var groupMapmakersShadow = findLiveShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_MAPMAKERS_NAME, getDummyResourceObject(), result);
+        assertShadow(groupMapmakersShadow, List.of(), "mapmakers shadow")
                 .assertKind(ShadowKindType.ENTITLEMENT)
                 .assertIntent("group");
 
@@ -951,7 +951,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         String rappShadowOid = getSingleLinkOid(userRappAfter);
-        PrismObject<ShadowType> rappShadow = getShadowModel(rappShadowOid);
+        var rappShadow = getAbstractShadowModel(rappShadowOid);
         display("Shadow rapp", rappShadow);
         assertAssociation(rappShadow, RESOURCE_DUMMY_ORANGE_ASSOCIATION_CREW_QNAME, guybrushShadowOid);
 
@@ -1372,7 +1372,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, "default", task, result);
         dumpUserAndAccounts(USER_GUYBRUSH_OID);
 
-        PrismObject<ShadowType> orangeAccount = findAccountShadowByUsername(
+        var orangeAccount = findAccountShadowByUsername(
                 USER_GUYBRUSH_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_ORANGE_NAME), true, result);
         assertNotNull("No orange account for guybrush", orangeAccount);
 

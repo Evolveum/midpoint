@@ -14,7 +14,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-public interface AttributeContainerDefinitionDelegator extends ContainerDefinitionDelegator<ShadowAttributesType>, ResourceAttributeContainerDefinition {
+public interface ResourceAttributeContainerDefinitionDelegator
+        extends ContainerDefinitionDelegator<ShadowAttributesType>, ResourceAttributeContainerDefinition {
 
     @Override
     ResourceAttributeContainerDefinition delegate();

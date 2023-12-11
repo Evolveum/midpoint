@@ -17,6 +17,10 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
+
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -44,7 +48,6 @@ import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.Counter;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.util.exception.*;
@@ -111,8 +114,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
     // test000-test106 in the superclasses
 
-    protected void assertWillRepoShadowAfterCreate(PrismObject<ShadowType> repoShadow) {
-        ShadowAsserter.forShadow(repoShadow, "repo")
+    protected void assertWillRepoShadowAfterCreate(RawRepoShadow repoShadow) throws SchemaException, ConfigurationException {
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAccountAttributes())
                 .assertActiveLifecycleState()
                 .pendingOperations()
                 .singleOperation()
@@ -243,7 +246,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         successCounter.assertCount("Wrong number of successful operations", 1);
 
-        PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountMorganOid, null, task, result);
+        var shadowAfter = provisioningService.getShadow(accountMorganOid, null, task, result);
         display("Shadow after", shadowAfter);
 
         assertDummyResourceWriteOperationCountIncrement(null, 1);
@@ -679,7 +682,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         dummyResource.setSyncSearchHandlerStart(false);
         successCounter.assertCount("Wrong number of successful operations", 10);
 
-        PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, groupScumOid, null, task, result);
+        var shadowAfter = provisioningService.getShadow(groupScumOid, null, task, result);
         display("Shadow after", shadowAfter);
 
         checkUniqueness(shadowAfter);
@@ -842,11 +845,10 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
             provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
             return list;
 
-        } else if (op == 2) {
+        } else {
             ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT);
             return provisioningService.searchObjects(ShadowType.class, query, null, task, result);
         }
-        return null;
     }
 
     private void messResource(int threadIndex, int i)

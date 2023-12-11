@@ -27,7 +27,7 @@
  *
  * There are four main public classes here:
  *
- * - {@link com.evolveum.midpoint.provisioning.impl.shadows.manager.RepoShadowFinder}: looking up shadows
+ * - {@link com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder}: looking up shadows
  * - {@link com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator}: creating (or looking up + creating) shadows
  * - {@link com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater}: updating existing shadows
  * - {@link com.evolveum.midpoint.provisioning.impl.shadows.manager.OperationResultRecorder}: records the result of

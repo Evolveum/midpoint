@@ -7,43 +7,34 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
-import java.util.Collection;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
+
 import java.util.List;
 import java.util.Objects;
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import com.evolveum.midpoint.schema.util.*;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
-
 /**
- * A shadow that was fetched from the repository.
+ * A shadow that was fetched from the repository and adapted by applying the resource object definition.
+ * It may have the information about the original repo shadow, if its update is needed.
  *
  * Conditions (TODO):
  *
@@ -58,11 +49,22 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
     private static final Trace LOGGER = TraceManager.getTrace(RepoShadow.class);
 
     @NotNull private final ShadowType bean;
+
+    /**
+     * Shadow as it was originally fetched from the repository (if applicable).
+     */
+    @Nullable private final RawRepoShadow rawRepoShadow;
+
     @NotNull private final Resource resource;
-    @NotNull private final ResourceObjectDefinition objectDefinition;
+
+    /** True if the shadow is known to be deleted from the repository. TODO reconsider */
+    boolean deleted;
 
     private RepoShadow(
-            @NotNull ShadowType bean, @NotNull Resource resource, @Nullable ResourceObjectDefinition explicitDefinition) {
+            @NotNull ShadowType bean,
+            @Nullable RawRepoShadow rawRepoShadow,
+            @NotNull Resource resource) {
+        this.rawRepoShadow = rawRepoShadow;
         var attributesContainer = ShadowUtil.getAttributesContainer(bean);
         Preconditions.checkNotNull(attributesContainer, "No attributes container in %s", bean);
         Preconditions.checkNotNull(bean.getShadowLifecycleState(), "No LC state in %s", bean);
@@ -75,7 +77,8 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
 
         this.bean = bean;
         this.resource = resource;
-        this.objectDefinition = explicitDefinition != null ? explicitDefinition : determineObjectDefinition(bean);
+
+        checkConsistence();
     }
 
     private @NotNull ResourceObjectDefinition determineObjectDefinition(ShadowType bean) {
@@ -83,48 +86,8 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
     }
 
     public static @NotNull RepoShadow of(
-            @NotNull ShadowType bean, @NotNull ResourceType resourceBean) {
-        return new RepoShadow(bean, Resource.of(resourceBean), null);
-    }
-
-    public static @Nullable RepoShadow selectSingleShadow(
-            @NotNull ProvisioningContext ctx, @NotNull List<PrismObject<ShadowType>> shadows, Object context)
-            throws SchemaException, ConfigurationException {
-        LOGGER.trace("Selecting from {} objects", shadows.size());
-
-        if (shadows.isEmpty()) {
-            return null;
-        } else if (shadows.size() > 1) {
-            LOGGER.error("Too many shadows ({}) for {}", shadows.size(), context);
-            LOGGER.debug("Shadows:\n{}", DebugUtil.debugDumpLazily(shadows));
-            throw new IllegalStateException("More than one shadow for " + context);
-        } else {
-            return ctx.adoptRepoShadow(shadows.get(0));
-        }
-    }
-
-    public static @Nullable RepoShadow selectLiveShadow(
-            @NotNull ProvisioningContext ctx,
-            @NotNull List<PrismObject<ShadowType>> shadows,
-            Object context) throws SchemaException, ConfigurationException {
-        if (shadows.isEmpty()) {
-            return null;
-        }
-
-        List<PrismObject<ShadowType>> liveShadows = shadows.stream()
-                .filter(ShadowUtil::isNotDead)
-                .toList();
-
-        if (liveShadows.isEmpty()) {
-            return null;
-        } else if (liveShadows.size() > 1) {
-            LOGGER.error("More than one live shadow found ({} out of {}) {}\n{}",
-                    liveShadows.size(), shadows.size(), context, DebugUtil.debugDumpLazily(shadows, 1));
-            // TODO: handle "more than one shadow" case for conflicting shadows - MID-4490
-            throw new IllegalStateException("Found more than one live shadow " + context + ": " + liveShadows);
-        } else {
-            return ctx.adoptRepoShadow(liveShadows.get(0));
-        }
+            @NotNull ShadowType bean, @Nullable RawRepoShadow rawRepoShadow, @NotNull ResourceType resourceBean) {
+        return new RepoShadow(bean, rawRepoShadow, Resource.of(resourceBean));
     }
 
     @Nullable
@@ -148,17 +111,15 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
         return repoShadow != null ? repoShadow.getOid() : null;
     }
 
-    public @NotNull ResourceObjectDefinition getObjectDefinition() {
-        return objectDefinition;
+    @Override
+    public @NotNull RepoShadow withNewContent(@NotNull ShadowType newBean) {
+        return new RepoShadow(newBean, null, resource);
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public RepoShadow clone() {
-        return new RepoShadow(
-                bean.clone(),
-                resource,
-                objectDefinition);
+        return new RepoShadow(bean.clone(), rawRepoShadow != null ? rawRepoShadow.clone() : null, resource);
     }
 
     @Override
@@ -168,7 +129,7 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
 
     @Override
     public String toString() {
-        return "%s on %s [%s] (repo)".formatted(bean, resource, getShadowLifecycleState());
+        return "%s on %s [%s] (repo)%s".formatted(bean, resource, getShadowLifecycleState(), deleted ? " (deleted)" : "");
     }
 
     /** Returns freely modifiable (detached) list. */
@@ -176,6 +137,7 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
         return ShadowUtil.sortPendingOperations(bean.getPendingOperation());
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean hasPendingOperations() {
         return !bean.getPendingOperation().isEmpty();
     }
@@ -194,20 +156,12 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
         return bean.getName();
     }
 
-    public @NotNull Collection<ResourceAttribute<?>> getAttributes() {
-        return ShadowUtil.getAttributes(bean);
-    }
-
     public PendingOperationType findPendingAddOperation() {
         return ShadowManagerMiscUtil.findPendingAddOperation(bean);
     }
 
     public @NotNull String getResourceOid() {
         return Objects.requireNonNull(resource.getBean().getOid());
-    }
-
-    public @NotNull QName getObjectClass() {
-        return objectDefinition.getObjectClassName();
     }
 
     public boolean hasRetryableOperation() {
@@ -255,5 +209,17 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
     public boolean isInQuantumState() {
         var state = getShadowLifecycleState();
         return state == ShadowLifecycleStateType.GESTATING || state == ShadowLifecycleStateType.CORPSE;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted() {
+        this.deleted = true;
+    }
+
+    public @Nullable RawRepoShadow getRawRepoShadow() {
+        return rawRepoShadow;
     }
 }

@@ -7,19 +7,18 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.impl.LazilyInitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.AbstractShadowedEntity;
+import com.evolveum.midpoint.provisioning.impl.shadows.AbstractLazilyInitializableShadowedEntity;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 
 /**
  * *Lazily-initializable* representation of retrieved resource objects and resource object changes.
@@ -36,7 +35,7 @@ import com.evolveum.midpoint.util.MiscUtil;
  * @see ResourceObjectFound
  * @see ResourceObjectChange
  *
- * @see AbstractShadowedEntity
+ * @see AbstractLazilyInitializableShadowedEntity
  */
 public abstract class AbstractLazilyInitializableResourceEntity implements LazilyInitializableMixin {
 
@@ -55,7 +54,7 @@ public abstract class AbstractLazilyInitializableResourceEntity implements Lazil
     ProvisioningContext effectiveCtx;
 
     /** State of the processing. */
-    @NotNull private final InitializationState initializationState = InitializationState.created();
+    @NotNull final InitializationState initializationState = InitializationState.created();
 
     /** Useful beans local to the Resource objects package. */
     @NotNull final ResourceObjectsBeans b = ResourceObjectsBeans.get();
@@ -77,6 +76,33 @@ public abstract class AbstractLazilyInitializableResourceEntity implements Lazil
         return MiscUtil.getFirstNonNullRequired(effectiveCtx, globalCtx, originalCtx);
     }
 
+    public abstract Object getPrimaryIdentifierValue();
+
+    /** May be null in exceptional cases (e.g. delete no-class event in wildcard LS). */
+    public abstract ResourceObjectDefinition getResourceObjectDefinition();
+
+    /** "Minimalistic" resource object e.g. for ultra-emergency shadow creation. */
+    @NotNull ExistingResourceObject getMinimalResourceObject() throws SchemaException {
+        var definition = getResourceObjectDefinition();
+        if (definition == null) {
+            throw new IllegalStateException(
+                    "No object definition in %s, cannot create minimal resource object".formatted(this));
+        }
+        var primaryIdentifierValue = getPrimaryIdentifierValue();
+        if (primaryIdentifierValue == null) {
+            throw new IllegalStateException(
+                    "No primary identifier value in %s, cannot create minimal resource object".formatted(this));
+        }
+        return ExistingResourceObject.minimal(
+                definition,
+                primaryIdentifierValue,
+                objectDoesExist(),
+                getEffectiveCtx().getResourceOid());
+    }
+
+    /** TODO */
+    abstract boolean objectDoesExist();
+
     /**
      * Fills-in provisioning policy, simulated activation, associations, and so on.
      * Modifies provided {@link ResourceObject} instance.
@@ -88,9 +114,8 @@ public abstract class AbstractLazilyInitializableResourceEntity implements Lazil
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        ShadowType resourceObjectBean = resourceObject.getBean();
 
-        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resourceObjectBean, result);
+        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resourceObject, result);
 
         new ActivationConverter(ctx)
                 .completeActivation(resourceObject, result);

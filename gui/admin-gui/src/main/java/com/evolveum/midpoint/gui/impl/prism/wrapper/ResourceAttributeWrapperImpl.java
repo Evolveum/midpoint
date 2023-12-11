@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
+import java.io.Serial;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T> implements ResourceAttributeWrapper<T> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public ResourceAttributeWrapperImpl(PrismContainerValueWrapper<?> parent, ResourceAttribute<T> item, ItemStatus status) {
         super(parent, item, status);
@@ -281,6 +282,11 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     @Override
     public String getFrameworkAttributeName() {
         return getRefinedAttributeDefinition().getFrameworkAttributeName();
+    }
+
+    @Override
+    public boolean hasRefinements() {
+        return getRefinedAttributeDefinition().hasRefinements();
     }
 
     @Override

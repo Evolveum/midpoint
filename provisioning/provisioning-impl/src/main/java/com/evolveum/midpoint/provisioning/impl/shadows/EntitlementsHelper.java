@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.RepoShadowFinder;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -52,7 +52,7 @@ class EntitlementsHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(EntitlementsHelper.class);
 
-    @Autowired RepoShadowFinder repoShadowFinder;
+    @Autowired ShadowFinder shadowFinder;
 
     /**
      * Makes sure that all the entitlements have identifiers in them so this is
@@ -120,7 +120,7 @@ class EntitlementsHelper {
                             () -> "No identifiers and no OID specified in entitlements association " + association);
             PrismObject<ShadowType> entitlementShadow;
             try {
-                entitlementShadow = repoShadowFinder.getShadow(entitlementOid, result);
+                entitlementShadow = shadowFinder.getShadow(entitlementOid, result);
             } catch (ObjectNotFoundException e) {
                 throw e.wrap("Couldn't resolve entitlement association OID in " + association + " in " + desc);
             }
