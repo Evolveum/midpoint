@@ -5618,6 +5618,8 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>SynchronizationActionsType.unlink</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.9</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
