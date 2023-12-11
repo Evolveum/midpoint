@@ -35,13 +35,25 @@ export default class MidPointTheme {
                     // expand the panel
                     $(this).nextUntil('.nav-header').slideDown();
                     $(this).removeClass('closed');
+                    $(this).attr("aria-expanded", "true")
                 } else {
                     // collapse the panel
                     $(this).nextUntil('.nav-header').slideUp();
                     $(this).addClass('closed');
+                    $(this).attr("aria-expanded", "false")
                 }
             });
         });
+
+        jQuery(function ($) {
+                    $('.nav-sidebar li.nav-item[aria-haspopup="true"]').on("click", function (e) {
+                        if ($(this).hasClass('menu-open')) {
+                            $(this).attr("aria-expanded", "false");
+                        } else {
+                            $(this).attr("aria-expanded", "true");
+                        }
+                    });
+                });
 
         !function ($) {
             $.fn.passwordFieldValidatorPopover = function (inputId, popover) {

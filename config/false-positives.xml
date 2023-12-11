@@ -289,4 +289,34 @@
     </notes>
     <cve>CVE-2020-11023</cve>
   </suppress>
+  <suppress>
+    <notes>
+      False Positive. midPoint does not use LDAP CertStore for certificate validations. 
+    </notes>
+    <cve>CVE-2023-33201</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False Positive. Default tomcat application is not exposed.
+    </notes>
+    <cve>CVE-2023-41080</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False positive. Okio is not used in midPoint directly, Okio is used only in ninja tool
+    </notes>
+    <cve>CVE-2023-3635</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False Positive. MidPoint does not use xmlsec with debug logging enebaled.
+    </notes>
+    <cve>CVE-2023-44483</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False Positive. MidPoint does not use logback in a way leading to vulnerability.
+    </notes>
+    <cve>CVE-2023-6378</cve>
+  </suppress>
 </suppressions>

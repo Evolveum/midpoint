@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -37,6 +38,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
     private static final String ID_NAV = "menu";
     private static final String ID_NAV_ITEM = "navItem";
+    private static final String ID_NAV_ITEM_SR_CURRENT_MESSAGE = "navItemSrCurrentMessage";
     private static final String ID_NAV_ITEM_LINK = "navItemLink";
     private static final String ID_NAV_ITEM_ICON = "navItemIcon";
     private static final String ID_SUB_NAVIGATION = "subNavigation";
@@ -86,6 +88,19 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
     private WebMarkupContainer createNavigationItemParentPanel(ListItem<ContainerPanelConfigurationType> item) {
         WebMarkupContainer navigationDetails = new WebMarkupContainer(ID_NAVIGATION_DETAILS);
+        navigationDetails.add(AttributeAppender.append(
+                "aria-haspopup",
+                () -> hasSubmenu(item.getModelObject()) ? true : null));
+        navigationDetails.add(AttributeAppender.append(
+                "aria-expanded",
+                () -> {
+                    if (hasSubmenu(item.getModelObject())) {
+                        ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
+                        ContainerPanelConfigurationType itemModelObject = item.getModelObject();
+                        return isMenuActive(storageConfig, itemModelObject) | hasActiveSubmenu(storageConfig, itemModelObject);
+                    }
+                    return null;
+                }));
         navigationDetails.add(AttributeAppender.append("class", createNavigationDetailsStyleModel(item)));
         return navigationDetails;
     }
@@ -141,12 +156,46 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             }
         };
         link.add(AttributeAppender.append("title", createButtonLabel(item.getModel())));
+
+        link.add(AttributeModifier.append(
+                "aria-current",
+                () -> {
+                    ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
+                    ContainerPanelConfigurationType itemModelObject = item.getModelObject();
+                    if (isMenuActive(storageConfig, itemModelObject)) {
+                        return "page";
+                    }
+                    return null;
+                }));
+
         addIcon(link, item);
+        addSrCurrentMessage(link, item);
         addLabel(link, item);
         addCount(link, item);
         addSubmenuLink(link, item);
 
         return link;
+    }
+
+    private void addSrCurrentMessage(AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
+        Label srCurrentMessage = new Label(ID_NAV_ITEM_SR_CURRENT_MESSAGE, () -> {
+            ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
+            ContainerPanelConfigurationType itemModelObject = item.getModelObject();
+            String key = "";
+            if (isMenuActive(storageConfig, itemModelObject)) {
+                key = "DetailsNavigationPanel.srCurrentMessage";
+            }
+            if (hasActiveSubmenu(storageConfig, itemModelObject)) {
+                key = "DetailsNavigationPanel.srActiveSubItemMessage";
+            }
+            return getPageBase().createStringResource(key).getString();
+        });
+        srCurrentMessage.add(new VisibleBehaviour(() -> {
+            ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
+            ContainerPanelConfigurationType itemModelObject = item.getModelObject();
+            return isMenuActive(storageConfig, itemModelObject) || hasActiveSubmenu(storageConfig, itemModelObject);
+        }));
+        link.add(srCurrentMessage);
     }
 
     private void addIcon(AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
