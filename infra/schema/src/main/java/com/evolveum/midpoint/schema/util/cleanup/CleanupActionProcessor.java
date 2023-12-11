@@ -7,12 +7,13 @@
 
 package com.evolveum.midpoint.schema.util.cleanup;
 
+import java.util.*;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 /**
  * Utility class that can be used to process objects and remove unwanted items.
@@ -26,6 +27,8 @@ public class CleanupActionProcessor {
     private CleanupEventListener listener;
 
     private boolean removeAskActionItemsByDefault = true;
+
+    private boolean ignoreNamespaces;
 
     private final Map<QName, Map<ItemPath, CleanupPathAction>> paths = new HashMap<>();
 
@@ -45,10 +48,31 @@ public class CleanupActionProcessor {
         }
     }
 
+    /**
+     * If set to true, items marked with annotation "optionalCleanup"
+     * (e.g. {@link ItemDefinition#isOptionalCleanup()} is true) will be removed.
+     *
+     * @param removeAskActionItemsByDefault
+     */
     public void setRemoveAskActionItemsByDefault(boolean removeAskActionItemsByDefault) {
         this.removeAskActionItemsByDefault = removeAskActionItemsByDefault;
     }
 
+    /**
+     * If set to true, namespaces will be ignored when searching for prism items using customized {@link CleanupPath}s.
+     *
+     * @param ignoreNamespaces
+     */
+    public void setIgnoreNamespaces(boolean ignoreNamespaces) {
+        this.ignoreNamespaces = ignoreNamespaces;
+    }
+
+    /**
+     * Processes object (modifies it) and removes unwanted items.
+     *
+     * @param object
+     * @param <O>
+     */
     public <O extends ObjectType> void process(PrismObject<O> object) {
         processItemRecursively(object, ItemPath.EMPTY_PATH, new HashMap<>());
     }
@@ -156,24 +180,37 @@ public class CleanupActionProcessor {
             return;
         }
 
-        ItemPath first = named.firstToName();
+        ItemName first = named.firstToName();
         ItemPath rest = named.rest();
 
-        Item<?, ?> found = parent.findItem(first);
+        List<Item<?, ?>> currentlyFoundItems = new ArrayList<>();
+        if (ignoreNamespaces) {
+            for (Item<?, ?> item : parent.getItems()) {
+                if (Objects.equals(first.getLocalPart(), item.getElementName().getLocalPart())) {
+                    currentlyFoundItems.add(item);
+                }
+            }
+        } else {
+            Item<?, ?> item = parent.findItem(first);
+            currentlyFoundItems.add(item);
+        }
+
         if (rest.isEmpty()) {
-            if (found != null) {
-                foundItems.add(found);
+            if (currentlyFoundItems != null) {
+                foundItems.addAll(currentlyFoundItems);
             }
 
             return;
         }
 
-        if (!(found instanceof PrismContainer<?>)) {
-            return;
-        }
+        for (Item<?, ?> item : currentlyFoundItems) {
+            if (!(item instanceof PrismContainer<?>)) {
+                return;
+            }
 
-        for (PrismContainerValue<?> value : (List<PrismContainerValue<?>>) found.getValues()) {
-            findItems(value, rest, foundItems);
+            for (PrismContainerValue<?> value : (List<PrismContainerValue<?>>) item.getValues()) {
+                findItems(value, rest, foundItems);
+            }
         }
     }
 
