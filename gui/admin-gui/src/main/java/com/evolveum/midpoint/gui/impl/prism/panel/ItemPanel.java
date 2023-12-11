@@ -44,7 +44,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
     private static final String DOT_CLASS = ItemPanel.class.getName() + "";
 
-    private static final String ID_VALUES_CONTAINER = "valuesContainer";
+    protected static final String ID_VALUES_CONTAINER = "valuesContainer";
     private static final String ID_VALUES = "values";
 
     private ItemPanelSettings itemPanelSettings;
@@ -85,7 +85,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
         return getParent().findParent(AbstractItemWrapperColumnPanel.class) == null;
     }
 
-    protected abstract Component createHeaderPanel();
+    protected abstract ItemHeaderPanel createHeaderPanel();
 
     protected Component createValuesPanel() {
 

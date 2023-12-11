@@ -56,7 +56,7 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
     }
 
     @Override
-    protected Component createHeaderPanel() {
+    protected ItemHeaderPanel createHeaderPanel() {
         VerticalFormContainerHeaderPanel header = new VerticalFormContainerHeaderPanel(ID_HEADER, getModel()) {
             @Override
             protected String getIcon() {

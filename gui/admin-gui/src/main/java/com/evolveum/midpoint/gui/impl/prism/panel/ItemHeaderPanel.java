@@ -11,6 +11,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -75,11 +76,15 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     }
 
     private void createTitle() {
-        Component displayName = createTitle(new PropertyModel<>(getModel(), "displayName"));
+        Component displayName = createTitle(createLabelModel());
         displayName.add(new AttributeModifier("style", getDeprecatedCss())); //TODO create deprecated css class?
 
         add(displayName);
 
+    }
+
+    public IModel<String> createLabelModel() {
+        return new PropertyModel<>(getModel(), "displayName");
     }
 
     protected abstract Component createTitle(IModel<String> model);
@@ -170,6 +175,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
                 return isAddButtonVisible();
             }
         });
+        addButton.add(AttributeAppender.append("title", getTitleForAddButton()));
         add(addButton);
 
         AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
@@ -181,7 +187,16 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
             }
         };
         removeButton.add(new VisibleBehaviour(this::isButtonEnabled));
+        removeButton.add(AttributeAppender.append("title", getTitleForRemoveAllButton()));
         add(removeButton);
+    }
+
+    protected IModel<String> getTitleForRemoveAllButton() {
+        return getPageBase().createStringResource("ItemHeaderPanel.removeAll");
+    }
+
+    protected IModel<String> getTitleForAddButton() {
+        return getPageBase().createStringResource("ItemHeaderPanel.addValue");
     }
 
     private void addValue(AjaxRequestTarget target) {
@@ -219,4 +234,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         return getModelObject() != null && !getModelObject().isReadOnly() && getModelObject().isMultiValue();
     }
 
+    public Component getLabelComponent() {
+        return get(ID_LABEL);
+    }
 }

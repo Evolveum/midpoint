@@ -51,7 +51,6 @@ public abstract class SummaryTag<C extends Containerable> extends Panel {
             }
         };
         Label tagLabel = new Label(ID_TAG_LABEL, labelModel);
-        tagLabel.add(AttributeAppender.append("title", labelModel));
         add(tagLabel);
 
         add(new AttributeModifier("style", new SummaryTagModel<String>(model) {

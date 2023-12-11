@@ -158,6 +158,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
                 createSubmenu(listItem);
             }
         };
+        submenu.add(new VisibleBehaviour(() -> getModelObject().containsSubMenu()));
         submenu.add(subItem);
     }
 

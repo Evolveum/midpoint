@@ -35,7 +35,7 @@ public class ResourceAttributeDefinitionPanel<T> extends PrismPropertyPanel<T> {
     }
 
     @Override
-    protected Component createHeaderPanel() {
+    protected ItemHeaderPanel createHeaderPanel() {
         return new ResourceAttributeDefinitionHeaderPanel<>(ID_HEADER, getResourceAttributeDefinitionModel());
     }
 
