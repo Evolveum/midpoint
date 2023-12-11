@@ -27,6 +27,10 @@ import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+
 import org.jetbrains.annotations.Nullable;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -2657,6 +2661,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .isInstanceOf(SystemException.class);
     }
     // endregion
+
+    @Test
+    public void test770ExcludeAssignments() throws SchemaException, ObjectNotFoundException {
+        var options = GetOperationOptionsBuilder.create().item(F_ASSIGNMENT).dontRetrieve().build();
+        var user = repositoryService.getObject(UserType.class, user1Oid, options, createOperationResult());
+        assertThat(user.asObjectable().getAssignment()).isEmpty();
+    }
 
     // region reference search
     @Test

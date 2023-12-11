@@ -16,6 +16,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.repo.sqale.mapping.ReferenceNameResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleMappingMixin;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.*;
 
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.google.common.collect.HashMultimap;
@@ -413,7 +416,11 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         public boolean isIncluded(Collection<SelectorOptions<GetOperationOptions>> options) {
             if (includedByDefault) {
-                // FIXME: Check Excludes
+                var retrieveOptions = SelectorOptions.findOptionsForPath(options, UniformItemPath.from(this.getPath()));
+                if (retrieveOptions.stream().anyMatch(o -> RetrieveOption.EXCLUDE.equals(o.getRetrieve()))) {
+                    // THere is at least one exclude for options
+                    return false;
+                }
                 return true;
             }
             return SelectorOptions.hasToFetchPathNotRetrievedByDefault(getPath(), options);
@@ -461,7 +468,6 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 mappingToData.put(mapping, ImmutableMultimap.of());
             }
         }
-
         return new ResultListRowTransformer<S, Q, R>() {
 
             @Override
@@ -486,6 +492,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                         throw new SystemException(e);
                     }
                 }
+                resolveReferenceNames(baseObject, jdbcSession, options);
                 return baseObject;
             }
         };
