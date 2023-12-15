@@ -14,6 +14,8 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -174,8 +176,20 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
-        save.add(new EnableBehaviour(this::isSavePreviewButtonEnabled));
-        save.add(new VisibleBehaviour(this::isSaveButtonVisible));
+//        save.add(new EnableBehaviour(this::isSavePreviewButtonEnabled));
+//        save.add(new VisibleBehaviour(this::isSaveButtonVisible));
+        save.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return isSaveButtonVisible();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return isSavePreviewButtonEnabled();
+            }
+        });
         save.titleAsLabel(true);
         save.setOutputMarkupId(true);
         save.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
