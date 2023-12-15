@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -175,9 +177,8 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
-        // Probably won't work correctly, will be overridden with visible behavior default value for enabled.
-        save.add(new EnableBehaviour(this::isSavePreviewButtonEnabled));
-        save.add(new VisibleBehaviour(this::isSaveButtonVisible));
+
+        save.add(new VisibleEnableBehaviour(this::isSaveButtonVisible, this::isSavePreviewButtonEnabled));
         save.titleAsLabel(true);
         save.setOutputMarkupId(true);
         save.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
