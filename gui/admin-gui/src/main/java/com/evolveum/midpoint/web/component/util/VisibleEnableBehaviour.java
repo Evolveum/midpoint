@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component.util;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.Behavior;
 import org.jetbrains.annotations.NotNull;
@@ -29,11 +30,11 @@ public class VisibleEnableBehaviour extends Behavior {
     private SerializableSupplier<Boolean> enabled;
 
     public VisibleEnableBehaviour() {
-        this(() -> true);
+        this(() -> null);
     }
 
     public VisibleEnableBehaviour(@NotNull SerializableSupplier<Boolean> visible) {
-        this(visible, () -> true);
+        this(visible, () -> null);
     }
 
     public VisibleEnableBehaviour(@NotNull SerializableSupplier<Boolean> visible, @NotNull SerializableSupplier<Boolean> enabled) {
@@ -41,20 +42,31 @@ public class VisibleEnableBehaviour extends Behavior {
         this.enabled = enabled;
     }
 
+    /**
+     * @return true even if underlying supplier returns null (this is because of backward compatibility of this class)
+     */
     public boolean isVisible() {
-        return visible.get();
+        return BooleanUtils.isNotFalse(visible.get());
     }
 
+    /**
+     * @return true even if underlying supplier returns null (this is because of backward compatibility of this class)
+     */
     public boolean isEnabled() {
-        return enabled.get();
+        return BooleanUtils.isNotFalse(enabled.get());
     }
 
     @Override
     public void onConfigure(Component component) {
-        component.setEnabled(isEnabled());
+        Boolean enabled = this.enabled.get();
+        if (enabled != null) {
+            component.setEnabled(enabled);
+        }
 
-        boolean visible = isVisible();
-        component.setVisible(visible);
-        component.setVisibilityAllowed(visible);
+        Boolean visible = this.visible.get();
+        if (visible != null) {
+            component.setVisible(visible);
+            component.setVisibilityAllowed(visible);
+        }
     }
 }
