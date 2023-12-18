@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.configuration;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationS
 import com.evolveum.midpoint.authentication.impl.session.SessionAndRequestScope;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
@@ -37,6 +39,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.core.context.DeferredSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -197,6 +200,19 @@ public class SecurityConfigurer {
                 if(!AuthSequenceUtil.isRecordSessionLessAccessChannel(request)) {
                     super.saveContext(context, request, response);
                 }
+            }
+
+            @Override
+            public DeferredSecurityContext loadDeferredContext(HttpServletRequest request) {
+                if(AuthSequenceUtil.isRecordSessionLessAccessChannel(request)) {
+                    return super.loadDeferredContext(new HttpServletRequestWrapper(request) {
+                        @Override
+                        public HttpSession getSession(boolean create) {
+                            return null;
+                        }
+                    });
+                }
+                return super.loadDeferredContext(request);
             }
 
             @Override
