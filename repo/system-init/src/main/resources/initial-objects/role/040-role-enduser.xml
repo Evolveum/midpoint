@@ -278,6 +278,45 @@
                 <identifier>history</identifier>
                 <visibility>hidden</visibility>
             </panel>
+            <panel id="42">
+                <identifier>personas</identifier>
+                <visibility>hidden</visibility>
+            </panel>
+            <panel id="43">
+                <identifier>focusTriggers</identifier>
+                <visibility>hidden</visibility>
+            </panel>
+            <panel id="44">
+                <identifier>password</identifier>
+                <visibility>hidden</visibility>
+            </panel>
+            <panel id="45">
+                <identifier>assignments</identifier>
+                <panel id="46">
+                    <identifier>constructionAssignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="47">
+                    <identifier>indirectAssignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="48">
+                    <identifier>dataProtectionAssignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="49">
+                    <identifier>orgAssignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="50">
+                    <identifier>roleAssignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="51">
+                    <identifier>serviceAssignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+            </panel>
         </selfProfilePage>
     </adminGuiConfiguration>
 </role>
