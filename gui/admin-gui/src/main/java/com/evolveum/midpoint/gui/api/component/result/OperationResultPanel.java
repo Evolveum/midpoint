@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.Locale;
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FeedbackMessagesHookType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -375,7 +379,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         errorContainer.add(errorMessage);
 
         Label errorStackTrace = new Label(ID_ERROR_STACK_TRACE, () -> getModelObject().getExceptionsStackTrace());
-        errorStackTrace.add(new VisibleBehaviour(() -> getModelObject().isShowError()));
+        errorStackTrace.add(new VisibleBehaviour(() -> getModelObject().isShowError() && isStackTraceVisible()));
         errorContainer.add(errorStackTrace);
 
         Label linkText = new Label("linkText", () -> {
@@ -395,7 +399,30 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
         };
         errorStackTraceLink.add(linkText);
+        errorStackTraceLink.add(new VisibleBehaviour(() -> isStackTraceVisible()));
         errorContainer.add(errorStackTraceLink);
+    }
+
+    private boolean isStackTraceVisible() {
+        UserInterfaceElementVisibilityType stackTraceVisibility = null;
+        FeedbackMessagesHookType feedbackConfig = getPageBase().getCompiledGuiProfile().getFeedbackMessagesHook();
+        if (feedbackConfig != null) {
+            stackTraceVisibility = feedbackConfig.getStackTraceVisibility();
+        }
+
+        if (stackTraceVisibility == null) {
+            stackTraceVisibility = UserInterfaceElementVisibilityType.VISIBLE;
+        }
+
+        if (stackTraceVisibility == UserInterfaceElementVisibilityType.VISIBLE) {
+            return true;
+        }
+
+        if (stackTraceVisibility == UserInterfaceElementVisibilityType.HIDDEN) {
+            return false;
+        }
+
+        return true;
     }
 
     private void showHideAll(final boolean show, AjaxRequestTarget target) {
