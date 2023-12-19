@@ -2392,8 +2392,7 @@ You have to:
 
 * Select the *Object type*,
 * check *Distinct* if needed (first try without it),
-* choose the language for the query - XML is still the default,
-* write the query into the text area,
+* write the query in midPoint query language into the text area,
 * and press *Translate and execute*.
 
 Alternatively use an existing example from the selection box below.
@@ -2428,18 +2427,12 @@ To do this, follow these steps:
 * Check *Translate from Query API script*, the expression text area will appear.
 * Enter the code as an expression, e.g.:
 +
-[source,xml]
+[source,java]
 ----
-<expression>
-    <script>
-        <code>
-            import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-            prismContext.queryFor(FocusType.class)
-                .item(FocusType.F_NAME).startsWith("a").build();
-        </code>
-    </script>
-</expression>
+prismContext.queryFor(FocusType.class)
+    .item(FocusType.F_NAME).startsWith("a").build();
 ----
 * Choose the *Object type*, just like for any other query.
 Just use the type from `queryFor(...)` call, in our example `FocusType`.
@@ -2452,5 +2445,7 @@ XML/JSON/YAML query - in the language currently chosen.
 Using the expression requires proper imports - depending on the complexity of the script you
 may need additional imports from packages like `com.evolveum.midpoint.schema`,
 `com.evolveum.midpoint.prism.query` or others.
+
+// TODO - prepare doc for query converter
 
 // TODO mention extensions, xref:/midpoint/reference/schema/custom-schema-extension/
