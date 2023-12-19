@@ -356,7 +356,7 @@ public class GuiProfileCompiler {
         }
 
         if (adminGuiConfiguration.getFeedbackMessagesHook() != null) {
-            composite.setFeedbackMessagesHook(adminGuiConfiguration.getFeedbackMessagesHook().clone());
+            mergeFeedbackMessagesHook(composite, adminGuiConfiguration.getFeedbackMessagesHook());
         }
 
         if (adminGuiConfiguration.getRoleManagement() != null &&
@@ -422,6 +422,19 @@ public class GuiProfileCompiler {
         if (adminGuiConfiguration.getSelfProfilePage() != null) {
             composite.setSelfProfilePage(adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(
                     adminGuiConfiguration.getSelfProfilePage(), composite.getSelfProfilePage()));
+        }
+    }
+
+    private void mergeFeedbackMessagesHook(CompiledGuiProfile composite, FeedbackMessagesHookType feedbackMessagesHook) {
+        if (composite.getFeedbackMessagesHook() == null) {
+            composite.setFeedbackMessagesHook(feedbackMessagesHook.clone());
+            return;
+        }
+        if (feedbackMessagesHook.getOperationResultHook() != null) {
+            composite.getFeedbackMessagesHook().setOperationResultHook(feedbackMessagesHook.getOperationResultHook());
+        }
+        if (feedbackMessagesHook.getStackTraceVisibility() != null) {
+            composite.getFeedbackMessagesHook().setStackTraceVisibility(feedbackMessagesHook.getStackTraceVisibility());
         }
     }
 
