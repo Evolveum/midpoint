@@ -30,7 +30,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nullable;
 import javax.xml.namespace.QName;
 
 public class GuiDisplayTypeUtil {
@@ -317,7 +316,7 @@ public class GuiDisplayTypeUtil {
         return display;
     }
 
-    public static String removeStringAfterSemicolon(@Nullable String headerColor) {
+    public static String removeStringAfterSemicolon(String headerColor) {
         if (headerColor == null || !headerColor.contains(";")) {
             return headerColor;
         }
