@@ -11557,7 +11557,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
+                    <xsd:element name="secretsProviders" type="tns:SecretsProvidersType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
