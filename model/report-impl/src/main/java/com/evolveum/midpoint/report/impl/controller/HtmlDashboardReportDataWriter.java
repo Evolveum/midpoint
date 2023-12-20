@@ -184,7 +184,13 @@ public class HtmlDashboardReportDataWriter
 
     @Override
     public @Nullable Function<String, String> getFunctionForWidgetStatus() {
-        return (value) -> CommonHtmlSupport.VALUE_CSS_STYLE_TAG + "{background-color: " + value + " !important;}";
+        return (value) -> {
+            String color = value;
+            if (color.contains(";")) {
+                color = color.substring(0, color.indexOf(";"));
+            }
+            return CommonHtmlSupport.VALUE_CSS_STYLE_TAG + "{background-color: " + color + " !important;}";
+        };
     }
 
     @Override
