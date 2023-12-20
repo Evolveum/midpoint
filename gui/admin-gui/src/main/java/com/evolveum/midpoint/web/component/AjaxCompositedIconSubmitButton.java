@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -90,7 +92,9 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
                 if (StringUtils.isNotEmpty(entry.getIconType().getCssClass())) {
                     sb.append("<i class=\"").append(entry.getIconType().getCssClass()).append("\"");
                     if (StringUtils.isNotEmpty(entry.getIconType().getColor())) {
-                        sb.append(" style=\"color: ").append(entry.getIconType().getColor()).append(";\"");
+                        sb.append(" style=\"color: ")
+                                .append(GuiDisplayTypeUtil.removeStringAfterSemicolon(entry.getIconType().getColor()))
+                                .append(";\"");
                     }
                     sb.append(">").append(entry.hasLabel() ? entry.getLabelModel().getObject() : "").append("</i> ");
                 }

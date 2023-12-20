@@ -30,6 +30,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
 import javax.xml.namespace.QName;
 
 public class GuiDisplayTypeUtil {
@@ -251,7 +252,7 @@ public class GuiDisplayTypeUtil {
         if (displayType == null || displayType.getIcon() == null) {
             return "";
         }
-        return displayType.getIcon().getColor();
+        return removeStringAfterSemicolon(displayType.getIcon().getColor());
     }
 
     public static String getHelp(DisplayType displayType) {
@@ -314,5 +315,12 @@ public class GuiDisplayTypeUtil {
         help.setTranslation(translationHelp);
         display.setHelp(help);
         return display;
+    }
+
+    public static String removeStringAfterSemicolon(@Nullable String headerColor) {
+        if (headerColor == null || !headerColor.contains(";")) {
+            return headerColor;
+        }
+        return headerColor.substring(0, headerColor.indexOf(";"));
     }
 }

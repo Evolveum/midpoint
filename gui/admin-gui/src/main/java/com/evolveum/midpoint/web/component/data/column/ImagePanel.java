@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -86,6 +87,6 @@ public class ImagePanel extends BasePanel<DisplayType> {
             return null;
         }
 
-        return icon.getColor();
+        return GuiDisplayTypeUtil.removeStringAfterSemicolon(icon.getColor());
     }
 }

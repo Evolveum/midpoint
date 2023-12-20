@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.page;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.web.component.menu.top.LocaleTopMenuPanel;
 
@@ -432,7 +433,7 @@ public abstract class PageBase extends PageAdminLTE {
                 return null;
             }
 
-            return "background-color: " + info.getHeaderColor() + " !important;";
+            return "background-color: " + GuiDisplayTypeUtil.removeStringAfterSemicolon(info.getHeaderColor()) + " !important;";
         });
     }
 
