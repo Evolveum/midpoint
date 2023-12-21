@@ -54,11 +54,11 @@ public class PrismPropertyHeaderPanel<T> extends ItemHeaderPanel<PrismPropertyVa
 
     @Override
     protected IModel<String> getTitleForAddButton() {
-        return getPageBase().createStringResource("PrismPropertyHeaderPanel.addButtonTitle", createLabelModel().getObject());
+        return getParentPage().createStringResource("PrismPropertyHeaderPanel.addButtonTitle", createLabelModel().getObject());
     }
 
     @Override
     protected IModel<String> getTitleForRemoveAllButton() {
-        return getPageBase().createStringResource("PrismPropertyHeaderPanel.removeAllButtonTitle", createLabelModel().getObject());
+        return getParentPage().createStringResource("PrismPropertyHeaderPanel.removeAllButtonTitle", createLabelModel().getObject());
     }
 }

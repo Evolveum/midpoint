@@ -98,7 +98,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         help.add(new VisibleBehaviour(this::isHelpTextVisible));
         help.add(AttributeAppender.append(
                 "aria-label",
-                getPageBase().createStringResource("ItemHeaderPanel.helpTooltip", createLabelModel().getObject())));
+                getParentPage().createStringResource("ItemHeaderPanel.helpTooltip", createLabelModel().getObject())));
         add(help);
     }
 
@@ -195,32 +195,32 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     }
 
     protected IModel<String> getTitleForRemoveAllButton() {
-        return getPageBase().createStringResource("ItemHeaderPanel.removeAll");
+        return getParentPage().createStringResource("ItemHeaderPanel.removeAll");
     }
 
     protected IModel<String> getTitleForAddButton() {
-        return getPageBase().createStringResource("ItemHeaderPanel.addValue");
+        return getParentPage().createStringResource("ItemHeaderPanel.addValue");
     }
 
     private void addValue(AjaxRequestTarget target) {
         IW parentWrapper = getModelObject();
         try {
-            parentWrapper.add(createNewValue(parentWrapper), getPageBase());
+            parentWrapper.add(createNewValue(parentWrapper), getParentPage());
         } catch (SchemaException e) {
             getSession().error(getString("ItemHeaderPanel.value.add.failed", e.getMessage()));
             LOGGER.error("Failed to add new value for {}, reason: {}", parentWrapper, e.getMessage(), e);
-            target.add(getPageBase().getFeedbackPanel());
+            target.add(getParentPage().getFeedbackPanel());
         }
         refreshPanel(target);
     }
 
     private void removeItem(AjaxRequestTarget target) {
         try {
-            getModelObject().removeAll(getPageBase());
+            getModelObject().removeAll(getParentPage());
         } catch (SchemaException e) {
             LOGGER.error("Cannot remove value: {}", getModelObject());
             getSession().error("Cannot remove value " + getModelObject());
-            target.add(getPageBase().getFeedbackPanel());
+            target.add(getParentPage().getFeedbackPanel());
 
         }
         refreshPanel(target);

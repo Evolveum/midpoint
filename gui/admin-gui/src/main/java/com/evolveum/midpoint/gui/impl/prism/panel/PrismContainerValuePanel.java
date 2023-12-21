@@ -88,7 +88,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                     LoadableDetachableModel<String> labelModel = getLabelModel();
                     String label = labelModel.getObject();
                     labelModel.detach();
-                    return getPageBase().createStringResource(
+                    return getParentPage().createStringResource(
                                     key, label)
                             .getString();
                 }));
@@ -132,7 +132,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                     if (getModelObject().getDefinition().isMultiValue()) {
                         key = "PrismContainerValuePanel.header";
                     }
-                    return getPageBase().createStringResource(
+                    return getParentPage().createStringResource(
                                     key, headerLabelModel.getObject())
                             .getString();
                 }));
