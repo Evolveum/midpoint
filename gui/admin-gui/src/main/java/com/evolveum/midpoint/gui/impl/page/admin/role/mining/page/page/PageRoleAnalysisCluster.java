@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChannelMode;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Form;
@@ -120,9 +122,10 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         DetectionOption detectionOption = new DetectionOption(cluster);
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
-        OperationResultStatusType status = roleAnalysisService.getOperationExecutionStatus(clusterPrismObject, task, result);
+        boolean isUnderActivity = roleAnalysisService.isUnderActivity(clusterPrismObject,
+                RoleAnalysisChannelMode.DEFAULT, task, result);
 
-        if (status != null && status.equals(OperationResultStatusType.IN_PROGRESS)) {
+        if (isUnderActivity) {
             warn("Couldn't start detection. Some process is already in progress.");
             target.add(getFeedbackPanel());
             return;

@@ -19,6 +19,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChannelMode;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
@@ -663,29 +665,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @Override
-    public ObjectReferenceType extractTaskRef(
-            List<OperationExecutionType> operationExecutions) {
-
-        if (operationExecutions == null || operationExecutions.isEmpty()) {
-            return null;
-        }
-
-        OperationExecutionType operationExecution = operationExecutions.get(0);
-
-        if (operationExecution == null || operationExecution.getTaskRef() == null) {
-            return null;
-        }
-
-        ObjectReferenceType taskRef = operationExecution.getTaskRef();
-
-        if (taskRef != null && taskRef.getOid() != null) {
-            return taskRef;
-        }
-
-        return null;
-    }
-
-    @Override
     public void executeClusteringTask(
             @NotNull PrismObject<RoleAnalysisSessionType> session,
             @Nullable String taskOid,
@@ -726,7 +705,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                                     SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
                     task, result);
 
-            setOpStatus(session, taskOid, OperationResultStatusType.IN_PROGRESS, null, result, task);
+            setOpStatus(session, taskOid, OperationResultStatusType.IN_PROGRESS, null,
+                    RoleAnalysisChannelMode.CLUSTERING, result, task);
 
         } catch (CommonException e) {
             LOGGER.error("Couldn't execute clustering task for session {}", session, e);
@@ -773,6 +753,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                                     SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
                     task, result);
 
+            RoleAnalysisChannelMode migrationChannel = RoleAnalysisChannelMode.DETECTION;
+            setOpStatus(
+                    cluster,
+                    taskOid,
+                    OperationResultStatusType.IN_PROGRESS, null
+                    , migrationChannel, result, task);
+
         } catch (CommonException e) {
             LOGGER.error("Couldn't execute Cluster Detection Task {}", cluster, e);
             result.recordPartialError(e);
@@ -812,11 +799,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                                     SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
                     task, result);
 
+            RoleAnalysisChannelMode migrationChannel = RoleAnalysisChannelMode.MIGRATION;
+            migrationChannel.setObjectIdentifier(roleObject.getOid());
             setOpStatus(
                     cluster,
                     taskOid,
                     OperationResultStatusType.IN_PROGRESS, null
-                    , result, task);
+                    , migrationChannel, result, task);
 
         } catch (CommonException e) {
             LOGGER.error("Failed to execute role {} migration activity: ", roleObject.getOid(), e);
@@ -825,20 +814,76 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     public @NotNull String recomputeAndResolveClusterOpStatus(
             @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
+            @NotNull RoleAnalysisChannelMode channelMode,
             @NotNull OperationResult result,
             @NotNull Task task) {
         RoleAnalysisClusterType cluster = clusterPrismObject.asObjectable();
         List<OperationExecutionType> operationExecution = cluster.getOperationExecution();
 
         if (operationExecution == null || operationExecution.isEmpty()) {
-            return "enable";
+            return "stable";
         }
 
-        OperationExecutionType operationExecutionType = operationExecution.get(0);
-        if (operationExecutionType == null) {
-            return "enable";
+        String stateString;
+        boolean underActivity = false;
+        if (channelMode.equals(RoleAnalysisChannelMode.DEFAULT)) {
+            for (OperationExecutionType operationEx : operationExecution) {
+                ObjectReferenceType ref = operationEx.getTaskRef();
+                if (ref == null || ref.getDescription() == null) {
+                    continue;
+                }
+
+                OperationExecutionType operationExecutionType = null;
+                String description = ref.getDescription();
+                if (description.contains(RoleAnalysisChannelMode.CLUSTERING.getDisplayString())) {
+                    operationExecutionType = operationEx;
+                } else if (description.contains(RoleAnalysisChannelMode.MIGRATION.getDisplayString())) {
+                    operationExecutionType = operationEx;
+                } else if (description.contains(RoleAnalysisChannelMode.DETECTION.getDisplayString())) {
+                    operationExecutionType = operationEx;
+                } else if (description.contains(RoleAnalysisChannelMode.DEFAULT.getDisplayString())) {
+                    operationExecutionType = operationEx;
+                }
+
+                if (operationExecutionType != null) {
+                    String status = updateClusterStatus(clusterPrismObject, channelMode, result, task, operationExecutionType);
+                    if (status != null && !status.equals("stable")) {
+                        underActivity = true;
+                    }
+                }
+            }
+
+            if (underActivity) {
+                return "processing";
+            } else {
+                return "stable";
+            }
+        } else {
+            for (OperationExecutionType operationEx : operationExecution) {
+                ObjectReferenceType ref = operationEx.getTaskRef();
+                if (ref == null || ref.getDescription() == null) {
+                    continue;
+                }
+
+                OperationExecutionType operationExecutionType = null;
+                String description = ref.getDescription();
+                if (description.equals(channelMode.getFullChannelIdentifier())) {
+                    operationExecutionType = operationEx;
+                }
+
+                if (operationExecutionType != null) {
+                    stateString = updateClusterStatus(clusterPrismObject, channelMode, result, task, operationExecutionType);
+                    return stateString == null || stateString.isEmpty() ? "stable" : stateString;
+                }
+            }
+
         }
 
+        return "stable";
+    }
+
+    @Nullable
+    private String updateClusterStatus(@NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject, @NotNull RoleAnalysisChannelMode channelMode, @NotNull OperationResult result, @NotNull Task task, OperationExecutionType operationExecutionType) {
         ObjectReferenceType taskRef = operationExecutionType.getTaskRef();
         OperationResultStatusType status = operationExecutionType.getStatus();
         String stateString = operationExecutionType.getMessage();
@@ -858,7 +903,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 if (stateString != null && !stateString.isEmpty()) {
                     return stateString;
                 } else {
-                    return "enable";
+                    return "stable";
                 }
             }
 
@@ -868,7 +913,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             stateString = updateClusterStateMessage(stateString, taskObject);
 
             if (resultStatus != null) {
-                setOpStatus(clusterPrismObject, object.getOid(), resultStatus, stateString, result, task);
+                setOpStatus(clusterPrismObject, object.getOid(), resultStatus, stateString, channelMode, result, task);
 
                 if (!status.equals(resultStatus) && resultStatus.equals(OperationResultStatusType.SUCCESS)) {
                     updateClusterPatterns(clusterPrismObject.getOid(), task, result);
@@ -876,8 +921,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             }
 
         }
-
-        return stateString == null || stateString.isEmpty() ? "enable" : stateString;
+        return stateString;
     }
 
     private String updateClusterStateMessage(String stateString, TaskType taskObject) {
@@ -909,18 +953,41 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     public @NotNull String recomputeAndResolveSessionOpStatus(
             @NotNull PrismObject<RoleAnalysisSessionType> sessionPrismObject,
+            @NotNull RoleAnalysisChannelMode channelMode,
             @NotNull OperationResult result,
             @NotNull Task task) {
         RoleAnalysisSessionType session = sessionPrismObject.asObjectable();
         List<OperationExecutionType> operationExecution = session.getOperationExecution();
 
         if (operationExecution == null || operationExecution.isEmpty()) {
-            return "enable";
+            return "stable";
         }
 
-        OperationExecutionType operationExecutionType = operationExecution.get(0);
+        OperationExecutionType operationExecutionType = null;
+        for (OperationExecutionType operationEx : operationExecution) {
+            ObjectReferenceType ref = operationEx.getTaskRef();
+            if (ref == null || ref.getDescription() == null) {
+                continue;
+            }
+
+            String description = ref.getDescription();
+            if (channelMode.equals(RoleAnalysisChannelMode.DEFAULT)) {
+                if (description.contains(RoleAnalysisChannelMode.CLUSTERING.getDisplayString())) {
+                    operationExecutionType = operationEx;
+                } else if (description.contains(RoleAnalysisChannelMode.MIGRATION.getDisplayString())) {
+                    operationExecutionType = operationEx;
+                } else if (description.contains(RoleAnalysisChannelMode.DETECTION.getDisplayString())) {
+                    operationExecutionType = operationEx;
+                } else if (description.contains(RoleAnalysisChannelMode.DEFAULT.getDisplayString())) {
+                    operationExecutionType = operationEx;
+                }
+            } else if (description.equals(channelMode.getFullChannelIdentifier())) {
+                operationExecutionType = operationEx;
+            }
+        }
+
         if (operationExecutionType == null) {
-            return "enable";
+            return "stable";
         }
 
         ObjectReferenceType taskRef = operationExecutionType.getTaskRef();
@@ -943,7 +1010,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 if (stateString != null && !stateString.isEmpty()) {
                     return stateString;
                 } else {
-                    return "enable";
+                    return "stable";
                 }
             }
 
@@ -957,15 +1024,15 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                         sessionPrismObject,
                         object.getOid(),
                         resultStatus,
-                        stateString,
-                        result,
+                        stateString, channelMode
+                        , result,
                         task);
 
             }
 
         }
 
-        return stateString == null ? "enable" : stateString;
+        return stateString == null ? "stable" : stateString;
 
     }
 
@@ -1121,7 +1188,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             ListMultimap<String, String> map = extractUserTypeMembers(userExistCache,
                     null, resolvedPatternOid, task, result);
 
-
             reductionMetric = removeRedundantPatterns(detectedPattern, clusterMembersOid, clusterPropertiesOid, map,
                     resolvedPattern, task, result);
 
@@ -1158,22 +1224,48 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull String taskOid,
             OperationResultStatusType operationResultStatusType,
             String message,
+            @NotNull RoleAnalysisChannelMode channelMode,
             @NotNull OperationResult result,
             @NotNull Task task) {
-        OperationExecutionType operationExecutionType = new OperationExecutionType();
-        operationExecutionType.setStatus(operationResultStatusType);
-        operationExecutionType.setTaskRef(
-                new ObjectReferenceType()
-                        .oid(taskOid)
-                        .type(TaskType.COMPLEX_TYPE));
-        if (message != null) {
-            operationExecutionType.setMessage(message);
-        }
+
         List<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
         try {
+            List<OperationExecutionType> operationExecution = object.asObjectable().getOperationExecution();
+            if (operationExecution != null) {
+                for (OperationExecutionType executionType : operationExecution) {
+                    ObjectReferenceType taskRef = executionType.getTaskRef();
+                    if (taskRef != null && taskRef.getOid() != null && taskRef.getOid().equals(taskOid)) {
+                        Long id = executionType.getId();
+
+                        modifications.add(PrismContext.get().deltaFor(AssignmentHolderType.class)
+                                .item(AssignmentHolderType.F_OPERATION_EXECUTION.append(id), OperationExecutionType.F_STATUS)
+                                .replace(operationResultStatusType).asItemDelta());
+                        if (message != null) {
+                            modifications.add(PrismContext.get().deltaFor(AssignmentHolderType.class)
+                                    .item(AssignmentHolderType.F_OPERATION_EXECUTION.append(id), OperationExecutionType.F_MESSAGE)
+                                    .replace(message).asItemDelta());
+                        }
+
+                        repositoryService.modifyObject(AssignmentHolderType.class, object.getOid(), modifications, result);
+                        return;
+                    }
+                }
+            }
+
+            OperationExecutionType operationExecutionType = new OperationExecutionType();
+            operationExecutionType.setStatus(operationResultStatusType);
+            operationExecutionType.setTaskRef(
+                    new ObjectReferenceType()
+                            .oid(taskOid)
+                            .type(TaskType.COMPLEX_TYPE)
+                            .description(channelMode.getFullChannelIdentifier()));
+            if (message != null) {
+                operationExecutionType.setMessage(message);
+            }
+
             modifications.add(PrismContext.get().deltaFor(AssignmentHolderType.class)
-                    .item(AssignmentHolderType.F_OPERATION_EXECUTION).replace(operationExecutionType.clone())
+                    .item(AssignmentHolderType.F_OPERATION_EXECUTION).add(operationExecutionType.clone())
                     .asItemDelta());
 
             repositoryService.modifyObject(AssignmentHolderType.class, object.getOid(), modifications, result);
@@ -1184,8 +1276,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @Override
-    public <T extends AssignmentHolderType & Objectable> OperationResultStatusType getOperationExecutionStatus(
+    public <T extends AssignmentHolderType & Objectable> boolean isUnderActivity(
             @NotNull PrismObject<T> object,
+            @NotNull RoleAnalysisChannelMode channelMode,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -1193,19 +1286,43 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 object.asObjectable().getClass(), object.getOid(), task, result);
 
         if (updatedObject == null) {
-            return null;
+            return false;
         }
 
         List<OperationExecutionType> operationExecution = updatedObject.asObjectable().getOperationExecution();
         if (operationExecution == null || operationExecution.isEmpty()) {
-            return null;
+            return false;
         }
 
-        OperationExecutionType operationExecutionType = operationExecution.get(0);
-        if (operationExecutionType == null) {
-            return null;
+        for (OperationExecutionType operationEx : operationExecution) {
+            OperationResultStatusType status = null;
+
+            ObjectReferenceType ref = operationEx.getTaskRef();
+            if (ref == null || ref.getDescription() == null) {
+                continue;
+            }
+            String description = ref.getDescription();
+
+            if (channelMode.equals(RoleAnalysisChannelMode.DEFAULT)) {
+                if (description.contains(RoleAnalysisChannelMode.CLUSTERING.getDisplayString())) {
+                    status = operationEx.getStatus();
+                } else if (description.contains(RoleAnalysisChannelMode.MIGRATION.getDisplayString())) {
+                    status = operationEx.getStatus();
+                } else if (description.contains(RoleAnalysisChannelMode.DETECTION.getDisplayString())) {
+                    status = operationEx.getStatus();
+                } else if (description.contains(RoleAnalysisChannelMode.DEFAULT.getDisplayString())) {
+                    status = operationEx.getStatus();
+                }
+            } else if (description.equals(channelMode.getFullChannelIdentifier())) {
+                status = operationEx.getStatus();
+            }
+
+            if (status != null && status.equals(OperationResultStatusType.IN_PROGRESS)) {
+                return true;
+            }
         }
-        return operationExecutionType.getStatus();
+
+        return false;
     }
 
     private Double removeRedundantPatterns(
@@ -1268,7 +1385,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             }
 
             if (!isPatternRedundant) {
-
                 if (!clusterUsersOidSet.containsAll(usersInPattern)
                         || !clusterRolesOidSet.containsAll(rolesInPattern)) {
                     patternIterator.remove();
@@ -1282,5 +1398,33 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             }
         }
         return updatedReductionMetric;
+    }
+
+    @Override
+    public @Nullable PrismObject<TaskType> resolveTaskObject(
+            @NotNull List<OperationExecutionType> operationExecution,
+            @NotNull RoleAnalysisChannelMode channelMode,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        String taskOid = null;
+        for (OperationExecutionType operationEx : operationExecution) {
+            if (operationEx != null && operationEx.getTaskRef() != null) {
+                String description = operationEx.getTaskRef().getDescription();
+                if (description != null && description.equals(channelMode.getFullChannelIdentifier())) {
+                    taskOid = operationEx.getTaskRef().getOid();
+                }
+            }
+        }
+
+        if (taskOid != null) {
+            try {
+                return modelService.getObject(TaskType.class, taskOid, null, task, result);
+            } catch (Exception ex) {
+                LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get UserType object, Probably not set yet", ex);
+            } finally {
+                result.recomputeStatus();
+            }
+        }
+        return null;
     }
 }

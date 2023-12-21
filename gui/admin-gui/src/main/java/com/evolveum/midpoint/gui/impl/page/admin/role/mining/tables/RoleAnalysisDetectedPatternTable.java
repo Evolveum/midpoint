@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.model.common.expression.functions.BasicExpre
 import java.io.Serial;
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChannelMode;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
@@ -385,10 +387,11 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                                 Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
                                 OperationResult result = task.getResult();
 
-                                OperationResultStatusType status = getPageBase().getRoleAnalysisService()
-                                        .getOperationExecutionStatus(cluster.asPrismObject(), task, result);
+                                boolean isUnderActivity = getPageBase().getRoleAnalysisService()
+                                        .isUnderActivity(cluster.asPrismObject(), RoleAnalysisChannelMode.DEFAULT,
+                                                task, result);
 
-                                if (status != null && status.equals(OperationResultStatusType.IN_PROGRESS)) {
+                                if (isUnderActivity) {
                                     warn("Couldn't start detection. Some process is already in progress.");
                                     LOGGER.error("Couldn't start detection. Some process is already in progress.");
                                     target.add(getFeedbackPanel());

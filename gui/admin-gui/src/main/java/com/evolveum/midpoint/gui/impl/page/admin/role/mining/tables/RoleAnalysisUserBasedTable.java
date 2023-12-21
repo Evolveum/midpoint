@@ -44,8 +44,10 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
@@ -62,7 +64,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanelAction;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkIconPanelStatus;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -328,19 +329,46 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
         List<IColumn<MiningRoleTypeChunk, String>> columns = new ArrayList<>();
 
-        columns.add(new IconColumn<>(null) {
+        columns.add(new CompositedIconColumn<>(null) {
+
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getCssClass() {
-                return " role-mining-static-header role-mining-no-border";
+                return " role-mining-static-header role-mining-no-border p-2";
             }
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<MiningRoleTypeChunk> rowModel) {
-                return GuiDisplayTypeUtil
-                        .createDisplayType(IconAndStylesUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
+            protected CompositedIcon getCompositedIcon(IModel<MiningRoleTypeChunk> rowModel) {
+
+                MiningRoleTypeChunk object = rowModel.getObject();
+                List<String> roles = object.getRoles();
+
+                String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE);
+                CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
+                        LayeredIconCssStyle.IN_ROW_STYLE);
+
+                for (ObjectReferenceType ref : reductionObjects) {
+                    if (roles.contains(ref.getOid())) {
+                        compositedIconBuilder.setBasicIcon(defaultBlackIcon + " " + GuiStyleConstants.GREEN_COLOR,
+                                LayeredIconCssStyle.IN_ROW_STYLE);
+                        IconType icon = new IconType();
+                        icon.setCssClass(GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED
+                                + " " + GuiStyleConstants.GREEN_COLOR);
+                        compositedIconBuilder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+                        break;
+                    }
+                }
+
+                return compositedIconBuilder.build();
             }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem, String componentId,
+                    IModel<MiningRoleTypeChunk> rowModel) {
+                super.populateItem(cellItem, componentId, rowModel);
+            }
+
         });
 
         columns.add(new AbstractColumn<>(createStringResource("")) {
@@ -363,13 +391,6 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 item.add(new AttributeAppender("style", " width:150px"));
 
                 List<String> elements = rowModel.getObject().getRoles();
-
-                for (ObjectReferenceType ref : reductionObjects) {
-                    if (elements.contains(ref.getOid())) {
-                        item.add(new AttributeAppender("class", " table-info"));
-                        break;
-                    }
-                }
 
                 updateFrequencyBased(rowModel, minFrequency, maxFrequency);
 
@@ -459,7 +480,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
             @Override
             public String getCssClass() {
-                return "overflow-auto role-mining-static-row-header role-mining-static-header-name role-mining-no-border";
+                return "overflow-auto role-mining-static-row-header role-mining-static-header-name role-mining-no-border p-2";
             }
         });
 
@@ -503,7 +524,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
             @Override
             public String getCssClass() {
-                return " role-mining-static-header role-mining-no-border";
+                return " role-mining-static-header role-mining-no-border p-2";
             }
         });
 
@@ -520,6 +541,11 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                     String cellColor = resolveCellColor(model.getObject(), userChunk);
                     updateCellMiningStatus(cellItem, componentId, cellColor);
+                }
+
+                @Override
+                public String getCssClass() {
+                    return " p-2";
                 }
 
                 @Override

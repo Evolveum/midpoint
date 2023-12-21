@@ -13,10 +13,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -29,19 +25,25 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChannelMode;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -271,6 +273,69 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
             public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
                     IModel<RoleType> rowModel) {
                 item.add(new Label(componentId, resolveDateAndTime(rowModel.getObject().getMetadata().getCreateTimestamp())));
+            }
+
+        });
+
+        columns.add(new AbstractColumn<>(createStringResource("State")) {
+
+            @Override
+            public String getSortProperty() {
+                return RoleType.F_INDUCEMENT.getLocalPart();
+            }
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
+                    IModel<RoleType> rowModel) {
+
+                Task task = getPageBase().createSimpleTask("Recompute operation result");
+                OperationResult result = task.getResult();
+                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+
+                RoleAnalysisChannelMode channelMode = RoleAnalysisChannelMode.MIGRATION;
+                RoleType role = rowModel.getObject();
+                channelMode.setObjectIdentifier(role.getOid());
+
+                RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
+                String stateString = roleAnalysisService.recomputeAndResolveClusterOpStatus(
+                        cluster.asPrismObject(), channelMode
+                        , result, task);
+
+                List<OperationExecutionType> operationExecution = cluster.getOperationExecution();
+                PrismObject<TaskType> taskObject = roleAnalysisService.resolveTaskObject(operationExecution, channelMode, task, result);
+                String taskOid = null;
+                if (taskObject != null && taskObject.getOid() != null) {
+                    taskOid = taskObject.getOid();
+                }
+
+                AjaxLinkPanel ajaxLinkPanel = getTaskLinkComponents(componentId, taskOid, stateString);
+                item.add(ajaxLinkPanel);
+            }
+
+            @NotNull
+            private AjaxLinkPanel getTaskLinkComponents(String componentId, String taskOid, String stateString) {
+                AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId, Model.of(stateString)) {
+                    @Override
+                    public boolean isEnabled() {
+                        return taskOid != null;
+                    }
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        super.onClick(target);
+                        if (taskOid != null) {
+                            DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskOid,
+                                    this, true);
+                        }
+                    }
+                };
+                ajaxLinkPanel.setOutputMarkupId(true);
+                return ajaxLinkPanel;
             }
 
         });

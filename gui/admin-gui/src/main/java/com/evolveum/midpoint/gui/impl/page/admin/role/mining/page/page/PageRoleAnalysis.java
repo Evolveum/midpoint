@@ -16,6 +16,11 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChannelMode;
+
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.prism.PrismObject;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -63,6 +68,9 @@ import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @PageDescriptor(
         urls = {
@@ -243,24 +251,46 @@ public class PageRoleAnalysis extends PageAdmin {
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(createStringResource("AbstractAnalysisSessionOptionType.minPropertiesOverlap")) {
+                //TODO check if this is needed display
+//                column = new AbstractExportableColumn<>(createStringResource("AbstractAnalysisSessionOptionType.minPropertiesOverlap")) {
+//
+//                    @Override
+//                    public Component getHeader(String componentId) {
+//                        return createColumnHeader(componentId, abstractContainerDefinitionModel,
+//                                AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP);
+//                    }
+//
+//                    @Override
+//                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+//                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+//
+//                        cellItem.add(new Label(componentId, extractMinPropertiesOverlap(model)));
+//                    }
+//
+//                    @Override
+//                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
+//                        return extractMinPropertiesOverlap(rowModel);
+//                    }
+//
+//                };
+//                columns.add(column);
 
+                column = new AbstractExportableColumn<>(createStringResource("AbstractAnalysisSessionOptionType.minMembersCount")) {
                     @Override
                     public Component getHeader(String componentId) {
                         return createColumnHeader(componentId, abstractContainerDefinitionModel,
-                                AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP);
+                                AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT);
                     }
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-
-                        cellItem.add(new Label(componentId, extractMinPropertiesOverlap(model)));
+                        cellItem.add(new Label(componentId, extractMinGroupOption(model)));
                     }
 
                     @Override
                     public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractMinPropertiesOverlap(rowModel);
+                        return extractMinGroupOption(rowModel);
                     }
 
                 };
@@ -284,27 +314,6 @@ public class PageRoleAnalysis extends PageAdmin {
                     @Override
                     public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
                         return extractPropertiesRange(rowModel);
-                    }
-
-                };
-                columns.add(column);
-
-                column = new AbstractExportableColumn<>(createStringResource("AbstractAnalysisSessionOptionType.minMembersCount")) {
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, abstractContainerDefinitionModel,
-                                AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT);
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                        cellItem.add(new Label(componentId, extractMinGroupOption(model)));
-                    }
-
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractMinGroupOption(rowModel);
                     }
 
                 };
@@ -379,6 +388,17 @@ public class PageRoleAnalysis extends PageAdmin {
                 column = new AbstractExportableColumn<>(
                         createStringResource("RoleAnalysis.modificationTargetPanel.status")) {
                     @Override
+                    public Component getHeader(String componentId) {
+                        return new LabelWithHelpPanel(componentId,
+                                createStringResource("RoleAnalysis.modificationTargetPanel.status")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysis.modificationTargetPanel.status.tooltip");
+                            }
+                        };
+                    }
+
+                    @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> iModel) {
                         return null;
                     }
@@ -393,26 +413,42 @@ public class PageRoleAnalysis extends PageAdmin {
                         RoleAnalysisSessionType session = rowModel.getObject().getValue();
                         OperationResult result = task.getResult();
 
+                        RoleAnalysisChannelMode channelMode = RoleAnalysisChannelMode.CLUSTERING;
                         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                         String stateString = roleAnalysisService.recomputeAndResolveSessionOpStatus(
-                                session.asPrismObject(),
+                                session.asPrismObject(), channelMode,
                                 result, task);
 
-                        ObjectReferenceType taskRef = roleAnalysisService.extractTaskRef(session.getOperationExecution());
+                        List<OperationExecutionType> operationExecution = session.getOperationExecution();
+                        PrismObject<TaskType> taskObject = roleAnalysisService.resolveTaskObject(operationExecution, channelMode, task, result);
+                        String taskOid = null;
+                        if (taskObject != null && taskObject.getOid() != null) {
+                            taskOid = taskObject.getOid();
+                        }
 
+                        AjaxLinkPanel ajaxLinkPanel = getTaskLinkComponents(componentId, taskOid, stateString);
+                        cellItem.add(ajaxLinkPanel);
+                    }
+
+                    @NotNull
+                    private AjaxLinkPanel getTaskLinkComponents(String componentId, String taskOid, String stateString) {
                         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId, Model.of(stateString)) {
+                            @Override
+                            public boolean isEnabled() {
+                                return taskOid != null;
+                            }
+
                             @Override
                             public void onClick(AjaxRequestTarget target) {
                                 super.onClick(target);
-                                if (taskRef != null) {
-                                    DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskRef.getOid(),
+                                if (taskOid != null) {
+                                    DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskOid,
                                             this, true);
                                 }
                             }
                         };
-                        ajaxLinkPanel.setEnabled(taskRef != null);
                         ajaxLinkPanel.setOutputMarkupId(true);
-                        cellItem.add(ajaxLinkPanel);
+                        return ajaxLinkPanel;
                     }
                 };
                 columns.add(column);

@@ -46,6 +46,7 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
@@ -321,7 +322,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
             @Override
             public String getCssClass() {
-                return " role-mining-static-header role-mining-no-border";
+                return " role-mining-static-header role-mining-no-border p-2";
             }
 
             @Override
@@ -439,7 +440,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
             @Override
             public String getCssClass() {
-                return "overflow-auto role-mining-static-row-header role-mining-static-header-name role-mining-no-border";
+                return "overflow-auto role-mining-static-row-header role-mining-static-header-name role-mining-no-border p-2";
             }
         });
 
@@ -484,7 +485,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
             @Override
             public String getCssClass() {
-                return " role-mining-static-header role-mining-no-border";
+                return " role-mining-static-header role-mining-no-border p-2";
             }
         });
 
@@ -505,26 +506,37 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 }
 
                 @Override
+                public String getCssClass() {
+                    return " p-2";
+                }
+
+                @Override
                 public Component getHeader(String componentId) {
 
-                    List<String> elements = roleChunk.getRoles();
+                    List<String> roles = roleChunk.getRoles();
 
-                    String color = null;
+                    String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE);
+                    CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
+                            LayeredIconCssStyle.IN_ROW_STYLE);
+
                     for (ObjectReferenceType ref : reductionObjects) {
-                        if (elements.contains(ref.getOid())) {
-                            color = " table-info";
+                        if (roles.contains(ref.getOid())) {
+                            compositedIconBuilder.setBasicIcon(defaultBlackIcon + " " + GuiStyleConstants.GREEN_COLOR,
+                                    LayeredIconCssStyle.IN_ROW_STYLE);
+                            IconType icon = new IconType();
+                            icon.setCssClass(GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED
+                                    + " " + GuiStyleConstants.GREEN_COLOR);
+                            compositedIconBuilder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
                             break;
                         }
                     }
 
-                    DisplayType displayType = GuiDisplayTypeUtil.createDisplayType(
-                            IconAndStylesUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
+                    CompositedIcon compositedIcon = compositedIconBuilder.build();
 
                     String title = roleChunk.getChunkName();
 
-                    String finalColor = color;
                     return new AjaxLinkTruncatePanelAction(componentId,
-                            createStringResource(title), createStringResource(title), displayType,
+                            createStringResource(title), createStringResource(title), compositedIcon,
                             new LoadableDetachableModel<>() {
                                 @Override
                                 protected RoleAnalysisOperationMode load() {
@@ -536,14 +548,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                         protected RoleAnalysisOperationMode onClickPerformedAction(
                                 AjaxRequestTarget target,
                                 RoleAnalysisOperationMode status) {
-                            roleChunk.setStatus(status.toggleStatus());
                             target.add(getTable().setOutputMarkupId(true));
                             return roleChunk.getStatus();
-                        }
-
-                        @Override
-                        protected String getColor() {
-                            return finalColor;
                         }
 
                         @Override
@@ -552,7 +558,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                             Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
 
                             List<PrismObject<FocusType>> objects = new ArrayList<>();
-                            for (String objectOid : elements) {
+                            for (String objectOid : roles) {
                                 objects.add(getPageBase().getRoleAnalysisService()
                                         .getFocusTypeObject(objectOid, task, result));
                             }

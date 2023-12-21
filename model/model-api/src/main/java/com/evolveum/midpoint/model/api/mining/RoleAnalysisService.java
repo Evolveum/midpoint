@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.api.mining;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChannelMode;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -444,15 +445,6 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result);
 
     /**
-     * Extracts task reference from operation executions.
-     * Also check if task reference and object id (oid) is not null.
-     *
-     * @param operationExecutions The operation executions.
-     * @return The task reference.
-     */
-    ObjectReferenceType extractTaskRef(List<OperationExecutionType> operationExecutions);
-
-    /**
      * This method is used to update the cluster detected patterns.
      * Currently, it is used to update the cluster detected patterns
      * after the migration task in the cluster.
@@ -471,12 +463,14 @@ public interface RoleAnalysisService {
      * This method also update the cluster operation status if detect some changes.
      *
      * @param clusterPrismObject The cluster for recompute and resolve.
+     * @param channelMode The channel mode.
      * @param result The operation result.
      * @param task The task associated with this operation.
      * @return The cluster operation status.
      */
     @NotNull String recomputeAndResolveClusterOpStatus(
             @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
+            @NotNull RoleAnalysisChannelMode channelMode,
             @NotNull OperationResult result,
             @NotNull Task task);
 
@@ -485,12 +479,14 @@ public interface RoleAnalysisService {
      * This method also update the cluster operation status if detect some changes.
      *
      * @param clusterPrismObject The cluster for recompute and resolve.
+     * @param channelMode The channel mode.
      * @param result The operation result.
      * @param task The task associated with this operation.
      * @return The cluster operation status.
      */
     @NotNull String recomputeAndResolveSessionOpStatus(
             @NotNull PrismObject<RoleAnalysisSessionType> clusterPrismObject,
+            @NotNull RoleAnalysisChannelMode channelMode,
             @NotNull OperationResult result,
             @NotNull Task task);
 
@@ -501,6 +497,7 @@ public interface RoleAnalysisService {
      * @param taskOid The OID of the task.
      * @param operationResultStatusType The operation result status type.
      * @param message The message to set.
+     * @param channelMode The channel mode.
      * @param result The operation result.
      * @param task The task associated with this operation.
      */
@@ -508,20 +505,39 @@ public interface RoleAnalysisService {
             @NotNull PrismObject<T> object,
             @NotNull String taskOid,
             OperationResultStatusType operationResultStatusType,
-            String message, @NotNull OperationResult result,
+            String message,
+            @NotNull RoleAnalysisChannelMode channelMode,
+            @NotNull OperationResult result,
             @NotNull Task task);
 
     /**
-     * This method is used to get operation status if existed.
+     * This method is used to check if the role analysis object is under activity.
      *
+     * @param <T> The assignment holder type.
      * @param object The assignment holder object.
+     * @param channelMode The channel mode.
      * @param task The task associated with this operation.
      * @param result The operation result.
-     * @param <T> The assignment holder type.
      * @return The operation execution status.
      */
-    <T extends AssignmentHolderType & Objectable> OperationResultStatusType getOperationExecutionStatus(
+    <T extends AssignmentHolderType & Objectable> boolean isUnderActivity(
             @NotNull PrismObject<T> object,
+            @NotNull RoleAnalysisChannelMode channelMode,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * This method is used to retrive the task object for specific roleAnalysisChannelMode.
+     *
+     * @param operationExecution The operation execution list.
+     * @param channelMode The channel mode.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     * @return The task object.
+     */
+    @Nullable PrismObject<TaskType> resolveTaskObject(
+            @NotNull List<OperationExecutionType> operationExecution,
+            @NotNull RoleAnalysisChannelMode channelMode,
             @NotNull Task task,
             @NotNull OperationResult result);
 }

@@ -29,7 +29,6 @@ import java.util.List;
 
 public class IconAndStylesUtil {
 
-
     public static <T extends ObjectType> String createDefaultIcon(PrismObject<T> object) {
         Class<T> type = object.getCompileTimeClass();
         if (type.equals(UserType.class)) {
@@ -56,9 +55,9 @@ public class IconAndStylesUtil {
             return createSimulationResultIcon();
         } else if (type == MarkType.class) {
             return createMarkIcon();
-        }else if (type == RoleAnalysisSessionType.class) {
+        } else if (type == RoleAnalysisSessionType.class) {
             return createRoleAnalysisSessionIcon();
-        }else if (type == RoleAnalysisClusterType.class) {
+        } else if (type == RoleAnalysisClusterType.class) {
             return createRoleAnalysisClusterIcon();
         }
         return "";
@@ -138,6 +137,10 @@ public class IconAndStylesUtil {
             return GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON;
         } else if (QNameUtil.match(ObjectTemplateType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON;
+        } else if (QNameUtil.match(RoleAnalysisClusterType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
+        } else if (QNameUtil.match(RoleAnalysisSessionType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
         } else if (QNameUtil.match(MappingType.COMPLEX_TYPE, objectType)) {
             //TODO fix icon style for mapping type
             return "";
