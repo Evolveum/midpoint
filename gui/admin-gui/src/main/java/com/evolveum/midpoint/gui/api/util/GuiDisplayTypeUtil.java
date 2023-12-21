@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -26,12 +31,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPres
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.annotation.Nullable;
-import javax.xml.namespace.QName;
 
 public class GuiDisplayTypeUtil {
 
@@ -317,7 +316,7 @@ public class GuiDisplayTypeUtil {
         return display;
     }
 
-    public static String removeStringAfterSemicolon(@Nullable String headerColor) {
+    public static String removeStringAfterSemicolon(String headerColor) {
         if (headerColor == null || !headerColor.contains(";")) {
             return headerColor;
         }
