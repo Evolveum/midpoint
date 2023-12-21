@@ -240,7 +240,7 @@
         <xmlsec.version>2.2.4</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
         <connid.version>1.5.1.10</connid.version>
-        <derby.version>10.16.1.1</derby.version>
+        <derby.version>10.17.1.0</derby.version>
         <poi.version>5.2.3</poi.version>
         <!-- Version for classgraph must the one declared in Prism -->
         <classgraph.version>4.8.162</classgraph.version>
