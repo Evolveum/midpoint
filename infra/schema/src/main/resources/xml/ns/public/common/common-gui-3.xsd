@@ -250,8 +250,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Specifies scripting hook which can modify operation results or messages
-                            before they are shown in UI.
+                            Specifies configuration that can modify messages before they are shown in UI.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -3568,8 +3567,23 @@
         <xsd:sequence>
             <xsd:element name="operationResultHook" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies scripting hook which can modify operation results or messages
+                        before they are shown in UI.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>FeedbackMessagesHookType.operationResultHook</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="stackTraceVisibility" type="tns:UserInterfaceElementVisibilityType" default="visible">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Visibility for stack trace in feedback messages of GUI.
+                        Relevant values are 'visible' and 'hidden'. Default value is 'visible'.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>FeedbackMessagesHookType.stackTraceVisibility</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

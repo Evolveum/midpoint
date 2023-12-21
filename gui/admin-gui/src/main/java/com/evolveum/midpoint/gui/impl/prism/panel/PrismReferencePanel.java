@@ -34,7 +34,7 @@ public class PrismReferencePanel<R extends Referencable>
     }
 
     @Override
-    protected Component createHeaderPanel() {
+    protected ItemHeaderPanel createHeaderPanel() {
         return new PrismReferenceHeaderPanel<R>(ID_HEADER, getModel()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {

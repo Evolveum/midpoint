@@ -17,8 +17,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.visit.IVisitor;
 
 /**
  * @author katkav
@@ -41,7 +44,26 @@ public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<
     }
 
     @Override
-    protected Component createHeaderPanel() {
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+        ItemHeaderPanel header = getHeader();
+        if (header == null || header.getLabelComponent() == null) {
+            return;
+        }
+        visitChildren(
+                FormComponent.class,
+                (IVisitor<FormComponent, Void>) (component, visit) -> component.add(
+                        AttributeAppender.append(
+                                "aria-labelledby",
+                                getHeader().getLabelComponent().getMarkupId())));
+    }
+
+    private ItemHeaderPanel getHeader() {
+        return (ItemHeaderPanel) get(ID_HEADER);
+    }
+
+    @Override
+    protected ItemHeaderPanel createHeaderPanel() {
         return new PrismPropertyHeaderPanel<T>(ID_HEADER, getModel()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {

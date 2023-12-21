@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -17,6 +18,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.PropertyModel;
@@ -38,6 +40,8 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.apache.wicket.util.visit.IVisitor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -115,7 +119,13 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             }
         };
         buttonContainer.add(showMetadataButton);
+        showMetadataButton.add(AttributeAppender.append(
+                "title",
+                getPageBase().createStringResource(
+                        "PrismContainerValuePanel.showMetadata." + PrismValuePanel.this.getModelObject().isShowMetadata())));
         showMetadataButton.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getValueMetadata() != null && CollectionUtils.isNotEmpty(getModelObject().getValueMetadata().getValues())));
+        showMetadataButton.add(AttributeAppender.append(
+                "aria-pressed", () -> PrismValuePanel.this.getModelObject().isShowMetadata()));
 
         addToHeader(buttonContainer);
         return buttonContainer;
