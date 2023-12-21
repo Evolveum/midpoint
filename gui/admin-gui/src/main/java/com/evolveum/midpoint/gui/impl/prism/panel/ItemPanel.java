@@ -166,4 +166,8 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
     public Collection<Component> getComponentsToUpdate() {
         return Collections.singleton(this);
     }
+
+    protected final ListView<VW> getValuesContainer() {
+            return (ListView<VW>) get(createComponentPath(ID_VALUES_CONTAINER, ID_VALUES));
+    }
 }

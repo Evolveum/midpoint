@@ -96,6 +96,9 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         help.add(AttributeModifier.replace("title", createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
         help.add(new InfoTooltipBehavior());
         help.add(new VisibleBehaviour(this::isHelpTextVisible));
+        help.add(AttributeAppender.append(
+                "aria-label",
+                getPageBase().createStringResource("ItemHeaderPanel.helpTooltip", createLabelModel().getObject())));
         add(help);
     }
 
