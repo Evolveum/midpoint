@@ -16,6 +16,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -376,7 +378,20 @@ public class PageRoleAnalysis extends PageAdmin {
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(createStringResource("Status")) {
+                column = new AbstractExportableColumn<>(
+                        createStringResource("RoleAnalysis.modificationTargetPanel.status")) {
+
+                    @Override
+                    public Component getHeader(String componentId) {
+                        return new LabelWithHelpPanel(componentId,
+                                createStringResource("RoleAnalysis.modificationTargetPanel.status")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysis.modificationTargetPanel.status.tooltip");
+                            }
+                        };
+                    }
+
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> iModel) {
                         return null;
