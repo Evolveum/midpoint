@@ -472,7 +472,12 @@ The following role gives a super-user powers:
 </role>
 ----
 
-IMPORTANT: This *Superuser* role and `authorization-3#all` role grants access to changing configuration and running custom scripts, users with this role could have full access to filesystem as per privilegies of midPoint user. 
+[IMPORTANT]
+----
+This *Superuser* role and `authorization-3#all` role grants access to changing configuration and running custom scripts, users with this role could have full access to filesystem as per privilegies of midPoint deamon user. 
+
+You should treat (and consider) midPoint *Superuser* role as granting shell access to members of this role.
+----
 
 The default `administrator` user in midPoint is *not* hard-coded.
 It is just a regular user which has the above role.

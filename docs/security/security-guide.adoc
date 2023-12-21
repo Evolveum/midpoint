@@ -96,6 +96,12 @@ Some deployments may choose to retain `administrator` user for emergency purpose
 In that case the `administrator` should be set up with a very strong random password.
 Such password should be stored in a secure location and only used for emergency operations.
 
+[IMPORTANT]
+----
+This *Superuser* role and  role grants access to changing configuration and running custom scripts, users with this role could have full access to filesystem as per privilegies of midPoint deamon user. 
+
+You should treat (and consider) midPoint *Superuser* role as granting shell access to members of this role.
+----
 
 === H2 Database
 
@@ -256,6 +262,9 @@ See also xref:/midpoint/reference/deployment/ports-80-and-443/[Ports 80 and 443]
 MidPoint deployment that are explicitly deployed into existing web container environment (Apache Tomcat) should adhere to the recommended security practices of the web container.
 As such web container is not under the control of midPoint, midPoint is not responsible for any security issues of such web container.
 
+=== Outbound connections
+
+In very secure deployments, you should consider deploying firewall which will also control and block outbound connections fom midPoint instances, but this needs to be coordinated effort, since midPoint should retain connectivity to database and all directly managed resources.
 
 == Security of MidPoint Services
 
