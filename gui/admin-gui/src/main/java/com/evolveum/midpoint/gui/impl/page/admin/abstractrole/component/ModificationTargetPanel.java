@@ -8,7 +8,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -70,14 +72,16 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
         WebMarkupContainer delegations = new WebMarkupContainer(ID_MODIFICATION_TARGET_CONTAINER);
         delegations.setOutputMarkupId(true);
         add(delegations);
+
         List<AssignmentType> inducement;
         try {
             inducement = getObjectDetailsModels().getObjectWrapper().getObjectApplyDelta().asObjectable().getInducement();
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
+
         BusinessRoleApplicationDto deltas = getObjectDetailsModels().getPatternDeltas();
-        deltas.updateValue(inducement);
+        deltas.setCandidateRoles(new HashSet<>(inducement), (PageBase) getPage());
 
         List<BusinessRoleDto> patternDeltas = deltas.getBusinessRoleDtos();
         for (BusinessRoleDto value : patternDeltas) {
@@ -85,9 +89,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
         }
 
         RoleMiningProvider<BusinessRoleDto> provider = getAndUpdateProvider(patternDeltas);
-
         BoxedTablePanel<BusinessRoleDto> table = generateTable(provider);
-
         delegations.add(table);
     }
 
@@ -130,10 +132,11 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
                             public void performAddOperation(AjaxRequestTarget ajaxRequestTarget, IModel<SelectableBean<UserType>> iModel) {
                                 BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
 
+                                Set<AssignmentType> candidateRoles = patternDeltas.getCandidateRoles();
                                 UserType user = iModel.getObject().getValue();
 
                                 BusinessRoleDto newValue = new BusinessRoleDto(
-                                        user.asPrismObject(), patternDeltas.getBusinessRole(), getPageBase());
+                                        user.asPrismObject(), patternDeltas.getBusinessRole(), candidateRoles, getPageBase());
                                 getObjectDetailsModels().getPatternDeltas().getBusinessRoleDtos().add(newValue);
                                 newValue.setInclude(true);
 

@@ -170,9 +170,13 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                             result);
 
                     List<ObjectReferenceType> candidateMembers = candidateRole.getCandidateMembers();
-                    Set<String> membersOidSet = candidateMembers.stream()
-                            .map(AbstractReferencable::getOid)
-                            .collect(Collectors.toSet());
+                    Set<String> membersOidSet = new HashSet<>();
+                    for (ObjectReferenceType candidateMember : candidateMembers) {
+                        String oid = candidateMember.getOid();
+                        if (oid != null) {
+                            membersOidSet.add(oid);
+                        }
+                    }
 
                     membersOidSet.addAll(mappedMembers.get(roleOid));
                     double clusterMetric = accessOidSet.size() * membersOidSet.size();

@@ -85,6 +85,7 @@ public class RoleAnalysisTableCellFillResolver {
         Set<String> rowContainerId = rowObjectStatus.getContainerId();
         Set<String> colContainerId = colObjectStatus.getContainerId();
         Set<String> duplicatedElements = new HashSet<>();
+
         boolean secondStage;
         if (rowContainerId.isEmpty() && colContainerId.isEmpty()) {
             secondStage = true;
@@ -458,25 +459,25 @@ public class RoleAnalysisTableCellFillResolver {
         return objectColorMap;
     }
 
-    private static <T> void emptyCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem) {
+    protected static <T> void emptyCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem) {
         cellItem.add(new EmptyPanel(componentId));
     }
 
-    private static <T> void disabledCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem) {
-        cellItem.add(AttributeModifier.append("class", "bg-danger d-flex align-items-center"));
+    protected static <T> void disabledCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem) {
+        cellItem.add(AttributeModifier.append("class", "bg-danger"));
         cellItem.add(new EmptyPanel(componentId));
     }
 
-    private static <T> void relationCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem) {
-        cellItem.add(AttributeModifier.append("class", "bg-dark d-flex align-items-center"));
+    protected static <T> void relationCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem) {
+        cellItem.add(AttributeModifier.append("class", "bg-dark"));
         cellItem.add(new EmptyPanel(componentId));
     }
 
-    private static <T> void reducedDuplicateCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem,
+    protected static <T> void reducedDuplicateCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem,
             Set<String> duplicatedElements) {
-        cellItem.add(AttributeModifier.append("class", "corner-hashed-bg d-flex align-items-center"));
+        cellItem.add(AttributeModifier.append("class", "corner-hashed-bg"));
 
-        String joinedIds = String.join(",\n ", duplicatedElements);
+        String joinedIds = String.join("\n ", duplicatedElements);
         EmptyPanel components = new EmptyPanel(componentId);
         components.add(AttributeModifier.append("style", "width: 100%;height: 100%;"));
         components.add(new InfoTooltipBehavior() {
@@ -490,13 +491,12 @@ public class RoleAnalysisTableCellFillResolver {
         cellItem.add(components);
     }
 
-    private static <T> void reducedCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem, String color,
+    protected static <T> void reducedCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem, String color,
             Set<String> duplicatedElements) {
-        cellItem.add(AttributeModifier.append("class", "d-flex align-items-center"));
 
         cellItem.add(AttributeModifier.append("style", "background-color: " + color + ";"));
 
-        String joinedIds = String.join(",\n ", duplicatedElements);
+        String joinedIds = String.join("\n ", duplicatedElements);
         EmptyPanel components = new EmptyPanel(componentId);
         components.add(AttributeModifier.append("style", "width: 100%;height: 100%;"));
         components.add(new InfoTooltipBehavior() {
@@ -510,13 +510,15 @@ public class RoleAnalysisTableCellFillResolver {
         cellItem.add(components);
     }
 
-    private static <T> void additionalDuplicateCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem,
+    protected static <T> void additionalDuplicateCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem,
             Set<String> duplicatedElements) {
-        cellItem.add(AttributeModifier.append("style", "display: flex; justify-content: center; "
-                + "align-items: center;"));
+        String cssIconClass = getCssIconClass();
+        String cssIconColorClass = getCssIconColorClass();
 
-        String joinedIds = String.join(",\n ", duplicatedElements);
-        DisplayType warning = GuiDisplayTypeUtil.createDisplayType("fa fa-warning", "orange", joinedIds);
+        cellItem.add(AttributeModifier.append("class", "corner-hashed-bg"));
+
+        String joinedIds = String.join("\n ", duplicatedElements);
+        DisplayType warning = GuiDisplayTypeUtil.createDisplayType(cssIconClass, cssIconColorClass, joinedIds);
 
         ImagePanel components = new ImagePanel(componentId, Model.of(warning));
         components.add(new InfoTooltipBehavior() {
@@ -531,16 +533,16 @@ public class RoleAnalysisTableCellFillResolver {
         cellItem.add(components);
     }
 
-    private static <T> void additionalCell(@NotNull String componentId,
+    protected static <T> void additionalCell(@NotNull String componentId,
             @NotNull Item<ICellPopulator<T>> cellItem,
             String color, Set<String> duplicatedElements) {
+        String cssIconClass = getCssIconClass();
+        String cssIconColorClass = getCssIconColorClass();
 
-        cellItem.add(AttributeModifier.append("style", "display: flex; justify-content: center;"
-                + " align-items: center;"));
         cellItem.add(AttributeModifier.append("style", "background-color: " + color + ";"));
 
-        String joinedIds = String.join(",\n ", duplicatedElements);
-        DisplayType warning = GuiDisplayTypeUtil.createDisplayType("fa fa-warning", "orange", joinedIds);
+        String joinedIds = String.join("\n ", duplicatedElements);
+        DisplayType warning = GuiDisplayTypeUtil.createDisplayType(cssIconClass, cssIconColorClass, joinedIds);
 
         ImagePanel components = new ImagePanel(componentId, Model.of(warning));
         components.add(new InfoTooltipBehavior() {
@@ -553,6 +555,17 @@ public class RoleAnalysisTableCellFillResolver {
         components.add(AttributeModifier.replace("title", joinedIds));
 
         cellItem.add(components);
+    }
+
+    protected static String getCssIconClass() {
+        // return " fa fa-warning"
+        // return " fas fa-plus-circle";
+        return " fa fa-plus fa-lg";
+    }
+
+    protected static String getCssIconColorClass() {
+        // return " fa fa-warning"
+        return " black";
     }
 
 }

@@ -10,6 +10,14 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsTaskCreator;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+
+import com.evolveum.midpoint.schema.constants.RelationTypes;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -143,13 +151,13 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
     }
 
     private void navigateToClusterOperationPanel() {
-        if(!existPatternDeltas()){
+        if (!existPatternDeltas()) {
             return;
         }
         PageParameters parameters = new PageParameters();
         BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
         PrismObject<RoleAnalysisClusterType> cluster = patternDeltas.getCluster();
-        if(cluster == null){
+        if (cluster == null) {
             return;
         }
         parameters.add(OnePageParameterEncoder.PARAMETER, cluster.getOid());
@@ -195,24 +203,73 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
             OperationResult result,
             Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
             AjaxRequestTarget target) {
-        businessRoleMigrationPerform(result, executedDeltas, target);
-
-        result.computeStatus();
-        showResult(result);
-//        navigateToClusterCandidateRolePanel();
-    }
-
-    private void businessRoleMigrationPerform(
-            OperationResult result,
-            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
 
         if (result.isFatalError()) {
             return;
         }
 
-        if (!existPatternDeltas()) {
-            return;
+        if (existPatternDeltas()) {
+            List<ObjectType> userMembersOid = new ArrayList<>();
+
+            List<BusinessRoleDto> businessRoleDtos = getPatternDeltas().getBusinessRoleDtos();
+
+            for (BusinessRoleDto businessRoleDto : businessRoleDtos) {
+                PrismObject<UserType> prismObjectUser = businessRoleDto.getPrismObjectUser();
+                if (prismObjectUser != null) {
+                    userMembersOid.add(prismObjectUser.asObjectable());
+                }
+            }
+            String roleOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
+            Task task = createSimpleTask("load role after save");
+            PrismObject<RoleType> object = WebModelServiceUtils.loadObject(
+                    getType(),
+                    roleOid,
+                    getOperationOptions(),
+                    (PageBase) getPage(),
+                    task,
+                    task.getResult());
+            if (object != null) {
+                getObjectDetailsModels().reset();
+                getObjectDetailsModels().reloadPrismObjectModel(object);
+            }
+
+            if (object != null) {
+                var pageBase = (PageBase) getPage();
+                var taskCreator = new MemberOperationsTaskCreator.Assign(
+                        object.asObjectable(),
+                        UserType.COMPLEX_TYPE,
+                        createInOidQuery(userMembersOid),
+                        pageBase,
+                        RelationTypes.MEMBER.getRelation());
+
+                pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
+                        .withOpResultOptions(OpResult.Options.create()
+                                .withHideTaskLinks(false))
+                        .withCustomFeedbackPanel(getFeedbackPanel())
+                        .run(taskCreator::createAndSubmitTask);
+
+            }
+
+            businessRoleMigrationPerform(result, executedDeltas, target);
         }
+
+        result.computeStatus();
+        showResult(result);
+        super.postProcessResultForWizard(result, executedDeltas, target);
+    }
+
+    protected ObjectQuery createInOidQuery(List<ObjectType> selectedObjectsList) {
+        List<String> oids = new ArrayList<>();
+        for (Object selectable : selectedObjectsList) {
+            oids.add(((ObjectType) selectable).getOid());
+        }
+
+        return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory().createInOid(oids));
+    }
+
+    private void businessRoleMigrationPerform(
+            OperationResult result,
+            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
 
         RoleAnalysisService roleAnalysisService = getRoleAnalysisService();
 
@@ -277,8 +334,13 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
     }
 
     private boolean existPatternDeltas() {
-        BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
+        BusinessRoleApplicationDto patternDeltas = getPatternDeltas();
         return patternDeltas != null && !patternDeltas.getBusinessRoleDtos().isEmpty();
+    }
+
+    private BusinessRoleApplicationDto getPatternDeltas() {
+        BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
+        return patternDeltas;
     }
 
     private ActivityDefinitionType createActivity(List<BusinessRoleDto> patternDeltas, String roleOid) throws SchemaException {

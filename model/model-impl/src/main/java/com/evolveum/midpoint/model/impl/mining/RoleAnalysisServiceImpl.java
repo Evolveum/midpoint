@@ -9,13 +9,12 @@ package com.evolveum.midpoint.model.impl.mining;
 
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getCurrentXMLGregorianCalendar;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.loadIntersections;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
 
 import java.io.Serializable;
@@ -25,9 +24,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectState;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -570,8 +571,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
         RoleType role = roleTypePrismObject.asObjectable();
         role.setName(name);
-        role.getInducement().addAll(assignmentTypes);
 
+        if (!assignmentTypes.isEmpty()) {
+            role.getInducement().addAll(assignmentTypes);
+        }
         role.getAssignment().add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value(),
                 ObjectTypes.ARCHETYPE));
 
@@ -1289,12 +1292,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
     }
 
-    public void executeChangesOnCandidateRole(PrismObject<RoleAnalysisClusterType> cluster,
-            RoleAnalysisCandidateRoleType roleAnalysisCandidateRoleType,
-            Set<PrismObject<UserType>> members,
-            Set<AssignmentType> inducements,
-            Task task,
-            OperationResult result) {
+    public void executeChangesOnCandidateRole(@NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            @NotNull RoleAnalysisCandidateRoleType roleAnalysisCandidateRoleType,
+            @NotNull Set<PrismObject<UserType>> members,
+            @NotNull Set<AssignmentType> inducements,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
 
         ObjectReferenceType candidateRoleRef = roleAnalysisCandidateRoleType.getCandidateRoleRef();
 
@@ -1332,6 +1335,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                     } else {
                         inducementsOid.remove(oid);
                     }
+
                 }
             }
         }
@@ -1358,7 +1362,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 modelService.executeChanges(deltas2, null, task, result);
             }
 
-
             Long id = roleAnalysisCandidateRoleType.getId();
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
@@ -1372,7 +1375,23 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("Couldn't modify candidate role container {}", cluster.getOid(), e);
         }
-
     }
 
+    public <T extends ObjectType> void loadSearchObjectIterative(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull List<T> modifyList,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) {
+        try {
+            modelService.searchObjectsIterative(type, query, (object, result) -> {
+                modifyList.add(object.asObjectable());
+                return true;
+            }, options, task, parentResult);
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't search  search and load object iterative {}", type, e);
+        }
+    }
 }

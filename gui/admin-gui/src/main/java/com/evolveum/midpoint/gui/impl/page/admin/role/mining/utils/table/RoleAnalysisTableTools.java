@@ -67,10 +67,10 @@ public class RoleAnalysisTableTools {
 
         cellItem.add(AttributeAppender.append("style",
                 "width:" + headerWidth.getSizeInPixels()
-                + "; height:" + headerHeight.getSizeInPixels()
+                        + "; height:" + headerHeight.getSizeInPixels()
                         + "; border: 1px solid #f4f4f4;"));
 
-        cellItem.add(AttributeAppender.remove("class"));
+        cellItem.add(AttributeAppender.replace("class", "p-2 d-flex align-items-center justify-content-center"));
     }
 
     public static void applySquareTableCell(@NotNull Item<?> cellItem) {

@@ -349,18 +349,18 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                             Set<String> users = pattern.getUsers();
                             Long patternId = pattern.getId();
 
-                            Set<AssignmentType> roleAssignments = new HashSet<>();
+                            Set<AssignmentType> candidateInducements = new HashSet<>();
 
                             for (String roleOid : roles) {
                                 PrismObject<RoleType> roleObject = roleAnalysisService
                                         .getRoleTypeObject(roleOid, task, result);
                                 if (roleObject != null) {
-                                    roleAssignments.add(ObjectTypeUtil.createAssignmentTo(roleOid, ObjectTypes.ROLE));
+                                    candidateInducements.add(ObjectTypeUtil.createAssignmentTo(roleOid, ObjectTypes.ROLE));
                                 }
                             }
 
                             PrismObject<RoleType> businessRole = roleAnalysisService
-                                    .generateBusinessRole(roleAssignments, PolyStringType.fromOrig(""));
+                                    .generateBusinessRole(new HashSet<>(), PolyStringType.fromOrig(""));
 
                             List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
 
@@ -369,14 +369,14 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                                         .getUserTypeObject(userOid, task, result);
                                 if (userObject != null) {
                                     roleApplicationDtos.add(new BusinessRoleDto(userObject,
-                                            businessRole, getPageBase()));
+                                            businessRole, candidateInducements, getPageBase()));
                                 }
                             }
 
                             PrismObject<RoleAnalysisClusterType> prismObjectCluster = cluster.asPrismObject();
 
                             BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
-                                    prismObjectCluster, businessRole, roleApplicationDtos);
+                                    prismObjectCluster, businessRole, roleApplicationDtos, candidateInducements);
                             operationData.setPatternId(patternId);
 
                             PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);

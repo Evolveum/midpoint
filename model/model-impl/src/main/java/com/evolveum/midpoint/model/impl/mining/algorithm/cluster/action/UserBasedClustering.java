@@ -7,30 +7,27 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
 
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringUtils.prepareDataPoints;
+
 import java.util.List;
 import java.util.Set;
+
+import com.google.common.collect.ListMultimap;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.*;
 import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
-
-import com.evolveum.midpoint.task.api.Task;
-
-import com.google.common.collect.ListMultimap;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserAnalysisSessionOptionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringUtils.prepareDataPoints;
 
 /**
  * Implements clustering of user based process mode.
@@ -77,6 +74,12 @@ public class UserBasedClustering implements Clusterable {
         handler.enterNewStep("Prepare Data");
         handler.setOperationCountToProcess(1);
         List<DataPoint> dataPoints = prepareDataPoints(chunkMap);
+//
+//        //TODO delete after finish research
+//        ParameterOptimization parameterOptimization = new ParameterOptimization();
+//        Integer minPropertiesOverlap = sessionOptionType.getMinPropertiesOverlap();
+//        parameterOptimization.parameterResolver(dataPoints, minPropertiesOverlap);
+
         handler.iterateActualStatus();
 
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();

@@ -6,25 +6,35 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
-
-import java.util.ArrayList;
-import java.util.List;
-
+import java.util.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
  * @author lskublik
@@ -58,51 +68,134 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
         boolean isRoleMigration = patterns != null && CollectionUtils.isNotEmpty(patterns.getBusinessRoleDtos());
 
         if (isRoleMigration) {
-            steps.add(new ExsitingAccessApplicationRoleStepPanel<>(getAssignmentHolderModel()) {
+            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+            RoleType businessRole = patterns.getBusinessRole().asObjectable();
+            Set<AssignmentType> candidateRoles = patterns.getCandidateRoles();
+
+            List<RoleType> roles = new ArrayList<>();
+            Task task = getPageBase().createSimpleTask("Load role");
+            for (AssignmentType assignmentType : candidateRoles) {
+                String oid = assignmentType.getTargetRef().getOid();
+                PrismObject<RoleType> rolePrismObject = roleAnalysisService.getRoleTypeObject(oid,
+                        task, task.getResult());
+                if (rolePrismObject != null) {
+                    roles.add(rolePrismObject.asObjectable());
+                }
+            }
+
+            businessRole.getInducement().clear();
+
+            IModel<List<AbstractMap.SimpleEntry<String, String>>> selectedItems = Model.ofList(new ArrayList<>());
+            for (RoleType role : roles) {
+                selectedItems.getObject().add(
+                        new AbstractMap.SimpleEntry(
+                                role.getOid(),
+                                WebComponentUtil.getDisplayNameOrName(role.asPrismObject())));
+            }
+
+            steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel(), selectedItems) {
+                @Override
+                protected void onSubmitPerformed(AjaxRequestTarget target) {
+                    super.onSubmitPerformed(target);
+                    BusinessRoleWizardPanel.this.onFinishBasicWizardPerformed(target);
+                }
+
+                @Override
+                protected void processSelectOrDeselectItem(
+                        @NotNull IModel<List<AbstractMap.SimpleEntry<String, String>>> selectedItems,
+                        @NotNull SelectableBean<RoleType> value,
+                        @NotNull SelectableBeanObjectDataProvider<RoleType> provider,
+                        @NotNull AjaxRequestTarget target) {
+                    refreshSubmitAndNextButton(target);
+
+                    RoleType applicationRole = value.getValue();
+                    String oid = applicationRole.getOid();
+                    if (value.isSelected()) {
+                        selectedItems.getObject().add(
+                                new AbstractMap.SimpleEntry<>(
+                                        oid,
+                                        WebComponentUtil.getDisplayNameOrName(applicationRole.asPrismObject())));
+                        provider.getSelected().add(applicationRole);
+                    } else {
+                        selectedItems.getObject().removeIf(entry -> entry.getKey().equals(oid));
+                        provider.getSelected().removeIf(entry -> entry.getOid().equals(oid));
+                    }
+                }
+
+                @Override
+                protected SelectableBeanObjectDataProvider<RoleType> createProvider(
+                        SelectableBeanObjectDataProvider<RoleType> defaultProvider) {
+
+                    List<RoleType> prepareRoles = new ArrayList<>(roles);
+                    ObjectQuery customQuery = getCustomQuery();
+
+                    roleAnalysisService.loadSearchObjectIterative(
+                            RoleType.class, customQuery, null, prepareRoles, task, task.getResult());
+
+                    return new SelectableBeanObjectDataProvider<>(
+                            BusinessRoleWizardPanel.this, new HashSet<>(roles)) {
+
+                        @Override
+                        protected List<RoleType> searchObjects(Class type,
+                                ObjectQuery query,
+                                Collection collection,
+                                Task task,
+                                OperationResult result) {
+                            Integer offset = query.getPaging().getOffset();
+                            Integer maxSize = query.getPaging().getMaxSize();
+                            int toIndex = Math.min(offset + maxSize, prepareRoles.size());
+                            return prepareRoles.subList(offset, toIndex);
+                        }
+
+                        @Override
+                        protected Integer countObjects(Class<RoleType> type,
+                                ObjectQuery query,
+                                Collection<SelectorOptions<GetOperationOptions>> currentOptions,
+                                Task task,
+                                OperationResult result) {
+                            return prepareRoles.size();
+                        }
+
+                    };
+                }
+
+                @Override
+                protected boolean isSubmitEnable() {
+                    return true;
+                }
 
                 @Override
                 protected void onExitPerformed(AjaxRequestTarget target) {
                     BusinessRoleWizardPanel.this.onExitPerformed(target);
                 }
 
-                @Override
-                public VisibleEnableBehaviour getBackBehaviour() {
-                    return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
-                }
             });
 
-            steps.add(new CandidateMembersPanel<>(getAssignmentHolderModel()) {
+        } else {
+
+            steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()) {
+                @Override
+                protected void onSubmitPerformed(AjaxRequestTarget target) {
+                    super.onSubmitPerformed(target);
+                    BusinessRoleWizardPanel.this.onFinishBasicWizardPerformed(target);
+                }
+
+                @Override
+                protected SelectableBeanObjectDataProvider<RoleType> createProvider(SelectableBeanObjectDataProvider<RoleType> defaultProvider) {
+                    return super.createProvider(defaultProvider);
+                }
+
+                @Override
+                protected boolean isSubmitEnable() {
+                    return true;
+                }
 
                 @Override
                 protected void onExitPerformed(AjaxRequestTarget target) {
                     BusinessRoleWizardPanel.this.onExitPerformed(target);
                 }
-
-                @Override
-                public VisibleEnableBehaviour getBackBehaviour() {
-                    return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
-                }
             });
-
         }
-
-        steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()) {
-            @Override
-            protected void onSubmitPerformed(AjaxRequestTarget target) {
-                super.onSubmitPerformed(target);
-                BusinessRoleWizardPanel.this.onFinishBasicWizardPerformed(target);
-            }
-
-            @Override
-            protected boolean isSubmitEnable() {
-                return true;
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                BusinessRoleWizardPanel.this.onExitPerformed(target);
-            }
-        });
 
         return steps;
     }

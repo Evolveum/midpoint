@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.model;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidInducements;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 
 import java.io.Serializable;
@@ -42,10 +41,11 @@ public class BusinessRoleDto implements Serializable {
     int assignedCount;
     boolean include;
     int unassignedCount;
+    transient Set<AssignmentType> candidateRoles;
 
     public BusinessRoleDto(PrismObject<UserType> prismObjectUser, PrismObject<RoleType> prismRoleObject,
             List<ObjectDelta<? extends ObjectType>> objectDeltas,
-            int assignedCount, int unassignedCount, boolean include) {
+            int assignedCount, int unassignedCount, boolean include, Set<AssignmentType> candidateRoles) {
         this.prismObjectUser = prismObjectUser;
         this.prismRoleObject = prismRoleObject;
         this.objectDeltas = objectDeltas;
@@ -53,10 +53,12 @@ public class BusinessRoleDto implements Serializable {
         this.assignedCount = assignedCount;
         this.unassignedCount = unassignedCount;
         this.include = include;
+        this.candidateRoles = candidateRoles;
     }
 
     public BusinessRoleDto(@NotNull PrismObject<UserType> prismObjectUser,
-            @NotNull PrismObject<RoleType> prismObjectRole, PageBase pageBase) {
+            @NotNull PrismObject<RoleType> prismObjectRole, Set<AssignmentType> candidateRoles, PageBase pageBase) {
+        this.candidateRoles = candidateRoles;
         prepareUserDeltas(prismObjectUser, prismObjectRole, pageBase);
     }
 
@@ -72,17 +74,10 @@ public class BusinessRoleDto implements Serializable {
      * Updates the value of the BusinessRoleDto object for new inducements.
      *
      * @param inducements The list of inducements to be used for updating the value.
-     * @param pageBase   The pageBase object.
+     * @param pageBase The pageBase object.
      */
     public void updateValue(List<AssignmentType> inducements, PageBase pageBase) {
-        Set<String> inducementsOidSet = new HashSet<>();
-        for (AssignmentType inducement : inducements) {
-            String oid = inducement.getTargetRef().getOid();
-            inducementsOidSet.add(oid);
-        }
-        PrismObject<RoleType> prismRoleObject = getPrismRoleObject();
-        RoleType role = prismRoleObject.asObjectable();
-        role.getInducement().removeIf(r -> !inducementsOidSet.contains(r.getTargetRef().getOid()));
+        this.candidateRoles = new HashSet<>(inducements);
         prepareUserDeltas(prismObjectUser, prismRoleObject, pageBase);
     }
 
@@ -96,7 +91,9 @@ public class BusinessRoleDto implements Serializable {
         // TODO consider using methods from RoleManagementUtil here
 
         List<String> userRolesAssignmentOids = getRolesOidAssignment(userObject);
-        List<String> roleRolesAssignmentOids = getRolesOidInducements(businessRole);
+        List<String> roleRolesAssignmentOids = this.candidateRoles.stream()
+                .map(r -> r.getTargetRef().getOid())
+                .toList();
 
         Set<String> appliedRoles = new HashSet<>();
         int delete = 0;

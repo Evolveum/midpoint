@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.object.RoleAnalysisObjectUtils.executeChangesOnCandidateRole;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applySquareTableCell;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
@@ -17,6 +18,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.common.mining.utils.values.*;
 import com.evolveum.midpoint.gui.impl.component.icon.*;
+
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -331,6 +334,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
         List<IColumn<MiningRoleTypeChunk, String>> columns = new ArrayList<>();
 
         columns.add(new CompositedIconColumn<>(null) {
+
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -589,7 +593,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 @Override
                 public String getCssClass() {
                     String cssLevel = RoleAnalysisTableTools.StyleResolution.resolveSizeLevel(styleWidth);
-                    return " role-mining-rotated-header " + cssLevel;
+                    return cssLevel + " p-2";
                 }
 
                 @Override
@@ -778,10 +782,18 @@ public class RoleAnalysisUserBasedTable extends Panel {
         if (getCandidateRole() != null) {
             @Nullable List<RoleAnalysisCandidateRoleType> candidateRole = new ArrayList<>(getCandidateRole());
             if (candidateRole.size() == 1) {
-                getPageBase().getRoleAnalysisService().executeChangesOnCandidateRole(cluster,
-                        candidateRole.get(0),
+                PageBase pageBase = getPageBase();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+
+                executeChangesOnCandidateRole(roleAnalysisService, pageBase, target,
+                        cluster,
+                        candidateRole,
                         candidateMembers,
-                        candidateInducements, task, result);
+                        candidateInducements,
+                        task,
+                        result
+                );
+
                 result.computeStatus();
                 getPageBase().showResult(result);
                 navigateToClusterCandidateRolePanel(cluster);
@@ -790,26 +802,25 @@ public class RoleAnalysisUserBasedTable extends Panel {
         }
 
         PrismObject<RoleType> businessRole = getPageBase().getRoleAnalysisService()
-                .generateBusinessRole(candidateInducements, PolyStringType.fromOrig(""));
+                .generateBusinessRole(new HashSet<>(), PolyStringType.fromOrig(""));
 
         List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
 
         for (PrismObject<UserType> member : candidateMembers) {
             BusinessRoleDto businessRoleDto = new BusinessRoleDto(member,
-                    businessRole, getPageBase());
+                    businessRole, candidateInducements, getPageBase());
             roleApplicationDtos.add(businessRoleDto);
         }
 
         BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
-                cluster, businessRole, roleApplicationDtos);
+                cluster, businessRole, roleApplicationDtos, candidateInducements);
 
         if (detectedPattern != null && detectedPattern.get(0).getId() != null) {
             operationData.setPatternId(detectedPattern.get(0).getId());
         }
 
-        @NotNull RoleType candidateBusinessRole = operationData.getBusinessRole().asObjectable();
         List<BusinessRoleDto> businessRoleDtos = operationData.getBusinessRoleDtos();
-        List<AssignmentType> inducement = candidateBusinessRole.getInducement();
+        Set<AssignmentType> inducement = operationData.getCandidateRoles();
         if (!inducement.isEmpty() && !businessRoleDtos.isEmpty()) {
             PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
             setResponsePage(pageRole);
@@ -824,7 +835,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
         if (detectedPattern != null) {
             for (DetectedPattern pattern : detectedPattern) {
                 String identifier = pattern.getIdentifier();
-                    patternIds.add(identifier);
+                patternIds.add(identifier);
             }
         }
         return patternIds;

@@ -30,7 +30,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectState.isStable;
+import static com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState.isStable;
 
 /**
  * The `RoleAnalysisUtils` class contains utility methods used in the role analysis process.
@@ -51,7 +51,6 @@ public class RoleAnalysisUtils {
         if (!operationStatus.equals(OperationResultStatusType.IN_PROGRESS) && !isSession) {
             return null;
         }
-
 
         if (status.getMessage() != null && isStable(status.getMessage())) {
             return null;

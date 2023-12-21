@@ -34,7 +34,6 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
 
-
     <xsd:complexType name="RoleAnalysisClusterType">
         <xsd:annotation>
             <xsd:documentation>
@@ -134,6 +133,16 @@
                             <xsd:appinfo>
                                 <a:displayName>RoleAnalysisClusterType.reductionObjects</a:displayName>
                             </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="category" type="tns:RoleAnalysisClusterCategory" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Description of recent operations executed on this object.
+                                </p>
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -398,7 +407,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="analysisClusterStatisticType" type="tns:AnalysisClusterStatisticType"/>
-
 
 
     <xsd:complexType name="AbstractAnalysisSessionOptionType">
@@ -1025,5 +1033,33 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:simpleType name="RoleAnalysisClusterCategory">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role analysis relation
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="inliers">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INLIERS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="outliers">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OUTLIERS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
 
 </xsd:schema>

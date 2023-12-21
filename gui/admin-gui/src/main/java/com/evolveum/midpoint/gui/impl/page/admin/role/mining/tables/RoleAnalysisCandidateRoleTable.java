@@ -231,6 +231,13 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
                             List<ObjectReferenceType> candidateMembers = candidateRoleType.getCandidateMembers();
                             if (candidateMembers != null) {
                                 membersCount = candidateMembers.size();
+
+                                if (membersCount == 1) {
+                                    String oid = candidateMembers.get(0).getOid();
+                                    if (oid == null) {
+                                        membersCount = 0;
+                                    }
+                                }
                             }
                         }
 

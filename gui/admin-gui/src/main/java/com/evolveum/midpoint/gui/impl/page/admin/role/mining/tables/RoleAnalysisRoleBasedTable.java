@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.object.RoleAnalysisObjectUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applySquareTableCell;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
@@ -17,6 +18,8 @@ import java.util.*;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
 import com.evolveum.midpoint.gui.impl.component.icon.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -552,7 +555,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 @Override
                 public String getCssClass() {
                     String cssLevel = RoleAnalysisTableTools.StyleResolution.resolveSizeLevel(styleWidth);
-                    return " role-mining-rotated-header " + cssLevel;
+                    return cssLevel + " p-2";
                 }
 
                 @Override
@@ -762,10 +765,18 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
         if (getCandidateRole() != null) {
             @Nullable List<RoleAnalysisCandidateRoleType> candidateRole = new ArrayList<>(getCandidateRole());
             if (candidateRole.size() == 1) {
-                getPageBase().getRoleAnalysisService().executeChangesOnCandidateRole(cluster,
-                        candidateRole.get(0),
+                PageBase pageBase = getPageBase();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+
+                executeChangesOnCandidateRole(roleAnalysisService, pageBase, target,
+                        cluster,
+                        candidateRole,
                         candidateMembers,
-                        candidateInducements, task, result);
+                        candidateInducements,
+                        task,
+                        result
+                );
+
                 result.computeStatus();
                 getPageBase().showResult(result);
                 navigateToClusterCandidateRolePanel(cluster);
@@ -774,18 +785,18 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
         }
 
         PrismObject<RoleType> businessRole = getPageBase().getRoleAnalysisService()
-                .generateBusinessRole(candidateInducements, PolyStringType.fromOrig(""));
+                .generateBusinessRole(new HashSet<>(), PolyStringType.fromOrig(""));
 
         List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
 
         for (PrismObject<UserType> member : candidateMembers) {
             BusinessRoleDto businessRoleDto = new BusinessRoleDto(member,
-                    businessRole, getPageBase());
+                    businessRole, candidateInducements, getPageBase());
             roleApplicationDtos.add(businessRoleDto);
         }
 
         BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
-                cluster, businessRole, roleApplicationDtos);
+                cluster, businessRole, roleApplicationDtos, candidateInducements);
 
         if (detectedPattern != null && detectedPattern.get(0).getId() != null) {
             operationData.setPatternId(detectedPattern.get(0).getId());

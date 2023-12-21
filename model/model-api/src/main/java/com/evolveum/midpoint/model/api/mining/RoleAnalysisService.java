@@ -6,10 +6,15 @@
  */
 package com.evolveum.midpoint.model.api.mining;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
@@ -484,8 +489,7 @@ public interface RoleAnalysisService {
             @NotNull Task task);
 
     /**
-     * This method is used to update detected patterns in the cluster.
-     * When the detected patterns are mark as candidate roles, it is necessary to store reference to the role.
+     * This method is used to add candidate roles to the cluster.
      *
      * @param clusterRefOid The cluster OID.
      * @param candidateRole The candidate role OID.
@@ -518,12 +522,20 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisOperation operationType,
             @Nullable FocusType focus);
 
-     void executeChangesOnCandidateRole(PrismObject<RoleAnalysisClusterType> cluster,
-            RoleAnalysisCandidateRoleType roleAnalysisCandidateRoleType,
-            Set<PrismObject<UserType>> members,
-            Set<AssignmentType> inducements,
-            Task task,
-            OperationResult result);
+    void executeChangesOnCandidateRole(
+            @NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            @NotNull RoleAnalysisCandidateRoleType roleAnalysisCandidateRoleType,
+            @NotNull Set<PrismObject<UserType>> members,
+            @NotNull Set<AssignmentType> inducements,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 
+    <T extends ObjectType> void loadSearchObjectIterative(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull List<T> modifyList,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult);
 
 }
