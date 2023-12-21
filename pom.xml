@@ -237,7 +237,7 @@
         <wicket.chartjs.version>0.3</wicket.chartjs.version>
         <!-- Groovy 4.0.11 is also default for Spring Boot 3.0.6 -->
         <groovy.version>4.0.11</groovy.version>
-        <xmlsec.version>2.2.4</xmlsec.version>
+        <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
         <connid.version>1.5.1.10</connid.version>
         <derby.version>10.17.1.0</derby.version>
