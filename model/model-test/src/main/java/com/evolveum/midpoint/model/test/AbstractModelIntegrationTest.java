@@ -39,7 +39,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 
@@ -3132,7 +3131,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ResourceType resourceType,
             QName objectClass,
             MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, false);
+        assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
         IntegrationTestTools.assertProvisioningShadow(accountShadow, ResourceAttributeDefinition.class, objectClass);
     }
 

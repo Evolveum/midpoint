@@ -1609,7 +1609,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
                 .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
                 .assertNormValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
-                .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
+                .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L)
                 .assertAttributes(7);
 
         var repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1620,7 +1620,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
                 .assertCachedNormValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
-                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L);
         assertRepoShadowCacheActivation(repoShadow, ActivationStatusType.DISABLED);
         assertRepoShadowCredentials(repoShadow, ACCOUNT_WILL_PASSWORD);
 
@@ -1662,7 +1662,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman")
                 .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
                 .assertNormValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
-                .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
+                .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L)
                 .assertAttributes(6);
     }
 

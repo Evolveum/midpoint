@@ -71,7 +71,7 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
         Preconditions.checkArgument(
                 def instanceof ResourceAttributeDefinition,
                 "Definition should be %s not %s" ,
-                ResourceAttributeContainerDefinition.class.getSimpleName(), definition.getClass().getName());
+                ResourceAttributeDefinition.class.getSimpleName(), definition.getClass().getName());
     }
 
     @Override
@@ -187,6 +187,11 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
             } else if (oldRealValue instanceof RawType raw) {
                 return new PrismPropertyValueImpl<>(
                         raw.getParsedRealValue(newJavaType));
+            } else if (Long.class.equals(newJavaType) && oldRealValue instanceof Integer integer) {
+                // FIXME temporary hack MID-2119 (loot was int, but needed to carry long values ... so we made it long,
+                //  but this code is here to avoid crashing on int values)
+                //noinspection unchecked
+                return (PrismPropertyValue<T2>) new PrismPropertyValueImpl<>(integer.longValue());
             }
         }
 

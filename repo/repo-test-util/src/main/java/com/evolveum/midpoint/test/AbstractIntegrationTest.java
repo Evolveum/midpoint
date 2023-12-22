@@ -1097,31 +1097,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertTrue(FocusTypeUtil.hasSubtype(object, subtype), "Object " + object + " does not have subtype " + subtype);
     }
 
-    protected void assertShadowCommon(
-            PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, QName objectClass)
-            throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, null, false);
-    }
-
-    protected void assertAccountShadowCommon(
-            PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType)
-            throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS, null, false);
-    }
-
-    protected void assertAccountShadowCommon(
-            PrismObject<ShadowType> accountShadow,
-            String oid,
-            String username,
-            ResourceType resourceType,
-            MatchingRule<String> nameMatchingRule,
-            boolean requireNormalizedIdentifiers) throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS, nameMatchingRule, requireNormalizedIdentifiers);
-    }
-
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
-            QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers) throws SchemaException, ConfigurationException {
-        assertShadowCommon(shadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentifiers, false);
+            QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
+        assertShadowCommon(shadow, oid, username, resourceType, objectClass, nameMatchingRule, false, false);
     }
 
     protected void assertShadowCommon(
@@ -1199,9 +1177,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         // FIXME fix all these hacks with the normalization!
 
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
-        ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClass(objectClass);
+        ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClassRequired(objectClass);
         if (ocDef.getSecondaryIdentifiers().isEmpty()) {
-            ResourceAttributeDefinition idDef = ocDef.getPrimaryIdentifiers().iterator().next();
+            ResourceAttributeDefinition<?> idDef = ocDef.getPrimaryIdentifiers().iterator().next();
             PrismProperty<String> idProp = attributesContainer.findProperty(idDef.getItemName());
             assertNotNull(idProp, "No primary identifier (" + idDef.getItemName() + ") attribute in shadow for " + username);
             if (nameMatchingRule == null) {
@@ -1219,12 +1197,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             }
         } else {
             boolean found = false;
-            String expected = username;
-            if (requireNormalizedIdentifiers && nameMatchingRule != null) {
-                expected = nameMatchingRule.normalize(username);
-            }
             List<String> wasValues = new ArrayList<>();
-            for (ResourceAttributeDefinition idSecDef : ocDef.getSecondaryIdentifiers()) {
+            for (ResourceAttributeDefinition<?> idSecDef : ocDef.getSecondaryIdentifiers()) {
                 PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
                 wasValues.addAll(IntegrationTestTools.toStringValues(idProp.getRealValues()));
                 assertNotNull(idProp, "No secondary identifier (" + idSecDef.getItemName() + ") attribute in shadow for " + username);
@@ -1236,7 +1210,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                     }
                 } else {
                     if (requireNormalizedIdentifiers) {
-                        if (expected.equals(idStringValue)) {
+                        if (username.equals(idStringValue)) {
                             found = true;
                             break;
                         }
@@ -1247,7 +1221,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 }
             }
             if (!found) {
-                fail("Unexpected secondary identifier in shadow for " + username + ", expected " + expected + " but was " + wasValues);
+                fail("Unexpected secondary identifier in shadow for " + username + ", expected " + username + " but was " + wasValues);
             }
         }
     }
@@ -1326,11 +1300,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             ResourceType resourceType,
             QName objectClass,
             MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
-        assertShadowRepo(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, true, false);
+        assertShadowRepo(
+                accountShadow, oid, username, resourceType, objectClass,
+                nameMatchingRule, true, false);
     }
 
     protected void assertShadowRepo(
-            RawRepoShadow accountShadow,
+            RawRepoShadow repoShadow,
             String oid,
             String username,
             ResourceType resourceType,
@@ -1338,8 +1314,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             MatchingRule<String> nameMatchingRule,
             boolean requireNormalizedIdentifiers,
             boolean useMatchingRuleForShadowName) throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow.getPrismObject(), oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentifiers, useMatchingRuleForShadowName);
-        PrismContainer<Containerable> attributesContainer = accountShadow.getPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
+        assertShadowCommon(
+                repoShadow.getPrismObject(), oid, username, resourceType, objectClass, nameMatchingRule,
+                requireNormalizedIdentifiers, useMatchingRuleForShadowName);
+        PrismContainer<Containerable> attributesContainer = repoShadow.getPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
         Collection<Item<?, ?>> attributes = attributesContainer.getValue().getItems();
         ResourceSchema refinedSchema = null;
         try {
@@ -1490,45 +1468,71 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         lastDummyResourceWriteOperationCount = currentCount;
     }
 
-    protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String id)
+    protected RawRepoShadow createRepoShadow(PrismObject<ResourceType> resource, String id)
             throws SchemaException, ConfigurationException {
-        return createShadow(resource, id, id);
+        return createRepoShadow(resource, id, id);
     }
 
-    protected PrismObject<ShadowType> createShadowNameOnly(PrismObject<ResourceType> resource, String name)
+    protected RawRepoShadow createRepoShadow(PrismObject<ResourceType> resource, String uid, String name)
+            throws SchemaException, ConfigurationException {
+        return RawRepoShadow.of(
+                createShadowInternal(resource, uid, name, true));
+    }
+
+    protected AbstractShadow createShadowNameOnly(PrismObject<ResourceType> resource, String name)
             throws SchemaException, ConfigurationException {
         return createShadow(resource, null, name);
     }
 
-    protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String uid, String name)
+    protected AbstractShadow createShadow(PrismObject<ResourceType> resource, String uid, String name)
             throws SchemaException, ConfigurationException {
-        PrismObject<ShadowType> shadow = getShadowDefinition().instantiate();
-        ShadowType shadowType = shadow.asObjectable();
+        return AbstractShadow.of(
+                createShadowInternal(resource, uid, name, false));
+    }
+
+    private @NotNull PrismObject<ShadowType> createShadowInternal(
+            PrismObject<ResourceType> resource, String uid, String name, boolean rawRepoVersion)
+            throws SchemaException, ConfigurationException {
+        PrismObject<ShadowType> shadowObject = getShadowDefinition().instantiate();
+        ShadowType shadow = shadowObject.asObjectable();
         if (name != null) {
-            shadowType.setName(PrismTestUtil.createPolyStringType(name));
+            shadow.setName(PrismTestUtil.createPolyStringType(name));
         }
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resource.getOid());
-        shadowType.setResourceRef(resourceRef);
-        shadowType.setKind(ShadowKindType.ACCOUNT);
-        shadowType.setIntent(SchemaConstants.INTENT_DEFAULT);
-        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
-        ResourceObjectDefinition objectClassDefinition = rSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
-        shadowType.setObjectClass(objectClassDefinition.getTypeName());
-        ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-        if (uid != null) {
-            ResourceAttributeDefinition<String> uidAttrDef = objectClassDefinition.findAttributeDefinitionRequired(ICFS_UID);
-            ResourceAttribute<String> uidAttr = uidAttrDef.instantiate();
-            uidAttr.setRealValue(uid);
-            attrContainer.add(uidAttr);
+        shadow.setResourceRef(resourceRef);
+        shadow.setKind(ShadowKindType.ACCOUNT);
+        shadow.setIntent(SchemaConstants.INTENT_DEFAULT);
+        var objectDef = Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
+        shadow.setObjectClass(objectDef.getTypeName());
+        if (rawRepoVersion) {
+            PrismContainer<?> attrContainer = shadowObject.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
+            if (uid != null) {
+                var uidAttrDef = objectDef.findAttributeDefinitionRequired(ICFS_UID).toNormalizationAware();
+                attrContainer.add(
+                        uidAttrDef.adoptRealValuesAndInstantiate(List.of(uid)));
+            }
+            if (name != null) {
+                var nameAttrDef = objectDef.findAttributeDefinitionRequired(ICFS_NAME).toNormalizationAware();
+                attrContainer.add(
+                        nameAttrDef.adoptRealValuesAndInstantiate(List.of(name)));
+            }
+        } else {
+            var attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadowObject, objectDef);
+            if (uid != null) {
+                var uidAttrDef = objectDef.findAttributeDefinitionRequired(ICFS_UID);
+                attrContainer.add(
+                        uidAttrDef.instantiateFromRealValue(uid));
+            }
+            if (name != null) {
+                var nameAttrDef = objectDef.findAttributeDefinitionRequired(ICFS_NAME);
+                attrContainer.add(
+                        nameAttrDef.instantiateFromRealValue(name));
+            }
         }
-        if (name != null) {
-            ResourceAttributeDefinition<String> nameAttrDef = objectClassDefinition.findAttributeDefinitionRequired(ICFS_NAME);
-            ResourceAttribute<String> nameAttr = nameAttrDef.instantiate();
-            nameAttr.setRealValue(name);
-            attrContainer.add(nameAttr);
-        }
-        return shadow;
+        return shadowObject;
     }
 
     @SafeVarargs

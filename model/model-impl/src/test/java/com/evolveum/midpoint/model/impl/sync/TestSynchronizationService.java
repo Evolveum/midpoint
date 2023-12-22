@@ -156,7 +156,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         setDebugListener();
 
         DummyAccount dummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
-        dummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 999);
+        dummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 999L);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, task, result);

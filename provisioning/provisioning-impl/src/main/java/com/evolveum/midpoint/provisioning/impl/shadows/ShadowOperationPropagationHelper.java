@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 
@@ -86,6 +87,7 @@ class ShadowOperationPropagationHelper {
         List<PendingOperationType> sortedOperations = ShadowUtil.sortPendingOperations(execPendingOperations);
 
         ProvisioningContext ctx = ctxFactory.createForShadow(rawRepoShadow.getBean(), task, result);
+        ctx.setOperationContext(ProvisioningOperationContext.empty());
         ctx.setPropagation(true);
         RepoShadow repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
         ObjectDelta<ShadowType> aggregateDelta = computeAggregatedDelta(ctx, sortedOperations);

@@ -139,14 +139,14 @@ public class TestDummyCaching extends TestDummy {
         assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
         assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
         assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
-        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L);
 
         var repoShadow = assertRepoShadowNew(ACCOUNT_WILL_OID)
                 .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate")
                 .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
                 .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
                 .assertCachedNormValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
-                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
+                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L)
                 .getRawRepoShadow();
         assertRepoShadowCacheActivation(repoShadow, ActivationStatusType.DISABLED);
 
@@ -201,7 +201,7 @@ public class TestDummyCaching extends TestDummy {
         assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
         assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
         assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
-        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L);
 //        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
         //TODO assertEquals("Unexpected number of attributes", 7, attributes.size());
 
@@ -210,7 +210,7 @@ public class TestDummyCaching extends TestDummy {
                 .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
                 .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
                 .assertCachedNormValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
-                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
+                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L)
                 .getRawRepoShadow();
         checkRepoAccountShadowWillBasic(repoShadow, null, startTs, false, null);
         assertRepoShadowCacheActivation(repoShadow, ActivationStatusType.DISABLED);
@@ -267,7 +267,7 @@ public class TestDummyCaching extends TestDummy {
                     .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate")
                     .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
                     .assertCachedNormValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
-                    .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
+                    .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L)
                     .getRawRepoShadow();
             assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.ENABLED);
 
@@ -417,7 +417,7 @@ public class TestDummyCaching extends TestDummy {
         } else {
             asserter.assertCachedNormValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
         }
-        asserter.assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+        asserter.assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L);
 
         assertRepoShadowCacheActivation(repoAccount, ActivationStatusType.ENABLED);
     }

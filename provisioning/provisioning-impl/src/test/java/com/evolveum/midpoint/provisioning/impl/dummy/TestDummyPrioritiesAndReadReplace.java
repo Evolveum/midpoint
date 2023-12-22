@@ -177,12 +177,12 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
         weaponDelta.setRealValuesToReplace("Gun");
         objectDelta.addModification(weaponDelta);
-        PropertyDelta<Integer> lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
+        PropertyDelta<Long> lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
         lootDelta.setDefinition(
                 getAttributeDefinitionRequired(resourceBean,
                         ShadowKindType.ACCOUNT,
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
-        lootDelta.setRealValuesToReplace(43);
+        lootDelta.setRealValuesToReplace(43L);
         objectDelta.addModification(lootDelta);
         PropertyDelta<String> titleDelta = objectDelta.createPropertyModification(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH);
         titleDelta.setDefinition(
@@ -210,7 +210,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate Master");
         assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 43);
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 43L);
         assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Gun");
 
@@ -275,13 +275,13 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         weaponDelta.addRealValuesToDelete("GUN");            // case-insensitive treatment should work here
         objectDelta.addModification(weaponDelta);
         // read replace attribute, priority 1
-        PropertyDelta<Integer> lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
+        PropertyDelta<Long> lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
         lootDelta.setDefinition(
                 getAttributeDefinitionRequired(resourceBean,
                         ShadowKindType.ACCOUNT,
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
-        lootDelta.addRealValuesToAdd(44);
-        lootDelta.addRealValuesToDelete(43);
+        lootDelta.addRealValuesToAdd(44L);
+        lootDelta.addRealValuesToDelete(43L);
         objectDelta.addModification(lootDelta);
         // NOT a read-replace attribute
         PropertyDelta<String> titleDelta = objectDelta.createPropertyModification(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH);
@@ -319,7 +319,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate Great Master");
         assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 44);
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 44L);
         assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword");
         assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,

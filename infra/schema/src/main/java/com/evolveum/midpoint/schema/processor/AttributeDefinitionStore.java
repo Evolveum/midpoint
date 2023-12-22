@@ -164,4 +164,10 @@ public interface AttributeDefinitionStore
         return ((ResourceAttributeDefinition<T>) findAttributeDefinitionRequired(attrName))
                 .instantiateFromRealValues(List.of(realValues));
     }
+
+    default @NotNull Collection<ItemName> getAllAttributesNames() {
+        return getAttributeDefinitions(ResourceAttributeDefinition.class).stream()
+                .map(ItemDefinition::getItemName)
+                .toList();
+    }
 }

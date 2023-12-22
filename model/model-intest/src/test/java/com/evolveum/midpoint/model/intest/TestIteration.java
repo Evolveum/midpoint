@@ -232,7 +232,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Jack Sparrow");
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Tortuga");
         getDummyResource().addAccount(account);
-        repoAddObject(createShadow(getDummyResourceObject(), ACCOUNT_JACK_DUMMY_USERNAME), result);
+        repoAddObject(
+                createRepoShadow(getDummyResourceObject(), ACCOUNT_JACK_DUMMY_USERNAME).getPrismObject(),
+                result);
 
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
 
@@ -284,7 +286,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Jack Pinky");
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Red Sea");
         getDummyResource(RESOURCE_DUMMY_PINK_NAME).addAccount(account);
-        repoAddObject(createShadow(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), ACCOUNT_JACK_DUMMY_USERNAME), result);
+        repoAddObject(
+                createRepoShadow(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), ACCOUNT_JACK_DUMMY_USERNAME).getPrismObject(),
+                result);
 
         // assignment with weapon := 'pistol' (test for
         Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
@@ -480,7 +484,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         getDummyResource(RESOURCE_DUMMY_PINK_NAME).addAccount(account);
 
         PrismObject<UserType> userScrooge = createUser("scrooge", "Scrooge McDuck", true);
-        PrismObject<ShadowType> newPinkyShadow = createShadow(getDummyResourceType(RESOURCE_DUMMY_PINK_NAME).asPrismObject(), null, null);
+        PrismObject<ShadowType> newPinkyShadow =
+                createShadow(getDummyResourceType(RESOURCE_DUMMY_PINK_NAME).asPrismObject(), null, null)
+                        .getPrismObject();
         ObjectReferenceType linkRef = new ObjectReferenceType();
         linkRef.asReferenceValue().setObject(newPinkyShadow);
         userScrooge.asObjectable().getLinkRef().add(linkRef);
@@ -522,7 +528,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         PrismObject<UserType> userJoeHacker = createUser("hacker", "Joe Hacker", true);
-        PrismObject<ShadowType> newPinkyShadow = createShadow(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), null, null);
+        PrismObject<ShadowType> newPinkyShadow =
+                createShadow(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), null, null).getPrismObject();
         ObjectReferenceType linkRef = new ObjectReferenceType();
         linkRef.asReferenceValue().setObject(newPinkyShadow);
         userJoeHacker.asObjectable().getLinkRef().add(linkRef);
@@ -1033,7 +1040,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Jack Violet");
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Sea of Lavender");
         getDummyResource(RESOURCE_DUMMY_VIOLET_NAME).addAccount(account);
-        repoAddObject(createShadow(getDummyResourceObject(RESOURCE_DUMMY_VIOLET_NAME), ACCOUNT_JACK_DUMMY_USERNAME), result);
+        repoAddObject(
+                createRepoShadow(getDummyResourceObject(RESOURCE_DUMMY_VIOLET_NAME), ACCOUNT_JACK_DUMMY_USERNAME).getPrismObject(),
+                result);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_VIOLET_OID, null, true);

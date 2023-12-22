@@ -86,6 +86,8 @@ class ShadowPostProcessor {
 
         // TODO is it OK that the classification helper updates the repository (and determines the tag)?
         //  Shouldn't we do that only during shadow update?
+        //  Probably that's ok, because that's the place where we can redirect the delta to the simulation result.
+        //  As part of general shadow update it is hidden among other deltas.
         newClassification = b.classificationHelper.classify(ctx, repoShadow, resourceObject, result);
         if (newClassification.isKnown()) {
             ResourceObjectTypeDefinition newTypeDefinition = newClassification.getDefinitionRequired();

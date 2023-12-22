@@ -19,6 +19,11 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -791,19 +796,27 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertShadowExists(shadowModel, supportsBackingStore());
         assertShadowPassword(shadowModel);
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-        display("Repo shadow", shadowRepo);
-        assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_NAME, ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_FULL_NAME, ATTR_FULLNAME_QNAME, prismContext));
-        assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertNoShadowPassword(shadowRepo);
-        assertShadowExists(shadowRepo, supportsBackingStore());
+        var repoShadow = getShadowRepo(accountWillOid);
+        var repoShadowObj = RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .display()
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
+                .assertCachedOrigValues(ATTR_DESCRIPTION_QNAME)
+                .assertNoPassword()
+                .getObject();
+
+        assertSinglePendingOperation(repoShadowObj, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        assertShadowExists(repoShadowObj, supportsBackingStore());
 
         assertSteadyResources();
+    }
+
+    Collection<? extends QName> getCachedAttributes() throws SchemaException, ConfigurationException {
+        return Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .findDefinitionForObjectClassRequired(RI_ACCOUNT_OBJECT_CLASS)
+                .getAllAttributesNames();
     }
 
     @Test
@@ -834,17 +847,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // TODO
 //        assertShadowPassword(shadowProvisioning);
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-        display("Repo shadow", shadowRepo);
-        assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_NAME, ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_FULL_NAME, ATTR_FULLNAME_QNAME, prismContext));
-        assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertNoShadowPassword(shadowRepo);
-        assertShadowExists(shadowRepo, supportsBackingStore());
+        var repoShadow = getShadowRepo(accountWillOid);
+        var repoShadowObj = RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .display()
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
+                .assertCachedOrigValues(ATTR_DESCRIPTION_QNAME)
+                .assertNoPassword()
+                .getObject();
+
+        assertSinglePendingOperation(repoShadowObj, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        assertShadowExists(repoShadowObj, supportsBackingStore());
 
         assertSteadyResources();
     }
@@ -1122,17 +1136,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-        display("Repo shadow", shadowRepo);
-        assertSinglePendingOperation(shadowRepo,
+        var repoShadow = getShadowRepo(accountWillOid);
+        var repoShadowObj = RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .display()
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+                .getObject();
+
+        assertSinglePendingOperation(repoShadowObj,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
                 OperationResultStatusType.SUCCESS,
                 accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_NAME, ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_FULL_NAME_PIRATE, ATTR_FULLNAME_QNAME, prismContext));
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
 
         PrismObject<ShadowType> shadowProvisioning = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
@@ -1987,16 +2002,21 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-        display("Repo shadow", shadowRepo);
-        PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd, executionStage);
+        var repoShadow = getShadowRepo(accountWillOid);
+        var repoShadowObj = RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .display()
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
+                .assertNoPassword()
+                .getObject();
+
+        var pendingOperation =
+                assertSinglePendingOperation(repoShadowObj, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
         assertNotNull("No ID in pending operation", pendingOperation.getId());
+
         // Still old data in the repo. The operation is not completed yet.
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_NAME, ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_FULL_NAME, ATTR_FULLNAME_QNAME, prismContext));
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
 
@@ -2187,17 +2207,17 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-        display("Repo shadow", shadowRepo);
-        PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
+        var repoShadow = getShadowRepo(accountJackOid);
+        PrismObject<ShadowType> repoShadowObj = repoShadow.getPrismObject();
+        display("Repo shadow", repoShadowObj);
+        PendingOperationType pendingOperation = assertSinglePendingOperation(repoShadowObj, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
         assertNotNull("No ID in pending operation", pendingOperation.getId());
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_JACK_USERNAME, ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_JACK_FULL_NAME, ATTR_FULLNAME_QNAME, prismContext));
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertShadowExists(shadowRepo, false);
-        assertNoShadowPassword(shadowRepo);
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_JACK_USERNAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_JACK_FULL_NAME);
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        assertShadowExists(repoShadowObj, false);
+        assertNoShadowPassword(repoShadowObj);
 
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountJackOid, null, task, result);

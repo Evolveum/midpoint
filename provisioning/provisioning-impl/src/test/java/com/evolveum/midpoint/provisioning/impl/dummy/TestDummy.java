@@ -246,7 +246,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate")
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
-                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L)
                 .getRawRepoShadow();
 
         checkRepoAccountShadowWillBasic(repoShadow, null, startTs, false, null);
@@ -335,7 +335,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor")
                 .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
                 .assertNormValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
-                .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
+                .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L)
                 .assertAttributes(7);
 
         checkAccountShadow(shadow, result, true);
@@ -347,7 +347,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor")
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
                 .assertCachedNormValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
-                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L);
 
         checkRepoAccountShadowWillBasic(repoShadow, startTs, endTs, false, null);
 
@@ -408,7 +408,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Meathook");
         newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
         newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "hook");
-        newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 666);
+        newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 666L);
         newAccount.setEnabled(true);
         newAccount.setPassword("parrotMonster");
         dummyResource.addAccount(newAccount);
@@ -438,9 +438,9 @@ public class TestDummy extends AbstractBasicDummyTest {
 
             if (shadow.getName().getOrig().equals("meathook")) {
                 meathookAccountOid = object.getOid();
-                Integer loot = shadow.getAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME);
+                Long loot = shadow.getAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME);
                 assertNotNull(loot);
-                assertEquals("Wrong meathook's loot", 666, (int) loot);
+                assertEquals("Wrong meathook's loot", 666L, (long) loot);
             }
 
             return true;
@@ -3790,7 +3790,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         dummyResourceCtl.addAccount(ACCOUNT_MURRAY_USERNAME, ACCOUNT_MURRAY_USERNAME);
 
-        PrismObject<ShadowType> account = createShadowNameOnly(resource, ACCOUNT_MURRAY_USERNAME);
+        PrismObject<ShadowType> account = createShadowNameOnly(resource, ACCOUNT_MURRAY_USERNAME).getPrismObject();
         account.checkConsistence();
 
         display("Adding shadow", account);
@@ -3866,7 +3866,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyResource.setSyncStyle(DummySyncStyle.DUMB);
         DummyAccount newAccount = new DummyAccount(BLACKBEARD_USERNAME);
         newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Edward Teach");
-        newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666);
+        newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
         newAccount.setEnabled(true);
         newAccount.setPassword("shiverMEtimbers");
         dummyResource.addAccount(newAccount);
@@ -3901,7 +3901,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertAttribute(currentShadow,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Edward Teach");
         assertAttribute(currentShadow,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666);
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
         assertEquals("Unexpected number of attributes", 4, attributes.size());
 
         var accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);
@@ -3953,7 +3953,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertAttribute(currentShadow,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Blackbeard");
         assertAttribute(currentShadow,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666);
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
         assertEquals("Unexpected number of attributes", 4, attributes.size());
 
         var accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);

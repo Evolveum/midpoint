@@ -92,6 +92,12 @@ public class RepoShadowModifications implements DebugDumpable {
         }
     }
 
+    public void addRawOnly(@Nullable ItemDelta<?, ?> modification) {
+        if (modification != null) {
+            rawItemDeltas.add(modification);
+        }
+    }
+
     public void add(ItemDelta<?, ?> modification, ResourceAttributeDefinition<?> attrDef) throws SchemaException {
         ItemDelta<?, ?> rawModification = modification.clone();
         // We have to suppress the type parameters, because - in fact - we change the type of the values.
@@ -138,7 +144,10 @@ public class RepoShadowModifications implements DebugDumpable {
     }
 
     public int size() {
-        assert itemDeltas.size() == rawItemDeltas.size();
         return itemDeltas.size();
+    }
+
+    public int sizeRaw() {
+        return rawItemDeltas.size();
     }
 }

@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection;
 
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
@@ -1184,12 +1185,22 @@ public class IntegrationTestTools {
                 .toList();
     }
 
-    // FIXME remove uses of this method
+    // FIXME remove uses of this method MID-2119
     public static String toStringValue(Object value) {
         if (value instanceof PolyString polyString) {
             return polyString.getOrig();
         } else {
             return (String) value;
         }
+    }
+
+    public static PolyString toRepoPoly(String orig) throws SchemaException {
+        return toRepoPoly(orig, PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME);
+    }
+
+    public static PolyString toRepoPoly(String orig, QName matchingRuleName) throws SchemaException {
+        var matchingRule = SchemaService.get().matchingRuleRegistry().getMatchingRuleSafe(matchingRuleName, null);
+        String norm = matchingRule.getNormalizer().normalizeString(orig);
+        return NormalizationAwareResourceAttributeDefinition.wrap(orig, norm);
     }
 }

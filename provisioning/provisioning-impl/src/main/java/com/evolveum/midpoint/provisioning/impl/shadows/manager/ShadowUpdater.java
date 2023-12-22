@@ -159,7 +159,9 @@ public class ShadowUpdater {
             }
             // This is important e.g. to update opState.repoShadow content in case of ADD operation success
             // - to pass newly-generated primary identifier to other parts of the code.
-            repoShadow.updateWith(clonedModifications.getItemDeltas());
+            List<ItemDelta<?, ?>> itemDeltas = clonedModifications.getItemDeltas();
+            ctx.applyAttributesDefinition(itemDeltas); // Isn't this just too late?
+            repoShadow.updateWith(itemDeltas);
             LOGGER.trace("Shadow changes processed successfully.");
         } catch (ObjectAlreadyExistsException ex) {
             throw SystemException.unexpected(ex, "when updating shadow in the repository");
@@ -472,7 +474,7 @@ public class ShadowUpdater {
 
         RepoShadowModifications shadowModifications =
                 ShadowDeltaComputerAbsolute.computeShadowModifications(
-                        ctx, repoShadow, resourceObject, resourceObjectDelta, newClassification, true);
+                        ctx, repoShadow, resourceObject, resourceObjectDelta, true);
 
         if (!shadowModifications.isEmpty()) {
             LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadow, shadowModifications.debugDumpLazily(1));

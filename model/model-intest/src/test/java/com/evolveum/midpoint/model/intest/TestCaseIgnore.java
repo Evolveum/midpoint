@@ -6,18 +6,31 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.test.IntegrationTestTools.toRepoPoly;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
@@ -31,22 +44,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Test various case ignore and case transformation scenarios.
@@ -87,7 +84,8 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
         super.initSystem(initTask, initResult);
-        caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, DOMUtil.XSD_STRING);
+        caseIgnoreMatchingRule =
+                matchingRuleRegistry.getMatchingRule(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, DOMUtil.XSD_STRING);
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         repoAddObjectFromFile(ROLE_X_FILE, initResult);
@@ -167,7 +165,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-       when();
+        when();
         SearchResultList<PrismObject<ShadowType>> foundShadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
@@ -187,14 +185,16 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        var accountShadow = getShadowRepo(accountOid);
-        display("Repo shadow", accountShadow);
-        assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
+        var repoShadow = getShadowRepo(accountOid);
+        display("Repo shadow", repoShadow);
+        assertAccountShadowRepo(repoShadow, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME,
+                resourceDummyUpcaseType, caseIgnoreMatchingRule);
 
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Model shadow", accountModel);
-        assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME,
+                resourceDummyUpcaseType, caseIgnoreMatchingRule);
 
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, "Jack Sparrow", true);
@@ -410,13 +410,12 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-       when();
+        when();
         assignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
 
         // THEN
-       then();
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        then();
+        assertSuccess(result);
 
         // Make sure this is repository so we do not destroy the "evidence" yet.
         PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
@@ -688,14 +687,14 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> groupFoolsRepoShadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
         display("group fools repo shadow", groupFoolsRepoShadow);
 
-        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_NAME_PATH, GROUP_DUMMY_FOOLS_NAME.toLowerCase());
-        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_UID_PATH, GROUP_DUMMY_FOOLS_NAME.toLowerCase());
+        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_NAME_PATH, toRepoPoly(GROUP_DUMMY_FOOLS_NAME));
+        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_UID_PATH, toRepoPoly(GROUP_DUMMY_FOOLS_NAME));
         assertShadowKindIntent(groupFoolsRepoShadow, ShadowKindType.ENTITLEMENT, INTENT_DUMMY_GROUP);
 
         assertShadows(6);
-
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         assumeAssignmentPolicy(enforcementPolicy);
         dummyAuditService.clear();

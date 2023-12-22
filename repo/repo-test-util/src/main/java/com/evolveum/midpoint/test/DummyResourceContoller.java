@@ -195,7 +195,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class, false, true);
         addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, String.class, false, false);
         addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, String.class, false, false);
-        DummyAttributeDefinition lootAttrDef =  addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, Integer.class, false, false);
+        DummyAttributeDefinition lootAttrDef = addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, Long.class, false, false);
         lootAttrDef.setReturnedByDefault(false);
         DummyAttributeDefinition treasureAttrDef = addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME, String.class, false, false);
         treasureAttrDef.setReturnedByDefault(false);
@@ -283,7 +283,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     public QName getAttributeLootQName() {
         assertExtendedSchema();
-        return  getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
+        return getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
     }
 
     public ItemPath getAttributeLootPath() {

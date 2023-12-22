@@ -10,6 +10,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,7 +98,7 @@ class ClassificationHelper {
 
     /**
      * The combination simply takes attributes from the resource object, and the rest from the shadow.
-     * It is much simplified version of what is done in {@link ShadowedObjectConstruction}. We hope if will suffice for now.
+     * It is much simplified version of what is done in {@link ShadowedObjectConstruction}. We hope it will suffice for now.
      * In particular, we hope that the object class is roughly OK, and things like entitlement, credentials, and so on
      * are not needed.
      */
@@ -151,12 +153,10 @@ class ClassificationHelper {
 
         if (ctx.getTask().areShadowChangesSimulated()) {
             sendSimulationData(repoShadow, itemDeltas, ctx.getTask(), result);
+            repoShadow.updateWith(itemDeltas);
         } else {
-            try {
-                shadowUpdater.executeRepoShadowModificationsRaw(repoShadow, itemDeltas, result);
-            } catch (ObjectAlreadyExistsException e) {
-                throw SystemException.unexpected(e, "when updating classification and tag");
-            }
+            var modifications = RepoShadowModifications.of(itemDeltas);
+            shadowUpdater.executeRepoShadowModifications(ctx, repoShadow, modifications, result);
         }
     }
 
@@ -199,7 +199,7 @@ class ClassificationHelper {
         @Nullable ResourceObjectTypeIdentification resolvedType = resolvedDefinition.getTypeIdentification();
         if (!declaredType.equals(resolvedType)) {
             // For example, if the type no longer exists in the definition, we may end up either with class definition, or
-            // (even worse) with default type definition for given class. Hence the type equality check.
+            // (even worse) with default type definition for given class. Hence, the type equality check.
             // See also 2nd part of MID-8613.
             LOGGER.trace("Shadow is classified as {} but the definition is resolved to {} ({}) -> will re-classify it",
                     declaredType, resolvedType, resolvedDefinition);

@@ -35,6 +35,8 @@ import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
  * An alternative representation of a {@link ResourceAttributeDefinition} that describes a normalization-aware resource attribute:
  * one that has both original and normalized values. Such attributes are to be stored in the repository, to facilitate
@@ -525,10 +527,14 @@ public class NormalizationAwareResourceAttributeDefinition<T>
                     "Cannot convert from %s to %s".formatted(plainRealValue.getClass(), getTypeClass()));
         }
         //noinspection unchecked
-        return (T) new PolyString(
-                oldStringValue,
-                polyNormalizer.normalizeString(oldStringValue),
-                new PolyStringTranslationType().key("dummy")); // only to serialize the string in full; TODO remove eventually
+        return (T) wrap(oldStringValue, polyNormalizer.normalizeString(oldStringValue));
+    }
+
+    @VisibleForTesting
+    public static PolyString wrap(String orig, String norm) {
+        // The lang is only to serialize the string in full; TODO remove eventually MID-2119
+        return new PolyString(
+                orig, norm, new PolyStringTranslationType().key("dummy"));
     }
 
     @Override

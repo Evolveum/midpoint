@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 import com.evolveum.midpoint.schema.messaging.JsonAsyncProvisioningRequest;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -114,7 +113,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        PrismObject<ShadowType> jack = createShadow(resource, "jack");
+        PrismObject<ShadowType> jack = createShadow(resource, "jack", "jack").getPrismObject();
         addAttributeValue(resource, jack, ATTR_DRINK, "rum");
 
         when();

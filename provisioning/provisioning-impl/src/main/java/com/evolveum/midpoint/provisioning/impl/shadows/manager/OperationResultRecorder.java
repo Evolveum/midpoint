@@ -155,7 +155,7 @@ public class OperationResultRecorder {
         // We use the same mechanism (shadow delta computer) as is used for shadows coming from the resource.
         shadowModifications.addAll(
                 ShadowDeltaComputerAbsolute.computeShadowModifications(
-                        ctx, repoShadow, resourceObject, null, null, false));
+                        ctx, repoShadow, resourceObject, null, false));
 
         addModificationMetadataDeltas(shadowModifications, repoShadow);
 
@@ -178,8 +178,8 @@ public class OperationResultRecorder {
             addModificationMetadataDeltas(allModifications, opState.getRepoShadow());
         }
 
-        LOGGER.trace("Updating repository {} after MODIFY operation {}, {} modifications",
-                repoShadow, opState, allModifications.size());
+        LOGGER.trace("Updating repository {} after MODIFY operation {}, {}/{} modifications",
+                repoShadow, opState, allModifications.size(), allModifications.sizeRaw());
 
         shadowUpdater.modifyRepoShadow(ctx, repoShadow, allModifications.getItemDeltas(), result);
     }

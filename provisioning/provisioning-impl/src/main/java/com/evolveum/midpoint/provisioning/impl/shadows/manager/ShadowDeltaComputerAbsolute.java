@@ -72,8 +72,6 @@ class ShadowDeltaComputerAbsolute {
     @NotNull private final RepoShadowModifications computedModifications = new RepoShadowModifications();
     private final boolean cachingEnabled; // FIXME partial caching?!
 
-    @Nullable private final ResourceObjectClassification newClassification;
-
     /**
      * True if the information we deal with (resource object, resource object delta) comes from the resource.
      * False if the shadow was sent to the resource, and the operation might or might not succeeded.
@@ -87,7 +85,6 @@ class ShadowDeltaComputerAbsolute {
             @NotNull RepoShadow repoShadow,
             @NotNull ResourceObject resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
-            @Nullable ResourceObjectClassification newClassification,
             boolean fromResource) {
         this.ctx = ctx;
         this.repoShadow = repoShadow;
@@ -95,7 +92,6 @@ class ShadowDeltaComputerAbsolute {
         this.resourceObject = resourceObject;
         this.resourceObjectDelta = resourceObjectDelta;
         this.cachingEnabled = ctx.isCachingEnabled();
-        this.newClassification = newClassification;
         this.fromResource = fromResource;
     }
 
@@ -104,10 +100,9 @@ class ShadowDeltaComputerAbsolute {
             @NotNull RepoShadow repoShadow,
             @NotNull ResourceObject resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
-            @Nullable ResourceObjectClassification newClassification,
             boolean fromResource)
             throws SchemaException, ConfigurationException {
-        return new ShadowDeltaComputerAbsolute(ctx, repoShadow, resourceObject, resourceObjectDelta, newClassification, fromResource)
+        return new ShadowDeltaComputerAbsolute(ctx, repoShadow, resourceObject, resourceObjectDelta, fromResource)
                 .execute();
     }
 
@@ -125,7 +120,6 @@ class ShadowDeltaComputerAbsolute {
         updateAttributes(incompleteCacheableItems);
         updateShadowName();
         updateAuxiliaryObjectClasses();
-        updateClassification();
 
         if (fromResource) {
             updateExistsFlag();
@@ -174,19 +168,6 @@ class ShadowDeltaComputerAbsolute {
                 repoShadow.getPrismObject().findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
                 resourceObject.getPrismObject().findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
         computedModifications.add(auxOcDelta);
-    }
-
-    private void updateClassification() throws SchemaException {
-        if (newClassification != null && newClassification.isKnown()) {
-            ShadowType bean = repoShadow.getBean();
-            if (newClassification.getKind() != bean.getKind() || !newClassification.getIntent().equals(bean.getIntent())) {
-                computedModifications.addAll(
-                        PrismContext.get().deltaFor(ShadowType.class)
-                                .item(ShadowType.F_KIND).replace(newClassification.getKind())
-                                .item(ShadowType.F_INTENT).replace(newClassification.getIntent())
-                                .asItemDeltas());
-            }
-        }
     }
 
     private void updateExistsFlag() throws SchemaException {
@@ -277,7 +258,7 @@ class ShadowDeltaComputerAbsolute {
             if (ctx.shouldStoreAttributeInShadow(ocDef, attrDef, associationValueAttrs)) {
                 expectedRepoAttributes.add(attrName);
                 if (!resourceObjectAttribute.isIncomplete()) {
-                    updateAttribute(rawRepoShadowAttributesPcv, resourceObjectAttribute);
+                    updateAttributeIfNeeded(rawRepoShadowAttributesPcv, resourceObjectAttribute);
                 } else {
                     incompleteCacheableAttributes.add(attrName);
                 }
@@ -289,10 +270,7 @@ class ShadowDeltaComputerAbsolute {
         for (Item<?, ?> oldRepoItem : rawRepoShadowAttributesPcv.getItems()) {
             ItemName oldRepoItemName = oldRepoItem.getElementName();
             if (!expectedRepoAttributes.contains(oldRepoItemName)) {
-                LOGGER.trace("Removing old repo shadow attribute {} because it should not be cached", oldRepoItemName);
-                ItemDelta<?, ?> oldRepoAttrPropDelta = oldRepoItem.createDelta();
-                oldRepoAttrPropDelta.setValuesToReplace();
-                computedModifications.add(oldRepoAttrPropDelta);
+                removeAttribute(oldRepoItem, resourceObjectAttributesContainer.findAttribute(oldRepoItemName));
             }
         }
 
@@ -317,7 +295,20 @@ class ShadowDeltaComputerAbsolute {
         }
     }
 
-    private <T, N> void updateAttribute(
+    private void removeAttribute(@NotNull Item<?, ?> oldRepoItem, @Nullable ResourceAttribute<?> correspondingAttribute) {
+        LOGGER.trace("Removing old repo shadow attribute {} because it should not be cached", oldRepoItem.getElementName());
+        ItemDelta<?, ?> rawEraseDelta = oldRepoItem.createDelta();
+        rawEraseDelta.setValuesToReplace();
+        if (correspondingAttribute != null) {
+            ItemDelta<?, ?> eraseDelta = correspondingAttribute.createDelta();
+            eraseDelta.setValuesToReplace();
+            computedModifications.add(eraseDelta, rawEraseDelta);
+        } else {
+            computedModifications.addRawOnly(rawEraseDelta);
+        }
+    }
+
+    private <T, N> void updateAttributeIfNeeded(
             @NotNull PrismContainerValue<?> rawRepoShadowAttributesPcv,
             @NotNull ResourceAttribute<T> resourceAttribute)
             throws SchemaException {
@@ -354,7 +345,7 @@ class ShadowDeltaComputerAbsolute {
         }
     }
 
-    private <T, N> void replaceRepoAttribute(
+    private <T> void replaceRepoAttribute(
             @NotNull ResourceAttribute<T> resourceAttribute,
             @NotNull String reason) throws SchemaException {
         ResourceAttributeDefinition<T> attrDef = resourceAttribute.getDefinitionRequired();
