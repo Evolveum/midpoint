@@ -155,7 +155,7 @@ class ShadowSearchLikeOperation {
 
             ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound);
             shadowedObjectFound.initialize(ctx.getTask(), lResult);
-            ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod);
+            ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod, lResult);
 
             try {
                 return handler.handle(shadowedObject.asPrismObject(), lResult);

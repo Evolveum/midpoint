@@ -146,7 +146,6 @@ public class TestSynchronization extends AbstractIntegrationTest {
                         resourceType.getOid(), AbstractOpenDjTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // WHEN
-
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, getTestTask(), result);
 
         // THEN
@@ -155,13 +154,13 @@ public class TestSynchronization extends AbstractIntegrationTest {
         assertEquals("Unexpected number of synchronization service calls", 1, mock.getCallCount());
 
         ResourceObjectShadowChangeDescription lastChange = mock.getLastChange();
-//            ObjectDelta<? extends ShadowType> objectDelta = lastChange.getObjectDelta();
-//            assertNotNull("Null object delta in change notification", objectDelta);
-//            assertEquals("Wrong change type in delta in change notification", ChangeType.ADD, objectDelta.getChangeType());
         PrismObject<? extends ShadowType> currentShadow = lastChange.getShadowedResourceObject();
         assertNotNull("No current shadow in change notification", currentShadow);
 
-        assertEquals("Wrong shadow name", ACCOUNT_WILL_NAME, currentShadow.asObjectable().getName().getOrig());
+        // The value is lowercase, because this is how it's returned by the SYNC operation by LDAP.
+        assertEquals("Wrong shadow name",
+                ACCOUNT_WILL_NAME.toLowerCase(),
+                currentShadow.asObjectable().getName().getOrig());
 
         ShadowType shadow = currentShadow.asObjectable();
         MetadataType metadata = shadow.getMetadata();

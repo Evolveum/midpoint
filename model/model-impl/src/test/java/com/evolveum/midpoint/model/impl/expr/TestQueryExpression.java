@@ -183,7 +183,7 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
             assertMessageContains(e.getMessage(), "attributes/drink");
         }
         var coordinates = "resourceRef matches (oid = '10000000-0000-0000-0000-000000000004') "
-          + "and kind = 'account' and intent = 'default' )";
+                + "and kind = 'account' and intent = 'default'";
 
         var query = TypedQuery.parse(ShadowType.class, baseQuery + " and " + coordinates);
         var result = modelService.searchObjects(query, getTestTask(), createOperationResult());

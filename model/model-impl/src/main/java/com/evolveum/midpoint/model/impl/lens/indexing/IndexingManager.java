@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.normalization.StringNormalizer;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -179,6 +181,14 @@ public class IndexingManager implements DeltaExecutionPreprocessor {
     }
 
     public static ValueNormalizer getNormalizerFor(@Nullable QName matchingRuleName) throws SchemaException {
+        // Special cases - TODO decide about these! MID-2119
+        if (QNameUtil.match(matchingRuleName, PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME)) {
+            return (input, task, result) ->
+                    PrismContext.get().getDefaultPolyStringNormalizer().normalize(stringify(input));
+        } else if (QNameUtil.match(matchingRuleName, PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME)) {
+            return (input, task, result) -> stringify(input);
+        }
+
         Normalizer<?> normalizer =
                 SchemaService.get().matchingRuleRegistry()
                         .getMatchingRule(matchingRuleName, null)

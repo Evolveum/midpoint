@@ -158,7 +158,7 @@ class ConnIdCapabilitiesAndSchemaParser {
      *
      * Schema is immutable after this method.
      */
-    void retrieveResourceCapabilitiesAndSchema(List<QName> generateObjectClasses, OperationResult result)
+    void retrieveResourceCapabilitiesAndSchema(@NotNull List<QName> objectClassesToGenerate, OperationResult result)
             throws CommunicationException, ConfigurationException, GenericFrameworkException, SchemaException {
 
         fetchSupportedOperations(result);
@@ -173,7 +173,7 @@ class ConnIdCapabilitiesAndSchemaParser {
             if (connIdSchema == null) {
                 addBasicReadCapability();
             } else {
-                parseResourceSchema(connIdSchema, generateObjectClasses);
+                parseResourceSchema(connIdSchema, objectClassesToGenerate);
             }
         }
     }
@@ -354,7 +354,8 @@ class ConnIdCapabilitiesAndSchemaParser {
     /**
      * On exit, {@link #rawResourceSchema} is set and is immutable.
      */
-    private void parseResourceSchema(@NotNull Schema connIdSchema, List<QName> objectClassesToGenerate) throws SchemaException {
+    private void parseResourceSchema(@NotNull Schema connIdSchema, @NotNull List<QName> objectClassesToGenerate)
+            throws SchemaException {
 
         SpecialAttributes specialAttributes = new SpecialAttributes();
         rawResourceSchema = createResourceSchema();
@@ -377,10 +378,11 @@ class ConnIdCapabilitiesAndSchemaParser {
 
     private void parseObjectClass(
             @NotNull ObjectClassInfo objectClassInfo,
-            List<QName> objectClassesToGenerate,
+            @NotNull List<QName> objectClassesToGenerate,
             @NotNull SpecialAttributes specialAttributes) throws SchemaException {
 
         assert connIdNameMapper != null : "accessing schema without mapper?";
+
         // "Flat" ConnId object class names needs to be mapped to QNames
         QName objectClassXsdName = connIdNameMapper.objectClassToQname(
                 new ObjectClass(objectClassInfo.getType()), legacySchema);
@@ -405,41 +407,28 @@ class ConnIdCapabilitiesAndSchemaParser {
         boolean hasUidDefinition = false;
 
         int displayOrder = ConnectorFactoryConnIdImpl.ATTR_DISPLAY_ORDER_START;
-        // Let's iterate over all attributes in this object class ...
-        Set<AttributeInfo> attributeInfoSet = objectClassInfo.getAttributeInfo();
-        for (AttributeInfo attributeInfo : attributeInfoSet) {
-            String icfName = attributeInfo.getName();
+
+        for (AttributeInfo attributeInfo : objectClassInfo.getAttributeInfo()) {
 
             boolean isSpecial = specialAttributes.updateWithAttribute(attributeInfo);
             if (isSpecial) {
-                // Skip this attribute, capability is sufficient
-                continue;
+                continue; // Skip this attribute, capability is sufficient
             }
 
-            // __NAME__ and __UID__ are replaced by their native names, if possible
-            String attributeNameToUse;
-            if ((Name.NAME.equals(icfName) || Uid.NAME.equals(icfName)) && attributeInfo.getNativeName() != null) {
-                attributeNameToUse = attributeInfo.getNativeName();
-            } else {
-                attributeNameToUse = icfName;
-            }
-
-            QName attrXsdName = connIdNameMapper.convertAttributeNameToQName(attributeNameToUse, ocDef);
+            String attrIcfName = attributeInfo.getName();
+            QName attrXsdName = connIdNameMapper.convertAttributeNameToQName(attrIcfName, attributeInfo.getNativeName(), ocDef);
             QName attrXsdType = connIdTypeToXsdType(attributeInfo);
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("  attr conversion ConnId: {}({}) -> XSD: {}({})",
-                        icfName, attributeInfo.getType().getSimpleName(),
-                        PrettyPrinter.prettyPrint(attrXsdName), PrettyPrinter.prettyPrint(attrXsdType));
-            }
+            LOGGER.trace("  attr conversion ConnId: {}({}) -> XSD: {}({})",
+                    attrIcfName, attributeInfo.getType().getSimpleName(),
+                    PrettyPrinter.prettyPrintLazily(attrXsdName), PrettyPrinter.prettyPrintLazily(attrXsdType));
 
-            RawResourceAttributeDefinition<?> attrDef =
-                    createRawResourceAttributeDefinition(attrXsdName, attrXsdType);
+            RawResourceAttributeDefinition<?> attrDef = createRawResourceAttributeDefinition(attrXsdName, attrXsdType);
 
             attrDef.setMatchingRuleQName(
                     connIdAttributeInfoToMatchingRule(attributeInfo));
 
-            if (Name.NAME.equals(icfName)) {
+            if (Name.NAME.equals(attrIcfName)) {
                 nameDefinition = attrDef;
                 if (uidDefinition != null && attrXsdName.equals(uidDefinition.getItemName())) {
                     attrDef.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
@@ -454,7 +443,7 @@ class ConnIdCapabilitiesAndSchemaParser {
                     attrDef.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_NAME_DISPLAY_ORDER);
                 }
 
-            } else if (Uid.NAME.equals(icfName)) {
+            } else if (Uid.NAME.equals(attrIcfName)) {
                 // UID can be the same as other attribute
                 //noinspection rawtypes
                 var existingDefinition = (MutableRawResourceAttributeDefinition) ocDef.findAttributeDefinition(attrXsdName);
@@ -484,12 +473,11 @@ class ConnIdCapabilitiesAndSchemaParser {
             }
 
             attrDef.setNativeAttributeName(attributeInfo.getNativeName());
-            attrDef.setFrameworkAttributeName(icfName);
+            attrDef.setFrameworkAttributeName(attrIcfName);
 
             processAttributeFlags(attributeInfo, attrDef);
 
-            if (!Uid.NAME.equals(icfName)) {
-                attrDef.freeze(); // This eliminates a clone operation during addition
+            if (!Uid.NAME.equals(attrIcfName)) {
                 ocDef.add(attrDef);
             }
         }
@@ -498,19 +486,15 @@ class ConnIdCapabilitiesAndSchemaParser {
             // Every object has UID in ConnId, therefore add a default definition if no other was specified
             MutableRawResourceAttributeDefinition<?> replacement =
                     createRawResourceAttributeDefinition(SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING);
-            // DO NOT make it mandatory. It must not be present on create hence it cannot be mandatory.
-            replacement.setMinOccurs(0);
+            replacement.setMinOccurs(0); // It must not be present on create hence it cannot be mandatory.
             replacement.setMaxOccurs(1);
-            // Make it read-only
             replacement.setReadOnly();
-            // Set a default display name
             replacement.setDisplayName(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_NAME);
             replacement.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
             // Uid is a primary identifier of every object (this is the ConnId way)
             uidDefinition = replacement;
         }
         if (!hasUidDefinition) {
-            uidDefinition.freeze(); // This eliminates a clone operation during addition
             ocDef.add(uidDefinition);
         }
         ocDef.addPrimaryIdentifierName(uidDefinition.getItemName());
@@ -683,18 +667,9 @@ class ConnIdCapabilitiesAndSchemaParser {
         return false;
     }
 
-    private boolean shouldBeGenerated(List<QName> generateObjectClasses, QName objectClassXsdName) {
-        if (generateObjectClasses == null || generateObjectClasses.isEmpty()) {
-            return true;
-        }
-
-        for (QName objClassToGenerate : generateObjectClasses) {
-            if (objClassToGenerate.equals(objectClassXsdName)) {
-                return true;
-            }
-        }
-
-        return false;
+    private boolean shouldBeGenerated(@NotNull List<QName> generateObjectClasses, QName objectClassXsdName) {
+        return generateObjectClasses.isEmpty()
+                || generateObjectClasses.contains(objectClassXsdName);
     }
 
     private QName connIdAttributeInfoToMatchingRule(AttributeInfo attributeInfo) {

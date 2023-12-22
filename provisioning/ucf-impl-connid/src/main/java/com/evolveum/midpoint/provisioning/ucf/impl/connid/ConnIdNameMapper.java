@@ -94,15 +94,30 @@ public class ConnIdNameMapper {
         addSpecialAttributeMapping(icfName, qName);
     }
 
-
     public QName convertAttributeNameToQName(String icfAttrName, ResourceAttributeContainerDefinition attributesContainerDefinition) {
         return convertAttributeNameToQName(
                 icfAttrName, attributesContainerDefinition.getComplexTypeDefinition());
     }
 
+    /** The ocDef may or may not contain the definition of the attribute we are asking about. */
+    public QName convertAttributeNameToQName(String icfAttrName, String nativeAttrName, ResourceObjectDefinition ocDef) {
+        // __NAME__ and __UID__ are replaced by their native names, if possible
+        if (Name.NAME.equals(icfAttrName) || Uid.NAME.equals(icfAttrName)) {
+            //noinspection ReplaceNullCheck
+            if (nativeAttrName != null) {
+                return convertAttributeNameToQName(nativeAttrName, ocDef);
+            } else {
+                // This most probably ends with using icfs:name/icfs:uid.
+                return convertAttributeNameToQName(icfAttrName, ocDef);
+            }
+        } else {
+            return convertAttributeNameToQName(icfAttrName, ocDef);
+        }
+    }
+
     public QName convertAttributeNameToQName(String icfAttrName, ResourceObjectDefinition ocDef) {
         if (SPECIAL_ATTRIBUTE_MAP_ICF.containsKey(icfAttrName)) {
-            for (ResourceAttributeDefinition<?> attributeDefinition: ocDef.getAttributeDefinitions()) {
+            for (ResourceAttributeDefinition<?> attributeDefinition : ocDef.getAttributeDefinitions()) {
                 if (icfAttrName.equals(attributeDefinition.getFrameworkAttributeName())) {
                     return attributeDefinition.getItemName();
                 }
@@ -129,24 +144,18 @@ public class ConnIdNameMapper {
     }
 
     public String convertAttributeNameToConnId(ResourceAttribute<?> attribute, ResourceObjectDefinition ocDef)
-                throws SchemaException {
-            ResourceAttributeDefinition<?> attrDef = attribute.getDefinition();
-            if (attrDef == null) {
-                attrDef = ocDef.findAttributeDefinition(attribute.getElementName());
-                if (attrDef == null) {
-                    throw new SchemaException("No attribute "+attribute.getElementName()+" in object class "+ocDef.getTypeName());
-                }
-            }
-            return convertAttributeNameToConnId(attrDef);
+            throws SchemaException {
+        ResourceAttributeDefinition<?> attrDef = attribute.getDefinition();
+        if (attrDef == null) {
+            attrDef = ocDef.findAttributeDefinitionRequired(attribute.getElementName());
         }
+        return convertAttributeNameToConnId(attrDef);
+    }
 
     public String convertAttributeNameToConnId(QName attributeName, ResourceObjectDefinition ocDef, String desc)
             throws SchemaException {
-        ResourceAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(attributeName);
-        if (attrDef == null) {
-            throw new SchemaException("No attribute " + attributeName + " in " + ocDef + " " + desc);
-        }
-        return convertAttributeNameToConnId(attrDef);
+        return convertAttributeNameToConnId(
+                ocDef.findAttributeDefinitionRequired(attributeName, () -> " " + desc));
     }
 
     public String convertAttributeNameToConnId(ResourceAttributeDefinition<?> attrDef)
@@ -161,7 +170,8 @@ public class ConnIdNameMapper {
         }
 
         if (!attrQName.getNamespaceURI().equals(MidPointConstants.NS_RI)) {
-            throw new SchemaException("No mapping from QName " + attrQName + " to an ICF attribute in resource schema namespace: " + MidPointConstants.NS_RI);
+            throw new SchemaException(
+                    "No mapping from QName " + attrQName + " to an ICF attribute in resource schema namespace: " + MidPointConstants.NS_RI);
         }
 
         return attrQName.getLocalPart();

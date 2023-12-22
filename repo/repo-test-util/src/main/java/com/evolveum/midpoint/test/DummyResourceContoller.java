@@ -496,7 +496,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     }
 
     public QName getAccountObjectClassQName() {
-        return new QName(NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+        return RI_ACCOUNT_OBJECT_CLASS;
     }
 
     public DummyObjectClass getAccountObjectClass()

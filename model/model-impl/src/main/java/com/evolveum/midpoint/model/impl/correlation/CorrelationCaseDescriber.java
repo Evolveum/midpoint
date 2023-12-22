@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Match;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -196,7 +197,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
         Collection<PrismValue> preFocusValues = preFocus.asPrismContainerValue().getAllValues(itemPath);
         IndexingItemConfiguration indexing = templateCorrelationConfiguration.getIndexingConfiguration().getForPath(itemPath);
         QName defaultMatchingRule = templateCorrelationConfiguration.getDefaultMatchingRuleName(itemPath);
-        CorrelationCaseDescription.Match match =
+        Match match =
                 new MatchDetermination(
                         candidate, correlationProperty, preFocusValues, primaryValues, allValues, indexing, defaultMatchingRule)
                         .determine(task, result);
@@ -232,6 +233,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
         }
     }
 
+    /** Determines the {@link Match} (e.g. full, partial, none) for given candidate, property, and situation. */
     private class MatchDetermination {
 
         @NotNull private final F candidate;
@@ -239,7 +241,11 @@ class CorrelationCaseDescriber<F extends FocusType> {
         @NotNull private final Collection<PrismValue> preFocusValues;
         @NotNull private final Set<PrismValue> primaryValues;
         @NotNull private final Set<PrismValue> allValues;
+
+        /** Indexing configuration (from object template) for given item. */
         @Nullable private final IndexingItemConfiguration indexing;
+
+        /** Default matching rule defined in the object template for given item. */
         @Nullable private final QName defaultMatchingRule;
 
         private MatchDetermination(
@@ -259,7 +265,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
             this.defaultMatchingRule = defaultMatchingRule;
         }
 
-        CorrelationCaseDescription.Match determine(Task task, OperationResult result)
+        Match determine(Task task, OperationResult result)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
             LOGGER.trace("Determining match for {}, pre-focus: {}, primary: {}, all: {}, indexing: {}",

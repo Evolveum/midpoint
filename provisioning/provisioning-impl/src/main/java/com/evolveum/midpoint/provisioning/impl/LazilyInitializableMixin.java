@@ -78,7 +78,7 @@ public interface LazilyInitializableMixin extends DebugDumpable {
         }
 
         initializationState.checkInitialized();
-        getLogger().trace("INTIALIZATION FINISHED. State after:\n{}", debugDumpLazily());
+        getLogger().trace("INITIALIZATION FINISHED. State after:\n{}", debugDumpLazily());
     }
 
     private void initializePrerequisite(Task task, OperationResult result) {

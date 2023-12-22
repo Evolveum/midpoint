@@ -1373,7 +1373,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         var repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
 
         // Added account is slightly different case. Even not-returned-by-default attributes are stored in the cache.
-        checkRepoAccountShadowWill(repoShadow, start, end);
+        checkRepoAccountShadowWill(repoShadow, start, end, true);
 
         willIcfUid = getIcfUid(repoShadow);
         displayValue("Will ICF UID", willIcfUid);
@@ -1398,9 +1398,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         assertShadowNew(shadowAfter)
                 .display()
-                .assertName(ACCOUNT_WILL_USERNAME)
+                .assertName(getWillNameOnResource())
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertOrigValues(SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME))
+                .assertOrigValues(SchemaConstants.ICFS_NAME, getWillNameOnResource())
                 .assertOrigValues(SchemaConstants.ICFS_UID, willIcfUid)
                 .attributes()
                 .assertNoAttribute(new QName(SchemaConstants.NS_ICF_SCHEMA, "password"));
@@ -1418,9 +1418,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         and("the account was created on the dummy resource");
 
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertNotNull("No dummy account", dummyAccount);
-        assertEquals("Username is wrong", transformNameFromResource(ACCOUNT_WILL_USERNAME), dummyAccount.getName());
+        assertEquals("Username is wrong", getWillNameOnResource(), dummyAccount.getName());
         assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
         assertTrue("The account is not enabled", dummyAccount.isEnabled());
         assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD, dummyAccount.getPassword());
@@ -1450,21 +1450,26 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             RawRepoShadow accountRepo,
             XMLGregorianCalendar start,
             XMLGregorianCalendar end,
+            boolean rightAfterCreate,
             Integer expectedNumberOfAttributes) throws CommonException {
+        // At the moment of creation, we do not know that the icfs:name is upper-cased (for up-casing resource).
+        // The reason is that the ConnId returns only the UID (up-cased), so midPoint does not know that the name
+        // was converted as well.
+        String expectedIcfsName = rightAfterCreate ? ACCOUNT_WILL_USERNAME : getWillNameOnResource();
         RepoShadowAsserter<Void> asserter = RepoShadowAsserter.forRepoShadow(accountRepo, getCachedAccountAttributes())
                 .display()
-                .assertName(ACCOUNT_WILL_USERNAME)
+                .assertName(expectedIcfsName)
                 .assertIndexedPrimaryIdentifierValue(
                         isIcfNameUidSame() ? getWillRepoIcfNameNorm() : getIcfUid(accountRepo))
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertCachedOrigValues(SchemaConstants.ICFS_NAME, ACCOUNT_WILL_USERNAME);
+                .assertCachedOrigValues(SchemaConstants.ICFS_NAME, expectedIcfsName);
 
         if (expectedNumberOfAttributes != null) {
             asserter.assertAttributes(expectedNumberOfAttributes);
         }
 
         if (isIcfNameUidSame() && !isProposedShadow(accountRepo)) {
-            asserter.assertCachedOrigValues(SchemaConstants.ICFS_UID, ACCOUNT_WILL_USERNAME);
+            asserter.assertCachedOrigValues(SchemaConstants.ICFS_UID, getWillNameOnResource());
         }
 
         assertRepoCachingMetadata(accountRepo.getPrismObject(), start, end);
@@ -1477,7 +1482,13 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
     protected void checkRepoAccountShadowWill(
             RawRepoShadow repoAccount, XMLGregorianCalendar start, XMLGregorianCalendar end) throws CommonException {
-        checkRepoAccountShadowWillBasic(repoAccount, start, end, 2);
+        checkRepoAccountShadowWill(repoAccount, start, end, false);
+    }
+
+    protected void checkRepoAccountShadowWill(
+            RawRepoShadow repoAccount, XMLGregorianCalendar start, XMLGregorianCalendar end,
+            boolean rightAfterCreate) throws CommonException {
+        checkRepoAccountShadowWillBasic(repoAccount, start, end, rightAfterCreate, 2);
         assertRepoShadowCacheActivation(repoAccount, null);
     }
 
@@ -1508,7 +1519,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         checkUniqueness(shadow);
 
         assertCachingMetadata(shadow.getBean(), false, startTs, endTs);
-        assertCachingMetadata(repoShadow.getBean(), false, startTs, endTs);
+        assertCachingMetadata(repoShadow.getBean(), true, startTs, endTs);
 
         assertShadowPasswordMetadata( // MID-3860
                 shadow.getPrismObject(), true,
@@ -1576,7 +1587,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount accountWill = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
         accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
         accountWill.setEnabled(false);
@@ -1602,7 +1613,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 .assertAttributes(7);
 
         var repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
-        checkRepoAccountShadowWillBasic(repoShadow, startTs, endTs, null);
+        checkRepoAccountShadowWillBasic(repoShadow, startTs, endTs, false, null);
 
         RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAccountAttributes())
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate")

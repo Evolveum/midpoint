@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -65,8 +66,10 @@ class PendingOperationsHelper {
     @Autowired private Clock clock;
     @Autowired private PrismContext prismContext;
 
-    void computePendingOperationsDeltas(List<ItemDelta<?, ?>> shadowModifications, ShadowProvisioningOperation<?> operation)
+    List<ItemDelta<?, ?>> computePendingOperationsDeltas(ShadowProvisioningOperation<?> operation)
             throws SchemaException {
+
+        List<ItemDelta<?, ?>> shadowModifications = new ArrayList<>();
 
         ProvisioningContext ctx = operation.getCtx();
         ProvisioningOperationState<?> opState = operation.getOpState();
@@ -84,6 +87,7 @@ class PendingOperationsHelper {
         } else {
             LOGGER.trace("Operation is complete -> no pending operation updates");
         }
+        return shadowModifications;
     }
 
     void addPendingOperationIntoNewShadow(
@@ -284,8 +288,8 @@ class PendingOperationsHelper {
      * This is very simple code that essentially works only for postponed operations (retries).
      * TODO: better support for async and manual operations
      */
-    List<ItemDelta<?, ?>> cancelAllPendingOperations(RepoShadow repoShadow) throws SchemaException {
-        List<ItemDelta<?, ?>> shadowDeltas = new ArrayList<>();
+    RepoShadowModifications cancelAllPendingOperations(RepoShadow repoShadow) throws SchemaException {
+        RepoShadowModifications shadowModifications = new RepoShadowModifications();
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
         for (PendingOperationType pendingOperation : repoShadow.getBean().getPendingOperation()) {
@@ -297,7 +301,7 @@ class PendingOperationsHelper {
                 continue;
             }
             ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
-            shadowDeltas.addAll(
+            shadowModifications.addAll(
                     prismContext.deltaFor(ShadowType.class)
                             .item(containerPath.append(PendingOperationType.F_EXECUTION_STATUS))
                             .replace(COMPLETED)
@@ -307,7 +311,7 @@ class PendingOperationsHelper {
                             .replace(OperationResultStatusType.NOT_APPLICABLE)
                             .asItemDeltas());
         }
-        return shadowDeltas;
+        return shadowModifications;
     }
 
     /**

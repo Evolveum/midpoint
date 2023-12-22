@@ -145,7 +145,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         assertSuccess(result);
 
         //noinspection unchecked
-        assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+        assertDummyAccount(getWillNameOnResource(), willIcfUid)
                 .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
 
         assertRepoShadow(ACCOUNT_WILL_OID)
@@ -177,7 +177,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         assertSuccess(result);
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        assertNoDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        assertNoDummyAccount(getWillNameOnResource(), willIcfUid);
 
         assertRepoShadow(ACCOUNT_WILL_OID)
                 .assertDead()

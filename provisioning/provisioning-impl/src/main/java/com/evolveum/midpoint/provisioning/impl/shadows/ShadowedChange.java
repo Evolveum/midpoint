@@ -84,7 +84,8 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         if (isDelete()) {
             return lookupRepoShadowForDeletionChange(result);
         } else {
-            return acquireRepoShadow(determineCurrentResourceObjectBeforeShadow(), result);
+            resourceObject = determineCurrentResourceObjectBeforeShadow();
+            return acquireRepoShadow(resourceObject, result);
         }
     }
 
@@ -213,7 +214,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         if (resourceObject != null && !resourceObjectIsTemporary) {
             return resourceObject;
         }
-        LOGGER.trace("Going to determine current resource object, as the previous one was temporary");
+        LOGGER.trace("Going to determine current resource object, as the previous one was non-existent or temporary");
 
         ExistingResourceObject resourceObject;
         if (effectiveCtx.hasRealReadCapability()) {
@@ -351,29 +352,6 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
 
     public String getRepoShadowOid() {
         return RepoShadow.getOid(repoShadow);
-    }
-
-    /**
-     * FIXME fix this description
-     * The resulting combination of resource object and its repo shadow. Special cases:
-     *
-     * 1. For resources without read capability it is based on the cached repo shadow.
-     * 2. For delete deltas, it is the current shadow, with applied definitions.
-     * 3. In emergency it is the same as the current repo shadow.
-     *
-     * The point #2 should be perhaps reconsidered.
-     */
-    public ShadowType getShadowedObject() {
-        if (shadowPostProcessor != null) {
-            var combinedObject = shadowPostProcessor.getCombinedObject();
-            if (combinedObject != null) {
-                return combinedObject.getBean();
-            }
-        }
-        if (repoShadow != null) {
-            return repoShadow.getBean();
-        }
-        return null;
     }
 
     @Override

@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME;
 
 import java.io.File;
 import java.util.Arrays;
@@ -24,6 +24,8 @@ import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
+
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -111,9 +113,9 @@ public class TestDummyCaching extends TestDummy {
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-        accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Nice Pirate");
-        accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
+        DummyAccount accountWill = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
+        accountWill.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Nice Pirate");
+        accountWill.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
         accountWill.setEnabled(true);
 
         var options = SelectorOptions.createCollection(GetOperationOptions.createMaxStaleness());
@@ -134,20 +136,21 @@ public class TestDummyCaching extends TestDummy {
 
         assertNotNull("No dummy account", shadow);
 
-        assertOptionalAttrValue(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
-        assertOptionalAttrValue(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
-        assertOptionalAttrValue(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
-        assertOptionalAttrValue(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
+        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
+        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 
         var repoShadow = assertRepoShadowNew(ACCOUNT_WILL_OID)
-                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate")
-                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
+                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate")
+                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
+                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
                 .assertCachedNormValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
-                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
+                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
                 .getRawRepoShadow();
         assertRepoShadowCacheActivation(repoShadow, ActivationStatusType.DISABLED);
 
-        checkRepoAccountShadowWillBasic(repoShadow, null, startTs, null);
+        checkRepoAccountShadowWillBasic(repoShadow, null, startTs, false, null);
 
         checkUniqueness(shadow);
 
@@ -171,8 +174,8 @@ public class TestDummyCaching extends TestDummy {
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-        accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
+        DummyAccount accountWill = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
+        accountWill.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
         accountWill.setEnabled(true);
 
         Collection<SelectorOptions<GetOperationOptions>> options =
@@ -195,20 +198,21 @@ public class TestDummyCaching extends TestDummy {
 
         assertNotNull("No dummy account", shadow);
 
-        assertOptionalAttrValue(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
-        assertOptionalAttrValue(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
-        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
-        assertOptionalAttrValue(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
+        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
+        assertOptionalAttrValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 //        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
         //TODO assertEquals("Unexpected number of attributes", 7, attributes.size());
 
         var repoShadow = assertRepoShadowNew(ACCOUNT_WILL_OID)
-                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate")
-                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
+                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate")
+                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
+                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
                 .assertCachedNormValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
-                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
+                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
                 .getRawRepoShadow();
-        checkRepoAccountShadowWillBasic(repoShadow, null, startTs, null);
+        checkRepoAccountShadowWillBasic(repoShadow, null, startTs, false, null);
         assertRepoShadowCacheActivation(repoShadow, ActivationStatusType.DISABLED);
 
         checkUniqueness(shadow);
@@ -230,10 +234,10 @@ public class TestDummyCaching extends TestDummy {
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-        accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
-        accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, null);
-        accountWill.getAttributeDefinition(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME).setReturnedAsIncomplete(true);
+        DummyAccount accountWill = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
+        accountWill.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
+        accountWill.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, null);
+        accountWill.getAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME).setReturnedAsIncomplete(true);
         accountWill.setEnabled(true);
 
         try {
@@ -254,16 +258,16 @@ public class TestDummyCaching extends TestDummy {
 
             assertNotNull("No dummy account", shadow);
 
-            assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
-            assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+            assertAttribute(shadow, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
+            assertAttribute(shadow, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
             Collection<ResourceAttribute<?>> attributes = shadow.getAttributes();
             assertEquals("Unexpected number of attributes", 7, attributes.size());
 
             var shadowRepo = assertRepoShadowNew(ACCOUNT_WILL_OID)
-                    .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate")
-                    .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
+                    .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate")
+                    .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
                     .assertCachedNormValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
-                    .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
+                    .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42)
                     .getRawRepoShadow();
             assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.ENABLED);
 
@@ -278,8 +282,8 @@ public class TestDummyCaching extends TestDummy {
             assertSteadyResource();
         } finally {
             // cleanup the state to allow other tests to pass
-            accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
-            accountWill.getAttributeDefinition(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME).setReturnedAsIncomplete(false);
+            accountWill.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
+            accountWill.getAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME).setReturnedAsIncomplete(false);
         }
     }
 
@@ -295,8 +299,7 @@ public class TestDummyCaching extends TestDummy {
         given();
         Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
-                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean, RI_ACCOUNT_OBJECT_CLASS);
         displayDumpable("All shadows query", query);
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
@@ -328,7 +331,7 @@ public class TestDummyCaching extends TestDummy {
             assertCachingMetadata(shadow.getBean(), true, null, startTs);
 
             if (shadow.getName().getOrig().equals("meathook")) {
-                assertCachedAttributeValue(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
+                assertCachedAttributeValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
             }
         }
 
@@ -349,21 +352,22 @@ public class TestDummyCaching extends TestDummy {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount will = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount will = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
 
-        updateAndCheckMultivaluedAttribute(will, false, "initial values", Arrays.asList("sword", "love"), task, result);
-        updateAndCheckMultivaluedAttribute(will, false, "replacing by w1-w3", Arrays.asList("w1", "w2", "w3"), task, result);
-        updateAndCheckMultivaluedAttribute(will, false, "adding w4", Arrays.asList("w1", "w2", "w3", "w4"), task, result);
-        updateAndCheckMultivaluedAttribute(will, false, "removing w1", Arrays.asList("w2", "w3", "w4"), task, result);
-        updateAndCheckMultivaluedAttribute(will, false, "removing all", Collections.emptyList(), task, result);
+        updateAndCheckMultivaluedAttribute(will, false, "initial values", List.of("sword", "love"), task, result);
+        updateAndCheckMultivaluedAttribute(will, false, "replacing by w1-w3", List.of("w1", "w2", "w3"), task, result);
+        updateAndCheckMultivaluedAttribute(will, false, "adding w4", List.of("w1", "w2", "w3", "w4"), task, result);
+        updateAndCheckMultivaluedAttribute(will, false, "removing w1", List.of("w2", "w3", "w4"), task, result);
+        updateAndCheckMultivaluedAttribute(will, false, "removing all", List.of(), task, result);
 
-        updateAndCheckMultivaluedAttribute(will, true, "adding w1-w3", Arrays.asList("w1", "w2", "w3"), task, result);
-        updateAndCheckMultivaluedAttribute(will, true, "adding w4", Arrays.asList("w1", "w2", "w3", "w4"), task, result);
-        updateAndCheckMultivaluedAttribute(will, true, "removing w1", Arrays.asList("w2", "w3", "w4"), task, result);
-        updateAndCheckMultivaluedAttribute(will, true, "removing all", Collections.emptyList(), task, result);
+        updateAndCheckMultivaluedAttribute(will, true, "adding w1-w3", List.of("w1", "w2", "w3"), task, result);
+        updateAndCheckMultivaluedAttribute(will, true, "adding w4", List.of("w1", "w2", "w3", "w4"), task, result);
+        updateAndCheckMultivaluedAttribute(will, true, "removing w1", List.of("w2", "w3", "w4"), task, result);
+        updateAndCheckMultivaluedAttribute(will, true, "removing all", List.of(), task, result);
     }
 
-    private void updateAndCheckMultivaluedAttribute(DummyAccount account, boolean useSearch, String messagePrefix,
+    private void updateAndCheckMultivaluedAttribute(
+            DummyAccount account, boolean useSearch, String messagePrefix,
             Collection<Object> values, Task task, OperationResult result) throws Exception {
 
         String message = messagePrefix + (useSearch ? " (using search)" : " (using get)");
@@ -379,7 +383,7 @@ public class TestDummyCaching extends TestDummy {
                     .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
                     .and().item(ShadowType.F_OBJECT_CLASS).eq(RI_ACCOUNT_OBJECT_CLASS)
                     .and().itemWithDef(nameDef, ShadowType.F_ATTRIBUTES, nameDef.getItemName())
-                        .eq(transformNameFromResource(ACCOUNT_WILL_USERNAME))
+                        .eq(getWillNameOnResource())
                     .build();
             // @formatter:on
 
@@ -393,26 +397,27 @@ public class TestDummyCaching extends TestDummy {
 
         then(message);
 
-        PrismObject<ShadowType> shadow = getShadowRepoRetrieveAllAttributes(ACCOUNT_WILL_OID, result);
-        assertAttribute(shadow, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, values.toArray());
+        RawRepoShadow shadow = getShadowRepoRetrieveAllAttributes(ACCOUNT_WILL_OID, result);
+        RepoShadowAsserter.forRepoShadow(shadow, getCachedAccountAttributes())
+                .assertCachedNormValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, values.toArray());
     }
 
     @Override
     protected void checkRepoAccountShadowWill(
-            RawRepoShadow repoAccount, XMLGregorianCalendar start, XMLGregorianCalendar end) throws CommonException {
+            RawRepoShadow repoAccount, XMLGregorianCalendar start, XMLGregorianCalendar end, boolean rightAfterCreate) throws CommonException {
 
         // Sometimes there are 6 and sometimes 7 attributes. Treasure is not returned by default. It is not normally in the cache.
         // So do not check for number of attributes here. Check for individual values.
-        checkRepoAccountShadowWillBasic(repoAccount, start, end, null);
+        checkRepoAccountShadowWillBasic(repoAccount, start, end, rightAfterCreate, null);
 
         var asserter = RepoShadowAsserter.forRepoShadow(repoAccount, getCachedAccountAttributes())
-                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
+                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
         if (isWeaponIndexOnly()) {
             asserter.assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
         } else {
             asserter.assertCachedNormValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
         }
-        asserter.assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+        asserter.assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 
         assertRepoShadowCacheActivation(repoAccount, ActivationStatusType.ENABLED);
     }

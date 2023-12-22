@@ -258,8 +258,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         return ACCOUNT_WILL_FILE;
     }
 
-    protected String transformNameFromResource(String origName) {
-        return origName;
+    protected String getWillNameOnResource() {
+        return transformNameToResource(ACCOUNT_WILL_USERNAME);
     }
 
     protected String transformNameToResource(String origName) {
@@ -277,15 +277,25 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     }
 
     protected void checkUniqueness(AbstractShadow object) throws SchemaException {
+        checkUniqueness(object, false);
+    }
+
+    protected void checkUniqueness(AbstractShadow object, boolean liveOnly) throws SchemaException {
         OperationResult result = createOperationResult("checkUniqueness");
         var nameAttr = object.getAttributeRequired(SchemaConstants.ICFS_NAME);
-        ObjectQuery query = prismContext.queryFor(ShadowType.class)
+        var q = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(object.getResourceOid())
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(object.getObjectClass())
-                .and().filter(nameAttr.normalizationAwareEqFilter())
-                .build();
+                .and().filter(nameAttr.normalizationAwareEqFilter());
+        if (liveOnly) {
+            q = q.and().block()
+                    .item(ShadowType.F_DEAD).isNull()
+                    .or().item(ShadowType.F_DEAD).eq(false)
+                    .endBlock();
+        }
+        var query = q.build();
         displayDumpable("Filter for checking the uniqueness", query);
-        List<PrismObject<ShadowType>> objects = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        var objects = repositoryService.searchObjects(ShadowType.class, query, null, result);
         assertEquals("Wrong number of repo shadows for ICF NAME \"" + nameAttr + "\"", 1, objects.size());
     }
 

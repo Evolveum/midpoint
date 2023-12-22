@@ -2567,7 +2567,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         var normAwareDef = getAccountAttributeDefinitionRequired(QNAME_DN).toNormalizationAware();
-        var normAwareAttr = normAwareDef.instantiateFromUniqueRealValues(List.of("uid=morgan-rotten,ou=People,dc=example,dc=com"));
+        var normAwareAttr = normAwareDef.adoptRealValuesAndInstantiate(
+                List.of("uid=morgan-rotten,ou=People,dc=example,dc=com"));
         ObjectDelta<ShadowType> rotDelta = deltaFor(ShadowType.class)
                 .item(PATH_DN, normAwareDef)
                 .replaceRealValues(normAwareAttr.getRealValues())

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -145,5 +147,29 @@ public abstract class AbstractLazilyInitializableShadowedEntity implements Lazil
 
     public @NotNull InitializationState getInitializationState() {
         return initializationState;
+    }
+
+    /**
+     * FIXME fix this description and review this method [MID-2119]
+     *
+     * The resulting combination of resource object and its repo shadow. Special cases:
+     *
+     * 1. For resources without read capability it is based on the cached repo shadow.
+     * 2. For delete deltas, it is the current shadow, with applied definitions.
+     * 3. In emergency it is the same as the current repo shadow.
+     *
+     * The point #2 should be perhaps reconsidered.
+     */
+    public ShadowType getShadowedObject() {
+        if (shadowPostProcessor != null) {
+            var combinedObject = shadowPostProcessor.getCombinedObject();
+            if (combinedObject != null) {
+                return combinedObject.getBean();
+            }
+        }
+        if (repoShadow != null) {
+            return repoShadow.getBean();
+        }
+        return null;
     }
 }

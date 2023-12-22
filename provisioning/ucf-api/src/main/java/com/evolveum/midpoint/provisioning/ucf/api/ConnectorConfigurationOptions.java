@@ -6,6 +6,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.util.ShortDumpable;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.Collections;
@@ -20,11 +22,11 @@ import java.util.List;
 public class ConnectorConfigurationOptions extends AbstractOptions implements Cloneable, Serializable, ShortDumpable {
 
     /**
-     * The list of the object classes which should be generated in schema (null or empty means "all").
+     * The list of the object classes which should be generated in schema (empty means "all").
      *
      * The list is immutable. Ensured by the setter method.
      */
-    private final List<QName> generateObjectClasses;
+    @NotNull private final List<QName> generateObjectClasses;
 
     /**
      * If set to `true`, the connector configuration is not ready to be shared with other clients,
@@ -39,23 +41,23 @@ public class ConnectorConfigurationOptions extends AbstractOptions implements Cl
     public static final ConnectorConfigurationOptions DEFAULT = new ConnectorConfigurationOptions();
 
     public ConnectorConfigurationOptions() {
-        generateObjectClasses = null;
+        generateObjectClasses = List.of();
         doNotCache = null;
     }
 
     // Assuming generateObjectClasses is immutable. Not wrapping it here, to avoid re-wraps.
-    private ConnectorConfigurationOptions(List<QName> generateObjectClasses, Boolean doNotCache) {
+    private ConnectorConfigurationOptions(@NotNull List<QName> generateObjectClasses, Boolean doNotCache) {
         this.generateObjectClasses = generateObjectClasses;
         this.doNotCache = doNotCache;
     }
 
-    public List<QName> getGenerateObjectClasses() {
+    public @NotNull List<QName> getGenerateObjectClasses() {
         return generateObjectClasses;
     }
 
     public ConnectorConfigurationOptions generateObjectClasses(List<QName> value) {
         return new ConnectorConfigurationOptions(
-                value != null ? Collections.unmodifiableList(value) : null,
+                value != null ? Collections.unmodifiableList(value) : List.of(),
                 doNotCache);
     }
 

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -38,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
  */
 @SuppressWarnings("rawtypes")
 public final class ResourceAttributeContainerImpl extends PrismContainerImpl<ShadowAttributesType> implements ResourceAttributeContainer {
-    private static final long serialVersionUID = 8878851067509560312L;
+    @Serial private static final long serialVersionUID = 8878851067509560312L;
 
     /**
      * The constructors should be used only occasionally (if used at all).
@@ -93,17 +94,17 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
 
     @Override
     public @NotNull Collection<ResourceAttribute<?>> getPrimaryIdentifiers() {
-        return extractAttributesByDefinitions(getDefinition().getPrimaryIdentifiers());
+        return extractAttributesByDefinitions(getDefinitionRequired().getPrimaryIdentifiers());
     }
 
     @Override
     public @NotNull Collection<ResourceAttribute<?>> getSecondaryIdentifiers() {
-        return extractAttributesByDefinitions(getDefinition().getSecondaryIdentifiers());
+        return extractAttributesByDefinitions(getDefinitionRequired().getSecondaryIdentifiers());
     }
 
     @Override
     public @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers() {
-        return extractAttributesByDefinitions(getDefinition().getAllIdentifiers());
+        return extractAttributesByDefinitions(getDefinitionRequired().getAllIdentifiers());
     }
 
     @Override
@@ -170,6 +171,7 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
 
     @Override
     public <X> ResourceAttribute<X> findAttribute(ResourceAttributeDefinition attributeDefinition) {
+        //noinspection unchecked
         return (ResourceAttribute<X>) getValue().findProperty(attributeDefinition);
     }
 
@@ -207,22 +209,19 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
 
 
     @Override
-    public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw,
-            ConsistencyCheckScope scope) {
+    public void checkConsistenceInternal(
+            Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
         super.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw, scope);
         List<PrismContainerValue<ShadowAttributesType>> values = getValues();
-        if (values == null) {
-            throw new IllegalStateException("Null values in ResourceAttributeContainer");
-        }
         if (values.isEmpty()) {
             return;
         }
         if (values.size() > 1) {
             throw new IllegalStateException(values.size()+" values in ResourceAttributeContainer, expected just one");
         }
-        PrismContainerValue value = values.get(0);
+        PrismContainerValue<ShadowAttributesType> value = values.get(0);
         Collection<Item<?,?>> items = value.getItems();
-        for (Item item: items) {
+        for (Item item : items) {
             if (!(item instanceof ResourceAttribute)) {
                 throw new IllegalStateException("Found illegal item in ResourceAttributeContainer: "+item+" ("+item.getClass()+")");
             }

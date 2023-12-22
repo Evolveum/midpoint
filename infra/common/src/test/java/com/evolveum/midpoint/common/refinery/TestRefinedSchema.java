@@ -29,7 +29,6 @@ import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
@@ -53,7 +52,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -601,7 +599,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
                 LayerType.SCHEMA, LayerType.PRESENTATION);
 
         assertAttributeDef(rAccountAttrs, QNAME_DN,
-                PolyStringType.COMPLEX_TYPE, 1, 1, "Distinguished Name", 110,
+                DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", 110,
                 true, false,
                 true, true, true, // Access: create, read, update
                 LayerType.SCHEMA, LayerType.PRESENTATION);
@@ -625,7 +623,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
                 LayerType.SCHEMA, LayerType.PRESENTATION);
 
         assertAttributeDef(rAccountAttrs, QNAME_UID,
-                PolyStringType.COMPLEX_TYPE, 0, -1, "Login Name", 300,
+                DOMUtil.XSD_STRING, 0, -1, "Login Name", 300,
                 true, false,
                 true, true, true, // Access: create, read, update
                 LayerType.SCHEMA, LayerType.PRESENTATION);

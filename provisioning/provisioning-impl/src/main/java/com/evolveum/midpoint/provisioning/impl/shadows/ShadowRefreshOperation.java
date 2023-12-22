@@ -20,6 +20,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import org.jetbrains.annotations.NotNull;
@@ -174,7 +175,8 @@ class ShadowRefreshOperation {
 
         ObjectDelta<ShadowType> shadowDelta = shadow.getPrismObject().createModifyDelta();
         expirePendingOperations(shadowDelta);
-        b.shadowUpdater.executeRepoShadowModifications(ctx, shadow, shadowDelta.getModifications(), result);
+        RepoShadowModifications repoShadowModifications = RepoShadowModifications.of(shadowDelta.getModifications());
+        b.shadowUpdater.executeRepoShadowModifications(ctx, shadow, repoShadowModifications, result);
 
         deleteDeadShadowIfPossible(result);
     }
@@ -212,7 +214,7 @@ class ShadowRefreshOperation {
      * This method will get new status from {@link ResourceObjectConverter} and it will process the
      * status in case that it has changed.
      */
-    private void refreshShadowAsyncStatus(List<PendingOperationType> sortedOperations, OperationResult parentResult)
+    private void refreshShadowAsyncStatus(List<PendingOperationType> sortedOperations, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
         Duration gracePeriod = ctx.getGracePeriod();
 
@@ -236,11 +238,11 @@ class ShadowRefreshOperation {
 
             AsynchronousOperationResult refreshAsyncResult;
             try {
-                refreshAsyncResult = b.resourceObjectConverter.refreshOperationStatus(ctx, shadow, asyncRef, parentResult);
+                refreshAsyncResult = b.resourceObjectConverter.refreshOperationStatus(ctx, shadow, asyncRef, result);
             } catch (CommunicationException e) {
                 LOGGER.debug("Communication error while trying to refresh pending operation of {}. "
                         + "Skipping refresh of this operation.", shadow, e);
-                parentResult.recordPartialError(e);
+                result.recordPartialError(e);
                 continue;
             }
             OperationResultStatus newStatus = refreshAsyncResult.getOperationResult().getStatus();
@@ -371,16 +373,16 @@ class ShadowRefreshOperation {
 
         if (!shadowDelta.isEmpty()) {
             ctx.applyAttributesDefinition(shadowDelta);
-            b.shadowUpdater.modifyRepoShadow(ctx, shadow, shadowDelta.getModifications(), parentResult);
+            b.shadowUpdater.modifyRepoShadow(ctx, shadow, shadowDelta.getModifications(), result);
         }
 
         for (ObjectDelta<ShadowType> notificationDelta : notificationDeltas) {
             ResourceOperationDescription opDescription = createSuccessOperationDescription(ctx, shadow, notificationDelta);
-            b.eventDispatcher.notifySuccess(opDescription, ctx.getTask(), parentResult);
+            b.eventDispatcher.notifySuccess(opDescription, ctx.getTask(), result);
         }
 
         if (!shadowDelta.isEmpty()) {
-            shadowDelta.applyTo(shadow.getPrismObject());// todo remove (already applied)
+            shadowDelta.applyTo(shadow.getPrismObject());// todo remove (already applied) MID-2119
         }
     }
 
@@ -446,9 +448,12 @@ class ShadowRefreshOperation {
                     .replace(OperationResultStatusType.IN_PROGRESS)
                     .asItemDeltas();
 
-            b.shadowUpdater.executeRepoShadowModifications(ctx, shadow, shadowDeltas, parentResult);
+            RepoShadowModifications shadowModifications = RepoShadowModifications.of(shadowDeltas);
+            b.shadowUpdater.executeRepoShadowModifications(ctx, shadow, shadowModifications, parentResult);
             // The pending operation should be updated as part of the above call
             assert pendingOperation.getAttemptNumber() == attemptNumber;
+
+            ctx.updateShadowState(shadow); // because pending operations were changed
 
             ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingOperation.getDelta());
 

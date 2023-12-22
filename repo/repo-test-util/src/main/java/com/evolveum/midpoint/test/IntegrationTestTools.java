@@ -324,9 +324,7 @@ public class IntegrationTestTools {
 
     public static void assertProvisioningAccountShadow(PrismObject<ShadowType> account, ResourceType resourceType,
             Class<?> expetcedAttributeDefinitionClass) {
-
-        assertProvisioningShadow(account, expetcedAttributeDefinitionClass,
-                toRiQName(SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+        assertProvisioningShadow(account, expetcedAttributeDefinitionClass, RI_ACCOUNT_OBJECT_CLASS);
     }
 
     public static void assertProvisioningShadow(PrismObject<ShadowType> account,

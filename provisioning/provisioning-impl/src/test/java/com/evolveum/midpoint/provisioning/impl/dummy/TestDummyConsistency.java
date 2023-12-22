@@ -140,9 +140,9 @@ public class TestDummyConsistency extends AbstractDummyTest {
                     .assertNone();
         // @formatter:on
 
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(transformNameFromResource(ACCOUNT_WILL_USERNAME));
+        DummyAccount dummyAccount = dummyResource.getAccountByUsername(getWillNameOnResource());
         assertNotNull("No dummy account", dummyAccount);
-        assertEquals("Username is wrong", transformNameFromResource(ACCOUNT_WILL_USERNAME), dummyAccount.getName());
+        assertEquals("Username is wrong", getWillNameOnResource(), dummyAccount.getName());
         assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
         assertTrue("The account is not enabled", dummyAccount.isEnabled());
         assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD, dummyAccount.getPassword());
@@ -433,16 +433,16 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.resetBreakMode();
 
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(transformNameFromResource(ACCOUNT_WILL_USERNAME));
+        DummyAccount dummyAccount = dummyResource.getAccountByUsername(getWillNameOnResource());
         assertNotNull("No dummy account", dummyAccount);
-        assertEquals("Username is wrong", transformNameFromResource(ACCOUNT_WILL_USERNAME), dummyAccount.getName());
+        assertEquals("Username is wrong", getWillNameOnResource(), dummyAccount.getName());
         assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
         assertTrue("The account is not enabled", dummyAccount.isEnabled());
         assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD, dummyAccount.getPassword());
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-
-        checkUniqueness(AbstractShadow.of(shadowProvisioningFutureAsserter.getObject())); // FIXME remove the conversions here
+        // We must not limit ourselves to live shadows only (as the shadow is dead)
+        checkUniqueness(AbstractShadow.of(shadowProvisioningFutureAsserter.getObject()), false); // FIXME remove the conversions here
 
         assertSteadyResources();
     }
@@ -488,8 +488,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_MORGAN_FILE);
-        // Reset morgan OID. We cannot use the same OID, as there is a dead shadow with
-        // the original OID.
+        // Reset morgan OID. We cannot use the same OID, as there is a dead shadow with the original OID.
         account.setOid(null);
         account.checkConsistence();
         display("Adding shadow", account);
@@ -1271,10 +1270,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         dummyResource.resetBreakMode();
-
-        // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-
-        checkUniqueness(AbstractShadow.of(asserterShadowFuture.getObject())); // FIXME remove the conversions here
 
         assertSteadyResources();
     }
@@ -2280,7 +2275,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(AbstractShadow.of(asserterFuture.getObject())); // FIXME remove these conversions here
+        checkUniqueness(AbstractShadow.of(asserterFuture.getObject()), true); // FIXME remove these conversions here
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -2364,7 +2359,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         dummyResource.resetBreakMode();
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(AbstractShadow.of(asserterFuture.getObject())); // FIXME remove these conversions here
+        checkUniqueness(AbstractShadow.of(asserterFuture.getObject()), true); // FIXME remove these conversions here
 
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
                 .assertName(ACCOUNT_MORGAN_NAME)
@@ -2472,7 +2467,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(AbstractShadow.of(accountProvisioningFuture)); // FIXME remove this conversion here
+        checkUniqueness(AbstractShadow.of(accountProvisioningFuture), true); // FIXME remove this conversion here
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
@@ -2583,7 +2578,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(AbstractShadow.of(accountProvisioningFuture)); // FIXME remove this conversion here
+        checkUniqueness(AbstractShadow.of(accountProvisioningFuture), true); // FIXME remove this conversion here
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
@@ -2683,7 +2678,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(AbstractShadow.of(accountProvisioningFuture)); // FIXME remove this conversion here
+        checkUniqueness(AbstractShadow.of(accountProvisioningFuture), true); // FIXME remove this conversion here
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
@@ -2787,7 +2782,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(AbstractShadow.of(accountProvisioningFuture)); // FIXME remove this conversion here
+        checkUniqueness(AbstractShadow.of(accountProvisioningFuture), true); // FIXME remove this conversion here
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
@@ -2891,7 +2886,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(AbstractShadow.of(accountProvisioningFuture)); // FIXME remove this conversion here
+        checkUniqueness(AbstractShadow.of(accountProvisioningFuture), true); // FIXME remove this conversion here
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)

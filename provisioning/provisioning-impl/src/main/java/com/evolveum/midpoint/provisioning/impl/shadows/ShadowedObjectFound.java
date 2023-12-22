@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorRep
 
 import java.util.Objects;
 
-import com.google.common.base.MoreObjects;
+import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,10 +29,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
@@ -106,69 +102,62 @@ public class ShadowedObjectFound extends AbstractLazilyInitializableShadowedEnti
 
     @Override
     public void checkConsistence() {
-        var combinedObject = shadowPostProcessor.getCombinedObject();
-        if (combinedObject != null) {
-            ProvisioningUtil.validateShadow(combinedObject.getBean(), true);
+        var shadowedObject = getShadowedObject();
+        if (shadowedObject != null) {
+            ProvisioningUtil.validateShadow(shadowedObject, true);
         } else {
             ProvisioningUtil.validateShadow(getExistingResourceObjectRequired().getBean(), false);
         }
     }
 
-    private @NotNull ShadowType getAdoptedOrOriginalObject() {
-        return MoreObjects
-                .firstNonNull(shadowPostProcessor.getCombinedObject(), getExistingResourceObjectRequired())
-                .getBean();
+    private @NotNull ShadowType getMostRelevantObjectForError(@NotNull OperationResult result) {
+        if (shadowPostProcessor != null && shadowPostProcessor.getCombinedObject() != null) {
+            // Probably will not be the case, but not impossible either.
+            return shadowPostProcessor.getCombinedObject().getBean();
+        }
+        if (repoShadow != null) {
+            try {
+                return ShadowedObjectConstruction
+                        .construct(effectiveCtx, repoShadow, getExistingResourceObjectRequired(), result)
+                        .getBean();
+            } catch (Exception e) {
+                LOGGER.debug("Couldn't create the shadowed object during error handling for {}, will use repo shadow", this, e);
+                return repoShadow.getBean();
+            }
+        }
+        return getExistingResourceObjectRequired().getBean();
     }
 
     /**
      * Returns object that should be passed to provisioning module client.
      * (Maybe temporary, until we return this instance - or similar data structure - directly.)
      */
-    @NotNull ShadowType getResultingObject(@Nullable FetchErrorReportingMethodType errorReportingMethod) {
+    @NotNull ShadowType getResultingObject(
+            @Nullable FetchErrorReportingMethodType errorReportingMethod, @NotNull OperationResult result) {
         checkInitialized();
 
         Throwable exception = getExceptionEncountered();
         if (exception == null) {
-            return getAdoptedOrOriginalObject();
+            return shadowPostProcessor.getCombinedObject().getBean();
         } else if (errorReportingMethod != FETCH_RESULT) {
             throw new TunnelException(exception);
         } else {
-            ShadowType resultingObject = getResourceObjectWithFetchResult();
+            ShadowType resultingObject = getResourceObjectWithErrorFetchResult(result);
+            // TODO should we log the error like this? MID-2119
             LOGGER.error("An error occurred while processing resource object {}. Recording it into object fetch result: {}",
                     resultingObject, exception.getMessage(), exception);
             return resultingObject;
         }
     }
 
-    @NotNull private ShadowType getResourceObjectWithFetchResult() {
-        if (isOk()) {
-            return getAdoptedOrOriginalObject();
-        } else {
-            ShadowType mostRelevantObject = getAdoptedOrOriginalObject();
-            ShadowType clone = mostRelevantObject.clone();
-            if (clone.getName() == null) {
-                if (CollectionUtils.isEmpty(ShadowUtil.getPrimaryIdentifiers(clone))) {
-                    // HACK HACK HACK
-                    clone.setName(PolyStringType.fromOrig(String.valueOf(getPrimaryIdentifierValue())));
-                } else {
-                    try {
-                        PolyString name = ShadowUtil.determineShadowName(clone);
-                        if (name != null) {
-                            clone.setName(new PolyStringType(name));
-                        }
-                    } catch (SchemaException e) {
-                        LOGGER.warn("Couldn't determine the name for {}", clone, e);
-                    }
-                }
-            }
-            OperationResult result = new OperationResult("adoptObject"); // TODO HACK HACK HACK
-            Throwable exceptionEncountered = getExceptionEncountered();
-            // TODO HACK HACK
-            result.recordFatalError(Objects.requireNonNullElseGet(
-                    exceptionEncountered, () -> new IllegalStateException("Object was not initialized")));
-            ObjectTypeUtil.recordFetchError(clone, result);
-            return clone;
-        }
+    @NotNull private ShadowType getResourceObjectWithErrorFetchResult(@NotNull OperationResult result) {
+        assert !isOk();
+        ShadowType mostRelevantObject = getMostRelevantObjectForError(result).clone();
+        OperationResult lResult = new OperationResult("shadowObject"); // TODO HACK HACK HACK MID-2119
+        lResult.recordFatalError(Objects.requireNonNullElseGet(
+                getExceptionEncountered(), () -> new IllegalStateException("Object was not initialized")));
+        ObjectTypeUtil.recordFetchError(mostRelevantObject, lResult);
+        return mostRelevantObject;
     }
 
     /**
@@ -193,7 +182,7 @@ public class ShadowedObjectFound extends AbstractLazilyInitializableShadowedEnti
         sb.append(this.getClass().getSimpleName());
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectFound", resourceObjectFound, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "shadowedObject", shadowPostProcessor != null ? shadowPostProcessor.getCombinedObject() : null, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "shadowedObject", getShadowedObject(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "initializationState", String.valueOf(initializationState), indent + 1);
         return sb.toString();
     }
@@ -202,7 +191,7 @@ public class ShadowedObjectFound extends AbstractLazilyInitializableShadowedEnti
     public String toString() {
         return getClass().getSimpleName() + "{" +
                 "resourceObjectFound=" + resourceObjectFound +
-                ", shadowedObject=" + (shadowPostProcessor != null ? shadowPostProcessor.getCombinedObject() : null) +
+                ", shadowedObject=" + getShadowedObject() +
                 ", state=" + initializationState +
                 '}';
     }

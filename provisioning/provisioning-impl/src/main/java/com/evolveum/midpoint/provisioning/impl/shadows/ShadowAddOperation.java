@@ -80,10 +80,6 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
 
         InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT); // TODO is it OK here?
 
-        schemaCheck(
-                !ShadowUtil.getAttributesRaw(resourceObjectToAdd).isEmpty(),
-                "No attributes in resource object to add: %s", resourceObjectToAdd);
-
         LOGGER.trace("Start adding shadow object{}:\n{}",
                 lazy(() -> getAdditionalOperationDesc(scripts, options)),
                 resourceObjectToAdd.debugDumpLazily(1));
@@ -104,6 +100,10 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
         ProvisioningContextFactory ctxFactory = ShadowsLocalBeans.get().ctxFactory;
         ResourceType resource = ctxFactory.getResource(resourceObjectToAdd, task, result);
         try {
+            schemaCheck(
+                    !ShadowUtil.getAttributesRaw(resourceObjectToAdd).isEmpty(),
+                    "No attributes in resource object to add: %s", resourceObjectToAdd);
+
             ProvisioningContext ctx = ctxFactory.createForShadow(resourceObjectToAdd, resource, task);
             ctx.assertDefinition();
             return ctx;

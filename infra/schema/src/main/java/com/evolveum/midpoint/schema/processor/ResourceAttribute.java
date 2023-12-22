@@ -11,6 +11,10 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -153,6 +157,14 @@ public interface ResourceAttribute<T> extends PrismProperty<T> {
         return getDefinitionRequired()
                 .<N>toNormalizationAware()
                 .adoptRealValuesAndInstantiate(getRealValues());
+    }
+
+    /** Creates a delta that would enforce (via REPLACE operation) the values of this attribute. */
+    default @NotNull PropertyDelta<T> createReplaceDelta() {
+        var delta = getDefinitionRequired().createEmptyDelta();
+        delta.setValuesToReplace(
+                CloneUtil.cloneCollectionMembers(getValues()));
+        return delta;
     }
 
     /** TODO decide on this. */

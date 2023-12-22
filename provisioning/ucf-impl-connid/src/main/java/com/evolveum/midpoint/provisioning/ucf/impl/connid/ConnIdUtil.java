@@ -139,9 +139,8 @@ public class ConnIdUtil {
                 LOGGER, "Got ConnId exception (might be handled by upper layers later) {} in {}: {}",
                 connIdException, connIdException.getClass().getName(), desc, connIdException.getMessage());
 
-        if (connIdException instanceof RemoteWrappedException) {
+        if (connIdException instanceof RemoteWrappedException remoteWrappedException) {
             // brutal hack, for now
-            RemoteWrappedException remoteWrappedException = (RemoteWrappedException) connIdException;
             String className = remoteWrappedException.getExceptionClass();
             if (className == null) {
                 LOGGER.error("Remote ConnId exception without inner exception class name. Continuing with original one", connIdException);
@@ -164,7 +163,9 @@ public class ConnIdUtil {
         if (connIdException instanceof NullPointerException && connIdException.getMessage() != null) {
             // NPE with a message text is in fact not a NPE but an application exception
             // this usually means that some parameter is missing
-            Exception newEx = new SchemaException(createMessageFromAllExceptions("Required attribute is missing",connIdException));
+            // TODO This is no longer true for modern Java VMs and condition checking methods
+            Exception newEx = new SchemaException(
+                    createMessageFromAllExceptions("Required attribute is missing", connIdException));
             connIdResult.recordFatalError("Required attribute is missing: "+connIdException.getMessage(),newEx);
             return newEx;
         } else if (connIdException instanceof IllegalArgumentException) {

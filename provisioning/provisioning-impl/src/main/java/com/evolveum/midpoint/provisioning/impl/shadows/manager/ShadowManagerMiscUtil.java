@@ -40,6 +40,20 @@ public class ShadowManagerMiscUtil {
                 ctx.determineShadowState(resourceObject.getBean()));
     }
 
+    /**
+     * "Safe variant" of {@link #determinePrimaryIdentifierValue(RepoShadow)} that assumes the LC state may be out of date.
+     * In theory, it should not be needed. In practice, it is.
+     */
+    public static <T> T determinePrimaryIdentifierValue(
+            @NotNull ProvisioningContext ctx,
+            @NotNull RepoShadow repoShadow) {
+        ctx.updateShadowState(repoShadow);
+        //noinspection unchecked
+        return (T) determinePrimaryIdentifierValue(
+                repoShadow,
+                repoShadow.getShadowLifecycleState());
+    }
+
     public static <T> T determinePrimaryIdentifierValue(RepoShadow repoShadow) throws SchemaException {
         //noinspection unchecked
         return (T) determinePrimaryIdentifierValue(
@@ -55,7 +69,7 @@ public class ShadowManagerMiscUtil {
      * Prerequisite: the shadow definition is refined.
      */
     public static Object determinePrimaryIdentifierValue(
-            @NotNull AbstractShadow shadow, @NotNull ShadowLifecycleStateType lifecycleState) throws SchemaException {
+            @NotNull AbstractShadow shadow, @NotNull ShadowLifecycleStateType lifecycleState) {
 
         if (lifecycleState == REAPING || lifecycleState == CORPSE || lifecycleState == TOMBSTONE) {
             return null;

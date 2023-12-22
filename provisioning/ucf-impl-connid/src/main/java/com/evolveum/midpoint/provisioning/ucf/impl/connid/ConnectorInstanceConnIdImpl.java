@@ -109,8 +109,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     final ConnIdNameMapper connIdNameMapper;
     final ConnIdConvertor connIdConvertor;
 
-    /** If not null and not empty, specifies what object classes should be put into schema (empty means "no limitations"). */
-    @Nullable private List<QName> generateObjectClasses;
+    /** If not empty, specifies what object classes should be put into schema (empty means "no limitations"). */
+    @NotNull private List<QName> generateObjectClasses = List.of();
 
     /**
      * Builder and holder object for parsed ConnId schema and capabilities. By using
@@ -180,7 +180,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         LOGGER.trace("Configuring connector {}, provided configuration:\n{}", connectorType, configurationOriginal.debugDumpLazily(1));
 
         try {
-            generateObjectClasses = options != null ? options.getGenerateObjectClasses() : null;
+            generateObjectClasses = options != null ? options.getGenerateObjectClasses() : List.of();
             // Get default configuration for the connector. This is important,
             // as it contains types of connector configuration properties.
 

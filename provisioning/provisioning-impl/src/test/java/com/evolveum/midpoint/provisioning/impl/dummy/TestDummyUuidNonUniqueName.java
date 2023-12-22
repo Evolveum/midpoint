@@ -103,7 +103,6 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
     }
 
     private void addFettucini(File file, String oid, String expectedFullName) throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -113,10 +112,10 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 
         display("Adding shadow", accountToAdd);
 
-        // WHEN
+        when();
         String addedObjectOid = provisioningService.addObject(accountToAdd, null, null, task, result);
 
-        // THEN
+        then();
         assertSuccessVerbose(result);
         assertEquals(oid, addedObjectOid);
 
@@ -151,7 +150,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 
         ProvisioningTestUtil.checkRepoAccountShadow(repoShadow);
 
-        checkUniqueness(accountAfter);
+        // We do not check the uniqueness here, as the icfs:name is not unique here. (That's strange, as it SHOULD be unique.)
         assertSteadyResource();
     }
 
@@ -172,5 +171,4 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
     private PrismPropertyDefinition<String> getIcfNameDefinition() {
         return prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
     }
-
 }

@@ -553,7 +553,8 @@ public class TestDummyNegative extends AbstractDummyTest {
             return true;
         };
         Collection<SelectorOptions<GetOperationOptions>> options = createNoExceptionOptions();
-        provisioningService.searchObjectsIterative(ShadowType.class, getAllAccountsQuery(RESOURCE_DUMMY_BROKEN_ACCOUNTS),
+        provisioningService.searchObjectsIterative(
+                ShadowType.class, getAllAccountsQuery(RESOURCE_DUMMY_BROKEN_ACCOUNTS),
                 options, handler, task, result);
 
         then();

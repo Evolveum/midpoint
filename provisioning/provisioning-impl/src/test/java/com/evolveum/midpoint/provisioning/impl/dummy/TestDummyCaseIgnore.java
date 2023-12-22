@@ -96,14 +96,14 @@ public class TestDummyCaseIgnore extends TestDummy {
     public void test175SearchUidCase() throws Exception {
         testSearchIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_UID, "wIlL", null, true,
-                transformNameFromResource("Will"));
+                getWillNameOnResource());
     }
 
     @Test
     public void test176SearchUidCaseNoFetch() throws Exception {
         testSearchIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_UID, "wIlL", GetOperationOptions.createNoFetch(), false,
-                transformNameFromResource("Will"));
+                getWillNameOnResource());
     }
 
     /**

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
@@ -278,7 +279,7 @@ public class ConstraintsChecker {
         }
     }
 
-    public static void onShadowModifyOperation(Collection<? extends ItemDelta<?, ?>> deltas) {
+    public static void onShadowModifyOperation(RepoShadowModifications modifications) {
         // here we must be very cautious; we do not know which attributes are naming ones!
         // so in case of any attribute change, let's clear the cache
         // (actually, currently only naming attributes are stored in repo)
@@ -287,7 +288,7 @@ public class ConstraintsChecker {
             return;
         }
         ItemPath attributesPath = ShadowType.F_ATTRIBUTES;
-        for (ItemDelta<?, ?> itemDelta : deltas) {
+        for (ItemDelta<?, ?> itemDelta : modifications.getItemDeltas()) {
             if (attributesPath.isSubPathOrEquivalent(itemDelta.getParentPath())) {
                 log("Clearing cache on shadow attribute modify operation", false);
                 cache.conflictFreeSituations.clear();

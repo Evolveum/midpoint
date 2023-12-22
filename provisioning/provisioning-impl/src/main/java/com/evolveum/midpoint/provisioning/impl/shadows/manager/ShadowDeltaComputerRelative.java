@@ -9,11 +9,12 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -74,7 +75,7 @@ class ShadowDeltaComputerRelative {
         this.repoShadow = repoShadow;
     }
 
-    Collection<ItemDelta<?, ?>> computeShadowModifications() throws SchemaException {
+    RepoShadowModifications computeShadowModifications() throws SchemaException {
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired(); // If type is not present, OC def is fine
         boolean cachingEnabled = ctx.isCachingEnabled(); // FIXME partial caching?
 
@@ -82,7 +83,7 @@ class ShadowDeltaComputerRelative {
         ItemDelta<?, ?> explicitNameMod = null; // Shadow name modification requested explicitly by the client.
         ItemDelta<?, ?> attributeBasedNameMod = null; // Shadow name modification as determined by looking at attributes.
 
-        Collection<ItemDelta<?, ?>> resultingRepoModifications = new ArrayList<>();
+        RepoShadowModifications resultingRepoModifications = new RepoShadowModifications();
 
         Collection<? extends QName> associationValueAttributes = objectDefinition.getAssociationValueAttributes();
 
@@ -103,10 +104,7 @@ class ShadowDeltaComputerRelative {
                             primaryIdentifierValueModFromAttributeMod(modification));
                 }
                 if (ctx.shouldStoreAttributeInShadow(objectDefinition, attrDef, associationValueAttributes)) {
-                    // We have to suppress the type parameters, because - in fact - we change the type of the values.
-                    //noinspection rawtypes,unchecked
-                    ((ItemDelta) modification).applyDefinition(attrDef.toNormalizationAware(), true);
-                    resultingRepoModifications.add(modification);
+                    resultingRepoModifications.add(modification, attrDef);
                 }
             } else if (ShadowType.F_ACTIVATION.equivalent(modification.getParentPath())) {
                 if (ProvisioningUtil.shouldStoreActivationItemInShadow(modification.getElementName(), cachingEnabled)) {
@@ -155,7 +153,7 @@ class ShadowDeltaComputerRelative {
         Collection<? extends PrismValue> newValues = attributeMod.getNewValues();
 
         if (newValues.isEmpty()) {
-            // Strange but not impossible. So we do not thrown an exception here.
+            // Strange but not impossible. So we do not throw an exception here.
             LOGGER.warn("Naming attribute value removal? Object: {}, modifications:\n{}",
                     repoShadow, DebugUtil.debugDump(allModifications, 1));
             return originalNameMod; // nothing to do
@@ -223,7 +221,9 @@ class ShadowDeltaComputerRelative {
                 || (objectDefinition.getAllIdentifiers().size() == 1 && objectDefinition.isPrimaryIdentifier(attrName));
     }
 
-    private void addPasswordDelta(Collection<ItemDelta<?, ?>> repoChanges, ItemDelta<?, ?> requestedPasswordDelta,
+    private void addPasswordDelta(
+            RepoShadowModifications repoModifications,
+            ItemDelta<?, ?> requestedPasswordDelta,
             ResourceObjectDefinition objectDefinition) throws SchemaException {
         if (!(requestedPasswordDelta.getPath().equivalent(SchemaConstants.PATH_PASSWORD_VALUE))) {
             return;
@@ -236,7 +236,7 @@ class ShadowDeltaComputerRelative {
         PropertyDelta<ProtectedStringType> passwordValueDelta = (PropertyDelta<ProtectedStringType>) requestedPasswordDelta;
         hashValues(passwordValueDelta.getValuesToAdd());
         hashValues(passwordValueDelta.getValuesToReplace());
-        repoChanges.add(requestedPasswordDelta);
+        repoModifications.add(requestedPasswordDelta);
     }
 
     private void hashValues(Collection<PrismPropertyValue<ProtectedStringType>> propertyValues) throws SchemaException {

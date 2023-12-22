@@ -3246,7 +3246,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 cachedAttributeNames);
     }
 
-    protected PrismObject<ShadowType> getShadowRepoRetrieveAllAttributes(String shadowOid, OperationResult result)
+    protected RawRepoShadow getShadowRepoRetrieveAllAttributes(String shadowOid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         // We need to read the shadow as raw, so repo will look for some kind of rudimentary attribute
         // definitions here. Otherwise we will end up with raw values for non-indexed (cached) attributes
@@ -3258,7 +3258,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, options, result);
         logger.info("Got repo shadow\n{}", shadow.debugDumpLazily(1));
         assertSuccess(result);
-        return shadow;
+        return RawRepoShadow.of(shadow);
     }
 
     protected Collection<ObjectDelta<? extends ObjectType>> createDetlaCollection(ObjectDelta<?>... deltas) {
