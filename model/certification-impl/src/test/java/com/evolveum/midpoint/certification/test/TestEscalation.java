@@ -560,7 +560,7 @@ public class TestEscalation extends AbstractCertificationTest {
                                 .assertValue(C_WI_OUTCOME, "")
                                 .assertValue(C_WI_COMMENT, "")
                                 .assertValue(C_WI_LAST_CHANGED, "")
-                                .assertValue(C_WI_CLOSED, s -> s.contains(startYear)))
+                                .assertValue(C_WI_CLOSED, s -> s.contains(endYear)))
                 .forRecords(1,
                         r -> "User: jack".equals(r.get(C_WI_OBJECT))
                                 && "Role: Reviewer".equals(r.get(C_WI_TARGET))
