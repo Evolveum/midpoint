@@ -2010,8 +2010,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .assertNoPassword()
                 .getObject();
 
-        var pendingOperation =
-                assertSinglePendingOperation(repoShadowObj, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+        var pendingOperation = assertSinglePendingOperation(
+                repoShadowObj, accountWillReqestTimestampStart, accountWillReqestTimestampEnd, executionStage);
         assertNotNull("No ID in pending operation", pendingOperation.getId());
 
         // Still old data in the repo. The operation is not completed yet.
@@ -2030,7 +2030,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
         assertShadowPassword(shadowModel);
 
-        PendingOperationType pendingOperationType = assertSinglePendingOperation(shadowModel, accountWillReqestTimestampStart, accountWillReqestTimestampEnd, executionStage);
+        PendingOperationType pendingOperationType = assertSinglePendingOperation(
+                shadowModel, accountWillReqestTimestampStart, accountWillReqestTimestampEnd, executionStage);
 
         PrismObject<ShadowType> shadowProvisioningFuture = modelService.getObject(ShadowType.class,
                 accountWillOid,
