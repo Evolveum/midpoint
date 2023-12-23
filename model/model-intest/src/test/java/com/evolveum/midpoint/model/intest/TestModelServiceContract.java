@@ -3298,7 +3298,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDefaultDummyAccount("blackbeard", "Edward Teach", true);
         DummyAccount dummyAccount = getDummyAccount(null, "blackbeard");
-        assertEquals("Wrong loot", (Integer) 10000, dummyAccount.getAttributeValue("loot", Integer.class));
+        assertEquals("Wrong loot", (Long) 10000L, dummyAccount.getAttributeValue("loot", Long.class));
 
         assertDummyScriptsAdd(userBlackbeard, accountModel, getDummyResourceType());
 
