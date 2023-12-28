@@ -1202,8 +1202,7 @@ public class TestOrgSync extends AbstractStoryTest {
         Collection<String> membersAfterTest = openDJController.getGroupUniqueMembers(RESP_CANIBALISM_DN);
         System.out.println("group members after test = " + membersAfterTest);
         assertTrue(RESP_CANIBALISM_DN + " does not contain " + ACCOUNT_LEMONHEAD_DN,
-                // ...it seems to get lowercased during the reconciliation
-                membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN.toLowerCase()));
+                membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN));
     }
 
     private void assertUserGuybrush(PrismObject<UserType> user) {
