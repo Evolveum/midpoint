@@ -679,10 +679,11 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                         .noFetch()
                         .retrieve()
                         .build();
-        PrismObject<ShadowType> shadow = provisioningService
-                .getObject(ShadowType.class, shadowInRepo.getOid(), options, task, result);
+        PrismObject<ShadowType> shadow =
+                provisioningService.getObject(ShadowType.class, shadowInRepo.getOid(), options, task, result);
 
         return assertShadow(shadow, "after")
+                .display()
                 .attributes()
                     .attribute(ATTR_MEMBER.getLocalPart())
                         .assertRealValues(expectedUsers);
