@@ -121,7 +121,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         buttonContainer.add(showMetadataButton);
         showMetadataButton.add(AttributeAppender.append(
                 "title",
-                getPageBase().createStringResource(
+                getParentPage().createStringResource(
                         "PrismContainerValuePanel.showMetadata." + PrismValuePanel.this.getModelObject().isShowMetadata())));
         showMetadataButton.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getValueMetadata() != null && CollectionUtils.isNotEmpty(getModelObject().getValueMetadata().getValues())));
         showMetadataButton.add(AttributeAppender.append(

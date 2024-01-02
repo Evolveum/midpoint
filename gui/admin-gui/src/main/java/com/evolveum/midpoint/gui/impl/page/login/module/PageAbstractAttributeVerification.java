@@ -38,7 +38,6 @@ import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -122,19 +121,21 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
                 return super.isRequired();
             }
         };
+        attributeNameLabel.setOutputMarkupId(true);
         item.add(attributeNameLabel);
 
         if (QNameUtil.match(DOMUtil.XSD_STRING, itemWrapper.getTypeName()) ||
                 QNameUtil.match(PolyStringType.COMPLEX_TYPE, itemWrapper.getTypeName())) {
-            createTextPanelComponent(itemWrapper, item);
+            createTextPanelComponent(itemWrapper, item, attributeNameLabel.createLabelModel().getObject());
         } else {
-            createGenericPanelComponent(itemWrapper, item);
+            createGenericPanelComponent(itemWrapper, item, attributeNameLabel.createLabelModel().getObject());
         }
     }
 
-    private void createTextPanelComponent(PrismPropertyWrapper<?> itemWrapper, ListItem<VerificationAttributeDto> item) {
+    private void createTextPanelComponent(PrismPropertyWrapper<?> itemWrapper, ListItem<VerificationAttributeDto> item, String headerLabel) {
         PropertyModel<String> valueModel = new PropertyModel<>(itemWrapper, "value.realValue");
         TextPanel<String> valuePanel = new TextPanel<>(ID_ATTRIBUTE_VALUE, valueModel);
+        valuePanel.getBaseFormComponent().add(AttributeAppender.append("aria-label", headerLabel));
         addNameAttribute(valuePanel.getBaseFormComponent(), item);
         item.add(valuePanel);
 
@@ -143,7 +144,7 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
         item.add(parameterValue);
     }
 
-    private void createGenericPanelComponent(PrismPropertyWrapper<?> itemWrapper, ListItem<VerificationAttributeDto> item) {
+    private void createGenericPanelComponent(PrismPropertyWrapper<?> itemWrapper, ListItem<VerificationAttributeDto> item, String headerLabel) {
         IModel<String> hiddenFieldModel = Model.of();
 
         PropertyModel<PrismPropertyValueWrapper> valueModel = new PropertyModel<PrismPropertyValueWrapper>(itemWrapper, "value");
@@ -171,9 +172,10 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
 
             @Override
             protected Map<String, String> getAttributeValuesMap() {
-                Map<String, String> nameAttribute = new HashMap<>();
-                nameAttribute.put("name", AuthConstants.ATTR_VERIFICATION_PARAMETER_START + item.getModelObject().getItemPath());
-                return nameAttribute;
+                Map<String, String> attributes = new HashMap<>();
+                attributes.put("name", AuthConstants.ATTR_VERIFICATION_PARAMETER_START + item.getModelObject().getItemPath());
+                attributes.put("aria-label", headerLabel);
+                return attributes;
             }
 
             @Override

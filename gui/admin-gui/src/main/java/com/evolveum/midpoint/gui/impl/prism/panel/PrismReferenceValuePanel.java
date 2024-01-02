@@ -80,7 +80,7 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
             protected <O extends ObjectType> void choosePerformed(AjaxRequestTarget target, O object) {
                 super.choosePerformed(target, object);
                 getBaseFormComponent().validate();
-                target.add(getPageBase().getFeedbackPanel());
+                target.add(getParentPage().getFeedbackPanel());
                 target.add(getFeedback());
             }
 

@@ -6,10 +6,15 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
@@ -17,6 +22,8 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperIm
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.apache.wicket.util.visit.IVisitor;
 
 /**
  * @author katka
@@ -31,6 +38,41 @@ public class PrismReferencePanel<R extends Referencable>
 
     public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemPanelSettings settings) {
         super(id, model, settings);
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        ItemHeaderPanel header = getHeader();
+        if (header == null || header.getLabelComponent() == null) {
+            return;
+        }
+
+        ListView<PrismReferenceValueWrapperImpl<R>> listOfValues = getValuesContainer();
+        listOfValues.visitChildren(ListItem.class, (IVisitor<ListItem, Void>) (item, visit) -> {
+            PrismReferenceValuePanel valuePanel = (PrismReferenceValuePanel) item.get(ID_VALUE);
+            Component inputPanel = valuePanel == null ? null : valuePanel.getValuePanel();
+            if (inputPanel instanceof ValueChoosePanel) {
+                ((ValueChoosePanel)inputPanel).getBaseFormComponent()
+                        .add(AttributeAppender.append(
+                                "aria-label",
+                                getParentPage().createStringResource(
+                                        "PrismReferencePanel.readOnlyText", getHeader().createLabelModel().getObject())));
+                ((ValueChoosePanel)inputPanel).getEditButton()
+                        .add(AttributeAppender.append(
+                                "aria-label",
+                                getParentPage().createStringResource(
+                                        "PrismReferencePanel.editButtonTitle", getHeader().createLabelModel().getObject())));
+            } else if (valuePanel != null) {
+                valuePanel.visitChildren(
+                        FormComponent.class,
+                        (IVisitor<FormComponent, Void>) (component, visitInput) -> component.add(
+                                AttributeAppender.append(
+                                        "aria-labelledby",
+                                        getHeader().getLabelComponent().getMarkupId())));
+            }
+        });
     }
 
     @Override
@@ -77,5 +119,13 @@ public class PrismReferencePanel<R extends Referencable>
     @Override
     protected <PV extends PrismValue> PV createNewValue(PrismReferenceWrapper<R> itemWrapper) {
         return (PV) getPrismContext().itemFactory().createReferenceValue();
+    }
+
+    private PrismReferenceHeaderPanel getHeader() {
+        return (PrismReferenceHeaderPanel) get(ID_HEADER);
+    }
+
+    private PrismReferenceValuePanel getValue() {
+        return (PrismReferenceValuePanel) getValuesContainer().get(ID_VALUE);
     }
 }
