@@ -13,14 +13,14 @@ midPoint 4.8 LTS uses an updated resource definition.
 Some parts of resource definition are marked as *DEPRECATED*.
 For example, `<objectSynchronization>` element defined in resource synchronization.
 
-The old resources should still work in 4.8 LTS, but cannot be edited using xref:/midpoint/admin-gui/resource-wizard/[resource wizard].
+The old resources should still work in 4.8 LTS, but cannot be edited using xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard].
 
-Please refer to xref:/midpoint/resources/resource-configuration/schema-handling/changes-in-4.6/[schema handling changes documentation] for more information how to change your resource definitions.
+Please refer to xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6/[schema handling changes documentation] for more information how to change your resource definitions.
 
 === Do I need to update my 4.4-based correlation configuration in resources?
 
-midPoint 4.8 LTS uses an improved correlation mechanism named xref:/midpoint/correlation/[Smart correlation].
+midPoint 4.8 LTS uses an improved correlation mechanism named xref:/midpoint/reference/correlation/[Smart correlation].
 
-The old query-only-based correlation is still supported, but it is *DEPRECATED* does cannot be edited using xref:/midpoint/admin-gui/resource-wizard/[resource wizard].
+The old query-only-based correlation is still supported, but it is *DEPRECATED* does cannot be edited using xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard].
 
-We recommend to upgrade your resource definitions to use the new mechanism, especially the easy-to-use xref:/midpoint//correlation/items-correlator/[Items correlator].
+We recommend to upgrade your resource definitions to use the new mechanism, especially the easy-to-use xref:/midpoint/reference/correlation/items-correlator/[Items correlator].
