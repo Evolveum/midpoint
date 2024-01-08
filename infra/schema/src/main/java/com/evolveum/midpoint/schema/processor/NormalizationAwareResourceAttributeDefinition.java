@@ -279,6 +279,21 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     }
 
     @Override
+    public boolean isAlwaysUseForEquals() {
+        return originalDefinition.isAlwaysUseForEquals();
+    }
+
+    @Override
+    public boolean isOptionalCleanup() {
+        return originalDefinition.isOptionalCleanup();
+    }
+
+    @Override
+    public DisplayHint getDisplayHint() {
+        return originalDefinition.getDisplayHint();
+    }
+
+    @Override
     public boolean isIndexOnly() {
         return originalDefinition.isIndexOnly();
     }
