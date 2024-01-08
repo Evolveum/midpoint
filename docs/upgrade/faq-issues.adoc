@@ -43,12 +43,21 @@ Please use the mapping's `lifecycleState` set to `draft` to switch off the mappi
 This is supported also in the xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard].
 In addition to `draft`, there are other lifecycle states supporting xref:/midpoint/reference/simulation/[simulations] and other operations.
 
-// === TODO Mapping names recommendation
-// We recommend to fill in mapping names, why is it a good practice for future.
+=== Why resource wizard's mapping editor shows a Name column for all my mappings?
+
+The xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard] allows setting a name for all your mappings from one particular reason: mapping names can significantly help with xref:/midpoint/reference/diag/troubleshooting/mappings/[mapping troubleshooting] and are also used for merging configuration if you use xref:/midpoint/reference/resources/resource-configuration/inheritance/[Resource and Object Type Inheritance (e.g. resource templates)].
+
+We recommend to use mapping names and this is why resource wizard displays the mapping names as the first (prominent) column in the resource mappings table.
 
 // TODO new synchronization parameters, e.g delineation
+// .. and new recommendations for this synchronization section (we already mentioned correlation)
 
-//We have a new Resource phase in AuditLog, for our existing engineers, make it aware for them and have option to disable if they don't like new default (enabled OOTB).
+=== Why is the audit log getting bigger after upgrade to 4.8 LTS? / What is the new RESOURCE audit stage?
 
-//    mentioned in https://docs.evolveum.com/midpoint/reference/support-4.8/security/audit/#event-stages
-//    mentioned in (the same doc, different chapter) https://docs.evolveum.com/midpoint/reference/support-4.8/security/audit/#_auditing_of_resource_object_changes
+In midPoint 4.8 LTS, there is a new `Resource` phase in auditing subsystem (and audit log).
+This phase audits all operations performed on provisioning level - changes of resource objects.
+
+The `Resource` phase auditing is *turned on by default in midPoint 4.8 LTS*.
+It can significantly increase audit log size, especially when the deployment manages a lot of resources.
+
+Please refer to xref:/midpoint/reference/security/audit/#_auditing_of_resource_object_changes[Auditing of Resource Object Changes] if you want to turn this auditing off.
