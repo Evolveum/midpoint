@@ -106,7 +106,7 @@ a| activation/lockoutStatus = "normal"
 | Troubleshooting hints
 a| * Search for allowed values in schema definition. Schemas are described in
 xref:../../../../schema/schemadoc.adoc[SchemaDoc].
-Selet version according your midPoint version. +
+Select version according your midPoint version. +
 In this case search in schema "common/common-3" for "LockoutStatusType"
 
 // Alternatively, you can search midPoint schema files #on github# for verification.

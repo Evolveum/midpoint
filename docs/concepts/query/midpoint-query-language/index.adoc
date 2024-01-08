@@ -1,6 +1,4 @@
 = midPoint Query Language
-:page-since: "4.4"
-:page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
 :page-toc: top
 :toclevels: 3
 :sectnums:
@@ -377,7 +375,7 @@ The concepts of the language are based on xref:/midpoint/devel/axiom/[Axiom data
 MidPoint Query Language is replacing an old xref:../xml-query-language/[XML-based query language].
 The new language is more natural, user-friendly and better aligned with foundations of xref:/midpoint/devel/axiom/[Axiom data modeling].
 
-MidPoint Query Language is a relative new development, introduced in midPoint 4.3.
+MidPoint Query Language was introduced in midPoint 4.3.
 It was almost fully supported in midPoint 4.4 LTS, except for embedded expression.
 Since midPoint 4.5, midPoint Query Language is fully supported and recommended option.
 
