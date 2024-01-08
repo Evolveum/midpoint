@@ -11,22 +11,23 @@ import java.util.List;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
 import com.evolveum.midpoint.schema.processor.MutableRawResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.ItemProcessing;
-import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
-import com.evolveum.midpoint.prism.SchemaMigration;
+
 import com.evolveum.midpoint.schema.processor.MutableResourceObjectClassDefinition;
 import com.google.common.annotations.VisibleForTesting;
 
 interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefinition {
+
+    @Override
+    default void setOptionalCleanup(boolean optionalCleanup) {
+        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+    }
 
     @Override
     default void setInstantiationOrder(Integer order) {
@@ -58,7 +59,11 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
     @Override
     default void setExperimental(boolean experimental) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+    }
 
+    @Override
+    default void setDisplayHint(DisplayHint displayHint) {
+        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 
     @Override

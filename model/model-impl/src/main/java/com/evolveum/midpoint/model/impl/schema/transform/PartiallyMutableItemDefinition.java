@@ -24,6 +24,11 @@ import java.util.Collection;
 public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends MutableItemDefinition<I> {
 
     @Override
+    default void setOptionalCleanup(boolean optionalCleanup) {
+        throw new IllegalStateException("Item Definition is not modifiable");
+    }
+
+    @Override
     default void setProcessing(ItemProcessing processing) {
         throw new IllegalStateException("Item Definition is not modifiable");
 

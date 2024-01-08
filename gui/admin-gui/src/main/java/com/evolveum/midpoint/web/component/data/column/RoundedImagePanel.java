@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -75,7 +77,7 @@ public class RoundedImagePanel extends BasePanel<DisplayType> {
         if(icon != null) {
             String color = icon.getColor();
             if (StringUtils.isNotEmpty(color)) {
-                return "color:" + color + ";";
+                return "color:" + GuiDisplayTypeUtil.removeStringAfterSemicolon(color) + ";";
             }
         }
         return null;

@@ -32,7 +32,7 @@ Simple style and javascript changes can be done via maven overlay by adding cont
 
 These files are empty by default and are linked last on midPoint web pages.
 
-For more details see xref:../../devel/gui/gui-development-guide.adoc#styles-and-javascript[GUI development guide].
+For more details see xref:/midpoint/devel/gui/gui-development-guide.adoc#styles-and-javascript[GUI development guide].
 
 == Quick customization
 

@@ -6,10 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
@@ -79,6 +83,39 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
         createDeleteButton(repeatingView);
         createEditRawButton(repeatingView);
+
+        repeatingView.streamChildren()
+                .forEach(button -> {
+                    String title = null;
+                    if (button instanceof AjaxIconButton) {
+                        title = ((AjaxIconButton)button).getTitle().getObject();
+                    } else if (button instanceof AjaxCompositedIconSubmitButton){
+                        title = ((AjaxCompositedIconSubmitButton)button).getTitle().getObject();
+                    }
+
+                    if (StringUtils.isNotEmpty(title)) {
+                        button.add(AttributeAppender.append(
+                                "aria-label",
+                                getPageBase().createStringResource("OperationalButtonsPanel.buttons.main.label", title)));
+                    }
+
+                    button.add(new Behavior() {
+
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public void bind(Component component) {
+                            super.bind(component);
+
+                            component.add(AttributeModifier.replace("onkeydown",
+                                    Model.of(
+                                            "if (event.keyCode == 32){"
+                                                    + "this.click();"
+                                                    + "}"
+                                    )));
+                        }
+                    });
+                });
 
         RepeatingView stateButtonsView = new RepeatingView(ID_STATE_BUTTONS);
         add(stateButtonsView);
@@ -175,9 +212,8 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
-        // Probably won't work correctly, will be overridden with visible behavior default value for enabled.
-        save.add(new EnableBehaviour(this::isSavePreviewButtonEnabled));
-        save.add(new VisibleBehaviour(this::isSaveButtonVisible));
+
+        save.add(new VisibleEnableBehaviour(this::isSaveButtonVisible, this::isSavePreviewButtonEnabled));
         save.titleAsLabel(true);
         save.setOutputMarkupId(true);
         save.add(AttributeAppender.append("class", "btn btn-success btn-sm"));

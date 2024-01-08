@@ -2726,7 +2726,7 @@ public final class WebComponentUtil {
                 return null;
             }
             builder.setBasicIcon(actionButtonIcon, IconCssStyle.IN_ROW_STYLE)
-                    .appendColorHtmlValue(actionButtonIcon.getColor());
+                    .appendColorHtmlValue(GuiDisplayTypeUtil.removeStringAfterSemicolon(actionButtonIcon.getColor()));
             return builder;
         }
         DisplayType objectTypeDisplay = null;
@@ -2760,7 +2760,7 @@ public final class WebComponentUtil {
                     .appendLayerIcon(relationIcon, IconCssStyle.TOP_RIGHT_MAX_ICON_STYLE);
         } else {
             builder.setBasicIcon(actionButtonIcon, IconCssStyle.IN_ROW_STYLE)
-                    .appendColorHtmlValue(actionButtonIcon.getColor());
+                    .appendColorHtmlValue(GuiDisplayTypeUtil.removeStringAfterSemicolon(actionButtonIcon.getColor()));
         }
         return builder;
     }

@@ -35,13 +35,25 @@ export default class MidPointTheme {
                     // expand the panel
                     $(this).nextUntil('.nav-header').slideDown();
                     $(this).removeClass('closed');
+                    $(this).attr("aria-expanded", "true")
                 } else {
                     // collapse the panel
                     $(this).nextUntil('.nav-header').slideUp();
                     $(this).addClass('closed');
+                    $(this).attr("aria-expanded", "false")
                 }
             });
         });
+
+        jQuery(function ($) {
+                    $('.nav-sidebar li.nav-item[aria-haspopup="true"]').on("click", function (e) {
+                        if ($(this).hasClass('menu-open')) {
+                            $(this).attr("aria-expanded", "false");
+                        } else {
+                            $(this).attr("aria-expanded", "true");
+                        }
+                    });
+                });
 
         !function ($) {
             $.fn.passwordFieldValidatorPopover = function (inputId, popover) {
@@ -130,8 +142,8 @@ export default class MidPointTheme {
             }
         })(jQuery);
 
-        jQuery(function ($) {
-            $(document).on("mouseenter", "*[data-toggle='tooltip']", function (e, t) {
+        (function ($) {
+            $.fn.showTooltip = function () {
                 if (typeof $(this).tooltip === "function") {
                     var wl = $.fn.tooltip.Constructor.Default.whiteList;
                     wl['xsd:documentation'] = [];
@@ -142,8 +154,16 @@ export default class MidPointTheme {
                     }
                     $(this).tooltip({html: true, whiteList: wl, 'container': container});
                     $(this).tooltip("show");
-                }
-                ;
+                };
+            }
+        })(jQuery);
+
+        jQuery(function ($) {
+            $(document).on("mouseenter", "*[data-toggle='tooltip']", function (e) {
+                $(this).showTooltip();
+            });
+            $(document).on("focus", "*[data-toggle='tooltip']", function (e) {
+                $(this).showTooltip();
             });
         });
 

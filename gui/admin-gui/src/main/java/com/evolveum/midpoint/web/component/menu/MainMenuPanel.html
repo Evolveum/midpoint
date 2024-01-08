@@ -7,13 +7,14 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <li wicket:id="item" class="nav-item">
+    <li wicket:id="item" class="nav-item" role="menuitem">
         <a wicket:id="link" class="d-flex nav-link" data-bs-toggle="tooltip" data-bs-placement="right">
             <span class="flex-shrink-1">
                 <i wicket:id="icon" class="nav-icon"/>
             </span>
             <div class="d-flex flex-grow-1 text-truncate">
                 <div class="text-truncate">
+                    <span class="sr-only" wicket:id="srCurrentMessage"/>
                     <span wicket:id="label"/>
                 </div>
                 <wicket:enclosure child="arrow">
@@ -24,12 +25,13 @@
                 <span class="my-1 ml-auto flex-shrink-1 badge badge-primary right" wicket:id="bubble"/>
             </div>
         </a>
-        <ul wicket:id="submenu" class="nav nav-treeview">
-            <li wicket:id="subItem" class="nav-item">
+        <ul wicket:id="submenu" class="nav nav-treeview" role="menu">
+            <li wicket:id="subItem" class="nav-item" role="menuitem">
                 <a wicket:id="subLink" class="d-flex nav-link" href="#" data-bs-toggle="tooltip" data-bs-placement="right">
                     <span>
                         <i class="nav-icon" style="min-width: 20px;" wicket:id="subLinkIcon"/>
                     </span>
+                    <span class="sr-only" wicket:id="srCurrentMessageSubItem"/>
                     &nbsp;
                     <div class="text-truncate" wicket:id="subLabel"/>
                 </a>

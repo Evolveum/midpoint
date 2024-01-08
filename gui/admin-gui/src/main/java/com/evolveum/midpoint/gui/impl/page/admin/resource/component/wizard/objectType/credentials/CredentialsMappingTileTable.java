@@ -60,4 +60,9 @@ public abstract class CredentialsMappingTileTable extends AbstractSpecificMappin
             LOGGER.debug("Couldn't find child container by path " + getMappingDirection().getContainerName() + " in parent " + parent);
         }
     }
+
+    @Override
+    protected String getNoRuleMessageKey() {
+        return "AbstractSpecificMappingTileTable.noCredentialRules";
+    }
 }

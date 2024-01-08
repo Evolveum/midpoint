@@ -26,11 +26,10 @@ public class RoleAnalysisTableTools {
      * @return The CSS class representing the background color.
      */
     public static String densityBasedColor(double density) {
-        double densityValue = density;
 
-        if (densityValue >= 60) {
+        if (density >= 60) {
             return "bg-success text-center";
-        } else if (densityValue > 30) {
+        } else if (density > 30) {
             return "bg-info text-center";
         } else {
             return "bg-secondary text-center";

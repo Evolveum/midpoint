@@ -29,6 +29,15 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
+
+import com.evolveum.midpoint.util.exception.SystemException;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -334,6 +343,20 @@ public class ResourceAttributeDefinitionImpl<T>
     @Override
     public boolean isIgnored() {
         return isIgnored(currentLayer);
+    }
+
+    @Override
+    public boolean isAlwaysUseForEquals() {
+        return rawDefinition.isAlwaysUseForEquals();
+    }
+
+    @Override
+    public DisplayHint getDisplayHint() {
+        if (customizationBean.getDisplayHint() != null) {
+            return MiscSchemaUtil.toDisplayHint(customizationBean.getDisplayHint());
+        } else {
+            return rawDefinition.getDisplayHint();
+        }
     }
 
     @Override

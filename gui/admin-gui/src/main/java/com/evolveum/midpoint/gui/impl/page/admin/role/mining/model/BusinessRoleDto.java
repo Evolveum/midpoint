@@ -98,10 +98,12 @@ public class BusinessRoleDto implements Serializable {
         List<String> userRolesAssignmentOids = getRolesOidAssignment(userObject);
         List<String> roleRolesAssignmentOids = getRolesOidInducements(businessRole);
 
+        Set<String> appliedRoles = new HashSet<>();
         int delete = 0;
         Collection<PrismContainerValue<AssignmentType>> unassignRoleCollection = new ArrayList<>();
         for (String assignmentOid : userRolesAssignmentOids) {
             if (roleRolesAssignmentOids.contains(assignmentOid)) {
+                appliedRoles.add(assignmentOid);
                 AssignmentType assignmentTo = createAssignmentTo(assignmentOid, ObjectTypes.ROLE, pageBase.getPrismContext());
                 unassignRoleCollection.add(assignmentTo.asPrismContainerValue());
                 delete++;
@@ -114,7 +116,7 @@ public class BusinessRoleDto implements Serializable {
 
         int roleAssignmentCount = roleRolesAssignmentOids.size();
 
-        int extraAssignmentCount = Math.max(0, roleAssignmentCount - delete);
+        int extraAssignmentCount = roleAssignmentCount - appliedRoles.size();
 
         this.include = delete > 0;
         this.prismObjectUser = prismObjectUser;

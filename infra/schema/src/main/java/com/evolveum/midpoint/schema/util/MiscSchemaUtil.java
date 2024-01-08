@@ -10,12 +10,10 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.ItemProcessing;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -375,6 +373,20 @@ public class MiscSchemaUtil {
         InformationType rv = new InformationType();
         messages.forEach(s -> rv.getPart().add(new InformationPartType().localizableText(s)));
         return rv;
+    }
+
+    public static DisplayHint toDisplayHint(DisplayHintType hint) {
+        if (hint == null) {
+            return null;
+        }
+
+        return switch (hint) {
+            case HIDDEN -> DisplayHint.HIDDEN;
+            case COLLAPSED -> DisplayHint.COLLAPSED;
+            case EXPANDED -> DisplayHint.EXPANDED;
+            case REGULAR -> DisplayHint.REGULAR;
+            case EMPHASIZED -> DisplayHint.EMPHASIZED;
+        };
     }
 
     public static ItemProcessing toItemProcessing(ItemProcessingType type) {

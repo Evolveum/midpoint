@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import com.evolveum.midpoint.web.security.MidPointApplication;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.Behavior;
@@ -77,6 +78,10 @@ public abstract class InputPanel extends Panel implements Validatable {
 
     public LocalizationService getLocalizationService() {
         return WebComponentUtil.getPage(InputPanel.this, PageAdminLTE.class).getLocalizationService();
+    }
+
+    public String createComponentPath(String... components) {
+        return StringUtils.join(components, ":");
     }
 
 

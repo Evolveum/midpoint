@@ -133,6 +133,11 @@ public class CompositeObjectDefinitionImpl
     public List<ItemDiagramSpecification> getDiagrams() { return structuralDefinition.getDiagrams(); }
 
     @Override
+    public DisplayHint getDisplayHint() {
+        return structuralDefinition.getDisplayHint();
+    }
+
+    @Override
     public boolean isEmphasized() {
         return structuralDefinition.isEmphasized();
     }
@@ -160,6 +165,11 @@ public class CompositeObjectDefinitionImpl
     @Override
     public boolean isRemoved() {
         return structuralDefinition.isRemoved();
+    }
+
+    @Override
+    public boolean isOptionalCleanup() {
+        return structuralDefinition.isOptionalCleanup();
     }
 
     @Override

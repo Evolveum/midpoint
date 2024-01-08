@@ -25,6 +25,11 @@ public class SearchResultList<T> extends AbstractFreezable
     private List<T> list = null;
     private SearchResultMetadata metadata = null;
 
+    /** Returns modifiable instance, just to keep the existing behavior. */
+    public static <T> SearchResultList<T> empty() {
+        return new SearchResultList<>(new ArrayList<>());
+    }
+
     @Override
     protected void performFreeze() {
         if (isMutable()) {

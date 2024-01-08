@@ -14,6 +14,8 @@ import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -52,6 +54,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     protected static final String ID_TAG_BOX = "summaryTagBox";
     protected static final String ID_SUMMARY_TAG = "summaryTag";
     protected static final String ID_ICON = "summaryIcon";
+    protected static final String ID_SR_MESSAGE_FOR_SUMMARY_PANEL = "srMessageForSummaryPanel";
     protected static final String ID_DISPLAY_NAME = "summaryDisplayName";
     protected static final String ID_IDENTIFIER = "summaryIdentifier";
     protected static final String ID_IDENTIFIER_PANEL = "summaryIdentifierPanel";
@@ -103,8 +106,20 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         } else if (getDisplayNamePropertyName() != null) {
             box.add(new Label(ID_DISPLAY_NAME, createLabelModel(getDisplayNamePropertyName(), SummaryPanelSpecificationType.F_DISPLAY_NAME)));
         } else {
-            box.add(new Label(ID_DISPLAY_NAME, " "));
+            Label displayName = new Label(ID_DISPLAY_NAME, " ");
+            displayName.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+            box.add(displayName);
         }
+
+        ObjectTypes type = ObjectTypes.getObjectTypeIfKnown(getModelObject().getClass());
+        IModel<String> messageModel;
+        if (type != null) {
+            String typeMessage = getPageBase().createStringResource(type).getString();
+            messageModel = getPageBase().createStringResource("AbstractSummaryPanel.srMessageWithType", typeMessage);
+        } else {
+            messageModel = getPageBase().createStringResource("AbstractSummaryPanel.srMessage");
+        }
+        box.add(new Label(ID_SR_MESSAGE_FOR_SUMMARY_PANEL, messageModel));
 
         WebMarkupContainer identifierPanel = new WebMarkupContainer(ID_IDENTIFIER_PANEL);
         Label identifier = new Label(ID_IDENTIFIER, createLabelModel(getIdentifierPropertyName(), SummaryPanelSpecificationType.F_IDENTIFIER));
@@ -144,44 +159,13 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         navigateToObject.setOutputMarkupId(true);
         box.add(navigateToObject);
 
-        if (getTitleModel() != null) {
-            box.add(new Label(ID_TITLE, getTitleModel()));
-        } else if (getTitlePropertyName() != null) {
-            box.add(new Label(ID_TITLE, createLabelModel(getTitlePropertyName(), SummaryPanelSpecificationType.F_TITLE1)));
-        } else {
-            box.add(new Label(ID_TITLE, " "));
-        }
-
-        if (getTitle2Model() != null) {
-            box.add(new Label(ID_TITLE2, getTitle2Model()));
-        } else if (getTitle2PropertyName() != null) {
-            box.add(new Label(ID_TITLE, createLabelModel(getTitle2PropertyName(), SummaryPanelSpecificationType.F_TITLE2)));
-        } else {
-            Label label = new Label(ID_TITLE2, " ");
-            label.setVisible(false);
-            box.add(label);
-        }
-
-        if (getTitle3Model() != null) {
-            box.add(new Label(ID_TITLE3, getTitle3Model()));
-        } else if (getTitle3PropertyName() != null) {
-            box.add(new Label(ID_TITLE, createLabelModel(getTitle3PropertyName(), SummaryPanelSpecificationType.F_TITLE3)));
-        } else {
-            Label label = new Label(ID_TITLE3, " ");
-            label.setVisible(false);
-            box.add(label);
-        }
+        addTitle(box, getTitleModel(), getTitlePropertyName(), SummaryPanelSpecificationType.F_TITLE1, ID_TITLE);
+        addTitle(box, getTitle2Model(), getTitle2PropertyName(), SummaryPanelSpecificationType.F_TITLE2, ID_TITLE2);
+        addTitle(box, getTitle3Model(), getTitle3PropertyName(), SummaryPanelSpecificationType.F_TITLE3, ID_TITLE3);
 
         final IModel<String> parentOrgModel = getParentOrgModel();
         Label parentOrgLabel = new Label(ID_ORGANIZATION, parentOrgModel);
-        parentOrgLabel.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return parentOrgModel.getObject() != null;
-            }
-        });
+        parentOrgLabel.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(parentOrgModel.getObject())));
         box.add(parentOrgLabel);
 
         iconBox = new WebMarkupContainer(ID_ICON_BOX);
@@ -241,6 +225,25 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         }
         tagBox.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(summaryTags)));
         box.add(tagBox);
+    }
+
+    private void addTitle(
+            WebMarkupContainer box,
+            IModel<String> titleModel,
+            QName titlePropertyName,
+            ItemName configurationPropertyName,
+            String id) {
+        IModel<String> labelModel;
+        if (titleModel != null) {
+            labelModel = titleModel;
+        } else if (titleModel != null) {
+            labelModel = createLabelModel(titlePropertyName, configurationPropertyName);
+        } else {
+            labelModel = Model.of(" ");
+        }
+        Label title = new Label(id, labelModel);
+        title.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(labelModel.getObject())));
+        box.add(title);
     }
 
     protected IModel<List<Badge>> createBadgesModel() {

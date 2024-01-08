@@ -52,10 +52,11 @@ public class DefaultDetectionAction implements Serializable {
             @NotNull List<MiningUserTypeChunk> miningUserTypeChunks,
             @NotNull RoleAnalysisProcessModeType mode) {
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            return detectionType.performUserBasedDetection(miningRoleTypeChunks, detectionOption, handler);
+            return detectionType.performDetection(mode, miningRoleTypeChunks, detectionOption, handler);
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return detectionType.performRoleBasedDetection(miningUserTypeChunks, detectionOption, handler);
+            return detectionType.performDetection(mode, miningUserTypeChunks, detectionOption, handler);
         }
+
         return null;
     }
 }

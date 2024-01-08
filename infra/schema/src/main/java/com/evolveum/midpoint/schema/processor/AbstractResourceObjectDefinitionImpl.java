@@ -623,6 +623,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
+    public boolean isOptionalCleanup() {
+        return false;
+    }
+
+    @Override
     public String getRemovedSince() {
         return null;
     }
@@ -644,6 +649,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @Override
     public String getDeprecatedSince() {
+        return null;
+    }
+
+    @Override
+    public DisplayHint getDisplayHint() {
         return null;
     }
 

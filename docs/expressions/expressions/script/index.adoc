@@ -23,8 +23,6 @@ Currently supported languages are:
 
 * xref:/midpoint/reference/misc/notifications/velocity/[Velocity] (since 3.4.1) for expressions returning strings/texts
 
-(xref:xpath.adoc[XPath version 2] was supported until midPoint 3.5, but it is not supported any longer)
-
 [NOTE]
 ====
 While you can use any of the languages above, using Groovy is your best bet.

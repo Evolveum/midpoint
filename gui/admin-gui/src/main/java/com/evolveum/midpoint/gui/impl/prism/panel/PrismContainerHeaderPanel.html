@@ -12,22 +12,22 @@
         <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
                 class="btn btn-tool expand-collapse-button" trigger="hover">
         </button>
-        <a class="prism-title" wicket:id="label"/>
+        <a class="prism-title" wicket:id="label" wicket:message="aria-description:PrismObjectPanel.labelDescription"/>
         <span wicket:id="required" class="text-danger" style="font-weight: bold;" wicket:message="title:prismPropertyPanel.required">*</span>
         <wicket:enclosure child="help">
-            <button class="btn btn-tool">
+            <span class="btn btn-tool" wicket:message="title:PrismObjectPanel.help" tabindex="0">
                 <i wicket:id="help"/>
-            </button>
+            </span>
         </wicket:enclosure>
         <wicket:enclosure child="deprecated">
-            <button class="btn btn-tool">
+            <span class="btn btn-tool" tabindex="0" wicket:message="title:PrismObjectPanel.deprecated">
                 <i wicket:id="deprecated"/>
-            </button>
+            </span>
         </wicket:enclosure>
         <wicket:enclosure child="experimental">
-            <button class="btn btn-tool">
+            <span class="btn btn-tool" tabindex="0" wicket:message="title:PrismObjectPanel.experimental">
                 <i wicket:id="experimental"/>
-            </button>
+            </span>
         </wicket:enclosure>
 
         <button wicket:id="add" wicket:message="title:ItemHeaderPanel.addValue" class="btn btn-tool" trigger="hover">

@@ -35,7 +35,8 @@ Projector reflects data from the focus to projections (using xref:/midpoint/refe
 
 Clockwork is a controller.
 Clockwork invokes projector to recompute everything that needs to be recomputed.
-Clockwork invokes xref:/midpoint/reference/concepts/clockwork/hooks/[hooks] to further process the request (e.g. to route it through a xref:/midpoint/reference/cases/workflow-3/[workflow]). This happens several times.
+Clockwork invokes xref:/midpoint/reference/concepts/clockwork/hooks/[hooks] to further process the request (e.g. to route it through xref:/midpoint/reference/cases/approval/[approvals]).
+This happens several times.
 Clockwork then proceeds to execute the changes.
 This may also happen several times if xref:/midpoint/reference/resources/provisioning-dependencies/[dependencies] are used.
 Clockwork handles execution errors.

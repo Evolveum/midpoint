@@ -7,15 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.detection;
 
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
-import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 /**
  * The `DetectionOperation` interface defines the operations required for performing pattern detection
@@ -25,33 +25,19 @@ import java.util.List;
 public interface DetectionOperation {
 
     /**
-     * Performs user-based pattern detection using the provided mining role type chunks, detection options,
-     * and a progress increment handler.
+     * Performs pattern detection using the provided mining role type chunks, detection options,
+     * progress increment handler and process mode.
      *
-     * @param miningRoleTypeChunks The mining role type chunks to analyze.
-     * @param roleAnalysisDetectionOptionType The detection options to configure the detection process.
+     * @param processMode The mode specifying whether the process is user-based or role-based.
+     * @param miningBaseTypeChunks The mining structure type chunks to analyze.
+     * @param detectionOption The detection options to configure the detection process.
      * @param handler The progress increment handler for tracking the detection process.
-     * @return A list of detected patterns based on user-based detection criteria.
+     * @return A list of detected patterns based on provided detection criteria.
      */
-    @NotNull
-    List<DetectedPattern> performUserBasedDetection(
-            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            @NotNull DetectionOption roleAnalysisDetectionOptionType,
-            @NotNull RoleAnalysisProgressIncrement handler);
-
-    /**
-     * Performs role-based pattern detection using the provided mining user type chunks, detection options,
-     * and a progress increment handler.
-     *
-     * @param miningUserTypeChunks The mining user type chunks to analyze.
-     * @param roleAnalysisDetectionOptionType The detection options to configure the detection process.
-     * @param handler The progress increment handler for tracking the detection process.
-     * @return A list of detected patterns based on role-based detection criteria.
-     */
-    @NotNull
-    List<DetectedPattern> performRoleBasedDetection(
-            @NotNull List<MiningUserTypeChunk> miningUserTypeChunks,
-            @NotNull DetectionOption roleAnalysisDetectionOptionType,
+    @NotNull <T extends MiningBaseTypeChunk> List<DetectedPattern> performDetection(
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull List<T> miningBaseTypeChunks,
+            @NotNull DetectionOption detectionOption,
             @NotNull RoleAnalysisProgressIncrement handler);
 
 }

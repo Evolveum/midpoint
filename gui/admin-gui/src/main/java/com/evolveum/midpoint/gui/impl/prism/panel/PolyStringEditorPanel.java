@@ -53,7 +53,9 @@ public class PolyStringEditorPanel extends InputPanel {
     private static final String ID_ORIG_VALUE_LABEL = "originValueLabel";
     private static final String ID_ORIG_VALUE = "origValue";
     private static final String ID_ORIG_VALUE_WITH_BUTTON = "origValueWithButton";
+    private static final String ID_KEY_VALUE_LABEL = "keyValueLabel";
     private static final String ID_KEY_VALUE = "keyValue";
+    private static final String ID_LANGUAGE_LIST_LABEL = "languagesListLabel";
     private static final String ID_LANGUAGES_REPEATER = "languagesRepeater";
     private static final String ID_LANGUAGE_NAME = "languageName";
     private static final String ID_TRANSLATION = "translation";
@@ -65,6 +67,7 @@ public class PolyStringEditorPanel extends InputPanel {
     private static final String ID_VALUE_TO_ADD = "valueToAdd";
     private static final String ID_ADD_LANGUAGE_VALUE_BUTTON = "addLanguageValue";
     private static final String ID_REMOVE_LANGUAGE_BUTTON = "removeLanguageButton";
+    private static final String ID_INPUT = "input";
 
     private final StringBuilder currentlySelectedLang = new StringBuilder();
     private final IModel<PolyString> model;
@@ -85,6 +88,21 @@ public class PolyStringEditorPanel extends InputPanel {
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+        addLabelledBy();
+    }
+
+    private void addLabelledBy() {
+        get(createComponentPath(ID_LOCALIZED_VALUE_CONTAINER, ID_LOCALIZED_VALUE_WITH_BUTTON, ID_LOCALIZED_VALUE_PANEL, ID_INPUT)).add(AttributeAppender.append(
+                "aria-labelledby",
+                get(createComponentPath(ID_LOCALIZED_VALUE_CONTAINER, ID_LOCALIZED_VALUE_LABEL)).getMarkupId()));
+
+        get(createComponentPath(ID_ORIGIN_VALUE_CONTAINER, ID_ORIG_VALUE_WITH_BUTTON, ID_ORIG_VALUE, ID_INPUT)).add(AttributeAppender.append(
+                "aria-labelledby",
+                get(createComponentPath(ID_ORIGIN_VALUE_CONTAINER, ID_ORIG_VALUE_LABEL)).getMarkupId()));
+
+        get(createComponentPath(ID_FULL_DATA_CONTAINER, ID_KEY_VALUE, ID_INPUT)).add(AttributeAppender.append(
+                "aria-labelledby",
+                get(createComponentPath(ID_FULL_DATA_CONTAINER, ID_KEY_VALUE_LABEL)).getMarkupId()));
     }
 
     private void initLayout() {
@@ -111,7 +129,8 @@ public class PolyStringEditorPanel extends InputPanel {
         TextPanel<String> localizedValuePanel = new TextPanel<>(ID_LOCALIZED_VALUE_PANEL, Model.of(localizedValue));
         localizedValuePanel.setOutputMarkupId(true);
         localizedValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        localizedValuePanel.add(new EnableBehaviour(() -> false));
+//        localizedValuePanel.add(new EnableBehaviour(() -> false));
+        localizedValuePanel.getBaseFormComponent().add(AttributeAppender.append("readonly", "readonly"));
         localizedValueWithButton.add(localizedValuePanel);
 
         AjaxButton showHideLanguagesLocalizedButton = new AjaxButton(ID_SHOW_HIDE_LANGUAGES_LOCALIZED) {
@@ -124,7 +143,6 @@ public class PolyStringEditorPanel extends InputPanel {
             }
         };
         showHideLanguagesLocalizedButton.setOutputMarkupId(true);
-//        showHideLanguagesLocalizedButton.add(AttributeAppender.append("style", "cursor: pointer;"));
         localizedValueWithButton.add(showHideLanguagesLocalizedButton);
 
         WebMarkupContainer originValueContainer = new WebMarkupContainer(ID_ORIGIN_VALUE_CONTAINER);
@@ -190,7 +208,11 @@ public class PolyStringEditorPanel extends InputPanel {
         fullDataContainer.add(new VisibleBehaviour(() -> showFullData));
         add(fullDataContainer);
 
-        TextPanel<String> keyValue = new TextPanel<>(ID_KEY_VALUE, new IModel<String>() {
+        Label keyValueLabel = new Label(ID_KEY_VALUE_LABEL, createStringResource("PolyStringEditorPanel.keyLabel"));
+        keyValueLabel.setOutputMarkupId(true);
+        fullDataContainer.add(keyValueLabel);
+
+        TextPanel<String> keyValue = new TextPanel<>(ID_KEY_VALUE, new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -217,6 +239,10 @@ public class PolyStringEditorPanel extends InputPanel {
         keyValue.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         keyValue.setOutputMarkupId(true);
         fullDataContainer.add(keyValue);
+
+        Label languageListLabel = new Label(ID_LANGUAGE_LIST_LABEL, createStringResource("PolyStringEditorPanel.languagesList"));
+        languageListLabel.setOutputMarkupId(true);
+        fullDataContainer.add(languageListLabel);
 
         IModel<String> langChoiceModel = Model.of();
         WebMarkupContainer languageEditorContainer = new WebMarkupContainer(ID_LANGUAGE_EDITOR);
@@ -344,6 +370,7 @@ public class PolyStringEditorPanel extends InputPanel {
             }
         };
         showHideLanguagesButton.setOutputMarkupId(true);
+        showHideLanguagesButton.add(new VisibleBehaviour(() -> !showFullData));
         origValueWithButton.add(showHideLanguagesButton);
     }
 

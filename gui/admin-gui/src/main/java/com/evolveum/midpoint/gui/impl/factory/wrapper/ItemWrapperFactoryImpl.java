@@ -168,6 +168,12 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
     }
 
     protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+        DisplayHint hint = def.getDisplayHint();
+        if (hint == DisplayHint.REGULAR) {
+            return true;
+        } else if (hint == DisplayHint.HIDDEN) {
+            return false;
+        }
         if (def.isOperational() && !context.isCreateOperational()) {
             LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getItemName());
             return false;

@@ -17,6 +17,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.*;
@@ -77,6 +78,20 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
         appendClassForAddedOrRemovedItem();
 
+        add(AttributeAppender.append(
+                "aria-label",
+                () -> {
+                    String key = "PrismContainerPanel.container";
+                    if (getModelObject().getDefinition().isMultiValue()) {
+                        key = "PrismContainerValuePanel.container";
+                    }
+                    LoadableDetachableModel<String> labelModel = getLabelModel();
+                    String label = labelModel.getObject();
+                    labelModel.detach();
+                    return getParentPage().createStringResource(
+                                    key, label)
+                            .getString();
+                }));
     }
 
     protected void appendClassForAddedOrRemovedItem(){
@@ -109,6 +124,18 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         header.add(getHelpLabel());
 
         initButtons(header);
+
+        header.add(AttributeAppender.append(
+                "aria-label",
+                () -> {
+                    String key = "PrismContainerPanel.header";
+                    if (getModelObject().getDefinition().isMultiValue()) {
+                        key = "PrismContainerValuePanel.header";
+                    }
+                    return getParentPage().createStringResource(
+                                    key, headerLabelModel.getObject())
+                            .getString();
+                }));
 
         //TODO always visible if isObject
     }
@@ -151,7 +178,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     private ToggleIconButton<String> createSortButton() {
-        ToggleIconButton<String> sortPropertiesButton = new ToggleIconButton<String>(ID_SORT_PROPERTIES,
+        ToggleIconButton<String> sortPropertiesButton = new ToggleIconButton<>(ID_SORT_PROPERTIES,
                 GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
 
             private static final long serialVersionUID = 1L;
@@ -166,6 +193,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 return PrismContainerValuePanel.this.getModelObject().isSorted();
             }
         };
+        sortPropertiesButton.add(AttributeAppender.append(
+                "aria-pressed", () -> PrismContainerValuePanel.this.getModelObject().isSorted()));
         sortPropertiesButton.add(new VisibleBehaviour(this::shouldBeButtonsShown));
         sortPropertiesButton.setOutputMarkupId(true);
         sortPropertiesButton.setOutputMarkupPlaceholderTag(true);
@@ -174,7 +203,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     private AjaxLink createAddMoreButton() {
 
-         AjaxLink<String> addChildContainerButton = new AjaxLink<String>(ID_ADD_CHILD_CONTAINER, new StringResourceModel("PrismContainerValuePanel.addMore")) {
+         AjaxLink<String> addChildContainerButton = new AjaxLink<>(ID_ADD_CHILD_CONTAINER, new StringResourceModel("PrismContainerValuePanel.addMore")) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -287,6 +316,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 return PrismContainerValuePanel.this.getModelObject().isExpanded();
             }
         };
+        expandCollapseButton.add(AttributeAppender.append(
+                "aria-pressed", () -> PrismContainerValuePanel.this.getModelObject().isExpanded()));
         expandCollapseButton.setOutputMarkupId(true);
         return expandCollapseButton;
     }

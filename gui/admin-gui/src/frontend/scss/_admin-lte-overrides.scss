@@ -60,3 +60,28 @@
   background-color: #e9ecef;
   color: #2b2b2b;
 }
+
+/* Accessibility classes and overrides */
+/* Contrast ratio overrides */
+.navbar-dark .navbar-nav .nav-link {
+  color:hsla(0,0%,100%,.85)
+}
+
+/* Override for info button based on new bootstrap color*/
+/*.btn-info {
+  color: $button-default-color;
+
+  &:hover, &:focus, &:focus-visible, &:active {
+    color: $button-default-color;
+    background-color: lighten($info, 10%);
+    border-color: lighten($info, 10%);
+  }
+}*/
+
+.navbar .navbar-nav .nav-item .breadcrumb a > i {
+  color: $white;
+}
+
+.main-footer {
+  color: #737373;
+}

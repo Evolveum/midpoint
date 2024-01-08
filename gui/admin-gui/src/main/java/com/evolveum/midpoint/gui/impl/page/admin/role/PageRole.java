@@ -10,23 +10,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.UUID;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -36,19 +20,31 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.ApplicationRoleWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.BusinessRoleWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PageDescriptor(
         urls = {
@@ -142,13 +138,13 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
     @Override
     protected void exitFromWizard() {
         if (existPatternDeltas()) {
-            navigateToRoleAnalysis();
+            navigateToRoleAnalysisCluster();
             return;
         }
         super.exitFromWizard();
     }
 
-    private void navigateToRoleAnalysis() {
+    private void navigateToRoleAnalysisCluster() {
         PageParameters parameters = new PageParameters();
         String clusterOid = getObjectDetailsModels().getPatternDeltas().getCluster().getOid();
         parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
@@ -186,7 +182,7 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
             AjaxRequestTarget target) {
         businessRoleMigrationPerform(result, executedDeltas);
 
-        super.postProcessResult(result, executedDeltas, target);
+        super.postProcessResultForWizard(result, executedDeltas, target);
     }
 
     private void businessRoleMigrationPerform(
@@ -207,37 +203,33 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
 
         BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
         RoleAnalysisService roleAnalysisService = getRoleAnalysisService();
-        roleAnalysisService.clusterObjectMigrationRecompute(
-                getRepositoryService(), patternDeltas.getCluster().getOid(), roleOid, task, result);
 
         PrismObject<RoleType> roleObject = roleAnalysisService
-                .getRoleTypeObject( roleOid, task, result);
+                .getRoleTypeObject(roleOid, task, result);
         if (roleObject != null) {
-            executeMigrationTask(result, task, patternDeltas.getBusinessRoleDtos(), roleObject);
+            roleAnalysisService.clusterObjectMigrationRecompute(
+                    patternDeltas.getCluster().getOid(), roleOid, task, result);
+
+
+            String taskOid = UUID.randomUUID().toString();
+
+            ActivityDefinitionType activity = null;
+            try {
+                activity = createActivity(patternDeltas.getBusinessRoleDtos(), roleOid);
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't create activity for role migration: " + roleOid);
+            }
+            if (activity != null) {
+                roleAnalysisService.executeMigrationTask(
+                        patternDeltas.getCluster(), activity, roleObject, taskOid, null, task, result);
+            }
+
         }
     }
 
     private boolean existPatternDeltas() {
         BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
         return patternDeltas != null && !patternDeltas.getBusinessRoleDtos().isEmpty();
-    }
-
-    private void executeMigrationTask(OperationResult result, Task task, List<BusinessRoleDto> patternDeltas, PrismObject<RoleType> roleObject) {
-        try {
-            ActivityDefinitionType activity = createActivity(patternDeltas, roleObject.getOid());
-
-            getModelInteractionService().submit(
-                    activity,
-                    ActivitySubmissionOptions.create()
-                            .withTaskTemplate(new TaskType()
-                                    .name("Migration role (" + roleObject.getName().toString() + ")"))
-                            .withArchetypes(
-                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
-                    task, result);
-
-        } catch (CommonException e) {
-            LOGGER.error("Failed to execute role {} migration activity: ", roleObject.getOid(), e);
-        }
     }
 
     private ActivityDefinitionType createActivity(List<BusinessRoleDto> patternDeltas, String roleOid) throws SchemaException {
