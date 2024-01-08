@@ -1,7 +1,6 @@
 = Using expressions in midPoint Query Language
 :page-nav-title: Expressions
 :page-display-order: 200
-:page-since: "4.5"
 :page-toc: top
 
 :triple-backtick: ```

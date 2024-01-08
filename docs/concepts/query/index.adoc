@@ -95,7 +95,7 @@ Examples of queries:
 ** "give me all rows for this particular lookup table that start with this prefix",
 ** "give me all work items allocated to particular user".
 
-* A *reference query* (limited support since 4.7), for example:
+* A *reference query*, for example:
 
 ** "give me all the role membership references for all the users",
 ** "give me all projection (link) refs for a given resource".
@@ -153,8 +153,6 @@ which can be used on GUI or embedded in other filters via `text` element.
 hard-core customizations (e.g. with xref:/midpoint/reference/deployment/maven-overlay-project.adoc[midPoint Overlay] mechanism)
 but also for xref:/midpoint/reference/expressions/expressions/script/[script expressions] written typically in Groovy language.
 
-[IMPORTANT]
-MidPoint Query Language is experimentally available since 4.3 and fully supported since 4.5.
 
 Here is an example of the same filter in various representations:
 
@@ -319,9 +317,6 @@ Item path on the right side has a limited support only for repository engine.
 The following table summarizes filters that are based on the object/container or its items.
 Most of the filters use an item path to an item on the "left side", but some of these filters
 work with the whole object (or container) because the path is either not relevant or implied.
-Finally, since version 4.6, Ref filter optionally supports so-called "target filter" which makes it technically a complex filter; its description in the following table does not cover this usage.
-
-// TODO: Description out of this, only to detail sections lower
 
 [%autowidth]
 |===
@@ -790,7 +785,7 @@ This feature is a part of midPoint 3.4 and above.
 ====
 While `exists` works as expected with complex combination of conditions for the common multi-value container
 (like assignment in the example above), `not` with `exists` behavior works properly only with the new Native repository.
-Native repository (available since midPoint 4.4) translates `exists` filter to SQL `EXISTS` and `NOT`
+Native repository translates `exists` filter to SQL `EXISTS` and `NOT`
 is applied to the SQL `EXISTS` resulting in `NOT EXISTS` query, which works as expected.
 
 `exists` for the old Generic repo was implemented using `LEFT JOIN` which works fine for positive
@@ -802,10 +797,6 @@ See https://jira.evolveum.com/browse/MID-7203[MID-7203].
 // TODO example with nesting exists, show the need for .block() in fluent API (see sqale search test)
 
 ==== Ref filter with target filter
-
-++++
-{% include since.html since="4.6" %}
-++++
 
 [IMPORTANT]
 Ref filter with nested target filter is supported only for repository searches.
@@ -962,10 +953,6 @@ With the target filter added, the reference value (or any of the values of the m
 must match any of the provided values *and* the target object for the matching reference value must also match the target filter.
 
 ==== OwnedBy filter
-
-++++
-{% include since.html since="4.6" %}
-++++
 
 [IMPORTANT]
 This filter is supported only for repository searches.
@@ -1307,10 +1294,6 @@ For instance, it can be used inside the `exists` filter for container path.
 However, this is meaningless, because the same conditions can be applied directly on the searched object.
 
 ==== ReferencedBy filter
-
-++++
-{% include since.html since="4.6" %}
-++++
 
 [IMPORTANT]
 This filter is supported only for the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
@@ -2154,10 +2137,6 @@ Ordering objects by items inside multi-value container have unclear semantics an
 
 == Reference query
 
-++++
-{% include since.html since="4.7" %}
-++++
-
 [IMPORTANT]
 ====
 * Reference query is only supported with the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
@@ -2440,7 +2419,7 @@ so even then the distinct option is useless and, when honoured, can potentially 
 
 === Fluent API script translation
 
-Since version 4.6, Query playground offers an option to translate queries from fluent API scripts.
+Query playground offers an option to translate queries from fluent API scripts.
 This way you can debug the Groovy code for an expression directly in the GUI before using it.
 
 To do this, follow these steps:
