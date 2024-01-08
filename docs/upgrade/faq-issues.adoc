@@ -7,20 +7,48 @@ It is intended to help you to solve problems that may occur during the upgrade p
 
 NOTE: Always upgrade to the latest midPoint 4.4-based release before attempting to upgrade to 4.8 LTS. At the time of writing this document, the latest 4.4-based release is https://docs.evolveum.com/midpoint/release/4.4.6/[midPoint 4.4.6].
 
-=== Do I need to update my 4.4-based resources?
+=== Do I need to update my 4.4-based resources after upgrade to 4.8 LTS?
 
 midPoint 4.8 LTS uses an updated resource definition.
-Some parts of resource definition are marked as *DEPRECATED*.
-For example, `<objectSynchronization>` element defined in resource synchronization.
+Some parts of resource definition are marked as *DEPRECATED* and the functionality will be eventually removed, e.g. `<objectSynchronization>` element defined in resource synchronization.
 
 The old resources should still work in 4.8 LTS, but cannot be edited using xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard].
 
-Please refer to xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6/[schema handling changes documentation] for more information how to change your resource definitions.
+Please refer to xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6/[schema handling changes documentation] for more information how to change your resource definitions after you upgrade midPoint to 4.8 LTS.
 
-=== Do I need to update my 4.4-based correlation configuration in resources?
+=== Do I need to update my 4.4-based correlation configuration in resources after upgrade to 4.8 LTS?
 
 midPoint 4.8 LTS uses an improved correlation mechanism named xref:/midpoint/reference/correlation/[Smart correlation].
 
 The old query-only-based correlation is still supported, but it is *DEPRECATED* does cannot be edited using xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard].
 
-We recommend to upgrade your resource definitions to use the new mechanism, especially the easy-to-use xref:/midpoint/reference/correlation/items-correlator/[Items correlator].
+We recommend to upgrade your resource definitions to use the new mechanism, especially the easy-to-use xref:/midpoint/reference/correlation/items-correlator/[Items correlator] after you upgrade midPoint to 4.8 LTS.
+
+=== Can I use the resource wizard in 4.8 LTS to create the same configuration as using midPoint XML language?
+
+xref:/midpoint/reference/admin-gui/resource-wizard/[midPoint resource wizard] can be currently used to create and update resource definitions mainly for your first steps midPoint.
+There are limitations in supported expressions (e.g. it supports "As is", "Literal", "Script" and "Generate" expressions) and correlation (e.g. it does not support "correlation by query" yet).
+Also, mapping ranges are not currently supported.
+
+If the resource wizard does not meet your expectations, feel free to define your resources using midPoint XML language.
+
+The resource wizard features will be gradually improved in future midPoint releases.
+
+=== How do I disable mappings in midPoint 4.8 LTS?
+
+In midPoint 4.4, mappings could be disabled to temporarily switch them off from processing.
+This feature is *DEPRECATED* in midPoint 4.8 LTS.
+
+Please use the mapping's `lifecycleState` set to `draft` to switch off the mapping.
+This is supported also in the xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard].
+In addition to `draft`, there are other lifecycle states supporting xref:/midpoint/reference/simulation/[simulations] and other operations.
+
+// === TODO Mapping names recommendation
+// We recommend to fill in mapping names, why is it a good practice for future.
+
+// TODO new synchronization parameters, e.g delineation
+
+//We have a new Resource phase in AuditLog, for our existing engineers, make it aware for them and have option to disable if they don't like new default (enabled OOTB).
+
+//    mentioned in https://docs.evolveum.com/midpoint/reference/support-4.8/security/audit/#event-stages
+//    mentioned in (the same doc, different chapter) https://docs.evolveum.com/midpoint/reference/support-4.8/security/audit/#_auditing_of_resource_object_changes
