@@ -45,7 +45,9 @@ In addition to `draft`, there are other lifecycle states supporting xref:/midpoi
 
 === Why resource wizard's mapping editor shows a Name column for all my mappings?
 
-The xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard] allows setting a name for all your mappings from one particular reason: mapping names can significantly help with xref:/midpoint/reference/diag/troubleshooting/mappings/[mapping troubleshooting] and are also used for merging configuration if you use xref:/midpoint/reference/resources/resource-configuration/inheritance/[Resource and Object Type Inheritance (e.g. resource templates)].
+The xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard] allows setting a name for all your mappings.
+Mapping names can significantly help with xref:/midpoint/reference/diag/troubleshooting/mappings/[mapping troubleshooting].
+They are also used for merging configuration if you use xref:/midpoint/reference/resources/resource-configuration/inheritance/[Resource and Object Type Inheritance (e.g. resource templates)].
 
 We recommend to use mapping names and this is why resource wizard displays the mapping names as the first (prominent) column in the resource mappings table.
 
