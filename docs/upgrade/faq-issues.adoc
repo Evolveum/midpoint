@@ -68,7 +68,7 @@ a|
 
 |===
 
-The new recommendation for `deleted` situation is *synchronize* (instead of *unlink* used in midPoint 4.4 LTS).
+The new recommended action for `deleted` situation is *synchronize* (instead of *unlink* used in midPoint 4.4 LTS).
 
 See also answer for  xref:#_resource_schema_change[Do I need to update my 4.4-based resources after upgrade to 4.8 LTS?].
 
