@@ -32,23 +32,11 @@ We recommend to upgrade your resource definitions to use the new mechanism, espe
 
 The synchronization situations and reactions are now much more human-readable.
 
+[cols="h,1"]
 |===
-|midPoint 4.4 LTS |midPoint 4.8 LTS
 
-a|
-[source,xml]
-----
-. . .
-<reaction>
-  <situation>unlinked</situation>
-  <synchronize>true</synchronize>
-  <action>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-  </action>
-</reaction>
-. . .
-----
 
+^.^|midPoint 4.8 LTS
 a|
 [source,xml]
 ----
@@ -61,6 +49,21 @@ a|
   </reaction>
   . . .
 </synchronization>
+----
+
+^.^|midPoint 4.4 LTS
+a|
+[source,xml]
+----
+. . .
+<reaction>
+  <situation>unlinked</situation>
+  <synchronize>true</synchronize>
+  <action>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+  </action>
+</reaction>
+. . .
 ----
 
 |===
