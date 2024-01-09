@@ -16,6 +16,8 @@ import java.io.File;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -66,6 +68,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
     private RExtItem itemVisible;
     private RExtItem itemWeapon;
     private RExtItem itemShipName;
+    private RExtItem itemPoly;
 
     private PrismObject<ShadowType> expectedShadow;
     private String shadowOid;
@@ -89,6 +92,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         itemVisible = createOrFindExtensionItemDefinition(UserType.class, EXT_VISIBLE);
         itemWeapon = createOrFindExtensionItemDefinition(UserType.class, EXT_WEAPON);
         itemShipName = createOrFindExtensionItemDefinition(UserType.class, EXT_SHIP_NAME);
+        itemPoly = createOrFindExtensionItemDefinition(UserType.class, EXT_POLY);
 
         sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
         sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
@@ -121,11 +125,11 @@ public class ExtensionTest extends BaseSQLRepoTest {
     }
 
     boolean isNoFetchInsertion() {
-        return true;    // this is the default in production
+        return true; // this is the default in production
     }
 
     boolean isNoFetchDeletion() {
-        return false;       // this is the default in production
+        return false; // this is the default in production
     }
 
     int getExtraSafeInsertionSelects(int insertions) {
@@ -170,6 +174,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
             assertExtension(u, itemHidden3, "h3.1");
             assertExtension(u, itemVisible, "v1", "v2", "v3");
             assertExtension(u, itemWeapon);
+            assertPolyExtension(u, itemPoly, PolyString.fromOrig("VALUE"));
         }
 
         assertGetObject(result);
@@ -180,6 +185,12 @@ public class ExtensionTest extends BaseSQLRepoTest {
         assertSearch(EXT_HIDDEN2, "h2.1", 0, result);
         assertSearch(EXT_HIDDEN3, "h3.1", 1, result);
         assertSearch(EXT_HIDDEN3, "h1.3", 0, result);
+
+        assertPolySearch(EXT_POLY, PolyString.fromOrig("VALUE"), PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME, 1, result);
+        assertPolySearch(EXT_POLY, PolyString.fromOrig("VALUE"), PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME, 1, result);
+        assertPolySearch(EXT_POLY, PolyString.fromOrig("value"), PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME, 0, result);
+        assertPolySearch(EXT_POLY, PolyString.fromOrig("value"), PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME, 1, result);
+        assertPolySearch(EXT_POLY, PolyString.fromOrig("xxxx"), PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME, 0, result);
 
         /*
  [1] select count(*) from m_user where oid=?

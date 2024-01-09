@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 
 import jakarta.annotation.PostConstruct;
@@ -94,6 +95,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     static final ItemName EXT_HIDDEN3 = new ItemName(NS_EXT, "hidden3");
     static final ItemName EXT_VISIBLE = new ItemName(NS_EXT, "visible");
     static final ItemName EXT_VISIBLE_SINGLE = new ItemName(NS_EXT, "visibleSingle");
+    static final ItemName EXT_POLY = new ItemName(NS_EXT, "poly");
 
     static final ItemName EXT_LOOT = new ItemName(NS_EXT, "loot");
     static final ItemName EXT_WEAPON = new ItemName(NS_EXT, "weapon");
@@ -199,11 +201,6 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         session.close();
     }
 
-    String hqlToSql(String hql) {
-        //return HibernateToSqlTranslator.toSql(factory, hql);
-        throw new UnsupportedOperationException("Not migrated to Hibernate 6");
-    }
-
     protected <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult("getObject");
         PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
@@ -287,6 +284,14 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         assertEquals("Wrong values of object extension item " + item.getName(), new HashSet<>(Arrays.asList(expectedValues)), realValues);
     }
 
+    void assertPolyExtension(RObject object, RExtItem item, PolyString... expectedValues) {
+        Set<PolyString> realValues = object.getPolys().stream()
+                .filter(extString -> Objects.equals(extString.getItemId(), item.getId()))
+                .map(r -> new PolyString(r.getValue(), r.getNorm()))
+                .collect(Collectors.toSet());
+        assertEquals("Wrong values of object extension item " + item.getName(), new HashSet<>(Arrays.asList(expectedValues)), realValues);
+    }
+
     void assertExtension(RAssignment assignment, RExtItem item, String... expectedValues) {
         assertNotNull(assignment.getExtension());
         Set<String> realValues = assignment.getExtension().getStrings().stream()
@@ -301,8 +306,22 @@ public class BaseSQLRepoTest extends AbstractSpringTest
                 .item(UserType.F_EXTENSION, item)
                 .eq(value)
                 .build();
-        SearchResultList<PrismObject<UserType>> found = repositoryService
-                .searchObjects(UserType.class, query, null, result);
+        var found = repositoryService.searchObjects(UserType.class, query, null, result);
+        if (verbose) {
+            displayValue("Found", found);
+        }
+        assertEquals("Wrong # of objects found", expectedCount, found.size());
+    }
+
+    protected void assertPolySearch(
+            ItemName item, PolyString value, QName matchingRuleName, int expectedCount, OperationResult result)
+            throws SchemaException {
+        ObjectQuery query = getPrismContext().queryFor(UserType.class)
+                .item(UserType.F_EXTENSION, item)
+                .eq(value)
+                .matching(matchingRuleName)
+                .build();
+        var found = repositoryService.searchObjects(UserType.class, query, null, result);
         if (verbose) {
             displayValue("Found", found);
         }

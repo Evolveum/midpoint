@@ -14,11 +14,11 @@ package com.evolveum.midpoint.repo.sql.query.definition;
  * It was created to ensure consistency of resolution mechanism, which should provide
  * HQL property + JPA definition for any item path provided.
  */
-public class JpaAnyPropertyDefinition extends JpaPropertyDefinition<JpaAnyPropertyDefinition> {
+public class JpaAnyPropertyDefinition extends JpaPropertyDefinition {
 
     // enumerated extension items are not supported
-    JpaAnyPropertyDefinition(Class jpaClass, Class jaxbClass) {
-        super(jpaClass, jaxbClass, false, false, false, false, false);
+    JpaAnyPropertyDefinition(Class<?> jpaClass, Class<?> jaxbClass) {
+        super(jpaClass, jaxbClass, false, false, false, false);
     }
 
     @Override

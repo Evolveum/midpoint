@@ -125,7 +125,17 @@ public class ShadowedObjectFound extends AbstractLazilyInitializableShadowedEnti
                 return repoShadow.getBean();
             }
         }
-        return getExistingResourceObjectRequired().getBean();
+        ExistingResourceObject resourceObject = getExistingResourceObjectRequired();
+        var resourceObjectBean = resourceObject.getBean();
+        if (resourceObjectBean.getName() == null) {
+            // most probably the case, as the resource objects do not have prism object names
+            try {
+                resourceObjectBean.setName(PolyString.toPolyStringType(resourceObject.determineShadowName()));
+            } catch (SchemaException e) {
+                LOGGER.debug("Couldn't determine the name for {}, continuing without one", this, e);
+            }
+        }
+        return resourceObjectBean;
     }
 
     /**

@@ -129,8 +129,6 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
         Preconditions.checkArgument(!(oldRealValue instanceof PrismValue),
                 "real value is required here: %s", oldRealValue);
 
-        Class<?> oldJavaType = oldRealValue.getClass();
-
         // Only 3 scenarios are supported here:
         //  - String to PolyString
         //  - PolyString to PolyString
@@ -196,8 +194,8 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
         }
 
         throw new UnsupportedOperationException(
-                "Cannot convert from %s to %s with %s: %s".formatted(
-                        oldJavaType, newJavaType, normalizer, MiscUtil.getDiagInfo(oldRealValue)));
+                "Cannot convert %s to %s with %s in attribute %s".formatted(
+                        MiscUtil.getDiagInfo(oldRealValue), newJavaType, normalizer, elementName));
     }
 
     @Override

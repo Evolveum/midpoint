@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sql.query.matcher;
 
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+
 import com.google.common.base.Strings;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -30,39 +32,46 @@ public class PolyStringMatcher extends Matcher<PolyString> {
     public static final String NORM_IGNORE_CASE = "normIgnoreCase";
 
     @Override
-    public Condition match(HibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value, String matcher)
+    public Condition match(
+            HibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, boolean extension,
+            PolyString value, String matchingRule)
             throws QueryException {
 
-        boolean ignoreCase = STRICT_IGNORE_CASE.equals(matcher)
-                || ORIG_IGNORE_CASE.equals(matcher)
-                || NORM_IGNORE_CASE.equals(matcher);
+        boolean ignoreCase = STRICT_IGNORE_CASE.equals(matchingRule)
+                || ORIG_IGNORE_CASE.equals(matchingRule)
+                || NORM_IGNORE_CASE.equals(matchingRule);
 
-        if (Strings.isNullOrEmpty(matcher) || DEFAULT.equals(matcher)
-                || STRICT.equals(matcher) || STRICT_IGNORE_CASE.equals(matcher)) {
+        if (Strings.isNullOrEmpty(matchingRule) || DEFAULT.equals(matchingRule)
+                || STRICT.equals(matchingRule) || STRICT_IGNORE_CASE.equals(matchingRule)) {
             AndCondition conjunction = hibernateQuery.createAnd();
-            conjunction.add(createOrigMatch(hibernateQuery, operation, propertyName, value, ignoreCase));
+            conjunction.add(createOrigMatch(hibernateQuery, operation, propertyName, extension, value, ignoreCase));
             conjunction.add(createNormMatch(hibernateQuery, operation, propertyName, value, ignoreCase));
             return conjunction;
-        } else if (ORIG.equals(matcher) || ORIG_IGNORE_CASE.equals(matcher)) {
-            return createOrigMatch(hibernateQuery, operation, propertyName, value, ignoreCase);
-        } else if (NORM.equals(matcher) || NORM_IGNORE_CASE.equals(matcher)) {
+        } else if (ORIG.equals(matchingRule) || ORIG_IGNORE_CASE.equals(matchingRule)) {
+            return createOrigMatch(hibernateQuery, operation, propertyName, extension, value, ignoreCase);
+        } else if (NORM.equals(matchingRule) || NORM_IGNORE_CASE.equals(matchingRule)) {
             return createNormMatch(hibernateQuery, operation, propertyName, value, ignoreCase);
         } else {
-            throw new QueryException("Unknown matcher '" + matcher + "'.");
+            throw new QueryException("Unknown matcher '" + matchingRule + "'.");
         }
     }
 
-    private Condition createNormMatch(HibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value,
+    private Condition createNormMatch(
+            HibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value,
             boolean ignoreCase) throws QueryException {
 
         String realValue = PolyString.getNorm(value);
         return basicMatch(hibernateQuery, operation, propertyName + '.' + RPolyString.F_NORM, realValue, ignoreCase);
     }
 
-    private Condition createOrigMatch(HibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value,
+    private Condition createOrigMatch(
+            HibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, boolean extension, PolyString value,
             boolean ignoreCase) throws QueryException {
 
         String realValue = PolyString.getOrig(value);
-        return basicMatch(hibernateQuery, operation, propertyName + '.' + RPolyString.F_ORIG, realValue, ignoreCase);
+        return basicMatch(
+                hibernateQuery, operation,
+                propertyName + '.' + (extension ? RAnyValue.F_VALUE : RPolyString.F_ORIG),
+                realValue, ignoreCase);
     }
 }

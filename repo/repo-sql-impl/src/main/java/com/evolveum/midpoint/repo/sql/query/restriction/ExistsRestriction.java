@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
+import com.evolveum.midpoint.repo.sql.query.definition.JpaAnyPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaPropertyDefinition;
@@ -32,7 +33,7 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
                 .resolveItemPath(filter.getFullPath(), filter.getDefinition(), getBaseHqlEntity(), false);
 
         boolean isAll = filter.getFilter() == null || filter.getFilter() instanceof AllFilter;
-        JpaDataNodeDefinition<?> jpaDefinition = dataInstance.getJpaDefinition();
+        JpaDataNodeDefinition jpaDefinition = dataInstance.getJpaDefinition();
         if (!isAll) {
             if (!(jpaDefinition instanceof JpaEntityDefinition)) {    // partially checked already (for non-null-ness)
                 throw new QueryException("ExistsRestriction with non-empty subfilter points to non-entity node: " + jpaDefinition);
@@ -40,7 +41,8 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
             setHqlDataInstance(dataInstance);
             QueryInterpreter interpreter = context.getInterpreter();
             return interpreter.interpretFilter(context, filter.getFilter(), this);
-        } else if (jpaDefinition instanceof JpaPropertyDefinition && (((JpaPropertyDefinition<?>) jpaDefinition).isCount())) {
+        } else if (jpaDefinition instanceof JpaPropertyDefinition jpaPropertyDefinition && jpaPropertyDefinition.isCount()) {
+            assert !(jpaDefinition instanceof JpaAnyPropertyDefinition);
             HibernateQuery hibernateQuery = context.getHibernateQuery();
             return hibernateQuery.createSimpleComparisonCondition(dataInstance.getHqlPath(), 0, ">");
         } else {

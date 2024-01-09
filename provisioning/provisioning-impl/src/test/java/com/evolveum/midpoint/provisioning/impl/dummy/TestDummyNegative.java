@@ -101,11 +101,25 @@ public class TestDummyNegative extends AbstractDummyTest {
 
     @Autowired RepositoryService repositoryService;
 
+    /** This is an account that can be processed without any issues. */
     private static final String GOOD_ACCOUNT = "good";
+
+    /** This one gets the "enable date" with the unparseable value of `WRONG`, hence ConnId->midPoint conversion will fail. */
     private static final String INCONVERTIBLE_ACCOUNT = "inconvertible";
+
+    /**
+     * This one gets the "number" with the unparseable value of `WRONG`, hence the processing will fail.
+     * (Repo manipulation before 4.9, and internal processing in 4.9 and later. The reason is that more strict checks
+     * were added in 4.9. The name of the account - "unstorable" - is thus no longer precise enough.)
+     */
     private static final String UNSTORABLE_ACCOUNT = "unstorable";
+
+    /**
+     * Shadow for this account cannot be stored in the generic repo, as the name is longer than 255 characters. The native
+     * repo (sqale) can store it, though.
+     */
     private static final String TOTALLY_UNSTORABLE_ACCOUNT =
-            "totally-unstorable" + StringUtils.repeat("-123456789", 30); // too large to be stored in DB
+            "totally-unstorable" + StringUtils.repeat("-123456789", 30);
 
     private static final String EXTERNAL_UID_PREFIX = "uid:";
     private static final String GOOD_ACCOUNT_UID = EXTERNAL_UID_PREFIX + GOOD_ACCOUNT;
@@ -619,13 +633,11 @@ public class TestDummyNegative extends AbstractDummyTest {
                     .assertSize(1)
                     .end();
 
-
         var asserter = assertSelectedAccountByName(objects, TOTALLY_UNSTORABLE_ACCOUNT);
-        // Disabled no oid, since sqale is able to store large items
         if (isSqaleRepository()) {
-            asserter.assertOid();
+            asserter.assertOid(); // The shadow is in repo, since sqale is able to store large items
         } else {
-            asserter.assertNoOid()
+            asserter.assertNoOid() // Generic repo cannot store names with more than 255 characters
                 .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "could not execute batch");
         }
         // Primary identifier value is not here, because it is set as part of object shadowization (which failed)
