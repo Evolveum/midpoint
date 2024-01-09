@@ -36,6 +36,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 class SchemaActionComputer {
 
+    public static final String CURRENT_MP_VERSION = "4.9";
+
+    public static final String PREVIOUS_MP_VERSION_FEATURE_UPGRADE = "4.8";
+
+    /**
+     * null means, current one is not LTS
+     */
+    public static final String PREVIOUS_MP_VERSION_LTS_UPGRADE = null;
+
     /**
      * For database schema versioning please see
      * <a href="https://docs.evolveum.com/midpoint/reference/repository/database-schema-versioning/">wiki page about DB versioning</a>.
@@ -278,14 +287,35 @@ class SchemaActionComputer {
         return repositoryConfiguration.getMissingSchemaAction();
     }
 
+    /**
+     * NASTY HACK!
+     *
+     * This is just simple solution, since:
+     * 1. We don't have upgrade scripts for all versions
+     * 2. We can have only two versions of upgrade scripts (if it's LTS release), for feature release there's only one.
+     * 3. MP version (not DB schema version) is not known here
+     * 4. Schema versions and application of schema upgrades is not as good as for native repository.
+     * There's always only one script, and changes are only applied if necessary (automatically).
+     *
+     * Implications:
+     * This has to be updated after every release. Same for #determineCreateScriptFileName().
+     */
     private String determineUpgradeScriptFileName(@NotNull String from, @NotNull String to) {
-        return getDatabaseType().name().toLowerCase()
-                + "-upgrade-" + from + "-" + to + ".sql";
+        if (!"4.6".equals(from)) {
+            // it's not schema for 4.8, and this will create non-existing fail so upgrade will fail later on...
+            return getDatabaseType().name().toLowerCase() + "-upgrade-" + from + "-" + to + ".sql";
+        }
+
+        return getDatabaseType().name().toLowerCase() + "-upgrade-" + PREVIOUS_MP_VERSION_FEATURE_UPGRADE + "-" + CURRENT_MP_VERSION + ".sql";
     }
 
+    /**
+     * NASTY HACK!
+     *
+     * @see #determineUpgradeScriptFileName(String, String)
+     */
     private String determineCreateScriptFileName() {
-        return getDatabaseType().name().toLowerCase()
-                + "-" + REQUIRED_DATABASE_SCHEMA_VERSION + "-all" + ".sql";
+        return getDatabaseType().name().toLowerCase() + "-" + CURRENT_MP_VERSION + "-all.sql";
     }
 
     @NotNull
