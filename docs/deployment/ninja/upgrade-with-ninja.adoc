@@ -74,22 +74,22 @@ CSV report contain three sets of columns:
 
 Upgrade information consists of following columns:
 
-* Identifier - unique identifier of verification/upgrade item which can be used to group similar items together when processing reports.
-* Phase - upgrade phase in which item should be updated (before or after midPoint is upgraded).
-* Priority
-** Critical - midPoint may fail to start or work properly if such verification item is not fixed (updated).
+* *Identifier* - unique identifier of verification/upgrade item which can be used to group similar items together when processing reports.
+* *Phase* - upgrade phase in which item should be updated (before or after midPoint is upgraded).
+* *Priority*
+** *Critical* - midPoint may fail to start or work properly if such verification item is not fixed (updated).
 Critical item would also halt upgrade procedure in next phase, unless this check is explicitly skipped using `--skip-verification` option.
-** Necessary - verification item should be fixed, midPoint should not fail to start, but some features might not work properly.
-** Optional - this item doesn't have to be necessarily fixed, but it's recommended to do so.
+** *Necessary* - verification item should be fixed, midPoint should not fail to start, but some features might not work properly.
+** *Optional* - this item doesn't have to be necessarily fixed, but it's recommended to do so.
 E.g. deprecated configuration which might be removed in version after next one.
-* Type
-** Seamless - such item can be handled by ninja automatically without any user interaction.
+* *Type*
+** *Seamless* - such item can be handled by ninja automatically without any user interaction.
 E.g. there's clear migration path without any change in functionality.
-** Preview - ninja can provide new configuration for such item, but it's recommended to review it before applying.
-** Manual - ninja can't provide any configuration for such item, user has to fix it manually.
+** *Preview* - ninja can provide new configuration for such item, but it's recommended to review it before applying.
+** *Manual* - ninja can't provide any configuration for such item, user has to fix it manually.
 Reason can be that there's currently no migration path (removed feature) or there are multiple possible solutions that doesn't map configuration 1:1.
-* Description - contains more information, mainly on how to upgrade/update such item.
-* Skip - last column in CSV report, can be used to mark items that should be skipped during object upgrade.
+* *Description* - contains more information, mainly on how to upgrade/update such item.
+* *Skip* - last column in CSV report, can be used to mark items that should be skipped during object upgrade.
 Such CSV report has to be used as input for upgrade objects command with option `--verification-file`.
 
 . Simple objects upgrade using CSV report from verify. Report only needed if there are objects/items to be skipped.
@@ -162,7 +162,7 @@ This switch is useful mainly in compound command `upgrade-distribution` where us
 
 Database schema changes are handled by SQL scripts that are bundled with distribution in folder `doc/config/sql/native/*.sql`.
 These changes can be applied using ninja command `run-sql`.
-User can use `--mode [repository|audit] switch together with `--upgrade` to run proper scripts automatically or use `--scripts` option to specify custom set of scripts.
+User can use `--mode [repository|audit]` switch together with `--upgrade` to run proper scripts automatically or use `--scripts` option to specify custom set of scripts.
 
 Run-sql command can be used also to create database schema from scratch using switch `--create`.
 
@@ -432,7 +432,7 @@ $MP_INSTALLATION/bin/ninja.sh -v upgrade-distribution \
 === Manual upgrade
 
 Manual upgrade allows for customization of each step done during upgrade procedure via custom options.
-Following example is almost equivalent to simple `upgrade-distribution` command, but split into multiple separate commands.
+Following example is almost equivalent to simple `upgrade-distribution` command described above, but split into multiple separate commands.
 
 [source,bash]
 ----
