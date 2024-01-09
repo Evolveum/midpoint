@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 
@@ -133,14 +134,18 @@ public class MemberTilePanel<T extends Serializable> extends FocusTilePanel<T, T
                     tagContainer.add(AttributeAppender.append("style", tag.getCssStyle()));
                 }
                 if (StringUtils.isNotEmpty(tag.getColor())) {
-                    tagContainer.add(AttributeAppender.append("style", "color: " + tag.getColor()));
+                    tagContainer.add(AttributeAppender.append(
+                            "style",
+                            "color: " + GuiDisplayTypeUtil.removeStringAfterSemicolon(tag.getColor())));
                 }
                 if (StringUtils.isEmpty(tag.getCssClass())
                         && StringUtils.isEmpty(tag.getCssStyle())
                         && StringUtils.isEmpty(tag.getColor())
                         && tag.getIcon() != null
                         && StringUtils.isNotEmpty(tag.getIcon().getColor())) {
-                    tagContainer.add(AttributeAppender.append("style", "color: " + tag.getIcon().getColor()));
+                    tagContainer.add(AttributeAppender.append(
+                            "style",
+                            "color: " + GuiDisplayTypeUtil.removeStringAfterSemicolon(tag.getIcon().getColor())));
                 }
                 item.add(tagContainer);
 

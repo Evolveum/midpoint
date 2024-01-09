@@ -9,9 +9,9 @@
 <wicket:panel>
     <div class="user-panel my-3 pb-2 d-flex align-items-center">
         <div class="image">
-            <img wicket:id="menuPhoto" class="user-image img-circle elevation-2"/>
+            <img wicket:id="menuPhoto" class="user-image img-circle elevation-2" wicket:message="alt:SideBarMenuPanel.loginUserPhoto"/>
         </div>
-        <div class="info" tabindex="0">
+        <div class="info" tabindex="0" role="region">
             <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUser"/></div>
             <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUserUsername"/></div>
             <div class="text-lightblue" wicket:id="username"/>

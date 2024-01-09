@@ -47,4 +47,14 @@ public class PrismReferenceHeaderPanel<R extends Referencable> extends ItemHeade
     protected void refreshPanel(AjaxRequestTarget target) {
 
     }
+
+    @Override
+    protected IModel<String> getTitleForAddButton() {
+        return getParentPage().createStringResource("PrismReferenceHeaderPanel.addButtonTitle", createLabelModel().getObject());
+    }
+
+    @Override
+    protected IModel<String> getTitleForRemoveAllButton() {
+        return getParentPage().createStringResource("PrismReferenceHeaderPanel.removeAllButtonTitle", createLabelModel().getObject());
+    }
 }

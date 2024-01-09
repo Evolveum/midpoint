@@ -7,7 +7,7 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2020-05-13T15:25:19.748+02:00
 :page-since: "3.6"
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 :page-toc: top
 
 == Introduction
@@ -18,7 +18,7 @@ Please see xref:/midpoint/reference/misc/persona/[Personas] page for an introduc
 == Persona Construction
 
 Personas are managed by using persona constructions.
-Persona construction is a mechanism that is very similar to ordinary xref:/midpoint/reference/roles-policies/assignment/configuration/[ordinary construction] used to manage resource objects.
+Persona construction is a mechanism that is very similar to xref:/midpoint/reference/roles-policies/assignment/configuration/[ordinary construction] used to manage resource objects.
 The persona constructions can be placed in assignments/inducements in a way which is almost identical to ordinary constructions.
 However, the persona constructions control the way how personas are created.
 
@@ -30,8 +30,8 @@ Persona construction looks like this:
     <inducement>
         <personaConstruction>
             <targetType>UserType</targetType>
-            <targetSubtype>admin</targetSubtype>
             <objectMappingRef oid="894ea1a8-2c0a-11e7-a950-ff2047b0c053"/>
+            <archetypeRef oid="62aefb2d-49c8-407d-ba79-06aa3a87bd83"/> <!-- admin -->
         </personaConstruction>
     </inducement>
     ...
@@ -42,30 +42,25 @@ Meaning of individual setting is as follows:
 * `targetType`: Type of the persona object.
 Usually xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType].
 
-* `targetSubtype`: Subtype of the persona.
-In case of UserType personas this setting specifies the value of `employeeType` property of the resulting persona.
+* `archetypeRef`: Archetype of the persona object.
+In this particular case, we want to create an admin persona.
+(Note that this replaces the `targetSubtype` property that was removed in 4.8.)
 
 * `objectMappingRef`: Reference to the xref:/midpoint/reference/expressions/object-template/[object template] which will be used to map data from the focus (source user) to the persona (see below).
 
-Type and subtype together form unique key persona key.
-I.e. construction with the same type/subtype combinations are evaluated as if they specify the same persona.
-In fact, the subtype is very important for any persona.
-Each persona much have a subtype value.
-This value is used to distinguish persona types.
-
-[NOTE]
-.Subtype
-====
-_Subtype_ was replaced by xref:/midpoint/reference/schema/archetypes/[Archetypes] in midPoint 4.0. However, full support for archetyped personas was not implemented yet.
-====
-
+Type and archetype together form unique key persona key.
+I.e. construction with the same type/archetype combinations are evaluated as if they specify the same persona.
+In fact, the archetype is very important for any persona.
+Each persona must have an archetype.
+It is used to distinguish persona types.
 
 == Object Mapping - Object Templates
 
-The mapping between the source user (focus) and persona is implemented by a use of xref:/midpoint/reference/expressions/object-template/[object template]. The usual use of object template is such that the same object is both the source and the target of object template mapping.
+The mapping between the source user (focus) and persona is implemented by a use of xref:/midpoint/reference/expressions/object-template/[object template].
+The usual use of object template is such that the same object is both the source and the target of object template mapping.
 However, it is all different when working with personas.
 In such case the focus object (source user) is the source of the object template mappings and the persona is the target.
-Therefore the object template can be used to map data from the source user to personas.
+Therefore, the object template can be used to map data from the source user to personas.
 When object template is used in this way we refer to it as _object mapping_.
 
 The object template is used without any major change in the syntax:
@@ -133,18 +128,19 @@ They in fact may even be a different object types, because the persona may be di
 
 == Persona Assignments and Roles
 
-Persona constructions are usually placed in inducements that are placed in _persona roles_. Persona roles are just ordinary roles, but instead or granting accounts and groups they grant new personas.
+Persona constructions are usually placed in inducements that are placed in _persona roles_.
+Persona roles are just ordinary roles, but instead or granting accounts and groups they grant new personas.
 A persona role may simply look like this:
 
-[source]
+[source,xml]
 ----
 <role>
     <name>Persona: admin</name>
     <inducement>
         <personaConstruction>
             <targetType>UserType</targetType>
-            <targetSubtype>admin</targetSubtype>
             <objectMappingRef oid="894ea1a8-2c0a-11e7-a950-ff2047b0c053"/>
+            <archetypeRef oid="62aefb2d-49c8-407d-ba79-06aa3a87bd83"/> <!-- admin -->
         </personaConstruction>
     </inducement>
 </role>
@@ -172,7 +168,7 @@ These links are simple `personaRef` object references:
 
 <user oid="e59a75d0-30cf-11e7-a5e2-a71b5b1d913a">
     ...
-    <employeeType>admin</emloyeeType>
+    <archetypeRef oid="62aefb2d-49c8-407d-ba79-06aa3a87bd83"/> <!-- admin -->
     ...
 </user>
 ----
@@ -184,11 +180,11 @@ And they are automatically deleted when a persona is deleted.
 == Personas and Authorization
 
 User that has linked personas is considered to be owner of the personas for the purposes of authorizations.
-Therefore following authorization can be used to allow users to see their personas:
+Therefore, the following authorization can be used to allow users to see their personas:
 
 [source,xml]
 ----
-     <authorization>
+    <authorization>
         <name>self-persona-read</name>
         <description>
             Allow to read all the personas of currently logged-in user.
@@ -233,12 +229,7 @@ We recommend adding authorizations that are constrained to specific persona type
         <phase>execution</phase>
         <object>
             <type>UserType</type>
-            <filter>
-                <q:equal>
-                    <q:path>employeeType</q:path>
-                    <q:value>admin</q:value>
-                </q:equal>
-            </filter>
+            <archetypeRef oid="62aefb2d-49c8-407d-ba79-06aa3a87bd83"/> <!-- admin -->
             <!-- owner constraint cannot be here, the link does not exists when the persona is added -->
         </object>
     </authorization>
@@ -249,12 +240,7 @@ We recommend adding authorizations that are constrained to specific persona type
         <phase>execution</phase>
         <object>
             <type>UserType</type>
-            <filter>
-                <q:equal>
-                    <q:path>employeeType</q:path>
-                    <q:value>admin</q:value>
-                </q:equal>
-            </filter>
+            <archetypeRef oid="62aefb2d-49c8-407d-ba79-06aa3a87bd83"/> <!-- admin -->
             <owner>
                 <special>self</special>
             </owner>
@@ -268,20 +254,20 @@ It is also a good idea to constraint these authorizations even further by only a
 
 == Miscellaneous
 
-Since midPoint 3.7 xref:/midpoint/reference/security/credentials/password-policy/[password policy] can be used to enforce different passwords on linked personas.
+The xref:/midpoint/reference/security/credentials/password-policy/[password policy] can be used to enforce different passwords on linked personas.
 
 
 == Limitations
 
-The implementation of personas in midPoint 3.6 is limited.
+The current implementation of personas is limited.
 The persona functionality is perfectly usable for most use-cases.
-However advanced use cases may not be supported.
-Currently known limitations include:
+However, advanced use cases may not be supported.
+Currently, known limitations include:
 
 * Approvals: The operation that automatically provisions, deprovisions or updates a persona must not be subject to approvals.
 This means that the automatic operations on personas must all be completely automatic and synchronous.
 It is OK to map change of names or other properties from source focus to persona.
-It is also OK to use the object mapping to create assignments as long as they are are not subject to approval.
+It is also OK to use the object mapping to create assignments as long as they are not subject to approval.
 But it is not OK to use persona object mapping to create an assignment that is subject to approval.
 In that case the system will behave in unpredictable way.
 The workaround is to automatically assign only those roles that are not subject to approval.
@@ -295,7 +281,7 @@ MidPoint cannot currently merge two persona constructions and apply them both.
 Attempt to assign two persona constructions that refer to the same persona at the same time will result in an error.
 
 * User-user personas only: Currently only the user-user scenario is tested.
-This means that that both the focus (source) and the persona must be of UserType.
+This means that both the focus (source) and the persona must be of `UserType`.
 Other combinations may work under some circumstances, but they are not tested and currently not supported.
 
 [NOTE]

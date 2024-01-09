@@ -8,10 +8,7 @@
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -42,7 +39,7 @@ public class VerticalFormPrismPropertyPanel<T> extends PrismPropertyPanel<T> {
     }
 
     @Override
-    protected Component createHeaderPanel() {
+    protected ItemHeaderPanel createHeaderPanel() {
         VerticalFormPrismPropertyHeaderPanel<T> header = new VerticalFormPrismPropertyHeaderPanel<T>(ID_HEADER, getModel()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {

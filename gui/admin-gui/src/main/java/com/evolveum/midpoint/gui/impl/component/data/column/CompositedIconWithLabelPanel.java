@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 
@@ -48,6 +49,6 @@ public class CompositedIconWithLabelPanel extends CompositedIconPanel {
 
     private String getLabelColor() {
         return labelDisplayModel != null && labelDisplayModel.getObject() != null && labelDisplayModel.getObject().getColor() != null ?
-                labelDisplayModel.getObject().getColor() : "";
+                GuiDisplayTypeUtil.removeStringAfterSemicolon(labelDisplayModel.getObject().getColor()) : "";
     }
 }

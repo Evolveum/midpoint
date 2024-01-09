@@ -37,7 +37,7 @@ It can be used to point the user to other services in your deployment.
 
 * `*preferredDataLanguage*`: (since midPoint 3.6) Defines the data language that will use used by the user interface to display content of objects (XML, JSON or YAML)
 
-* `*feedbackMessagesHook*`: Script hook configuration which can be used to modify operation results shown in GUI.
+* `*feedbackMessagesHook*`: Configuration for modifying of feedback messages showed in GUI.
 
 Since midPoint 4.4, the look and feel of GUI has been significantly changed. The aim was to provide better user experience and more configuration options. The old look is still available in midPoint for preview. It can be turned on in adminGuiConfiguration setting `useNewDesign` property to _false_. However, bugs and improvements will be fixed and implemented only for the new look and the old look will be completely removed in release 4.6. Old look is no more supported in 4.4. Please, migrate your configuration as soon as possible.
 
@@ -1851,8 +1851,10 @@ However, the authorizations and the admin GUI configuration work together in sev
 E.g. end-users and administrators, both have the `basic` panel in the profile visible, but the attributes which are seen by end-users or administrators might differ.
 
 == Feedback Messages Hook
+Feedback messages hook configures operation result shown in GUI. Contains elements 'operationResultHook' and 'stackTraceVisibility'.
 
-Feedback messages hook configuration allows operation result preprocessing before it's shown in GUI.
+=== Operation Result Hook
+'operationResultHook' attribute allows operation result preprocessing before it's shown in GUI.
 Currently processed OperationResultType is set as "input" variable available in script.
 Script should return OperationResultType.
 If script returns null, then result is dropped and not shown on page.
@@ -1890,6 +1892,19 @@ To see changes made in this part of configuration, user needs to do logout/login
             </code>
          </script>
       </operationResultHook>
+   </feedbackMessagesHook>
+</adminGuiConfiguration>
+----
+
+=== Stack Trace Visibility
+'stackTraceVisibility' attribute configure visibility for stack trace in feedback messages of GUI.
+Relevant values are 'visible' and 'hidden'. Default value is 'visible'.
+
+[source,xml]
+----
+<adminGuiConfiguration>
+   <feedbackMessagesHook>
+      <stackTraceVisibility>hidden</stackTraceVisibility>
    </feedbackMessagesHook>
 </adminGuiConfiguration>
 ----

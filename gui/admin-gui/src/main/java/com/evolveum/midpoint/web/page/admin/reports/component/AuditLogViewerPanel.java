@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -306,7 +308,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
                         } else {
                             rightBottomIcon = eventType.getDisplay().getIcon().getCssClass();
                         }
-                        iconColor = eventType.getDisplay().getIcon().getColor();
+                        iconColor = GuiDisplayTypeUtil.removeStringAfterSemicolon(eventType.getDisplay().getIcon().getColor());
                     }
                     CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
                     if (defaultIcon != null) {
@@ -332,7 +334,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
                             WebComponentUtil.createLocalizedModelForEnum(record.getEventType(), AuditLogViewerPanel.this).getObject();
                     String color = eventType != null && eventType.getDisplay() != null && eventType.getDisplay().getIcon() != null ?
                             eventType.getDisplay().getIcon().getColor() : null;
-                    return Model.of(new DisplayType().label(label).color(color));
+                    return Model.of(new DisplayType().label(label).color(GuiDisplayTypeUtil.removeStringAfterSemicolon(color)));
                 }
 
                 @Override

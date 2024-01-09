@@ -15,7 +15,7 @@
             <div class="navbar-nav">
                 <a tabindex="-1" wicket:id="menuToggle" class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
             </div>
-            <div class="ml-2 navbar-title" wicket:id="pageTitleContainer">
+            <div class="ml-2 navbar-title" wicket:id="pageTitleContainer" role="heading" aria-level="1">
                         <span class="page-title" wicket:id="pageTitle">
                             <span wicket:id="deploymentName"/>
                             <span wicket:id="pageTitleReal"/>
@@ -78,7 +78,7 @@
             <aside class="main-sidebar" wicket:id="sidebarMenu"/>
         </wicket:enclosure>
 
-        <div class="content-wrapper" style="min-height: 916px; padding: 15px 0">
+        <main class="content-wrapper" style="min-height: 916px; padding: 15px 0">
             <section class="content">
                 <div class="container-fluid">
                     <div wicket:id="feedbackContainer" class="feedbackContainer">
@@ -87,7 +87,7 @@
                     <wicket:child/>
                 </div>
             </section>
-        </div>
+        </main>
         <footer wicket:id="footerContainer" class="main-footer">
             <span class="pull-right hidden-xs" wicket:id="version">
                 <b><wicket:message key="PageTemplate.version"/></b> <wicket:message key="midpoint.system.build"/>

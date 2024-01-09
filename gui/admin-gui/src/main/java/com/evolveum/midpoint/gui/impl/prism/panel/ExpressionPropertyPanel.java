@@ -49,7 +49,7 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
     }
 
     @Override
-    protected Component createHeaderPanel() {
+    protected ItemHeaderPanel createHeaderPanel() {
         ExpressionWrapper expressionWrapper = (ExpressionWrapper) getModelObject();
         if (expressionWrapper != null && (expressionWrapper.isAssociationExpression() || expressionWrapper.isAttributeExpression())) {
             return new ExpressionPropertyHeaderPanel(ID_HEADER, getModel()) {

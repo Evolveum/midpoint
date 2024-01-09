@@ -104,4 +104,14 @@ public class PrismContainerHeaderPanel<C extends Containerable, PCW extends Pris
     protected boolean isHelpTextVisible() {
         return super.isHelpTextVisible() && getModelObject().isExpanded();
     }
+
+    @Override
+    protected IModel<String> getTitleForAddButton() {
+        return getParentPage().createStringResource("PrismContainerHeaderPanel.addButtonTitle", createLabelModel().getObject());
+    }
+
+    @Override
+    protected IModel<String> getTitleForRemoveAllButton() {
+        return getParentPage().createStringResource("PrismContainerHeaderPanel.removeAllButtonTitle", createLabelModel().getObject());
+    }
 }

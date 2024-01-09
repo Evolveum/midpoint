@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
@@ -89,6 +90,6 @@ public class CountIconPanel extends BasePanel<List<DisplayType>> {
             return null;
         }
 
-        return icon.getColor();
+        return GuiDisplayTypeUtil.removeStringAfterSemicolon(icon.getColor());
     }
 }
