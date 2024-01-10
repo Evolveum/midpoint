@@ -97,7 +97,7 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
 
         Assertions.assertThat(listener.getOptionalCleanupEvents())
                 .hasSize(1);
-        Assertions.assertThat(listener.getOptionalCleanupEvents().get(0).getPath())
+        Assertions.assertThat(listener.getOptionalCleanupEvents().get(0).path())
                 .isEqualTo(CAPABILITY_ACTIVATION);
     }
 
@@ -112,7 +112,7 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
 
         Assertions.assertThat(listener.getProtectedStringCleanupEvents())
                 .hasSize(1);
-        Assertions.assertThat(listener.getProtectedStringCleanupEvents().get(0).getPath())
+        Assertions.assertThat(listener.getProtectedStringCleanupEvents().get(0).path())
                 .isEqualTo(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE));
     }
 }
