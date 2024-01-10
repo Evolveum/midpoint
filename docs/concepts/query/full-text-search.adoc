@@ -5,8 +5,6 @@
 :page-wiki-metadata-create-date: 2017-02-27T11:45:43.315+01:00
 :page-wiki-metadata-modify-user: vix
 :page-wiki-metadata-modify-date: 2018-04-19T13:43:10.256+02:00
-:page-alias: { "parent" : "/midpoint/guides/" }
-:page-since: "3.6"
 :page-upkeep-status: yellow
 :page-display-order: 60
 :page-toc: top
@@ -98,11 +96,11 @@ This is done in system configuration object, for example by including the follow
 . Re-index existing objects.
 This can be done by _About -> Reindex repository objects_ action.
 
-image::images/reindex.PNG[]
+image::reindex.PNG[]
 
 The `m_object_text_info` table content (Generic repo) will then look like this:
 
-image::images/IMG_24022017_180501_0.png[]
+image::IMG_24022017_180501_0.png[]
 
 The same result (only with different colum names) can be achived by running the following SQL in the Native repository:
 
@@ -115,7 +113,7 @@ select oid, fulltextinfo from m_object
 
 If the full-text search feature is enabled in the system configuration, it can be used from the GUI.
 
-image::images/image2017-2-28-10-46-42.png[]
+image::image2017-2-28-10-46-42.png[]
 
 == Limitations
 
