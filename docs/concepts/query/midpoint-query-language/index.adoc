@@ -1,4 +1,5 @@
 = midPoint Query Language
+:page-display-order: 100
 :page-toc: top
 :toclevels: 3
 :sectnums:
