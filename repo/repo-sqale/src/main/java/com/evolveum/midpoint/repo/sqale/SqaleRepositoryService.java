@@ -146,7 +146,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .build();
 
         PrismObject<T> object = null;
-        try (var sqResult = SqaleOperationResult.with(operationResult)) {
+        try (var sqResult = SqlBaseOperationTracker.with(operationResult)) {
             object = executeGetObject(type, oidUuid, options);
             return object;
         } catch (ObjectNotFoundException e) {
@@ -230,11 +230,17 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         if (forUpdate) {
             query.forUpdate();
         }
-        Tuple result = query.fetchOne();
-
+        Tuple result;
+        var opResult = SqlBaseOperationTracker.fetchPrimary();
+        try {
+            result = query.fetchOne();
+        } finally {
+            opResult.close();
+        }
         if (result == null || result.get(root.fullObject) == null) {
             throw new ObjectNotFoundException(rootMapping.schemaType(), oid.toString(), isAllowNotFound(options));
         }
+
 
         var ret = new MappedTuple<S>();
         ret.tuple = result;
@@ -597,7 +603,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @Nullable RepoModifyOptions options,
             @NotNull OperationResult operationResult)
             throws SchemaException, PreconditionViolationException, RepositoryException {
-        try (var sqaleResult = SqaleOperationResult.with(operationResult)){
+        try (var sqaleResult = SqlBaseOperationTracker.with(operationResult)){
             if (options == null) {
                 options = new RepoModifyOptions();
             }
@@ -933,7 +939,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .addParam(OperationResult.PARAM_OPTIONS, String.valueOf(options))
                 .build();
 
-        try (var sqaleResult = SqaleOperationResult.with(operationResult)) {
+        try (var sqaleResult = SqlBaseOperationTracker.with(operationResult)) {
             logSearchInputParameters(type, query, "Search objects");
 
             query = ObjectQueryUtil.simplifyQuery(query);
@@ -988,7 +994,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .addParam(OperationResult.PARAM_QUERY, query)
                 .build();
 
-        try (var sqaleResult = SqaleOperationResult.with(operationResult)) {
+        try (var sqaleResult = SqlBaseOperationTracker.with(operationResult)) {
             logSearchInputParameters(type, query, "Iterative search objects");
 
             query = ObjectQueryUtil.simplifyQuery(query);

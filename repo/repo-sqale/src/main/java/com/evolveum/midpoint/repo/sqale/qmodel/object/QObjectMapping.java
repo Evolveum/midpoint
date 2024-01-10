@@ -17,8 +17,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.repo.sqale.SqaleOperationResult;
-import com.evolveum.midpoint.repo.sqale.mapping.ReferenceNameResolver;
+import com.evolveum.midpoint.repo.sqlbase.SqlBaseOperationTracker;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleMappingMixin;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.*;
 
@@ -97,10 +96,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         return Objects.requireNonNull(instance);
     }
 
-    private static String DOT_NAME = QObjectMapping.class.getName() + ".";
-    private static String PARSE_FULL_OBJECT = DOT_NAME + "parseFullObject";
-    private static String FETCH_CHILDREN = DOT_NAME + "fetchChildren";
-    private static String PARSE_CHILDREN = DOT_NAME + "parseChildren";
+
 
 
     protected QObjectMapping(
@@ -217,7 +213,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull JdbcSession jdbcSession,
             boolean forceFull) {
-        var result = SqaleOperationResult.createSubresult(PARSE_FULL_OBJECT);
+        var result = SqlBaseOperationTracker.parsePrimary();
         try {
             return toSchemaObjectComplete(tuple, entityPath, options, jdbcSession, forceFull);
         } catch (SchemaException e) {
@@ -485,16 +481,15 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             @Override
             public void beforeTransformation(List<Tuple> tuples, Q entityPath) throws SchemaException {
                 // get uuids?
-                var result = SqaleOperationResult.createSubresult(FETCH_CHILDREN);
-                try {
-                    var oidList = tuples.stream().map(t -> t.get(entityPath.oid)).collect(Collectors.toList());
-                    for (var mapping : mappingToData.entrySet()) {
+                var oidList = tuples.stream().map(t -> t.get(entityPath.oid)).collect(Collectors.toList());
+                for (var mapping : mappingToData.entrySet()) {
+                    var result = SqlBaseOperationTracker.fetchChildren(mapping.getKey().mapping.tableName());
+                    try {
                         mapping.setValue(mapping.getKey().fetchChildren(oidList, jdbcSession));
+                    } finally {
+                        result.close();
                     }
-                } finally {
-                    result.close();
                 }
-
             }
 
             @Override
@@ -502,7 +497,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 // Parsing full object
                 S baseObject = toSchemaObjectCompleteSafe(tuple, entityPath, options, jdbcSession, false);
                 var uuid = tuple.get(entityPath.oid);
-                var childrenResult = SqaleOperationResult.createSubresult(PARSE_CHILDREN);
+                var childrenResult = SqlBaseOperationTracker.parseChildren("all");
                 try {
                     for (var entry : mappingToData.entrySet()) {
                         var mapping = entry.getKey();

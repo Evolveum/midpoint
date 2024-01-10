@@ -26,4 +26,5 @@ public interface QSeparatelySerializedItem<Q extends FlexibleRelationalPathBase<
     UUID getOwner(R row);
     PrismValue toSchemaObjectEmbedded(R row) throws SchemaException;
     Class<? extends Item<? extends PrismValue,?>> getPrismItemType();
+    String tableName();
 }
