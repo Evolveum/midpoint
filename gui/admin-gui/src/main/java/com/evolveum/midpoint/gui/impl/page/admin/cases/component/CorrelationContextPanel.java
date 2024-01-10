@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.cases.component.CorrelationContextDto.F_OPTION_HEADERS;
 
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -66,7 +68,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     private static final String ID_MATCH_NAME = "matchName";
     private static final String ID_CONFIDENCES = "confidences";
     private static final String ID_CONFIDENCE = "confidence";
-    private static final String ID_INFO = "explanation";
+    private static final String ID_EXPLANATION = "explanation";
 
     private static final String OP_LOAD = CorrelationContextPanel.class.getName() + ".load";
     private static final String OP_DECIDE_CORRELATION = CorrelationContextPanel.class.getName() + ".decideCorrelation";
@@ -79,14 +81,13 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
     private final IModel<CaseWorkItemType> workItemModel;
 
-    boolean caseWithConfidences = false;
-
     @SuppressWarnings("unused") // called by the framework
     public CorrelationContextPanel(String id, CaseDetailsModels model, ContainerPanelConfigurationType config) {
         this(id, model, null, config);
     }
 
-    public CorrelationContextPanel(String id, CaseDetailsModels model, IModel<CaseWorkItemType> workItemModel, ContainerPanelConfigurationType config) {
+    public CorrelationContextPanel(
+            String id, CaseDetailsModels model, IModel<CaseWorkItemType> workItemModel, ContainerPanelConfigurationType config) {
         super(id, model, config);
         this.workItemModel = workItemModel;
     }
@@ -184,8 +185,10 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
         };
         add(referenceIds);
 
+        // TODO we should make visible/invisible the whole row, not the individual components
         Label matchLabel = new Label(ID_MATCH_NAME, TEXT_MATCH_CONFIDENCE);
-        add(matchLabel.setVisible(caseWithConfidences));
+        matchLabel.add(new VisibleBehaviour(() -> correlationCtxModel.getObject().hasConfidences()));
+        add(matchLabel);
 
         ListView<CorrelationOptionDto> matchConfidences = new ListView<>(ID_CONFIDENCES,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
@@ -193,18 +196,18 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> item) {
 
-                if (item.getModelObject().getConfidence() != null) {
-                    caseWithConfidences = true;
-                }
+                CorrelationOptionDto optionDto = item.getModelObject();
 
-                item.add(new Label(ID_CONFIDENCE, item.getModel().getObject().getConfidence())
-                        .setVisible(item.getModelObject().getConfidence() != null));
+                String confidence = optionDto.getCandidateConfidence();
+                Label confidenceLabel = new Label(ID_CONFIDENCE, confidence);
+                confidenceLabel.setVisible(confidence != null);
+                item.add(confidenceLabel);
 
-                item.add(WebComponentUtil.createHelp(ID_INFO)
-                        .setVisible(item.getModelObject().getConfidence() != null));
-
-                matchLabel.setVisible(caseWithConfidences);
-                this.setVisible(caseWithConfidences);
+                String explanation = optionDto.getCandidateExplanation();
+                Component explanationLabel = WebComponentUtil.createHelp(ID_EXPLANATION);
+                explanationLabel.add(AttributeModifier.replace("title", explanation));
+                explanationLabel.setVisible(explanation != null);
+                item.add(explanationLabel);
             }
         };
 

@@ -15,10 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlator.Confidence.PerItemConfidence;
 import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation;
 import com.evolveum.midpoint.model.api.correlator.ItemsCorrelationExplanation;
 import com.evolveum.midpoint.model.api.correlator.*;
 
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +73,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
     }
 
     @Override
-    protected double checkCandidateOwnerInternal(
+    protected @NotNull Confidence checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
@@ -132,15 +134,18 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
         }
 
         @Override
-        public Double getConfidence(ObjectType candidate, Task task, OperationResult result)
+        public @NotNull Confidence getConfidence(ObjectType candidate, Task task, OperationResult result)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
-            double confidence = 1.0;
+            PathKeyedMap<Double> itemConfidencesMap = new PathKeyedMap<>();
+            double overallConfidence = 1.0;
             for (CorrelationItem item : correlationItems.getItems()) {
-                confidence *= item.computeConfidence(candidate, task, result);
+                double itemConfidence = item.computeConfidence(candidate, task, result);
+                itemConfidencesMap.put(item.getItemPath(), itemConfidence);
+                overallConfidence *= itemConfidence;
             }
-            LOGGER.trace("Overall confidence for {}: {}", candidate, confidence);
-            return confidence;
+            LOGGER.trace("Overall confidence for {}: {}", candidate, overallConfidence);
+            return PerItemConfidence.of(overallConfidence, itemConfidencesMap);
         }
     }
 
@@ -210,7 +215,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             this.candidateOwner = candidateOwner;
         }
 
-        double execute(@NotNull OperationResult result)
+        Confidence execute(@NotNull OperationResult result)
                 throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
 
@@ -223,7 +228,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             if (matches) {
                 return determineConfidence(candidateOwner, this, task, result);
             } else {
-                return 0;
+                return Confidence.zero();
             }
         }
 
@@ -261,7 +266,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                 throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
 
-            double confidence = checkCandidateOwnerInternal(correlationContext, candidateOwner, result);
+            Confidence confidence = checkCandidateOwnerInternal(correlationContext, candidateOwner, result);
             return new ItemsCorrelationExplanation(
                     correlatorContext.getConfiguration(),
                     confidence);
