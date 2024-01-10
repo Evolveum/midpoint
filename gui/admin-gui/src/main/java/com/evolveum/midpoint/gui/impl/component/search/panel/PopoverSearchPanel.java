@@ -52,7 +52,8 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
         TextPanel<String> textField = new TextPanel<>(ID_TEXT_FIELD, getTextValue());
         textField.setOutputMarkupId(true);
         textField.add(AttributeAppender.append("title", getTextValue().getObject()));
-        textField.setEnabled(false);
+//        textField.setEnabled(false);
+        textField.getBaseFormComponent().add(AttributeAppender.append("readonly", "readonly"));
         add(textField);
 
         Popover popover = new Popover(ID_POPOVER) {

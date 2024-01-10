@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
@@ -75,6 +76,7 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
         oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         oidField.setOutputMarkupId(true);
         oidField.add(new EnableBehaviour(this::isItemPanelEnabled));
+        oidField.add(AttributeAppender.append("aria-label", createStringResource("ReferencePopupPanel.oid")));
         midpointForm.add(oidField);
 
         ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject()),
@@ -112,6 +114,9 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
         });
         nameField.setOutputMarkupId(true);
         nameField.add(new EnableBehaviour(this::isItemPanelEnabled));
+        nameField.getBaseFormComponent().add(AttributeAppender.append(
+                "aria-label",
+                createStringResource("ReferencePopupPanel.name")));
         midpointForm.add(nameField);
 
         DropDownChoicePanel<QName> type = new DropDownChoicePanel<>(ID_TYPE, new PropertyModel<>(getModel(), "type"),
@@ -139,6 +144,9 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
                 target.add(ReferenceValueSearchPopupPanel.this);
             }
         });
+        type.getBaseFormComponent().add(AttributeAppender.append(
+                "aria-label",
+                createStringResource("ReferencePopupPanel.targetType")));
         midpointForm.add(type);
 
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
@@ -151,6 +159,9 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
                 Model.ofList(allowedRelations), RelationUtil.getRelationChoicesRenderer(), true);
         relation.setOutputMarkupId(true);
         relation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        relation.getBaseFormComponent().add(AttributeAppender.append(
+                "aria-label",
+                createStringResource("ReferencePopupPanel.relation")));
         relationContainer.add(relation);
     }
 

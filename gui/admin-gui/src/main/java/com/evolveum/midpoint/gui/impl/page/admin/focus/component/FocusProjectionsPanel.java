@@ -268,6 +268,11 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                         refreshDeadMessage(target);
                         super.refreshTable(target);
                     }
+
+                    @Override
+                    protected String getKeyOfTitleForNewObjectButton() {
+                        return "FocusProjectionsPanel.newObject";
+                    }
                 };
         multivalueContainerListPanel.setItemDetailsVisible(false);
         add(multivalueContainerListPanel);
