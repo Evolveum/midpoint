@@ -4399,7 +4399,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
-                        <a:experimental>true</a:experimental>
                         <a:displayName>ItemRefinedDefinitionType.correlator</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
