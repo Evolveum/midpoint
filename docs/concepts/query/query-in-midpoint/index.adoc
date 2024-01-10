@@ -3,6 +3,7 @@ scripts: [ 'multi-source.js' ]
 ---
 = Query concepts
 :page-nav-title: Query Concepts
+:page-display-order: 300
 :page-toc: top
 :toclevels: 3
 :sectnums:
