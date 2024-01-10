@@ -1,0 +1,229 @@
+= User Web Resource
+:page-nav-title: REST API User Resource
+:page-display-order: 100
+// :page-since: "4.4"
+// :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
+
+== Description
+
+Here we are describing the User object type in relation to midPoints REST API. The
+User objects are a part of the REST API web resources. The User objects are a part
+of the
+
+== Applicable Operations
+
+The User web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
+present in midPoint. This is apparent in the operations which are available for this type of object.
+
+
+== JSON Example
+
+Example output of information regarding a specific user object. Metadata is usually a part of the output, yet it was removed for the puprose of the
+example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, http]
+----
+{
+  "user" : {
+    "oid" : "00000000-0000-0000-0000-000000000002",
+    "version" : "7",
+    "name" : "administrator",
+    "metadata" : {
+      "requestTimestamp" : "2024-01-09T14:44:06.809+01:00",
+      "createTimestamp" : "2024-01-09T14:44:06.843+01:00",
+      "createChannel" : "http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init"
+    },
+    "operationExecution" : {
+      "@id" : 3,
+      "recordType" : "simple",
+      "timestamp" : "2024-01-09T14:44:06.897+01:00",
+      "operation" : {
+        "objectDelta" : {
+          "changeType" : "add",
+          "objectType" : "c:UserType"
+        },
+        "executionResult" : {
+          "operation" : "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta",
+          "status" : "success",
+          "importance" : "normal",
+          "token" : 1000000000000000096
+        },
+        "objectName" : "administrator"
+      },
+      "status" : "success",
+      "channel" : "http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init"
+    },
+    "indestructible" : true,
+    "assignment" : [ {
+      "@id" : 1,
+      "identifier" : "superuserRole",
+      "metadata" : {
+        "requestTimestamp" : "2024-01-09T14:44:06.809+01:00",
+        "createTimestamp" : "2024-01-09T14:44:06.843+01:00",
+        "createChannel" : "http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init"
+      },
+      "targetRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000004",
+        "relation" : "org:default",
+        "type" : "c:RoleType"
+      },
+      "activation" : {
+        "effectiveStatus" : "enabled"
+      }
+    }, {
+      "@id" : 2,
+      "identifier" : "archetype",
+      "metadata" : {
+        "requestTimestamp" : "2024-01-09T14:44:06.809+01:00",
+        "createTimestamp" : "2024-01-09T14:44:06.843+01:00",
+        "createChannel" : "http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init"
+      },
+      "targetRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000300",
+        "relation" : "org:default",
+        "type" : "c:ArchetypeType"
+      },
+      "activation" : {
+        "effectiveStatus" : "enabled"
+      }
+    } ],
+    "iteration" : 0,
+    "iterationToken" : "",
+    "archetypeRef" : {
+      "oid" : "00000000-0000-0000-0000-000000000300",
+      "relation" : "org:default",
+      "type" : "c:ArchetypeType"
+    },
+    "roleMembershipRef" : [ {
+      "@metadata" : {
+        "storage" : {
+          "createTimestamp" : "2024-01-09T14:44:06.824+01:00"
+        },
+        "provenance" : {
+          "assignmentPath" : {
+            "sourceRef" : {
+              "oid" : "00000000-0000-0000-0000-000000000002",
+              "relation" : "org:default",
+              "type" : "c:UserType"
+            },
+            "segment" : {
+              "segmentOrder" : 1,
+              "assignmentId" : 2,
+              "targetRef" : {
+                "oid" : "00000000-0000-0000-0000-000000000300",
+                "relation" : "org:default",
+                "type" : "c:ArchetypeType"
+              },
+              "matchingOrder" : true
+            }
+          }
+        }
+      },
+      "oid" : "00000000-0000-0000-0000-000000000300",
+      "relation" : "org:default",
+      "type" : "c:ArchetypeType"
+    }, {
+      "@metadata" : {
+        "storage" : {
+          "createTimestamp" : "2024-01-09T14:44:06.824+01:00"
+        },
+        "provenance" : {
+          "assignmentPath" : {
+            "sourceRef" : {
+              "oid" : "00000000-0000-0000-0000-000000000002",
+              "relation" : "org:default",
+              "type" : "c:UserType"
+            },
+            "segment" : {
+              "segmentOrder" : 1,
+              "assignmentId" : 1,
+              "targetRef" : {
+                "oid" : "00000000-0000-0000-0000-000000000004",
+                "relation" : "org:default",
+                "type" : "c:RoleType"
+              },
+              "matchingOrder" : true
+            }
+          }
+        }
+      },
+      "oid" : "00000000-0000-0000-0000-000000000004",
+      "relation" : "org:default",
+      "type" : "c:RoleType"
+    } ],
+    "activation" : {
+      "administrativeStatus" : "enabled",
+      "effectiveStatus" : "enabled",
+      "enableTimestamp" : "2024-01-09T14:44:06.815+01:00",
+      "lockoutStatus" : "normal"
+    },
+    "credentials" : {
+      "password" : {
+        "metadata" : {
+          "createTimestamp" : "2024-01-09T14:44:06.815+01:00",
+          "createChannel" : "http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init"
+        },
+        "value" : {
+          "encryptedData" : {
+            "encryptionMethod" : {
+              "algorithm" : "http://www.w3.org/2001/04/xmlenc#aes256-cbc"
+            },
+            "keyInfo" : {
+              "keyName" : "Dpvz8RupzHyaKBP5pUeneEtLCpA="
+            },
+            "cipherData" : {
+              "cipherValue" : "rMmbPsgb1WZYrsfOFziv97oktg+Yvyl/s+OhMzFYyrs="
+            }
+          }
+        }
+      }
+    },
+    "behavior" : {
+      "authentication" : [ {
+        "@id" : 4,
+        "lastSuccessfulLogin" : {
+          "timestamp" : "2024-01-09T14:57:24.218+01:00",
+          "from" : "0:0:0:0:0:0:0:1"
+        },
+        "authenticationAttempt" : {
+          "sequenceIdentifier" : "admin-gui-default",
+          "moduleIdentifier" : "loginForm",
+          "lastSuccessfulAuthentication" : {
+            "timestamp" : "2024-01-09T14:57:24.206+01:00",
+            "from" : "0:0:0:0:0:0:0:1"
+          }
+        },
+        "sequenceIdentifier" : "admin-gui-default"
+      }, {
+        "@id" : 5,
+        "lastSuccessfulLogin" : {
+          "timestamp" : "2024-01-09T15:01:14.401+01:00",
+          "from" : "127.0.0.1"
+        },
+        "previousSuccessfulLogin" : {
+          "timestamp" : "2024-01-09T14:59:35.925+01:00",
+          "from" : "127.0.0.1"
+        },
+        "authenticationAttempt" : {
+          "sequenceIdentifier" : "rest-default",
+          "moduleIdentifier" : "httpBasic",
+          "lastSuccessfulAuthentication" : {
+            "timestamp" : "2024-01-09T15:01:14.388+01:00",
+            "from" : "127.0.0.1"
+          }
+        },
+        "sequenceIdentifier" : "rest-default"
+      } ]
+    },
+    "fullName" : "midPoint Administrator",
+    "givenName" : "midPoint",
+    "familyName" : "Administrator"
+  }
+}
+----
+====
+
+== See Also

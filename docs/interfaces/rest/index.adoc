@@ -399,7 +399,7 @@ The base URL of REST API is link:http://localhost:8080/midpoint/ws/rest[http://l
 * Use the base URL + path from the table below to request concrete operation.
 
 
-* Supply the \{type} with the specific type of object you want to add (or modify, delete, search, etc).
+* Supply the \{type} with the specific type of object you want to add (or modify, delete, [.line-through]#search#, etc).
 Supported types are listed in Table 1 above.
 
 * Supply the \{oid} with the specific oid of your object.

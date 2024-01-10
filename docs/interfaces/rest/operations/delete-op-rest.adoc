@@ -1,0 +1,20 @@
+= Delete Operation
+:page-nav-title: REST API Delete Operation
+:page-display-order: 400
+
+== Description
+
+== Request
+
+=== Headers
+
+=== Body
+
+=== Options
+
+=== Response
+
+== Examples
+
+== See Also
+
