@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -75,7 +77,11 @@ class CorrelationContextDto implements Serializable {
             resolvePotentialOwners(ownerOptions, pageBase, task, result);
         }
         CorrelationCaseDescription<?> correlationCaseDescription =
-                pageBase.getCorrelationService().describeCorrelationCase(aCase, null, task, result);
+                pageBase.getCorrelationService().describeCorrelationCase(
+                        aCase,
+                        new CorrelationService.CorrelationCaseDescriptionOptions().explain(true),
+                        task,
+                        result);
         createCorrelationOptions(aCase, correlationCaseDescription);
         createCorrelationPropertiesDefinitions(aCase, pageBase, task, result);
     }
@@ -163,5 +169,10 @@ class CorrelationContextDto implements Serializable {
 
     public List<CorrelationCaseDescription.CorrelationProperty> getCorrelationProperties() {
         return correlationProperties;
+    }
+
+    boolean hasConfidences() {
+        return correlationOptions.stream().anyMatch(
+                option -> option.getCandidateConfidence() != null);
     }
 }

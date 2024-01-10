@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.model.api.correlator.Confidence;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,7 +69,7 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
     }
 
     @Override
-    protected double checkCandidateOwnerInternal(
+    protected @NotNull Confidence checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result) {
