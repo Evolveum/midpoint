@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.repo.sqale.SqaleOperationResult;
 import com.evolveum.midpoint.repo.sqale.mapping.ReferenceNameResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleMappingMixin;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.*;
@@ -95,6 +96,12 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     public static QObjectMapping<?, ?, ?> getObjectMapping() {
         return Objects.requireNonNull(instance);
     }
+
+    private static String DOT_NAME = QObjectMapping.class.getName() + ".";
+    private static String PARSE_FULL_OBJECT = DOT_NAME + "parseFullObject";
+    private static String FETCH_CHILDREN = DOT_NAME + "fetchChildren";
+    private static String PARSE_CHILDREN = DOT_NAME + "parseChildren";
+
 
     protected QObjectMapping(
             @NotNull String tableName,
@@ -210,6 +217,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull JdbcSession jdbcSession,
             boolean forceFull) {
+        var result = SqaleOperationResult.createSubresult(PARSE_FULL_OBJECT);
         try {
             return toSchemaObjectComplete(tuple, entityPath, options, jdbcSession, forceFull);
         } catch (SchemaException e) {
@@ -225,6 +233,8 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             } catch (SchemaException ex) {
                 throw new RepositoryMappingException("Schema exception [" + ex + "] while handling schema exception: " + e, e);
             }
+        } finally {
+            result.close();
         }
     }
 
@@ -418,7 +428,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             if (includedByDefault) {
                 var retrieveOptions = SelectorOptions.findOptionsForPath(options, UniformItemPath.from(this.getPath()));
                 if (retrieveOptions.stream().anyMatch(o -> RetrieveOption.EXCLUDE.equals(o.getRetrieve()))) {
-                    // THere is at least one exclude for options
+                    // There is at least one exclude for options
                     return false;
                 }
                 return true;
@@ -426,8 +436,8 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             return SelectorOptions.hasToFetchPathNotRetrievedByDefault(getPath(), options);
         }
 
-        public Multimap<UUID, PrismValue> fetchChildren(List<UUID> oidList, JdbcSession jdbcSession) throws SchemaException {
-            Multimap<UUID, PrismValue> ret = HashMultimap.create();
+        public Multimap<UUID, Object> fetchChildren(List<UUID> oidList, JdbcSession jdbcSession) throws SchemaException {
+            Multimap<UUID, Object> ret = HashMultimap.create();
 
             var q = mapping.createAlias();
             var query = jdbcSession.newQuery()
@@ -437,16 +447,18 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             for (var row : query.fetch()) {
                 // All assignments should have full object present / legacy assignments should be kept
                 if (mapping.hasFullObject(row)) {
-                    ret.put(mapping.getOwner(row), mapping.toSchemaObjectEmbedded(row));
+                    ret.put(mapping.getOwner(row), row);
                 }
             }
             return ret;
         }
 
-        public void applyToSchemaObject(S target, Collection<PrismValue> values) throws SchemaException {
+        public void applyToSchemaObject(S target, Collection<Object> values) throws SchemaException {
             var container = target.asPrismObject().findOrCreateItem(getPath(), (Class) mapping.getPrismItemType());
             container.setIncomplete(false);
-            for (var containerable : values) {
+            for (var val : values) {
+                IR row = (IR) val;
+                var containerable = mapping.toSchemaObjectEmbedded(row);
                 // FIXME: Some better addition method should be necessary.
                 ((Item) container).addIgnoringEquivalents(containerable);
             }
@@ -473,24 +485,35 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             @Override
             public void beforeTransformation(List<Tuple> tuples, Q entityPath) throws SchemaException {
                 // get uuids?
-                var oidList = tuples.stream().map(t -> t.get(entityPath.oid)).collect(Collectors.toList());
-                for (var mapping : mappingToData.entrySet()) {
-                    mapping.setValue(mapping.getKey().fetchChildren(oidList, jdbcSession));
+                var result = SqaleOperationResult.createSubresult(FETCH_CHILDREN);
+                try {
+                    var oidList = tuples.stream().map(t -> t.get(entityPath.oid)).collect(Collectors.toList());
+                    for (var mapping : mappingToData.entrySet()) {
+                        mapping.setValue(mapping.getKey().fetchChildren(oidList, jdbcSession));
+                    }
+                } finally {
+                    result.close();
                 }
 
             }
 
             @Override
             public S transform(Tuple tuple, Q entityPath) {
+                // Parsing full object
                 S baseObject = toSchemaObjectCompleteSafe(tuple, entityPath, options, jdbcSession, false);
                 var uuid = tuple.get(entityPath.oid);
-                for (var entry : mappingToData.entrySet()) {
-                    var mapping = entry.getKey();
-                    try {
-                        mapping.applyToSchemaObject(baseObject, entry.getValue().get(uuid));
-                    } catch (SchemaException e) {
-                        throw new SystemException(e);
+                var childrenResult = SqaleOperationResult.createSubresult(PARSE_CHILDREN);
+                try {
+                    for (var entry : mappingToData.entrySet()) {
+                        var mapping = entry.getKey();
+                        try {
+                            mapping.applyToSchemaObject(baseObject, entry.getValue().get(uuid));
+                        } catch (SchemaException e) {
+                            throw new SystemException(e);
+                        }
                     }
+                } finally {
+                    childrenResult.close();
                 }
                 resolveReferenceNames(baseObject, jdbcSession, options);
                 return baseObject;

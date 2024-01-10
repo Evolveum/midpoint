@@ -146,7 +146,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .build();
 
         PrismObject<T> object = null;
-        try {
+        try (var sqResult = SqaleOperationResult.with(operationResult)) {
             object = executeGetObject(type, oidUuid, options);
             return object;
         } catch (ObjectNotFoundException e) {
@@ -597,52 +597,53 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @Nullable RepoModifyOptions options,
             @NotNull OperationResult operationResult)
             throws SchemaException, PreconditionViolationException, RepositoryException {
+        try (var sqaleResult = SqaleOperationResult.with(operationResult)){
+            if (options == null) {
+                options = new RepoModifyOptions();
+            }
 
-        if (options == null) {
-            options = new RepoModifyOptions();
+            PrismObject<T> prismObject = updateContext.getPrismObject();
+            //noinspection ConstantConditions
+            logger.debug("Modify object type '{}', oid={}, reindex={}",
+                    prismObject.getCompileTimeClass().getSimpleName(),
+                    prismObject.getOid(),
+                    options.isForceReindex());
+
+            if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(options)) {
+                logger.debug("Modification list is empty, nothing was modified.");
+                operationResult.recordStatus(OperationResultStatus.SUCCESS,
+                        "Modification list is empty, nothing was modified.");
+                return new ModifyObjectResult<>(modifications);
+            }
+
+            checkModifications(modifications);
+            logTraceModifications(modifications);
+
+            if (precondition != null && !precondition.holds(prismObject)) {
+                // will be rolled back automatically
+                throw new PreconditionViolationException(
+                        "Modification precondition does not hold for " + prismObject);
+            }
+            invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
+            PrismObject<T> originalObject = prismObject.clone(); // for result later
+
+            boolean reindex = options.isForceReindex();
+
+            if (reindex) {
+                // UpdateTables is false, we want only to process modifications on fullObject
+                // do not modify nested items.
+                modifications = updateContext.execute(modifications, false);
+                replaceObject(updateContext, updateContext.getPrismObject());
+            } else {
+                modifications = updateContext.execute(modifications);
+            }
+            logger.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
+
+            if (!modifications.isEmpty()) {
+                invokeConflictWatchers((w) -> w.afterModifyObject(prismObject.getOid()));
+            }
+            return new ModifyObjectResult<>(originalObject, prismObject, modifications);
         }
-
-        PrismObject<T> prismObject = updateContext.getPrismObject();
-        //noinspection ConstantConditions
-        logger.debug("Modify object type '{}', oid={}, reindex={}",
-                prismObject.getCompileTimeClass().getSimpleName(),
-                prismObject.getOid(),
-                options.isForceReindex());
-
-        if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(options)) {
-            logger.debug("Modification list is empty, nothing was modified.");
-            operationResult.recordStatus(OperationResultStatus.SUCCESS,
-                    "Modification list is empty, nothing was modified.");
-            return new ModifyObjectResult<>(modifications);
-        }
-
-        checkModifications(modifications);
-        logTraceModifications(modifications);
-
-        if (precondition != null && !precondition.holds(prismObject)) {
-            // will be rolled back automatically
-            throw new PreconditionViolationException(
-                    "Modification precondition does not hold for " + prismObject);
-        }
-        invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
-        PrismObject<T> originalObject = prismObject.clone(); // for result later
-
-        boolean reindex = options.isForceReindex();
-
-        if (reindex) {
-            // UpdateTables is false, we want only to process modifications on fullObject
-            // do not modify nested items.
-            modifications = updateContext.execute(modifications, false);
-            replaceObject(updateContext, updateContext.getPrismObject());
-        } else {
-            modifications = updateContext.execute(modifications);
-        }
-        logger.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
-
-        if (!modifications.isEmpty()) {
-            invokeConflictWatchers((w) -> w.afterModifyObject(prismObject.getOid()));
-        }
-        return new ModifyObjectResult<>(originalObject, prismObject, modifications);
     }
 
     private <T extends ObjectType> void replaceObject(
@@ -932,7 +933,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .addParam(OperationResult.PARAM_OPTIONS, String.valueOf(options))
                 .build();
 
-        try {
+        try (var sqaleResult = SqaleOperationResult.with(operationResult)) {
             logSearchInputParameters(type, query, "Search objects");
 
             query = ObjectQueryUtil.simplifyQuery(query);
@@ -987,7 +988,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .addParam(OperationResult.PARAM_QUERY, query)
                 .build();
 
-        try {
+        try (var sqaleResult = SqaleOperationResult.with(operationResult)) {
             logSearchInputParameters(type, query, "Iterative search objects");
 
             query = ObjectQueryUtil.simplifyQuery(query);
