@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentTyp
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -26,10 +28,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
  * Mapping between {@link QAssignment} and {@link AssignmentType}.
@@ -339,6 +337,13 @@ public class QAssignmentMapping<OR extends MObject>
                     QAssignmentReferenceMapping.getForAssignmentCreateApprover(), jdbcSession);
             storeRefs(row, metadata.getModifyApproverRef(),
                     QAssignmentReferenceMapping.getForAssignmentModifyApprover(), jdbcSession);
+        }
+
+
+        for(var obj :  assignment.asPrismContainerValue().getValueMetadataAsContainer().getRealValues()) {
+            if (obj instanceof ValueMetadataType valueMetadata) {
+                QAssignmentMetadataMapping.get().insert(valueMetadata, row, jdbcSession);
+            }
         }
 
         return row;
