@@ -1,21 +1,46 @@
 = Resource wizard
+:experimental:
 :page-toc: top
 :page-since: "4.6"
+:page-since-improved: [ "4.8" ]
 
-Resource wizard was complete rewrite and redesign in midPoint version 4.6. Screenshots below corresponding with midPoint version 4.8.
+== Introduction
 
-Some wizard panels are configurable, for more information see xref:/midpoint/reference/admin-gui/admin-gui-config/#wizard-panels[Wizard panels].
+Resource wizard allows to easily create and update resource configuration.
+No midPoint XML language is needed, the configuration is entirely UI-based.
 
-New UI takes form of some panels with choice for specific parts of resource configuration. Specific part of configuration is represented by a wizard with steps.
+The new UI takes form of panels with choices for specific parts of resource configuration.
+Specific parts of configuration are represented as steps in wizard.
+
+//Resource wizard was completely rewritten and redesigned in midPoint version 4.6.
+//It was further enhanced in midPoint 4.8.
+Screenshots below corresponding with midPoint version 4.8.
+
+== Resource creation
+
+To create resource, navigate to menu:Resources[New resource].
+
+There are the following possibilities:
+
+. *Inherit Template* - the new resource will be based on a pre-existing resource template. The new resource will _inherit_ the configuration.
+. *From Scratch* - you will need to configure all aspects of the resource
+. *Copy From Template* - the new resource will be based on a pre-existing resource template. The new resource will be created as a copy of that template.
+
+Selecting *From Scratch* option leads to a Resource catalog page as indicated in xref:im001[xrefstyle=full].
+
+[[im001]]
+image::step-1-resource-catalog.png[link=step-1-connector-conf-discovery.png,100%, title=Resource catalog]
 
 == Basic configuration
 
 [%autowidth, cols="1a,1a", frame=none, grid=none, role=center]
 |===
-| image::step-1-basic-conf.png[link=step-1-type-of-resource.png, 100%, title=Select type of resource]
 | image::step-1-resource-catalog.png[link=step-1-connector-conf-discovery.png,100%, title=Resource catalog]
+| image::step-1-basic-conf.png[link=step-1-type-of-resource.png, 100%, title=Select type of resource]
 
 |===
+
+
 
 First panel of resource wizard allows user to choose connector or template for future resource.
 There are three possibilities:
@@ -197,3 +222,12 @@ We can use wizard panels to edit existing resource. It's enough if we open the p
 
 .Resource detail
 image::resource-details.png[Resource detail, 100%]
+
+== Configuration of resource wizard panels
+
+Some wizard panels are configurable, for more information see xref:/midpoint/reference/admin-gui/admin-gui-config/#wizard-panels[Wizard panels].
+
+
+== Limitations
+
+TODO
