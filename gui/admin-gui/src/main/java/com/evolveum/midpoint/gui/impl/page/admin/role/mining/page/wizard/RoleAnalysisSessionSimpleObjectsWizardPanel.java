@@ -47,39 +47,49 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
             PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType = getContainerFormModel().getObject()
                     .getValue();
 
-            Class<? extends ObjectType> classForCount = UserType.class;
+            Class<? extends ObjectType> propertiesClass = UserType.class;
+            Class<? extends ObjectType> membersClass = RoleType.class;
             if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-                classForCount = RoleType.class;
+                propertiesClass = RoleType.class;
+                membersClass = UserType.class;
             }
 
-            Integer maxObjects;
+            Integer maxPropertiesObjects;
+            Integer maxMembersObjects;
+
             ModelService modelService = getPageBase().getModelService();
 
-            maxObjects = modelService.countObjects(classForCount, null, null, task, result);
+            maxPropertiesObjects = modelService.countObjects(propertiesClass, null, null, task, result);
+            maxMembersObjects = modelService.countObjects(membersClass, null, null, task, result);
 
-            if (maxObjects == null) {
-                maxObjects = 1000000;
+            if (maxPropertiesObjects == null) {
+                maxPropertiesObjects = 1000000;
             }
+
+            if (maxMembersObjects == null) {
+                maxMembersObjects = 1000000;
+            }
+
+            double minMembersObject = maxMembersObjects < 10 ? 2.0 : 10;
+            double minObject = maxPropertiesObjects < 10 ? 1.0 : 10;
 
             if (sessionType.getNewValue().getValue().getSimilarityThreshold() == null) {
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD, 80.0);
             }
 
             if (sessionType.getNewValue().getValue().getMinMembersCount() == null) {
-                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, 10);
+                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, minMembersObject);
             }
-
-            double minObject = maxObjects < 10 ? 1.0 : 10;
 
             if (sessionType.getNewValue().getValue().getPropertiesRange() == null
                     || sessionType.getNewValue().getValue().getPropertiesRange().getMin() == null
                     || sessionType.getNewValue().getValue().getPropertiesRange().getMax() == null) {
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, new RangeType()
                         .min(minObject)
-                        .max(maxObjects.doubleValue()));
+                        .max(maxPropertiesObjects.doubleValue()));
             }
             if (sessionType.getNewValue().getValue().getMinPropertiesOverlap() == null) {
-                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, 10);
+                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minObject);
             }
         } catch (SchemaException e) {
             throw new RuntimeException("Failed to update values session clustering options values", e);

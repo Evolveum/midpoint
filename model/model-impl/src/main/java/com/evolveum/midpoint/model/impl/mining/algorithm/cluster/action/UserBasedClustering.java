@@ -110,7 +110,7 @@ public class UserBasedClustering implements Clusterable {
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        Set<String> existingRolesOidsSet = ClusteringUtils.getExistingRolesOidsSet(modelService, task, result);
+        Set<String> existingRolesOidsSet = ClusteringUtils.getExistingActiveRolesOidsSet(modelService, task, result);
 
         //role //user
         return ClusteringUtils.getUserBasedRoleToUserMap(modelService, minProperties, maxProperties,
