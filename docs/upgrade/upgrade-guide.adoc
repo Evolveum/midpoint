@@ -187,7 +187,7 @@ based on PostgreSQL, one can upgrade the database using the `psql` tool
 [source,bash]
 ----
 psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint \
-  -f postgres-new-upgrade.sql -f postgres-new-upgrade-audit.sql
+  -f postgres-upgrade.sql -f postgres-upgrade-audit.sql
 ----
 
 [IMPORTANT]
