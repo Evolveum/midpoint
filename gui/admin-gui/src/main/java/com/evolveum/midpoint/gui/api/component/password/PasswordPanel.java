@@ -147,6 +147,7 @@ public class PasswordPanel extends InputPanel {
         password1.setRequired(false);
         password1.add(new EnableBehaviour(this::canEditPassword));
         password1.setOutputMarkupId(true);
+        password1.add(AttributeAppender.append("aria-label", PageAdminLTE.createStringResourceStatic(getLabelKey())));
         inputContainer.add(password1);
 
         final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO,
@@ -163,6 +164,11 @@ public class PasswordPanel extends InputPanel {
         password2.setRequired(false);
         password2.setOutputMarkupId(true);
         password2.add(new EnableBehaviour(this::canEditPassword));
+        password2.add(AttributeAppender.append(
+                "aria-label",
+                PageAdminLTE.createStringResourceStatic(
+                        "PasswordPanel.secondPanelLabel",
+                        PageAdminLTE.createStringResourceStatic(getLabelKey()).getString())));
         inputContainer.add(password2);
 
         password1.add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -221,6 +227,10 @@ public class PasswordPanel extends InputPanel {
 
         WebComponentUtil.addAjaxOnUpdateBehavior(inputContainer);
 
+    }
+
+    protected String getLabelKey() {
+        return "CredentialsType.password";
     }
 
     protected boolean isPasswordInputVisible() {
