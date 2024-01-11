@@ -35,7 +35,11 @@ image:advanced-query-select.png[Select Advanced query]
 You can test the queries directly in GUI. Starting in All users view. It is easy and straightforward.
 As an example, to select all users with given name starting with "J" just enter `givenName startsWith "J"` to search bar and click search button.
 
-For starting with midPoint query in GUI, please check xref:/midpoint/guides/gui-midpoint-query-examples/[GUI: Advanced search - EXAMPLES] document.
+
+For starting with midPoint query, please check
+xref:basic-usage.adoc[Basic usage of midPoint Query Language] document.
+
+Examples how to use the midPoint query in GUI can be found in xref:/midpoint/guides/gui-midpoint-query-examples[Advanced search - EXAMPLES].
 
 MidPoint provides xref:../query-in-midpoint/index.adoc#_query_playground[query playground] feature that allows administrator more advanced experimenting with midPoint queries.
 
@@ -254,7 +258,7 @@ Dereferencing is done using `@` special character in item path after reference, 
 This allows you to continue path with properties of referenced objects such as
 `assignment/targetRef/@/name` - which means `name` of assigned object.
 
-For example this enables us to search for users with assigned role by role name instead of oid (but it is executed a bit slower, since we need to dereference objects).
+For example, this enables us to search for users with assigned role by role name instead of oid. (but it is executed a bit slower, since we need to dereference objects).
 `assignment/targetRef/@/name = "Superuser"` - matches any user who is directly assigned role of superuser.
 
 NOTE: To match also users, who are indirectly assigned role, you should use `roleMembershipRef` instead of `assignment/targetRef`.
