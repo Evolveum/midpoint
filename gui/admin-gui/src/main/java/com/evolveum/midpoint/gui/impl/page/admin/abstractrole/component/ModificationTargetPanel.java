@@ -85,7 +85,6 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
         }
 
         Set<RoleType> candidateRoles = new HashSet<>();
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         for (AssignmentType assignmentType : inducement) {
             if (assignmentType.getTargetRef() == null) {
                 continue;

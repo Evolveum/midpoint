@@ -16,16 +16,13 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-
-import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
@@ -40,6 +37,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisRoleBasedTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisUserBasedTable;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -47,9 +45,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.util.string.StringValue;
-import org.jetbrains.annotations.Nullable;
 
 @PanelType(name = "clusterDetails")
 @PanelInstance(
