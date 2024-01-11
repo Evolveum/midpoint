@@ -625,7 +625,7 @@ owns (the one pointing to *Org 1-1-1*) has different relation.
 ==== Full-text filter
 
 [NOTE]
-Full-text search must be enabled in the system, see xref:/midpoint/reference/repository/full-text-search.adoc[this document] for more information.
+Full-text search must be enabled in the system, see xref:/midpoint/reference/concepts/query/full-text-search.adoc[this document] for more information.
 
 Full-text filter is applied to the object itself; instead of item path, it uses an internal full-text index.
 The object matches the filter if all the "words" provided as a single string value.
