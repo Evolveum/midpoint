@@ -7,19 +7,19 @@
 
 package com.evolveum.midpoint.model.impl.correlator.idmatch;
 
+import static com.evolveum.midpoint.model.api.correlator.Confidence.full;
+import static com.evolveum.midpoint.model.api.correlator.Confidence.zero;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
 
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.model.api.correlator.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.CandidateOwner;
-import com.evolveum.midpoint.model.api.correlator.CandidateOwnersMap;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.api.correlator.idmatch.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
@@ -87,7 +87,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
     }
 
     @Override
-    protected double checkCandidateOwnerInternal(
+    protected @NotNull Confidence checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
@@ -159,22 +159,22 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             return mResult;
         }
 
-        double checkCandidateOwner(@NotNull FocusType candidateOwner, OperationResult result)
+        @NotNull Confidence checkCandidateOwner(@NotNull FocusType candidateOwner, OperationResult result)
                 throws SchemaException, CommunicationException, SecurityViolationException, ConfigurationException {
             MatchingResult mResult = executeMatchAndStoreTheResult(result);
             String definiteReferenceId = mResult.getReferenceId();
             if (definiteReferenceId != null) {
-                return checkCandidateOwnerByReferenceId(candidateOwner, definiteReferenceId) ? 1 : 0;
+                return checkCandidateOwnerByReferenceId(candidateOwner, definiteReferenceId) ? full() : zero();
             } else {
                 for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
                     String referenceId = potentialMatch.getReferenceId();
                     if (referenceId != null) {
                         if (checkCandidateOwnerByReferenceId(candidateOwner, referenceId)) {
-                            return getConfidence(potentialMatch);
+                            return Confidence.of(getConfidenceValue(potentialMatch));
                         }
                     }
                 }
-                return 0;
+                return zero();
             }
         }
 
@@ -253,7 +253,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                         candidateOwnersMap.put(
                                 candidate,
                                 referenceId,
-                                getConfidence(potentialMatch));
+                                getConfidenceValue(potentialMatch));
                     } else {
                         LOGGER.debug("Potential match with no corresponding user: {}", potentialMatch);
                     }
@@ -262,7 +262,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             return CorrelationResult.of(candidateOwnersMap);
         }
 
-        private double getConfidence(PotentialMatch potentialMatch) {
+        private double getConfidenceValue(PotentialMatch potentialMatch) {
             double confidenceLimit = Objects.requireNonNullElse(
                     configurationBean.getCandidateConfidenceLimit(), DEFAULT_CONFIDENCE_LIMIT);
             Double confidence = potentialMatch.getConfidenceScaledToOne();

@@ -301,6 +301,10 @@ public class CorrelationItem implements DebugDumpable {
         return name;
     }
 
+    public @NotNull ItemPath getItemPath() {
+        return itemPath;
+    }
+
     double computeConfidence(ObjectType candidate, Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {

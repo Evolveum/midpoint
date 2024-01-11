@@ -63,7 +63,7 @@ public interface Correlator {
      *
      * @return The confidence value of the match.
      */
-    double checkCandidateOwner(
+    @NotNull Confidence checkCandidateOwner(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
