@@ -231,7 +231,7 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
             PageParameters parameters = new PageParameters();
             String clusterOid = getHelper().getDetailsModel().getPatternDeltas().getCluster().getOid();
             parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
-            parameters.add("panelId", "clusterDetails");
+            parameters.add("panelId", "migratedRoles");
             Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                     .getObjectDetailsPage(RoleAnalysisClusterType.class);
             getPageBase().navigateToNext(detailsPageClass, parameters);
