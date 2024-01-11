@@ -6,8 +6,8 @@
 :sectnumlevels: 3
 :page-moved-from: /midpoint/reference/concepts/query/axiom-query-language/
 
-//User-friendly documentation of a user-friendly language.
-//This should NOT be a language specification, rather a user-oriented reference documentation with a dash of tutorial on top.
+This document provides introduction to the *midPoint Query Language*.
+Some details are omitted, and there are some simplifications for clarity.
 
 _MidPoint Query Language_ is designed to query objects in midPoint repository.
 It is a universal language used to search for objects in the repository, filter objects, set up object references and so on. It is used in all the places where we need to look for an object, not only in GUI.
@@ -15,32 +15,31 @@ It is a universal language used to search for objects in the repository, filter 
 The language closely follows midPoint data model.
 Names of the properties, attributes and all the data items are directly taken from midPoint xref:/midpoint/reference/schema/[data model].
 
-Not all items in midPoint objects are searchable. The list of searchable items (elements) in midPoint is provided  xref:./searchable-items.adoc[here].
+Not all items in midPoint objects are searchable. The list of searchable items (elements) in midPoint is provided in xref:./searchable-items.adoc[searchable items] document.
 
+MidPoint Query language is complex. It is expected to be used by slightly skilled users and midPoint professionals.
 
 NOTE: The new query language is undergoing rename from 'Axiom' to 'midPoint Query Language' since midPoint version 4.8. As the Axiom name is well known, it can be still for some time referenced also with this name. Please consider _Axiom Query Language_ and _midPoint Query Language_ as synonyms.
 
-This document provides introduction to the *midPoint Query Language*.
-Some details are omitted, and there are some simplifications for clarity.
-
-
 == Using midPoint Query Language in midPoint
 
-Basic search panel is shown in GUI above each view by default. It displays basic search options that are easy to use by end users.
+=== Using in GUI
 
-MidPoint Query language is complex as it needs to . It is expected to be used by slightly skilled users and midPoint professionals.
-Interface for entering queries in midPoint query language can be enabled by switching the search option from _Basic_ to _Advanced_.
+Search panel is shown in GUI above each view by default.
+By default, it displays basic search. This search option is designed to be easy to use by end users.
+
+Midpoint Query Language is available in GUI as *Advanced search*. Its interface can be enabled by switching the search option from _Basic_ to _Advanced_.
 
 image:advanced-query-select.png[Select Advanced query]
-
-For starting with midPoint query in GUI, please check xref:/midpoint/guides/gui-midpoint-query-examples/[GUI: Advanced search - EXAMPLES] document.
 
 You can test the queries directly in GUI. Starting in All users view. It is easy and straightforward.
 As an example, to select all users with given name starting with "J" just enter `givenName startsWith "J"` to search bar and click search button.
 
+For starting with midPoint query in GUI, please check xref:/midpoint/guides/gui-midpoint-query-examples/[GUI: Advanced search - EXAMPLES] document.
+
 MidPoint provides xref:../query-in-midpoint/index.adoc#_query_playground[query playground] feature that allows administrator more advanced experimenting with midPoint queries.
 
-=== Using in XML
+=== Using in Configuration
 
 Advanced query filters can be used in any configuration place, normal XML filters
 would be used. Advanced query filter is wrapped inside `<text>`
@@ -160,7 +159,7 @@ givenName = "John" and familyName = "Doe"
 There is a usual set of logic operators:
 
 .Logical Operators
-[options="header", cols="10,40,30", width=80]
+[options="header", cols="10,30,30", width=70]
 |====
 | Operator | Example | Description
 
@@ -289,8 +288,6 @@ assignment/targetRef matches ( <1>
 
 
 ==== referencedBy filter
-
-NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
 
 `referencedBy` filter allows you to find object based on properties on objects, which
 reference it. Since object as whole is referenced the item path
