@@ -52,7 +52,6 @@ you are using the old repository.
 == Upgrading Native PostgreSQL Repository
 
 This section describes how to upgrade the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
-There is no need to "upgrade" to 4.4 - but we encourage you to xref:/midpoint/reference/repository/native-postgresql/migration/[migrate to the new repository].
 For future releases, the process should be similar to previous upgrades.
 
 === Upgrade Script Location
