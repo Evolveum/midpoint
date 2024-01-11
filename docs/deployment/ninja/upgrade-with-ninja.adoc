@@ -44,6 +44,12 @@ For concrete examples of upgrade scenarios, please see <<Sample upgrade scenario
 Following chapter contains few examples on how to upgrade midPoint using ninja.
 First part describes how to set up midPoint instance for upgrade scenarios.
 
+There are three examples:
+
+* <<Automatic upgrade>>
+* <<Manual (sequential) upgrade>>
+* <<Container environment upgrade>>
+
 Variables used in examples:
 
 * `$MP_INSTALLATION` - MidPoint installation directory
@@ -613,7 +619,7 @@ Migration of tasks should be therefore done before upgrade procedure is started.
 Ninja currently doesn't support task migration out of the box.
 MidPoint Studio plugin with Intellij Idea will be able to help with migration of tasks.
 
-More information about task migration can be found in xref:/midpoint/reference/tasks/migration/[Tasks migration] section of midPoint documentation.
+More information about task migration can be found in xref:/midpoint/reference/tasks/activities/migration/[Migration of Tasks from 4.0/4.3 to 4.4] section of midPoint documentation.
 
 === Pre-upgrade check
 
