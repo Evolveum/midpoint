@@ -74,12 +74,6 @@ public class UserBasedClustering implements Clusterable {
         handler.enterNewStep("Prepare Data");
         handler.setOperationCountToProcess(1);
         List<DataPoint> dataPoints = prepareDataPoints(chunkMap);
-//
-//        //TODO delete after finish research
-//        ParameterOptimization parameterOptimization = new ParameterOptimization();
-//        Integer minPropertiesOverlap = sessionOptionType.getMinPropertiesOverlap();
-//        parameterOptimization.parameterResolver(dataPoints, minPropertiesOverlap);
-
         handler.iterateActualStatus();
 
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
