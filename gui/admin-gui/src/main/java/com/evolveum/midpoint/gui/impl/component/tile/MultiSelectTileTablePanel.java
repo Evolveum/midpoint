@@ -1,13 +1,7 @@
 package com.evolveum.midpoint.gui.impl.component.tile;
 
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import java.io.Serializable;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -20,8 +14,14 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.io.Serializable;
-import java.util.List;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class MultiSelectTileTablePanel<E extends Serializable, O extends ObjectType> extends SingleSelectTileTablePanel<O> {
 
@@ -45,10 +45,9 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
 
     @Override
     protected Fragment createHeaderFragment(String id) {
-        Fragment headerFragment =  super.createHeaderFragment(id);
+        Fragment headerFragment = super.createHeaderFragment(id);
 
         headerFragment.add(AttributeAppender.replace("class", ""));
-
 
         WebMarkupContainer selectedItemsContainer = new WebMarkupContainer(ID_SELECTED_ITEMS_CONTAINER);
         selectedItemsContainer.setOutputMarkupId(true);
@@ -113,7 +112,7 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
                 super.onClick(target);
                 getModelObject().getValue().setSelected(getModelObject().isSelected());
 
-                processSelectOrDeselectItem(getModelObject().getValue(), target);
+                processSelectOrDeselectItem(getModelObject().getValue(), getProvider(), target);
                 target.add(getSelectedItemPanel());
             }
         };
@@ -123,7 +122,7 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
         boolean oldState = model.getObject().isSelected();
 
         model.getObject().setSelected(!oldState);
-        processSelectOrDeselectItem(model.getObject(), target);
+        processSelectOrDeselectItem(model.getObject(), getProvider(), target);
         if (model.getObject().isSelected()) {
             ((SelectableBeanDataProvider) getProvider()).getSelected().add(model.getObject().getValue());
         }
@@ -131,6 +130,6 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
         refresh(target);
     }
 
-    protected void processSelectOrDeselectItem(SelectableBean<O> value, AjaxRequestTarget target) {
+    protected void processSelectOrDeselectItem(SelectableBean<O> value, SelectableBeanObjectDataProvider<O> provider, AjaxRequestTarget target) {
     }
 }

@@ -1,44 +1,74 @@
 = Resource wizard
+:experimental:
 :page-toc: top
 :page-since: "4.6"
+:page-since-improved: [ "4.8" ]
 
-Resource wizard was complete rewrite and redesign in midPoint version 4.6. Screenshots below corresponding with midPoint version 4.8.
+== Introduction
 
-Some wizard panels are configurable, for more information see xref:/midpoint/reference/admin-gui/admin-gui-config/#wizard-panels[Wizard panels].
+Resource wizard allows to easily create and update resource configuration.
+No midPoint XML language is needed, the configuration is entirely UI-based.
 
-New UI takes form of some panels with choice for specific parts of resource configuration. Specific part of configuration is represented by a wizard with steps.
+The new UI takes form of panels with choices for specific parts of resource configuration.
+Specific parts of configuration are represented as steps in wizard.
+
+//Resource wizard was completely rewritten and redesigned in midPoint version 4.6.
+//It was further enhanced in midPoint 4.8.
+Screenshots below corresponding with midPoint version 4.8.
+
+== Resource creation
+
+To create resource, navigate to menu:Resources[New resource].
+
+There are the following possibilities:
+
+. *Inherit Template* - the new resource will be based on a pre-existing resource template. The new resource will _inherit_ the configuration.
+. *From Scratch* - you will need to configure all aspects of the resource
+. *Copy From Template* - the new resource will be based on a pre-existing resource template. The new resource will be created as a copy of that template.
+
+image::step-1-type-of-resource.png[link=step-1-type-of-resource.png,100%, title=Type of resource]
+
+Selecting *From Scratch* option leads to a Resource catalog page:
+
+image::step-1-resource-catalog.png[link=step-1-connector-conf-discovery.png,100%, title=Resource catalog]
+
+Click the connector you want to use to start the resource creation wizard.
 
 == Basic configuration
 
-[%autowidth, cols="1a,1a", frame=none, grid=none, role=center]
-|===
-| image::step-1-basic-conf.png[link=step-1-type-of-resource.png, 100%, title=Select type of resource]
-| image::step-1-resource-catalog.png[link=step-1-connector-conf-discovery.png,100%, title=Resource catalog]
+Enter basic configuration such as resource *Name* and *Description* here.
 
-|===
+*Lifecycle state* is a new property since midPoint 4.8.
+It allows you to create preliminary resource configuration that will not be active, but can be used for xref:/midpoint/reference/admin-gui/simulations/[Simulations].
+The default value is `Proposed`.
 
-First panel of resource wizard allows user to choose connector or template for future resource.
-There are three possibilities:
+image::step-1-basic-conf.png[link=step-1-basic-conf.png, 100%, title=Basic configuration]
 
-* Inherit template - selecting from the resource template that needs to be preconfigured.
-* From scratch - selecting from the available connectors.
-* Copy From template - selecting from the resource template, but we only copy values from template to new resource.
+Click btn:[Next] to continue the resource configuration.
 
-When we choose the source, we proceed to a couple of steps for the basic configuration of the resource and the connector.
+If the connector supports _discovery_ operation, resource wizard will ask you for mandatory configuration parameters to be able to detect the others, e.g. path to a CSV file for CSV file connector.
 
-* First step contains basic configuration for resource.
-* When selected connector supports discovery operation, then in second step you have to set mandatory properties for discovering of possible configuration.
-* Third step contains contains other possible configuration properties. Some properties can contain suggestions.
-* Last step show table with possible object classes.
+image::step-1-connector-conf-discovery.png[link=step-1-connector-conf-discovery.png,100%, title=Partial configuration for discovery]
 
-[%autowidth, cols="1a,1a", frame=none, grid=none, role=center]
-|===
-| image::step-1-basic-conf.png[link=step-1-basic-conf.png, 100%, title=Basic configuration of resource]
-| image::step-1-connector-conf-discovery.png[link=step-1-connector-conf-discovery.png,100%, title=Partial configuration for discovery]
+Click btn:[Next] to start discovery process and continue the resource configuration.
 
-| image::step-1-discovered-config.png[link=step-1-discovered-config.png, 100%, title=Discovered configuration]
-| image::step-1-schema.png[link=step-1-schema.png, 100%, title=Schema]
-|===
+All other resource configuration properties can be configured now.
+Some of the properties are already preconfigured by the connector.
+Some of them allow suggestions of appropriate values using an autocompletion, e.g. CSV file columns as detected by the connector in the discovery step.
+
+image::step-1-discovered-config.png[link=step-1-discovered-config.png, 100%, title=Discovered configuration]
+
+Click btn:[Next] to continue the resource configuration.
+
+Connector will return possible object types and their attributes (_schema_ and its _object classes_).
+Confirm the detected configuration.
+
+image::step-1-schema.png[link=step-1-schema.png, 100%, title=Schema]
+
+Click btn:[Create resource] to create the resource and store it in midPoint repository.
+Further configuration is required.
+
+// XXX ENDED HERE
 
 After basic configuration of resource we see three tiles for next path.
 
@@ -197,3 +227,12 @@ We can use wizard panels to edit existing resource. It's enough if we open the p
 
 .Resource detail
 image::resource-details.png[Resource detail, 100%]
+
+== Configuration of resource wizard panels
+
+Some wizard panels are configurable, for more information see xref:/midpoint/reference/admin-gui/admin-gui-config/#wizard-panels[Wizard panels].
+
+
+== Limitations
+
+TODO

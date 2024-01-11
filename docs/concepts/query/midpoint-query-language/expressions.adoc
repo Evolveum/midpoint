@@ -2,7 +2,7 @@
 :page-nav-title: Expressions
 :page-display-order: 200
 :page-toc: top
-
+:page-moved-from: /midpoint/reference/concepts/query/axiom-query-language/expressions/
 :triple-backtick: ```
 
 MidPoint Query Language provides special syntax support for most common

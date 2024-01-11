@@ -12,8 +12,11 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
@@ -36,29 +39,63 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
     @Override
     protected void onInitialize() {
         try {
+            Task task = getPageBase().createSimpleTask("countObjects");
+            OperationResult result = task.getResult();
+            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
+            RoleAnalysisProcessModeType processMode = objectWrapperModel.getObject().getObject().asObjectable().getProcessMode();
+
             PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType = getContainerFormModel().getObject()
                     .getValue();
+
+            Class<? extends ObjectType> propertiesClass = UserType.class;
+            Class<? extends ObjectType> membersClass = RoleType.class;
+            if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+                propertiesClass = RoleType.class;
+                membersClass = UserType.class;
+            }
+
+            Integer maxPropertiesObjects;
+            Integer maxMembersObjects;
+
+            ModelService modelService = getPageBase().getModelService();
+
+            maxPropertiesObjects = modelService.countObjects(propertiesClass, null, null, task, result);
+            maxMembersObjects = modelService.countObjects(membersClass, null, null, task, result);
+
+            if (maxPropertiesObjects == null) {
+                maxPropertiesObjects = 1000000;
+            }
+
+            if (maxMembersObjects == null) {
+                maxMembersObjects = 1000000;
+            }
+
+            double minMembersObject = maxMembersObjects < 10 ? 2.0 : 10;
+            double minObject = maxPropertiesObjects < 10 ? 1.0 : 10;
 
             if (sessionType.getNewValue().getValue().getSimilarityThreshold() == null) {
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD, 80.0);
             }
 
             if (sessionType.getNewValue().getValue().getMinMembersCount() == null) {
-                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, 10);
+                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, minMembersObject);
             }
 
             if (sessionType.getNewValue().getValue().getPropertiesRange() == null
                     || sessionType.getNewValue().getValue().getPropertiesRange().getMin() == null
                     || sessionType.getNewValue().getValue().getPropertiesRange().getMax() == null) {
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, new RangeType()
-                        .min(10.0)
-                        .max(100.0));
+                        .min(minObject)
+                        .max(maxPropertiesObjects.doubleValue()));
             }
             if (sessionType.getNewValue().getValue().getMinPropertiesOverlap() == null) {
-                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, 10);
+                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minObject);
             }
         } catch (SchemaException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to update values session clustering options values", e);
+        } catch (ObjectNotFoundException | SecurityViolationException | ConfigurationException |
+                CommunicationException | ExpressionEvaluationException e) {
+            throw new RuntimeException("Cloud not count objects", e);
         }
 
         super.onInitialize();
