@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
@@ -194,6 +195,11 @@ public class QAssignmentMapping<OR extends MObject>
                 .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
                         QAssignmentReferenceMapping.initForAssignmentModifyApprover(
                                 repositoryContext));
+        addContainerTableMapping(InfraItemName.METADATA,
+                QAssignmentMetadataMapping.init(repositoryContext),
+                joinOn((o, m) ->
+                        o.ownerOid.eq(m.ownerOid).and(o.cid.eq(m.assignmentCid))
+                ));
     }
 
     @Override
@@ -356,6 +362,13 @@ public class QAssignmentMapping<OR extends MObject>
                     QAssignmentReferenceMapping.getForAssignmentCreateApprover(), jdbcSession);
             storeRefs(row, metadata.getModifyApproverRef(),
                     QAssignmentReferenceMapping.getForAssignmentModifyApprover(), jdbcSession);
+        }
+
+
+	    for(var obj :  assignment.asPrismContainerValue().getValueMetadataAsContainer().getRealValues()) {
+            if (obj instanceof ValueMetadataType valueMetadata) {
+                QAssignmentMetadataMapping.get().insert(valueMetadata, row, jdbcSession);
+            }
         }
 
         return row;
