@@ -21,7 +21,7 @@ First phase (preparation) can be executed while midPoint is still running, witho
 Second phase (upgrade) requires downtime of midPoint instance.
 This phase should be quick to minimize required downtime.
 All steps mentioned above are described in following sections, ninja will guide you through them.
-For concrete examples of upgrade scenarios, please see <<Sample upgrade scenarios>>.
+For concrete examples of upgrade scenarios, please see <<Upgrade procedure examples>>.
 
 . *Preparation phase*
 .. Read release notes for the new midPoint version / for all intermediate midPoint versions between your current and the new midPoint version (this is especially important for LTS to LTS upgrade)
@@ -211,8 +211,6 @@ $MP_INSTALLATION/bin/ninja.sh -v pre-upgrade-check
 NOTE: Currently, this step only informs that there are X critical and other errors,
 but doesn't return error code and fail whole script.
 User has to make sure there are no critical errors and only then continue with next step.
-
-* More details for this step
 
 +
 .Click here to display example output of the *pre-upgrade-check* command
@@ -441,7 +439,7 @@ $MP_INSTALLATION/bin/ninja.sh -v initial-objects --dry-run
 
 ====
 
-. Update initial objects (refer to <<Initial objects>> for more details and options
+. Update initial objects (refer to <<Initial objects>> for more details and options)
 +
 [source,bash]
 ----
@@ -484,8 +482,9 @@ $MP_INSTALLATION/bin/ninja.sh -v initial-objects
 ====
 +
 NOTE: The initial objects that are new in midPoint 4.8 will be created upon first midPoint start. Also, a *recompute task* has been created and will be started upon first midPoint start.
-
++
 //. TODO TODO TODO what about security policy here?!
+
 
 . Check your start-up script for midPoint: if you are using systemd or a custom script referring to `midpoint.war`, you need to replace the reference with `midpoint.jar`. See also xref:/midpoint/install/systemd/[Running midPoint with systemd].
 
