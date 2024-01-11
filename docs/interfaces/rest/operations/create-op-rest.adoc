@@ -3,14 +3,57 @@
 :page-display-order: 300
 
 == Description
+Request to create a midPoint object based on data provided in the body of the request.
 
 == Request
 
+Use either the HTTP POST or PUT method with your request. Based on the method used
+there are different requirements on the resulting URI:
+
+Using the PUT method, the client has to provide a complete object, including the identifier (OID).
+[source, http]
+----
+PUT http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}
+----
+
+If you use the POST method to create new web resources,
+you can do this without the need to know the complete URI (i.e. without the oid identifier).
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/{web_resource_type}/
+----
+
 === Headers
 
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+[source, http]
+----
+Authorization: Basic {HERE INSERT Base64 Encoded CREDENTIALS}
+----
+
+In case of the get operation you need to specify the provided content type of the
+payload in the body:
+
+[source, http]
+----
+"Content-Type: application/xml"
+----
+
+For supported media types please refer to the following section of the documentation:
+
+- TODO Supported Media Types
 === Body
 
 === Options
+
+In case of create with the use of the *PUT* method please have a look at the folowing
+links were you can find the options described:
+//TODO link to schema or conde ??
+
+If you want to use the *POST* method please have a look at the following
+links were you can find the options described:
+//TODO link to schema or conde ??
 
 === Response
 
