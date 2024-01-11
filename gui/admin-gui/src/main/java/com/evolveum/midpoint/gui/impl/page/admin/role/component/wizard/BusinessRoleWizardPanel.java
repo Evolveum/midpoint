@@ -25,7 +25,6 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -33,7 +32,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
@@ -70,25 +68,16 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
         if (isRoleMigration) {
             RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
             RoleType businessRole = patterns.getBusinessRole().asObjectable();
-            Set<AssignmentType> candidateRoles = patterns.getCandidateRoles();
+            Set<RoleType> candidateRoles = patterns.getCandidateRoles();
 
-            List<RoleType> roles = new ArrayList<>();
             Task task = getPageBase().createSimpleTask("Load role");
-            for (AssignmentType assignmentType : candidateRoles) {
-                String oid = assignmentType.getTargetRef().getOid();
-                PrismObject<RoleType> rolePrismObject = roleAnalysisService.getRoleTypeObject(oid,
-                        task, task.getResult());
-                if (rolePrismObject != null) {
-                    roles.add(rolePrismObject.asObjectable());
-                }
-            }
 
             businessRole.getInducement().clear();
 
             IModel<List<AbstractMap.SimpleEntry<String, String>>> selectedItems = Model.ofList(new ArrayList<>());
-            for (RoleType role : roles) {
+            for (RoleType role : candidateRoles) {
                 selectedItems.getObject().add(
-                        new AbstractMap.SimpleEntry(
+                        new AbstractMap.SimpleEntry<>(
                                 role.getOid(),
                                 WebComponentUtil.getDisplayNameOrName(role.asPrismObject())));
             }
@@ -126,14 +115,15 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                 protected SelectableBeanObjectDataProvider<RoleType> createProvider(
                         SelectableBeanObjectDataProvider<RoleType> defaultProvider) {
 
-                    List<RoleType> prepareRoles = new ArrayList<>(roles);
+                    List<RoleType> prepareRoles = new ArrayList<>(candidateRoles);
                     ObjectQuery customQuery = getCustomQuery();
 
-                    roleAnalysisService.loadSearchObjectIterative(
+                    //TODO fix me. This is not correct way how to do this. Wrong position.
+                    roleAnalysisService.loadSearchObjectIterative(getPageBase().getModelService(),
                             RoleType.class, customQuery, null, prepareRoles, task, task.getResult());
 
                     return new SelectableBeanObjectDataProvider<>(
-                            BusinessRoleWizardPanel.this, new HashSet<>(roles)) {
+                            BusinessRoleWizardPanel.this, new HashSet<>(candidateRoles)) {
 
                         @Override
                         protected List<RoleType> searchObjects(Class type,

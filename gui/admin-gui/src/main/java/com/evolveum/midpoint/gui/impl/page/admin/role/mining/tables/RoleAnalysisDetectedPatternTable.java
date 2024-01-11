@@ -349,13 +349,13 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                             Set<String> users = pattern.getUsers();
                             Long patternId = pattern.getId();
 
-                            Set<AssignmentType> candidateInducements = new HashSet<>();
+                            Set<RoleType> candidateInducements = new HashSet<>();
 
                             for (String roleOid : roles) {
                                 PrismObject<RoleType> roleObject = roleAnalysisService
                                         .getRoleTypeObject(roleOid, task, result);
                                 if (roleObject != null) {
-                                    candidateInducements.add(ObjectTypeUtil.createAssignmentTo(roleOid, ObjectTypes.ROLE));
+                                    candidateInducements.add(roleObject.asObjectable());
                                 }
                             }
 

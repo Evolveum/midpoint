@@ -751,7 +751,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
         Task task = getPageBase().createSimpleTask(OP_PROCESS_CANDIDATE_ROLE);
         OperationResult result = task.getResult();
 
-        Set<AssignmentType> candidateInducements = new HashSet<>();
+        Set<RoleType> candidateInducements = new HashSet<>();
 
         List<MiningRoleTypeChunk> simpleMiningRoleTypeChunks = miningOperationChunk.getSimpleMiningRoleTypeChunks();
         for (MiningRoleTypeChunk roleChunk : simpleMiningRoleTypeChunks) {
@@ -760,7 +760,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                     PrismObject<RoleType> roleObject = getPageBase().getRoleAnalysisService()
                             .getRoleTypeObject(roleOid, task, result);
                     if (roleObject != null) {
-                        candidateInducements.add(ObjectTypeUtil.createAssignmentTo(roleOid, ObjectTypes.ROLE));
+                        candidateInducements.add(roleObject.asObjectable());
                     }
                 }
             }
@@ -785,11 +785,16 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 PageBase pageBase = getPageBase();
                 RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
+                Set<AssignmentType> assignmentTypeSet = new HashSet<>();
+                for (RoleType candidateInducement : candidateInducements) {
+                    assignmentTypeSet.add(ObjectTypeUtil.createAssignmentTo(candidateInducement.getOid(), ObjectTypes.ROLE));
+                }
+
                 executeChangesOnCandidateRole(roleAnalysisService, pageBase, target,
                         cluster,
                         candidateRole,
                         candidateMembers,
-                        candidateInducements,
+                        assignmentTypeSet,
                         task,
                         result
                 );
@@ -820,7 +825,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
         }
 
         List<BusinessRoleDto> businessRoleDtos = operationData.getBusinessRoleDtos();
-        Set<AssignmentType> inducement = operationData.getCandidateRoles();
+        Set<RoleType> inducement = operationData.getCandidateRoles();
         if (!inducement.isEmpty() && !businessRoleDtos.isEmpty()) {
             PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
             setResponsePage(pageRole);

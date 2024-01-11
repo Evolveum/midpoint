@@ -40,7 +40,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
@@ -133,7 +132,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         roleAnalysisService.recomputeClusterDetectionOptions(clusterOid, detectionOption,
                 task, result);
 
-        roleAnalysisService.executeDetectionTask(cluster.asPrismObject(), null,
+        roleAnalysisService.executeDetectionTask(getModelInteractionService(), cluster.asPrismObject(), null,
                 null, task, result);
 
         if (result.isWarning()) {

@@ -322,7 +322,7 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
                 LOGGER.error("Couldn't create activity for role migration: " + roleOid);
             }
             if (activity != null) {
-                roleAnalysisService.executeMigrationTask(
+                roleAnalysisService.executeMigrationTask(getModelInteractionService(),
                         patternDeltas.getCluster(), activity, roleObject, taskOid, null, task, result);
                 if (result.isWarning()) {
                     warn(result.getMessage());

@@ -734,7 +734,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
         Task task = getPageBase().createSimpleTask(OP_PROCESS_CANDIDATE_ROLE);
         OperationResult result = task.getResult();
 
-        Set<AssignmentType> candidateInducements = new HashSet<>();
+        Set<RoleType> candidateInducements = new HashSet<>();
 
         List<MiningRoleTypeChunk> simpleMiningRoleTypeChunks = miningOperationChunk.getSimpleMiningRoleTypeChunks();
         for (MiningRoleTypeChunk roleChunk : simpleMiningRoleTypeChunks) {
@@ -743,7 +743,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                     PrismObject<RoleType> roleObject = getPageBase().getRoleAnalysisService()
                             .getRoleTypeObject(roleOid, task, result);
                     if (roleObject != null) {
-                        candidateInducements.add(ObjectTypeUtil.createAssignmentTo(roleOid, ObjectTypes.ROLE));
+                        candidateInducements.add(roleObject.asObjectable());
                     }
                 }
             }
@@ -768,11 +768,16 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 PageBase pageBase = getPageBase();
                 RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
+                Set<AssignmentType> assignmentTypeSet = new HashSet<>();
+                for (RoleType candidateInducement : candidateInducements) {
+                    assignmentTypeSet.add(ObjectTypeUtil.createAssignmentTo(candidateInducement.getOid(), ObjectTypes.ROLE));
+                }
+
                 executeChangesOnCandidateRole(roleAnalysisService, pageBase, target,
                         cluster,
                         candidateRole,
                         candidateMembers,
-                        candidateInducements,
+                        assignmentTypeSet,
                         task,
                         result
                 );

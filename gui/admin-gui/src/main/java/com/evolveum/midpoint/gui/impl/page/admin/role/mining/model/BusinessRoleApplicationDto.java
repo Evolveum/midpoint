@@ -33,13 +33,13 @@ public class BusinessRoleApplicationDto implements Serializable {
     List<BusinessRoleDto> businessRoleDtos;
     boolean isCandidate = false;
     Long patternId;
-    transient Set<AssignmentType> candidateRoles;
+    transient Set<RoleType> candidateRoles;
 
     public BusinessRoleApplicationDto(
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull PrismObject<RoleType> businessRole,
             @NotNull List<BusinessRoleDto> businessRoleDtos,
-            @NotNull Set<AssignmentType> candidateRoles) {
+            @NotNull Set<RoleType> candidateRoles) {
         setDraft(businessRole);
         this.cluster = cluster;
         this.businessRole = businessRole;
@@ -92,11 +92,11 @@ public class BusinessRoleApplicationDto implements Serializable {
         isCandidate = candidate;
     }
 
-    public Set<AssignmentType> getCandidateRoles() {
+    public Set<RoleType> getCandidateRoles() {
         return candidateRoles;
     }
 
-    public void setCandidateRoles(Set<AssignmentType> candidateRoles, PageBase pageBase) {
+    public void setCandidateRoles(Set<RoleType> candidateRoles, PageBase pageBase) {
         this.candidateRoles = candidateRoles;
 
         for (BusinessRoleDto businessRoleDto : businessRoleDtos) {

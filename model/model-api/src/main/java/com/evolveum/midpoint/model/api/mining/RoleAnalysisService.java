@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -395,6 +397,7 @@ public interface RoleAnalysisService {
      * This method is used to execute a migration task.
      * It replaces the role assignment with business role assignment.
      *
+     * @param modelInteractionService The model interaction service.
      * @param cluster The cluster under which the migration task is executed.
      * @param activityDefinition The activity definition.
      * @param roleObject The role object for migration.
@@ -404,6 +407,7 @@ public interface RoleAnalysisService {
      * @param result The operation result.
      */
     void executeMigrationTask(
+            @NotNull ModelInteractionService modelInteractionService,
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull ActivityDefinitionType activityDefinition,
             @NotNull PrismObject<RoleType> roleObject,
@@ -416,6 +420,7 @@ public interface RoleAnalysisService {
      * This method is used to execute a detection task.
      * Detected patterns are stored in the cluster.
      *
+     * @param modelInteractionService The model interaction service.
      * @param cluster The cluster under which the detection task is executed.
      * @param taskOid The OID of the task.
      * @param taskName The name of the task.
@@ -423,6 +428,7 @@ public interface RoleAnalysisService {
      * @param result The operation result.
      */
     void executeDetectionTask(
+            @NotNull ModelInteractionService modelInteractionService,
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @Nullable String taskOid,
             @Nullable PolyStringType taskName,
@@ -433,6 +439,7 @@ public interface RoleAnalysisService {
      * This method is used to execute a clustering task.
      * It creates a new cluster and stores it in the session.
      *
+     * @param modelInteractionService The model interaction service.
      * @param session The session under which the clustering task is executed.
      * @param taskOid The OID of the task.
      * @param taskName The name of the task.
@@ -440,6 +447,7 @@ public interface RoleAnalysisService {
      * @param result The operation result.
      */
     void executeClusteringTask(
+            @NotNull ModelInteractionService modelInteractionService,
             @NotNull PrismObject<RoleAnalysisSessionType> session,
             @Nullable String taskOid,
             @Nullable PolyStringType taskName,
@@ -531,6 +539,7 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result);
 
     <T extends ObjectType> void loadSearchObjectIterative(
+            @NotNull ModelService modelService,
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,

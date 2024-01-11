@@ -12,6 +12,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
+import com.evolveum.midpoint.prism.PrismObject;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -80,12 +84,25 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             throw new RuntimeException(e);
         }
 
+        Set<RoleType> candidateRoles = new HashSet<>();
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+        for (AssignmentType assignmentType : inducement) {
+            if (assignmentType.getTargetRef() == null) {
+                continue;
+            }
+            PrismObject<RoleType> role = assignmentType.getTargetRef().asReferenceValue().getObject();
+            if (role != null) {
+                candidateRoles.add(role.asObjectable());
+            }
+
+        }
+
         BusinessRoleApplicationDto deltas = getObjectDetailsModels().getPatternDeltas();
-        deltas.setCandidateRoles(new HashSet<>(inducement), (PageBase) getPage());
+        deltas.setCandidateRoles(candidateRoles, (PageBase) getPage());
 
         List<BusinessRoleDto> patternDeltas = deltas.getBusinessRoleDtos();
         for (BusinessRoleDto value : patternDeltas) {
-            value.updateValue(inducement, (PageBase) getPage());
+            value.updateValue(new ArrayList<>(candidateRoles), (PageBase) getPage());
         }
 
         RoleMiningProvider<BusinessRoleDto> provider = getAndUpdateProvider(patternDeltas);
@@ -132,7 +149,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
                             public void performAddOperation(AjaxRequestTarget ajaxRequestTarget, IModel<SelectableBean<UserType>> iModel) {
                                 BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
 
-                                Set<AssignmentType> candidateRoles = patternDeltas.getCandidateRoles();
+                                Set<RoleType> candidateRoles = patternDeltas.getCandidateRoles();
                                 UserType user = iModel.getObject().getValue();
 
                                 BusinessRoleDto newValue = new BusinessRoleDto(

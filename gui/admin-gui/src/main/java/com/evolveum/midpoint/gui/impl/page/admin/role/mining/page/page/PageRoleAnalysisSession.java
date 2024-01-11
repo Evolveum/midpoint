@@ -12,8 +12,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
-
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.exception.*;
@@ -167,7 +165,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             LOGGER.error("Couldn't execute changes on RoleAnalysisSessionType object: {}", session.getOid(), e);
         }
 
-        roleAnalysisService.executeClusteringTask(session.asPrismObject(), null, null, task, result);
+        roleAnalysisService.executeClusteringTask(getModelInteractionService(), session.asPrismObject(), null, null, task, result);
 
         if (result.isWarning()) {
             warn(result.getMessage());

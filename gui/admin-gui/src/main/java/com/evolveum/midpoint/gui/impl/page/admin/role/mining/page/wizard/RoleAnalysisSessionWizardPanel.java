@@ -133,7 +133,8 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
                     PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(sessionOid, task, result);
 
                     if (sessionTypeObject != null) {
-                        roleAnalysisService.executeClusteringTask(sessionTypeObject, null, null, task, result);
+                        roleAnalysisService.executeClusteringTask(getPageBase().getModelInteractionService(), sessionTypeObject, null, null, task, result
+                        );
                     }
                 } catch (Throwable e) {
                     LoggingUtils.logException(LOGGER, "Couldn't process clustering", e);

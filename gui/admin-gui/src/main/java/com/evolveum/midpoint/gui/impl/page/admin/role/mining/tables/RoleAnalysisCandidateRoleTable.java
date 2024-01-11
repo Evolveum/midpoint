@@ -385,7 +385,7 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
                                             LOGGER.error("Couldn't create activity for role migration: " + role.getOid(), e);
                                         }
                                         if (activity != null) {
-                                            roleAnalysisService.executeMigrationTask(
+                                            roleAnalysisService.executeMigrationTask(getPageBase().getModelInteractionService(),
                                                     cluster.asPrismObject(), activity, role.asPrismObject(), taskOid,
                                                     null, task, result);
                                             if (result.isWarning()) {

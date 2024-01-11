@@ -79,7 +79,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     @Autowired ModelService modelService;
     @Autowired RepositoryService repositoryService;
-    @Autowired ModelInteractionService modelInteractionService;
 
     @Override
     public @Nullable PrismObject<UserType> getUserTypeObject(
@@ -855,7 +854,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     @Override
     public void executeClusteringTask(
-            @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @NotNull ModelInteractionService modelInteractionService, @NotNull PrismObject<RoleAnalysisSessionType> session,
             @Nullable String taskOid,
             @Nullable PolyStringType taskName,
             @NotNull Task task,
@@ -917,7 +916,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     @Override
     public void executeDetectionTask(
-            @NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            @NotNull ModelInteractionService modelInteractionService, @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @Nullable String taskOid,
             @Nullable PolyStringType taskName,
             @NotNull Task task,
@@ -986,7 +985,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     @Override
     public void executeMigrationTask(
-            @NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            @NotNull ModelInteractionService modelInteractionService, @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull ActivityDefinitionType activityDefinition,
             @NotNull PrismObject<RoleType> roleObject,
             @Nullable String taskOid,
@@ -1032,6 +1031,22 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                     taskOid,
                     RoleAnalysisOperation.MIGRATION, focus, LOGGER, task, result
             );
+
+            try {
+                ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleType.class)
+                        .item(RoleType.F_LIFECYCLE_STATE).replace("active")
+                        .asObjectDelta(roleObject.getOid());
+
+                Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+
+                modelService.executeChanges(deltas, null, task, result);
+
+            } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException |
+                    ExpressionEvaluationException |
+                    CommunicationException | ConfigurationException | PolicyViolationException |
+                    SecurityViolationException e) {
+                LOGGER.error("Couldn't update lifecycle state of object RoleType {}", cluster.getOid(), e);
+            }
 
         } catch (CommonException e) {
             LOGGER.error("Failed to execute role {} migration activity: ", roleObject.getOid(), e);
@@ -1378,14 +1393,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     public <T extends ObjectType> void loadSearchObjectIterative(
-            @NotNull Class<T> type,
+            @NotNull ModelService modelService, @NotNull Class<T> type,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull List<T> modifyList,
             @NotNull Task task,
             @NotNull OperationResult parentResult) {
         try {
-            modelService.searchObjectsIterative(type, query, (object, result) -> {
+            this.modelService.searchObjectsIterative(type, query, (object, result) -> {
                 modifyList.add(object.asObjectable());
                 return true;
             }, options, task, parentResult);

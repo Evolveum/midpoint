@@ -61,22 +61,13 @@ public class RoleAnalysisUtils {
     public static @NotNull List<String> getRolesOidAssignment(@NotNull AssignmentHolderType object) {
         List<AssignmentType> assignments = object.getAssignment();
 
-        List<String> list = new ArrayList<>();
-        for (AssignmentType assignment : assignments) {
-
-            ObjectReferenceType targetRef = assignment.getTargetRef();
-            if (targetRef != null) {
-                if (targetRef.getType().equals(RoleType.COMPLEX_TYPE)) {
-                    String lifecycleState = assignment.getLifecycleState();
-                    if (lifecycleState == null || lifecycleState.equals("active")) {
-                        String oid = targetRef.getOid();
-                        list.add(oid);
-                    }
-                }
-            }
-        }
-        Collections.sort(list);
-        return list;
+        return assignments.stream()
+                .map(AssignmentType::getTargetRef)
+                .filter(Objects::nonNull)
+                .filter(targetRef -> targetRef.getType().equals(RoleType.COMPLEX_TYPE))
+                .map(AbstractReferencable::getOid)
+                .sorted()
+                .collect(Collectors.toList());
     }
 
     public static List<String> getRolesOidInducements(@NotNull PrismObject<RoleType> object) {
