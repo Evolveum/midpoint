@@ -26,7 +26,7 @@ There are the following possibilities:
 . *From Scratch* - you will need to configure all aspects of the resource
 . *Copy From Template* - the new resource will be based on a pre-existing resource template. The new resource will be created as a copy of that template.
 
-Selecting *From Scratch* option leads to a Resource catalog page as indicated in xref:im001[xrefstyle=full].
+Selecting *From Scratch* option leads to a Resource catalog page as indicated in xref:#im001[xrefstyle=full].
 
 [[im001]]
 image::step-1-resource-catalog.png[link=step-1-connector-conf-discovery.png,100%, title=Resource catalog]
