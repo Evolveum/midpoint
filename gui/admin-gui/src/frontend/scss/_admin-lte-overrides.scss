@@ -55,18 +55,6 @@
   z-index:1040;
 }
 
-//:focus pseudo attribute fix for accessibility intentions
-.btn-default:focus {
-  background-color: #e9ecef;
-  color: #2b2b2b;
-}
-
-/* Accessibility classes and overrides */
-/* Contrast ratio overrides */
-.navbar-dark .navbar-nav .nav-link {
-  color:hsla(0,0%,100%,.85)
-}
-
 /* Override for info button based on new bootstrap color*/
 /*.btn-info {
   color: $button-default-color;
@@ -84,4 +72,10 @@
 
 .main-footer {
   color: #737373;
+}
+
+.layout-navbar-fixed.sidebar-mini.sidebar-collapse .wrapper .brand-link,
+.layout-navbar-fixed.sidebar-mini-md.sidebar-collapse .wrapper .brand-link,
+.layout-navbar-fixed.sidebar-mini-xs.sidebar-collapse .wrapper .brand-link {
+  height: 3.5rem;
 }
