@@ -10,7 +10,10 @@ package com.evolveum.midpoint.common.mining.objects.chunk;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The `MiningUserTypeChunk` class represents a chunk of role analysis data for a specific user. It contains information
@@ -18,9 +21,22 @@ import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMod
  */
 public class MiningUserTypeChunk extends MiningBaseTypeChunk implements Serializable {
 
-    public MiningUserTypeChunk(List<String> users, List<String> roles, String chunkName, double frequency,
-            RoleAnalysisOperationMode roleAnalysisOperationMode) {
-        super(roles, users, chunkName, frequency, roleAnalysisOperationMode);
+    public MiningUserTypeChunk(
+            @NotNull List<String> users,
+            @NotNull List<String> roles,
+            @NotNull String chunkName,
+            double frequency,
+            @NotNull RoleAnalysisObjectStatus objectStatus) {
+        super(roles, users, chunkName, frequency, objectStatus);
+    }
+
+    public MiningUserTypeChunk(
+            @NotNull List<String> users,
+            @NotNull List<String> roles,
+            @NotNull String chunkName,
+            double frequency,
+            @NotNull RoleAnalysisOperationMode operationMode) {
+        super(roles, users, chunkName, frequency, new RoleAnalysisObjectStatus(operationMode));
     }
 
     @Override
@@ -31,5 +47,35 @@ public class MiningUserTypeChunk extends MiningBaseTypeChunk implements Serializ
     @Override
     public List<String> getProperties() {
         return roles;
+    }
+
+    @Override
+    public boolean isMemberPresent(@NotNull String member) {
+        return users.contains(member);
+    }
+
+    @Override
+    public boolean isPropertiesPresent(@NotNull String member) {
+        return roles.contains(member);
+    }
+
+    @Override
+    public RoleAnalysisOperationMode getStatus() {
+        return super.getStatus();
+    }
+
+    @Override
+    public RoleAnalysisObjectStatus getObjectStatus() {
+        return objectStatus;
+    }
+
+    @Override
+    public void setObjectStatus(@NotNull RoleAnalysisObjectStatus objectStatus) {
+        super.setObjectStatus(objectStatus);
+    }
+
+    @Override
+    public void setStatus(@NotNull RoleAnalysisOperationMode roleAnalysisOperationMode) {
+        super.setStatus(roleAnalysisOperationMode);
     }
 }

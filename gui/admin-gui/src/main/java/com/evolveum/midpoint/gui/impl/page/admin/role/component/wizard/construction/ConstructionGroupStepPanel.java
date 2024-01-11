@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
@@ -154,7 +155,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     }
 
     @Override
-    protected void processSelectOrDeselectItem(SelectableBean<ShadowType> value, AjaxRequestTarget target) {
+    protected void processSelectOrDeselectItem(SelectableBean<ShadowType> value, SelectableBeanObjectDataProvider<ShadowType> provider, AjaxRequestTarget target) {
         if (getAssociationRef() == null || getAssociationRef().getValue() == null) {
             return;
         }

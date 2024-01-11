@@ -48,18 +48,23 @@ public class ClusteringUtils {
      * Retrieves existing role OIDs from the model service.
      *
      * @param modelService The model service for accessing role data.
-     * @param task         The task associated with the operation.
-     * @param result       The operation result.
+     * @param task The task associated with the operation.
+     * @param result The operation result.
      * @return A set of existing role OIDs.
      */
     @NotNull
-    protected static Set<String> getExistingRolesOidsSet(@NotNull ModelService modelService,
+    protected static Set<String> getExistingActiveRolesOidsSet(@NotNull ModelService modelService,
             @NotNull Task task,
             @NotNull OperationResult result) {
         Set<String> existingRolesOidsSet = new HashSet<>();
         ResultHandler<RoleType> roleTypeHandler = (object, parentResult) -> {
             try {
-                existingRolesOidsSet.add(object.getOid());
+                RoleType roleObject = object.asObjectable();
+                String lifecycleState = roleObject.getLifecycleState();
+
+                if (lifecycleState == null || lifecycleState.equals("active")) {
+                    existingRolesOidsSet.add(object.getOid());
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -77,17 +82,16 @@ public class ClusteringUtils {
 
     }
 
-
     /**
      * Creates a mapping of roles to users based on user properties.
      *
-     * @param modelService         The model service for accessing user data.
-     * @param minProperties        The minimum number of properties (RoleType) required.
-     * @param maxProperties        The maximum number of properties (RoleType) allowed.
-     * @param userQuery            The user query to filter user objects.
+     * @param modelService The model service for accessing user data.
+     * @param minProperties The minimum number of properties (RoleType) required.
+     * @param maxProperties The maximum number of properties (RoleType) allowed.
+     * @param userQuery The user query to filter user objects.
      * @param existingRolesOidsSet A set of existing role OIDs.
-     * @param task                 The task associated with the operation.
-     * @param result               The operation result.
+     * @param task The task associated with the operation.
+     * @param result The operation result.
      * @return A list multimap mapping roles to users.
      */
     @NotNull
@@ -134,6 +138,7 @@ public class ClusteringUtils {
 
     /**
      * Creates a mapping of users to roles based on role properties.
+     *
      * @param modelService The model service for accessing user data.
      * @param userQuery The user query to filter user objects.
      * @param existingRolesOidsSet A set of existing role OIDs.
@@ -182,6 +187,7 @@ public class ClusteringUtils {
 
     /**
      * Creates a mapping of users to roles based on (UserType) members.
+     *
      * @param minProperties The minimum number of properties (UserType) required.
      * @param maxProperties The maximum number of properties (UserType) allowed.
      * @param roleToUserMap A list multimap mapping role to users.
@@ -208,7 +214,7 @@ public class ClusteringUtils {
      * @param chunkMap A list multimap mapping roles to users.
      * @return A list of DataPoint instances.
      */
- public static List<DataPoint> prepareDataPoints(@NotNull ListMultimap<List<String>, String> chunkMap) {
+    public static List<DataPoint> prepareDataPoints(@NotNull ListMultimap<List<String>, String> chunkMap) {
         List<DataPoint> dataPoints = new ArrayList<>();
 
         for (List<String> points : chunkMap.keySet()) {

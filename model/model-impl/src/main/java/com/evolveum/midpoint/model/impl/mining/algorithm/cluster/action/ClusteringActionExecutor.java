@@ -101,11 +101,17 @@ public class ClusteringActionExecutor extends BaseAction {
 
         double meanDensity = 0;
 
+        int countOutliers = 0;
+
         handler.enterNewStep("Importing Clusters");
         handler.setOperationCountToProcess(clusters.size());
         for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
             handler.iterateActualStatus();
             result.subresult("ImportingClusters");
+            RoleAnalysisClusterType cluster = clusterTypePrismObject.asObjectable();
+            if (cluster.getCategory() != null && cluster.getCategory().equals(RoleAnalysisClusterCategory.OUTLIERS)) {
+                countOutliers++;
+            }
 
             AnalysisClusterStatisticType clusterStatistic = clusterTypePrismObject.asObjectable().getClusterStatistics();
             meanDensity += clusterStatistic.getMembershipDensity();
@@ -126,8 +132,9 @@ public class ClusteringActionExecutor extends BaseAction {
         }
         result.getSubresults().get(0).close();
 
-        meanDensity = meanDensity / clusters.size();
+        meanDensity = meanDensity / (clusters.size() - countOutliers);
 
+        meanDensity = Math.min(meanDensity, 100.000);
         RoleAnalysisSessionStatisticType sessionStatistic = new RoleAnalysisSessionStatisticType();
         sessionStatistic.setProcessedObjectCount(processedObjectCount);
         sessionStatistic.setMeanDensity(meanDensity);

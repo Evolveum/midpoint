@@ -32,7 +32,14 @@ public class ExtractPatternUtils {
         return new DetectedPattern(
                 roles,
                 users,
-                users.size() * roles.size());
+                users.size() * roles.size(), null);
+    }
+
+    public static DetectedPattern prepareDetectedPattern(@NotNull Set<String> roles, @NotNull Set<String> users, Long patternId) {
+        return new DetectedPattern(
+                roles,
+                users,
+                users.size() * roles.size(), patternId);
     }
 
     public static @NotNull List<DetectedPattern> transformDefaultPattern(@NotNull RoleAnalysisClusterType cluster) {
@@ -52,15 +59,25 @@ public class ExtractPatternUtils {
             Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
 
             Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
-
+            Long id = roleAnalysisClusterDetectionType.getId();
             DetectedPattern detectedPattern = prepareDetectedPattern(roles,
-                    users);
+                    users, id);
 
             mergedIntersection.add(detectedPattern);
 
         }
 
         return mergedIntersection;
+    }
+
+    public static @NotNull DetectedPattern transformPattern(@NotNull RoleAnalysisDetectionPatternType pattern) {
+            List<ObjectReferenceType> rolesRef = pattern.getRolesOccupancy();
+            List<ObjectReferenceType> usersRef = pattern.getUserOccupancy();
+
+            Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+            Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+
+        return new DetectedPattern(roles, users, users.size() * roles.size(), pattern.getId());
     }
 
     private static boolean isEmptyDetectionPattern(List<RoleAnalysisDetectionPatternType> defaultDetection) {

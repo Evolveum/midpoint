@@ -9,8 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster
 
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -21,36 +19,32 @@ import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisDetectedPatternTable;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
-public class PatternDetailsPanel extends BasePanel<String> implements Popupable {
+public class DetectedPatternPopupPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_PANEL = "panel";
 
-    public PatternDetailsPanel(String id, IModel<String> messageModel, List<DetectedPattern> detection, RoleAnalysisClusterType cluster) {
+    public DetectedPatternPopupPanel(String id, IModel<String> messageModel,
+            RoleAnalysisClusterType cluster,
+            List<DetectedPattern> detectedPatterns) {
         super(id, messageModel);
 
-        initLayout(detection, cluster);
+        initLayout(cluster, detectedPatterns);
     }
 
-    public void initLayout(List<DetectedPattern> detection, RoleAnalysisClusterType cluster) {
-        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL, new LoadableDetachableModel<List<DetectedPattern>>() {
-            @Override
-            protected List<DetectedPattern> load() {
-                return detection;
-            }
-        }, true, cluster) {
-            @Override
-            protected void onLoad(AjaxRequestTarget ajaxRequestTarget, IModel<DetectedPattern> rowModel) {
-                onLoadPerform(ajaxRequestTarget, rowModel);
-            }
-        };
+    public void initLayout(RoleAnalysisClusterType cluster, List<DetectedPattern> detectedPatterns) {
+
+        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL,
+                new LoadableDetachableModel<>() {
+                    @Override
+                    protected List<DetectedPattern> load() {
+                        return detectedPatterns;
+                    }
+                }, cluster);
 
         components.setOutputMarkupId(true);
         add(components);
-    }
-
-    public void onLoadPerform(AjaxRequestTarget ajaxRequestTarget, IModel<DetectedPattern> rowModel) {
-
     }
 
     public void onClose(AjaxRequestTarget ajaxRequestTarget) {

@@ -130,7 +130,7 @@ public class RoleAnalysisContainerPanel<AH extends AssignmentHolderType> extends
                 return wrapper -> true;
             }
         }
-        return wrapper -> false;
+        return wrapper -> true;
     }
 
 }
