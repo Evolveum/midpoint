@@ -142,8 +142,8 @@ export default class MidPointTheme {
             }
         })(jQuery);
 
-        jQuery(function ($) {
-            $(document).on("mouseenter", "*[data-toggle='tooltip']", function (e, t) {
+        (function ($) {
+            $.fn.showTooltip = function () {
                 if (typeof $(this).tooltip === "function") {
                     var wl = $.fn.tooltip.Constructor.Default.whiteList;
                     wl['xsd:documentation'] = [];
@@ -154,8 +154,16 @@ export default class MidPointTheme {
                     }
                     $(this).tooltip({html: true, whiteList: wl, 'container': container});
                     $(this).tooltip("show");
-                }
-                ;
+                };
+            }
+        })(jQuery);
+
+        jQuery(function ($) {
+            $(document).on("mouseenter", "*[data-toggle='tooltip']", function (e) {
+                $(this).showTooltip();
+            });
+            $(document).on("focus", "*[data-toggle='tooltip']", function (e) {
+                $(this).showTooltip();
             });
         });
 

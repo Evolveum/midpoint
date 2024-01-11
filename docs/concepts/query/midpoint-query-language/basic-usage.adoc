@@ -1,8 +1,6 @@
 = Basic usage of midPoint Query Language
 :page-nav-title: Basic usage
 :page-display-order: 100
-:page-since: "4.4"
-:page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
 
 
 This document provides information and examples of queries in midPoint Query Language, mainly used in objects while configuration of midPoint itself.
@@ -48,7 +46,6 @@ Where:
 
 
 == Users with account on specific resource
-NOTE: This filter was tested to be working since midPoint 4.4
 
 Search for users, which have account specified resource, with default intent.
 

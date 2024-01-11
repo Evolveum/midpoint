@@ -148,7 +148,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
-        double confidence;
+        @NotNull Confidence confidence;
         try {
             confidence = checkCandidateOwnerInternal(correlationContext, candidateOwner, result);
         } catch (Exception e) {
@@ -160,7 +160,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
     }
 
     @Override
-    public double checkCandidateOwner(
+    public @NotNull Confidence checkCandidateOwner(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult parentResult)
@@ -174,7 +174,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
                     candidateOwner.debugDumpLazily(1),
                     correlationContext.debugDumpLazily(1));
 
-            double confidence = checkCandidateOwnerInternal(correlationContext, candidateOwner, result);
+            Confidence confidence = checkCandidateOwnerInternal(correlationContext, candidateOwner, result);
 
             logger.trace("Determined candidate owner confidence: {}", confidence);
 
@@ -189,7 +189,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
         }
     }
 
-    protected abstract double checkCandidateOwnerInternal(
+    protected abstract @NotNull Confidence checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
@@ -246,12 +246,12 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             candidateOwnersMap.put(
                     candidate,
                     null, // no external IDs for the clients of this method
-                    determineConfidence(candidate, confidenceValueProvider, task, result));
+                    determineConfidence(candidate, confidenceValueProvider, task, result).getValue());
         }
         return candidateOwnersMap;
     }
 
-    protected double determineConfidence(
+    protected @NotNull Confidence determineConfidence(
             @NotNull ObjectType candidate,
             @Nullable ConfidenceValueProvider confidenceValueProvider,
             @NotNull Task task,
@@ -260,15 +260,15 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             SecurityViolationException, ObjectNotFoundException {
         var customConfidence = determineConfidenceUsingExpression(candidate, task, result);
         if (customConfidence != null) {
-            return customConfidence;
+            return Confidence.of(customConfidence);
         }
         if (confidenceValueProvider != null) {
-            Double customConfidence2 = confidenceValueProvider.getConfidence(candidate, task, result);
-            if (customConfidence2 != null) {
-                return customConfidence2;
+            var fromProvider = confidenceValueProvider.getConfidence(candidate, task, result);
+            if (fromProvider != null) {
+                return fromProvider;
             }
         }
-        return 1;
+        return Confidence.full();
     }
 
     private Double determineConfidenceUsingExpression(ObjectType candidate, Task task, OperationResult result)
@@ -307,7 +307,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
 
     @FunctionalInterface
     protected interface ConfidenceValueProvider {
-        Double getConfidence(ObjectType candidate, Task task, OperationResult result)
+        @Nullable Confidence getConfidence(ObjectType candidate, Task task, OperationResult result)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException;
     }

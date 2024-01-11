@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.api.correlator.Confidence;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,7 +77,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
     }
 
     @Override
-    protected double checkCandidateOwnerInternal(
+    protected @NotNull Confidence checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
@@ -109,7 +111,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             return createResult(confirmedCandidates, null, task, result);
         }
 
-        double checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)
+        @NotNull Confidence checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             boolean matches =
@@ -118,7 +120,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             if (matches) {
                 return determineConfidence(candidateOwner, null, task, result);
             } else {
-                return 0;
+                return Confidence.zero();
             }
         }
 

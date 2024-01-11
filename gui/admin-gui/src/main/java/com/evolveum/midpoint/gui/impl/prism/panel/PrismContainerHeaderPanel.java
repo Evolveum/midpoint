@@ -107,11 +107,11 @@ public class PrismContainerHeaderPanel<C extends Containerable, PCW extends Pris
 
     @Override
     protected IModel<String> getTitleForAddButton() {
-        return getPageBase().createStringResource("PrismContainerHeaderPanel.addButtonTitle", createLabelModel().getObject());
+        return getParentPage().createStringResource("PrismContainerHeaderPanel.addButtonTitle", createLabelModel().getObject());
     }
 
     @Override
     protected IModel<String> getTitleForRemoveAllButton() {
-        return getPageBase().createStringResource("PrismContainerHeaderPanel.removeAllButtonTitle", createLabelModel().getObject());
+        return getParentPage().createStringResource("PrismContainerHeaderPanel.removeAllButtonTitle", createLabelModel().getObject());
     }
 }

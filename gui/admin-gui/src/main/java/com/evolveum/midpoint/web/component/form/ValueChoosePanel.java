@@ -270,4 +270,8 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
     public FormComponent<String> getBaseFormComponent() {
         return (FormComponent<String>) getTextWrapperComponent().get(ID_TEXT);
     }
+
+    public AjaxLink getEditButton() {
+        return (AjaxLink)getTextWrapperComponent().get(ID_EDIT);
+    }
 }

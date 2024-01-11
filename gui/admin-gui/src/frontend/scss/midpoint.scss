@@ -47,14 +47,57 @@ body.custom-hold-transition {
 	}
 }
 
+//Fix when hovering collapsed sidemenu to use bigger default logo
+.sidebar-mini-xs.sidebar-collapse .main-sidebar:not(.sidebar-no-expand):hover > a.logo > span {
+      &:before {
+        opacity: 1;
+      }
+
+      &:after {
+          opacity: 0;
+        }
+}
+
+//Change default midPoint logo when sidemenu is collapsed
+body.sidebar-collapse .main-sidebar > a.logo > span {
+
+  &:before {
+    opacity: 0;
+  }
+
+  &:after {
+      opacity: 1;
+    }
+}
+
 .main-sidebar {
   & > a.logo {
+    padding: 0;
+    max-height: 3.5rem;
+    height: 100%;
 
-    & > span {
+    & > span:before, & > span:after {
       height: 100%;
       width: 100%;
       display: inline-block;
-      background: url("../img/midpoint_logo_white_180.png") no-repeat 25px -7px;
+      content: '';
+      transition: opacity 0.3s;
+    }
+    & > span:before {
+      background: url("../img/midpoint_logo_white_250x.png") no-repeat; //25px -10px;//25px -7px //50% 50%
+      z-index: -101;
+      background-size: contain;
+      background-position: 50%;
+    }
+    & > span:after {
+      background: url("../img/midpoint_logo_white_56x.png") no-repeat; //25px -10px;//25px -7px //50% 50%
+      z-index: -100;
+      opacity: 0;
+      background-size: contain;
+      background-position: 50%;
+      position: absolute;
+      top: 0;
+      left: 0;
     }
   }
 
@@ -115,9 +158,10 @@ li.dropdown.user.user-menu {
 }
 
 .nav-sidebar {
+  & li.nav-header {
+    cursor: pointer;
 
-  li.nav-header {
-    > i.fa-chevron-down {
+    & span > i.fa-chevron-down {
       width: auto;
       height: auto;
       padding: 0;
@@ -125,8 +169,8 @@ li.dropdown.user.user-menu {
     }
 
     &.closed {
-      > i.fa-chevron-down {
-        @include rotate(90deg);
+      & span > i.fa-chevron-down {
+          @include rotate(90deg);
       }
     }
   }
@@ -1612,7 +1656,7 @@ th, td {
   }
 }
 
-.nav-sidebar > .nav-header > span {
+.nav-sidebar .nav-header span {
   text-transform: uppercase;
 }
 
@@ -1913,6 +1957,14 @@ th.debug-list-buttons {
   line-height: 1.5;
 }
 
+//When sidebar link is active make icon white to match contrast
+.sidebar-dark-lightblue .nav-sidebar>.nav-item>.nav-link.active .nav-icon,
+.sidebar-light-lightblue .nav-sidebar>.nav-item>.nav-link.active .nav-icon
+{
+  color:white;
+}
+
+
 //Grouped classes with smooth-transition function
 .details-menu a,
 .details-menu a:hover,
@@ -1924,13 +1976,52 @@ div > a > div > i.fas
 }
 
 //Accessibility classes and overrides
-.btn:focus-visible, a:focus-visible, div[role="button"]:focus-visible, button:focus-visible, div[role="option"].simple-tile:focus:visible{
+*:focus-visible,
+a:focus-visible,
+.btn:focus-visible,
+button:focus-visible,
+div[role="button"]:focus-visible,
+.nav-header[role="separator"]:focus-visible,
+div[role="option"].simple-tile:focus-visible,
+div[role="region"]:focus-visible,
+div[role="heading"]:focus-visible,
+input:focus-visible,
+select:focus-visible
+{
   outline: 2px orange;
   outline-style: auto;
-  border-radius: 1px;
-  outline-offset: 2px;
-  @include smooth-transition(0.08s);
+  outline-offset: 3px;
+  z-index: 1001;
+  @include smooth-transition(0.03s);
 }
+
+*:focus:not(:focus-visible) {
+  outline:none !important;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color:hsla(0,0%,100%,.85);
+}
+.navbar-dark .navbar-nav .nav-item.dropdown .nav-link {
+  opacity:0.75;
+  transition: all ease 0.08s !important;
+  -webkit-transition: all ease 0.08s !important;
+}
+.navbar-dark .navbar-nav .nav-item.dropdown .nav-link {
+
+  &:hover, &:focus, &:active {
+    opacity:1;
+    transition: all ease 0.08s !important;
+    -webkit-transition: all ease 0.08s !important;
+  }
+}
+//:focus pseudo attribute fix for accessibility intentions
+.btn-default:focus {
+  background-color: #e9ecef;
+  color: #2b2b2b;
+}
+//End of accessibility classes and overrides
+
 div.show > a > div > i.fas {
   rotate: -90deg;
   @include smooth-transition(0.08s);

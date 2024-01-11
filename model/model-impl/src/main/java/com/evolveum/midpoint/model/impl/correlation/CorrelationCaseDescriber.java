@@ -158,7 +158,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
                         beans.correlatorFactoryRegistry
                                 .instantiateCorrelator(correlatorContext, task, result)
                                 .explain(correlationContext, candidate, result);
-                confidence = explanation.getConfidence();
+                confidence = explanation.getConfidence().getValue();
             } else {
                 explanation = null;
                 confidence = or0(ownerOption.getConfidence());

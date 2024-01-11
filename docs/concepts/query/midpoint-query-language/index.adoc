@@ -1,14 +1,13 @@
 = midPoint Query Language
-:page-since: "4.4"
-:page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
+:page-display-order: 100
 :page-toc: top
 :toclevels: 3
 :sectnums:
 :sectnumlevels: 3
 :page-moved-from: /midpoint/reference/concepts/query/axiom-query-language/
 
-//User-friendly documentation of a user-friendly language.
-//This should NOT be a language specification, rather a user-oriented reference documentation with a dash of tutorial on top.
+This document provides introduction to the *midPoint Query Language*.
+Some details are omitted, and there are some simplifications for clarity.
 
 _MidPoint Query Language_ is designed to query objects in midPoint repository.
 It is a universal language used to search for objects in the repository, filter objects, set up object references and so on. It is used in all the places where we need to look for an object, not only in GUI.
@@ -16,16 +15,57 @@ It is a universal language used to search for objects in the repository, filter 
 The language closely follows midPoint data model.
 Names of the properties, attributes and all the data items are directly taken from midPoint xref:/midpoint/reference/schema/[data model].
 
-Not all items in midPoint objects are searchable. The list of searchable items (elements) in midPoint is provided  xref:./searchable-items.adoc[here].
+Not all items in midPoint objects are searchable. The list of searchable items (elements) in midPoint is provided in xref:./searchable-items.adoc[searchable items] document.
 
+MidPoint Query language is complex. It is expected to be used by slightly skilled users and midPoint professionals.
 
 NOTE: The new query language is undergoing rename from 'Axiom' to 'midPoint Query Language' since midPoint version 4.8. As the Axiom name is well known, it can be still for some time referenced also with this name. Please consider _Axiom Query Language_ and _midPoint Query Language_ as synonyms.
 
-This document provides introduction to the _midPoint Query Language_ for the users.
-Some details are omitted, and there are some simplifications for clarity.
-Detail developer specification of the query language is provided in xref:/midpoint/devel/axiom/[Axiom section of this site].
+== Using midPoint Query Language in midPoint
 
-== The Basics
+=== Using in GUI
+
+Search panel is shown in GUI above each view by default.
+By default, it displays basic search. This search option is designed to be easy to use by end users.
+
+Midpoint Query Language is available in GUI as *Advanced search*. Its interface can be enabled by switching the search option from _Basic_ to _Advanced_.
+
+image:advanced-query-select.png[Select Advanced query]
+
+You can test the queries directly in GUI. Starting in All users view. It is easy and straightforward.
+As an example, to select all users with given name starting with "J" just enter `givenName startsWith "J"` to search bar and click search button.
+
+
+For starting with midPoint query, please check
+xref:basic-usage.adoc[Basic usage of midPoint Query Language] document.
+
+Examples how to use the midPoint query in GUI can be found in xref:/midpoint/guides/gui-midpoint-query-examples[Advanced search - EXAMPLES].
+
+MidPoint provides xref:../query-in-midpoint/index.adoc#_query_playground[query playground] feature that allows administrator more advanced experimenting with midPoint queries.
+
+=== Using in Configuration
+
+Advanced query filters can be used in any configuration place, normal XML filters
+would be used. Advanced query filter is wrapped inside `<text>`
+element inside `<filter>` element.
+
+.Example XML
+[source, xml]
+----
+<filter>
+ <text>roleMembershipRef matches (relation = manager)</text>
+</filter>
+----
+
+.Example YAML
+[source, yaml]
+----
+filter:
+  text: roleMembershipRef matches (relation = manager)
+----
+
+
+== Introduction to midPoint Query Language
 
 The midPoint Query Language is designed to allow specification of a complex queries.
 Yet the basic structure of the language is relative simple and easy to understand.
@@ -90,14 +130,14 @@ For example `activation/validFrom > activation/validTo` should return all object
 
 ==== String filters
 
-[options="header", cols="15,10,30", width=70]
+[options="header", cols="15,40", width=70]
 |====
-| Name | Value | Description
+| Name | Description
 
-| `startsWith` | | Matches if item starts with specified string.
-| `contains` | | Matches string property if it contains specified substring.
-| `endsWith` | | Matches string property if it ends with specified substring.
-| `fullText` | | Performs full text search. Item path must be dot (.)
+| `startsWith` | Matches if item starts with specified string.
+| `contains` | Matches string property if it contains specified substring.
+| `endsWith` | Matches string property if it ends with specified substring.
+| `fullText` | Performs full text search. Item path must be dot (.)
 |====
 
 === Value
@@ -109,8 +149,6 @@ The value may be also quite complex.
 The exact form of the value part of the filter depends on the operator.
 
 Numeric values and QNames does not need double quotes.
-
-
 
 === Logical Filters
 
@@ -125,7 +163,7 @@ givenName = "John" and familyName = "Doe"
 There is a usual set of logic operators:
 
 .Logical Operators
-[options="header", cols="10,40,30", width=80]
+[options="header", cols="10,30,30", width=70]
 |====
 | Operator | Example | Description
 
@@ -151,7 +189,6 @@ familyName = "Doe" and (givenName = "John" or givenName ="Bill")
 ----
 
 == Advanced filters
-
 
 === matches filter
 
@@ -221,7 +258,7 @@ Dereferencing is done using `@` special character in item path after reference, 
 This allows you to continue path with properties of referenced objects such as
 `assignment/targetRef/@/name` - which means `name` of assigned object.
 
-For example this enables us to search for users with assigned role by role name instead of oid (but it is executed a bit slower, since we need to dereference objects).
+For example, this enables us to search for users with assigned role by role name instead of oid. (but it is executed a bit slower, since we need to dereference objects).
 `assignment/targetRef/@/name = "Superuser"` - matches any user who is directly assigned role of superuser.
 
 NOTE: To match also users, who are indirectly assigned role, you should use `roleMembershipRef` instead of `assignment/targetRef`.
@@ -255,8 +292,6 @@ assignment/targetRef matches ( <1>
 
 
 ==== referencedBy filter
-
-NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
 
 `referencedBy` filter allows you to find object based on properties on objects, which
 reference it. Since object as whole is referenced the item path
@@ -319,56 +354,13 @@ These filters operate on object as a whole, so item path must be `.` (the dot).
 
 === Other filters
 
-[options="header", cols="10,10,30", width=70]
+[options="header",cols="10,10,30",width=70]
 |===
 | Name | Value | Description
 | exists | N/A | Matches if item exists (has any value). Filter does not have value.
 | type | object type | Matches if object is of specified type. Usually used in combination with `and` filter for dereferenced objects, or it is needed to match on property defined in more specific type.
 |===
 
-== Using midPoint Query Language in midPoint
-
-=== Using in GUI
-
-.midPoint 4.8 and never
-
-Basic search query is shown above each view by default. User can switch to advanced query by clicking the query button and selecting the `Advanced` option.
-
-.midPoint 4.5, 4.6, 4.7
-
-Basic search query is shown above each view by default. User can switch to advanced query by clicking the query button and selecting the `Axiom query` as one of the search options.
-
-.midPoint 4.4
-
-New query language is experimental feature in midPoint 4.4, so it needs to be explicitly enabled in GUI.
-
-. In Admin GUI, navigate to Configuration -> System -> Admin GUI
-. Click Show Empty fields in Admin GUI Configuration section
-. Select True in Enable experimental features
-. Save configuration changes, logout and login in order to changes to be applied.
-
-After logout and back login to GUI, you can click on down arrow in search field to select `Axiom query` as one of the search options.
-
-=== Using in XML
-
-Advanced query filters are usable in any configuration place, normal XML filters
-would be used. Advanced query filter is wrapped inside `<text>`
-element inside `<filter>` element.
-
-.Example XML
-[source, xml]
-----
-<filter>
- <text>roleMembershipRef matches (relation = manager)</text>
-</filter>
-----
-
-.Example YAML
-[source, yaml]
-----
-filter:
-  text: roleMembershipRef matches (relation = manager)
-----
 
 == Motivation, Origin and Future
 
@@ -377,14 +369,10 @@ The concepts of the language are based on xref:/midpoint/devel/axiom/[Axiom data
 MidPoint Query Language is replacing an old xref:../xml-query-language/[XML-based query language].
 The new language is more natural, user-friendly and better aligned with foundations of xref:/midpoint/devel/axiom/[Axiom data modeling].
 
-MidPoint Query Language is a relative new development, introduced in midPoint 4.3.
+MidPoint Query Language was introduced in midPoint 4.3.
 It was almost fully supported in midPoint 4.4 LTS, except for embedded expression.
 Since midPoint 4.5, midPoint Query Language is fully supported and recommended option.
 
 The midPoint Query Language is a full replacement for XML-based language.
 The XML-based language will be still supported for some time, but it will be dropped eventually.
 Users of XML-based query language should migrate to midPoint Query Language as soon as possible.
-
-== See Also
-
-* xref:/midpoint/projects/midscale/design/query-language/[Query language design notes (midScale)]

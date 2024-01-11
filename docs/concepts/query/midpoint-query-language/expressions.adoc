@@ -1,9 +1,8 @@
 = Using expressions in midPoint Query Language
 :page-nav-title: Expressions
 :page-display-order: 200
-:page-since: "4.5"
 :page-toc: top
-
+:page-moved-from: /midpoint/reference/concepts/query/axiom-query-language/expressions/
 :triple-backtick: ```
 
 MidPoint Query Language provides special syntax support for most common
