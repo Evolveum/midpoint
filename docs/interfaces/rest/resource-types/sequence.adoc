@@ -1,5 +1,5 @@
 = Sequence Type Web Resource
-:page-nav-title: REST API Sequence Resource
+:page-nav-title: Sequence Resource
 :page-display-order: 3000
 :page-toc: top
 

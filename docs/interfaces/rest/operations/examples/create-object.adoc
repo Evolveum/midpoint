@@ -1,5 +1,5 @@
 = Create object
-:page-nav-title: REST API Create object
+:page-nav-title: Create object
 :page-display-order: 400
 :page-toc: top
 

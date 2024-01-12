@@ -1,5 +1,5 @@
 = Resource Specific Operations
-:page-nav-title: REST API Resource Specific Operations
+:page-nav-title: Resource Specific Operations
 :page-display-order: 600
 :page-toc: top
 

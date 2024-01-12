@@ -1,5 +1,5 @@
 = Delete Operation
-:page-nav-title: REST API Delete Operation
+:page-nav-title: Delete Operation
 :page-display-order: 400
 :page-toc: top
 

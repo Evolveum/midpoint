@@ -1,5 +1,5 @@
 = Task Type Web Resource
-:page-nav-title: REST API Task Resource
+:page-nav-title: Task Resource
 :page-display-order: 600
 :page-toc: top
 

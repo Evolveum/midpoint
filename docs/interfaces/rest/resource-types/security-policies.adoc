@@ -1,5 +1,5 @@
 = Security Policy Type Web Resource
-:page-nav-title: REST API Security Policy Resource
+:page-nav-title: Security Policy Resource
 :page-display-order: 2900
 :page-toc: top
 

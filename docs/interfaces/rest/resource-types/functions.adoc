@@ -1,5 +1,5 @@
 = Function Library Type Web Resource
-:page-nav-title: REST API Function Resource
+:page-nav-title: Function Resource
 :page-display-order: 1800
 :page-toc: top
 

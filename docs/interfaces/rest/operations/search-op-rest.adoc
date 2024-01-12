@@ -1,5 +1,5 @@
 = Search Operation
-:page-nav-title: REST API List Operation
+:page-nav-title: List Operation
 :page-display-order: 800
 :page-toc: top
 

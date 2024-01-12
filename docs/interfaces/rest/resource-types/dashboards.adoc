@@ -1,5 +1,5 @@
 = Dashboard type Web Resource
-:page-nav-title: REST API Dashboard Resource
+:page-nav-title: Dashboard Resource
 :page-display-order: 1600
 :page-toc: top
 

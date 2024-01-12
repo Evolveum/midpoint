@@ -1,5 +1,5 @@
 = RPC Web Resources
-:page-nav-title: REST API RPC Resources
+:page-nav-title: RPC Resources
 :page-display-order: 2800
 :page-toc: top
 

@@ -1,5 +1,5 @@
 = Role Type Web Resource
-:page-nav-title: REST API Role Type Resource
+:page-nav-title: Role Type Resource
 :page-display-order: 300
 :page-toc: top
 

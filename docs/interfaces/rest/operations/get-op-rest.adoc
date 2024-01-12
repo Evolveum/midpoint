@@ -1,5 +1,5 @@
 = Get Operation
-:page-nav-title: REST API Get Operation
+:page-nav-title: Get Operation
 :page-display-order: 100
 :page-toc: top
 
