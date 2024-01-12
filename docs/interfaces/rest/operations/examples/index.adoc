@@ -11,4 +11,4 @@ Please have a look on the child pages of this document.
 == See Also
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
-- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

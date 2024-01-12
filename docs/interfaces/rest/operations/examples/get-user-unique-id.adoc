@@ -35,4 +35,4 @@ curl --user administrator:5ecr3t -H "Accept: application/json" -X GET http://loc
 == See Also
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
-- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

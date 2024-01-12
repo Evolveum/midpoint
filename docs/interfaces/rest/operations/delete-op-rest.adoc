@@ -32,4 +32,4 @@ DELETE http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}
 == See Also
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
-- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

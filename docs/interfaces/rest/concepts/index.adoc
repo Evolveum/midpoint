@@ -28,4 +28,4 @@ But almost everyone else does call things like this "REST", and almost everyone 
 
 - xref:/midpoint/reference/interfaces/rest/concepts/methods-http-and-outcome/[Use of HTTP Verbs]
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
-- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
