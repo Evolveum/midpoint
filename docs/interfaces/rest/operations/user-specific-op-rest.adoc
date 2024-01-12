@@ -1,6 +1,7 @@
 = User Specific Operations
 :page-nav-title: REST API User Specific Operations
-:page-display-order: 200
+:page-display-order: 1000
+:page-toc: top
 
 == Description
 

@@ -1,6 +1,7 @@
 = Notify Change Operations
 :page-nav-title: REST API Notify Change Operations
 :page-display-order: 200
+:page-toc: top
 
 == Description
 

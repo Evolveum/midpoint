@@ -1,6 +1,7 @@
 = Delete Operation
 :page-nav-title: REST API Delete Operation
 :page-display-order: 400
+:page-toc: top
 
 == Description
 Request to delete a midPoint object.

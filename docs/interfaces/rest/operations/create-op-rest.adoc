@@ -1,6 +1,7 @@
 = Create Operation
 :page-nav-title: REST API Create Operation
 :page-display-order: 300
+:page-toc: top
 
 == Description
 Request to create a midPoint object based on data provided in the body of the request.

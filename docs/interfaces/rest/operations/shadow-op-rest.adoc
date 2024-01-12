@@ -1,6 +1,7 @@
 = Shadow Specific Operations
 :page-nav-title: REST API Shadow Specific Operations
 :page-display-order: 200
+:page-toc: top
 
 == Description
 
