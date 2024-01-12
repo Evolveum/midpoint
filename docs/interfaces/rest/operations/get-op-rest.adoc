@@ -79,7 +79,7 @@ Example of usage of options:
 //TODO full example
 [source, http]
 ----
-?raw=true
+?options=raw
 ----
 
 The *"get"* operations support specifying options influencing the operation execution. You can find the

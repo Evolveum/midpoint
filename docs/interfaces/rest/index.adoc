@@ -60,7 +60,7 @@ The most *basic form* of the url request would be:
 .Request to read own profile data (raw)
 [source,http]
 ----
-GET http://localhost:8080/midpoint/ws/rest/self?raw=true
+GET http://localhost:8080/midpoint/ws/rest/self?options=raw
 ----
 .Request to read own profile data (raw) full example using CURL
 xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/#_ex_get_own_profile_information_json_raw[Request to

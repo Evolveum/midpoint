@@ -60,7 +60,7 @@ Example of usage of options:
 //TODO full example
 [source, http]
 ----
-?raw=true
+?options=raw
 ----
 
 In case of create with the use of the *PUT* method please have a look at the folowing
