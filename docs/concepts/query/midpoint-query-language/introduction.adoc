@@ -2,7 +2,7 @@
 :page-nav-title: Introduction
 :page-display-order: 100
 :page-toc: top
-:toclevels: 3
+:toclevels: 2
 :sectnums:
 :sectnumlevels: 3
 
@@ -10,6 +10,8 @@
 This document provides introduction to the *midPoint Query Language*.
 Some details are omitted, and there are some simplifications for clarity.
 
+After completing this document, reader should be able to apply midPoint Query Language in configuration.
+We encourage to test the queries using the xref:./query-playground/index.adoc#_query_playground[query playground], which provides convenient and interactive environment for experimenting with queries.
 
 == Language Description
 
@@ -420,3 +422,8 @@ assignment/targetRef/@ matches (
    . fullText "secret"
 )
 ----
+
+
+//=== Query in configuration object
+
+//TODO - tu ako dat query do tasku na recompute vsetkych userov, ktori maju rolu "End user"

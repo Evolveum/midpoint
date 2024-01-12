@@ -32,44 +32,52 @@ image:advanced-query-select.png[Select Advanced query]
 You can test the queries directly in GUI. Starting in All users view. It is easy and straightforward.
 As an example, to select all users with given name starting with "J" just enter `givenName startsWith "J"` to search bar and click search button.
 
-
-For starting with midPoint query, please check
-xref:introduction.adoc[introduction] document.
-
 Examples how to use the midPoint query in GUI can be found in xref:/midpoint/guides/gui-midpoint-query-examples[Advanced search - EXAMPLES].
 
-MidPoint provides xref:../query-concepts/index.adoc#_query_playground[query playground] feature that allows administrator more advanced experimenting with midPoint queries.
 
 === Using in Configuration
 
-Advanced query filters can be used in any configuration place, normal XML filters
-would be used. Advanced query filter is wrapped inside `<text>`
-element inside `<filter>` element.
+Advanced query filters can be used in any configuration place. In XML configuration files it is wrapped inside `<text>` element inside `<filter>` element.
 
-//TODO: sem dat, ze potrebujem vybrat objekt.
-IMPORTANT: Midpoint performs queries over defined set of objects. In GUI, the set is defined by actually opened view. In configuration, the object must be specified.
+For example query `givenName startsWith "J"` is stored in midPoint configuration this way.
 
-.Example XML
+.midPoint Query in XML configuration format
 [source, xml]
 ----
-<filter>
- <text>roleMembershipRef matches (relation = manager)</text>
-</filter>
+<query>
+  <filter>
+    <text>givenName startsWith "J"</text>
+  </filter>
+</query>
 ----
 
-.Example YAML
+.midPoint Query in YAML configuration format
 [source, yaml]
 ----
 filter:
-  text: roleMembershipRef matches (relation = manager)
+  text: givenName startsWith "J"
 ----
 
-=== Query Converter
+.midPoint Query in JSON configuration format
+[source, json]
+----
+"query" : {
+  "filter" : {
+	"text" : "givenName startsWith \"J\""
+  }
+}
+----
+
+
+To start with midPoint Query Language, please read xref:introduction.adoc[*Introduction to midPoint Query Language*].
+
+=== Query Playground
+
+To experiment with the query language, there is hardly a better place than the actual running midPoint.
+MidPoint provides xref:./query-playground/index.adoc#_query_playground[query playground] feature that allows administrator more advanced experimenting with midPoint queries.
 
 You may need to convert existing configuration using XML queries to midPoint Query Language.
-MidPoint provides #Query converter# interface for such helping you with query conversion.
-
-
+There is xref:./query-playground/index.adoc#_query_converter[query converter] in midPoint that is helpful with such query conversion.
 
 
 == Motivation, Origin and Future
