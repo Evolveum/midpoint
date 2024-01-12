@@ -14,10 +14,18 @@ Starting with 4.2 the REST API uses xref:/midpoint/reference/security/authentica
 SecQ must be added via xref:/midpoint/reference/security/security-policy/[Security Policy Configuration].
 ====
 
+[#_basic_authentication]
 == Basic Authentication
 
 MidPoint REST interface support standard HTTP basic authentication (RFC2617).
 Digest authentication is not supported.
+
+Username and password should correspond to the username and password of appropriately privileged midPoint user.
+For example, the default ones are:
+
+Username: *administrator*
+
+Password: *5ecr3t*
 
 == Proxy (Impersonation)
 

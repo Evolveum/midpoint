@@ -1,0 +1,14 @@
+= REST examples
+:page-nav-title: Examples
+:page-display-order: 100
+:page-toc: top
+
+== Description
+Common use-cases and user story examples for the midPoint REST API.
+
+Please have a look on the child pages of this document.
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
