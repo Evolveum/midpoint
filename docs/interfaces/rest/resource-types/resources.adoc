@@ -44,3 +44,5 @@ part of the output, yet it was removed for the purpose of the example.
 ====
 
 == See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]
