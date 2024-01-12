@@ -1,5 +1,5 @@
-= User Web Resource
-:page-nav-title: REST API User Resource
+= RPC Web Resources
+:page-nav-title: REST API RPC Resources
 :page-display-order: 2800
 :page-toc: top
 

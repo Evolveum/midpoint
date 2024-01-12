@@ -1,25 +1,20 @@
-= User Web Resource
-:page-nav-title: REST API User Resource
+= Misc Web Resource
+:page-nav-title: REST API Misc Resource
 :page-display-order: 2200
 :page-toc: top
 
 == Description
 
-Here we are describing the User object type in relation to midPoints REST API. The
-User objects are a part of the REST API web resources. The User objects are a part
-of the
+TODO
 
 == Applicable Operations
 
-The User web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
-present in midPoint. This is apparent in the operations which are available for this type of object.
-
+TODO
 // TODO referencie na operacie
 
 == JSON Example
 
-Example output of information regarding a specific user object. Metadata is usually a part of the output, yet it was removed for the puprose of the
-example.
+TODO
 
 .Show JSON Example
 [%collapsible]
