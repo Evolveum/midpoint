@@ -1,5 +1,5 @@
 = REST examples
-:page-nav-title: REST API Examples
+:page-nav-title: Examples
 :page-display-order: 100
 :page-toc: top
 

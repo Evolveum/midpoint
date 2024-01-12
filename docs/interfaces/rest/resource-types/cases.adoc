@@ -1,5 +1,5 @@
 = Case Type Web Resource
-:page-nav-title: REST API Case Resource
+:page-nav-title: Case Resource
 :page-display-order: 1300
 :page-toc: top
 

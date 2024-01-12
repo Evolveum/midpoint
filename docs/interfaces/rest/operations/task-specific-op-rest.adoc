@@ -1,5 +1,5 @@
 = Task Specific Operations
-:page-nav-title: REST API Task Specific Operations
+:page-nav-title: Task Specific Operations
 :page-display-order: 900
 :page-toc: top
 

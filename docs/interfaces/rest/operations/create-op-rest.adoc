@@ -1,5 +1,5 @@
 = Create Operation
-:page-nav-title: REST API Create Operation
+:page-nav-title: Create Operation
 :page-display-order: 300
 :page-toc: top
 

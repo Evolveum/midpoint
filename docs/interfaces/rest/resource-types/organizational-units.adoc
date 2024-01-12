@@ -1,5 +1,5 @@
 = Organizational Unit Type Web Resource
-:page-nav-title: REST API Organizational Unit Resource
+:page-nav-title: Organizational Unit Resource
 :page-display-order: 400
 :page-toc: top
 

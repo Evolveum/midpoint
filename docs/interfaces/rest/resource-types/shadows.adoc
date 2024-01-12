@@ -1,5 +1,5 @@
 = Shadows Type Web Resource
-:page-nav-title: REST API Shadows Resource
+:page-nav-title: Shadows Resource
 :page-display-order: 800
 :page-toc: top
 

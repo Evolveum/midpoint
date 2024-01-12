@@ -1,5 +1,5 @@
 = Get User Self
-:page-nav-title: REST API Get User Self
+:page-nav-title: Get User Self
 :page-display-order: 300
 :page-toc: top
 

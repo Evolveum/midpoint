@@ -1,5 +1,5 @@
 = Generate and Validate Operations
-:page-nav-title: REST API Generate And Validate Operations
+:page-nav-title: Generate And Validate Operations
 :page-display-order: 200
 :page-toc: top
 

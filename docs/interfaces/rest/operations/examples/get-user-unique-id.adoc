@@ -1,5 +1,5 @@
 = Get User Based on His Unique Identificator
-:page-nav-title: REST API Get user based on his unique identificator
+:page-nav-title: Get user based on his unique identificator
 :page-display-order: 200
 :page-toc: top
 
