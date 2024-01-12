@@ -1,5 +1,5 @@
 = Connector Type Web Resource
-:page-nav-title: REST API Connector Resource
+:page-nav-title: Connector Resource
 :page-display-order: 1500
 :page-toc: top
 

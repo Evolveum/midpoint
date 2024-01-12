@@ -1,5 +1,5 @@
 = REST Operations
-:page-nav-title: REST API Operations
+:page-nav-title: Operations
 :page-display-order: 100
 :page-toc: top
 

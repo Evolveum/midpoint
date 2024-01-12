@@ -1,5 +1,5 @@
 = Lookup Table type Web Resource
-:page-nav-title: REST API Lookup Table Resource
+:page-nav-title: Lookup Table Resource
 :page-display-order: 2100
 :page-toc: top
 

@@ -1,5 +1,5 @@
 = Script Execute Operation
-:page-nav-title: REST API Script Execute Operation
+:page-nav-title: Script Execute Operation
 :page-display-order: 700
 :page-toc: top
 

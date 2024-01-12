@@ -1,5 +1,5 @@
 = Node Type Web Resource
-:page-nav-title: REST API Node Resource
+:page-nav-title: Node Resource
 :page-display-order: 2300
 :page-toc: top
 

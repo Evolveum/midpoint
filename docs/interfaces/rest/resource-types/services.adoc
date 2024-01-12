@@ -1,5 +1,5 @@
 = Service Type Web Resource
-:page-nav-title: REST API Service Type Resource
+:page-nav-title: Service Type Resource
 :page-display-order: 500
 :page-toc: top
 

@@ -1,5 +1,5 @@
 = User Type Web Resource
-:page-nav-title: REST API User Type Resource
+:page-nav-title: User Type Resource
 :page-display-order: 200
 :page-toc: top
 

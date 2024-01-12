@@ -1,5 +1,5 @@
 = Misc Web Resource
-:page-nav-title: REST API Misc Resource
+:page-nav-title: Misc Resource
 :page-display-order: 2200
 :page-toc: top
 
