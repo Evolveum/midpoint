@@ -1,6 +1,7 @@
 = Create object
 :page-nav-title: REST API Create object
-:page-display-order: 200
+:page-display-order: 300
+:page-toc: top
 
 == Description
 Example of creating an midPoint object either representing some identity data in the

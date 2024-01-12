@@ -1,7 +1,7 @@
 = Get User Based on His Unique Identificator
 :page-nav-title: REST API Get user based on his unique identificator
 :page-display-order: 100
-
+:page-toc: top
 == Description
 Example of retrieving identity data from a web resource object representing a user.
 

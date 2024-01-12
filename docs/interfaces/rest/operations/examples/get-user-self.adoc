@@ -1,6 +1,7 @@
 = Get User Self
 :page-nav-title: REST API Get User Self
 :page-display-order: 200
+:page-toc: top
 
 == Description
 Example of retrieving identity data from a web resource object representing a user. In this
