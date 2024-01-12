@@ -74,11 +74,19 @@ request.
 
 === Options and Functions
 
+Example of usage of options:
+
+//TODO full example
+[source, http]
+----
+?raw=true
+----
+
 The *"get"* operations support specifying options influencing the operation execution. You can find the
 supported options in these references:
 
-// TODO add link to schemas ?? OR code ???
-
+.Usable options for this type of operation
+link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
 
 === Response
 The response is a set of identity data describing the fetched object. This example

@@ -55,15 +55,34 @@ xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Me
 
 === Options
 
+Example of usage of options:
+
+//TODO full example
+[source, http]
+----
+?raw=true
+----
+
 In case of create with the use of the *PUT* method please have a look at the folowing
 links were you can find the options described:
-//TODO link to schema or conde ??
+
+.Usable options for this type of operation
+link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
 
 If you want to use the *POST* method please have a look at the following
 links were you can find the options described:
-//TODO link to schema or conde ??
+
+.Usable options for this type of operation
+link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+
 
 === Response
+
+In case of success you might see the following response codes:
+
+-   201 Created, Location set to point to the newly created object
+-   240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+-   250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
 
 == Examples
 
