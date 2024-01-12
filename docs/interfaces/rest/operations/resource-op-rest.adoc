@@ -1,0 +1,23 @@
+= Resource Specific Operations
+:page-nav-title: REST API Resource Specific Operations
+:page-display-order: 600
+:page-toc: top
+
+== Description
+
+== Request
+
+=== Headers
+
+=== Body
+
+=== Options
+
+=== Response
+
+== Examples
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]
