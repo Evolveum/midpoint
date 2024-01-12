@@ -11,6 +11,8 @@ Use either the HTTP POST or PUT method with your request. Based on the method us
 there are different requirements on the resulting URI:
 
 Using the PUT method, the client has to provide a complete object, including the identifier (OID).
+
+.Create operation using HTTP PUT
 [source, http]
 ----
 PUT http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}
@@ -18,6 +20,8 @@ PUT http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}
 
 If you use the POST method to create new web resources,
 you can do this without the need to know the complete URI (i.e. without the oid identifier).
+
+.Create operation using HTTP POST
 [source, http]
 ----
 POST http://localhost:8080/midpoint/ws/rest/{web_resource_type}/
@@ -27,22 +31,25 @@ POST http://localhost:8080/midpoint/ws/rest/{web_resource_type}/
 
 Regarding authorization type, the "Basic" Authorization header should be used.
 
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
 [source, http]
 ----
-Authorization: Basic {HERE INSERT Base64 Encoded CREDENTIALS}
+Authorization: Basic {Base64EncodedCredentials}
 ----
 
 In case of the get operation you need to specify the provided content type of the
 payload in the body:
 
+.Content type header example, other media types are supported as well
 [source, http]
 ----
 "Content-Type: application/xml"
 ----
 
-For supported media types please refer to the following section of the documentation:
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 
-- TODO Supported Media Types
+
 === Body
 
 === Options
@@ -58,6 +65,8 @@ links were you can find the options described:
 === Response
 
 == Examples
+
+1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-object/[Create object]
 
 == See Also
 

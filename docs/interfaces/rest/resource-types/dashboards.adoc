@@ -1,0 +1,44 @@
+= Dashboard type Web Resource
+:page-nav-title: REST API Dashboard Resource
+:page-display-order: 100
+// :page-since: "4.4"
+// :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
+
+== Description
+
+Here we are describing the Dashboard object type in relation to midPoints REST API. The
+Dashboard objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+dashboards/
+----
+
+== Applicable Operations
+
+The Dashboard web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
+present in midPoint. This is apparent in the operations which are available for this type of object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Dashboard object. Metadata is usually a part
+of the output, yet it was removed for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, http]
+----
+
+----
+====
+
+== See Also

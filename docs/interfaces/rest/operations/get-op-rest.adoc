@@ -64,7 +64,7 @@ Accept: application/json
 
 For supported media types please refer to the following section of the documentation:
 
-- TODO Supported Media Types
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 
 === Body
 

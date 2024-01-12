@@ -1,0 +1,46 @@
+= Report Data Type Web Resource
+:page-nav-title: REST API Report Data Resource
+:page-display-order: 100
+// :page-since: "4.4"
+// :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
+
+== Description
+
+Here we are describing the Report Data object type in relation to midPoints REST API. The
+Report Data objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+reportData/
+----
+
+== Applicable Operations
+
+The Report Data web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
+present in midPoint. This is apparent in the operations which are available for this type of object.
+
+// TODO here also check if the full CRUD spectrum applies or not !
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Report Data object. Metadata is usually a part
+of the output, yet it was removed for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, http]
+----
+
+----
+====
+
+== See Also

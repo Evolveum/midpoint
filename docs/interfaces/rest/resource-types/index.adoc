@@ -4,8 +4,133 @@
 
 
 == Overview
+The REST api provides you with access to a long list of web resources. The web
+resources are basically midPoint objects, each is a specific object type. The bellow
+table holds a list of all accessible web resources.
 
-=== General Types
+*Click on the endpoint name* to get to the web resource overview page with
+the complete *list of supported operations*.
+
+[%autowidth]
+|===
+| Object Type (class) | REST type (endpoint)
+
+| ConnectorType
+| xref:/midpoint/reference/interfaces/rest/resource-types/connector/[connectors]
+
+
+| ConnectorHostType
+| xref:/midpoint/reference/interfaces/rest/resource-types/connector-hosts/[connectorHosts]
+
+
+| GenericObjectType
+| xref:/midpoint/reference/interfaces/rest/resource-types/generic-objects/[genericObjects]
+
+
+| ResourceType
+| xref:/midpoint/reference/interfaces/rest/resource-types/resources/[resources]
+
+
+| UserType
+| xref:/midpoint/reference/interfaces/rest/resource-types/users/[users]
+
+
+| ObjectTemplateType
+| xref:/midpoint/reference/interfaces/rest/resource-types/object-templates/[objectTemplates]
+
+
+| SystemConfigurationType
+| xref:/midpoint/reference/interfaces/rest/resource-types/system-configurations/[systemConfigurations]
+
+
+| TaskType
+| xref:/midpoint/reference/interfaces/rest/resource-types/tasks/[tasks]
+
+
+| ShadowType
+| xref:/midpoint/reference/interfaces/rest/resource-types/shadows/[shadows]
+
+
+| RoleType
+| xref:/midpoint/reference/interfaces/rest/resource-types/roles/[roles]
+
+
+| ValuePolicyType
+| xref:/midpoint/reference/interfaces/rest/resource-types/value-policies/[valuePolicies]
+
+
+| NodeType
+| xref:/midpoint/reference/interfaces/rest/resource-types/nodes/[nodes]
+
+
+| FormType
+| xref:/midpoint/reference/interfaces/rest/resource-types/forms/[forms]
+
+
+| OrgType
+| xref:/midpoint/reference/interfaces/rest/resource-types/organizational-units/[orgs]
+
+
+| ReportType
+| xref:/midpoint/reference/interfaces/rest/resource-types/reports/[reports]
+
+
+| ReportDataType
+| xref:/midpoint/reference/interfaces/rest/resource-types/report-data/[reportData]
+
+
+| SecurityPolicyType
+| xref:/midpoint/reference/interfaces/rest/resource-types/security-policies/[securityPolicies]
+
+
+| LookupTableType
+| xref:/midpoint/reference/interfaces/rest/resource-types/lookup-tables/[lookupTables]
+
+
+| AccessCertificationDefinitionType
+| xref:/midpoint/reference/interfaces/rest/resource-types/access-certification-definition-type/[accessCertificationDefinitions]
+
+
+| AccessCertificationCampaignType
+| xref:/midpoint/reference/interfaces/rest/resource-types/access-certification-campaign-type/[accessCertificationCampaigns]
+
+
+| SequenceType
+| xref:/midpoint/reference/interfaces/rest/resource-types/sequences/[sequences]
+
+
+| ServiceType
+| xref:/midpoint/reference/interfaces/rest/resource-types/services/[services]
+
+
+| CaseType
+| xref:/midpoint/reference/interfaces/rest/resource-types/cases/[cases]
+
+
+| FunctionLibraryType
+| xref:/midpoint/reference/interfaces/rest/resource-types/functions/[functionLibraries]
+
+
+| ObjectCollectionType
+| xref:/midpoint/reference/interfaces/rest/resource-types/object-collections/[objectCollections]
+
+
+| ArchetypeType
+| xref:/midpoint/reference/interfaces/rest/resource-types/archetypes/[archetypes]
+
+
+| DashboardType
+| xref:/midpoint/reference/interfaces/rest/resource-types/dashboards/[dashboards]
+
+| * Remote Procedure Call
+| xref:/midpoint/reference/interfaces/rest/resource-types/rpc/[rpc]
+
+| * xref:/midpoint/reference/interfaces/rest/resource-types/misc/[Misc]
+| notifyChange and self
+
+|===
+
+=== General Classification of Web Resource Types
 
 --TODO simplify
 

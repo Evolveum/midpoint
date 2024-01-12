@@ -1,6 +1,6 @@
-= User Web Resource
-:page-nav-title: REST API User Resource
-:page-display-order: 100
+= User Type Web Resource
+:page-nav-title: REST API User Type Resource
+:page-display-order: 200
 // :page-since: "4.4"
 // :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
 
@@ -8,6 +8,12 @@
 
 Here we are describing the User object type in relation to midPoints REST API. The
 User objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+users/
+----
 
 == Applicable Operations
 
@@ -22,12 +28,12 @@ present in midPoint. This is apparent in the operations which are available for 
 - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
 - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
 - xref:/midpoint/reference/interfaces/rest/operations/user-specific-op-rest/[User specific Operations]
-- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest.adoc/[Generate and Validate Operations]
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
 
 == JSON Example
 
-Example output of information regarding a specific user object. Metadata is usually a part of the output, yet it was removed for the puprose of the
-example.
+Example output of information regarding a specific user object. Metadata is usually a part of
+the output, yet it was removed for the purpose of the example.
 
 .Show JSON Example
 [%collapsible]

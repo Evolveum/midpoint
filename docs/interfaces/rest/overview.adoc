@@ -15,34 +15,58 @@ The REST api gives you a feature rich toolset with which you can operate over di
 There are many possibilities which we provide in regard to the web resources you can access. So many
 that we have a dedicated page for them.
 
-To display a *list of the types of resources* please have a look at:
+.To display a *list of the types of resources* please have a look at:
+xref:/midpoint/reference/interfaces/rest/resource-types/[Web Resource Types]
 
-- "TODO" page(s) with list of web resources
-
-For a *more technical description* of our REST api please have a look here:
-
-- "TODO" page(s) with technical description and/or design pages etc...
+.For a *more technical description* of our REST api please have a look here:
+xref:/midpoint/reference/interfaces/rest/concepts/[Concepts]
 
 == How To Use
 
 The *format of the REST request* depends on the type of web resource you try to invoke, the  operation
 which you want to execute and any additional options you wish to specify for the request.
 
-The most *basic form* of the url request would be :
+The most *basic form* of the url request would be:
 
----TODO add full complexity or keep this simple example ???
+// TODO add full complexity or keep this simple example ???
 
-[source, http]
+// [source, http]
+// ----
+// http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{operation}
+// ----
+
+// [source, http]
+// ----
+// xref::/midpoint/reference/interfaces/rest/operations/examples/get-user-self/#_ex_get_own_profile_information[]
+// ----
+.Request to read own profile data (raw)
+[source,http]
 ----
-http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{operation}
+GET http://localhost:8080/midpoint/ws/rest/self?raw=true
 ----
+.Request to read own profile data (raw) full example using CURL
+xref::/midpoint/reference/interfaces/rest/operations/examples/get-user-self/#_ex_get_own_profile_information_json_raw[Request to
+read own profile data]
 
-Naturally by having a feature rich interface there is no "one size fits them all" way to invoke the operations, so the url will be different in specific use cases. The most common ones you can see
-at this section {TODO add link to "Common Use Cases"} of the documentation.
+Naturally by having a feature rich interface there is no "one size fits them all" way to invoke the operations, so the url will
+be different in specific use cases. The most common ones you can see
+at xref:/#_common_use_cases[this] section of the documentation.
 
-For a list of available operations please have a look :
+The REST interface provides you with a long list of *web resource types* which you can access. The interface also provides
+you with *different kinds of operations*, based on the type of resource you choose.
 
-- "TODO"  HERE
+.The *full collection of web resource types* can be found here:
+xref:/midpoint/reference/interfaces/rest/resource-types/[Web Resource Types]
+
+== MidPoint Client
+
+To ease up the development of you own implementation of a MidPoint REST client. Please
+have a look and consider using the midPoint Java Client project:
+
+xref:/midpoint/reference/interfaces/midpoint-client-java/[MidPoint Client Library]
+
+image::/midpoint/reference/interfaces/client-architecture.png[]
+
 
 == Common Use Cases
 
@@ -52,6 +76,5 @@ For a list of available operations please have a look :
 2. Get user based on his unique identificator (TODO link to OID docu)
 3. Create or update a new user.
 4. Modify the user by assigning an account.
-
 
 == See Also

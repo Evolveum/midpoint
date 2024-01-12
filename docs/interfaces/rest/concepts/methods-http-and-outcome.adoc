@@ -1,6 +1,6 @@
 = Usage of HTTP Methods
 :page-nav-title: Usage of HTTP Methods
-:page-display-order: 200
+:page-display-order: 400
 
 
 // TODO HTTP methods usage definition + operation outcome, error messages ... etc
