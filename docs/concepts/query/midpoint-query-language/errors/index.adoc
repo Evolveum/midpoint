@@ -1,0 +1,144 @@
+= Errors While Querying with midPoint Query Language
+:page-nav-title: Errors while querying
+:page-display-order: 500
+:page-toc: top
+:toclevels: 3
+:sectnums:
+:sectnumlevels: 3
+
+
+While searching with midPoint Query Language you can encounter various error messages.
+Some of them can be quite cryptic, especially for new users.
+
+== Error messages in GUI
+
+Error messages in GUI are displayed below the query.
+
+
+=== Path is not present in type
+
+image::err-path-is-not-present.png[Error path is not present]
+
+In this case administrator wanted to search for user with name "adam".
+
+Midpoint says that attribute namex can't be found in the object type UserType that is displayed in the view Users we are searching.
+
+This is the most typical error you can encounter.
+It is caused by incorrect identification of property (attribute) in query.
+Often this error is caused by typo in the name of the attribute.
+In the example above it is additional "x" in _name_.
+
+The {http://midpoint.evolveum.com/xml/ns/public/common/common-3} is the namespace of the type UserType. You can ignore it at this place.
+
+[cols="15h,50" width=85%]
+|====
+| Request
+| Find user with name "adam"
+
+| Query
+| `namex = "adam"`
+
+| Error message
+| Path *namex* is not present in type {http://midpoint.evolveum.com/xml/ns/public/common/common-3} *UserType*
+
+| Reason
+| In this case the reason for error was typo: _namex_ vs _name_
+
+| Correct query
+| `name = "adam"`
+
+| Troubleshooting hints
+a| * Verify, that the attribute is present in the object type you are searching. You can check it at xref:../searchable-items.adoc[searchable items] page.
+* Attribute _name_ differs from name that is displayed in GUI (the _displayName_). Search is using name of the attribute. The translation between _name_ and _displayName_ (english) is described at xref:../searchable-items.adoc[searchable items] page.
+* Verify, that you don't have typo (e.g. case mismatch) in the name of the property
+* Verify, that the view is displaying the object type you want to search. You can see its name at the end of the error message.
+|====
+
+=== Definition is not property
+
+image:err-definition-is-not-property.png[Error definition is not property]
+
+[cols="15h,50" width=85%]
+|====
+| Request
+| Find all users with assigned role "System user".
+
+| Query
+| `assignment/targetRef = "System user"`
+
+| Error message
+| Definition PRD:{.../common/common-3} *targetRef* {.../common/common-3}ObjectReferenceType[0,1],RAM is not property
+
+| Reason
+a| The targetRef is a reference to an object. Not to a searchable property. +
+To search for the assigned object name you need to reference properties within the object. E.g. its name.
+
+| Correct query
+| `assignment/targetRef/@/name = "System user"`
+
+| Troubleshooting hints
+a| * Verify, that the attribute is present in the object type you are searching. You can check it at xref:../searchable-items.adoc[searchable items] page.
+* Use dereferencing operator "@" for referencing attributes of the assigned object.
+
+|====
+
+
+=== Cannot find enum value for string
+
+image:err-cannot-find-enum-value.png[Error cannot find enum value foe string]
+
+[cols="15h,50" width=85%]
+|====
+| Request
+| Find all users with normal lockout status.
+
+| Query
+| `activation/lockoutStatus = "Normal"`
+
+| Error message
+| Cannot find enum value for string *'Normal'* in class com.evolveum.midpoint.xml.ns._public.common.common_3.*LockoutStatusType*
+
+| Reason
+a| The schema defines enumerated value for this attribute. In this case the allowed values are "normal" and "locked". All lowercase.
+
+| Correct query
+a| `activation/lockoutStatus = "normal"`
+
+| Troubleshooting hints
+a| * Search for allowed values in schema definition. Schemas are described in
+xref:../../../../schema/schemadoc.adoc[SchemaDoc].
+Select version according your midPoint version. +
+In this case search in schema "common/common-3" for "LockoutStatusType"
+
+// Alternatively, you can search midPoint schema files #on github# for verification.
+// TODO - for this case - linka na github na schema file.
+|====
+
+
+
+//=== Unknown type for conversion
+// in audit search
+
+////
+[cols="15h,50" width=85%]
+|====
+| Request
+|
+
+| Query
+|
+
+| Error
+|
+
+| Reason
+a|
+
+| Correct query
+|
+
+| Troubleshooting hints
+a|
+|====
+////
+

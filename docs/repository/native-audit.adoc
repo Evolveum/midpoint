@@ -175,8 +175,8 @@ This also makes the inspection of the values in the columns easier.
 == Audit tables
 
 Audit logs are stored in the tables structured as shown below.
-You can find current schema script for audit in link:https://github.com/Evolveum/midpoint/blob/master/config/sql/native-new/postgres-new-audit.sql[git],
-or in the distribution packages in the file `doc/config/sql/native-new/postgres-new-audit.sql`.
+You can find current schema script for audit in link:https://github.com/Evolveum/midpoint/blob/master/config/sql/native/postgres-audit.sql[git],
+or in the distribution packages in the file `doc/config/sql/native/postgres-audit.sql`.
 
 .Native PostgreSQL audit tables
 image::images/native-tables-audit.png[]
@@ -212,12 +212,12 @@ If you don't do this, audit events will be written normally, but non-unique IDs 
 
 === Upgrading
 
-To upgrade the audit database, run the provided `postgres-new-upgrade-audit.sql` anytime, it should be safe.
+To upgrade the audit database, run the provided `postgres-audit-upgrade.sql` anytime, it should be safe.
 It always runs only the missing parts of the upgrade process.
 Be sure you're running the upgrade script provided with the version you're actually using, see
 xref:/midpoint/reference/upgrade/database-schema-upgrade/#upgrading-native-postgresql-repository[database schema upgrade].
 
-You can find further details in the source code documentation for `apply_audit_change` procedure in the `postgres-new-audit.sql` script.
+You can find further details in the source code documentation for `apply_audit_change` procedure in the `postgres-audit.sql` script.
 
 == Partitioning
 
@@ -256,8 +256,8 @@ The whole point of _declarative partitioning_ is that you do not need to care ab
 
 === Creating partitions
 
-MidPoint offers an SQL procedure `audit_create_monthly_partitions` that is declared in `postgres-new-audit.sql`
-(current version https://github.com/Evolveum/midpoint/blob/master/config/sql/native-new/postgres-new-audit.sql[here]).
+MidPoint offers an SQL procedure `audit_create_monthly_partitions` that is declared in `postgres-audit.sql`
+(current version https://github.com/Evolveum/midpoint/blob/master/config/sql/native/postgres-audit.sql[here]).
 As the name suggests, it creates monthly partitions which is quite fine-grained and is easy to utilize,
 whether your cleanup is executed monthly, quarterly or yearly.
 
@@ -776,4 +776,4 @@ although the default settings do release unused physical connections.
 
 * https://www.postgresql.org/docs/current/ddl-partitioning.html[PostgreSQL Table Partitioning]
 * https://jdbc.postgresql.org/documentation/head/connect.html[Connecting to the PostgreSQL Database]
-* https://github.com/Evolveum/midpoint/blob/master/config/sql/native-new/postgres-new-audit.sql[postgres-new-audit.sql] on GitHub
+* https://github.com/Evolveum/midpoint/blob/master/config/sql/native/postgres-audit.sql[postgres-audit.sql] on GitHub
