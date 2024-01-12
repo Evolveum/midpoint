@@ -1,5 +1,5 @@
 = Generate and Validate Operations
-:page-nav-title: Generate And Validate Operations
+:page-nav-title: Generate And Validate
 :page-display-order: 200
 :page-toc: top
 

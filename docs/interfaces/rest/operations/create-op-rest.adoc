@@ -1,5 +1,5 @@
 = Create Operation
-:page-nav-title: Create Operation
+:page-nav-title: Create
 :page-display-order: 300
 :page-toc: top
 

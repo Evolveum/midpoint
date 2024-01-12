@@ -1,5 +1,5 @@
 = Search Operation
-:page-nav-title: Search Operation
+:page-nav-title: Search
 :page-display-order: 500
 :page-toc: top
 

@@ -1,5 +1,5 @@
 = Notify Change Operations
-:page-nav-title: Notify Change Operations
+:page-nav-title: Notify Change
 :page-display-order: 200
 :page-toc: top
 

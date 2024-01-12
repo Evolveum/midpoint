@@ -1,5 +1,5 @@
 = Delete Operation
-:page-nav-title: Delete Operation
+:page-nav-title: Delete
 :page-display-order: 400
 :page-toc: top
 
