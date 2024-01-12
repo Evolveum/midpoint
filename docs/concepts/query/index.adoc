@@ -23,7 +23,7 @@ This section describes usage and configuration details of:
 
 * xref:midpoint-query-language/[midPoint Query Language],
 * xref:xml-query-language.adoc[XML Query Language] (deprecated),
-* concept of xref:query-in-midpoint/[query in midPoint] in more depth.
+* concept of xref:query-concepts/[query in midPoint] in more depth.
 
 It should be mentioned, that midPoint provides also xref:full-text-search.adoc[*Full text search*] option.
 It is available only for searching of specific data in GUI. The full text search is not enabled by default and must be configured by engineer.
