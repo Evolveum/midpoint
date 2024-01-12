@@ -3,7 +3,7 @@
 :page-display-order: 300
 
 
-=== Supported media types
+== Supported media types
 
 The following formats and related media types are supported:
 

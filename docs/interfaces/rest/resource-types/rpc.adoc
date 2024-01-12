@@ -16,7 +16,7 @@ rpc/
 
 -- TODO
 
-- xref:/midpoint/reference/interfaces/rest/operations/script-execute-op-rest.adoc/[Execute script]
+- xref:/midpoint/reference/interfaces/rest/operations/script-execute-op-rest/[Execute script]
 
 
 == JSON Example

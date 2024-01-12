@@ -16,7 +16,7 @@ the complete *list of supported operations*.
 | Object Type (class) | REST type (endpoint)
 
 | ConnectorType
-| xref:/midpoint/reference/interfaces/rest/resource-types/connector/[connectors]
+| xref:/midpoint/reference/interfaces/rest/resource-types/connectors/[connectors]
 
 
 | ConnectorHostType
