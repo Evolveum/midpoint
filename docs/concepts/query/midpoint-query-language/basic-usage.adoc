@@ -1,6 +1,0 @@
-= Basic usage of midPoint Query Language
-:page-nav-title: Basic usage
-:page-display-order: 100
-
-
-
