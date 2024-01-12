@@ -46,3 +46,5 @@ is usually a part of the output, yet it was removed for the purpose of the examp
 ====
 
 == See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]

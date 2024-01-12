@@ -165,3 +165,5 @@ Therefore, we have decided not to follow strict REST guidelines here and to mode
 Typical example is an execution of a xref:/midpoint/reference/misc/bulk/[bulk action].
 
 == See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]

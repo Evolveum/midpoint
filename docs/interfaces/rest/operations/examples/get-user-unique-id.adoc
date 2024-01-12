@@ -2,11 +2,15 @@
 :page-nav-title: REST API Get user based on his unique identificator
 :page-display-order: 100
 :page-toc: top
+
 == Description
 Example of retrieving identity data from a web resource object representing a user.
 
 For the purpose of the sample we are using the CURL tool as it is a well maintained, well
 tested, and it's widely accessible.
+
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
 
 == Example
 
@@ -30,3 +34,5 @@ curl --user administrator:5ecr3t -H "Accept: application/json" -X GET http://loc
 
 == See Also
 
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]

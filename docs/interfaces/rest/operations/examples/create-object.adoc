@@ -13,6 +13,10 @@ tested, and it's widely accessible.
 The body of the request will contain data from an external configuration file,
 the data will be inserted into the request via native Curl commands.
 
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+
 [NOTE]
 ====
 If you are using file as a source for the data in the REST call with *curl*, please, don't forget to use '*@*' before the path to your file.
@@ -56,3 +60,5 @@ include::https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samp
 
 == See Also
 
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]
