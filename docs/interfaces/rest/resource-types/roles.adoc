@@ -1,8 +1,7 @@
 = Role Type Web Resource
 :page-nav-title: REST API Role Type Resource
 :page-display-order: 300
-// :page-since: "4.4"
-// :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
+:page-toc: top
 
 == Description
 

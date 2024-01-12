@@ -1,8 +1,7 @@
 = User Type Web Resource
 :page-nav-title: REST API User Type Resource
 :page-display-order: 200
-// :page-since: "4.4"
-// :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
+:page-toc: top
 
 == Description
 

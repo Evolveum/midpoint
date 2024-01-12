@@ -1,15 +1,11 @@
 = User Web Resource
 :page-nav-title: REST API User Resource
-:page-display-order: 100
-// :page-since: "4.4"
-// :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
+:page-display-order: 2800
+:page-toc: top
 
 == Description
 
-//TODO
-
-Here we are describing the User object type in relation to midPoints REST API. The
-User objects are a part of the REST API web resources.
+-- TODO
 
 .Endpoint
 [source, http]
@@ -18,23 +14,21 @@ rpc/
 ----
 == Applicable Operations
 
-The User web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
-present in midPoint. This is apparent in the operations which are available for this type of object.
+-- TODO
 
 - xref:/midpoint/reference/interfaces/rest/operations/script-execute-op-rest.adoc/[Execute script]
 
 
 == JSON Example
 
-Example output of information regarding a specific user object. Metadata is usually a part of the output, yet it was removed for the puprose of the
-example.
+-- TODO
 
 .Show JSON Example
 [%collapsible]
 ====
 [source, http]
 ----
-
+TODO
 ----
 ====
 
