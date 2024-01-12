@@ -1,0 +1,20 @@
+= Shadow Specific Operations
+:page-nav-title: REST API Shadow Specific Operations
+:page-display-order: 200
+
+== Description
+
+== Request
+
+=== Headers
+
+=== Body
+
+=== Options
+
+=== Response
+
+== Examples
+
+== See Also
+
