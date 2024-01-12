@@ -3,7 +3,7 @@
 :page-display-order: 400
 
 
-==== Use of HTTP Verbs
+== Use of HTTP Verbs
 
 MidPoint REST API tries to adhere to the usual HTTP verbs and tries to maintain their original meaning:
 
@@ -50,7 +50,7 @@ This is used mostly to delete objects.
 
 
 
-==== Creation of New Resources
+== Creation of New Resources
 
 According to REST architectural style the web resources should be created by PUT operation.
 However, this assumes that the client knows the URI and therefore it is not very practical.
@@ -64,7 +64,7 @@ E.g. new user is created by posting the user object to "users" collection (`.../
 MidPoint will react by creating a new user object and publishing that as a new web resource (with new URI).
 MidPoint REST API will respond with and redirection HTTP status (3xx) pointing client to the new URI.
 
-==== Synchronous and Asynchronous Operations
+== Synchronous and Asynchronous Operations
 
 Most midPoint operations are currently implemented in a synchronous fashion.
 When talking about REST API this means that they will not return HTTP response until they are finished.
@@ -78,7 +78,7 @@ The status in the response will indicate redirection (3xx).
 The redirection target is a xref:/midpoint/architecture/concepts/task/[task] that can be used to track operation progress.
 
 
-==== Return Values
+== Return Values
 
 GET operations are supposed to return data.
 GET invoked on REST-like resources returns what anyone would probably expect: either individual midPoint object or a collection of midPoint objects.

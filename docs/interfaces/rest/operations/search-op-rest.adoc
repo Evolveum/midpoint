@@ -1,5 +1,5 @@
 = Search Operation
-:page-nav-title: List Operation
+:page-nav-title: Search
 :page-display-order: 800
 :page-toc: top
 
@@ -20,4 +20,4 @@
 == See Also
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
-- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

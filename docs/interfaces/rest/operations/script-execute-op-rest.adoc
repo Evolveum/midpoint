@@ -1,5 +1,5 @@
 = Script Execute Operation
-:page-nav-title: Script Execute Operation
+:page-nav-title: Execute Script
 :page-display-order: 700
 :page-toc: top
 
@@ -20,4 +20,4 @@
 == See Also
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
-- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

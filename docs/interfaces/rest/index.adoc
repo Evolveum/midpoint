@@ -63,8 +63,7 @@ The most *basic form* of the url request would be:
 GET http://localhost:8080/midpoint/ws/rest/self?options=raw
 ----
 .Request to read own profile data (raw) full example using CURL
-xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/#_ex_get_own_profile_information_json_raw[Request to
-read own profile data]
+xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/#_ex_get_own_profile_information_json_raw[Request to read own profile data]
 
 Naturally by having a feature rich interface there is no "one size fits them all" way to invoke the operations, so the url will
 be different in specific use cases. The most common ones you can see
@@ -83,9 +82,7 @@ have a look and consider using the midPoint Java Client project:
 
 xref:/midpoint/reference/interfaces/midpoint-client-java/[MidPoint Client Library]
 
-image::/midpoint/reference/interfaces/client-architecture.png[]
-
-
+[#_common_use_cases]
 == Common Use Cases
 
 -- TODO add links
