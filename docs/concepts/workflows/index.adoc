@@ -141,8 +141,8 @@ See xref:/midpoint/reference/cases/approval/policy-based-approvals/[approvals do
 === Integration with external workflows engines
 
 The last two types of workflows are covering form based actions and workflow engines.
-MidPoint doesn't support the full workflow engine functionality, because it follows the design rule of focusing on single purpose and master it rather than being universal bloated tool for everything.
-In addition to that, the workflow engine functionality that would require integration with other systems and applications beyond standard IGA integration that midPoint offers.
+MidPoint is following the design rule of focusing on single purpose and master it rather than being universal bloated tool for everything.
+For that reasons it doesn't implement complex workflows engine functionality that would anyway require integration with other systems and applications beyond standard IGA integration that midPoint offers.
 But midPoint offers an option to be xref:/midpoint/reference/concepts/workflows/external-workflow-integration/[integrated with external workflows engines].
 
 For the same reasons midPoint currently don't offer form based custom actions described above.
