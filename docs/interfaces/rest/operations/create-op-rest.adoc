@@ -1,5 +1,5 @@
 = Create Operation
-:page-nav-title: Create Operation
+:page-nav-title: Create
 :page-display-order: 300
 :page-toc: top
 
@@ -90,4 +90,4 @@ In case of success you might see the following response codes:
 
 == See Also
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
-- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
