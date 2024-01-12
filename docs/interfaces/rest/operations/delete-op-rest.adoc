@@ -1,0 +1,35 @@
+= Delete Operation
+:page-nav-title: Delete
+:page-display-order: 400
+:page-toc: top
+
+== Description
+Request to delete a midPoint object.
+
+== Request
+For the request use the HTTP DELETE method
+
+Using the DELETE method, the client has to provide the type of the web resource which
+should be deleted "{web_resource_type}" and the oid of the specific object which should be deleted
+"{oid}".
+
+.Delete operation
+[source, http]
+----
+DELETE http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}
+----
+
+=== Headers
+
+=== Body
+
+=== Options
+
+=== Response
+
+== Examples
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

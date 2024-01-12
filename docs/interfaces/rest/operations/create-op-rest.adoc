@@ -1,0 +1,93 @@
+= Create Operation
+:page-nav-title: Create
+:page-display-order: 300
+:page-toc: top
+
+== Description
+Request to create a midPoint object based on data provided in the body of the request.
+
+== Request
+
+Use either the HTTP POST or PUT method with your request. Based on the method used
+there are different requirements on the resulting URI:
+
+Using the PUT method, the client has to provide a complete object, including the identifier (OID).
+
+.Create operation using HTTP PUT
+[source, http]
+----
+PUT http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}
+----
+
+If you use the POST method to create new web resources,
+you can do this without the need to know the complete URI (i.e. without the oid identifier).
+
+.Create operation using HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/{web_resource_type}/
+----
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+In case of the get operation you need to specify the provided content type of the
+payload in the body:
+
+.Content type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/xml"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+
+=== Body
+
+=== Options
+
+Example of usage of options:
+
+//TODO full example
+[source, http]
+----
+?options=raw
+----
+
+In case of create with the use of the *PUT* method please have a look at the folowing
+links were you can find the options described:
+
+.Usable options for this type of operation
+link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+
+If you want to use the *POST* method please have a look at the following
+links were you can find the options described:
+
+.Usable options for this type of operation
+link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+
+
+=== Response
+
+In case of success you might see the following response codes:
+
+-   201 Created, Location set to point to the newly created object
+-   240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+-   250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+== Examples
+
+1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-object/[Create object]
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
