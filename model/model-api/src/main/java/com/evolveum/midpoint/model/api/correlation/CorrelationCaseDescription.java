@@ -107,21 +107,23 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
 
         private final double confidence;
 
-        @NotNull private final PathKeyedMap<CorrelationPropertyValuesDescription> properties;
+        /** Values of individual correlation properties, sorted to primary/secondary, and with the match level. */
+        @NotNull private final PathKeyedMap<CorrelationPropertyValuesDescription> propertiesValuesMap;
 
         /**
-         * (Optional) explanation of the correlation process for this candidate. May be missing if not requested or not available.
+         * (Optional) explanation of the correlation process for this candidate.
+         * May be missing if not requested or not available.
          */
         @Nullable private final CorrelationExplanation explanation;
 
         public CandidateDescription(
                 @NotNull F object,
                 double confidence,
-                @NotNull PathKeyedMap<CorrelationPropertyValuesDescription> properties,
+                @NotNull PathKeyedMap<CorrelationPropertyValuesDescription> propertiesValuesMap,
                 @Nullable CorrelationExplanation explanation) {
             this.object = object;
             this.confidence = confidence;
-            this.properties = properties;
+            this.propertiesValuesMap = propertiesValuesMap;
             this.explanation = explanation;
         }
 
@@ -137,8 +139,12 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
             return confidence;
         }
 
-        public @NotNull PathKeyedMap<CorrelationPropertyValuesDescription> getProperties() {
-            return properties;
+        public @Nullable CorrelationPropertyValuesDescription getPropertyValuesDescription(@NotNull CorrelationProperty property) {
+            return getPropertyValuesDescription(property.getItemPath());
+        }
+
+        public @Nullable CorrelationPropertyValuesDescription getPropertyValuesDescription(@NotNull ItemPath propertyPath) {
+            return propertiesValuesMap.get(propertyPath);
         }
 
         public @Nullable CorrelationExplanation getExplanation() {
@@ -150,7 +156,7 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
             return getClass().getSimpleName() + "{" +
                     "candidate=" + object +
                     ", confidence=" + confidence +
-                    ", properties: " + properties.size() +
+                    ", properties: " + propertiesValuesMap.size() +
                     ", explanation: " + explanation +
                     '}';
         }
@@ -160,7 +166,7 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
             StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
             DebugUtil.debugDumpWithLabelLn(sb, "object", object, indent + 1);
             DebugUtil.debugDumpWithLabelLn(sb, "confidence", confidence, indent + 1);
-            DebugUtil.debugDumpWithLabelLn(sb, "properties", properties.values(), indent + 1);
+            DebugUtil.debugDumpWithLabelLn(sb, "values of properties", propertiesValuesMap.values(), indent + 1);
             DebugUtil.debugDumpWithLabel(sb, "explanation", explanation, indent + 1);
             return sb.toString();
         }

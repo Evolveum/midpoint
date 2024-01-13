@@ -22,7 +22,6 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
@@ -145,9 +144,12 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                     }
                 };
 
+                // Correlation candidate or "new owner" option.
+                CorrelationOptionDto optionDto = item.getModelObject();
+
                 actionButton.add(
                         new Label(ID_ACTION_LABEL,
-                                item.getModelObject().isNewOwner() ? TEXT_CREATE_NEW : TEXT_CORRELATE));
+                                optionDto.isNewOwner() ? TEXT_CREATE_NEW : TEXT_CORRELATE));
 
                 String outcome = correlationCase.getOutcome();
                 actionButton.add(new VisibleBehaviour(() -> outcome == null));
@@ -155,7 +157,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
                 WebMarkupContainer iconType = new WebMarkupContainer(ID_OUTCOME_ICON);
                 iconType.setOutputMarkupId(true);
-                iconType.add(new VisibleBehaviour(() -> outcome != null && item.getModelObject().matches(outcome)));
+                iconType.add(new VisibleBehaviour(() -> outcome != null && optionDto.matches(outcome)));
                 item.add(iconType);
             }
         };
@@ -167,18 +169,16 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> item) {
                 // A full-object reference to the candidate owner
-                ReadOnlyModel<ObjectReferenceType> referenceModel = new ReadOnlyModel<>(
-                        () -> {
-                            CorrelationOptionDto optionDto = item.getModelObject();
-                            if (!optionDto.isNewOwner()) {
-                                return ObjectTypeUtil.createObjectRefWithFullObject(
-                                        optionDto.getObject());
-                            } else {
-                                // GUI cannot currently open object that does not exist in the repository.
-                                return null;
-                            }
-                        }
-                );
+                IModel<ObjectReferenceType> referenceModel = () -> {
+                    CorrelationOptionDto optionDto = item.getModelObject();
+                    if (!optionDto.isNewOwner()) {
+                        return ObjectTypeUtil.createObjectRefWithFullObject(
+                                optionDto.getObject());
+                    } else {
+                        // GUI cannot currently open object that does not exist in the repository.
+                        return null;
+                    }
+                };
                 item.add(
                         new LinkedReferencePanel<>(ID_NAME, referenceModel));
             }
@@ -265,21 +265,31 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
         return new ListView<>(ID_COLUMNS, new PropertyModel<>(contextModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> columnItem) {
-                CorrelationContextDto contextDto = contextModel.getObject();
+
+                // This is the column = option = the specific candidate (or "reference" object - the one that is being matched).
                 CorrelationOptionDto optionDto = columnItem.getModelObject();
+
+                // This is the row = the correlation property in question (given name, family name, and so on).
                 CorrelationProperty correlationProperty = rowItem.getModelObject();
 
-                CorrelationPropertyValues valuesForOption = optionDto.getPropertyValues(correlationProperty);
-                Label label = new Label(ID_COLUMN, valuesForOption.format());
+                // Provide the values: either for a candidate or for the reference (object being matched).
+                CorrelationPropertyValues values = optionDto.getPropertyValues(correlationProperty);
+                Label valuesLabel = new Label(ID_COLUMN, values.format());
 
-                CorrelationOptionDto referenceOption = contextDto.getNewOwnerOption();
-                if (referenceOption != null && !optionDto.isNewOwner()) {
-                    CorrelationPropertyValues referenceValues = referenceOption.getPropertyValues(correlationProperty);
-                    Match match = referenceValues.match(valuesForOption);
-                    label.add(
-                            AttributeAppender.append("class", match.getCss()));
+                // Colorize the field
+                if (optionDto instanceof CorrelationOptionDto.Candidate candidate) {
+                    MatchVisualizationStyle matchVisualizationStyle;
+                    var propertyValuesDescription = candidate.getPropertyValuesDescription(correlationProperty);
+                    if (propertyValuesDescription != null) {
+                        matchVisualizationStyle = MatchVisualizationStyle.forMatch(propertyValuesDescription.getMatch());
+                    } else {
+                        matchVisualizationStyle = MatchVisualizationStyle.NOT_APPLICABLE;
+                    }
+                    valuesLabel.add(
+                            AttributeAppender.append("class", matchVisualizationStyle.getCss()));
                 }
-                columnItem.add(label);
+
+                columnItem.add(valuesLabel);
             }
         };
     }
