@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
@@ -74,6 +74,8 @@ class CorrelationContextDto implements Serializable {
     private void load(CaseType aCase, PageBase pageBase, Task task, OperationResult result) throws CommonException {
         ResourceObjectOwnerOptionsType ownerOptions = CorrelationCaseUtil.getOwnerOptions(aCase);
         if (ownerOptions != null) {
+            // TODO Reconsider the necessity of this (note that everything is in candidate descriptions provided later,
+            //  so we probably do not need the resolved candidates)
             resolvePotentialOwners(ownerOptions, pageBase, task, result);
         }
         CorrelationCaseDescription<?> correlationCaseDescription =
@@ -108,6 +110,8 @@ class CorrelationContextDto implements Serializable {
 
     private PrismObject<?> loadObject(String oid, PageBase pageBase, Task task, OperationResult result) {
         try {
+            // We do not need the identities container here, as the secondary values are obtained from
+            // the correlation case description.
             return pageBase.getModelService()
                     .getObject(FocusType.class, oid, null, task, result);
         } catch (Exception e) {
@@ -127,16 +131,25 @@ class CorrelationContextDto implements Serializable {
         int suggestionNumber = 1;
         for (ResourceObjectOwnerOptionType potentialOwner : CorrelationCaseUtil.getOwnerOptionsList(aCase)) {
             OwnerOptionIdentifier identifier = OwnerOptionIdentifier.of(potentialOwner);
+            String optionIdentifierRaw = potentialOwner.getIdentifier(); // the same as identifier.getStringValue()
+            assert optionIdentifierRaw != null;
             if (identifier.isNewOwner()) {
                 optionHeaders.add(0, TEXT_BEING_CORRELATED);
                 correlationOptions.add(0,
-                        new CorrelationOptionDto(potentialOwner, context.getPreFocusRef()));
+                        new CorrelationOptionDto.NewOwner(context.getPreFocusRef(), optionIdentifierRaw));
             } else {
                 optionHeaders.add(String.format(TEXT_CANDIDATE, suggestionNumber));
-                CandidateDescription<?> candidate = candidates.get(identifier.getExistingOwnerId());
-                correlationOptions.add(
-                        new CorrelationOptionDto(potentialOwner, candidate));
-                suggestionNumber++;
+                CandidateDescription<?> candidateDescription = candidates.get(identifier.getExistingOwnerId());
+                ObjectReferenceType candidateOwnerRef = potentialOwner.getCandidateOwnerRef(); // also in candidateDescription
+                if (candidateDescription != null && candidateOwnerRef != null) {
+                    correlationOptions.add(
+                            new CorrelationOptionDto.Candidate(candidateDescription, candidateOwnerRef, optionIdentifierRaw));
+                    suggestionNumber++;
+                } else {
+                    LOGGER.warn("No candidate or potentialOwner content for {}? In:\n{}\n{}",
+                            identifier.getExistingOwnerId(),
+                            DebugUtil.debugDump(candidates, 1), potentialOwner.debugDump(1));
+                }
             }
         }
     }
@@ -151,22 +164,20 @@ class CorrelationContextDto implements Serializable {
                         .values());
     }
 
-    @Nullable CorrelationOptionDto getNewOwnerOption() {
-        if (correlationOptions.isEmpty()) {
-            return null;
-        }
-        CorrelationOptionDto first = correlationOptions.get(0);
-        return first.isNewOwner() ? first : null;
-    }
-
+    /** Accessed via {@link #F_CORRELATION_OPTIONS}. */
+    @SuppressWarnings("unused")
     public List<CorrelationOptionDto> getCorrelationOptions() {
         return correlationOptions;
     }
 
+    /** Accessed via {@link #F_OPTION_HEADERS}. */
+    @SuppressWarnings("unused")
     public List<String> getOptionHeaders() {
         return optionHeaders;
     }
 
+    /** Accessed via {@link #F_CORRELATION_PROPERTIES}. */
+    @SuppressWarnings("unused")
     public List<CorrelationCaseDescription.CorrelationProperty> getCorrelationProperties() {
         return correlationProperties;
     }

@@ -83,14 +83,6 @@ public class OwnerOptionIdentifier {
         }
     }
 
-    public static OwnerOptionIdentifier forExistingOrNoOwner(@Nullable String ownerId) {
-        if (ownerId == null) {
-            return forNoOwner();
-        } else {
-            return forExistingOwner(ownerId);
-        }
-    }
-
     public @NotNull String getStringValue() {
         if (isValid()) {
             return existingOwnerId != null ?

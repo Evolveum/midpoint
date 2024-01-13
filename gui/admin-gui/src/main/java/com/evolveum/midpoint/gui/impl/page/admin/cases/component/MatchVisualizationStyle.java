@@ -7,7 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
-public enum Match {
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
+
+import org.jetbrains.annotations.NotNull;
+
+public enum MatchVisualizationStyle {
 
     NOT_APPLICABLE(""),
     NONE("bg-danger disabled color-palette"),
@@ -16,8 +20,17 @@ public enum Match {
 
     private final String css;
 
-    Match(String css) {
+    MatchVisualizationStyle(String css) {
         this.css = css;
+    }
+
+    static MatchVisualizationStyle forMatch(@NotNull CorrelationCaseDescription.Match match) {
+        return switch (match) {
+            case NOT_APPLICABLE -> NOT_APPLICABLE;
+            case NONE -> NONE;
+            case PARTIAL -> PARTIAL;
+            case FULL -> FULL;
+        };
     }
 
     public String getCss() {

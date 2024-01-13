@@ -164,25 +164,26 @@ class CorrelationCaseDescriber<F extends FocusType> {
                 confidence = or0(ownerOption.getConfidence());
             }
 
-            PathKeyedMap<CorrelationPropertyValuesDescription> properties = createCandidateProperties(candidate, result);
+            var propertiesValuesMap = createCandidatePropertiesValuesMap(candidate, result);
             description.addCandidate(
-                    new CandidateDescription<>(candidate, confidence, properties, explanation));
+                    new CandidateDescription<>(candidate, confidence, propertiesValuesMap, explanation));
         }
     }
 
-    private PathKeyedMap<CorrelationPropertyValuesDescription> createCandidateProperties(F candidate, OperationResult result)
+    private PathKeyedMap<CorrelationPropertyValuesDescription> createCandidatePropertiesValuesMap(
+            F candidate, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         PathKeyedMap<CorrelationPropertyValuesDescription> map = new PathKeyedMap<>();
         for (CorrelationCaseDescription.CorrelationProperty correlationProperty : description.getCorrelationProperties().values()) {
             map.put(
                     correlationProperty.getItemPath(),
-                    createCandidateProperty(candidate, correlationProperty, result));
+                    createCandidatePropertyValuesDescription(candidate, correlationProperty, result));
         }
         return map;
     }
 
-    private CorrelationPropertyValuesDescription createCandidateProperty(
+    private CorrelationPropertyValuesDescription createCandidatePropertyValuesDescription(
             F candidate, CorrelationCaseDescription.CorrelationProperty correlationProperty, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
