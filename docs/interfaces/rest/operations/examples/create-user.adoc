@@ -1,0 +1,35 @@
+= Create object
+:page-nav-title: Create object
+:page-display-order: 500
+:page-toc: top
+
+== Description
+Example of creating an midPoint object representing some identity data in the
+form of a new User type object
+
+include::../examples/raw/curl-authenticatoin-intro-note.adoc[]
+
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+== Example
+//TODO
+.Create a new User object in MidPoint with file data source
+[source,bash]
+----
+curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/users --data-binary @pathToMidpointGit\samples\rest\rest-user.xml -v
+----
+
+.*Show* data source example for *"Create a new User object in MidPoint"
+[%collapsible]
+====
+[source, xml]
+----
+include::https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/user-.xml[]
+----
+====
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
