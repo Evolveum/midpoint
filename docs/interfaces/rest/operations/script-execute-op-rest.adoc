@@ -13,7 +13,7 @@
 
 === Options
 
-=== Response
+include::../../rest/concepts/raw/outcome.adoc[]
 
 == Examples
 
