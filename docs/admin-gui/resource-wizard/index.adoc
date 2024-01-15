@@ -225,6 +225,10 @@ More complex configuration is possible by clicking btn:[Edit] button:
 | image::step-3-mappings-inbound-detail-optional.png[link=step-3-mappings-inbound-detail-optional.png, 100%, title=Optional configuration of inbound mapping (complex view)]
 |===
 
+[#use_inbound_for_correlation]
+You can define the inbound mapping as ordinary (default), or you can specify *Use for* parameter with value `Correlation` in the *Optional configuration* of the mapping to use the mapping only during the correlation.
+This is how you can define inbound mappings to be used in <<Correlation>> when item correlator is used, even for target resources where you normally have no inbound mappings at all.
+
 Mapping can be deleted by clicking btn:[Delete] button.
 
 Mappings can be saved by clicking btn:[Save mappings] and wizard will return to the previous page from which you started mapping editor.
@@ -293,11 +297,11 @@ For the situations you need to configure:
 
 * *Name* of the situation/reaction configuration. This is technically not mandatory, but helps a lot during troubleshooting and when using resource template inheritance.
 * *Situation* allows you to select an appropriate situation:
-** *Linked*
-** *Unlinked*
-** *Deleted*
-** *Unmatched*
-** *Disputed*
+** *Linked* refers to situation when the resource object is linked to its midPoint owner
+** *Unlinked* refers to situation when a new resource object has been found and its owner can be determined, but there is no link between the midPoint owner and resource object
+** *Deleted* refers to situation when the resource object was references by midPoint owner but the resource object has been deleted
+** *Unmatched* refers to situation when a new resource object has been found but midPoint cannot determine any owner for the account
+** *Disputed* refers to situation when the midPoint has determined more potential midPoint owners for a single resource account or if the correlation of the resource object is not definitive (not fully trusted)
 * *Action* allows you to select midPoint behavior if the resource object is in the defined Situation
 ** *Add focus* allows to create a new object in midPoint based on the resource data
 ** *Synchronize* allows to synchronize data between midPoint object and resource data based on the mappings
@@ -307,6 +311,8 @@ For the situations you need to configure:
 ** *Inactivate focus* allows to inactivate (disable) midPoint object
 ** *Delete focus* allows to delete midPoint object
 * *Lifecycle state* allows you to define the lifecycle state of the situation/reaction configuration. This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the synchronization/reaction configuration, `Draft` disables the synchronization/reaction configuration etc.
+
+TIP: The logic of situation and action is up to you. E.g. it is perfectly OK to have reaction `Add focus` for `Unmatched` situation for an authoritative source system such as HR. For target system, however, probably more appropriate reaction for `Unmatched` situation would be `Inactivate resource object`.
 
 TIP: Please refer to xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections] for explanation of the term _Focus_. In the most basic scenarios when synchronizing users and their accounts, _focus_ corresponds to User object in midPoint.
 
@@ -333,22 +339,33 @@ Correlation allows you to define how midPoint should recognize relations between
 In short, this is about searching the resource object owners in midPoint.
 
 You can create one or several correlation rules.
-They can be enabled or disabled if you don't want to use them (yet).
-
-.Table of correlation rules
-image::step-5-correlator-rule.png[link=step-5-correlator-rule.png,100%,title=Table of correlation rules]
 
 Click btn:[Add rule] to add a new correlation rule.
 
+For the correlation, you can configure the following:
+
+* *Rule name* for documentation and troubleshooting purposes
+* *Description*
+* *Weight*, *Tier*, *Ignore if matched by* for more complex scenarios
+* *Enabled* to enable or disable the correlation rule
+
+image::step-5-correlator-rule.png[link=step-5-correlator-rule.png,100%,title=Table of correlation rules]
+
 Click btn:[Edit] button to edit details of the correlation rule.
+
+Specify the item configuration:
+
+* *Item* refers to a midPoint property for which an inbound mapping exists. This will be used for correlation. E.g. if there is an inbound mapping from AD's `sAMAccountName` attribute to midPoint user's `name` property, you would use `name` item
++
+TIP: For target resources where inbound mappings are normally not used, the inbound mapping can be in a special <<#use_inbound_for_correlation,"Use for correlation only" mode>>.
+* *Search method* allows to specify either exact match or one of the fuzzy search methods supported by midPoint
+
 
 .Table of correlation items for one correlation rule
 image::step-5-correlator-item.png[link=step-5-correlator-item.png,100%,title=Table of correlation items for one correlation rule]
 
-We recommend to use the xref:/midpoint/reference/correlation/items-correlator/[] whenever appropriate as it is the easiest to use and requires only an existing an inbound mapping.
-For target resources, the inbound mapping can be in a special "Use for correlation only" mode.
-
 .See also the following pages for more information:
+* xref:/midpoint/reference/correlation/items-correlator/[]
 * xref:/midpoint/reference/correlation/[Smart Correlation]
 
 Click btn:[Save correlation settings] when done to return to the previous page from which you started the correlation editor.
@@ -401,6 +418,9 @@ Then configure details for mapping as appropriate for the activation scenario.
 
 |===
 
+Each mapping also allows setting *Lifecycle state*.
+This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the activation mapping, `Draft` disables the activation mapping etc.
+
 Click btn:[Save mappings] when done to return to the previous page from which you started the activation editor.
 
 
@@ -426,6 +446,9 @@ Predefined mapping configurations contain only one configuration step.
 .Predefined details configuration for 'Delayed delete'
 image::step-7-predefined-details.png[link=step-7-predefined-details.png,100%,title=Predefined details configuration for 'Delayed delete']
 
+Each mapping also allows setting *Lifecycle state*.
+This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the activation mapping, `Draft` disables the activation mapping etc.
+
 Click btn:[Save settings] when done to return to the previous page from which you started the activation editor.
 
 
@@ -434,15 +457,36 @@ Click btn:[Save settings] when done to return to the previous page from which yo
 Credentials allows you to define mappings for credentials, e.g. passwords.
 
 Configuration for credentials contains similar panels as for activation, but contains only one kind of mapping and doesn't contain any predefined mappings.
+Use the credentials mappings to either pass or generate the password.
+
+TIP: The `as is` mappings are very simple as midPoint implies that the password will be passed from midPoint user password to resource object password (if supported by the resource and connector) or vice versa.
+
 
 image::step-8-credentials.png[link=step-8-credentials.png,100%,title=Configuration of credentials]
 
+Each mapping also allows setting *Lifecycle state*.
+This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the credentials mapping, `Draft` disables the credentials mapping etc.
+
 Click btn:[Save settings] when done to return to the previous page from which you started the credentials editor.
+
+NOTE: You don't need any credentials mappings if you are not managing the passwords in the resource (e.g. if you are using SSO with another system).
 
 === Associations
 
 Associations allow you to configure resource for object type relations.
 Typically, this is used to configure how account/group membership is defined and processed.
+
+You can define the following associations properties:
+
+* *ref* is a unique name for the association (technical), e.g. `group`
+* *Display name* is a user-friendly association name displayed in GUI
+* *Kind* and *Intent* specify the object type which defines the object to be associated
+* *Direction* defines the direction of the relation between associated objects. There are two possibilities:
+** *Object to subject* Object (e.g. a group) has an attribute that contains subject (e.g. account) identifiers as its values. E.g. a group has a list of members. _This is the LDAP-way_.
+** *Subject to object* Subject (e.g. account) has an attribute that contains object (e.g. group) identifiers as its values. E.g. an account has a list of groups to which it belongs.
+* *Association attribute* refers to name of the attribute which represents the association. This is the attribute that will be modified when the association changes. In object-to-subject associations this is the attribute of the object (e.g. group's `dn`). In subject-to-object associations this is an attribute of the subject (e.g. account's `groups` attribute).
+* *Value attribute* refers to name of the attribute from with a value for association attribute is taken. The value is taken from this attribute and it will be stored in the association attribute. This attribute will not be modified when the association changes, it is only for reading. In object-to-subject associations this is the attribute of the subject (e.g. account's `dn`). In subject-to-object associations this is an attribute of the object (e.g. group's `name`). This attribute usually contain identifiers.
+* *Lifecycle state* allows you to define the lifecycle state of the association configuration. This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the association configuration, `Draft` disables the association configuration etc.
 
 image::step-9-association.png[link=step-9-association.png,100%,title=Table of associations]
 
@@ -452,6 +496,7 @@ Click btn:[Add association] to add a new association configuration.
 image::step-9-association-detail.png[Detail configuration for association, 100%]
 
 .See also the following pages for more information:
+* xref:/midpoint/reference/resources/entitlements/#association-definition[Association definition]
 * xref:/midpoint/reference/resources/entitlements/[Entitlements]
 
 Click btn:[Save associations settings] when done to return to the previous page from which you started the association editor.
@@ -475,5 +520,6 @@ Resource wizard has several limitations as of midPoint 4.8, such as:
 
 * expression editor supports `As is`, `Script`, `Literal` and `Generate` expressions only
 * xref:/midpoint/reference/expressions/mappings/range/[mapping ranges] are not supported
+* correlation configuration currently supports only xref:/midpoint/reference/correlation/items-correlator/[]
 
 midPoint resource wizard won't be able to show or allow editing of these features but should tolerate them and keep them in the configuration.
