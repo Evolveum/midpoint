@@ -164,7 +164,8 @@ public class Main {
                 }
 
                 Object result = action.execute();
-                if (result instanceof ActionResult<?> actionResult) {
+                if (result instanceof ActionResult) {
+                    ActionResult<?> actionResult = (ActionResult<?>) result;
                     return new MainResult<>(actionResult.result(), actionResult.exitCode(), actionResult.exitMessage());
                 }
 
