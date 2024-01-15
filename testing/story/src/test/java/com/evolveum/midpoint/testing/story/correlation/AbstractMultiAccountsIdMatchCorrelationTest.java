@@ -352,8 +352,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
         Collection<CorrelationProperty> properties =
                 correlationService
                         .describeCorrelationCase(correlationCase, null, task, result)
-                        .getCorrelationProperties()
-                        .values();
+                        .getCorrelationPropertiesList();
         displayValue("properties", DebugUtil.debugDump(properties));
 
         // TODO this will need to be adapted

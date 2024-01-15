@@ -231,19 +231,17 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             FuzzyStringMatchFilter<?> filter, Expression<?> path, ValueFilterValues<?, ?> values)
             throws QueryException {
         FuzzyMatchingMethod method = filter.getMatchingMethod();
-        if (method instanceof Levenshtein) {
-            var levenshtein = (Levenshtein) method;
+        if (method instanceof Levenshtein levenshtein) {
             var func = Expressions.numberTemplate(Integer.class,
-                    "levenshtein_less_equal({0}, '{1s}', {2})",
+                    "levenshtein_less_equal({0}, {1}, {2})",
                     path, String.valueOf(values.singleValue()), levenshtein.getThresholdRequired());
             // Lower value means more similar
             return levenshtein.isInclusive() ?
                     func.loe(levenshtein.getThresholdRequired()) :
                     func.lt(levenshtein.getThresholdRequired());
-        } else if (method instanceof Similarity) {
-            var spec = (Similarity) method;
+        } else if (method instanceof Similarity spec) {
             var func = Expressions.numberTemplate(Float.class,
-                    "similarity({0}, '{1s}')",
+                    "similarity({0}, {1})",
                     path, String.valueOf(values.singleValue()));
             // Higher value means more similar
             return spec.isInclusive() ?

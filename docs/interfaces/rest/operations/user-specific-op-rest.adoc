@@ -1,0 +1,23 @@
+= User Specific Operations
+:page-nav-title: User Specific Operations
+:page-display-order: 1000
+:page-toc: top
+
+== Description
+
+== Request
+
+=== Headers
+
+=== Body
+
+=== Options
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+== Examples
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

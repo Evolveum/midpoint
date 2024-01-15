@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlator.noop;
 
+import com.evolveum.midpoint.model.api.correlator.Confidence;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -41,10 +42,10 @@ class NoOpCorrelator extends BaseCorrelator<NoOpCorrelatorType> {
     }
 
     @Override
-    protected double checkCandidateOwnerInternal(
+    protected @NotNull Confidence checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result) {
-        return 0;
+        return Confidence.zero();
     }
 }

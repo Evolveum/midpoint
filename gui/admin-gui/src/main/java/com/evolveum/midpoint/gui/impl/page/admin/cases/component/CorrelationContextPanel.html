@@ -27,13 +27,13 @@
                 </wicket:container>
             </tr>
             <tr>
-                <th>Name</th>
-                <wicket:container wicket:id="names">
-                    <td><label wicket:id="name"></label></td>
+                <th><wicket:message key="CorrelationContextPanel.name"/></th>
+                <wicket:container wicket:id="candidateReferences">
+                    <td><label wicket:id="candidateReference"></label></td>
                 </wicket:container>
             </tr>
             <tr>
-                <th  wicket:id="matchName">Match confidence</th>
+                <th wicket:id="matchName">Match confidence</th>
                 <wicket:container wicket:id="confidences">
                     <td>
                         <label wicket:id="confidence"></label>

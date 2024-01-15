@@ -20,248 +20,247 @@ Item constant code displays constant by which is the element referenced in midPo
 NOTE: Use names in the Item name column for preparation of queries in midPoint Query Language
 
 Please keep in mind inheritance of objects - each object inherits search elements also from its parents.
-//TODO - link to inheritance  - lebo nie je jasne, ktore dedia od koho
 
 === ObjectType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| name | Name | ObjectType.F_NAME 
-| lifecycleState | Lifecycle State | ObjectType.F_LIFECYCLE_STATE 
-| subtype | Subtype | ObjectType.F_SUBTYPE 
-| metadata/createTimestamp | Metadata/Created at | ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP 
-| metadata/modifyTimestamp | Metadata/Modified at | ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP 
+| Item name | Display name
+| name | Name 
+| lifecycleState | Lifecycle State 
+| subtype | Subtype 
+| metadata/createTimestamp | Metadata/Created at 
+| metadata/modifyTimestamp | Metadata/Modified at 
 |===
 
 === FocusType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| roleMembershipRef | Role membership | FocusType.F_ROLE_MEMBERSHIP_REF 
-| activation/administrativeStatus | Activation/Administrative status | FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS 
-| activation/effectiveStatus | Activation/Effective status | FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS 
-| activation/lockoutStatus | Activation/Lockout Status | FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS 
-| activation/validFrom | Activation/Valid from | FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM 
-| activation/validTo | Activation/Valid to | FocusType.F_ACTIVATION, ActivationType.F_VALID_TO 
+| Item name | Display name
+| roleMembershipRef | Role membership 
+| activation/administrativeStatus | Activation/Administrative status 
+| activation/effectiveStatus | Activation/Effective status 
+| activation/lockoutStatus | Activation/Lockout Status 
+| activation/validFrom | Activation/Valid from 
+| activation/validTo | Activation/Valid to 
 |===
 
 === UserType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| title | Title | UserType.F_TITLE 
-| givenName | Given name | UserType.F_GIVEN_NAME 
-| familyName | Family name | UserType.F_FAMILY_NAME 
-| fullName | Full name | UserType.F_FULL_NAME 
-| additionalName | Additional Name | UserType.F_ADDITIONAL_NAME 
-| costCenter | Cost Center | UserType.F_COST_CENTER 
-| emailAddress | Email | UserType.F_EMAIL_ADDRESS 
-| telephoneNumber | Telephone Number | UserType.F_TELEPHONE_NUMBER 
-| employeeNumber | Employee Number | UserType.F_EMPLOYEE_NUMBER 
-| organizationalUnit | Organizational Unit | UserType.F_ORGANIZATIONAL_UNIT 
-| locality | Locality | UserType.F_LOCALITY 
-| personalNumber | Personal Number | UserType.F_PERSONAL_NUMBER 
+| Item name | Display name
+| title | Title 
+| givenName | Given name 
+| familyName | Family name 
+| fullName | Full name 
+| additionalName | Additional Name 
+| costCenter | Cost Center 
+| emailAddress | Email 
+| telephoneNumber | Telephone Number 
+| employeeNumber | Employee Number 
+| organizationalUnit | Organizational Unit 
+| locality | Locality 
+| personalNumber | Personal Number 
 |===
 
 === RoleType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| targetRef |  | AssignmentType.F_TARGET_REF 
-| tenantRef |  | AssignmentType.F_TENANT_REF 
-| orgRef |  | AssignmentType.F_ORG_REF 
+| Item name | Display name
+| targetRef |  
+| tenantRef |  
+| orgRef |  
 |===
 
 === ServiceType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| name | Name | ServiceType.F_NAME 
-| url | URL | ServiceType.F_URL 
+| Item name | Display name
+| name | Name 
+| url | URL 
 |===
 
 === ConnectorHostType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| hostname |  | ConnectorHostType.F_HOSTNAME 
+| Item name | Display name
+| hostname |  
 |===
 
 === ConnectorType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| connectorBundle |  | ConnectorType.F_CONNECTOR_BUNDLE 
-| connectorVersion | Connector version | ConnectorType.F_CONNECTOR_VERSION 
-| connectorType | Connector type | ConnectorType.F_CONNECTOR_TYPE 
+| Item name | Display name
+| connectorBundle |  
+| connectorVersion | Connector version 
+| connectorType | Connector type 
 |===
 
 === AbstractRoleType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| identifier | Identifier | AbstractRoleType.F_IDENTIFIER 
-| requestable | Requestable | AbstractRoleType.F_REQUESTABLE 
-| displayName | Display Name | RoleType.F_DISPLAY_NAME 
+| Item name | Display name
+| identifier | Identifier 
+| requestable | Requestable 
+| displayName | Display Name 
 |===
 
 === OrgType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| costCenter | Cost center | OrgType.F_COST_CENTER 
-| tenant | Tenant | OrgType.F_TENANT 
-| parentOrgRef |  | OrgType.F_PARENT_ORG_REF 
-| locality |  | OrgType.F_LOCALITY 
+| Item name | Display name
+| costCenter | Cost center 
+| tenant | Tenant 
+| parentOrgRef |  
+| locality |  
 |===
 
 === NodeType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| nodeIdentifier | Node identifier | NodeType.F_NODE_IDENTIFIER 
+| Item name | Display name
+| nodeIdentifier | Node identifier 
 |===
 
 === TaskType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| taskIdentifier | Task identifier | TaskType.F_TASK_IDENTIFIER 
-| node | Executing at (indicative) | TaskType.F_NODE 
-| resultStatus | Result status | TaskType.F_RESULT_STATUS 
-| executionState | Execution state | TaskType.F_EXECUTION_STATE 
-| handlerUri | Handler URI | TaskType.F_HANDLER_URI 
-| objectRef | Object | TaskType.F_OBJECT_REF 
+| Item name | Display name
+| taskIdentifier | Task identifier 
+| node | Executing at (indicative) 
+| resultStatus | Result status 
+| executionState | Execution state 
+| handlerUri | Handler URI 
+| objectRef | Object 
 |===
 
 === AssignmentType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| targetRef |  | AssignmentType.F_TARGET_REF 
-| construction/resourceRef | Construction/ | AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF 
-| activation/administrativeStatus | Activation/Administrative status | AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS 
-| activation/effectiveStatus | Activation/Effective status | AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS 
+| Item name | Display name
+| targetRef |  
+| construction/resourceRef | Construction/ 
+| activation/administrativeStatus | Activation/Administrative status 
+| activation/effectiveStatus | Activation/Effective status 
 |===
 
 === CaseWorkItemType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| name | Name | AbstractWorkItemType.F_NAME 
-| assigneeRef |  | CaseWorkItemType.F_ASSIGNEE_REF 
-| originalAssigneeRef |  | CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF 
-| parent/state | / | PrismConstants.T_PARENT, CaseType.F_STATE 
-| parent/objectRef | / | PrismConstants.T_PARENT, CaseType.F_OBJECT_REF 
-| performerRef |  | CaseWorkItemType.F_PERFORMER_REF 
+| Item name | Display name
+| name | Name 
+| assigneeRef |  
+| originalAssigneeRef |  
+| parent/state | / 
+| parent/objectRef | / 
+| performerRef |  
 |===
 
 === CaseType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| state |  | CaseType.F_STATE 
-| parentRef | Parent reference | CaseType.F_PARENT_REF 
-| requestorRef | Requestor reference | CaseType.F_REQUESTOR_REF 
-| targetRef |  | CaseType.F_TARGET_REF 
-| objectRef |  | CaseType.F_OBJECT_REF 
+| Item name | Display name
+| state |  
+| parentRef | Parent reference 
+| requestorRef | Requestor reference 
+| targetRef |  
+| objectRef |  
 |===
 
 === ObjectPolicyConfigurationType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| subtype | Subtype | ObjectPolicyConfigurationType.F_SUBTYPE 
-| objectTemplateRef | Object policy | ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF 
+| Item name | Display name
+| subtype | Subtype 
+| objectTemplateRef | Object policy 
 |===
 
 === AuditEventRecordType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| timestamp | Time | AuditEventRecordType.F_TIMESTAMP 
-| initiatorRef | Initiator | AuditEventRecordType.F_INITIATOR_REF 
-| eventType | Event type | AuditEventRecordType.F_EVENT_TYPE 
-| targetOwnerRef | Target owner | AuditEventRecordType.F_TARGET_OWNER_REF 
-| changedItem | Changed item | AuditEventRecordType.F_CHANGED_ITEM 
-| outcome | Outcome | AuditEventRecordType.F_OUTCOME 
-| channel | Channel | AuditEventRecordType.F_CHANNEL 
-| hostIdentifier | Host identifier | AuditEventRecordType.F_HOST_IDENTIFIER 
-| requestIdentifier | Request identifier | AuditEventRecordType.F_REQUEST_IDENTIFIER 
-| reference | Reference | AuditEventRecordType.F_REFERENCE 
-| taskIdentifier | Task identifier | AuditEventRecordType.F_TASK_IDENTIFIER 
+| Item name | Display name
+| timestamp | Time 
+| initiatorRef | Initiator 
+| eventType | Event type 
+| targetOwnerRef | Target owner 
+| changedItem | Changed item 
+| outcome | Outcome 
+| channel | Channel 
+| hostIdentifier | Host identifier 
+| requestIdentifier | Request identifier 
+| reference | Reference 
+| taskIdentifier | Task identifier 
 |===
 
 === ClassLoggerConfigurationType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| appender |  | ClassLoggerConfigurationType.F_APPENDER 
-| package | Package | ClassLoggerConfigurationType.F_PACKAGE 
+| Item name | Display name
+| appender |  
+| package | Package 
 |===
 
 === SimulationResultType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| startTimestamp | Started | SimulationResultType.F_START_TIMESTAMP 
-| endTimestamp | Finished | SimulationResultType.F_END_TIMESTAMP 
-| rootTaskRef | Task | SimulationResultType.F_ROOT_TASK_REF 
+| Item name | Display name
+| startTimestamp | Started 
+| endTimestamp | Finished 
+| rootTaskRef | Task 
 |===
 
 === SimulationResultProcessedObjectType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| name | Name | SimulationResultProcessedObjectType.F_NAME 
-| state | State | SimulationResultProcessedObjectType.F_STATE 
-| type | Type | SimulationResultProcessedObjectType.F_TYPE 
-| oid | Oid | SimulationResultProcessedObjectType.F_OID 
-| eventMarkRef | Event mark | SimulationResultProcessedObjectType.F_EVENT_MARK_REF 
+| Item name | Display name
+| name | Name 
+| state | State 
+| type | Type 
+| oid | Oid 
+| eventMarkRef | Event mark 
 |===
 
 === CollectionPanelType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| dead | Dead | ShadowType.F_DEAD 
-| exists | Exists | ShadowType.F_EXISTS 
-| synchronizationSituation | Situation | ShadowType.F_SYNCHRONIZATION_SITUATION 
+| Item name | Display name
+| dead | Dead 
+| exists | Exists 
+| synchronizationSituation | Situation 
 |===
 
 === ResourceType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| construction/resourceRef | Construction/ | AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF 
+| Item name | Display name
+| construction/resourceRef | Construction/ 
 |===
 
 === PolicyRuleType
 
-[options="header", cols="15, 15, 40, width=85%]
+[options="header", cols="15, 20, width=50%]
 |===
-| Item name | Display name | Item constant code
-| policyRule/name | Policy rule/Name | AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME 
+| Item name | Display name
+| policyRule/name | Policy rule/Name 
 |===
 

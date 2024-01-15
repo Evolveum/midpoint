@@ -8,38 +8,30 @@
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import java.io.Serializable;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationProperty;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationPropertyValuesDescription;
+import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionType;
 
 /**
  * Represents a correlation option: a candidate owner or a "new owner".
  */
-public class CorrelationOptionDto implements Serializable {
+public abstract class CorrelationOptionDto implements Serializable {
 
     /**
-     * Owner focus object: either existing one, or a new one.
+     * Owner focus object: either existing one (i.e. the candidate), or a new one (i.e. the pre-focus).
      *
-     * The new one contains the result of pre-mappings execution, so it is only partially filled-in.
+     * The latter contains the result of pre-mappings execution, so it is only partially filled-in, and has no OID.
      */
-    @NotNull private final PrismObject<?> object;
-
-    private final CorrelationCaseDescription.CandidateDescription<?> candidate;
-
-    /**
-     * True if the {@link #object} represents the new owner.
-     */
-    private final boolean newOwner;
+    @NotNull final PrismObject<?> object;
 
     /**
      * Identifier corresponding to this choice. It should be sent to the case management engine when completing this request.
@@ -47,66 +39,25 @@ public class CorrelationOptionDto implements Serializable {
     @NotNull private final String identifier;
 
     /**
-     * Creates a DTO in the case of existing owner.
+     * Creates a DTO in the case of existing owner candidate.
      */
-    CorrelationOptionDto(@NotNull ResourceObjectOwnerOptionType potentialOwner, CorrelationCaseDescription.CandidateDescription<?> candidate) {
-        this.object = MiscUtil.requireNonNull(
-                ObjectTypeUtil.getPrismObjectFromReference(potentialOwner.getCandidateOwnerRef()),
-                () -> new IllegalStateException("No focus object"));
-        this.candidate = candidate;
-        this.newOwner = false;
-        this.identifier = potentialOwner.getIdentifier();
-    }
-
-    /**
-     * Creates a DTO in the case of new owner (pre-focus).
-     */
-    CorrelationOptionDto(@NotNull ResourceObjectOwnerOptionType potentialOwner, @NotNull ObjectReferenceType preFocus) {
-        this.object = MiscUtil.requireNonNull(
-                ObjectTypeUtil.getPrismObjectFromReference(preFocus),
-                () -> new IllegalStateException("No focus object"));
-        this.newOwner = true;
-        this.identifier = potentialOwner.getIdentifier();
-        this.candidate = null;
+    CorrelationOptionDto(@NotNull ObjectReferenceType objectReference, @NotNull String identifier) {
+        this.object = MiscUtil.stateNonNull(
+                ObjectTypeUtil.getPrismObjectFromReference(objectReference),
+                "No focus object");
+        this.identifier = MiscUtil.stateNonNull(identifier, "No option identifier");
     }
 
     /**
      * Returns all real values matching given item path. The path should not contain container IDs.
      */
-    CorrelationPropertyValues getPropertyValues(CorrelationCaseDescription.CorrelationProperty correlationProperty) {
-        try {
-            if (newOwner) {
-                return new CorrelationPropertyValues(
-                        getValuesForPath(correlationProperty.getItemPath()),
-                        Set.of());
-            } else {
-                return new CorrelationPropertyValues(
-                        getValuesForPath(correlationProperty.getItemPath()),
-                        getValuesForPath(correlationProperty.getSecondaryPath()));
-            }
-        } catch (Exception e) {
-            return new CorrelationPropertyValues(Set.of(e.getMessage()), Set.of());
-        }
-    }
-
-    private @NotNull Set<String> getValuesForPath(ItemPath path) {
-        return object.getAllValues(path).stream()
-                .map(PrismValue::getRealValue)
-                .map(String::valueOf)
-                .collect(Collectors.toSet());
-    }
+    abstract CorrelationPropertyValues getPropertyValues(CorrelationProperty correlationProperty);
 
     public @NotNull PrismObject<?> getObject() {
         return object;
     }
 
-    public boolean isNewOwner() {
-        return newOwner;
-    }
-
-    public String getReferenceId() {
-        return object.getOid();
-    }
+    public abstract boolean isNewOwner();
 
     public @NotNull String getIdentifier() {
         return identifier;
@@ -117,11 +68,76 @@ public class CorrelationOptionDto implements Serializable {
         return identifier.equals(outcome);
     }
 
-    public String getConfidence() {
-        return candidate != null ? ((int) (candidate.getConfidence() * 100)) + "%" : null;
+    public abstract String getCandidateConfidence();
+
+    public abstract String getCandidateExplanation();
+
+    /** Option representing an existing owner candidate. */
+    static class Candidate extends CorrelationOptionDto {
+
+        @NotNull private final CorrelationCaseDescription.CandidateDescription<?> candidateDescription;
+
+        Candidate(
+                @NotNull CorrelationCaseDescription.CandidateDescription<?> candidateDescription,
+                @NotNull ObjectReferenceType candidateOwnerRef,
+                @NotNull String identifier) {
+            super(candidateOwnerRef, identifier);
+            this.candidateDescription = candidateDescription;
+        }
+
+        @Override
+        public boolean isNewOwner() {
+            return false;
+        }
+
+        @Override
+        public String getCandidateConfidence() {
+            return ((int) (candidateDescription.getConfidence() * 100)) + "%";
+        }
+
+        @Override
+        public String getCandidateExplanation() {
+            CorrelationExplanation explanation = candidateDescription.getExplanation();
+            return explanation != null ?
+                    LocalizationUtil.translateMessage(explanation.toLocalizableMessage()) : null;
+        }
+
+        @Override
+        CorrelationPropertyValues getPropertyValues(CorrelationProperty correlationProperty) {
+            return CorrelationPropertyValues.fromDescription(
+                    getPropertyValuesDescription(correlationProperty));
+        }
+
+        CorrelationPropertyValuesDescription getPropertyValuesDescription(@NotNull CorrelationProperty correlationProperty) {
+            return candidateDescription.getPropertyValuesDescription(correlationProperty);
+        }
     }
 
-    public String getExplanation() {
-        return candidate != null ? String.valueOf((candidate.getExplanation())) : null;
+    /** Option representing "no existing owner" ("new owner") situation. */
+    static class NewOwner extends CorrelationOptionDto {
+
+        NewOwner(@NotNull ObjectReferenceType preFocusRef, String identifier) {
+            super(preFocusRef, identifier);
+        }
+
+        @Override
+        public boolean isNewOwner() {
+            return true;
+        }
+
+        @Override
+        public String getCandidateConfidence() {
+            return null;
+        }
+
+        @Override
+        public String getCandidateExplanation() {
+            return null;
+        }
+
+        @Override
+        CorrelationPropertyValues getPropertyValues(CorrelationProperty correlationProperty) {
+            return CorrelationPropertyValues.fromObject(object, correlationProperty.getItemPath());
+        }
     }
 }

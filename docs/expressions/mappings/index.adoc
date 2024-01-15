@@ -845,6 +845,8 @@ This mapping strength is used to set initial (default) values for attributes and
 
 Unless otherwise specified the default strength of a mapping is `normal`.
 
+NOTE: If you create a mapping in midPoint resource/role wizard, it will be created with strength of `strong` by default.
+
 [TIP]
 .Mappings and reconciliation
 ====
@@ -895,11 +897,20 @@ Should it be a candidate for deprecation?
 
 === Enabled
 
+WARNING: This feature is deprecated since midPoint 4.8. Please use mapping lifecycle state set to `draft` to disable a mapping instead.
+
 Enabled flag specifies if the mapping is evaluated or not.
 Each specified mapping is by default evaluated.
 To skip mapping evaluation, _enabled_ flag has to be set to `false`.
 
 Default value is `true`.
+
+=== Lifecycle State
+
+Lifecycle state of the mapping.
+Can be used to disable a mapping (`draft`) or during xref:/midpoint/reference/simulation/[simulations].
+
+Default value is `active`.
 
 === Exclusive
 

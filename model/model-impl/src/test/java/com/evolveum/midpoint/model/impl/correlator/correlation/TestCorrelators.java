@@ -618,7 +618,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     }
 
     private void assertMatch(CandidateDescription<?> candidateDescription, ItemPath path, Match expectedMatch) {
-        CorrelationPropertyValuesDescription propertyDesc = candidateDescription.getProperties().get(path);
+        CorrelationPropertyValuesDescription propertyDesc = candidateDescription.getPropertyValuesDescription(path);
         assertThat(propertyDesc).as("property description for " + path).isNotNull();
         assertThat(propertyDesc.getMatch()).as("match for " + path).isEqualTo(expectedMatch);
     }

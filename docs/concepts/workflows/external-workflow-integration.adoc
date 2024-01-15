@@ -1,0 +1,24 @@
+= External Workflow Integration
+:page-wiki-name: Workflow Integration
+:page-toc: top
+
+== Background
+
+Even though midPoint has xref:/midpoint/reference/concepts/workflows/[support for workflows], in complex scenarios there is a need for complex _processes._
+Maybe there is an enrollment process for a new employee.
+Maybe that employee needs to get company badge, get keys to the office, attend health&safety training and so on.
+We may need an algorithmic process which is full of human interaction.
+That is still a very valid requirement.
+Process is needed.
+There is usually a company-wide workflow system those days.
+Therefore, the natural way for midPoint to interact with workflow processes is to connect to existing enterprise workflow engine.
+
+== Integration
+
+In most scenarios the workflow engine will drive the whole process and midPoint will be only one of the systems that are acting in the workflow.
+Workflow engines have support for various types of integration how they can interact with other systems.
+In case of midPoint, the most suitable integration point is the xref:/midpoint/reference/interfaces/rest/[REST API] that expose all necessary functions.
+Of course the workflow engine can use other types of integration like xref:/midpoint/reference/interfaces/midpoint-client-java/[midPoint client library] or even provide data that midPoint will synchronize using a standardized connector.
+
+More elaborate integration might require to initiate the workflow from midPoint and then let the workflow engine take over. Also, tighter integration between both might be required to allow you see pending operation in midPoint and know they are waiting for next steps being done externally.
+For this scenarios we have designed a planned feature for xref:/midpoint/features/planned/external-workflow-integration/[external workflow integration plugin].
