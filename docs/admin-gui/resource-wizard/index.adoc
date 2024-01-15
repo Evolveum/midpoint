@@ -65,7 +65,7 @@ image::step-1-connector-conf-discovery.png[link=step-1-connector-conf-discovery.
 
 .See also the following pages for more information:
 * Familiarize yourself with the concept of xref:/midpoint/reference/admin-gui/simulations/[Simulations]
-* xref:https://docs.evolveum.com/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle] (at least to understand the basics of lifecycle states)
+* xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle] (at least to understand the basics of lifecycle states)
 
 Click btn:[Next] to start discovery process and continue the resource configuration.
 
@@ -191,7 +191,7 @@ Click either *Inbound mappings* or *Outbound mappings* header in the table of ma
 .See also the following pages for more information:
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 * xref:/midpoint/reference/expressions/mappings/[Mappings]
-* xref:https://docs.evolveum.com/midpoint/reference/support-4.8/expressions/[MidPoint Expressions and Mappings]
+* xref:/midpoint/reference/expressions/[MidPoint Expressions and Mappings]
 * xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound mappings]
 * xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound mappings]
 
@@ -229,7 +229,7 @@ Mapping can be deleted by clicking btn:[Delete] button.
 
 Mappings can be saved by clicking btn:[Save mappings] and wizard will return to the previous page from which you started mapping editor.
 
-Click btn:[Attribute overrides] if you need to xref:https://docs.evolveum.com/midpoint/reference/support-4.8/resources/resource-configuration/schema-handling/#attribute-definitions[override attribute(s) visibility or other behavior].
+Click btn:[Attribute overrides] if you need to xref:/midpoint/reference/resources/resource-configuration/schema-handling/#attribute-definitions[override attribute(s) visibility or other behavior].
 
 ==== Outbound Mappings
 
@@ -267,11 +267,11 @@ Mapping can be deleted by clicking btn:[Delete] button.
 
 Mappings can be saved by clicking btn:[Save mappings] and wizard will return to the previous page from which you started mapping editor.
 
-Click btn:[Attribute overrides] if you need to xref:https://docs.evolveum.com/midpoint/reference/support-4.8/resources/resource-configuration/schema-handling/#attribute-definitions[override attribute(s) visibility or other behavior].
+Click btn:[Attribute overrides] if you need to xref:/midpoint/reference/resources/resource-configuration/schema-handling/#attribute-definitions[override attribute(s) visibility or other behavior].
 
 ==== Attribute override
 
-Attribute configuration can be xref:https://docs.evolveum.com/midpoint/reference/support-4.8/resources/resource-configuration/schema-handling/#attribute-definitions[overridden] beyond the context of the mappings.
+Attribute configuration can be xref:/midpoint/reference/resources/resource-configuration/schema-handling/#attribute-definitions[overridden] beyond the context of the mappings.
 This is useful to override attribute visibility, its display name, tolerance etc.
 
 {empty} +
