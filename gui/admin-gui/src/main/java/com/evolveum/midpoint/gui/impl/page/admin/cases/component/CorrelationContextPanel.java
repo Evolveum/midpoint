@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.cases.component.CorrelationContextDto.F_CORRELATION_OPTIONS;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -96,11 +98,10 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                     protected void populateItem(ListItem<CorrelationOptionDto> item) {
                         item.add(new Label(ID_HEADER, () -> {
                             if (item.getModelObject() instanceof CorrelationOptionDto.NewOwner) {
-                                return createStringResource("CorrelationContextPanel.objectBeingCorrelated")
-                                        .getString();
+                                return LocalizationUtil.translate("CorrelationContextPanel.objectBeingCorrelated");
                             } else {
-                                return createStringResource("CorrelationContextPanel.correlationCandidate", item.getIndex())
-                                        .getString();
+                                return LocalizationUtil.translate("CorrelationContextPanel.correlationCandidate",
+                                        new Object[] { item.getIndex() });
                             }
                         }));
                     }
@@ -224,10 +225,9 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
             protected void populateItem(ListItem<CorrelationProperty> item) {
                 // First column contains the property name
                 item.add(
-                        new Label(ID_ATTR_NAME, () -> {
-                            var displayName = item.getModelObject().getDisplayName();
-                            return createStringResource(displayName).getString();
-                        }));
+                        new Label(ID_ATTR_NAME,
+                                () -> LocalizationUtil.translate(
+                                        item.getModelObject().getDisplayName())));
 
                 // Here are columns for values for individual options
                 item.add(
