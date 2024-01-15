@@ -11,10 +11,14 @@ import static com.evolveum.midpoint.model.api.correlator.Confidence.full;
 import static com.evolveum.midpoint.model.api.correlator.Confidence.zero;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
 import com.evolveum.midpoint.model.api.correlator.*;
+
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +50,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * . This correlator is not to be used as a child of the composite correlator.
  * . Currently supports only shadow-based correlations.
  */
-class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
+public class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
 
     private static final double DEFAULT_CONFIDENCE_LIMIT = 0.9;
 
@@ -350,6 +354,12 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             throws SchemaException, ConfigurationException {
         return new IdMatchObjectCreator(correlatorContext, preFocus, shadow)
                 .create();
+    }
+
+    @Override
+    public @NotNull Collection<CorrelationPropertyDefinition> getCorrelationPropertiesDefinitions(
+            PrismObjectDefinition<? extends FocusType> focusDefinition, @NotNull Task task, @NotNull OperationResult result) {
+        return List.of(); // Implement if really needed. (For the time being, properties from pre-focus are sufficient.)
     }
 
     private class ReferenceIdResolutionConfig { // TODO better name

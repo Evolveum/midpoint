@@ -73,4 +73,16 @@
             <ignoreIfMatchedBy>full</ignoreIfMatchedBy>
         </composition>
     </items>
+    <items>
+        <name>dummy</name>
+        <documentation>
+            Just for verifying that even the unused correlation properties are shown in the correlation description. MID-9408.
+        </documentation>
+        <item>
+            <ref>costCenter</ref>
+        </item>
+        <composition>
+            <weight>0.1</weight>
+        </composition>
+    </items>
 </compositeCorrelator>

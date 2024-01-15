@@ -10,10 +10,14 @@ package com.evolveum.midpoint.model.impl.correlator.filter;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
 import com.evolveum.midpoint.model.api.correlator.Confidence;
+
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,7 +62,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  *
  * Currently supports only shadow-based correlations.
  */
-class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
+public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(FilterCorrelator.class);
 
@@ -85,6 +89,12 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             SecurityViolationException, ObjectNotFoundException {
         return new Correlation<>(correlationContext.asShadowCtx())
                 .checkCandidateOwner(candidateOwner, result);
+    }
+
+    @Override
+    public @NotNull Collection<CorrelationPropertyDefinition> getCorrelationPropertiesDefinitions(
+            PrismObjectDefinition<? extends FocusType> focusDefinition, @NotNull Task task, @NotNull OperationResult result) {
+        return List.of(); // Implement if really needed. (We could analyze the filter to find the properties.)
     }
 
     private class Correlation<F extends FocusType> {

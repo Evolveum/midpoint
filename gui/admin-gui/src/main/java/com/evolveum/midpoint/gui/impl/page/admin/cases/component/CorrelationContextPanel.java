@@ -27,7 +27,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.CaseDetailsModels;
-import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationProperty;
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
@@ -218,11 +218,11 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
         add(matchConfidences);
 
         // 5. A set of rows for individual correlation properties (given name, family name, and so on).
-        ListView<CorrelationProperty> rows = new ListView<>(ID_ROWS,
-                new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_PROPERTIES)) {
+        ListView<CorrelationPropertyDefinition> rows = new ListView<>(ID_ROWS,
+                new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_PROPERTIES_DEFINITIONS)) {
 
             @Override
-            protected void populateItem(ListItem<CorrelationProperty> item) {
+            protected void populateItem(ListItem<CorrelationPropertyDefinition> item) {
                 // First column contains the property name
                 item.add(
                         new Label(ID_ATTR_NAME,
@@ -267,7 +267,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     }
 
     private ListView<CorrelationOptionDto> createColumnsForCorrelationPropertyRow(
-            IModel<CorrelationContextDto> contextModel, ListItem<CorrelationProperty> rowItem) {
+            IModel<CorrelationContextDto> contextModel, ListItem<CorrelationPropertyDefinition> rowItem) {
 
         return new ListView<>(ID_COLUMNS, new PropertyModel<>(contextModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
             @Override
@@ -277,16 +277,16 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                 CorrelationOptionDto optionDto = columnItem.getModelObject();
 
                 // This is the row = the correlation property in question (given name, family name, and so on).
-                CorrelationProperty correlationProperty = rowItem.getModelObject();
+                CorrelationPropertyDefinition correlationPropertyDef = rowItem.getModelObject();
 
                 // Provide the values: either for a candidate or for the reference (object being matched).
-                CorrelationPropertyValues values = optionDto.getPropertyValues(correlationProperty);
+                CorrelationPropertyValues values = optionDto.getPropertyValues(correlationPropertyDef);
                 Label valuesLabel = new Label(ID_COLUMN, values.format());
 
                 // Colorize the field
                 if (optionDto instanceof CorrelationOptionDto.Candidate candidate) {
                     MatchVisualizationStyle matchVisualizationStyle;
-                    var propertyValuesDescription = candidate.getPropertyValuesDescription(correlationProperty);
+                    var propertyValuesDescription = candidate.getPropertyValuesDescription(correlationPropertyDef);
                     if (propertyValuesDescription != null) {
                         matchVisualizationStyle = MatchVisualizationStyle.forMatch(propertyValuesDescription.getMatch());
                     } else {
