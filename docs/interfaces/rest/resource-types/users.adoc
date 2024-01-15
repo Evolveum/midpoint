@@ -14,25 +14,37 @@ User objects are a part of the REST API web resources.
 users/
 ----
 
-== Applicable Operations
+== Operations And Examples
 
 The User web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
 present in midPoint. This is apparent in the operations which are available for this type of object.
 
+[cols="a"]
+|===
+|.Create
+
+include::../operations/examples/raw/create-user-jack.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+|.Get
 .Get Default Administrator User with REST
 [source, http]
 ----
 include::../operations/examples/raw/get-user-administrator.adoc[]
 ----
-
-- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
 - xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+|.Search
 - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+|.Modify
 - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+|.Delete
 - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+|.User specific
 - xref:/midpoint/reference/interfaces/rest/operations/user-specific-op-rest/[User specific Operations]
+|.Generate and Validate
 - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
-
+|===
 == Common Use-case Examples
 
 1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-object/[Create object]

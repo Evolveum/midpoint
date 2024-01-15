@@ -13,21 +13,8 @@ include::../examples/raw/curl-authenticatoin-intro-note.adoc[]
 xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
 
 == Example
-//TODO
-.Create a new User object in MidPoint with file data source
-[source,bash]
-----
-curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/users --data-binary @pathToMidpointGit\samples\rest\rest-user.xml -v
-----
 
-.*Show* data source example for *"Create a new User object in MidPoint"
-[%collapsible]
-====
-[source, xml]
-----
-include::https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/user-.xml[]
-----
-====
+include::../examples/raw/create-user-jack.adoc[]
 
 == See Also
 
