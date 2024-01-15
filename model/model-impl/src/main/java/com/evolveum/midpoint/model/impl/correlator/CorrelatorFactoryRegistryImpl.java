@@ -46,6 +46,8 @@ public class CorrelatorFactoryRegistryImpl implements CorrelatorFactoryRegistry 
     /**
      * Convenience method to look up a correlator factory based on the specific (typed) configuration,
      * and then instantiate the correlator.
+     *
+     * TODO consider deleting unused `task` parameter
      */
     public <CB extends AbstractCorrelatorType> @NotNull Correlator instantiateCorrelator(
             @NotNull CorrelatorContext<CB> correlatorContext,

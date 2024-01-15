@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
-import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationProperty;
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationPropertyValuesDescription;
 import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -51,7 +51,7 @@ public abstract class CorrelationOptionDto implements Serializable {
     /**
      * Returns all real values matching given item path. The path should not contain container IDs.
      */
-    abstract CorrelationPropertyValues getPropertyValues(CorrelationProperty correlationProperty);
+    abstract CorrelationPropertyValues getPropertyValues(CorrelationPropertyDefinition correlationPropertyDef);
 
     public @NotNull PrismObject<?> getObject() {
         return object;
@@ -103,13 +103,14 @@ public abstract class CorrelationOptionDto implements Serializable {
         }
 
         @Override
-        CorrelationPropertyValues getPropertyValues(CorrelationProperty correlationProperty) {
+        CorrelationPropertyValues getPropertyValues(@NotNull CorrelationPropertyDefinition correlationPropertyDef) {
             return CorrelationPropertyValues.fromDescription(
-                    getPropertyValuesDescription(correlationProperty));
+                    getPropertyValuesDescription(correlationPropertyDef));
         }
 
-        CorrelationPropertyValuesDescription getPropertyValuesDescription(@NotNull CorrelationProperty correlationProperty) {
-            return candidateDescription.getPropertyValuesDescription(correlationProperty);
+        CorrelationPropertyValuesDescription getPropertyValuesDescription(
+                @NotNull CorrelationPropertyDefinition correlationPropertyDef) {
+            return candidateDescription.getPropertyValuesDescription(correlationPropertyDef);
         }
     }
 
@@ -136,8 +137,8 @@ public abstract class CorrelationOptionDto implements Serializable {
         }
 
         @Override
-        CorrelationPropertyValues getPropertyValues(CorrelationProperty correlationProperty) {
-            return CorrelationPropertyValues.fromObject(object, correlationProperty.getItemPath());
+        CorrelationPropertyValues getPropertyValues(CorrelationPropertyDefinition correlationPropertyDef) {
+            return CorrelationPropertyValues.fromObject(object, correlationPropertyDef.getItemPath());
         }
     }
 }

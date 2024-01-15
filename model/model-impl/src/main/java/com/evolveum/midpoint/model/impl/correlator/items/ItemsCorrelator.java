@@ -12,14 +12,17 @@ import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
 import com.evolveum.midpoint.model.api.correlator.Confidence.PerItemConfidence;
 import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation;
 import com.evolveum.midpoint.model.api.correlator.ItemsCorrelationExplanation;
 import com.evolveum.midpoint.model.api.correlator.*;
 
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -43,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
  * A "user-friendly" correlator based on a list of items that need to be matched between the source
  * (usually the pre-focus, but a shadow is acceptable here as well), and the target (set of focal objects).
  */
-class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
+public class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemsCorrelator.class);
 
@@ -81,6 +84,18 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             SecurityViolationException, ObjectNotFoundException {
         return new CheckCandidateOperation<>(correlationContext, candidateOwner)
                 .execute(result);
+    }
+
+    @Override
+    public @NotNull Collection<CorrelationPropertyDefinition> getCorrelationPropertiesDefinitions(
+            PrismObjectDefinition<? extends FocusType> focusDefinition, @NotNull Task task, @NotNull OperationResult result)
+            throws ConfigurationException {
+        PathKeyedMap<CorrelationPropertyDefinition> properties = new PathKeyedMap<>();
+        for (var itemBean : configurationBean.getItem()) {
+            CorrelationPropertyDefinition def = CorrelationPropertyDefinition.fromConfiguration(itemBean, focusDefinition);
+            properties.put(def.getItemPath(), def);
+        }
+        return properties.values();
     }
 
     private abstract class CorrelationLikeOperation implements ConfidenceValueProvider {

@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -42,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
@@ -103,29 +103,22 @@ public class CorrelationItem implements DebugDumpable {
             @NotNull CorrelatorContext<?> correlatorContext,
             @NotNull ObjectType preFocus)
             throws ConfigurationException {
-        @NotNull ItemPath path = getPath(itemBean);
+        @NotNull CorrelationPropertyDefinition propertyDef =
+                CorrelationPropertyDefinition.fromConfiguration(itemBean, preFocus.asPrismObject().getDefinition());
+        @NotNull ItemPath path = propertyDef.getItemPath();
         @Nullable IndexingItemConfiguration indexingConfig = getIndexingItemConfiguration(itemBean, correlatorContext);
         @Nullable ItemSearchDefinitionType searchDef = getSearch(itemBean, correlatorContext, path);
         @Nullable String explicitIndexName = searchDef != null ? searchDef.getIndex() : null;
         @Nullable QName defaultMatchingRuleName =
                 correlatorContext.getTemplateCorrelationConfiguration().getDefaultMatchingRuleName(path);
         return new CorrelationItem(
-                getName(itemBean),
+                propertyDef.getName(),
                 path,
                 getValueNormalizer(indexingConfig, explicitIndexName, path),
                 searchDef,
                 indexingConfig,
                 defaultMatchingRuleName,
                 getPrismValues(preFocus, path));
-    }
-
-    private static @NotNull ItemPath getPath(@NotNull CorrelationItemType itemBean) throws ConfigurationException {
-        ItemPathType specifiedPath = itemBean.getRef();
-        if (specifiedPath != null) {
-            return specifiedPath.getItemPath();
-        } else {
-            throw new ConfigurationException("No path for " + itemBean);
-        }
     }
 
     private static IndexingItemConfiguration getIndexingItemConfiguration(
@@ -168,22 +161,6 @@ public class CorrelationItem implements DebugDumpable {
                     () -> new ConfigurationException(
                             String.format("Index '%s' was not found in indexing configuration for '%s'", index, path)));
         }
-    }
-
-    private static @NotNull String getName(CorrelationItemType itemBean) {
-        String explicitName = itemBean.getName();
-        if (explicitName != null) {
-            return explicitName;
-        }
-        ItemPathType pathBean = itemBean.getRef();
-        if (pathBean != null) {
-            ItemName lastName = pathBean.getItemPath().lastName();
-            if (lastName != null) {
-                return lastName.getLocalPart();
-            }
-        }
-        throw new IllegalStateException(
-                "Couldn't determine name for correlation item: no name nor path in " + itemBean);
     }
 
     private static @NotNull List<? extends PrismValue> getPrismValues(@NotNull ObjectType preFocus, @NotNull ItemPath itemPath) {

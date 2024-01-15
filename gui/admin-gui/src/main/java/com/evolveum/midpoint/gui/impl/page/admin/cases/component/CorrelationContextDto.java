@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -40,7 +41,7 @@ class CorrelationContextDto implements Serializable {
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationContextDto.class);
 
     static final String F_CORRELATION_OPTIONS = "correlationOptions";
-    static final String F_CORRELATION_PROPERTIES = "correlationProperties";
+    static final String F_CORRELATION_PROPERTIES_DEFINITIONS = "correlationPropertiesDefinitions";
 
     /**
      * All correlation options. Correspond to columns in the correlation options table.
@@ -55,7 +56,7 @@ class CorrelationContextDto implements Serializable {
      *
      * Correspond to rows in the correlation options table.
      */
-    private final List<CorrelationCaseDescription.CorrelationProperty> correlationProperties = new ArrayList<>();
+    private final List<CorrelationPropertyDefinition> correlationPropertiesDefinitions = new ArrayList<>();
 
     CorrelationContextDto(CaseType aCase, PageBase pageBase, Task task, OperationResult result) throws CommonException {
         load(aCase, pageBase, task, result);
@@ -142,11 +143,11 @@ class CorrelationContextDto implements Serializable {
 
     private void createCorrelationPropertiesDefinitions(CaseType aCase, PageBase pageBase, Task task, OperationResult result)
             throws CommonException {
-        correlationProperties.clear();
-        correlationProperties.addAll(
+        correlationPropertiesDefinitions.clear();
+        correlationPropertiesDefinitions.addAll(
                 pageBase.getCorrelationService()
                         .describeCorrelationCase(aCase, null, task, result)
-                        .getCorrelationPropertiesList());
+                        .getCorrelationPropertiesDefinitionsList());
     }
 
     /** Accessed via {@link #F_CORRELATION_OPTIONS}. */
@@ -155,10 +156,10 @@ class CorrelationContextDto implements Serializable {
         return correlationOptions;
     }
 
-    /** Accessed via {@link #F_CORRELATION_PROPERTIES}. */
+    /** Accessed via {@link #F_CORRELATION_PROPERTIES_DEFINITIONS}. */
     @SuppressWarnings("unused")
-    public List<CorrelationCaseDescription.CorrelationProperty> getCorrelationProperties() {
-        return correlationProperties;
+    public List<CorrelationPropertyDefinition> getCorrelationPropertiesDefinitions() {
+        return correlationPropertiesDefinitions;
     }
 
     boolean hasConfidences() {

@@ -9,8 +9,11 @@ package com.evolveum.midpoint.model.impl.correlator.expression;
 
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
 import com.evolveum.midpoint.model.api.correlator.Confidence;
 
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * Currently supports only shadow-based correlations.
  */
-class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
+public class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionCorrelator.class);
 
@@ -75,6 +78,14 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
             @NotNull OperationResult result) {
         throw new UnsupportedOperationException("ExpressionCorrelator is not supported in the 'opportunistic synchronization'"
                 + " mode. Please disable this mode for this particular resource or object type.");
+    }
+
+    @Override
+    public @NotNull Collection<CorrelationPropertyDefinition> getCorrelationPropertiesDefinitions(
+            PrismObjectDefinition<? extends FocusType> focusDefinition, @NotNull Task task, @NotNull OperationResult result) {
+        // Implement if really needed. But that would probably mean analyzing the expression, or declaring the properties
+        // explicitly.
+        return List.of();
     }
 
     private class Correlation<F extends FocusType> {
