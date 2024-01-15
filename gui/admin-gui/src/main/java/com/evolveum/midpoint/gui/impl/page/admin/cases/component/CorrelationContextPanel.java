@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.cases.component.CorrelationContextDto.F_OPTION_HEADERS;
+import static com.evolveum.midpoint.gui.impl.page.admin.cases.component.CorrelationContextDto.F_CORRELATION_OPTIONS;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -20,7 +20,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -55,8 +54,8 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     private static final String ID_ACTIONS = "actions";
     private static final String ID_ACTION = "action";
     private static final String ID_OUTCOME_ICON = "outcomeIcon";
-    private static final String ID_NAMES = "names";
-    private static final String ID_NAME = "name";
+    private static final String ID_CANDIDATE_REFERENCES = "candidateReferences";
+    private static final String ID_CANDIDATE_REFERENCE = "candidateReference";
     private static final String ID_COLUMNS = "columns";
     private static final String ID_HEADERS = "headers";
     private static final String ID_HEADER = "header";
@@ -71,12 +70,6 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
     private static final String OP_LOAD = CorrelationContextPanel.class.getName() + ".load";
     private static final String OP_DECIDE_CORRELATION = CorrelationContextPanel.class.getName() + ".decideCorrelation";
-
-    // Move into properties
-    private static final String TEXT_CREATE_NEW = "Create new";
-    private static final String TEXT_CORRELATE = "Correlate";
-
-    private static final String TEXT_MATCH_CONFIDENCE = "Match confidence";
 
     private final IModel<CaseWorkItemType> workItemModel;
 
@@ -94,17 +87,27 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     @Override
     protected void initLayout() {
         IModel<CorrelationContextDto> correlationCtxModel = createCorrelationContextModel();
+        CaseType correlationCase = getObjectDetailsModels().getObjectType();
 
-        ListView<String> headers = new ListView<>(ID_HEADERS, new PropertyModel<>(correlationCtxModel, F_OPTION_HEADERS)) {
-
-            @Override
-            protected void populateItem(ListItem<String> item) {
-                item.add(new Label(ID_HEADER, item.getModel()));
-            }
-        };
+        // 1. The header row contain the "object being correlated" and "correlation candidate XXX" labels
+        ListView<CorrelationOptionDto> headers =
+                new ListView<>(ID_HEADERS, new PropertyModel<>(correlationCtxModel, F_CORRELATION_OPTIONS)) {
+                    @Override
+                    protected void populateItem(ListItem<CorrelationOptionDto> item) {
+                        item.add(new Label(ID_HEADER, () -> {
+                            if (item.getModelObject() instanceof CorrelationOptionDto.NewOwner) {
+                                return createStringResource("CorrelationContextPanel.objectBeingCorrelated")
+                                        .getString();
+                            } else {
+                                return createStringResource("CorrelationContextPanel.correlationCandidate", item.getIndex())
+                                        .getString();
+                            }
+                        }));
+                    }
+                };
         add(headers);
 
-        CaseType correlationCase = getObjectDetailsModels().getObjectType();
+        // 2. The optional "action" row contains buttons to use particular candidate, or to create a new owner.
         WebMarkupContainer actionContainer = new WebMarkupContainer(ID_ACTION_CONTAINER);
         actionContainer.add(new VisibleBehaviour(() -> CaseTypeUtil.isClosed(correlationCase) || isPanelForItemWork()));
         add(actionContainer);
@@ -149,7 +152,9 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
                 actionButton.add(
                         new Label(ID_ACTION_LABEL,
-                                optionDto.isNewOwner() ? TEXT_CREATE_NEW : TEXT_CORRELATE));
+                                createStringResource(
+                                        optionDto.isNewOwner() ?
+                                                "CorrelationContextPanel.createNew" : "CorrelationContextPanel.correlate")));
 
                 String outcome = correlationCase.getOutcome();
                 actionButton.add(new VisibleBehaviour(() -> outcome == null));
@@ -163,30 +168,29 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
         };
         actionContainer.add(actions);
 
-        ListView<CorrelationOptionDto> referenceIds = new ListView<>(ID_NAMES,
+        // 3. "Candidate references" row contains the names (and clickable links) to individual candidates
+        ListView<CorrelationOptionDto> candidateReferences = new ListView<>(ID_CANDIDATE_REFERENCES,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
 
             @Override
             protected void populateItem(ListItem<CorrelationOptionDto> item) {
                 // A full-object reference to the candidate owner
-                IModel<ObjectReferenceType> referenceModel = () -> {
-                    CorrelationOptionDto optionDto = item.getModelObject();
-                    if (!optionDto.isNewOwner()) {
-                        return ObjectTypeUtil.createObjectRefWithFullObject(
-                                optionDto.getObject());
+                IModel<ObjectReferenceType> candidateReferenceModel = () -> {
+                    if (item.getModelObject() instanceof CorrelationOptionDto.Candidate candidate) {
+                        return ObjectTypeUtil.createObjectRefWithFullObject(candidate.getObject());
                     } else {
-                        // GUI cannot currently open object that does not exist in the repository.
-                        return null;
+                        return null; // GUI cannot currently open object that does not exist in the repository.
                     }
                 };
                 item.add(
-                        new LinkedReferencePanel<>(ID_NAME, referenceModel));
+                        new LinkedReferencePanel<>(ID_CANDIDATE_REFERENCE, candidateReferenceModel));
             }
         };
-        add(referenceIds);
+        add(candidateReferences);
 
+        // 4. "Match confidence" row contains the match confidence values for individual candidates
         // TODO we should make visible/invisible the whole row, not the individual components
-        Label matchLabel = new Label(ID_MATCH_NAME, TEXT_MATCH_CONFIDENCE);
+        Label matchLabel = new Label(ID_MATCH_NAME, createStringResource("CorrelationContextPanel.matchConfidence"));
         matchLabel.add(new VisibleBehaviour(() -> correlationCtxModel.getObject().hasConfidences()));
         add(matchLabel);
 
@@ -210,9 +214,9 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
                 item.add(explanationLabel);
             }
         };
-
         add(matchConfidences);
 
+        // 5. A set of rows for individual correlation properties (given name, family name, and so on).
         ListView<CorrelationProperty> rows = new ListView<>(ID_ROWS,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_PROPERTIES)) {
 
@@ -220,11 +224,14 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
             protected void populateItem(ListItem<CorrelationProperty> item) {
                 // First column contains the property name
                 item.add(
-                        new Label(ID_ATTR_NAME, new StringResourceModel("${displayName}", item.getModel())));
+                        new Label(ID_ATTR_NAME, () -> {
+                            var displayName = item.getModelObject().getDisplayName();
+                            return createStringResource(displayName).getString();
+                        }));
 
                 // Here are columns for values for individual options
                 item.add(
-                        createColumnsForPropertyRow(correlationCtxModel, item));
+                        createColumnsForCorrelationPropertyRow(correlationCtxModel, item));
             }
         };
         add(rows);
@@ -259,7 +266,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
         };
     }
 
-    private ListView<CorrelationOptionDto> createColumnsForPropertyRow(
+    private ListView<CorrelationOptionDto> createColumnsForCorrelationPropertyRow(
             IModel<CorrelationContextDto> contextModel, ListItem<CorrelationProperty> rowItem) {
 
         return new ListView<>(ID_COLUMNS, new PropertyModel<>(contextModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
