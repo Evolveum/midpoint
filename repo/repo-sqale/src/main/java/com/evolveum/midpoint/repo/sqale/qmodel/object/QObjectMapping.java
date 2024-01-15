@@ -97,6 +97,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     }
 
 
+    private boolean storeSplitted = true;
 
 
     protected QObjectMapping(
@@ -395,8 +396,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     protected final PathSet fullObjectItemsToSkip() {
         if (fullObjectSkips == null) {
             var pathSet = new PathSet();
-            for (var mapping : separatellySerializedItems.values()) {
-                pathSet.add(mapping.getPath());
+            if (storeSplitted) {
+                for (var mapping : separatellySerializedItems.values()) {
+                    pathSet.add(mapping.getPath());
+                }
             }
             customizeFullObjectItemsToSkip(pathSet);
             pathSet.freeze();
@@ -432,29 +435,29 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             return SelectorOptions.hasToFetchPathNotRetrievedByDefault(getPath(), options);
         }
 
-        public Multimap<UUID, Object> fetchChildren(List<UUID> oidList, JdbcSession jdbcSession) throws SchemaException {
-            Multimap<UUID, Object> ret = HashMultimap.create();
+        public Multimap<UUID, Tuple> fetchChildren(List<UUID> oidList, JdbcSession jdbcSession) throws SchemaException {
+            Multimap<UUID, Tuple> ret = HashMultimap.create();
 
             var q = mapping.createAlias();
             var query = jdbcSession.newQuery()
                     .from(q)
-                    .select(q) // no complications here, we load it whole
+                    .select(mapping.fullObjectExpressions(q)) // no complications here, we load it whole
                     .where(mapping.allOwnedBy(q, oidList));
             for (var row : query.fetch()) {
                 // All assignments should have full object present / legacy assignments should be kept
-                if (mapping.hasFullObject(row)) {
-                    ret.put(mapping.getOwner(row), row);
+                if (mapping.hasFullObject(row,q)) {
+                    ret.put(mapping.getOwner(row,q), row);
                 }
             }
             return ret;
         }
 
-        public void applyToSchemaObject(S target, Collection<Object> values) throws SchemaException {
+        public void applyToSchemaObject(S target, Collection<Tuple> values) throws SchemaException {
             var container = target.asPrismObject().findOrCreateItem(getPath(), (Class) mapping.getPrismItemType());
+            var alias = mapping.createAlias();
             container.setIncomplete(false);
             for (var val : values) {
-                IR row = (IR) val;
-                var containerable = mapping.toSchemaObjectEmbedded(row);
+                var containerable = mapping.toSchemaObjectEmbedded(val, alias);
                 // FIXME: Some better addition method should be necessary.
                 ((Item) container).addIgnoringEquivalents(containerable);
             }
@@ -470,10 +473,11 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         // here we should load external objects
 
         Map<FullObjectItemMapping, Multimap<UUID, PrismValue>> mappingToData = new HashMap<>();
-
-        for (var mapping : separatellySerializedItems.values()) {
-            if (mapping.isIncluded(options)) {
-                mappingToData.put(mapping, ImmutableMultimap.of());
+        if (storeSplitted) {
+            for (var mapping : separatellySerializedItems.values()) {
+                if (mapping.isIncluded(options)) {
+                    mappingToData.put(mapping, ImmutableMultimap.of());
+                }
             }
         }
         return new ResultListRowTransformer<S, Q, R>() {
@@ -497,6 +501,9 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 // Parsing full object
                 S baseObject = toSchemaObjectCompleteSafe(tuple, entityPath, options, jdbcSession, false);
                 var uuid = tuple.get(entityPath.oid);
+                if (!storeSplitted) {
+                    return baseObject;
+                }
                 var childrenResult = SqlBaseOperationTracker.parseChildren("all");
                 try {
                     for (var entry : mappingToData.entrySet()) {
@@ -521,5 +528,11 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         return (int) separatellySerializedItems.entrySet().stream().filter(e -> e.getValue().includedByDefault).count();
 
     }
+
+    public void setStoreSplitted(boolean storeSplitted) {
+        this.storeSplitted = storeSplitted;
+        fullObjectSkips = null; // Needs to be recomputed
+    }
+
     // endregion
 }

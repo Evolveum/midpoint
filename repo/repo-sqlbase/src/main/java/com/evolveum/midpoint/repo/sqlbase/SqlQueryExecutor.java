@@ -66,10 +66,8 @@ public class SqlQueryExecutor {
         PageOf<Tuple> result;
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             var opResult = SqlBaseOperationTracker.fetchMultiplePrimaries();
-            try {
+            try (var ignored = SqlBaseOperationTracker.fetchMultiplePrimaries()){
                 result = context.executeQuery(jdbcSession);
-            } finally {
-                opResult.close();
             }
             PageOf<S> transformedResult = context.transformToSchemaType(result, jdbcSession);
             return createSearchResultList(transformedResult);

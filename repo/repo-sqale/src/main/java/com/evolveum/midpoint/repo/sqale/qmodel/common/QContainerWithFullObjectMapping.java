@@ -10,6 +10,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,18 +66,26 @@ public abstract class QContainerWithFullObjectMapping<S extends Containerable, Q
     }
 
     @Override
-    public boolean hasFullObject(R row) {
-        return row.fullObject != null;
+    public boolean hasFullObject(Tuple row, Q path) {
+        return row.get(path.fullObject) != null;
     }
 
     @Override
-    public UUID getOwner(R row) {
-        return row.ownerOid;
+    public Path<?>[] fullObjectExpressions(Q base) {
+        return  new Path[] {base.ownerOid, base.fullObject};
     }
 
     @Override
-    public PrismValue toSchemaObjectEmbedded(R row) throws SchemaException {
-        return toSchemaObject(row).asPrismContainerValue();
+    public UUID getOwner(Tuple row, Q path) {
+        return row.get(path.ownerOid);
+    }
+
+    @Override
+    public PrismValue toSchemaObjectEmbedded(Tuple tuple, Q alias) throws SchemaException {
+        return parseSchemaObject(
+                tuple.get(alias.fullObject),
+                getItemPath() + " for " + tuple.get(alias.ownerOid),
+                schemaType()).asPrismContainerValue();
     }
 
     @Override

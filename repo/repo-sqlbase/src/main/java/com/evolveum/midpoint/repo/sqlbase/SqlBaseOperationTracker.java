@@ -2,75 +2,135 @@ package com.evolveum.midpoint.repo.sqlbase;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-public class SqlBaseOperationTracker implements AutoCloseable {
-    private static final ThreadLocal<OperationResult> CURRENT_OPERATION_RESULT = new ThreadLocal<>();
+public abstract class SqlBaseOperationTracker implements AutoCloseable {
+    private static final ThreadLocal<SqlBaseOperationTracker> CURRENT_TRACKER = new ThreadLocal<>();
 
     private static final String DOT_NAME = SqlBaseOperationTracker.class.getName() + ".";
 
-    private static final String FETCH_ONE_PRIMARY = DOT_NAME + "primary.fetch.one";
+    private static final String FETCH_ONE_PRIMARY = "primary.fetch.one";
 
-    private static final String FETCH_MULTIPLE_PRIMARY = DOT_NAME + "primary.fetch.multiple";
+    private static final String FETCH_MULTIPLE_PRIMARY = "primary.fetch.multiple";
 
-    private static final String FETCH_CHILDREN = DOT_NAME + "children.fetch.";
-    private static final String PARSE_CHILDREN = DOT_NAME + "children.parse.";
+    private static final String FETCH_CHILDREN = "children.fetch.";
+    private static final String PARSE_CHILDREN = "children.parse.";
 
-    private static final String PARSE_PRIMARY = DOT_NAME + "primary.parse";
+    private static final String PARSE_PRIMARY = "primary.parse";
 
-    private static final String RESOLVE_NAMES = DOT_NAME + "primary.resolveNames";
+    private static final String RESOLVE_NAMES = "primary.resolveNames";
 
-    public static OperationResult get() {
-        var maybe = CURRENT_OPERATION_RESULT.get();
+
+
+    private static Factory impl = new OpResultBased();
+
+
+    private static final Tracker NOOP_TRACKER = () -> {};
+    private static final SqlBaseOperationTracker NOOP = new SqlBaseOperationTracker() {
+        @Override
+        protected Tracker createSubresult(String name) {
+            return NOOP_TRACKER;
+        }
+
+        @Override
+        public void close()  {
+
+        }
+    };
+
+    public static SqlBaseOperationTracker get() {
+        var maybe = CURRENT_TRACKER.get();
         if (maybe != null) {
             return maybe;
         }
         // Nullables (for operations we are not tracking)
-        return new OperationResult("temporary");
+        return NOOP;
     }
 
-    public static OperationResult set(OperationResult result) {
-        CURRENT_OPERATION_RESULT.set(result);
-        return result;
+
+
+    public static Factory setFactory(Factory factory) {
+        impl = factory;
+        return factory;
     }
 
     public static void free() {
-        CURRENT_OPERATION_RESULT.remove();
+        CURRENT_TRACKER.remove();
     }
 
-    public static OperationResult createSubresult(String name) {
+    public static Tracker createTracker(String name) {
         return get().createSubresult(name);
     }
 
-    public static OperationResult fetchMultiplePrimaries() {
-        return createSubresult(FETCH_MULTIPLE_PRIMARY);
+
+    protected abstract Tracker createSubresult(String name);
+
+    public static Tracker fetchMultiplePrimaries() {
+        return createTracker(FETCH_MULTIPLE_PRIMARY);
     }
 
-    public static OperationResult fetchPrimary() {
-        return createSubresult(FETCH_ONE_PRIMARY);
+    public static Tracker fetchPrimary() {
+        return createTracker(FETCH_ONE_PRIMARY);
     }
 
-    public static OperationResult parsePrimary() {
-        return createSubresult(PARSE_PRIMARY);
+    public static Tracker parsePrimary() {
+        return createTracker(PARSE_PRIMARY);
     }
 
-    public static OperationResult fetchChildren(String name) {
-        return createSubresult(FETCH_CHILDREN + name);
+    public static Tracker fetchChildren(String name) {
+        return createTracker(FETCH_CHILDREN + name);
     }
 
-    public static OperationResult parseChildren(String name) {
-        return createSubresult(PARSE_CHILDREN + name);
+    public static Tracker parseChildren(String name) {
+        return createTracker(PARSE_CHILDREN + name);
     }
 
-    public static OperationResult resolveNames() {
-        return createSubresult(RESOLVE_NAMES);
-    }
-
-    public static SqlBaseOperationTracker with(OperationResult result) {
-        set(result);
-        return new SqlBaseOperationTracker();
+    public static Tracker resolveNames() {
+        return createTracker(RESOLVE_NAMES);
     }
 
     @Override
-    public void close() {
-        free();
+    public void close()  {
+        if (CURRENT_TRACKER.get() == this) {
+            CURRENT_TRACKER.remove();
+        }
     }
+
+    public static SqlBaseOperationTracker with(OperationResult result) {
+        if (impl != null) {
+            var tracker = impl.create(result);
+            CURRENT_TRACKER.set(tracker);
+            return tracker;
+        }
+        return NOOP;
+    }
+
+
+
+    public interface Tracker extends AutoCloseable {
+        @Override
+        public void close();
+    }
+
+
+
+    static class OpResultBased implements Factory {
+
+        @Override
+        public SqlBaseOperationTracker create(OperationResult result) {
+            var tracker = new SqlBaseOperationTracker() {
+                @Override
+                protected Tracker createSubresult(String name) {
+                    return result.createSubresult(DOT_NAME + name)::close;
+                }
+
+            };
+            CURRENT_TRACKER.set(tracker);
+            return tracker;
+        }
+    }
+
+    public interface Factory {
+        SqlBaseOperationTracker create(OperationResult result);
+
+    }
+
 }

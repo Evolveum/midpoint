@@ -181,9 +181,9 @@ public class QOperationExecutionMapping<OR extends MObject>
                     throw new SystemException("Object " + object + " has no operation execution as expected from " + row);
                 }
                 // New format of value
-                if (hasFullObject(row)) {
+                if (row.fullObject != null) {
                     try {
-                        var embedded = (PrismContainerValue<OperationExecutionType>) toSchemaObjectEmbedded(row);
+                        var embedded = (PrismContainerValue<OperationExecutionType>) toSchemaObjectEmbedded(rowTuple, entityPath);
                         opexContainer.add(embedded);
                         return embedded.getRealValue();
                     } catch (SchemaException e) {

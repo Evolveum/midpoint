@@ -10,6 +10,9 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 
 import java.util.List;
@@ -21,10 +24,11 @@ public interface QSeparatelySerializedItem<Q extends FlexibleRelationalPathBase<
 
     Q createAlias();
 
-    boolean hasFullObject(R row);
+    boolean hasFullObject(Tuple row, Q path);
 
-    UUID getOwner(R row);
-    PrismValue toSchemaObjectEmbedded(R row) throws SchemaException;
+    UUID getOwner(Tuple row, Q path);
+    PrismValue toSchemaObjectEmbedded(Tuple row, Q base) throws SchemaException;
     Class<? extends Item<? extends PrismValue,?>> getPrismItemType();
     String tableName();
+    Path<?>[] fullObjectExpressions(Q base);
 }

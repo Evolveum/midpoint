@@ -17,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -97,11 +98,13 @@ public class QObjectReferenceFullObjectMapping<OS extends ObjectType, OQ extends
     }
 
     @Override
-    public boolean hasFullObject(MReference row) {
-        if (row instanceof MObjectReferenceWithMeta casted) {
-            return casted.fullObject != null;
-        }
-        return false;
+    public boolean hasFullObject(Tuple row, QObjectReferenceWithMeta<OR> path) {
+        return row.get(path.fullObject) != null;
+    }
+
+    @Override
+    public Path<?>[] fullObjectExpressions(QObjectReferenceWithMeta<OR> base) {
+        return new Path[] {base.ownerOid, base.fullObject};
     }
 
     @Override
@@ -116,21 +119,23 @@ public class QObjectReferenceFullObjectMapping<OS extends ObjectType, OQ extends
 
     @Override
     public ObjectReferenceType toSchemaObject(MReference row) throws SchemaException {
-        var ret = new ObjectReferenceType();
-        ret.setupReferenceValue(toSchemaObjectEmbedded(row));
-        return ret;
+        Referencable parsed = parseSchemaObject(((MObjectReferenceWithMeta) row).fullObject,
+            "Reference", ObjectReferenceType.class);
+        var ort = new ObjectReferenceType();
+        ort.setupReferenceValue(parsed.asReferenceValue());
+        return ort;
     }
 
     @Override
-    public PrismReferenceValue toSchemaObjectEmbedded(MReference row) throws SchemaException {
-        // FIXME: Somehow parsing returns DefaultReferenceImpl insted of ObjectReferenceType?
-        Referencable parsed = parseSchemaObject(((MObjectReferenceWithMeta) row).fullObject, "Reference", ObjectReferenceType.class);
+    public PrismReferenceValue toSchemaObjectEmbedded(Tuple row, QObjectReferenceWithMeta<OR> alias) throws SchemaException {
+        byte[] fullObject = row.get(alias.fullObject);
+        Referencable parsed = parseSchemaObject(fullObject, "Reference", ObjectReferenceType.class);
         return parsed.asReferenceValue();
     }
 
     @Override
-    public UUID getOwner(MReference row) {
-        return row.ownerOid;
+    public UUID getOwner(Tuple row, QObjectReferenceWithMeta<OR> path) {
+        return row.get(path.ownerOid);
     }
 
     @Override
