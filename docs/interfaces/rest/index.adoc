@@ -46,17 +46,6 @@ xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authent
 
 The most *basic form* of the url request would be:
 
-// TODO add full complexity or keep this simple example ???
-
-// [source, http]
-// ----
-// http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{operation}
-// ----
-
-// [source, http]
-// ----
-// xref::/midpoint/reference/interfaces/rest/operations/examples/get-user-self/#_ex_get_own_profile_information[]
-// ----
 .Request to read own profile data (raw)
 [source,http]
 ----
@@ -67,10 +56,18 @@ xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/#_ex_
 
 Naturally by having a feature rich interface there is no "one size fits them all" way to invoke the operations, so the url will
 be different in specific use cases. The most common ones you can see
-at xref:/#_common_use_cases[this] section of the documentation.
+at xref:/midpoint/reference/interfaces/rest/#_common_use_cases[this] section of the documentation.
 
 The REST interface provides you with a long list of *web resource types* which you can access. The interface also provides
 you with *different kinds of operations*, based on the type of resource you choose.
+
+.*Commonly Used Web Resource Types:*
+- xref:/midpoint/reference/interfaces/rest/resource-types/users/[users]
+- xref:/midpoint/reference/interfaces/rest/resource-types/roles/[roles]
+- xref:/midpoint/reference/interfaces/rest/resource-types/organizational-units/[orgs]
+- xref:/midpoint/reference/interfaces/rest/resource-types/resources/[resources]
+- xref:/midpoint/reference/interfaces/rest/resource-types/rpc/[rpc]
+
 
 .The *full collection of web resource types* can be found here:
 xref:/midpoint/reference/interfaces/rest/resource-types/[Web Resource Types]
@@ -85,12 +82,12 @@ xref:/midpoint/reference/interfaces/midpoint-client-java/[MidPoint Client Librar
 [#_common_use_cases]
 == Common Use Cases
 
--- TODO add links
+// TODO add links
 
 1. List all users with their profile information.
-2. Get user based on his unique identificator (TODO link to OID docu)
-3. Create or update a new user.
-4. Modify the user by assigning an account.
+2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get User with the REST API]
+3. Create User with the REST API
+4. Assign User Account with the REST API
 
 
 
