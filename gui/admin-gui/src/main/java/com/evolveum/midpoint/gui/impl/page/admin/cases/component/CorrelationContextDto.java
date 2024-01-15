@@ -39,18 +39,8 @@ class CorrelationContextDto implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationContextDto.class);
 
-    static final String F_OPTION_HEADERS = "optionHeaders";
     static final String F_CORRELATION_OPTIONS = "correlationOptions";
     static final String F_CORRELATION_PROPERTIES = "correlationProperties";
-
-    // TODO move into properties
-    private static final String TEXT_BEING_CORRELATED = "Object being correlated";
-    private static final String TEXT_CANDIDATE = "Correlation candidate %d";
-
-    /**
-     * Headers for individual options.
-     */
-    private final List<String> optionHeaders = new ArrayList<>();
 
     /**
      * All correlation options. Correspond to columns in the correlation options table.
@@ -128,23 +118,19 @@ class CorrelationContextDto implements Serializable {
                         .collect(Collectors.toMap(CandidateDescription::getOid, c -> c));
 
         CaseCorrelationContextType context = aCase.getCorrelationContext();
-        int suggestionNumber = 1;
         for (ResourceObjectOwnerOptionType potentialOwner : CorrelationCaseUtil.getOwnerOptionsList(aCase)) {
             OwnerOptionIdentifier identifier = OwnerOptionIdentifier.of(potentialOwner);
             String optionIdentifierRaw = potentialOwner.getIdentifier(); // the same as identifier.getStringValue()
             assert optionIdentifierRaw != null;
             if (identifier.isNewOwner()) {
-                optionHeaders.add(0, TEXT_BEING_CORRELATED);
                 correlationOptions.add(0,
                         new CorrelationOptionDto.NewOwner(context.getPreFocusRef(), optionIdentifierRaw));
             } else {
-                optionHeaders.add(String.format(TEXT_CANDIDATE, suggestionNumber));
                 CandidateDescription<?> candidateDescription = candidates.get(identifier.getExistingOwnerId());
                 ObjectReferenceType candidateOwnerRef = potentialOwner.getCandidateOwnerRef(); // also in candidateDescription
                 if (candidateDescription != null && candidateOwnerRef != null) {
                     correlationOptions.add(
                             new CorrelationOptionDto.Candidate(candidateDescription, candidateOwnerRef, optionIdentifierRaw));
-                    suggestionNumber++;
                 } else {
                     LOGGER.warn("No candidate or potentialOwner content for {}? In:\n{}\n{}",
                             identifier.getExistingOwnerId(),
@@ -160,20 +146,13 @@ class CorrelationContextDto implements Serializable {
         correlationProperties.addAll(
                 pageBase.getCorrelationService()
                         .describeCorrelationCase(aCase, null, task, result)
-                        .getCorrelationProperties()
-                        .values());
+                        .getCorrelationPropertiesList());
     }
 
     /** Accessed via {@link #F_CORRELATION_OPTIONS}. */
     @SuppressWarnings("unused")
     public List<CorrelationOptionDto> getCorrelationOptions() {
         return correlationOptions;
-    }
-
-    /** Accessed via {@link #F_OPTION_HEADERS}. */
-    @SuppressWarnings("unused")
-    public List<String> getOptionHeaders() {
-        return optionHeaders;
     }
 
     /** Accessed via {@link #F_CORRELATION_PROPERTIES}. */

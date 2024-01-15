@@ -8,10 +8,7 @@
 package com.evolveum.midpoint.model.api.correlation;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +66,15 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
 
     public @NotNull PathKeyedMap<CorrelationProperty> getCorrelationProperties() {
         return correlationProperties;
+    }
+
+    /** The list is sorted according to display order (and display name, in case of ambiguity). */
+    public @NotNull List<CorrelationProperty> getCorrelationPropertiesList() {
+        var list = new ArrayList<>(correlationProperties.values());
+        list.sort(
+                Comparator.comparing(CorrelationProperty::getDisplayOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(CorrelationProperty::getDisplayName));
+        return list;
     }
 
     public @NotNull List<CandidateDescription<F>> getCandidates() {
@@ -229,6 +235,10 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
             } else {
                 return name;
             }
+        }
+
+        public Integer getDisplayOrder() {
+            return definition != null ? definition.getDisplayOrder() : null;
         }
 
         public @NotNull String getName() {
