@@ -4,8 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 
 import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
@@ -16,7 +19,14 @@ import com.evolveum.midpoint.ninja.action.upgrade.DistributionManager;
 import com.evolveum.midpoint.ninja.action.upgrade.ProgressListener;
 import com.evolveum.midpoint.ninja.impl.Log;
 
+import org.jetbrains.annotations.NotNull;
+
 public class DownloadDistributionAction extends Action<DownloadDistributionOptions, DownloadDistributionResult> {
+
+    @Override
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
+        return NinjaApplicationContextLevel.NONE;
+    }
 
     @Override
     public String getOperationName() {
