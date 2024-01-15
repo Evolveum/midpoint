@@ -1,4 +1,4 @@
-MidPoint 4.9 Development Branch
+MidPoint 4.9 Development Branch, Milestone 2
 -------------------------------
 
 General information:
