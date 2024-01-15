@@ -5,6 +5,8 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
+import com.evolveum.midpoint.ninja.util.InputParameterException;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -27,6 +29,8 @@ import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class UpgradeObjectsAction extends AbstractRepositorySearchAction<UpgradeObjectsOptions, ActionResult<UpgradeObjectsItemsSummary>> {
+
+    public static final int ERROR_CODE_VERIFICATION_FILE_NOT_FOUND = 101;
 
     public UpgradeObjectsAction() {
     }
@@ -157,12 +161,18 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
 
     private Map<UUID, Set<SkipUpgradeItem>> loadVerificationFile() throws IOException {
         File verification = options.getVerification();
-        if (verification == null || !verification.exists() || !verification.isFile()) {
+        if (verification == null) {
             // FIXME: Add log explanation, what is happening
             if (context.isUserMode()) {
                 log.warn("Upgrade objects started without verification report, all necessary non-manual changes will be accepted.");
             }
             return Collections.emptyMap();
+        }
+
+        if (!verification.exists() || !verification.isFile()) {
+            throw new InputParameterException(
+                    "Verification file '" + verification.getAbsolutePath() + "' does not exist or is not a file",
+                    ERROR_CODE_VERIFICATION_FILE_NOT_FOUND);
         }
 
         log.info("Loading verification file");
