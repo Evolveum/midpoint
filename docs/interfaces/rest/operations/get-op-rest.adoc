@@ -88,7 +88,8 @@ supported options in these references:
 .Usable options for this type of operation
 link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
 
-=== Response
+include::../../rest/concepts/raw/outcome.adoc[]
+
 The response is a set of identity data describing the fetched object. This example
 had some technical information and metadata related to the environment removed before publishing.
 
