@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlator.items;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -330,7 +327,7 @@ public class CorrelationItem implements DebugDumpable {
                                                 .code(code)));
     }
 
-    /** Returns the values of given metric (e.g. Levenshtein distance) for given candidate for this item. */
+    /** Returns the values of given metric (e.g. Levenshtein distance) for given candidate for this item. No nulls on return. */
     private @NotNull List<Double> computeMatchMetricValues(ObjectType candidate, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
@@ -367,6 +364,7 @@ public class CorrelationItem implements DebugDumpable {
         };
     }
 
+    /** No nulls in returned list. */
     private @NotNull List<Double> convertMetricToConfidence(
             List<Double> matchMetricValues, ExpressionType expression, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
@@ -379,7 +377,8 @@ public class CorrelationItem implements DebugDumpable {
                 PrismContext.get().definitionFactory().createPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_DOUBLE);
         PrismProperty<Double> inputProperty = inputPropertyDef.instantiate();
-        matchMetricValues.forEach(inputProperty::addRealValue);
+        new HashSet<>(matchMetricValues) // To avoid "Adding value to property input that already exists (overwriting)" warnings
+                .forEach(inputProperty::addRealValue);
         Source<PrismPropertyValue<Double>, PrismPropertyDefinition<Double>> inputSource =
                 new Source<>(
                         inputProperty, null, inputProperty, inputProperty.getElementName(), inputPropertyDef);
