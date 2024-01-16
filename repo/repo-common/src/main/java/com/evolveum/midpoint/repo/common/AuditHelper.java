@@ -175,7 +175,9 @@ public class AuditHelper {
                         ? (AuditEventRecord) returnValue.getRealValue()
                         : null;
             } finally {
-                ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+                if (expressionEnvironmentSupplier != null) {
+                    ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+                }
             }
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate audit recording expression", t);
