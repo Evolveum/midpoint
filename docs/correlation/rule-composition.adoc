@@ -1,6 +1,5 @@
 = Rule Composition
 :page-toc: top
-:page-since: "4.6"
 
 == Correlators (Correlation Rules)
 
@@ -12,7 +11,7 @@ Risking a bit of confusion, let us use the term _correlator_ in this document.
 
 Correlators are hierarchical, with a specified default algorithm for combining their results.
 
-In midPoint 4.6 we support only the flat hierarchy: a composite correlator defined on top, with component correlators right beneath it.
+NOTE: Currently, we support only the flat hierarchy: a composite correlator defined on top, with component correlators right beneath it.
 Please see <<Limitations>> section at the end of this document.
 
 == Confidence Values
@@ -133,10 +132,10 @@ The total confidence is [purple]*1.4*, cropped down to [purple]*1.0*.
 [%header]
 [%autowidth]
 |===
-| Rule | Matching | Local confidence | Weight | Confidence increment | Total so far
-| `name-date-id` | `Smith`, `2004-02-06`, `040206/1328` | 1.0 | 1.0 | 1.0 | 1.0
-| `names-date` | - | - | 0.4 | - | 1.0
-| `id` | `040206/1328` | 1.0 | 0.4 | 0.4 | 1.4 -> 1.0
+| Step | Rule | Matching | Local confidence | Weight | Confidence increment | Total so far
+| 1. | `name-date-id` | `Smith`, `2004-02-06`, `040206/1328` | 1.0 | 1.0 | 1.0 | 1.0
+| 2. | `names-date` | - | - | 0.4 | - | 1.0
+| 3. | `id` | `040206/1328` | 1.0 | 0.4 | 0.4 | 1.4 -> 1.0
 |===
 
 == "Ignore if Matched by" Flag
@@ -184,10 +183,10 @@ The total confidence is thus `1.0`.
 [%header]
 [%autowidth]
 |===
-| Rule | Matching | Local confidence | Weight | Confidence increment | Total so far
-| `name-date-id` | `Smith`, `2004-02-06`, `040206/1328` | 1.0 | 1.0 | 1.0 | 1.0
-| `names-date` | - | - | 0.4 | - | 1.0
-| `id` | `040206/1328` | 1.0 | 0.4 | (ignored) | 1.0
+| Step | Rule | Matching | Local confidence | Weight | Confidence increment | Total so far
+| 1. | `name-date-id` | `Smith`, `2004-02-06`, `040206/1328` | 1.0 | 1.0 | 1.0 | 1.0
+| 2. | `names-date` | - | - | 0.4 | - | 1.0
+| 3. | `id` | `040206/1328` | 1.0 | 0.4 | (ignored) | 1.0
 |===
 
 == Tiers and Rule Ordering
@@ -270,7 +269,7 @@ We continue also in case there are multiple certain candidates, although this si
 </correlators>
 ----
 <1> Tier number for the last tier can be omitted.
-<2> The ordering is not important here.
+<2> The order within the tier (can be ommited).
 
 Note that it is not necessary to specify the last tier, that is number 2 in this case.
 It is because unnumbered tier always goes last.
@@ -290,14 +289,14 @@ Now, when correlating `Ian Smith, 2004-02-06, 040206/1328` with the candidate be
 [%header]
 [%autowidth]
 |===
-| Rule | Matching | Local confidence | Weight | Confidence increment | Total so far
-| `name-date-id` | `Smith`, `2004-02-06`, `040206/1328` | 1.0 | 1.0 | 1.0 | 1.0
-6+| Evaluation of other rules is skipped
+| Step | Rule | Matching | Local confidence | Weight | Confidence increment | Total so far
+| 1. | `name-date-id` | `Smith`, `2004-02-06`, `040206/1328` | 1.0 | 1.0 | 1.0 | 1.0
+7+| Evaluation of other rules is skipped
 |===
 
 == Using the Resulting Confidence Values
 
-In midPoint 4.6, the resulting aggregated confidence values for individual candidates are compared with two _threshold values_:
+The resulting aggregated confidence values for individual candidates are compared with two _threshold values_:
 
 .Threshold values
 [%header]
