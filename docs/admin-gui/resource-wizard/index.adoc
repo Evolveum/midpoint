@@ -24,6 +24,8 @@ If you would like to see the resource wizard used as a part of xref:/midpoint/me
 
 video::suo775ym_PE[youtube,title="First Steps Methodology Webinar Video"]
 
+We recommend you to read about xref:/midpoint/reference/synchronization/[] as resource wizard allows configuration which belongs to synchronization concepts.
+
 == Resource creation
 
 To create resource, navigate to menu:Resources[New resource].
@@ -117,6 +119,8 @@ Define the basic information about the object type:
 
 * *Display name* will be displayed in midPoint as a reference to this object type configuration
 * *Kind* is either `Account`, `Entitlement` or `Generic`. For accounts, please select `Account`.
++
+TIP: You first object type definition will be almost always for accounts (`kind=account`). Typical source of user data is HR system. Later you might want to use also Entitlements and Generic.
 * *Intent* is used when you would like to use more than one different object _types_, e.g. standard and administrative accounts. Keep the default (empty) value if you want to work with just one type of accounts.
 * *Default* specifies if the intent provided in the previous value should be used as the default value in case you define multiple intents. Select `True` if you are using only a single intent / one type of accounts.
 
@@ -304,7 +308,7 @@ For the situations you need to configure:
 ** *Disputed* refers to situation when the midPoint has determined more potential midPoint owners for a single resource account or if the correlation of the resource object is not definitive (not fully trusted)
 * *Action* allows you to select midPoint behavior if the resource object is in the defined Situation
 ** *Add focus* allows to create a new object in midPoint based on the resource data
-** *Synchronize* allows to synchronize data between midPoint object and resource data based on the mappings
+** *Synchronize* allows to synchronize data between midPoint object and resource data based on the <<Mappings,mappings>>. This action is typical for `linked` situation.
 ** *Link* allows to link previously not linked resource object to midPoint object
 ** *Delete resource object* allows to delete resource object
 ** *Inactivate resource object* allows to inactivate (disable) resource object
@@ -480,7 +484,7 @@ You can define the following associations properties:
 
 * *ref* is a unique name for the association (technical), e.g. `group`
 * *Display name* is a user-friendly association name displayed in GUI
-* *Kind* and *Intent* specify the object type which defines the object to be associated
+* *Kind* and *Intent* specify the object type which defines the object to be associated. This means you are referring to another <<Object type configuration,object type>> for entitlement which needs to be defined first using the same mechanism as you use for accounts.
 * *Direction* defines the direction of the relation between associated objects. There are two possibilities:
 ** *Object to subject* Object (e.g. a group) has an attribute that contains subject (e.g. account) identifiers as its values. E.g. a group has a list of members. _This is the LDAP-way_.
 ** *Subject to object* Subject (e.g. account) has an attribute that contains object (e.g. group) identifiers as its values. E.g. an account has a list of groups to which it belongs.
@@ -513,6 +517,18 @@ image::resource-details.png[link=resource-details.png,100%,title=Resource detail
 
 Some wizard panels are configurable, for more information see xref:/midpoint/reference/admin-gui/admin-gui-config/#wizard-panels[Wizard panels].
 
+== How to use Lifecycle state
+
+Resource, object type, attribute, mapping, synchronization situation and other aspects of resource configuration can be configured in different lifecycle states.
+As it was mentioned earlier, the Lifecycle state property can be used  with xref:/midpoint/reference/admin-gui/simulations/[Simulations].
+The resource is created in `Proposed` lifecycle state by default, it won't work for normal deployment without switching to `Active` state.
+
+By using the lifecycle state `Proposed`, you can test (simulate) the configuration without causing any damage to your target system data.
+When the simulation results are satisfactory, you can switch the lifecycle state to `Active`.
+
+As the lifecycle state can be set on various configuration items, midPoint gives you a way of turning on specific parts of configuration incrementally.
+For example, after you switch your resource to `Active` lifecycle state, we recommend to add any new mappings first in `Proposed` lifecycle state.
+The new mapping can be simulated without causing any harm and switched to `Active` lifecycle state when ready.
 
 == Limitations
 
@@ -520,6 +536,7 @@ Resource wizard has several limitations as of midPoint 4.8, such as:
 
 * expression editor supports `As is`, `Script`, `Literal` and `Generate` expressions only
 * xref:/midpoint/reference/expressions/mappings/range/[mapping ranges] are not supported
+* xref:/midpoint/reference/expressions/mappings/#mapping-domain[mapping domains] are not supported
 * correlation configuration currently supports only xref:/midpoint/reference/correlation/items-correlator/[]
 
 midPoint resource wizard won't be able to show or allow editing of these features but should tolerate them and keep them in the configuration.
