@@ -17,7 +17,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationProperty;
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -349,16 +349,15 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
         // TODO check audit and notification event content
 
         and("correlation properties should be correct");
-        Collection<CorrelationProperty> properties =
+        Collection<CorrelationPropertyDefinition> properties =
                 correlationService
                         .describeCorrelationCase(correlationCase, null, task, result)
-                        .getCorrelationProperties()
-                        .values();
+                        .getCorrelationPropertiesDefinitionsList();
         displayValue("properties", DebugUtil.debugDump(properties));
 
         // TODO this will need to be adapted
 
-        CorrelationProperty property = findProperty(properties, "givenName");
+        CorrelationPropertyDefinition property = findProperty(properties, "givenName");
         assertThat(property.getDefinition()).as("definition").isNotNull();
         assertThat(property.getItemPath()).as("itemPath").hasToString("givenName");
 
@@ -366,7 +365,8 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
     }
 
     @SuppressWarnings("SameParameterValue")
-    private @NotNull CorrelationProperty findProperty(Collection<CorrelationProperty> properties, String name) {
+    private @NotNull CorrelationPropertyDefinition findProperty(
+            Collection<CorrelationPropertyDefinition> properties, String name) {
         return MiscUtil.extractSingletonRequired(
                 properties.stream()
                         .filter(p -> name.equals(p.getName()))
