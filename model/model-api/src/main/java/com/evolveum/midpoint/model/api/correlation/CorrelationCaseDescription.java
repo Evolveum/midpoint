@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.api.correlation;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -196,8 +195,8 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
                 @NotNull Set<PrismValue> secondaryValues,
                 @NotNull Match match) {
             this.propertyDefinition = propertyDefinition;
-            this.primaryValues = primaryValues;
-            this.secondaryValues = secondaryValues;
+            this.primaryValues = Set.copyOf(primaryValues); // to be serializable
+            this.secondaryValues = Set.copyOf(secondaryValues); // to be serializable
             this.match = match;
         }
 
@@ -223,9 +222,16 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
 
         private List<String> dump(Collection<PrismValue> values) {
             return values.stream()
-                    .map(PrismValue::getRealValue)
+                    .map(prismValue -> {
+                        try {
+                            return prismValue.getRealValue();
+                        } catch (Exception e) {
+                            // getRealValue may throw an exception in rare cases (for containers, maybe)
+                            return prismValue.toString();
+                        }
+                    })
                     .map(String::valueOf)
-                    .collect(Collectors.toList());
+                    .toList();
         }
     }
 
