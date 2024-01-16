@@ -175,6 +175,38 @@ export default class MidPointTheme {
                 }
             });
         });
+
+        jQuery(function ($) {
+            $(document).on("click", ".showPasswordButton", function (e, t) {
+                $(this).showPassword();
+            });
+        });
+
+        jQuery(function ($) {
+            $(document).on("keydown", ".showPasswordButton", function (e, t) {
+                if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
+                        e.key == "Enter" || e.keyCode == 13) {
+                    $(this).showPassword();
+                  }
+            });
+        });
+
+        (function ($) {
+            $.fn.showPassword = function () {
+                var parent = $(this).closest(".password-parent");
+                var input = parent.find("input");
+
+                if (input.attr('type') === "password") {
+                    input.attr('type', 'text');
+                    $(this).addClass("fa-eye-slash");
+                    $(this).removeClass("fa-eye");
+                } else {
+                    input.attr('type', 'password');
+                    $(this).removeClass("fa-eye-slash");
+                    $(this).addClass("fa-eye");
+                }
+            }
+        })(jQuery);
     }
 
 breakLongerTextInTableCell(cellId) {
@@ -502,19 +534,6 @@ breakLongerTextInTableCell(cellId) {
                 arrow.css('left', (popup.innerWidth() - arrow.width()) / 2);
                 popup.fadeIn(200);
             }
-        }
-    }
-
-    showPassword(iconElement) {
-        var parent = iconElement.closest(".password-parent");
-        var input = parent.querySelector("input");
-
-        if (input.type === "password") {
-            input.type = "text";
-            iconElement.className = 'fa fa-eye-slash';
-        } else {
-            input.type = "password";
-            iconElement.className = 'fa fa-eye';
         }
     }
 

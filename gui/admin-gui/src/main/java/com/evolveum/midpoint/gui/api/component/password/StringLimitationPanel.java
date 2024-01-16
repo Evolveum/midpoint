@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.component.password;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 
@@ -56,6 +57,9 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
             return cssClass;
         }));
         icon.setOutputMarkupId(true);
+        icon.add(AttributeModifier.append(
+                "aria-label",
+                (IModel<String>) () -> LocalizationUtil.translate("StringLimitationPanel.decision." + Boolean.TRUE.equals(getModelObject().isSuccess()))));
         add(icon);
 
         LabelWithHelpPanel label = new LabelWithHelpPanel(ID_NAME, Model.of(WebComponentUtil.getTranslatedPolyString(getModelObject().getName()))){
