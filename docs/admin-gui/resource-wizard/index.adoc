@@ -530,6 +530,11 @@ As the lifecycle state can be set on various configuration items, midPoint gives
 For example, after you switch your resource to `Active` lifecycle state, we recommend to add any new mappings first in `Proposed` lifecycle state.
 The new mapping can be simulated without causing any harm and switched to `Active` lifecycle state when ready.
 
+See also:
+
+* xref:/midpoint/reference/concepts/object-lifecycle/[]
+* xref:/midpoint/methodology/first-steps/[]
+
 == Limitations
 
 Resource wizard has several limitations as of midPoint 4.8, such as:
