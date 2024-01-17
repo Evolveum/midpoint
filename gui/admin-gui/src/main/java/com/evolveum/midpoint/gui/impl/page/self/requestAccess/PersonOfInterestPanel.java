@@ -39,6 +39,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -47,12 +48,12 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -67,6 +68,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private static final String DOT_CLASS = RelationPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_USERS = DOT_CLASS + "loadUsers";
+    private static final String OPERATION_COMPILE_TARGET_SELECTION_COLLECTION = DOT_CLASS + "compileTargetSelectionCollection";
 
     private static final int MULTISELECT_PAGE_SIZE = 10;
 
@@ -280,7 +282,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     }
 
     private Tile<PersonOfInterest> getSelectedTile() {
-        return tiles.getObject().stream().filter(t -> t.isSelected()).findFirst().orElse(null);
+        return tiles.getObject().stream().filter(Tile::isSelected).findFirst().orElse(null);
     }
 
     private void initLayout() {
@@ -511,32 +513,20 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             return null;
         }
 
-        SearchFilterType search;
-        if (collection.getCollectionRef() != null) {
-            com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType collectionRef = collection.getCollectionRef();
-            PrismObject<?> obj = WebModelServiceUtils.loadObject(collectionRef, page);
-            if (obj == null) {
-                return null;
-            }
-
-            ObjectCollectionType objectCollection = (ObjectCollectionType) obj.asObjectable();
-            search = objectCollection.getFilter();
-        } else {
-            search = collection.getFilter();
-        }
-
-        if (search == null) {
+        Task task = getPageBase().createSimpleTask(OPERATION_COMPILE_TARGET_SELECTION_COLLECTION);
+        OperationResult result = task.getResult();
+        CompiledObjectCollectionView compiledObjectCollectionView;
+        try {
+            // now only UserType as a target is supported, so it is hardcoded here
+            compiledObjectCollectionView = getPageBase().getModelInteractionService().compileObjectCollectionView(collection, UserType.class, task, result);
+            result.recordSuccessIfUnknown();
+        } catch (Exception e) {
+            LoggingUtils.logException(LOGGER, "Couldn't compile object collection view {}", e);
+            result.recordFatalError("Couldn't compile object collection view", e);
             return null;
         }
 
-        try {
-            return page.getQueryConverter().createObjectFilter(UserType.class, search);
-        } catch (Exception ex) {
-            LOGGER.debug("Couldn't create search filter", ex);
-            page.error("Couldn't create search filter, reason: " + ex.getMessage());
-        }
-
-        return null;
+        return compiledObjectCollectionView.getFilter();
     }
 
     private void selectManuallyPerformed(AjaxRequestTarget target) {
@@ -595,7 +585,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                     .targetName(WebComponentUtil.getDisplayNameOrName(user.asPrismObject()));
 
             List<ObjectReferenceType> refs = user.getRoleMembershipRef().stream()
-                    .map(o -> cloneObjectReference(o))
+                    .map(this::cloneObjectReference)
                     .collect(Collectors.toList());
 
             userMemberships.put(poi, refs);
@@ -656,7 +646,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                         .targetName(principal.getName());
 
                 List<ObjectReferenceType> memberships = principal.getFocus().getRoleMembershipRef()
-                        .stream().map(o -> cloneObjectReference(o)).collect(Collectors.toList());
+                        .stream().map(this::cloneObjectReference).collect(Collectors.toList());
 
                 access.addPersonOfInterest(ref, memberships);
                 access.setPoiMyself(true);
@@ -684,7 +674,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private ObjectFilter getAutocompleteFilter(String text) {
         return createAutocompleteFilter(
-                text, getAutocompleteConfiguration().getSearchFilterTemplate(), (t) -> createDefaultFilter(t), page);
+                text, getAutocompleteConfiguration().getSearchFilterTemplate(), this::createDefaultFilter, page);
     }
 
     private ObjectFilter createDefaultFilter(String text) {
