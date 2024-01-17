@@ -20,12 +20,6 @@ public class DateSearchItemWrapperFactory extends AbstractSearchItemWrapperFacto
     }
 
     @Override
-    protected void setupParameterOptions(SearchItemContext ctx, DateSearchItemWrapper searchItem) {
-        super.setupParameterOptions(ctx, searchItem);
-        searchItem.setInterval(false);
-    }
-
-    @Override
     public boolean match(SearchItemContext ctx) {
         return QNameUtil.match(ctx.getValueTypeName(), DOMUtil.XSD_DATETIME);
     }

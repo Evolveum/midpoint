@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -81,7 +83,7 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
         popover.add(searchPopupPanel);
     }
 
-    protected abstract IModel<String> getTextValue();
+    protected abstract LoadableModel<String> getTextValue();
 
     protected abstract PopoverSearchPopupPanel createPopupPopoverPanel(Popover popover);
 
