@@ -14,6 +14,8 @@ import java.util.*;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
+import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper;
+
 import jakarta.servlet.ServletContext;
 import javax.xml.datatype.Duration;
 
@@ -33,7 +35,6 @@ import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
 import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
 import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
 import org.apache.wicket.csp.CSPDirective;
-import org.apache.wicket.csp.CSPDirectiveSrcValue;
 import org.apache.wicket.devutils.inspector.InspectorPage;
 import org.apache.wicket.devutils.inspector.LiveSessionsPage;
 import org.apache.wicket.devutils.pagestore.PageStorePage;
@@ -210,7 +211,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     private WebApplicationConfiguration webApplicationConfiguration;
 
     private DeploymentInformationType deploymentInfo;
-    private SubscriptionUtil.SubscriptionType subscriptionType;
+    private SubscriptionWrapper subscriptionWrapper;
 
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
@@ -369,9 +370,9 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     }
 
     @NotNull
-    public SubscriptionUtil.SubscriptionType getSubscriptionType() {
+    public SubscriptionWrapper getSubscriptionWrapper() {
         // should not be null, unless called before initialization, in which case we provide default NONE
-        return Objects.requireNonNullElse(subscriptionType, SubscriptionUtil.SubscriptionType.NONE);
+        return Objects.requireNonNullElse(subscriptionWrapper, SubscriptionUtil.createNoneSubscription());
     }
 
     private void initializeSchrodinger() {
@@ -678,7 +679,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     private void updateDeploymentInfo(@Nullable SystemConfigurationType value) {
         deploymentInfo = value != null ? value.getDeploymentInformation() : null;
         String subscriptionId = deploymentInfo != null ? deploymentInfo.getSubscriptionIdentifier() : null;
-        subscriptionType = SubscriptionUtil.getSubscriptionType(subscriptionId);
+        subscriptionWrapper = SubscriptionUtil.getSubscriptionType(subscriptionId);
     }
 
     /* (non-Javadoc)
