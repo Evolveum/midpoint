@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 import java.io.Serial;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -57,19 +59,22 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
     }
 
     @Override
-    public IModel<String> getTextValue() {
-        return () -> {
-            StringBuilder sb = new StringBuilder();
-            if (fromDateModel != null && fromDateModel.getObject() != null) {
-                sb.append(WebComponentUtil.getLocalizedDate(fromDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
+    public LoadableModel<String> getTextValue() {
+        return new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                StringBuilder sb = new StringBuilder();
+                if (fromDateModel != null && fromDateModel.getObject() != null) {
+                    sb.append(WebComponentUtil.getLocalizedDate(fromDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
+                }
+                if (sb.length() > 0 && toDateModel != null && toDateModel.getObject() != null) {
+                    sb.append("-");
+                }
+                if (toDateModel != null && toDateModel.getObject() != null) {
+                    sb.append(WebComponentUtil.getLocalizedDate(toDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
+                }
+                return sb.toString();
             }
-            if (sb.length() > 0 && toDateModel != null && toDateModel.getObject() != null) {
-                sb.append("-");
-            }
-            if (toDateModel != null && toDateModel.getObject() != null) {
-                sb.append(WebComponentUtil.getLocalizedDate(toDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
-            }
-            return sb.toString();
         };
     }
 
