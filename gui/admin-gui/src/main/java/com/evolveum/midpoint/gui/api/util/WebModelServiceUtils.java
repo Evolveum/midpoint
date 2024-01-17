@@ -434,11 +434,11 @@ public class WebModelServiceUtils {
 
             page.getModelService().executeChanges(deltas, options, task, result);
         } catch (Exception ex) {
+            subResult.recordFatalError(ex.getMessage());
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save object", ex);
             if (ex instanceof CommonException) {
                 subResult.setUserFriendlyMessage(((CommonException) ex).getUserFriendlyMessage());
             }
-            subResult.recordFatalError(ex.getMessage());
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save object", ex);
         } finally {
             subResult.computeStatus();
         }
