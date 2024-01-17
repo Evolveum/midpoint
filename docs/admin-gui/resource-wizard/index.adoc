@@ -527,7 +527,7 @@ You can create the following types of tasks for your resource objects:
 
 All these tasks can be created as standard tasks or xref:/midpoint/reference/admin-gui/simulations/[simulated tasks].
 
-== Standard (non-simulated) tasks
+=== Standard (non-simulated) tasks
 
 To create a new non-simulated task within the resource wizard, navigate to one of the resource object panels (*Accounts*, *Entitlements* or *Generics*) and click btn:[Tasks], then click *Create task*.
 
@@ -567,7 +567,7 @@ You can get to the task details either using menu:Server tasks[All tasks] or cli
 
 image::task-wizard-defined-tasks.png[link=task-wizard-defined-tasks.png,100%,title="List of tasks defined for the resource"]
 
-== Simulated tasks
+=== Simulated tasks
 
 To create a new simulated task within the resource wizard, navigate to one of the resource object panels (*Accounts*, *Entitlements* or *Generics*) and click btn:[Tasks], then click *Create task*.
 
