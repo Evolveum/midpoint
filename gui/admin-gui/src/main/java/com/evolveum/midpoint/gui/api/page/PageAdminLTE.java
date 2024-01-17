@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
+import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
@@ -96,7 +97,6 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.repo.common.util.SubscriptionUtil.SubscriptionType;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -330,11 +330,11 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
                     @Override
                     public String getObject() {
-                        SubscriptionType subscriptionType = MidPointApplication.get().getSubscriptionType();
-                        if (!subscriptionType.isCorrect()) {
+                        SubscriptionWrapper subscription = MidPointApplication.get().getSubscriptionWrapper();
+                        if (!subscription.isCorrect()) {
                             return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
                         }
-                        if (subscriptionType == SubscriptionType.DEMO_SUBSCRIPTION) {
+                        if (subscription.getType() == SubscriptionWrapper.SubscriptionType.DEMO_SUBSCRIPTION) {
                             return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
                         }
                         return "";
@@ -357,9 +357,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     private boolean isFooterVisible() {
-        SubscriptionType subscriptionType = MidPointApplication.get().getSubscriptionType();
-        return !subscriptionType.isCorrect()
-                || subscriptionType == SubscriptionType.DEMO_SUBSCRIPTION;
+        SubscriptionWrapper subscription = MidPointApplication.get().getSubscriptionWrapper();
+        return !subscription.isCorrect()
+                || subscription.getType() == SubscriptionWrapper.SubscriptionType.DEMO_SUBSCRIPTION;
     }
 
     /**
