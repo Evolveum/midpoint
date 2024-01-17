@@ -88,7 +88,7 @@ public class CompositeCorrelationExplanation extends CorrelationExplanation {
             this.explanation = explanation;
             this.weight = weight;
             this.confidenceIncrement = confidenceIncrement;
-            this.ignoredBecause = ignoredBecause;
+            this.ignoredBecause = Set.copyOf(ignoredBecause); // to be serializable
         }
 
         @Override
