@@ -207,6 +207,15 @@ export default class MidPointTheme {
                 }
             }
         })(jQuery);
+
+        jQuery(function ($) {
+                    $(document).on("keydown", ".clickable-by-enter", function (e, t) {
+                        if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
+                                e.key == "Enter" || e.keyCode == 13) {
+                            $(this).click();
+                          }
+                    });
+                });
     }
 
 breakLongerTextInTableCell(cellId) {
