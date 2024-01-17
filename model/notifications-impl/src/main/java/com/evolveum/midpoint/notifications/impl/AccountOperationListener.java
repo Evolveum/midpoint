@@ -196,7 +196,7 @@ public class AccountOperationListener implements ResourceOperationListener {
                         cacheRepositoryService.searchObjects(UserType.class, query, null, result);
                 PrismObject<UserType> user = MiscUtil.extractSingleton(prismObjects);
 
-                LOGGER.trace("listAccountShadowOwner for shadow {} yields {}", shadowOid, user);
+                LOGGER.trace("search for the owner of shadow {} yields {}", shadowOid, user);
                 return user;
             } catch (SchemaException e) {
                 LOGGER.trace("There's a problem finding account {}", shadowOid, e);
