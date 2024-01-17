@@ -191,7 +191,6 @@ public class SearchBuilder<C extends Serializable> {
                 && !isViewForDashboard && !isPreview) {
             Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
             timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
-            timestampItem.setInterval(true);
         }
     }
 

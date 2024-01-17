@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -36,12 +38,15 @@ public class ItemPathSearchPanel extends PopoverSearchPanel<ItemPathType> {
     }
 
     @Override
-    public IModel<String> getTextValue() {
-        return () -> {
-            if (getModelObject() == null) {
-                return "";
+    public LoadableModel<String> getTextValue() {
+        return new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                if (getModelObject() == null) {
+                    return "";
+                }
+                return getModelObject().toString();
             }
-            return getModelObject().toString();
         };
     }
 
