@@ -159,14 +159,13 @@ public class LifecycleStatePanel extends InputPanel {
                     buffer.append("\n<option ");
                     setOptionAttributes(buffer, choice, index, selected);
                     buffer.append("style=\"display:none;\">");
-                    buffer.append(label);
-                    buffer.append("</option>");
 
                     String advancedLabel = LocalizationUtil.translate(display.getLabel());
-                    buffer.append("\n<option ");
-                    setOptionAttributes(buffer, choice, index, null);
-                    buffer.append(">");
-                    buffer.append(advancedLabel);
+                    if (label.equals(advancedLabel)) {
+                        buffer.append(label);
+                    } else {
+                        buffer.append(advancedLabel);
+                    }
                     buffer.append("</option>");
                 }
             }
