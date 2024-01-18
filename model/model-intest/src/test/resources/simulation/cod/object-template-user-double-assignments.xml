@@ -1,0 +1,82 @@
+<!--
+  ~ Copyright (c) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="e085cbb0-b88c-42ac-82c7-c5619615de36">
+
+    <name>object-template-user-double-assignments</name>
+
+    <mapping>
+        <documentation>Assigns a parent organization based on `organization` (create on demand)</documentation>
+        <strength>strong</strength>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                            <script>
+                                <code>"org: $organization"</code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+                <createOnDemand>true</createOnDemand>
+                <populateObject>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>"org: $organization"</code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>name</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>'no-projection'</code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>description</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <assignmentTargetSearch>
+                                <targetType>OrgType</targetType>
+                                <filter>
+                                    <q:equal>
+                                        <q:path>name</q:path>
+                                        <expression>
+                                            <script>
+                                                <code>'existing'</code>
+                                            </script>
+                                        </expression>
+                                    </q:equal>
+                                </filter>
+                            </assignmentTargetSearch>
+                        </expression>
+                        <target>
+                            <path>assignment</path>
+                        </target>
+                    </populateItem>
+                </populateObject>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+    </mapping>
+</objectTemplate>
