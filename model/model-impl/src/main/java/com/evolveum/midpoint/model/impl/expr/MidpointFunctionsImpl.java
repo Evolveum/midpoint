@@ -22,6 +22,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
+import java.net.URLEncoder;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -1784,7 +1786,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     private String createTokenConfirmationLink(String prefix, UserType userType) {
-        return createBaseConfirmationLink(prefix, userType) + "&" + SchemaConstants.TOKEN + "=" + getNonce(userType);
+        try {
+            var urlEncodedNonce = URLEncoder.encode(getNonce(userType), StandardCharsets.UTF_8);
+            return createBaseConfirmationLink(prefix, userType) + "&" + SchemaConstants.TOKEN + "=" + urlEncodedNonce;
+        } catch (Exception e) {
+            throw new SystemException(e);
+        }
     }
 
     private String createPrefixLinkByAuthSequence(String channel, String nameOfSequence,
