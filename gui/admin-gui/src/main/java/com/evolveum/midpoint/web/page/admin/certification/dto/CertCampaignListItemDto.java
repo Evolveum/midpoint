@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 
 import org.jetbrains.annotations.NotNull;
@@ -111,14 +112,14 @@ public class CertCampaignListItemDto extends Selectable<CertCampaignListItemDto>
 
             if (delta > 0) {
                 String key = stageLevelInfo ? "PageCertCampaigns.inForStage" : "PageCertCampaigns.inForCampaign";
-                return PageBase.createStringResourceStatic(key, WebComponentUtil
-                                .formatDurationWordsForLocal(delta, true, true, page))
-                        .getString();
+                return LocalizationUtil.translate(key,
+                        new Object[] { WebComponentUtil.formatDurationWordsForLocal(
+                                delta, true, true, page)});
             } else if (delta < 0) {
                 String key = stageLevelInfo ? "PageCertCampaigns.agoForStage" : "PageCertCampaigns.agoForCampaign";
-                return PageBase.createStringResourceStatic(key, WebComponentUtil
-                                .formatDurationWordsForLocal(-delta, true, true, page))
-                        .getString();
+                return LocalizationUtil.translate(key,
+                                new Object[] { WebComponentUtil.formatDurationWordsForLocal(
+                                        -delta, true, true, page)});
             } else {
                 String key = stageLevelInfo ? "PageCertCampaigns.nowForStage" : "PageCertCampaigns.nowForCampaign";
                 return page.getString(key);

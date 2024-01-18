@@ -3605,7 +3605,9 @@ public final class WebComponentUtil {
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
             if (modelServiceLocator instanceof PageBase) {
-                ((PageBase) modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.evaluateAllowedValuesExpression", expression).getString());
+                ((PageBase) modelServiceLocator).error(
+                        com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(
+                                "FilterSearchItem.message.error.evaluateAllowedValuesExpression", new Object[] { expression }));
             }
             return allowedValues;
         }
@@ -3616,7 +3618,9 @@ public final class WebComponentUtil {
         if (!(value instanceof Set)) {
             LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
             if (modelServiceLocator instanceof PageBase) {
-                ((PageBase) modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.wrongType", expression).getString());
+                ((PageBase) modelServiceLocator).error(
+                        com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(
+                                "FilterSearchItem.message.error.wrongType", new Object[] { expression }));
             }
             return allowedValues;
         }
@@ -3626,7 +3630,9 @@ public final class WebComponentUtil {
                     || !(((PrismPropertyValue) (((Set<?>) value).iterator().next())).getValue() instanceof DisplayableValue)) {
                 LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
                 if (modelServiceLocator instanceof PageBase) {
-                    ((PageBase) modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.wrongType", expression).getString());
+                    ((PageBase) modelServiceLocator).error(
+                            com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(
+                                    "FilterSearchItem.message.error.wrongType", new Object[] { expression }));
                 }
                 return allowedValues;
             }
@@ -3931,17 +3937,15 @@ public final class WebComponentUtil {
     private static void createToastForObject(String key, QName type, AjaxRequestTarget target) {
         new Toast()
                 .success()
-                .title(PageBase.createStringResourceStatic(
+                .title(com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(
                                 key,
-                                (Object) translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true)))
-                        .getString())
+                                new Object[] {translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true))}))
                 .icon("fas fa-circle-check")
                 .autohide(true)
                 .delay(5_000)
-                .body(PageBase.createStringResourceStatic(
+                .body(com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(
                                 key + ".text",
-                                (Object) translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false)))
-                        .getString())
+                                new Object[] {translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false))}))
                 .show(target);
     }
 

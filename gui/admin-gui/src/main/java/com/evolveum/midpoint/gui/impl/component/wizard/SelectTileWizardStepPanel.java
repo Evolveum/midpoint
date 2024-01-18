@@ -4,6 +4,7 @@ import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
@@ -109,7 +110,7 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
         if (isMandatory() && isNotSelected()) {
             String key = "SelectTileWizardStepPanel.isMandatory";
             String typeLabel = WebComponentUtil.getLabelForType(getType(), false);
-            String text = PageBase.createStringResourceStatic(key + ".text", typeLabel).getString();
+            String text = LocalizationUtil.translate(key + ".text", new Object[] {typeLabel});
             new Toast()
                     .error()
                     .title(PageBase.createStringResourceStatic(key).getString())

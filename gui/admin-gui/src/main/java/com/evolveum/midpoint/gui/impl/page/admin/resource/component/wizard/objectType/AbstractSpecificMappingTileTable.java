@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
@@ -170,10 +171,9 @@ public abstract class AbstractSpecificMappingTileTable<C extends Containerable> 
         String strength = translateStrength(mapping);
 
         ExpressionType expressionBean = mapping.getExpression();
-        String description = PageBase.createStringResourceStatic(
+        String description = LocalizationUtil.translate(
                 "AbstractSpecificMappingTileTable.tile.description.prefix",
-                "AbstractSpecificMappingTileTable.tile.description.prefix",
-                strength).getString();
+                new Object[] {strength});
 
         ExpressionUtil.ExpressionEvaluatorType evaluatorType = null;
         if (expressionBean != null) {
@@ -188,10 +188,9 @@ public abstract class AbstractSpecificMappingTileTable<C extends Containerable> 
 
         String evaluator = PageBase.createStringResourceStatic(null, evaluatorType).getString();
 
-        description += " " + PageBase.createStringResourceStatic(
+        description += " " + LocalizationUtil.translate(
                 "AbstractSpecificMappingTileTable.tile.description.suffix",
-                "AbstractSpecificMappingTileTable.tile.description.suffix",
-                evaluator).getString();
+                new Object[] {evaluator});
         return description;
     }
 
