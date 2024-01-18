@@ -3320,6 +3320,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 f -> f.not().item(UserType.F_EXTENSION, new ItemName("string"))
                         .fuzzyString("string_value").levenshteinExclusive(2),
                 creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
+
+        searchUsersTest("with levenshtein filter with apostrophe",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER)
+                        .fuzzyString("user'1").levenshteinExclusive(2),
+                user1Oid);
+
+        searchUsersTest("with similarity filter with apostrophe",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER)
+                        .fuzzyString("user'1").similarityInclusive(0.3f),
+                user1Oid);
     }
 
     @Test

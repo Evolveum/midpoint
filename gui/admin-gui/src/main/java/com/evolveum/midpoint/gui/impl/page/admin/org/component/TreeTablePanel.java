@@ -482,7 +482,6 @@ public class TreeTablePanel extends BasePanel<String> {
         return allowDelete;
     }
 
-    // TODO: merge this with AbstractRoleMemberPanel.initObjectForAdd, also see MID-3233
     private <O extends ObjectType> void initObjectForAdd(ObjectReferenceType parentOrgRef, AjaxRequestTarget target) throws SchemaException {
         TreeTablePanel.this.getPageBase().hideMainPopup(target);
         PrismContext prismContext = TreeTablePanel.this.getPageBase().getPrismContext();
@@ -500,6 +499,7 @@ public class TreeTablePanel extends BasePanel<String> {
         // The parentOrgRef should be added by the projector. But
         // this is needed to successfully pass through security
         // TODO: fix MID-3234
+        //  see also DetailsPageUtil.initNewObjectWithReference
         if (parentOrgRef == null) {
             ObjectType org = getTreePanel().getSelected().getValue();
             parentOrgRef = ObjectTypeUtil.createObjectRef(org, prismContext);

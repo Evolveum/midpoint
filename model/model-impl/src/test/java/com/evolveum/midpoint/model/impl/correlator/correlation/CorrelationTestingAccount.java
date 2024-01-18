@@ -101,7 +101,7 @@ public class CorrelationTestingAccount extends TestingAccount {
         } else {
             expected = emptyIfNull(getAttrExpCandidates()).trim();
         }
-        if ("".equals(expected)) {
+        if (expected.isEmpty()) {
             return List.of();
         }
         List<TestCandidateOwner> candidateOwnerList = new ArrayList<>();
@@ -129,7 +129,7 @@ public class CorrelationTestingAccount extends TestingAccount {
             throw new AssertionError(e);
         }
         String text = emptyIfNull(textRaw).trim();
-        if ("".equals(text)) {
+        if (text.isEmpty()) {
             return List.of();
         }
         List<ExpectedMatches> candidatesMatches = new ArrayList<>();

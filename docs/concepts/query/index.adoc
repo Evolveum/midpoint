@@ -9,7 +9,7 @@ objects on the xref:/midpoint/reference/resources/[resources].
 MidPoint query provides option for selection only the objects that match specified criteria.
 
 Initial option for searching objects in GUI is *Basic search*.
-The basic search allows users to guery objects in view by selecting values of preselected object attributes or relations. It is configurable by engineer.
+The basic search allows users to query objects in view by selecting values of preselected object attributes or relations. It is configurable by engineer.
 This search is designed for end users and is available only in GUI.
 
 The xref:midpoint-query-language/[*midPoint Query Language*] is universal language used to search for objects.
@@ -23,7 +23,7 @@ This section describes usage and configuration details of:
 
 * xref:midpoint-query-language/[midPoint Query Language],
 * xref:xml-query-language.adoc[XML Query Language] (deprecated),
-* concept of xref:query-in-midpoint/[query in midPoint] in more depth.
+* concept of xref:query-concepts/[query in midPoint] in more depth.
 
 It should be mentioned, that midPoint provides also xref:full-text-search.adoc[*Full text search*] option.
 It is available only for searching of specific data in GUI. The full text search is not enabled by default and must be configured by engineer.
