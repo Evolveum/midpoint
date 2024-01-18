@@ -6,13 +6,21 @@
  */
 package com.evolveum.midpoint.repo.sqlbase;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.util.exception.CommonException;
+
 /**
  * Base repository exception.
  */
-public class RepositoryException extends Exception {
+public class RepositoryException extends CommonException {
 
     public RepositoryException(String message) {
         super(message);
+    }
+
+    public RepositoryException(LocalizableMessage localizableMessage) {
+        super(localizableMessage);
     }
 
     public RepositoryException(Throwable cause) {
@@ -21,5 +29,10 @@ public class RepositoryException extends Exception {
 
     public RepositoryException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    @Override
+    public String getErrorTypeMessage() {
+        return "Repository error";
     }
 }

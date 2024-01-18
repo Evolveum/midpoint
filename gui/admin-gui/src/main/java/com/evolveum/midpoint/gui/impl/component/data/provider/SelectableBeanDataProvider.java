@@ -117,6 +117,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
             getAvailableData().addAll(createDataObjectWrappers(getType(), query, optionsBuilder.build(), task, result));
 
         } catch (Exception ex) {
+            setupUserFriendlyMessage(result, ex);
             result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
             return handleNotSuccessOrHandledErrorInIterator(result);
@@ -234,6 +235,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
             Integer counted = countObjects(getType(), getQuery(), currentOptions, task, result);
             count = defaultIfNull(counted, defaultCountIfNull);
         } catch (Exception ex) {
+            setupUserFriendlyMessage(result, ex);
             result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         } finally {
