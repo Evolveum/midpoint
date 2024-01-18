@@ -100,10 +100,9 @@ public class LensUtil {
         return retrieved;
     }
 
-    public static PropertyDelta<XMLGregorianCalendar> createActivationTimestampDelta(ActivationStatusType status,
-            XMLGregorianCalendar now,
-            PrismContainerDefinition<ActivationType> activationDefinition, OriginType origin,
-            PrismContext prismContext) {
+    public static PropertyDelta<XMLGregorianCalendar> createActivationTimestampDelta(
+            ActivationStatusType status, XMLGregorianCalendar now,
+            PrismContainerDefinition<ActivationType> activationDefinition, OriginType origin) {
         ItemName timestampPropertyName;
         if (status == null || status == ActivationStatusType.ENABLED) {
             timestampPropertyName = ActivationType.F_ENABLE_TIMESTAMP;
@@ -115,10 +114,11 @@ public class LensUtil {
             throw new IllegalArgumentException("Unknown activation status "+status);
         }
 
-        PrismPropertyDefinition<XMLGregorianCalendar> timestampDef = activationDefinition.findPropertyDefinition(timestampPropertyName);
-        PropertyDelta<XMLGregorianCalendar> timestampDelta
-                = timestampDef.createEmptyDelta(FocusType.F_ACTIVATION.append(timestampPropertyName));
-        timestampDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(now, origin, null));
+        PropertyDelta<XMLGregorianCalendar> timestampDelta = activationDefinition
+                .<XMLGregorianCalendar>findPropertyDefinition(timestampPropertyName)
+                .createEmptyDelta(FocusType.F_ACTIVATION.append(timestampPropertyName));
+        timestampDelta.setValueToReplace(
+                PrismContext.get().itemFactory().createPropertyValue(now, origin, null));
         return timestampDelta;
     }
 

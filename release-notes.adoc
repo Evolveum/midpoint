@@ -499,6 +499,12 @@ The reason is that the cached version may be incomplete or outdated.
 See commits [4775c1](https://github.com/Evolveum/midpoint/commit/4775c14884d42aa758c19b5693ec07dcacdeb147)
 and #the following one - TODO#.
 
+* The behavior of `disableTimestamp` and `disableReason` in the shadow activation container was changed.
+Before 4.9/4.8.1, these properties were updated only if there was an actual change in the administrative status from something to `DISABLED`.
+Since 4.9/4.8.1, both of these properties are updated even if the administrative status is already `DISABLED`:
+the `disableReason` is determined anew, and the `disableTimestamp` is updated if the status and/or the reason are modified.
+See bug:MID-9220[].
+
 === Java and REST API Changes Since 4.8
 
 NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.

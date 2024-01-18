@@ -5,6 +5,27 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
+.main-sidebar .sidebar > .user-panel {
+  & > .image {
+    padding-left: 0.8rem;
+    position: relative;
+    width: 100%;
+    min-width: 2.85rem;
+    max-width: 3.5rem;
+    transition: all ease 0.08s !important;
+    -webkit-transition: all ease 0.08s !important;
+
+    & > .user-image {
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: relative;
+      height: 0;
+      padding-bottom: 100%;
+    }
+  }
+}
+
 .user-panel {
   border-bottom: 0 !important;
 
