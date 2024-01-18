@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.menu;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -20,14 +21,11 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.resource.AbstractResource;
-import org.apache.wicket.request.resource.ByteArrayResource;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
@@ -72,8 +70,13 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
     }
 
     protected void initLayout() {
-        NonCachingImage img = new NonCachingImage(ID_MENU_PHOTO, loadJpegPhotoModel());
-        add(img);
+        //NonCachingImage img = new NonCachingImage(ID_MENU_PHOTO, loadJpegPhotoUrlModel());
+        //add(img);
+        IModel<String> photoUrlModel = loadJpegPhotoUrlModel();
+        WebMarkupContainer photoContainer = new WebMarkupContainer("menuPhoto");
+        photoContainer.add(AttributeAppender.append("style", "background-image: url('" + photoUrlModel.getObject() + "');"));
+        add(photoContainer);
+
 
         Label username = new Label(ID_USERNAME, () -> getShortUserName());
         add(username);
@@ -125,7 +128,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         return principal.toString();
     }
 
-    private IModel<AbstractResource> loadJpegPhotoModel() {
+    private IModel<String> loadJpegPhotoUrlModel() {
         return () -> {
             GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
             if (principal == null) {
@@ -146,8 +149,8 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
                     return null;
                 }
             }
-
-            return new ByteArrayResource("image/jpeg", jpegPhoto);
+            String base64Encoded = Base64.getEncoder().encodeToString(jpegPhoto);
+            return "data:image/jpeg;base64," + base64Encoded;
         };
     }
 
