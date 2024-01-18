@@ -22,6 +22,10 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper;
+
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -121,7 +125,6 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.util.SubscriptionUtil.SubscriptionType;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -3280,8 +3283,8 @@ public final class WebComponentUtil {
     }
 
     public static String getMidpointCustomSystemName(PageAdminLTE pageBase, String defaultSystemNameKey) {
-        SubscriptionType subscriptionType = MidPointApplication.get().getSubscriptionType();
-        if (!subscriptionType.isCorrect() || subscriptionType == SubscriptionType.DEMO_SUBSCRIPTION) {
+        SubscriptionWrapper subscription = MidPointApplication.get().getSubscriptionWrapper();
+        if (!subscription.isCorrect() || subscription.getType() == SubscriptionWrapper.SubscriptionType.DEMO_SUBSCRIPTION) {
             return pageBase.createStringResource(defaultSystemNameKey).getString();
         }
 
@@ -4076,5 +4079,17 @@ public final class WebComponentUtil {
                 return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz);
             }
         };
+    }
+
+    public static boolean isAssignmentAddedOrRemoved(PrismContainerWrapper<AssignmentType> assignmentsWrapper) {
+        if (assignmentsWrapper != null) {
+            for (PrismContainerValueWrapper<AssignmentType> assignmentWrapper : assignmentsWrapper.getValues()) {
+                if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||
+                        ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

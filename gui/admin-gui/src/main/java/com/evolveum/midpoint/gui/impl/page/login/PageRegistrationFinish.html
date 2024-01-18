@@ -11,9 +11,14 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div wicket:id="successPanel" class="d-flex">
-        <i class="fa fa-check-circle fa-2x text-success justify-content-center"></i>
-        <h3 wicket:id="successLabel"/>
+    <div wicket:id="successPanel">
+        <div class="d-flex justify-content-center">
+            <i class="fa fa-check-circle fa-2x text-success justify-content-center"></i>
+            <h4 class="login-box-msg" wicket:id="successLabel"></h4>
+        </div>
+        <p class="login-panel-description text-center">
+            <wicket:message key="PageRegistrationFinish.success.description"/>
+        </p>
     </div>
     <div wicket:id="errorPanel" class="d-flex">
         <i class="fa fa-times-circle fa-2x text-error"></i>

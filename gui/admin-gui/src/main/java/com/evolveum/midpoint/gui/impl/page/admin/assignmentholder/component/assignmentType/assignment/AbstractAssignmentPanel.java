@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -170,5 +171,17 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
             LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
         }
         return assignmentTargetRelations;
+    }
+
+    @Override
+    public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
+        super.refreshTable(ajaxRequestTarget);
+        var containerModelObject = getContainerModel() == null ? null : getContainerModel().getObject();
+        boolean isAssignmentAddedOrDeleted = WebComponentUtil.isAssignmentAddedOrRemoved(containerModelObject);
+        //MID-9380 we need enabled previously disabled Save/Preview changes buttons in case
+        // when the user has #assign or #unassign authorization
+        if (isAssignmentAddedOrDeleted) {
+            ajaxRequestTarget.add(getPageBase());
+        }
     }
 }
