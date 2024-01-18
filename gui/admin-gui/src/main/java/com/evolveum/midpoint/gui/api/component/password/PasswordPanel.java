@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -166,9 +168,9 @@ public class PasswordPanel extends InputPanel {
         password2.add(new EnableBehaviour(this::canEditPassword));
         password2.add(AttributeAppender.append(
                 "aria-label",
-                PageAdminLTE.createStringResourceStatic(
+                LocalizationUtil.translate(
                         "PasswordPanel.secondPanelLabel",
-                        PageAdminLTE.createStringResourceStatic(getLabelKey()).getString())));
+                        new Object[] {PageAdminLTE.createStringResourceStatic(getLabelKey()).getString()})));
         inputContainer.add(password2);
 
         password1.add(new AjaxFormComponentUpdatingBehavior("change") {
