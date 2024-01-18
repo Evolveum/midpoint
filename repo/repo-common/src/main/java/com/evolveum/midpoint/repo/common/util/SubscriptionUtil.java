@@ -6,14 +6,12 @@
  */
 package com.evolveum.midpoint.repo.common.util;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +28,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import org.jetbrains.annotations.TestOnly;
 
 public class SubscriptionUtil {
 
@@ -74,38 +74,13 @@ public class SubscriptionUtil {
             return createInvalidSubscription();
         }
 
-        String substring1 = subscriptionId.substring(2, 4);
-        String substring2 = subscriptionId.substring(4, 6);
-        SubscriptionValidity successValidity = SubscriptionValidity.VALID;
+        SubscriptionValidity successValidity;
         try {
-            if (Integer.parseInt(substring1) < 1 || Integer.parseInt(substring1) > 12) {
+            SubscriptionValidity resolvedValidity = resolveValidityForSubscriptionId(subscriptionId, new Date(System.currentTimeMillis()));
+            if (resolvedValidity == SubscriptionValidity.INVALID) {
                 return createInvalidSubscription();
             }
-
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yy");
-            String currentYear = dateFormat.format(Calendar.getInstance().getTime());
-            if (Integer.parseInt(substring2) < Integer.parseInt(currentYear) && Integer.parseInt(substring1) < 10) {
-                return createInvalidSubscription();
-            }
-
-            String expDateStr = subscriptionId.substring(2, 6);
-            dateFormat = new SimpleDateFormat("MMyy");
-            Date expDate = dateFormat.parse(expDateStr);
-            Calendar expireCalendarValue = Calendar.getInstance();
-            expireCalendarValue.setTime(expDate);
-            expireCalendarValue.add(Calendar.MONTH, 1);
-            Date currentDate = new Date(System.currentTimeMillis());
-            if (expireCalendarValue.getTime().before(currentDate) || expireCalendarValue.getTime().equals(currentDate)) {
-                if (expiresIn(expireCalendarValue, currentDate, 1)) {
-                    successValidity = SubscriptionValidity.INVALID_FIRST_MONTH;
-                } else if (expiresIn(expireCalendarValue, currentDate, 2)) {
-                    successValidity = SubscriptionValidity.INVALID_SECOND_MONTH;
-                } else if (expiresIn(expireCalendarValue, currentDate, 3)) {
-                    successValidity = SubscriptionValidity.INVALID_THIRD_MONTH;
-                } else {
-                    return createInvalidSubscription();
-                }
-            }
+            successValidity = resolvedValidity;
         } catch (Exception ex) {
             return createInvalidSubscription();
         }
@@ -117,12 +92,46 @@ public class SubscriptionUtil {
         return new SubscriptionWrapper(type, successValidity);
     }
 
-    private static boolean expiresIn(Calendar expireCalendarValue, Date currentDate, int i) {
-        Date plusOneMonth = DateUtils.addMonths(currentDate, i);
-        if (expireCalendarValue.getTime().before(plusOneMonth) || expireCalendarValue.getTime().equals(plusOneMonth)) {
-            return false;
+    @TestOnly
+    public static SubscriptionValidity resolveValidityForSubscriptionId(String subscriptionId, Date currentDate) throws ParseException {
+        String months = subscriptionId.substring(2, 4);
+        String years = subscriptionId.substring(4, 6);
+
+        if (Integer.parseInt(months) < 1 || Integer.parseInt(months) > 12) {
+            return SubscriptionValidity.INVALID;
         }
-        return true;
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yy");
+        String currentYear = dateFormat.format(currentDate);
+        if (Integer.parseInt(years) < Integer.parseInt(currentYear) && Integer.parseInt(months) < 10) {
+            return SubscriptionValidity.INVALID;
+        }
+
+        String expDateStr = subscriptionId.substring(2, 6);
+        dateFormat = new SimpleDateFormat("MMyy");
+        Date expDate = dateFormat.parse(expDateStr);
+        Calendar expireCalendarValue = Calendar.getInstance();
+        expireCalendarValue.setTime(expDate);
+        expireCalendarValue.add(Calendar.MONTH, 1);
+        if (expireCalendarValue.getTime().before(currentDate) || expireCalendarValue.getTime().equals(currentDate)) {
+            if (expiresIn(expireCalendarValue, currentDate, 1)) {
+                return SubscriptionValidity.INVALID_FIRST_MONTH;
+            } else if (expiresIn(expireCalendarValue, currentDate, 2)) {
+                return SubscriptionValidity.INVALID_SECOND_MONTH;
+            } else if (expiresIn(expireCalendarValue, currentDate, 3)) {
+                return SubscriptionValidity.INVALID_THIRD_MONTH;
+            } else {
+                return SubscriptionValidity.INVALID;
+            }
+        }
+
+        return SubscriptionValidity.VALID;
+    }
+
+    private static boolean expiresIn(Calendar expireCalendarValue, Date currentDate, int i) {
+        Calendar expireInFuture = (Calendar) expireCalendarValue.clone();
+        expireInFuture.add(Calendar.MONTH, i);
+        return !expireInFuture.getTime().before(currentDate) && !expireInFuture.getTime().equals(currentDate);
     }
 
     /**
