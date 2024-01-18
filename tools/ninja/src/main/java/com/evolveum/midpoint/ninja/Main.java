@@ -65,6 +65,7 @@ public class Main {
         this.out = out;
     }
 
+    @SuppressWarnings("unused")
     public PrintStream getErr() {
         return err;
     }
@@ -175,7 +176,8 @@ public class Main {
         } catch (InputParameterException ex) {
             err.println(ConsoleFormat.formatLogMessage(LogLevel.ERROR, ex.getMessage()));
 
-            return MainResult.EMPTY_ERROR;
+            int exitCode = ex.getExitCode() != null ? ex.getExitCode() : MainResult.DEFAULT_EXIT_CODE_ERROR;
+            return new MainResult<>(ex.getMessage(), exitCode);
         } catch (Exception ex) {
             handleException(base, ex);
 

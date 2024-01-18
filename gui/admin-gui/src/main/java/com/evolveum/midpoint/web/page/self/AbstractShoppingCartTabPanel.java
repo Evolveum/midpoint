@@ -175,7 +175,6 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                                 return AbstractShoppingCartTabPanel.this.getNewAssignmentRelation();
                             }
                         });
-                        item.add(new VisibleBehaviour(() -> canBeAssigned(item.getModelObject())));
                     }
                 };
         catalogItemsGrid.add(new VisibleEnableBehaviour() {

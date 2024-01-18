@@ -14,15 +14,19 @@ package com.evolveum.midpoint.ninja;
  */
 public final class MainResult<T> {
 
+    public static final int DEFAULT_EXIT_CODE_ERROR = 1;
+
+    public static final int DEFAULT_EXIT_CODE_SUCCESS = 0;
+
     private final T result;
 
     private final int exitCode;
 
     private final String exitMessage;
 
-    public static final MainResult<?> EMPTY_ERROR = new MainResult<>(null, 1);
+    public static final MainResult<?> EMPTY_ERROR = new MainResult<>(null, DEFAULT_EXIT_CODE_ERROR);
 
-    public static final MainResult<?> EMPTY_SUCCESS = new MainResult<>(null, 0);
+    public static final MainResult<?> EMPTY_SUCCESS = new MainResult<>(null, DEFAULT_EXIT_CODE_SUCCESS);
 
     public MainResult(T result) {
         this(result, 0);
