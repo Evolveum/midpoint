@@ -217,7 +217,7 @@ This may be indication that that identity was disabled explicitly, that the disa
 
 | `disableTimestamp`
 | dateTime
-| Timestamp of last modification of the activation status to the disabled state. +
+| Timestamp of last modification of the activation status to the disabled state or the last change of the `disableReason`. +
 Note: This timestamp is used for recording purposes.
 Changing it will NOT change the activation state.
 Use validity dates for that purpose.
