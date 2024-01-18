@@ -11,6 +11,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper;
@@ -202,6 +203,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private Clock clock;
     @Autowired private AccessCertificationService certificationService;
+    @Autowired private ActivationComputer activationComputer;
     @Autowired(required = false) private List<WicketConfigurator> wicketConfigurators = new ArrayList<>();
     @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
     @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
@@ -589,6 +591,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public AccessCertificationService getCertificationService() {
         return certificationService;
+    }
+
+    public ActivationComputer getActivationComputer() {
+        return activationComputer;
     }
 
     public static boolean containsLocale(Locale locale) {

@@ -215,6 +215,19 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    public ShadowAsserter<RA> assertDisableTimestamp(long start, long end) {
+        TestUtil.assertBetween(
+                "disable timestamp", start, end, getDisableTimestamp());
+        return this;
+    }
+
+    private Long getDisableTimestamp() {
+        var activation = getObjectable().getActivation();
+        return activation != null ?
+                XmlTypeConverter.toMillisNullable(activation.getDisableTimestamp()) :
+                null;
+    }
+
     public ShadowAsserter<RA> assertResource(String expectedResourceOid) {
         ObjectReferenceType resourceRef = getObject().asObjectable().getResourceRef();
         if (resourceRef == null) {

@@ -276,6 +276,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return ObjectDeltaCollectionsUtil.summarize(executedDeltasPlain);
     }
 
+    /** For limitations please see {@link ObjectDelta#hasRelatedDelta(ItemPath)}. */
+    public boolean isModifiedInCurrentDelta(@NotNull ItemPath path) {
+        var delta = getCurrentDelta();
+        return delta != null && delta.hasRelatedDelta(path);
+    }
+
     public String getObjectReadVersion() {
         // Do NOT use version from object current.
         // Current object may be re-read, but the computation

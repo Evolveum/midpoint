@@ -15,6 +15,7 @@ import java.util.TreeSet;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 
@@ -179,13 +180,13 @@ public class CertCaseOrWorkItemDto extends Selectable<CertCaseOrWorkItemDto> imp
             }
 
             if (delta > 0) {
-                return PageBase.createStringResourceStatic("PageCert.in", WebComponentUtil
-                                .formatDurationWordsForLocal(delta, true, true, page))
-                        .getString();
+                return LocalizationUtil.translate("PageCert.in",
+                                new Object[] {WebComponentUtil.formatDurationWordsForLocal(
+                                        delta, true, true, page)});
             } else if (delta < 0) {
-                return PageBase.createStringResourceStatic("PageCert.ago", WebComponentUtil
-                                .formatDurationWordsForLocal(-delta, true, true, page))
-                        .getString();
+                return LocalizationUtil.translate("PageCert.ago",
+                                new Object[] {WebComponentUtil.formatDurationWordsForLocal(
+                                        -delta, true, true, page)});
             } else {
                 return page.getString("PageCert.now");
             }
