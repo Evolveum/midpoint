@@ -108,7 +108,7 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
         // See MID-9143. In the future, the list of reasons may be configurable.
         if (!isExpectedValueOfItem(
                 projCtx.getObjectDeltaObject(),
-                ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_REASON),
+                SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
                 List.of(SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION))) {
             return false;
         }
