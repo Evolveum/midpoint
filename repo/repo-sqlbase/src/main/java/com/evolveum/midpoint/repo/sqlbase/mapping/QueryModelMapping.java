@@ -11,6 +11,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -128,8 +130,13 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     public final @NotNull ItemSqlMapper<Q, R> itemMapper(QName itemName) throws QueryException {
         ItemSqlMapper<Q, R> itemMapping = getItemMapper(itemName);
         if (itemMapping == null) {
-            throw new QueryException("Missing item mapping for '" + itemName
-                    + "' in mapping " + getClass().getSimpleName());
+            String technicalMessage = "Missing item mapping for '" + itemName
+                    + "' in mapping " + getClass().getSimpleName();
+            SingleLocalizableMessage message = new SingleLocalizableMessage(
+                    "QueryModelMapping.item.not.searchable",
+                    new Object[]{itemName},
+                    technicalMessage);
+            throw new QueryException(message);
         }
         return itemMapping;
     }
