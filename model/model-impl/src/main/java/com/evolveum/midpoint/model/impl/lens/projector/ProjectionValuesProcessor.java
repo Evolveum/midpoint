@@ -15,6 +15,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -320,7 +322,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
 
             iteration++;
             iterationToken = null;
-            LensUtil.checkMaxIterations(iteration, maxIterations, conflictMessage, projContext.getHumanReadableName());
+            //TODO use conflict message and human readable conflict message
+            LensUtil.checkMaxIterations(iteration, maxIterations, conflictMessage, new SingleLocalizableMessage(conflictMessage), projContext.getHumanReadableName());
 
             cleanupContext(projContext, null, rememberedProjectionState);
             context.checkConsistenceIfNeeded();

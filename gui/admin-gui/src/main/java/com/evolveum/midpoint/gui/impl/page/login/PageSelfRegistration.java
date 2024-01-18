@@ -230,7 +230,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 target.add(PageSelfRegistration.this);
             }
             LOGGER.trace("Registration for user {} was successfull.", getUserModel().getObject());
-
+            isSubmitted = true;
         } else {
             String message;
             if (result.getUserFriendlyMessage() != null) {

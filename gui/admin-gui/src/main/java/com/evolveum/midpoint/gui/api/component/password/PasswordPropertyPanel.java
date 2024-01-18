@@ -49,7 +49,7 @@ public class PasswordPropertyPanel extends PasswordPanel {
         super.initLayout();
 
         final WebMarkupContainer infoLabelContainer = new WebMarkupContainer(ID_INFO_LABEL_CONTAINER);
-        infoLabelContainer.add(new VisibleBehaviour(() -> !passwordInputVisible));
+        infoLabelContainer.add(new VisibleBehaviour(() -> !isPasswordInputVisible()));
         infoLabelContainer.setOutputMarkupId(true);
         add(infoLabelContainer);
 
@@ -92,7 +92,7 @@ public class PasswordPropertyPanel extends PasswordPanel {
     }
 
     private boolean isChangePasswordLinkVisible() {
-        return !isReadOnly && !passwordInputVisible && getPasswordModel() != null && getPasswordModel().getObject() != null;
+        return !isReadOnly && !isPasswordInputVisible() && getPasswordModel() != null && getPasswordModel().getObject() != null;
     }
 
     private void changePasswordLinkClickPerformed(AjaxRequestTarget target) {
