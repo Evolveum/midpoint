@@ -232,6 +232,7 @@ More complex configuration is possible by clicking btn:[Edit] button:
 [#use_inbound_for_correlation]
 You can define the inbound mapping as ordinary (default), or you can specify *Use for* parameter with value `Correlation` in the *Optional configuration* of the mapping to use the mapping only during the correlation.
 This is how you can define inbound mappings to be used in <<Correlation>> when item correlator is used, even for target resources where you normally have no inbound mappings at all.
+For more information, please refer to xref:/midpoint/reference/correlation/example-4-correlation-for-outbound-resources[this example for correlation-only inbound mapping].
 
 Mapping can be deleted by clicking btn:[Delete] button.
 
