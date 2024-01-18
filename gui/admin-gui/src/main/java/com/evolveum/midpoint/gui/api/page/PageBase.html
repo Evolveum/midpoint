@@ -11,6 +11,9 @@
 <wicket:extend>
     <div wicket:id="mainPopup"/>
     <div class="wrapper">
+        <div id="skip-link">
+            <a href="#main-content" class="btn-sm"><wicket:message key="Accessibility.PageBase.skiplink.title"/></a>
+        </div>
         <nav wicket:id="mainHeader" class="main-header navbar navbar-expand border-bottom-0">
             <div class="navbar-nav">
                 <a wicket:id="menuToggle" class="nav-link" data-widget="pushmenu" href="#" role="button" wicket:message="title:Accessibility.PageBase.pushmenu.title"><i class="fas fa-bars"></i></a>
@@ -78,7 +81,7 @@
             <aside class="main-sidebar" wicket:id="sidebarMenu"/>
         </wicket:enclosure>
 
-        <main class="content-wrapper" style="min-height: 916px; padding: 15px 0">
+        <main class="content-wrapper" id="main-content" role="main" style="min-height: 916px; padding: 15px 0">
             <section class="content">
                 <div class="container-fluid">
                     <div wicket:id="feedbackContainer" class="feedbackContainer">

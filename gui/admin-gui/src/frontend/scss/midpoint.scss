@@ -1163,6 +1163,20 @@ span.tree-content > table tr td:first-child {
 	font-size: 12px;
 	padding-bottom: 5px;
 }
+/*.show-empty-button {
+  text-align:center;
+  background-color:none;
+  border: none;
+  border-radius:0.25rem;
+
+  &:hover {
+    background-color:inherit;
+    color: $primary;
+    background-color: mix(#ffffff, $primary, 90%);
+    border-color: mix(#ffffff, $primary, 20%);
+  }
+}*/
+
 
 // This will make the tooltip respect new lines.
 // Lines will still wrap if they are longer than the default max-width of the container.
@@ -1988,11 +2002,39 @@ div[role="heading"]:focus-visible,
 input:focus-visible,
 select:focus-visible
 {
-  outline: 2px orange;
+  outline: 2px #ffa836;
   outline-style: auto;
   outline-offset: 3px;
   z-index: 1001;
   @include smooth-transition(0.03s);
+}
+
+#skip-link {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  margin-left: 0;
+  text-align: center;
+  z-index: 1040;
+}
+#skip-link a {
+  position: absolute;
+  left: -99999px;
+  top: -35px;
+  -webkit-transition: top .2s ease-out;
+  transition: top .2s ease-out;
+}
+#skip-link a:focus, #skip-link a:active {
+  position: relative;
+  top: 0;
+  left: 0;
+  padding: 6px 10px;
+  border-radius: 0 0 .2rem .2rem;
+  color: $primary;
+  background: #fff;
+  -webkit-transition: top .2s ease-in;
+  transition: top .2s ease-in;
 }
 
 *:focus:not(:focus-visible) {
