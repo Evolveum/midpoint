@@ -10,7 +10,6 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
@@ -21,10 +20,11 @@ import org.apache.wicket.model.util.ListModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameRelationChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeObjectType;
@@ -125,7 +125,7 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
 
         ListMultipleChoicePanel<QName> relationsPanel = new ListMultipleChoicePanel<>(ID_SCOPE_RELATIONS,
                 new ListModel<>(getModelObject().getRelationList()),
-                new ListModel<>(relationsList), new QNameRelationChoiceRenderer(), null);
+                new ListModel<>(relationsList), new QNameObjectTypeChoiceRenderer(), null);
         relationsPanel.setOutputMarkupId(true);
         add(relationsPanel);
 
