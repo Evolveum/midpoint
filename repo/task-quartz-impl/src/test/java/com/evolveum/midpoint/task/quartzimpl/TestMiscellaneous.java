@@ -195,13 +195,10 @@ public class TestMiscellaneous extends AbstractTaskManagerTest {
         return getPrismContext().xmlSerializer().serializeRealValue(parsed, new QName(SchemaConstants.NS_C, "value"));
     }
 
-    /** MID-9058. */
+    /** MID-9423. */
     @Test
     public void test220TaskWithoutIdentifier() throws Exception {
         var result = createOperationResult();
-
-        given("scheduler is down");
-        taskManager.stopLocalScheduler(result);
 
         when("task without identifier is added");
         TaskType task = new TaskType()
@@ -211,19 +208,15 @@ public class TestMiscellaneous extends AbstractTaskManagerTest {
                 .handlerUri(MOCK_TASK_HANDLER_URI);
         repositoryService.addObject(task.asPrismObject(), null, result);
 
-        and("scheduler is started");
-        taskManager.startLocalScheduler(result);
-
         and("tasks are synchronized");
         taskManager.synchronizeTasks(result);
 
-        then("task is started but suspended");
+        then("task is started and correctly finishes");
         waitForTaskCloseOrSuspend(task.getOid(), 10000);
 
         assertTask(task.getOid(), "after")
                 .display()
-                .assertSuspended()
-                .assertFatalError()
-                .assertResultMessageContains("Task without identifier cannot be executed");
+                .assertClosed()
+                .assertSuccess();
     }
 }
