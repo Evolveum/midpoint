@@ -598,17 +598,6 @@ breakLongerTextInTableCell(cellId) {
         });
     }
 
-    /**
-    * used in SimulationModePanel.java
-    *
-    * @param compId
-    */
-    initDropdownResize(panelId) {
-        var panel = $('#' + panelId);
-        panel.find("option.width-tmp-option").html(panel.find("select.resizing-select option:selected").text());
-        panel.find("select.resizing-select").width(panel.find("select.width-tmp-select").width());
-    }
-
     initScaleResize(containerId) {
         let div = document.querySelector(containerId);
         let scale = 0.5;
