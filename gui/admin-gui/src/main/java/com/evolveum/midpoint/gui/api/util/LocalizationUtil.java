@@ -7,6 +7,7 @@ import org.apache.wicket.ThreadContext;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.common.AvailableLocale;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -38,7 +39,7 @@ public class LocalizationUtil {
             return localizationService.getDefaultLocale();
         }
 
-        return MidPointApplication.getDefaultLocale();
+        return AvailableLocale.getDefaultLocale();
     }
 
     public static String translate(String key) {
@@ -83,7 +84,6 @@ public class LocalizationUtil {
     }
 
     public static String translateLookupTableRowLabel(@NotNull LookupTableRowType row) {
-        LocalizationService localizationService = MidPointApplication.get().getLocalizationService();
         if (row.getLabel() != null) {
             return translatePolyString(row.getLabel());
         }
