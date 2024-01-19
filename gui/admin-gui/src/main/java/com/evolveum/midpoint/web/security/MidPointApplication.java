@@ -611,6 +611,26 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return false;
     }
 
+    public static Locale getBestMatchingLocale(Locale target) {
+        final List<Locale> locales = AVAILABLE_LOCALES.stream().map(l -> l.getLocale()).toList();
+
+        // Step 1: Look for an exact match
+        for (Locale locale : locales) {
+            if (locale.equals(target)) {
+                return locale;
+            }
+        }
+
+        // Step 2: Look for a match on language only
+        for (Locale locale : locales) {
+            if (locale.getLanguage().equals(target.getLanguage())) {
+                return locale;
+            }
+        }
+
+        return null;
+    }
+
     public static Locale getDefaultLocale() {
         for (LocaleDescriptor descriptor : AVAILABLE_LOCALES) {
             if (descriptor.isDefault()) {
