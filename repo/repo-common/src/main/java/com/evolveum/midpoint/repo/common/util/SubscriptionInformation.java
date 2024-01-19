@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.repo.common.util;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -8,19 +9,29 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Wrapper for subscription. Contains information about type and validity.
+ * The complete (parsed) subscription information: type and validity.
+ *
+ * TODO ... or just class name of "Subscription"?
  */
-public class SubscriptionWrapper {
+public class SubscriptionInformation {
 
-    private final SubscriptionType type;
-    private final SubscriptionValidity validity;
+    /** Null for invalid or missing subscription ID. */
+    @Nullable private final SubscriptionType type;
 
-    SubscriptionWrapper(SubscriptionType type, SubscriptionValidity validity) {
-        this.type = type;
-        this.validity = resolveValidity(type, validity);
+    /** This is the adjusted value, see {@link #adjustValidity(SubscriptionType, SubscriptionValidity)}. */
+    @NotNull private final SubscriptionValidity validity;
+
+    SubscriptionInformation(@NotNull SubscriptionValidity subscriptionValidity) {
+        this(null, subscriptionValidity);
     }
 
-    private SubscriptionValidity resolveValidity(SubscriptionType type, SubscriptionValidity originalValidity) {
+    SubscriptionInformation(@Nullable SubscriptionType type, @NotNull SubscriptionValidity validity) {
+        this.type = type;
+        this.validity = adjustValidity(type, validity);
+    }
+
+    /** Expired demo subscriptions are considered invalid. */
+    private @NotNull SubscriptionValidity adjustValidity(SubscriptionType type, @NotNull SubscriptionValidity originalValidity) {
         if (type == SubscriptionType.DEMO_SUBSCRIPTION
                 && (originalValidity == SubscriptionValidity.INVALID_FIRST_MONTH
                 || originalValidity == SubscriptionValidity.INVALID_SECOND_MONTH
@@ -30,25 +41,30 @@ public class SubscriptionWrapper {
         return originalValidity;
     }
 
-    SubscriptionWrapper(SubscriptionValidity subscriptionValidity) {
-        this(null, subscriptionValidity);
+    public boolean isCorrect() {
+        return type != null && isTimeValid();
     }
 
-    public boolean isCorrect() {
-        if (type != null && (validity == SubscriptionValidity.VALID
+    private boolean isTimeValid() {
+        return validity == SubscriptionValidity.VALID
                 || validity == SubscriptionValidity.INVALID_FIRST_MONTH
                 || validity == SubscriptionValidity.INVALID_SECOND_MONTH
-                || validity == SubscriptionValidity.INVALID_THIRD_MONTH)) {
-            return true;
-        }
-        return false;
+                || validity == SubscriptionValidity.INVALID_THIRD_MONTH;
     }
 
-    public SubscriptionType getType() {
+    public boolean isDemo() {
+        return type == SubscriptionType.DEMO_SUBSCRIPTION;
+    }
+
+    public boolean isDemoOrIncorrect() {
+        return isDemo() || !isCorrect();
+    }
+
+    public @Nullable SubscriptionType getType() {
         return type;
     }
 
-    public SubscriptionValidity getValidity() {
+    public @NotNull SubscriptionValidity getValidity() {
         return validity;
     }
 
@@ -63,22 +79,17 @@ public class SubscriptionWrapper {
         DEVELOPMENT_SUBSCRIPTION("04"),
         DEMO_SUBSCRIPTION("05");
 
-        private final String subscriptionType;
+        @NotNull private final String code;
 
-        SubscriptionType(String subscriptionType) {
-            this.subscriptionType = subscriptionType;
+        SubscriptionType(@NotNull String code) {
+            this.code = code;
         }
-
-//        public boolean isCorrect() {
-//            return subscriptionType != null;
-//        }
 
         private static final Map<String, SubscriptionType> CODE_TO_TYPE;
 
         static {
             CODE_TO_TYPE = Arrays.stream(values())
-                    .filter(v -> v.subscriptionType != null)
-                    .collect(Collectors.toUnmodifiableMap(v -> v.subscriptionType, Function.identity()));
+                    .collect(Collectors.toUnmodifiableMap(v -> v.code, Function.identity()));
         }
 
         @Nullable

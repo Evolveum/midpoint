@@ -11,6 +11,8 @@ import java.util.Locale;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.common.AvailableLocale;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -18,8 +20,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.LocaleDescriptor;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -38,7 +38,7 @@ public abstract class LocalePanel extends BasePanel {
         return () -> getFlagIcon(getSelectedLocaleDescriptor());
     }
 
-    public static String getFlagIcon(LocaleDescriptor descriptor) {
+    public static String getFlagIcon(AvailableLocale.LocaleDescriptor descriptor) {
         if (descriptor == null) {
             return null;
         }
@@ -46,7 +46,7 @@ public abstract class LocalePanel extends BasePanel {
         return FLAG_CLASS_PREFIX + descriptor.getFlag();
     }
 
-    protected LocaleDescriptor getSelectedLocaleDescriptor() {
+    protected AvailableLocale.LocaleDescriptor getSelectedLocaleDescriptor() {
         Locale locale = getSession().getLocale();
         if (locale == null) {
             return null;
@@ -56,7 +56,7 @@ public abstract class LocalePanel extends BasePanel {
         // returns 'sk' as a locale from session, while other browsers return 'sk_SK'.
         // This is the reason, why in firefox selected locale is ignored (the commented
         // condition is not met) so we are adding second condition to overcome this issue.
-        for (LocaleDescriptor desc : MidPointApplication.AVAILABLE_LOCALES) {
+        for (AvailableLocale.LocaleDescriptor desc : AvailableLocale.AVAILABLE_LOCALES) {
 //            if (locale.equals(desc.getLocale())
             if (locale.equals(desc.getLocale()) || locale.getLanguage().equals(desc.getLocale().getLanguage())) {
                 return desc;
@@ -66,7 +66,7 @@ public abstract class LocalePanel extends BasePanel {
         return null;
     }
 
-    protected void changeLocale(AjaxRequestTarget target, LocaleDescriptor descriptor) {
+    protected void changeLocale(AjaxRequestTarget target, AvailableLocale.LocaleDescriptor descriptor) {
         LOGGER.info("Changing locale to {}.", descriptor.getLocale());
         getSession().setLocale(descriptor.getLocale());
         if (AuthUtil.getPrincipalUser() != null) {

@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.net.URLEncoder;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +37,7 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.common.AvailableLocale;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.query.PreparedQuery;
 import com.evolveum.midpoint.schema.query.TypedQuery;
@@ -2052,11 +2052,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @NotNull
     private Locale findProperLocale(boolean useDefaultLocale) {
         if (useDefaultLocale) {
-            return Locale.getDefault();
+            return AvailableLocale.getDefaultLocale();
         }
 
         MidPointPrincipal principal = SecurityUtil.getPrincipalSilent();
-        return principal != null ? principal.getLocale() : Locale.getDefault();
+        Locale result = principal != null ? principal.getLocale() : null;
+
+        return result != null ? result : AvailableLocale.getDefaultLocale();
     }
 
     @Override

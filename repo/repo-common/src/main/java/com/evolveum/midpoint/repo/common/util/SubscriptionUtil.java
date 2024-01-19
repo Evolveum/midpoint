@@ -17,10 +17,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper.SubscriptionValidity;
-import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper.SubscriptionType;
+import com.evolveum.midpoint.repo.common.util.SubscriptionInformation.SubscriptionValidity;
+import com.evolveum.midpoint.repo.common.util.SubscriptionInformation.SubscriptionType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -36,29 +35,28 @@ public class SubscriptionUtil {
     private static final Trace LOGGER = TraceManager.getTrace(SubscriptionUtil.class);
 
     @NotNull
-    public static SubscriptionWrapper getSubscriptionType(@Nullable SystemConfigurationType systemConfigurationType) {
-        if (systemConfigurationType == null) {
+    public static SubscriptionInformation getSubscriptionInformation(@Nullable SystemConfigurationType systemConfiguration) {
+        if (systemConfiguration == null) {
             return createNoneSubscription();
         }
 
-        DeploymentInformationType deploymentInformation = systemConfigurationType.getDeploymentInformation();
+        DeploymentInformationType deploymentInformation = systemConfiguration.getDeploymentInformation();
         if (deploymentInformation == null) {
             return createNoneSubscription();
         }
 
-        return getSubscriptionType(deploymentInformation.getSubscriptionIdentifier());
+        return getSubscriptionInformation(deploymentInformation.getSubscriptionIdentifier());
     }
 
-    public static SubscriptionWrapper createNoneSubscription() {
-        return new SubscriptionWrapper(SubscriptionValidity.NONE);
+    public static SubscriptionInformation createNoneSubscription() {
+        return new SubscriptionInformation(SubscriptionValidity.NONE);
     }
 
-    public static SubscriptionWrapper createInvalidSubscription() {
-        return new SubscriptionWrapper(SubscriptionValidity.INVALID);
+    public static SubscriptionInformation createInvalidSubscription() {
+        return new SubscriptionInformation(SubscriptionValidity.INVALID);
     }
 
-    @NotNull
-    public static SubscriptionWrapper getSubscriptionType(String subscriptionId) {
+    private static @NotNull SubscriptionInformation getSubscriptionInformation(String subscriptionId) {
         if (StringUtils.isEmpty(subscriptionId)) {
             return createNoneSubscription();
         }
@@ -69,31 +67,30 @@ public class SubscriptionUtil {
             return createInvalidSubscription();
         }
 
-        SubscriptionType type = SubscriptionType.resolveType(subscriptionId.substring(0, 2));
-        if (type == null) {
-            return createInvalidSubscription();
-        }
-
-        SubscriptionValidity successValidity;
         try {
-            SubscriptionValidity resolvedValidity = resolveValidityForSubscriptionId(subscriptionId, new Date(System.currentTimeMillis()));
-            if (resolvedValidity == SubscriptionValidity.INVALID) {
+            // Let us check the correctness first.
+            VerhoeffCheckDigit checkDigit = new VerhoeffCheckDigit();
+            if (!checkDigit.isValid(subscriptionId)) {
                 return createInvalidSubscription();
             }
-            successValidity = resolvedValidity;
+
+            SubscriptionType type = SubscriptionType.resolveType(subscriptionId.substring(0, 2));
+            if (type == null) {
+                return createInvalidSubscription();
+            }
+
+            return new SubscriptionInformation(
+                    type,
+                    determineValidity(subscriptionId, new Date()));
+
         } catch (Exception ex) {
             return createInvalidSubscription();
         }
-        VerhoeffCheckDigit checkDigit = new VerhoeffCheckDigit();
-        if (!checkDigit.isValid(subscriptionId)) {
-            return createInvalidSubscription();
-        }
-
-        return new SubscriptionWrapper(type, successValidity);
     }
 
     @TestOnly
-    public static SubscriptionValidity resolveValidityForSubscriptionId(String subscriptionId, Date currentDate) throws ParseException {
+    public static @NotNull SubscriptionValidity determineValidity(String subscriptionId, Date currentDate)
+            throws ParseException {
         String months = subscriptionId.substring(2, 4);
         String years = subscriptionId.substring(4, 6);
 
@@ -142,10 +139,9 @@ public class SubscriptionUtil {
     public static String missingSubscriptionAppeal(
             SystemObjectCache systemObjectCache, LocalizationService localizationService, Locale locale) {
         try {
-            PrismObject<SystemConfigurationType> config =
-                    systemObjectCache.getSystemConfiguration(new OperationResult("dummy"));
-            if (SubscriptionUtil.getSubscriptionType(config != null ? config.asObjectable() : null)
-                    .isCorrect()) {
+            SystemConfigurationType config =
+                    systemObjectCache.getSystemConfigurationBean(new OperationResult("dummy"));
+            if (SubscriptionUtil.getSubscriptionInformation(config).isCorrect()) {
                 return null;
             }
         } catch (SchemaException e) {

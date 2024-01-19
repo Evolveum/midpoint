@@ -6,20 +6,15 @@
  */
 package com.evolveum.midpoint.web.security;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-
-import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-
-import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper;
-
-import jakarta.servlet.ServletContext;
-
 import javax.xml.datatype.Duration;
 
+import jakarta.servlet.ServletContext;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -64,8 +59,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -74,6 +67,7 @@ import org.springframework.web.servlet.resource.ResourceUrlProvider;
 import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -88,6 +82,7 @@ import com.evolveum.midpoint.gui.impl.converter.QueryTypeConverter;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -96,6 +91,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.util.SubscriptionInformation;
 import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -131,48 +127,10 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
  */
 public class MidPointApplication extends AuthenticatedWebApplication implements ApplicationContextAware {
 
-    public static final List<LocaleDescriptor> AVAILABLE_LOCALES;
-
-    private static final String LOCALIZATION_DESCRIPTOR = "localization/locale.properties";
-
-    private static final String PROP_NAME = ".name";
-    private static final String PROP_FLAG = ".flag";
-    private static final String PROP_DEFAULT = ".default";
-
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
 
     static {
         SchemaDebugUtil.initialize();
-    }
-
-    static {
-        String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
-        File file = new File(midpointHome, LOCALIZATION_DESCRIPTOR);
-
-        Resource[] localeDescriptorResources = new Resource[] {
-                new FileSystemResource(file),
-                new ClassPathResource(LOCALIZATION_DESCRIPTOR)
-        };
-
-        List<LocaleDescriptor> locales = new ArrayList<>();
-        for (Resource resource : localeDescriptorResources) {
-            if (!resource.isReadable()) {
-                continue;
-            }
-
-            try {
-                LOGGER.debug("Found localization descriptor {}.", resource.getURL());
-                locales = loadLocaleDescriptors(resource);
-
-                break;
-            } catch (Exception ex) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load localization", ex);
-            }
-        }
-
-        Collections.sort(locales);
-
-        AVAILABLE_LOCALES = Collections.unmodifiableList(locales);
     }
 
     @Autowired private ResourceUrlProvider resourceUrlProvider;
@@ -212,7 +170,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     private WebApplicationConfiguration webApplicationConfiguration;
 
     private DeploymentInformationType deploymentInfo;
-    private SubscriptionWrapper subscriptionWrapper;
+    private SubscriptionInformation subscriptionInformation;
 
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
@@ -371,9 +329,9 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     }
 
     @NotNull
-    public SubscriptionWrapper getSubscriptionWrapper() {
+    public SubscriptionInformation getSubscription() {
         // should not be null, unless called before initialization, in which case we provide default NONE
-        return Objects.requireNonNullElse(subscriptionWrapper, SubscriptionUtil.createNoneSubscription());
+        return Objects.requireNonNullElse(subscriptionInformation, SubscriptionUtil.createNoneSubscription());
     }
 
     private void initializeSchrodinger() {
@@ -408,48 +366,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         }
 
         return AjaxRequestAttributes.Method.POST.equals(attributes.getMethod());
-    }
-
-    private static List<LocaleDescriptor> loadLocaleDescriptors(Resource resource) throws IOException {
-        List<LocaleDescriptor> locales = new ArrayList<>();
-
-        Properties properties = new Properties();
-        try (Reader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)) {
-            properties.load(reader);
-
-            Map<String, Map<String, String>> localeMap = new HashMap<>();
-            //noinspection unchecked,rawtypes
-            Set<String> keys = (Set) properties.keySet();
-            for (String key : keys) {
-                String[] array = key.split("\\.");
-                if (array.length != 2) {
-                    continue;
-                }
-
-                String locale = array[0];
-                Map<String, String> map = localeMap.computeIfAbsent(locale, k -> new HashMap<>());
-
-                map.put(key, properties.getProperty(key));
-            }
-
-            for (String key : localeMap.keySet()) {
-                Map<String, String> localeDefinition = localeMap.get(key);
-                if (!localeDefinition.containsKey(key + PROP_NAME)
-                        || !localeDefinition.containsKey(key + PROP_FLAG)) {
-                    continue;
-                }
-
-                LocaleDescriptor descriptor = new LocaleDescriptor(
-                        localeDefinition.get(key + PROP_NAME),
-                        localeDefinition.get(key + PROP_FLAG),
-                        localeDefinition.get(key + PROP_DEFAULT),
-                        WebComponentUtil.getLocaleFromString(key)
-                );
-                locales.add(descriptor);
-            }
-        }
-
-        return locales;
     }
 
     @Override
@@ -597,30 +513,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return activationComputer;
     }
 
-    public static boolean containsLocale(Locale locale) {
-        if (locale == null) {
-            return false;
-        }
-
-        for (LocaleDescriptor descriptor : AVAILABLE_LOCALES) {
-            if (locale.equals(descriptor.getLocale())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static Locale getDefaultLocale() {
-        for (LocaleDescriptor descriptor : AVAILABLE_LOCALES) {
-            if (descriptor.isDefault()) {
-                return descriptor.getLocale();
-            }
-        }
-
-        return new Locale("en", "US");
-    }
-
     public MatchingRuleRegistry getMatchingRuleRegistry() {
         return matchingRuleRegistry;
     }
@@ -679,8 +571,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     private void updateDeploymentInfo(@Nullable SystemConfigurationType value) {
         deploymentInfo = value != null ? value.getDeploymentInformation() : null;
-        String subscriptionId = deploymentInfo != null ? deploymentInfo.getSubscriptionIdentifier() : null;
-        subscriptionWrapper = SubscriptionUtil.getSubscriptionType(subscriptionId);
+        subscriptionInformation = SubscriptionUtil.getSubscriptionInformation(value);
     }
 
     /* (non-Javadoc)

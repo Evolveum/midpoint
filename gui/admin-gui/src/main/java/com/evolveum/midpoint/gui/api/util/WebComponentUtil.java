@@ -22,10 +22,6 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper;
-
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -72,6 +68,7 @@ import org.joda.time.format.DateTimeFormat;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.common.AvailableLocale;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.AdminLTESkin;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -169,6 +166,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -1321,41 +1319,6 @@ public final class WebComponentUtil {
         }
 
         return getValue(object.getValue(), propertyName, type);
-    }
-
-    public static Locale getLocaleFromString(String localeString) {
-        if (localeString == null) {
-            return null;
-        }
-        localeString = localeString.trim();
-        if (localeString.toLowerCase().equals("default")) {
-            return Locale.getDefault();
-        }
-
-        // Extract language
-        int languageIndex = localeString.indexOf('_');
-        String language;
-        if (languageIndex == -1) {
-            // No further "_" so is "{language}" only
-            return new Locale(localeString, "");
-        } else {
-            language = localeString.substring(0, languageIndex);
-        }
-
-        // Extract country
-        int countryIndex = localeString.indexOf('_', languageIndex + 1);
-        String country;
-        if (countryIndex == -1) {
-            // No further "_" so is "{language}_{country}"
-            country = localeString.substring(languageIndex + 1);
-            return new Locale(language, country);
-        } else {
-            // Assume all remaining is the variant so is
-            // "{language}_{country}_{variant}"
-            country = localeString.substring(languageIndex + 1, countryIndex);
-            String variant = localeString.substring(countryIndex + 1);
-            return new Locale(language, country, variant);
-        }
     }
 
     public static void encryptCredentials(ObjectDelta delta, boolean encrypt, MidPointApplication app) {
@@ -3283,8 +3246,7 @@ public final class WebComponentUtil {
     }
 
     public static String getMidpointCustomSystemName(PageAdminLTE pageBase, String defaultSystemNameKey) {
-        SubscriptionWrapper subscription = MidPointApplication.get().getSubscriptionWrapper();
-        if (!subscription.isCorrect() || subscription.getType() == SubscriptionWrapper.SubscriptionType.DEMO_SUBSCRIPTION) {
+        if (MidPointApplication.get().getSubscription().isDemoOrIncorrect()) {
             return pageBase.createStringResource(defaultSystemNameKey).getString();
         }
 
@@ -3445,10 +3407,14 @@ public final class WebComponentUtil {
         return CollectionUtils.isNotEmpty(archetypeAssignments);
     }
 
+    /**
+     * @deprecated Use {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil#findLocale()}
+     */
+    @Deprecated
     public static <F extends FocusType> Locale getLocale() {
         GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal == null) {
-            return MidPointApplication.getDefaultLocale();
+            return AvailableLocale.getDefaultLocale();
         }
 
         Locale locale;
@@ -3463,17 +3429,18 @@ public final class WebComponentUtil {
 
         if (locale == null) {
             if (ThreadContext.getSession() == null) {
-                return MidPointApplication.getDefaultLocale();
+                return AvailableLocale.getDefaultLocale();
             }
 
             locale = Session.get().getLocale();
         }
 
-        if (MidPointApplication.containsLocale(locale)) {
+        locale = AvailableLocale.getBestMatchingLocale(locale);
+        if (locale != null) {
             return locale;
         }
 
-        return MidPointApplication.getDefaultLocale();
+        return AvailableLocale.getDefaultLocale();
     }
 
     public static Collator getCollator() {
@@ -3940,14 +3907,14 @@ public final class WebComponentUtil {
         new Toast()
                 .success()
                 .title(com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(
-                                key,
-                                new Object[] {translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true))}))
+                        key,
+                        new Object[] { translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true)) }))
                 .icon("fas fa-circle-check")
                 .autohide(true)
                 .delay(5_000)
                 .body(com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(
-                                key + ".text",
-                                new Object[] {translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false))}))
+                        key + ".text",
+                        new Object[] { translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false)) }))
                 .show(target);
     }
 
