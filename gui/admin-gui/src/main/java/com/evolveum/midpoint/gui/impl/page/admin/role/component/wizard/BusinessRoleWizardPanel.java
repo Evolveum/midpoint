@@ -49,6 +49,8 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
     private static final String DOT_CLASS = BusinessRoleWizardPanel.class.getName() + ".";
     private static final String OP_PERFORM_MIGRATION = DOT_CLASS + "performMigration";
 
+    private boolean isRoleMigration = false;
+
     public BusinessRoleWizardPanel(String id, WizardPanelHelper<RoleType, AbstractRoleDetailsModel<RoleType>> helper) {
         super(id, helper);
     }
@@ -57,8 +59,6 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
         getPageBase().getFeedbackPanel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
         add(createWizardFragment(new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps()))));
     }
-
-    private boolean isRoleMigration = false;
 
     private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
@@ -71,7 +71,10 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                BusinessRoleWizardPanel.this.onExitPerformed(target);
+                boolean roleMigration = exitRoleMigration(null);
+                if (!roleMigration) {
+                    BusinessRoleWizardPanel.this.onExitPerformed(target);
+                }
             }
         });
         BusinessRoleApplicationDto patterns = getAssignmentHolderModel().getPatternDeltas();
@@ -82,7 +85,10 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
 
                 @Override
                 protected void onExitPerformed(AjaxRequestTarget target) {
-                    BusinessRoleWizardPanel.this.onExitPerformed(target);
+                    boolean roleMigration = exitRoleMigration(null);
+                    if (!roleMigration) {
+                        BusinessRoleWizardPanel.this.onExitPerformed(target);
+                    }
                 }
 
                 @Override
@@ -95,7 +101,10 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
 
                 @Override
                 protected void onExitPerformed(AjaxRequestTarget target) {
-                    BusinessRoleWizardPanel.this.onExitPerformed(target);
+                    boolean roleMigration = exitRoleMigration(null);
+                    if (!roleMigration) {
+                        BusinessRoleWizardPanel.this.onExitPerformed(target);
+                    }
                 }
 
                 @Override
@@ -137,6 +146,10 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                 if (patternDeltas != null && !patternDeltas.getBusinessRoleDtos().isEmpty()) {
                     Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ObjectChangesExecutorImpl()
                             .executeChanges(deltas, false, task, result, target);
+
+                    if(executedDeltas == null){
+                        return;
+                    }
 
                     String roleOid = ObjectDeltaOperation.findAddDeltaOidRequired(executedDeltas, RoleType.class);
                     RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
@@ -182,7 +195,10 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                BusinessRoleWizardPanel.this.onExitPerformed(target);
+                boolean roleMigration = exitRoleMigration(null);
+                if (!roleMigration) {
+                    BusinessRoleWizardPanel.this.onExitPerformed(target);
+                }
             }
         });
 
@@ -226,16 +242,8 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
     }
 
     private void exitToPreview(AjaxRequestTarget target) {
-        if (isRoleMigration) {
-            setResponsePage(PageRoleAnalysis.class);
-            PageParameters parameters = new PageParameters();
-            String clusterOid = getHelper().getDetailsModel().getPatternDeltas().getCluster().getOid();
-            parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
-            parameters.add("panelId", "migratedRoles");
-            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                    .getObjectDetailsPage(RoleAnalysisClusterType.class);
-            getPageBase().navigateToNext(detailsPageClass, parameters);
-        } else {
+        boolean roleMigration = exitRoleMigration("migratedRoles");
+        if (!roleMigration) {
             showChoiceFragment(
                     target,
                     new RoleWizardPreviewPanel<>(getIdOfChoicePanel(), getHelper().getDetailsModel(), PreviewTileType.class) {
@@ -248,6 +256,30 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                         }
                     });
         }
+    }
+
+    public boolean exitRoleMigration(String panelId) {
+        if (isRoleMigration) {
+            setResponsePage(PageRoleAnalysis.class);
+            PageParameters parameters = new PageParameters();
+            String clusterOid = getHelper().getDetailsModel().getPatternDeltas().getCluster().getOid();
+            parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+            if (panelId == null) {
+                PageParameters pageParameters = getPageBase().getPageParameters();
+                if (pageParameters != null) {
+                    panelId = pageParameters.get("panelId").toString();
+                }
+
+                if (panelId == null || panelId.isEmpty()) {
+                    panelId = "clusterDetails";
+                }
+            }
+            parameters.add("panelId", panelId);
+            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                    .getObjectDetailsPage(RoleAnalysisClusterType.class);
+            getPageBase().navigateToNext(detailsPageClass, parameters);
+        }
+        return isRoleMigration;
     }
 
     private void showGovernanceMembersPanel(AjaxRequestTarget target) {
