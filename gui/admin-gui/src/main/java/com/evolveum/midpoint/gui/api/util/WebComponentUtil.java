@@ -22,8 +22,6 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper;
-
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -3283,8 +3281,7 @@ public final class WebComponentUtil {
     }
 
     public static String getMidpointCustomSystemName(PageAdminLTE pageBase, String defaultSystemNameKey) {
-        SubscriptionWrapper subscription = MidPointApplication.get().getSubscriptionWrapper();
-        if (!subscription.isCorrect() || subscription.getType() == SubscriptionWrapper.SubscriptionType.DEMO_SUBSCRIPTION) {
+        if (MidPointApplication.get().getSubscription().isDemoOrIncorrect()) {
             return pageBase.createStringResource(defaultSystemNameKey).getString();
         }
 
