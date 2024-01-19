@@ -12,9 +12,16 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.*;
-import javax.xml.datatype.Duration;
+
+import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
+import com.evolveum.midpoint.repo.common.util.SubscriptionInformation;
 
 import jakarta.servlet.ServletContext;
+
+import javax.xml.datatype.Duration;
+
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -67,7 +74,6 @@ import org.springframework.web.servlet.resource.ResourceUrlProvider;
 import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.cases.api.CaseManager;
-import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -170,7 +176,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     private WebApplicationConfiguration webApplicationConfiguration;
 
     private DeploymentInformationType deploymentInfo;
-    private SubscriptionWrapper subscriptionWrapper;
+    private SubscriptionInformation subscriptionInformation;
 
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
@@ -329,9 +335,9 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     }
 
     @NotNull
-    public SubscriptionWrapper getSubscriptionWrapper() {
+    public SubscriptionInformation getSubscription() {
         // should not be null, unless called before initialization, in which case we provide default NONE
-        return Objects.requireNonNullElse(subscriptionWrapper, SubscriptionUtil.createNoneSubscription());
+        return Objects.requireNonNullElse(subscriptionInformation, SubscriptionUtil.createNoneSubscription());
     }
 
     private void initializeSchrodinger() {
@@ -571,8 +577,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     private void updateDeploymentInfo(@Nullable SystemConfigurationType value) {
         deploymentInfo = value != null ? value.getDeploymentInformation() : null;
-        String subscriptionId = deploymentInfo != null ? deploymentInfo.getSubscriptionIdentifier() : null;
-        subscriptionWrapper = SubscriptionUtil.getSubscriptionType(subscriptionId);
+        subscriptionInformation = SubscriptionUtil.getSubscriptionInformation(value);
     }
 
     /* (non-Javadoc)
