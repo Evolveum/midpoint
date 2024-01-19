@@ -345,7 +345,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
      *     <li>{@link Locale#getDefault()}</li>
      * </ol>
      */
-    @NotNull
+    @Nullable
     public Locale getLocale() {
         Locale locale = getPreferredLocale();
         if (locale != null) {

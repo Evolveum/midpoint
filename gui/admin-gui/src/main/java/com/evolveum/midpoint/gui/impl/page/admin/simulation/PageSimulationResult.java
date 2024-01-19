@@ -192,7 +192,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 return metrics.stream().map(m -> {
 
                     BigDecimal value = SimulationMetricValuesTypeUtil.getValue(m);
-                    String storedData = MetricWidgetPanel.formatValue(value, getPrincipal().getLocale());
+                    String storedData = MetricWidgetPanel.formatValue(value, LocalizationUtil.findLocale());
 
                     DashboardWidgetType dw = new DashboardWidgetType();
                     dw.beginData()
@@ -296,7 +296,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private DetailsTableItem createDetailsItemForBuiltInMetric(BuiltInSimulationMetricType identifier, Number value) {
         IModel<String> nameModel = createStringResource("PageSimulationResultObject." + WebComponentUtil.createEnumResourceKey(identifier));
-        IModel<String> valueModel = () -> MetricWidgetPanel.formatValue(value, getPrincipal().getLocale());
+        IModel<String> valueModel = () -> MetricWidgetPanel.formatValue(value, LocalizationUtil.findLocale());
 
         return createDetailsItemForBuiltInMetric(nameModel, valueModel, target -> redirectToProcessedObjects(identifier));
     }

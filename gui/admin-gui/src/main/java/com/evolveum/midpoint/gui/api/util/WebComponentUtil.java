@@ -3443,6 +3443,10 @@ public final class WebComponentUtil {
         return CollectionUtils.isNotEmpty(archetypeAssignments);
     }
 
+    /**
+     * @deprecated Use {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil#findLocale()}
+     */
+    @Deprecated
     public static <F extends FocusType> Locale getLocale() {
         GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal == null) {
@@ -3467,7 +3471,8 @@ public final class WebComponentUtil {
             locale = Session.get().getLocale();
         }
 
-        if (MidPointApplication.containsLocale(locale)) {
+        locale = MidPointApplication.getBestMatchingLocale(locale);
+        if (locale != null) {
             return locale;
         }
 
