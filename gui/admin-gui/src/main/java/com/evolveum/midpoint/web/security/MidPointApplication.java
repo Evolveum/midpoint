@@ -12,16 +12,9 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.*;
-
-import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-
-import com.evolveum.midpoint.repo.common.util.SubscriptionInformation;
-
-import jakarta.servlet.ServletContext;
-
 import javax.xml.datatype.Duration;
 
+import jakarta.servlet.ServletContext;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -74,6 +67,7 @@ import org.springframework.web.servlet.resource.ResourceUrlProvider;
 import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -97,8 +91,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.util.SubscriptionInformation;
 import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
-import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
