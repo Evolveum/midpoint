@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.component.input;
 
-import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.util.DisplayForLifecycleState;
 import com.evolveum.midpoint.gui.api.util.DisplayableChoiceRenderer;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -26,8 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -63,20 +60,6 @@ public class LifecycleStatePanel extends InputPanel {
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
-    }
-
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        callScript(response);
-    }
-
-    private void callScript(IHeaderResponse response) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("MidPointTheme.initDropdownResize('").append(getMarkupId()).append("');");
-
-        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
     private <T> void initLayout() {
@@ -149,26 +132,20 @@ public class LifecycleStatePanel extends InputPanel {
                 DisplayableValue<String> displayValue = (DisplayableValue<String>) choice;
                 DisplayForLifecycleState display = DisplayForLifecycleState.valueOfOrDefault(displayValue.getValue());
                 String label = new DisplayableValueChoiceRenderer<>(null).getDisplayValue(displayValue);
+                buffer.append("\n<option ");
+                setOptionAttributes(buffer, choice, index, selected);
+                buffer.append(">");
                 if (display.getLabel() == null) {
-                    buffer.append("\n<option ");
-                    setOptionAttributes(buffer, choice, index, selected);
-                    buffer.append(">");
                     buffer.append(label);
-                    buffer.append("</option>");
                 } else {
-                    buffer.append("\n<option ");
-                    setOptionAttributes(buffer, choice, index, selected);
-                    buffer.append("style=\"display:none;\">");
-                    buffer.append(label);
-                    buffer.append("</option>");
-
                     String advancedLabel = LocalizationUtil.translate(display.getLabel());
-                    buffer.append("\n<option ");
-                    setOptionAttributes(buffer, choice, index, null);
-                    buffer.append(">");
-                    buffer.append(advancedLabel);
-                    buffer.append("</option>");
+                    if (label.equals(advancedLabel)) {
+                        buffer.append(label);
+                    } else {
+                        buffer.append(advancedLabel);
+                    }
                 }
+                buffer.append("</option>");
             }
         };
         input.setNullValid(false);
@@ -177,7 +154,6 @@ public class LifecycleStatePanel extends InputPanel {
         input.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                callScript(target.getHeaderResponse());
                 target.add(input);
             }
         });
@@ -185,7 +161,6 @@ public class LifecycleStatePanel extends InputPanel {
         input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                callScript(target.getHeaderResponse());
                 target.add(input);
             }
         });
@@ -199,7 +174,7 @@ public class LifecycleStatePanel extends InputPanel {
                 name = value.getValue();
             }
             DisplayForLifecycleState display = DisplayForLifecycleState.valueOfOrDefault(name);
-            return display.getCssClass() + " form-control form-control-sm resizing-select " + customCssClassForInputField();
+            return display.getCssClass() + " form-control form-control-sm " + customCssClassForInputField();
         }));
 
         add(input);
