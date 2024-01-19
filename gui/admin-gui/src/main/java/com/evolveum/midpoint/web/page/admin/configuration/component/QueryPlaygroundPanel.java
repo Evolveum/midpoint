@@ -98,14 +98,11 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
     private static final String ID_INCOMPLETE_RESULTS_NOTE = "incompleteResultsNote";
     private static final String ID_SCRIPT_ENABLED = "scriptEnabled";
 
-
     private static final String DOT_CLASS = QueryPlaygroundPanel.class.getName() + ".";
 
     private static final String OPERATION_CHECK_QUERY = DOT_CLASS + "checkQuery";
     private static final String OPERATION_TRANSLATE_QUERY = DOT_CLASS + "translateQuery";
     private static final String OPERATION_EXECUTE_QUERY = DOT_CLASS + "executeQuery";
-
-
 
     private static final String SAMPLES_DIR = "query-samples";
     private static final List<String> SAMPLES = Arrays.asList(
@@ -147,7 +144,8 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
         boolean admin;
         try {
-            admin = getPageBase().isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null);
+            admin = getPageBase()
+                    .isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException
                 | CommunicationException | ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine admin authorization -- continuing as non-admin", e);
@@ -181,10 +179,12 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
         CheckFormGroup distinctCheck = new CheckFormGroup(
                 ID_DISTINCT, new PropertyModel<>(getModel(), RepoQueryDto.F_DISTINCT),
-                createStringResource("PageRepositoryQuery.checkBox.distinct"), "col-xs-3", "col-xs-1");
+                createStringResource(
+                        "PageRepositoryQuery.checkBox.distinct"), "col-xs-3", "col-xs-1");
         mainForm.add(distinctCheck);
 
-        AceEditor editorMidPoint = new AceEditor(ID_EDITOR_MIDPOINT, new PropertyModel<>(getModel(), RepoQueryDto.F_MIDPOINT_QUERY));
+        AceEditor editorMidPoint = new AceEditor(ID_EDITOR_MIDPOINT, new PropertyModel<>(getModel(),
+                RepoQueryDto.F_MIDPOINT_QUERY));
         editorMidPoint.setHeight(400);
         editorMidPoint.setResizeToMaxHeight(false);
         mainForm.add(editorMidPoint);
@@ -201,8 +201,8 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         scriptCheck.setOutputMarkupId(true);
         mainForm.add(scriptCheck);
 
-
-        ScriptExpressionPanel scriptExpressionPanel = new ScriptExpressionPanel(ID_EDITOR_MIDPOINT_SCRIPT, new PropertyModel<>(getModel(), RepoQueryDto.F_MIDPOINT_QUERY_SCRIPT));
+        ScriptExpressionPanel scriptExpressionPanel = new ScriptExpressionPanel(ID_EDITOR_MIDPOINT_SCRIPT,
+                new PropertyModel<>(getModel(), RepoQueryDto.F_MIDPOINT_QUERY_SCRIPT));
         scriptExpressionPanel.setOutputMarkupId(true);
         scriptExpressionPanel.setOutputMarkupPlaceholderTag(true);
         scriptExpressionPanel.add(new VisibleBehaviour(() -> getModel().getObject().isScriptEnabled()));
@@ -233,7 +233,6 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         WebMarkupContainer midPointQueryButtonBar = new WebMarkupContainer(ID_MIDPOINT_QUERY_BUTTON_BAR);
         midPointQueryButtonBar.setOutputMarkupId(true);
         mainForm.add(midPointQueryButtonBar);
-
 
         AjaxSubmitButton executeMidPoint = new AjaxSubmitButton(ID_EXECUTE_MIDPOINT,
                 createStringResource("PageRepositoryQuery.button.translateAndExecute")) {
@@ -300,11 +299,15 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                         String localTypeName = StringUtils.substringBefore(sampleName, "_");
                         getModel().getObject().setObjectType(new QName(SchemaConstants.NS_C, localTypeName));
                         String xml = IOUtils.toString(is, StandardCharsets.UTF_8);
-                        String serialization;
+                        String serialization = "";
                         PrismContext prismContext = getPrismContext();
                         try {
                             QueryType parsed = prismContext.parserFor(xml).xml().parseRealValue(QueryType.class);
-                            serialization = parsed.getFilter().getText();
+                            SearchFilterType filter = parsed.getFilter();
+                            if (filter != null && filter.getText() != null) {
+                                serialization = filter.getText();
+                            }
+
                         } catch (Throwable t) {
                             serialization = "Couldn't serialize sample: " + t.getMessage();
                         }
@@ -390,10 +393,14 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             if (dto.isScriptEnabled()) {
                 scriptQuery = dto.getMidPointQueryScript();
             }
-            updateRequestWithMidpointQuery(request, dto.getObjectType(), dto.getMidPointQuery(), dto.isDistinct(), scriptQuery, task, result);
+
+            updateRequestWithMidpointQuery(request, dto.getObjectType(), dto.getMidPointQuery(),
+                    dto.isDistinct(), scriptQuery, task, result);
             //noinspection unchecked
             Class<? extends PageBase> listPageClass = DetailsPageUtil.getObjectListPage((Class<? extends ObjectType>) request.getType());
-            String storageKey = listPageClass != null ? WebComponentUtil.getObjectListPageStorageKey(dto.getObjectType().getLocalPart()) : null;
+            String storageKey = listPageClass != null
+                    ? WebComponentUtil.getObjectListPageStorageKey(dto.getObjectType().getLocalPart())
+                    : null;
             if (storageKey == null) {
                 // shouldn't occur because of button visibility
                 error("No page to redirect for " + dto.getObjectType());
@@ -401,12 +408,13 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                 return;
             }
 
-            SessionStorage sessionStorage = ((MidPointAuthWebSession) getSession()).getSessionStorage();
+            SessionStorage sessionStorage = getSession().getSessionStorage();
             PageStorage storage = sessionStorage.getPageStorageMap().get(storageKey);
             if (storage == null) {
                 storage = sessionStorage.initPageStorage(storageKey);
             }
-            Search search = storage.getSearch() != null ? storage.getSearch() : new SearchBuilder(request.getType()).modelServiceLocator(getPageBase()).build();
+            Search<?> search = storage.getSearch() != null ? storage.getSearch()
+                    : new SearchBuilder<>(request.getType()).modelServiceLocator(getPageBase()).build();
             search.addAllowedModelType(SearchBoxModeType.AXIOM_QUERY);
             search.setSearchMode(SearchBoxModeType.AXIOM_QUERY);
             // Use query from model object, call of updateRequestWithMidpointQuery may updated it with new Query Language text.
@@ -435,7 +443,6 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
         RepoQueryDto dto = getModelObject();
         try {
-            boolean queryPresent;
             RepositoryQueryDiagRequest request = new RepositoryQueryDiagRequest();
 
             switch (action) {
@@ -443,26 +450,24 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                     request.setTranslateOnly(true);
                     // Falls through to the next section, we want this.
                 case EXECUTE_MIDPOINT:
-                    queryPresent = StringUtils.isNotBlank(dto.getMidPointQuery()) || !dto.getMidPointQueryScript().getExpressionEvaluator().isEmpty();
-                    if (queryPresent) {
-                        ExpressionType scriptQuery = null;
-                        if (dto.isScriptEnabled()) {
-                            scriptQuery = dto.getMidPointQueryScript();
-                        }
-                        updateRequestWithMidpointQuery(request, dto.getObjectType(), dto.getMidPointQuery(), dto.isDistinct(), scriptQuery, task, result);
+                    ExpressionType scriptQuery = null;
+                    if (dto.isScriptEnabled()) {
+                        scriptQuery = dto.getMidPointQueryScript();
                     }
+                    updateRequestWithMidpointQuery(request, dto.getObjectType(), dto.getMidPointQuery(),
+                            dto.isDistinct(), scriptQuery, task, result);
                     break;
                 default:
                     throw new IllegalArgumentException("Invalid action: " + action);
             }
 
-            if (!queryPresent) {
+            RepositoryQueryDiagResponse response;
+            List<?> queryResult;
+
+            if (ObjectReferenceType.class.isAssignableFrom(request.getType()) && request.getQuery() == null) {
                 warnNoQuery(target);
                 return;
             }
-
-            RepositoryQueryDiagResponse response;
-            List<?> queryResult;
 
             if (isAdmin) {
                 response = getPageBase().getModelDiagnosticService().executeRepositoryQuery(request, task, result);
@@ -483,7 +488,8 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
             dto.setHibernateQuery(String.valueOf(response.getImplementationLevelQuery()));
             StringBuilder sb = new StringBuilder();
-            for (Map.Entry<String, RepositoryQueryDiagResponse.ParameterValue> entry : response.getImplementationLevelQueryParameters().entrySet()) {
+            for (Map.Entry<String, RepositoryQueryDiagResponse.ParameterValue> entry
+                    : response.getImplementationLevelQueryParameters().entrySet()) {
                 sb.append(entry.getKey()).append(" = ").append(entry.getValue().displayValue).append("\n");
             }
             dto.setHibernateParameters(sb.toString());
@@ -509,14 +515,16 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         target.add(this);
     }
 
-    private List<?> performModelSearch(RepositoryQueryDiagRequest request, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+    private List<?> performModelSearch(RepositoryQueryDiagRequest request, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ObjectNotFoundException {
         if (ObjectType.class.isAssignableFrom(request.getType())) {
-            return getPageBase().getModelService().searchObjects((Class<? extends ObjectType>) request.getType(), request.getQuery(),
-                    createRawCollection(), task, result);
+            return getPageBase().getModelService().searchObjects(
+                    (Class<? extends ObjectType>) request.getType(), request.getQuery(), createRawCollection(), task, result);
         }
         if (Containerable.class.isAssignableFrom(request.getType())) {
-            return getPageBase().getModelService().searchContainers((Class<? extends Containerable>) request.getType(), request.getQuery(),
-                    createRawCollection(), task, result);
+            return getPageBase().getModelService().searchContainers(
+                    (Class<? extends Containerable>) request.getType(), request.getQuery(), createRawCollection(), task, result);
         }
         if (ObjectReferenceType.class.isAssignableFrom(request.getType())) {
             return getPageBase().getModelService().searchReferences(request.getQuery(), createRawCollection(), task, result);
@@ -535,7 +543,8 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             boolean distinct,
             ExpressionType midPointQueryScript,
             Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, PrismQuerySerialization.NotSupportedException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException, PrismQuerySerialization.NotSupportedException {
         PrismContext prismContext = getPrismContext();
         if (objectType == null) {
             objectType = ObjectType.COMPLEX_TYPE;
@@ -545,8 +554,9 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                 prismContext.getSchemaRegistry().determineClassForTypeRequired(objectType);
         ObjectQuery queryWithExprEvaluated = null;
         if (midPointQueryScript != null) {
-            PrismPropertyValue<?> filterValue = ExpressionUtil.evaluateExpression(new VariablesMap(), null, midPointQueryScript,
-                    MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "", task, task.getResult());
+            PrismPropertyValue<?> filterValue = ExpressionUtil.evaluateExpression(
+                    new VariablesMap(), null, midPointQueryScript, MiscSchemaUtil.getExpressionProfile(),
+                    getPageBase().getExpressionFactory(), "", task, task.getResult());
             if (filterValue != null) {
                 var realValue = filterValue.getRealValue();
                 if (realValue instanceof ObjectQuery objQuery) {
@@ -560,7 +570,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                 }
             }
         }
-        if (queryWithExprEvaluated == null) {
+        if (queryWithExprEvaluated == null && StringUtils.isNotBlank(queryText)) {
             ObjectFilter filter = prismContext.createQueryParser().parseFilter(clazz, queryText);
             ObjectQuery objectQuery = prismContext.queryFactory().createQuery(filter);
             queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(
