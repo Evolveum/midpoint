@@ -362,7 +362,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
             return locale;
         }
 
-        return Locale.getDefault();
+        return null;
     }
 
     public Locale getPreferredLocale() {

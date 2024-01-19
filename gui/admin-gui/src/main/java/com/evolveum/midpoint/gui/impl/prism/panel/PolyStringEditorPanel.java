@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import java.util.*;
 
+import com.evolveum.midpoint.common.AvailableLocale;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,7 +26,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -35,7 +36,6 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 
@@ -68,7 +68,7 @@ public class PolyStringEditorPanel extends InputPanel {
 
     private final StringBuilder currentlySelectedLang = new StringBuilder();
     private final IModel<PolyString> model;
-    private String predefinedValuesLookupTableOid;
+    private final String predefinedValuesLookupTableOid;
     private final boolean hasValueEnumerationRef;
 
     private boolean showFullData = false;
@@ -318,7 +318,7 @@ public class PolyStringEditorPanel extends InputPanel {
                         });
                         listItem.add(translation);
 
-                        AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_LANGUAGE_BUTTON) {
+                        AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_LANGUAGE_BUTTON) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -352,10 +352,10 @@ public class PolyStringEditorPanel extends InputPanel {
     }
 
     private IModel<List<String>> getLanguageChoicesModel() {
-        return (IModel<List<String>>) () -> {
+        return () -> {
             List<String> allLanguagesList = new ArrayList<>();
             String currentlySelectedLang = getLanguagesChoicePanel().getBaseFormComponent().getModel().getObject();
-            MidPointApplication.AVAILABLE_LOCALES.forEach(locale -> {
+            AvailableLocale.AVAILABLE_LOCALES.forEach(locale -> {
                 String localeValue = locale.getLocale().getLanguage();
                 if (!isPolyStringLangNotNull()) {
                     allLanguagesList.add(localeValue);
