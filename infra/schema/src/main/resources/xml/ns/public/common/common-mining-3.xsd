@@ -403,7 +403,7 @@
                     <xsd:documentation>
                         <p>
                             Similarity threshold used for clustering (Jaccard).
-                            If the condition is not met, then the objects are grouped.
+                            If the condition is not met, then the objects are excluded from the cluster.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>

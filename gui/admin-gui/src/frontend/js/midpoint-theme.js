@@ -600,9 +600,9 @@ breakLongerTextInTableCell(cellId) {
 
         function zoomIn(rectBefore, x, y) {
             console.log('Zooming in');
-            scale += 0.03;
+            scale += 0.01;
 
-            let prevScale = scale - 0.1;
+            let prevScale = scale - 0.01;
             let scaleFactor = scale / prevScale;
 
             let deltaX = (x / 100) * rectBefore.width * (scaleFactor - 1);

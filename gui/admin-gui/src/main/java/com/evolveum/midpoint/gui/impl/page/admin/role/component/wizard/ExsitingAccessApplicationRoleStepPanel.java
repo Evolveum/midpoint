@@ -75,4 +75,8 @@ public class ExsitingAccessApplicationRoleStepPanel<AR extends AbstractRoleType>
         return createStringResource("PageRole.wizard.step.existing.access.subText");
     }
 
+    @Override
+    public String getStepId() {
+        return PANEL_TYPE;
+    }
 }

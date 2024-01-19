@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
@@ -45,6 +47,17 @@ public class CandidateMembersPanel<AR extends AbstractRoleType>
     private void initLayout() {
         ModificationTargetPanel<AR> roleInducementsPanel = new ModificationTargetPanel<>(ID_CANDIDATE_MEMBERS, getDetailsModel(), getContainerConfiguration(PANEL_TYPE));
         add(roleInducementsPanel);
+    }
+
+    @Override
+    protected ContainerPanelConfigurationType getContainerConfiguration(String panelType) {
+        return super.getContainerConfiguration(panelType);
+    }
+
+
+    @Override
+    public String getStepId() {
+        return  PANEL_TYPE;
     }
 
     @Override

@@ -17,6 +17,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChannelMode;
 
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -432,12 +434,17 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
                     PrismObject<RoleAnalysisClusterType> cluster = operationData.getCluster();
 
+                    RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                    roleAnalysisService.recomputeAndResolveClusterOpStatus(
+                            cluster, RoleAnalysisChannelMode.DEFAULT
+                            , result, task);
+
                     boolean isUnderActivity = getPageBase().getRoleAnalysisService()
                             .isUnderActivity(cluster, RoleAnalysisChannelMode.DEFAULT, task, result);
 
                     if (isUnderActivity) {
-                        warn("Couldn't start detection. Some process is already in progress.");
-                        LOGGER.error("Couldn't start detection. Some process is already in progress.");
+                        warn("Couldn't start migration. Some process is already in progress.");
+                        LOGGER.error("Couldn't start migration. Some process is already in progress.");
                         target.add(getFeedbackPanel());
                         return;
                     }

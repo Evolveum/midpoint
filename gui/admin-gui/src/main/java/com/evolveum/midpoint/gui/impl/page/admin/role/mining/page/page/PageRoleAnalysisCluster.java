@@ -122,6 +122,10 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         DetectionOption detectionOption = new DetectionOption(cluster);
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
+        roleAnalysisService.recomputeAndResolveClusterOpStatus(
+                clusterPrismObject, RoleAnalysisChannelMode.DEFAULT
+                , result, task);
+
         boolean isUnderActivity = roleAnalysisService.isUnderActivity(clusterPrismObject,
                 RoleAnalysisChannelMode.DEFAULT, task, result);
 

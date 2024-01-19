@@ -16,6 +16,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChannelMode;
 
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
@@ -386,9 +388,15 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                             protected void onSubmit(AjaxRequestTarget target) {
                                 Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
                                 OperationResult result = task.getResult();
+                                PrismObject<RoleAnalysisClusterType> clusterPrismObject = cluster.asPrismObject();
+                                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
-                                boolean isUnderActivity = getPageBase().getRoleAnalysisService()
-                                        .isUnderActivity(cluster.asPrismObject(), RoleAnalysisChannelMode.DEFAULT,
+                                roleAnalysisService.recomputeAndResolveClusterOpStatus(
+                                        clusterPrismObject, RoleAnalysisChannelMode.DEFAULT
+                                        , result, task);
+
+                                boolean isUnderActivity = roleAnalysisService
+                                        .isUnderActivity(clusterPrismObject, RoleAnalysisChannelMode.DEFAULT,
                                                 task, result);
 
                                 if (isUnderActivity) {
@@ -431,6 +439,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                                         prismObjectCluster, businessRole, roleApplicationDtos);
 
                                 PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
+                                pageRole.getPageParameters().add("panelId", "detectedPattern");
                                 setResponsePage(pageRole);
                             }
 
