@@ -69,6 +69,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     private static final String DOT_CLASS = RelationPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_USERS = DOT_CLASS + "loadUsers";
     private static final String OPERATION_COMPILE_TARGET_SELECTION_COLLECTION = DOT_CLASS + "compileTargetSelectionCollection";
+    private static final String OPERATION_EVALUATE_FILTER_EXPRESSION = DOT_CLASS + "evaluateFilterExpression";
 
     private static final int MULTISELECT_PAGE_SIZE = 10;
 
@@ -535,7 +536,9 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         Tile<PersonOfInterest> selected = getSelectedTile();
         if (selected != null) {
             String identifier = selected.getValue().groupIdentifier;
-            filter = createObjectFilterFromGroupSelection(identifier);
+            filter = WebComponentUtil.evaluateExpressionsInFilter(
+                    createObjectFilterFromGroupSelection(identifier),
+                    new OperationResult(OPERATION_EVALUATE_FILTER_EXPRESSION), page);
         }
 
         ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(page.getMainPopupBodyId(), UserType.class,
