@@ -426,7 +426,7 @@ public final class WebComponentUtil {
         String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
         StringResourceModel stringResourceModel = new StringResourceModel(key, component)
                 .setModel(new Model<String>())
-                .setDefaultValue(localizableMessage.getFallbackMessage())
+                .setDefaultValue(localizableMessage.getFallbackMessage().replace('{', '(').replace('}', ')'))
                 .setParameters(resolveArguments(localizableMessage.getArgs(), component));
         //System.out.println("GUI: Resolving [" + key + "]: to [" + rv + "]");
         return stringResourceModel.getString();
