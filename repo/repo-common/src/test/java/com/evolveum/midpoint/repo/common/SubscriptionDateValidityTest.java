@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.repo.common;
 
 import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
-import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper.SubscriptionValidity;
+import com.evolveum.midpoint.repo.common.util.SubscriptionInformation.SubscriptionValidity;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
 import org.assertj.core.api.Assertions;
@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat;
 /**
  * Tests for date validity of subscription.
  */
-public class SubscriptionDateValidityTest extends AbstractUnitTest{
+public class SubscriptionDateValidityTest extends AbstractUnitTest {
 
     @Test
     public void invalidYear() throws Exception{
@@ -72,7 +72,7 @@ public class SubscriptionDateValidityTest extends AbstractUnitTest{
 
     private void validateDate(String testedDatePartOfSubscriptionId, String currentDate, SubscriptionValidity expectedValidity) throws ParseException {
 
-        SubscriptionValidity validity = SubscriptionUtil.resolveValidityForSubscriptionId(
+        SubscriptionValidity validity = SubscriptionUtil.determineValidity(
                 testedDatePartOfSubscriptionId,
                 new SimpleDateFormat("MMyy").parse(currentDate));
         Assertions.assertThat(validity).isEqualByComparingTo(expectedValidity);

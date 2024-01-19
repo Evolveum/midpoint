@@ -91,8 +91,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.util.SubscriptionInformation;
 import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
-import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -170,7 +170,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     private WebApplicationConfiguration webApplicationConfiguration;
 
     private DeploymentInformationType deploymentInfo;
-    private SubscriptionWrapper subscriptionWrapper;
+    private SubscriptionInformation subscriptionInformation;
 
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
@@ -329,9 +329,9 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     }
 
     @NotNull
-    public SubscriptionWrapper getSubscriptionWrapper() {
+    public SubscriptionInformation getSubscription() {
         // should not be null, unless called before initialization, in which case we provide default NONE
-        return Objects.requireNonNullElse(subscriptionWrapper, SubscriptionUtil.createNoneSubscription());
+        return Objects.requireNonNullElse(subscriptionInformation, SubscriptionUtil.createNoneSubscription());
     }
 
     private void initializeSchrodinger() {
@@ -571,8 +571,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     private void updateDeploymentInfo(@Nullable SystemConfigurationType value) {
         deploymentInfo = value != null ? value.getDeploymentInformation() : null;
-        String subscriptionId = deploymentInfo != null ? deploymentInfo.getSubscriptionIdentifier() : null;
-        subscriptionWrapper = SubscriptionUtil.getSubscriptionType(subscriptionId);
+        subscriptionInformation = SubscriptionUtil.getSubscriptionInformation(value);
     }
 
     /* (non-Javadoc)

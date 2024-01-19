@@ -20,7 +20,7 @@ import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
-import com.evolveum.midpoint.repo.common.util.SubscriptionWrapper;
+import com.evolveum.midpoint.repo.common.util.SubscriptionInformation;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
@@ -330,11 +330,11 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
                     @Override
                     public String getObject() {
-                        SubscriptionWrapper subscription = MidPointApplication.get().getSubscriptionWrapper();
+                        SubscriptionInformation subscription = MidPointApplication.get().getSubscription();
                         if (!subscription.isCorrect()) {
                             return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
                         }
-                        if (subscription.getType() == SubscriptionWrapper.SubscriptionType.DEMO_SUBSCRIPTION) {
+                        if (subscription.isDemo()) {
                             return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
                         }
                         return "";
@@ -357,9 +357,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     private boolean isFooterVisible() {
-        SubscriptionWrapper subscription = MidPointApplication.get().getSubscriptionWrapper();
-        return !subscription.isCorrect()
-                || subscription.getType() == SubscriptionWrapper.SubscriptionType.DEMO_SUBSCRIPTION;
+        return MidPointApplication.get().getSubscription().isDemoOrIncorrect();
     }
 
     /**
