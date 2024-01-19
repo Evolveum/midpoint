@@ -269,9 +269,17 @@ public class SecurityUtils {
         return correlationAuth;
     }
 
+    /**
+     * Return URL of Registration page if it is available for public self registration
+     * @param securityPolicy
+     * @return
+     */
     public static String getRegistrationUrl(SecurityPolicyType securityPolicy) {
         SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
-        if (selfRegistrationPolicy == null || StringUtils.isBlank(selfRegistrationPolicy.getAdditionalAuthenticationSequence())) {
+        if (selfRegistrationPolicy == null || StringUtils.isBlank(selfRegistrationPolicy.getAdditionalAuthenticationSequence())
+        || selfRegistrationPolicy.getRequiredLifecycleState() != null) {
+            // If required Lifecycle state is not null, user must be invited - in this case it does not make sense to
+            // generate and display link
             return "";
         }
         return getAuthLinkUrl(selfRegistrationPolicy.getAdditionalAuthenticationSequence(), securityPolicy);
