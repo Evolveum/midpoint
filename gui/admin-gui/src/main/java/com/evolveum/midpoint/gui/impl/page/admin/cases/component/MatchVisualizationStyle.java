@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public enum MatchVisualizationStyle {
 
-    NOT_APPLICABLE(""),
+    NOT_APPLICABLE("bg-info disabled color-palette"),
     NONE("bg-danger disabled color-palette"),
     PARTIAL("bg-warning disabled color-palette"),
     FULL("bg-success disabled color-palette");
