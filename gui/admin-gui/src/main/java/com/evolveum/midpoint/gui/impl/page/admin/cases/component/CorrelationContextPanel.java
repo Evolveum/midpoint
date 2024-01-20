@@ -203,7 +203,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
 
                 CorrelationOptionDto optionDto = item.getModelObject();
 
-                String confidence = optionDto.getCandidateConfidence();
+                String confidence = optionDto.getCandidateConfidenceString();
                 Label confidenceLabel = new Label(ID_CONFIDENCE, confidence);
                 confidenceLabel.setVisible(confidence != null);
                 item.add(confidenceLabel);
