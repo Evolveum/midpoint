@@ -287,7 +287,7 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
-    public RepositoryDiag getRepositoryDiag() {
+    public @NotNull RepositoryDiag getRepositoryDiag() {
         Long startTime = repoOpStart();
         try {
             return repositoryService.getRepositoryDiag();

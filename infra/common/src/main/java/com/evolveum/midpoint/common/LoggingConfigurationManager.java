@@ -303,6 +303,19 @@ public class LoggingConfigurationManager {
         return sb.toString();
     }
 
+    /** "Extra" currently means "not file-based". */
+    public static boolean isExtraAppenderPresent(LoggingConfigurationType configBean) {
+        if (configBean == null) {
+            return false;
+        }
+        for (AppenderConfigurationType appenderBean : configBean.getAppender()) {
+            if (!(appenderBean instanceof FileAppenderConfigurationType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static void prepareAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender,
             LoggingConfigurationType config, boolean isRoot, boolean createAltForThisAppender,
             MidpointConfiguration midpointConfiguration) throws SchemaException {

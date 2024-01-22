@@ -16,6 +16,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
 import jakarta.activation.FileDataSource;
@@ -83,22 +85,22 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
         SystemConfigurationType systemConfiguration =
                 TransportUtil.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
 
-        if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null
-                || systemConfiguration.getNotificationConfiguration().getMail() == null) {
+        MailConfigurationType mailConfigurationBean =
+                SystemConfigurationTypeUtil.getLegacyMailTransportConfiguration(systemConfiguration);
+
+        if (mailConfigurationBean == null) {
             String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
             LOGGER.warn(msg);
             result.recordWarning(msg);
             return;
         }
 
-        MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
-
-        String logToFile = mailConfigurationType.getLogToFile();
+        String logToFile = mailConfigurationBean.getLogToFile();
         if (logToFile != null) {
             TransportUtil.logToFile(logToFile, formatToFileOld(mailMessage), LOGGER);
         }
-        String redirectToFile = mailConfigurationType.getRedirectToFile();
-        int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(mailConfigurationType);
+        String redirectToFile = mailConfigurationBean.getRedirectToFile();
+        int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(mailConfigurationBean);
 
         List<String> allowedRecipientTo = new ArrayList<>();
         List<String> forbiddenRecipientTo = new ArrayList<>();
@@ -110,13 +112,13 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
         var task = ctx.task();
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo,
-                    mailMessage.getTo(), mailConfigurationType, task, result,
+                    mailMessage.getTo(), mailConfigurationBean, task, result,
                     expressionFactory, ctx.expressionProfile(), LOGGER);
             TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc,
-                    mailMessage.getCc(), mailConfigurationType, task, result,
+                    mailMessage.getCc(), mailConfigurationBean, task, result,
                     expressionFactory, ctx.expressionProfile(), LOGGER);
             TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc,
-                    mailMessage.getBcc(), mailConfigurationType, task, result,
+                    mailMessage.getBcc(), mailConfigurationBean, task, result,
                     expressionFactory, ctx.expressionProfile(), LOGGER);
 
             if (redirectToFile != null) {
@@ -143,7 +145,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
             return;
         }
 
-        if (mailConfigurationType.getServer().isEmpty()) {
+        if (mailConfigurationBean.getServer().isEmpty()) {
             String msg = "Mail server(s) are not defined, mail notification to " + mailMessage.getTo() + " will not be sent.";
             LOGGER.warn(msg);
             result.recordWarning(msg);
@@ -152,9 +154,9 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
 
         long start = System.currentTimeMillis();
 
-        String defaultFrom = mailConfigurationType.getDefaultFrom() != null ? mailConfigurationType.getDefaultFrom() : "nobody@nowhere.org";
+        String defaultFrom = mailConfigurationBean.getDefaultFrom() != null ? mailConfigurationBean.getDefaultFrom() : "nobody@nowhere.org";
 
-        for (MailServerConfigurationType mailServerConfigurationType : mailConfigurationType.getServer()) {
+        for (MailServerConfigurationType mailServerConfigurationType : mailConfigurationBean.getServer()) {
 
             OperationResult resultForServer = result.createSubresult(DOT_CLASS + "send.forServer");
             final String host = mailServerConfigurationType.getHost();
@@ -186,7 +188,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
             properties.put("mail.smtp.ssl.enable", "" + sslEnabled);
             properties.put("mail.smtp.starttls.enable", "" + starttlsEnable);
             properties.put("mail.smtp.starttls.required", "" + starttlsRequired);
-            if (Boolean.TRUE.equals(mailConfigurationType.isDebug())) {
+            if (Boolean.TRUE.equals(mailConfigurationBean.isDebug())) {
                 properties.put("mail.debug", "true");
             }
 

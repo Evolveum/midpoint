@@ -656,7 +656,7 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
      * Provide repository run-time configuration and diagnostic information.
      * May execute diagnostic query on the database.
      */
-    RepositoryDiag getRepositoryDiag();
+    @NotNull RepositoryDiag getRepositoryDiag();
 
     /**
      * Returns short type identifier of the repository implementation.
