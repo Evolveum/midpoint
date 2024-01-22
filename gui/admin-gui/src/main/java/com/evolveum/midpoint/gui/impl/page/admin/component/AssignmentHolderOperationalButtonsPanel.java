@@ -316,10 +316,18 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
     public boolean isAssignmentAddedOrRemoved() {
         try {
             PrismContainerWrapper<AssignmentType> assignmentsWrapper = getModelObject().findContainer(AssignmentHolderType.F_ASSIGNMENT);
-            return WebComponentUtil.isAssignmentAddedOrRemoved(assignmentsWrapper);
+            if (assignmentsWrapper != null) {
+                for (PrismContainerValueWrapper<AssignmentType> assignmentWrapper : assignmentsWrapper.getValues()) {
+                    if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||
+                            ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
+                        return true;
+                    }
+                }
+            }
         } catch (SchemaException e) {
             LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage());
             return false;
         }
+        return false;
     }
 }
