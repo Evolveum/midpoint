@@ -3,6 +3,7 @@
 :page-since: "4.7"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
+:page-moved-from: /midpoint/reference/mark/
 :page-upkeep-status: green
 
 == Introduction
