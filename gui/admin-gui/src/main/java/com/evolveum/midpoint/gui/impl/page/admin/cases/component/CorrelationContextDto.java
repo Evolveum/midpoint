@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -124,7 +125,7 @@ class CorrelationContextDto implements Serializable {
             String optionIdentifierRaw = potentialOwner.getIdentifier(); // the same as identifier.getStringValue()
             assert optionIdentifierRaw != null;
             if (identifier.isNewOwner()) {
-                correlationOptions.add(0,
+                correlationOptions.add(
                         new CorrelationOptionDto.NewOwner(context.getPreFocusRef(), optionIdentifierRaw));
             } else {
                 CandidateDescription<?> candidateDescription = candidates.get(identifier.getExistingOwnerId());
@@ -139,6 +140,11 @@ class CorrelationContextDto implements Serializable {
                 }
             }
         }
+
+        correlationOptions.sort(
+                Comparator.comparing(
+                        opt -> opt.getCandidateConfidenceValue(),
+                        Comparator.nullsFirst(Comparator.reverseOrder()))); // "new owner" <=> null confidence
     }
 
     private void createCorrelationPropertiesDefinitions(CaseType aCase, PageBase pageBase, Task task, OperationResult result)
@@ -164,6 +170,6 @@ class CorrelationContextDto implements Serializable {
 
     boolean hasConfidences() {
         return correlationOptions.stream().anyMatch(
-                option -> option.getCandidateConfidence() != null);
+                option -> option.getCandidateConfidenceString() != null);
     }
 }

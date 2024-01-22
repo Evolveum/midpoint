@@ -2842,7 +2842,7 @@ public final class WebComponentUtil {
      * This will simplify creating of a new_assignment_button
      */
     public static List<AssignmentObjectRelation> divideAssignmentRelationsByAllValues(
-            List<AssignmentObjectRelation> initialAssignmentRelationsList, boolean isMemberAssignment) {
+            List<AssignmentObjectRelation> initialAssignmentRelationsList, boolean addDefaultObjectRelations) {
         if (initialAssignmentRelationsList == null) {
             return null;
         }
@@ -2852,7 +2852,7 @@ public final class WebComponentUtil {
             if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getObjectTypes())) {
                 assignmentObjectRelation.getObjectTypes().forEach(objectType -> {
                     if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getArchetypeRefs())) {
-                        if (isMemberAssignment) {
+                        if (addDefaultObjectRelations) {
                             //add at first type+relation combination without archetypeRef to cover default views (e.g. all users)
                             AssignmentObjectRelation defaultViewRelation = new AssignmentObjectRelation();
                             defaultViewRelation.setObjectTypes(Collections.singletonList(objectType));
