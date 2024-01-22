@@ -76,7 +76,7 @@ Experimental.
 
 == Use
 
-In 4.7, the event marks are used exclusively in connection with xref:../simulation/[simulations].
+In 4.7, the event marks are used exclusively in connection with xref:../../simulation/[simulations].
 In the future we plan to extend their use to operations that are really executed, so they might be found in audit logs or on operational dashboards.
 
 == Definition
