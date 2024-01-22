@@ -32,6 +32,9 @@ public class RepositoryDiag implements Serializable {
      */
     private String implementationDescription;
 
+    /** True if the repository is H2-based (always `false` for the native repository). */
+    private boolean isH2;
+
     private boolean isEmbedded;
 
     /**
@@ -73,6 +76,14 @@ public class RepositoryDiag implements Serializable {
 
     public void setImplementationDescription(String implementationDescription) {
         this.implementationDescription = implementationDescription;
+    }
+
+    public boolean isH2() {
+        return isH2;
+    }
+
+    public void setH2(boolean h2) {
+        isH2 = h2;
     }
 
     public boolean isEmbedded() {
