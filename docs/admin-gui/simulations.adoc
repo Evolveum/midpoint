@@ -26,7 +26,7 @@ Simulation result details dashboard displays summary data about state of process
 Table on the left side display various information related to result as a whole like start/end timestamp, current status and counts of processed objects.
 On the right side we can see two sets of widgets:
 
-* Event marks - metrics counted based on predefined event marks. To see more about event marks, check xref:/midpoint/reference/mark/event-marks.adoc[event marks].
+* Event marks - metrics counted based on predefined event marks. To see more about event marks, check xref:/midpoint/reference/concepts/mark/event-marks.adoc[event marks].
 Objects processed during current simulation can be filtered based on these event marks.
 * Metrics - plain metrics defined in system configuration, not backed up by marks.
 These metrics can't be used to filter processed objects, they're just to precompute different counts/aggregations.
