@@ -70,7 +70,7 @@ When searching for an object with given built-in metric set to 1, the query on t
 
 == Event Mark-based Metrics
 
-Each xref:../../mark/event-marks.adoc[event mark] present in the configuration is considered to be a simulation metric.
+Each xref:../../concepts/mark/event-marks.adoc[event mark] present in the configuration is considered to be a simulation metric.
 Values of such metric are either 1 (mark is present) or 0 (mark is not present).
 
 There is a set of default event marks present among midPoint initial objects.
