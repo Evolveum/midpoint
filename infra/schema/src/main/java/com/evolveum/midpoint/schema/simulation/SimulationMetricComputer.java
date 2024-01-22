@@ -108,46 +108,37 @@ public class SimulationMetricComputer {
             SimulationMetricPartitionType partition,
             SimulationMetricAggregationFunctionType function,
             ComputationParameters computationParameters) {
-        switch (function) {
-            case SELECTION_SIZE:
-                return asBigDecimal(partition.getSelectionSize());
-            case SELECTION_TOTAL_VALUE:
-                return partition.getSelectionTotalValue();
-            case DOMAIN_SIZE:
-                return asBigDecimal(partition.getDomainSize());
-            case DOMAIN_TOTAL_VALUE:
-                return partition.getDomainTotalValue();
-            case SELECTION_SIZE_TO_DOMAIN_SIZE:
-                return ratio(
-                        asBigDecimal(partition.getSelectionSize()),
-                        asBigDecimal(partition.getDomainSize()),
-                        computationParameters);
-            case SELECTION_TOTAL_VALUE_TO_DOMAIN_SIZE:
-                return ratio(
-                        partition.getSelectionTotalValue(),
-                        asBigDecimal(partition.getDomainSize()),
-                        computationParameters);
-            case DOMAIN_TOTAL_VALUE_TO_DOMAIN_SIZE:
-                return ratio(
-                        partition.getDomainTotalValue(),
-                        asBigDecimal(partition.getDomainSize()),
-                        computationParameters);
-            case SELECTION_TOTAL_VALUE_TO_DOMAIN_TOTAL_VALUE:
-                return ratio(
-                        partition.getSelectionTotalValue(),
-                        partition.getDomainTotalValue(),
-                        computationParameters);
-            case SELECTION_MIN_VALUE:
-                return partition.getSelectionMinValue();
-            case DOMAIN_MIN_VALUE:
-                return partition.getDomainMinValue();
-            case SELECTION_MAX_VALUE:
-                return partition.getSelectionMaxValue();
-            case DOMAIN_MAX_VALUE:
-                return partition.getDomainMaxValue();
-            default:
-                throw new AssertionError(function);
-        }
+        return switch (function) {
+            case NONE -> null;
+            case SELECTION_SIZE -> asBigDecimal(partition.getSelectionSize());
+            case SELECTION_TOTAL_VALUE -> partition.getSelectionTotalValue();
+            case DOMAIN_SIZE -> asBigDecimal(partition.getDomainSize());
+            case DOMAIN_TOTAL_VALUE -> partition.getDomainTotalValue();
+            case SELECTION_SIZE_TO_DOMAIN_SIZE -> ratio(
+                    asBigDecimal(partition.getSelectionSize()),
+                    asBigDecimal(partition.getDomainSize()),
+                    computationParameters);
+            case SELECTION_TOTAL_VALUE_TO_DOMAIN_SIZE -> ratio(
+                    partition.getSelectionTotalValue(),
+                    asBigDecimal(partition.getDomainSize()),
+                    computationParameters);
+            case SELECTION_TOTAL_VALUE_TO_SELECTION_SIZE -> ratio(
+                    partition.getSelectionTotalValue(),
+                    asBigDecimal(partition.getSelectionSize()),
+                    computationParameters);
+            case DOMAIN_TOTAL_VALUE_TO_DOMAIN_SIZE -> ratio(
+                    partition.getDomainTotalValue(),
+                    asBigDecimal(partition.getDomainSize()),
+                    computationParameters);
+            case SELECTION_TOTAL_VALUE_TO_DOMAIN_TOTAL_VALUE -> ratio(
+                    partition.getSelectionTotalValue(),
+                    partition.getDomainTotalValue(),
+                    computationParameters);
+            case SELECTION_MIN_VALUE -> partition.getSelectionMinValue();
+            case DOMAIN_MIN_VALUE -> partition.getDomainMinValue();
+            case SELECTION_MAX_VALUE -> partition.getSelectionMaxValue();
+            case DOMAIN_MAX_VALUE -> partition.getDomainMaxValue();
+        };
     }
 
     private static BigDecimal asBigDecimal(Integer value) {

@@ -123,7 +123,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         }
         if (constraint.getFilter() != null) {
             ObjectFilter filter =
-                    prismContext.getQueryConverter().parseFilter(constraint.getFilter(), object.asObjectable().getClass());
+                    prismContext.getQueryConverter().parseFilter(constraint.getFilter(), object.getDefinition());
             if (!filter.match(object.getValue(), matchingRuleRegistry)) {
                 return List.of();
             }

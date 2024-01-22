@@ -68,8 +68,13 @@ public abstract class CorrelationOptionDto implements Serializable {
         return identifier.equals(outcome);
     }
 
-    public abstract String getCandidateConfidence();
+    /** Returns `null` if and only if the option is "new owner". */
+    public abstract Double getCandidateConfidenceValue();
 
+    /** Returns `null` if and only if the option is "new owner". */
+    public abstract String getCandidateConfidenceString();
+
+    /** Returns `null` if the option is "new owner" or if there's no explanation available (for a candidate). */
     public abstract String getCandidateExplanation();
 
     /** Option representing an existing owner candidate. */
@@ -91,8 +96,13 @@ public abstract class CorrelationOptionDto implements Serializable {
         }
 
         @Override
-        public String getCandidateConfidence() {
-            return ((int) (candidateDescription.getConfidence() * 100)) + "%";
+        public Double getCandidateConfidenceValue() {
+            return candidateDescription.getConfidence();
+        }
+
+        @Override
+        public String getCandidateConfidenceString() {
+            return ((int) (getCandidateConfidenceValue() * 100)) + "%";
         }
 
         @Override
@@ -127,7 +137,12 @@ public abstract class CorrelationOptionDto implements Serializable {
         }
 
         @Override
-        public String getCandidateConfidence() {
+        public Double getCandidateConfidenceValue() {
+            return null;
+        }
+
+        @Override
+        public String getCandidateConfidenceString() {
             return null;
         }
 
