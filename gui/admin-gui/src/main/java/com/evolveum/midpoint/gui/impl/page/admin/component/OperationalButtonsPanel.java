@@ -184,11 +184,6 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
             public boolean isVisible() {
                 return isSaveButtonVisible();
             }
-
-            @Override
-            public boolean isEnabled() {
-                return isSavePreviewButtonEnabled();
-            }
         });
         save.titleAsLabel(true);
         save.setOutputMarkupId(true);
@@ -208,10 +203,6 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     protected boolean isSaveButtonVisible() {
         return !getModelObject().isReadOnly() && !isForcedPreview();
-    }
-
-    protected boolean isSavePreviewButtonEnabled() {
-        return true;
     }
 
     private boolean isForcedPreview() {

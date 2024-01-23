@@ -316,7 +316,7 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
     }
 
     @Override
-    protected boolean isSavePreviewButtonEnabled() {
+    protected boolean isSaveButtonVisible() {
         return !ItemStatus.NOT_CHANGED.equals(getModelObject().getStatus()) || getModelObject().canModify() ||
                 isAuthorizedToModify(); //this check was added due to MID-9380
     }
