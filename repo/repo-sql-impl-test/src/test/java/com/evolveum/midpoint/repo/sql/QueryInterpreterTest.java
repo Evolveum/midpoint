@@ -3350,7 +3350,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                       _a.modifyChannel
                     from
                       RAssignment _a
-                        left join RObject _t on (_a.targetRef.target = _t)
+                        left join RObject _t on _a.targetRef.target = _t
                     where
                       (
                         _a.targetRef.targetType = :targetType and
@@ -3386,7 +3386,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     from
                       RUser _u
                         left join _u.linkRef _l
-                        left join RShadow _t on (_l.target = _t)
+                        left join RShadow _t on _l.target = _t
                     where
                       (
                         _t.nameCopy.orig like :orig escape '!' and
@@ -3420,8 +3420,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     from
                       RUser _u
                         left join _u.linkRef _l
-                        left join RShadow _t on (_l.target = _t)
-                        left join RObject _t2 on (_t.resourceRef.target = _t2)
+                        left join RShadow _t on _l.target = _t
+                        left join RObject _t2 on _t.resourceRef.target = _t2
                     where
                       _t2.name.norm like :norm escape '!'
                     """);
@@ -3449,7 +3449,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     from
                       RUser _u
                         left join _u.archetypeRef _a
-                        left join RArchetype _t on (_a.target = _t)
+                        left join RArchetype _t on _a.target = _t
                     where
                       (
                         _t.nameCopy.orig = :orig and
@@ -3583,7 +3583,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                       _a.ownerOid, _a.id, _a.fullObject
                     from
                       RAccessCertificationCase _a
-                        left join RObject _t on (_a.targetRef.target = _t)
+                        left join RObject _t on _a.targetRef.target = _t
                     order by _t.name.orig asc
                     """);
         } finally {
@@ -5054,7 +5054,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                   from
                       RUser _u
                         left join _u.linkRef _l
-                        left join RShadow _t on (_l.target = _t)
+                        left join RShadow _t on _l.target = _t
                   where
                       (
                         _t.resourceRef.targetOid = :targetOid and

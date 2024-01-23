@@ -71,12 +71,12 @@ public class JoinSpecification {
         sb.append("left join ");
         if (explicitJoinedType != null) {
             sb.append(explicitJoinedType).append(" ").append(alias);
-            sb.append(" on (").append(path).append(" = ").append(alias);
+            sb.append(" on ").append(path).append(" = ").append(alias);
             if (condition != null) {
-                sb.append(" and ");
+                sb.append(" and (");
                 condition.dumpToHql(sb, -1);
+                sb.append(")");
             }
-            sb.append(")");
         } else {
             sb.append(path).append(" ").append(alias);
             if (condition != null) {
