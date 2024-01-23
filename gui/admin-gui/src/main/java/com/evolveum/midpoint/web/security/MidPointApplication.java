@@ -14,6 +14,10 @@ import java.net.URI;
 import java.util.*;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.repo.common.subscription.Subscription;
+
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionStateCache;
+
 import jakarta.servlet.ServletContext;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.*;
@@ -91,8 +95,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.util.SubscriptionInformation;
-import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -162,6 +165,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private Clock clock;
     @Autowired private AccessCertificationService certificationService;
     @Autowired private ActivationComputer activationComputer;
+    @Autowired private SubscriptionStateCache subscriptionStateCache;
     @Autowired(required = false) private List<WicketConfigurator> wicketConfigurators = new ArrayList<>();
     @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
     @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
@@ -170,7 +174,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     private WebApplicationConfiguration webApplicationConfiguration;
 
     private DeploymentInformationType deploymentInfo;
-    private SubscriptionInformation subscriptionInformation;
+    private Subscription subscription;
 
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
@@ -328,10 +332,15 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return deploymentInfo;
     }
 
-    @NotNull
-    public SubscriptionInformation getSubscription() {
-        // should not be null, unless called before initialization, in which case we provide default NONE
-        return Objects.requireNonNullElse(subscriptionInformation, SubscriptionUtil.createNoneSubscription());
+    public @NotNull SubscriptionState getSubscriptionState() {
+        var subscription = this.subscription;
+        if (subscription != null) {
+            // Should be always the case, maybe except the initialization.
+            return subscriptionStateCache.getSubscriptionState(subscription);
+        } else {
+            // This will try to get it from the current system configuration.
+            return subscriptionStateCache.getSubscriptionState();
+        }
     }
 
     private void initializeSchrodinger() {
@@ -571,7 +580,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     private void updateDeploymentInfo(@Nullable SystemConfigurationType value) {
         deploymentInfo = value != null ? value.getDeploymentInformation() : null;
-        subscriptionInformation = SubscriptionUtil.getSubscriptionInformation(value);
+        subscription = SubscriptionStateCache.getSubscription(value);
     }
 
     /* (non-Javadoc)

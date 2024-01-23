@@ -166,7 +166,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -3246,7 +3245,7 @@ public final class WebComponentUtil {
     }
 
     public static String getMidpointCustomSystemName(PageAdminLTE pageBase, String defaultSystemNameKey) {
-        if (MidPointApplication.get().getSubscription().isDemoOrIncorrect()) {
+        if (MidPointApplication.get().getSubscriptionState().isInvalidOrDemo()) {
             return pageBase.createStringResource(defaultSystemNameKey).getString();
         }
 
@@ -4050,17 +4049,5 @@ public final class WebComponentUtil {
                 return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz);
             }
         };
-    }
-
-    public static boolean isAssignmentAddedOrRemoved(PrismContainerWrapper<AssignmentType> assignmentsWrapper) {
-        if (assignmentsWrapper != null) {
-            for (PrismContainerValueWrapper<AssignmentType> assignmentWrapper : assignmentsWrapper.getValues()) {
-                if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||
-                        ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 }

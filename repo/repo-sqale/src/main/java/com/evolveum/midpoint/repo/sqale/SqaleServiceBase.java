@@ -15,6 +15,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
+
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.postgresql.util.PSQLException;
@@ -169,7 +171,7 @@ public class SqaleServiceBase {
     }
     // endregion
 
-    @NotNull public RepositoryDiag getRepositoryDiag() {
+    public @NotNull RepositoryDiag getRepositoryDiag() {
         logger.debug("Getting repository diagnostics.");
 
         RepositoryDiag diag = new RepositoryDiag();
@@ -181,6 +183,8 @@ public class SqaleServiceBase {
         diag.setDriverShortName(config.getDriverClassName());
         diag.setRepositoryUrl(config.getJdbcUrl());
         diag.setEmbedded(config.isEmbedded());
+
+        diag.setH2(config.getDatabaseType() == SupportedDatabase.H2);
 
         Enumeration<Driver> drivers = DriverManager.getDrivers();
         while (drivers.hasMoreElements()) {

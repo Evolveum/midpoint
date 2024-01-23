@@ -457,8 +457,8 @@ public class MockFactory {
             }
 
             @Override
-            public RepositoryDiag getRepositoryDiag() {
-                return null;
+            public @NotNull RepositoryDiag getRepositoryDiag() {
+                return new RepositoryDiag();
             }
 
             @Override

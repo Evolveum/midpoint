@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 
@@ -17,6 +18,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.internal.SessionFactoryImpl;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
@@ -79,7 +81,7 @@ public abstract class SqlBaseService {
         }
     }
 
-    public RepositoryDiag getRepositoryDiag() {
+    public @NotNull RepositoryDiag getRepositoryDiag() {
         LOGGER.debug("Getting repository diagnostics.");
 
         RepositoryDiag diag = new RepositoryDiag();
@@ -92,6 +94,8 @@ public abstract class SqlBaseService {
         diag.setDriverShortName(config.getDriverClassName());
         diag.setRepositoryUrl(config.getJdbcUrl());
         diag.setEmbedded(config.isEmbedded());
+
+        diag.setH2(config.getDatabaseType() == SupportedDatabase.H2);
 
         Enumeration<Driver> drivers = DriverManager.getDrivers();
         while (drivers.hasMoreElements()) {
@@ -138,10 +142,9 @@ public abstract class SqlBaseService {
             session.getTransaction().commit();
 
             SessionFactory sessionFactory = baseHelper.getSessionFactory();
-            if (!(sessionFactory instanceof SessionFactoryImpl)) {
+            if (!(sessionFactory instanceof SessionFactoryImpl sessionFactoryImpl)) {
                 return;
             }
-            SessionFactoryImpl sessionFactoryImpl = (SessionFactoryImpl) sessionFactory;
             // we try to override configuration which was read from sql repo configuration with
             // real configuration from session factory
             Dialect dialect = sessionFactoryImpl.getJdbcServices().getDialect();
