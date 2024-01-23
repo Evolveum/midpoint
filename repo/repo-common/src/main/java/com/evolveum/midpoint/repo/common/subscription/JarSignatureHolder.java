@@ -24,6 +24,10 @@ public class JarSignatureHolder {
         return jarSignatureValidity == Validity.VALID;
     }
 
+    public static boolean isOverlayDetected() {
+        return jarSignatureValidity == Validity.OVERLAY_DETECTED;
+    }
+
     public enum Validity {
 
         /** The signature is present and valid. */
@@ -36,6 +40,9 @@ public class JarSignatureHolder {
         ERROR,
 
         /** The signature checking is not applicable, e.g. because we are not running from a JAR file. */
-        NOT_APPLICABLE
+        NOT_APPLICABLE,
+
+        /** The overlay was detected, so the signature is not checked at all. */
+        OVERLAY_DETECTED
     }
 }

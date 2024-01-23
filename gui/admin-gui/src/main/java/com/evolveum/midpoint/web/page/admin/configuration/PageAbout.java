@@ -107,6 +107,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_VALUE = "value";
     private static final String ID_OFFICIAL_BUILD = "officialBuild";
     private static final String ID_UNOFFICIAL_BUILD = "unofficialBuild";
+    private static final String ID_OVERLAY = "overlay";
     private static final String ID_LIST_SYSTEM_ITEMS = "listSystemItems";
     private static final String ID_TEST_REPOSITORY = "testRepository";
     private static final String ID_TEST_REPOSITORY_CHECK_ORG_CLOSURE = "testRepositoryCheckOrgClosure";
@@ -210,12 +211,16 @@ public class PageAbout extends PageAdminConfiguration {
         add(build);
 
         boolean jarSignatureValid = JarSignatureHolder.isJarSignatureValid();
+        boolean overlay = JarSignatureHolder.isOverlayDetected();
         add(new WebMarkupContainer(ID_OFFICIAL_BUILD)
                 .setRenderBodyOnly(true)
-                .setVisible(jarSignatureValid));
+                .setVisible(!overlay && jarSignatureValid));
         add(new WebMarkupContainer(ID_UNOFFICIAL_BUILD)
                 .setRenderBodyOnly(true)
-                .setVisible(!jarSignatureValid));
+                .setVisible(!overlay && !jarSignatureValid));
+        add(new WebMarkupContainer(ID_OVERLAY)
+                .setRenderBodyOnly(true)
+                .setVisible(overlay));
 
         ListView<LabeledString> listSystemItems = new ListView<>(ID_LIST_SYSTEM_ITEMS, getItems()) {
             private static final long serialVersionUID = 1L;
