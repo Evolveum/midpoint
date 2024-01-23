@@ -27,7 +27,11 @@ import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-/** Checks the signature of `midpoint.jar` file. Currently, it uses enclosed certificate file to check the authenticity. */
+/**
+ * Checks the signature of `midpoint.jar` file (if applicable).
+ *
+ * Currently, it uses enclosed certificate file to check the authenticity.
+ */
 public class MidPointJarSignatureChecker {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointJarSignatureChecker.class);
@@ -38,6 +42,10 @@ public class MidPointJarSignatureChecker {
     }
 
     private static @NotNull Validity checkJarSignature() {
+        if (isOverlayDetected()) {
+            return Validity.OVERLAY_DETECTED;
+        }
+
         try {
             var home = new ApplicationHome(MidPointSpringApplication.class);
             var source = home.getSource();
@@ -54,6 +62,15 @@ public class MidPointJarSignatureChecker {
         }
     }
 
+    private static boolean isOverlayDetected() {
+        if (MidPointJarSignatureChecker.class.getClassLoader().getResource("overlay-info.txt") != null) {
+            LOGGER.info("The overlay-info.txt file was found, skipping JAR signature check");
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private static Validity verify(JarFile jar) throws IOException, CertificateException {
 
         X509Certificate ourCertificate;
@@ -66,7 +83,6 @@ public class MidPointJarSignatureChecker {
             ourCertificate = (X509Certificate) certFactory.generateCertificate(cert);
         }
 
-        int checkedFiles = 0;
         byte[] scratchBuffer = new byte[8192];
         Enumeration<JarEntry> entries = jar.entries();
         while (entries.hasMoreElements()) {
@@ -106,10 +122,9 @@ public class MidPointJarSignatureChecker {
                     LOGGER.info("File without matching certificate in JAR: {}", entry);
                     return Validity.INVALID;
                 }
-                checkedFiles++;
             }
         }
-        LOGGER.info("JAR signature verification succeeded for all {} relevant entries in {}", checkedFiles, jar.getName());
+        LOGGER.info("JAR signature verification succeeded for {}", jar.getName());
         return Validity.VALID;
     }
 }
