@@ -9,7 +9,13 @@ package com.evolveum.midpoint.init;
 import java.io.File;
 import java.util.Arrays;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -26,8 +32,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
@@ -43,8 +47,13 @@ public abstract class DataImport {
     protected static final String OPERATION_INITIAL_OBJECTS_IMPORT = DOT_CLASS + "initialObjectsImport";
     protected static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
 
+    protected static final String OPERATION_INITIALIZE_ADMINISTRATOR_INITIAL_PASSWORD = DOT_CLASS + "initAdministratorInitialPassword";
+
+    protected static final int MIN_PASSWORD_LENGTH = 10;
+
     @Autowired protected PrismContext prismContext;
     protected ModelService model;
+    @Autowired  protected ModelInteractionService modelInteractionService;
     protected TaskManager taskManager;
     @Autowired protected MidpointConfiguration configuration;
 
@@ -68,6 +77,10 @@ public abstract class DataImport {
         this.configuration = configuration;
     }
 
+    public void setModelInteractionService(ModelInteractionService modelInteractionService) {
+        this.modelInteractionService = modelInteractionService;
+    }
+
     public abstract void init() throws SchemaException;
 
     protected SecurityContext provideFakeSecurityContext() {
@@ -84,7 +97,7 @@ public abstract class DataImport {
         return securityContext;
     }
 
-    protected <O extends ObjectType> void preImportUpdate(PrismObject<O> object) {
+    protected <O extends ObjectType> void preImportUpdate(PrismObject<O> object, Task task, OperationResult mainResult) {
         if (object.canRepresent(SystemConfigurationType.class)) {
             SystemConfigurationType systemConfigType = (SystemConfigurationType) object.asObjectable();
             InternalsConfigurationType internals = systemConfigType.getInternals();
@@ -104,7 +117,39 @@ public abstract class DataImport {
                 }
             }
         }
+        if (SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.getOid())) {
+            if (object.asObjectable()  instanceof UserType administrator) {
+                initAdministratorInitialPassword(administrator, task, mainResult);
+            }
+        }
 
+    }
+
+    private <O extends ObjectType> void initAdministratorInitialPassword(UserType object, Task task, OperationResult mainResult) {
+        var result = mainResult.createSubresult(OPERATION_INITIALIZE_ADMINISTRATOR_INITIAL_PASSWORD);
+        try {
+            var initialPassword = configuration.getConfiguration().getString(MidpointConfiguration.ADMINISTRATOR_INITIAL_PASSWORD);
+            if (initialPassword == null) {
+                // Generate password and log it
+                var policy = model.getObject(ValuePolicyType.class, SystemObjectsType.PASSWORD_POLICY_DEFAULT.value(), null, task, result).asObjectable();
+                initialPassword = modelInteractionService.generateValue(policy, MIN_PASSWORD_LENGTH, false,
+                        object.asPrismObject(), "initial password", task, result);
+                LOGGER.warn("Administrator initial password (except double quotes): \"{}\"", initialPassword);
+            }
+
+            if (initialPassword != null) {
+                object.setCredentials(new CredentialsType()
+                        .password(new PasswordType().value(new ProtectedStringType().clearValue(initialPassword))));
+                LOGGER.warn("Please change administrator password  after first login.");
+            } else {
+                LOGGER.warn("Administrator account was created without password. See https://docs.evolveum.com/midpoint/reference/security/authentication/administrator-initial-password");
+                // Log that administrator was generated without initial password, pointer how to change administrator password
+            }
+        } catch (Exception e) {
+            result.recordFatalError("Can not set initial password", e);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     protected void sortFiles(File[] files) {
