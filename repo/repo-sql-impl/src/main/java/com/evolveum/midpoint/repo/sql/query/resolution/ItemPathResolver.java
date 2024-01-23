@@ -79,6 +79,9 @@ public class ItemPathResolver {
         HibernateQuery hibernateQuery = context.getHibernateQuery();
         String joinedItemJpaName = joinedItemDefinition.getJpaName();
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
+        if (joinedItemDefinition.isExplicitCast()) {
+            joinedItemFullPath = "treat(" + joinedItemFullPath + " as " + joinedItemDefinition.getTargetDefinition().getJpaClassName() + ")";
+        }
         String joinedItemAlias;
         if (joinedItemDefinition.isMultivalued()) {
             if (reuseMultivaluedJoins) {

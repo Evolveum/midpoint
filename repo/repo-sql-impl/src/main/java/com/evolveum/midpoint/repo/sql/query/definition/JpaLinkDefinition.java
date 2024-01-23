@@ -23,15 +23,23 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition>
     private final String jpaName;                                     // beware - null for "same entity" transitions (metadata, construction, ...)
     private final CollectionSpecification collectionSpecification;    // null if single valued
     private final boolean embedded;
+
+    private final boolean explicitCast;
     @NotNull private D targetDefinition;
 
     public JpaLinkDefinition(@NotNull ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification,
             boolean embedded, @NotNull D targetDefinition) {
+        this(itemPath, jpaName, collectionSpecification, embedded, targetDefinition, false);
+
+    }
+    public JpaLinkDefinition(@NotNull ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification,
+            boolean embedded, @NotNull D targetDefinition, boolean explicitCast) {
         this.itemPath = itemPath;
         this.jpaName = jpaName;
         this.collectionSpecification = collectionSpecification;
         this.embedded = embedded;
         this.targetDefinition = targetDefinition;
+        this.explicitCast = explicitCast;
     }
 
     @NotNull
@@ -135,5 +143,9 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition>
             // typing hack but we don't mind
             targetDefinition = (D) ((JpaEntityPointerDefinition) targetDefinition).getResolvedEntityDefinition();
         }
+    }
+
+    public boolean isExplicitCast() {
+        return explicitCast;
     }
 }
