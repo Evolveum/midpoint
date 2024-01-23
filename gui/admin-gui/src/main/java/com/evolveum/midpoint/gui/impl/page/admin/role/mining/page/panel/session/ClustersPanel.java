@@ -16,7 +16,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -25,19 +24,25 @@ import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -48,7 +53,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -123,7 +127,50 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
 
             @Override
             protected IColumn<SelectableBean<RoleAnalysisClusterType>, String> createIconColumn() {
-                return super.createIconColumn();
+                return new CompositedIconColumn<>(Model.of("")) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem, String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> rowModel) {
+                        super.populateItem(cellItem, componentId, rowModel);
+                    }
+
+                    @Override
+                    protected CompositedIcon getCompositedIcon(IModel<SelectableBean<RoleAnalysisClusterType>> rowModel) {
+                        String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(RoleAnalysisClusterType.COMPLEX_TYPE);
+                        CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
+                                LayeredIconCssStyle.IN_ROW_STYLE);
+
+                        SelectableBean<RoleAnalysisClusterType> object = rowModel.getObject();
+                        if (object != null) {
+                            RoleAnalysisClusterType value = object.getValue();
+                            if (value != null) {
+                                RoleAnalysisClusterCategory category = value.getCategory();
+                                if (category != null && category.equals(RoleAnalysisClusterCategory.OUTLIERS)) {
+                                    compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon
+                                                    + " " + GuiStyleConstants.RED_COLOR,
+                                            LayeredIconCssStyle.IN_ROW_STYLE);
+                                }
+
+                                Task task = getPageBase().createSimpleTask(OP_UPDATE_STATUS);
+                                OperationResult result = task.getResult();
+
+                                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                                @NotNull String stateString = roleAnalysisService.recomputeAndResolveClusterOpStatus(
+                                        value.asPrismObject(),
+                                        result, task);
+
+                                IconType icon = new IconType();
+                                if (stateString.equals(RoleAnalysisObjectState.PROCESSING.getDisplayString())) {
+                                    icon.setCssClass("fas fa-sync-alt fa-spin"
+                                            + " " + GuiStyleConstants.BLUE_COLOR);
+                                    compositedIconBuilder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+                                }
+
+                            }
+                        }
+                        return compositedIconBuilder.build();
+                    }
+                };
             }
 
             @Override
@@ -132,7 +179,6 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                 List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> columns = new ArrayList<>();
 
                 IColumn<SelectableBean<RoleAnalysisClusterType>, String> column;
-
                 column = new AbstractExportableColumn<>(
                         createStringResource("Users")) {
 
@@ -318,48 +364,6 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
 
                             cellItem.add(new EmptyPanel(componentId));
                         }
-
-                    }
-
-                    @Override
-                    public boolean isSortable() {
-                        return false;
-                    }
-
-                };
-                columns.add(column);
-
-                column = new AbstractColumn<>(
-                        createStringResource("State")) {
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
-
-                        Task task = getPageBase().createSimpleTask(OP_UPDATE_STATUS);
-                        OperationResult result = task.getResult();
-                        RoleAnalysisClusterType cluster = model.getObject().getValue();
-
-                        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-                        String stateString = roleAnalysisService.recomputeAndResolveClusterOpStatus(
-                                cluster.asPrismObject(),
-                                result, task);
-
-                        ObjectReferenceType taskRef = roleAnalysisService.extractTaskRef(cluster.getOperationExecution());
-
-                        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId, Model.of(stateString)) {
-                            @Override
-                            public void onClick(AjaxRequestTarget target) {
-                                super.onClick(target);
-                                if (taskRef != null) {
-                                    DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskRef.getOid(),
-                                            this, true);
-                                }
-                            }
-                        };
-                        ajaxLinkPanel.setEnabled(taskRef != null);
-                        ajaxLinkPanel.setOutputMarkupId(true);
-                        cellItem.add(ajaxLinkPanel);
 
                     }
 

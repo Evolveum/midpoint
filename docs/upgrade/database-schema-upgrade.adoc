@@ -52,7 +52,6 @@ you are using the old repository.
 == Upgrading Native PostgreSQL Repository
 
 This section describes how to upgrade the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
-There is no need to "upgrade" to 4.4 - but we encourage you to xref:/midpoint/reference/repository/native-postgresql/migration/[migrate to the new repository].
 For future releases, the process should be similar to previous upgrades.
 
 === Upgrade Script Location
@@ -62,10 +61,10 @@ For future releases, the process should be similar to previous upgrades.
 | Distribution | Script location
 
 | Binary
-| <distribution root>/doc/config/sql/native-new/
+| <distribution root>/doc/config/sql/native/
 
 | Source
-| <source code root>/config/sql/native-new/
+| <source code root>/config/sql/native/
 
 |===
 
@@ -77,8 +76,8 @@ contain development changes already (unless you really want to try the cutting e
 === Executing the script
 
 The Native repository has separate upgrade scripts for the main portion of the repository
-(`postgres-new-upgrade.sql`) and for the audit tables (`postgres-new-upgrade-audit.sql`).
-This makes the process easier for deployments with separate audit database - you simply use the right udgrade script on each database.
+(`postgres-upgrade.sql`) and for the audit tables (`postgres-audit-upgrade.sql`).
+This makes the process easier for deployments with separate audit database - you simply use the right upgrade script on each database.
 If both repository and audit is in the same database, use both scripts on the same database.
 
 The scripts do not contain any version number and are safe to run repeatedly - only the missing changes are applied.
@@ -94,20 +93,20 @@ This stops the upgrade when the first such problem occurs, but works fine if the
 To upgrade the main repository run this command:
 [source,bash]
 ----
-psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint -f postgres-new-upgrade.sql
+psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint -f postgres-upgrade.sql
 ----
 
 To upgrade the audit database (here on the same server, but different database) run:
 [source,bash]
 ----
-psql -v ON_ERROR_STOP=1 -h localhost -U midaudit -W -d midaudit -f postgres-new-upgrade-audit.sql
+psql -v ON_ERROR_STOP=1 -h localhost -U midaudit -W -d midaudit -f postgres-audit-upgrade.sql
 ----
 
 To upgrade database containing both, use multiple `-f` options:
 [source,bash]
 ----
 psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint \
-  -f postgres-new-upgrade.sql -f postgres-new-upgrade-audit.sql
+  -f postgres-upgrade.sql -f postgres-audit-upgrade.sql
 ----
 
 The scripts store their internal version information in the `m_global_metadata` table.
@@ -134,10 +133,10 @@ This section describes how to upgrade the xref:/midpoint/reference/repository/ge
 | Distribution | Script location
 
 | Binary
-| <distribution root>/doc/config/sql/generic-old/
+| <distribution root>/doc/config/sql/generic/
 
 | Source
-| <source code root>/config/sql/generic-old/
+| <source code root>/config/sql/generic/
 
 |===
 
@@ -145,9 +144,9 @@ The script file name is constructed in a form:
 
 <database>-upgrade-<from version>-<to version>.sql
 
-e.g. `postgresql-upgrade-4.3-4.4.sql` is an upgrade script for PostgreSQL database that upgrades midPoint 4.3 to midPoint 4.4.
+e.g. `oracle-upgrade-4.5-4.6.sql` is an upgrade script for PostgreSQL database that upgrades midPoint 4.5 to midPoint 4.6.
 
-== Executing the script
+=== Executing the script
 
 The scripts should be executed by the usual way the SQL script is executed for any particular database.
 Perhaps the best way is to use command-line tools.
@@ -156,7 +155,7 @@ E.g., the upgrade script for PostgreSQL database is usually executed like this:
 
 [source,bash]
 ----
-psql -h localhost -U midpoint -W -d midpoint -f postgresql-upgrade-4.3-4.4.sql
+psql -h localhost -U midpoint -W -d midpoint -f oracle-upgrade-4.5-4.6.sql
 ----
 
 The scripts are designed to be run only once - unlike upgrade scripts for the Native repository, they are not idempotent.
@@ -165,8 +164,7 @@ The scripts are designed to be run only once - unlike upgrade scripts for the Na
 ====
 Strictly speaking, the _version_ term above refers to the _database schema version_, not the midPoint version.
 These are the same for the majority of cases.
-A notable exception is midPoint 4.1 that uses database schema version 4.0.
-So, in that particular case, upgrade scripts are named like `postgresql-upgrade-4.0-4.2.sql`.
+For generic repository, the latest version of repository script is "4.6" and there were no changes afterward for generic repository.
 See xref:/midpoint/reference/repository/generic/database-schema-versioning/[Database schema versioning] for more information.
 ====
 

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqlbase;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 import com.google.common.base.Strings;
 
 /**
@@ -15,6 +17,10 @@ public class QueryException extends RepositoryException {
 
     public QueryException(String message) {
         super(message);
+    }
+
+    public QueryException(LocalizableMessage localizableMessage) {
+        super(localizableMessage);
     }
 
     public QueryException(Throwable cause) {

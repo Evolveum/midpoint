@@ -366,7 +366,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
             BigDecimal value = SimulationMetricValuesTypeUtil.getValue(values.get(values.size() - 1));
 
-            return formatValue(value, getPageBase().getPrincipal().getLocale());
+            return formatValue(value, LocalizationUtil.findLocale());
         };
     }
 

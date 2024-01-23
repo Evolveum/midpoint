@@ -25,39 +25,26 @@ class ExpectedMatches {
     }
 
     private Match getMatch(String abbreviation) {
-        switch (abbreviation.toUpperCase()) {
-            case "F":
-                return Match.FULL;
-            case "P":
-                return Match.PARTIAL;
-            case "N":
-                return Match.NONE;
-            case "NA":
-                return Match.NOT_APPLICABLE;
-            default:
-                throw new IllegalArgumentException(abbreviation);
-        }
+        return switch (abbreviation.toUpperCase()) {
+            case "F" -> Match.FULL;
+            case "P" -> Match.PARTIAL;
+            case "N" -> Match.NONE;
+            case "NA" -> Match.NOT_APPLICABLE;
+            default -> throw new IllegalArgumentException(abbreviation);
+        };
     }
 
     private ItemPath getPath(String abbreviation) {
-        switch (abbreviation.toLowerCase()) {
-            case "en":
-                return UserType.F_EMPLOYEE_NUMBER;
-            case "gn":
-                return UserType.F_GIVEN_NAME;
-            case "fn":
-                return UserType.F_FAMILY_NAME;
-            case "hp":
-                return UserType.F_HONORIFIC_PREFIX;
-            case "cc":
-                return UserType.F_COST_CENTER;
-            case "dob":
-                return ItemPath.fromString("extension/dateOfBirth");
-            case "id":
-                return ItemPath.fromString("extension/nationalId");
-            default:
-                throw new IllegalArgumentException(abbreviation);
-        }
+        return switch (abbreviation.toLowerCase()) {
+            case "en" -> UserType.F_EMPLOYEE_NUMBER;
+            case "gn" -> UserType.F_GIVEN_NAME;
+            case "fn" -> UserType.F_FAMILY_NAME;
+            case "hp" -> UserType.F_HONORIFIC_PREFIX;
+            case "cc" -> UserType.F_COST_CENTER;
+            case "dob" -> ItemPath.fromString("extension/dateOfBirth");
+            case "id" -> ItemPath.fromString("extension/nationalId");
+            default -> throw new IllegalArgumentException(abbreviation);
+        };
     }
 
     public @NotNull PathKeyedMap<Match> getMatches() {

@@ -1,14 +1,15 @@
 = XML Query Language
 :page-wiki-name: XML Object Query
+:page-display-order: 200
 :page-wiki-id: 655379
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2011-04-29T11:52:35.673+02:00
-:page-wiki-metadata-modify-user: semancik
-:page-wiki-metadata-modify-date: 2019-04-23T10:51:03.770+02:00
+:page-deprecated: true
 
 This is a XML-based query language that was used in midPoint for years.
-It is still a supported option.
-However, it is gradually replaced by xref:midpoint-query-language/[Axiom query language].
+It is gradually replaced by xref:midpoint-query-language/[midPoint Query Language].
+
+We strongly recommend to use midPoint Query Language for querying data.
 
 == Examples
 
@@ -167,8 +168,8 @@ There was even a SOAP web service interface, therefore the XML-based query langu
 
 However, as midPoint evolved to be independent of particular data representation format (XML, JSON, YAML), the XML-based query language did not make much sense any more.
 It was also not entirely user-friendly.
-Therefore it was replaced by xref:midpoint-query-language/[Axiom Query Language]
+Therefore it was replaced by xref:midpoint-query-language/[midPoint Query Language]
 
 == See Also
 
-* xref:midpoint-query-language/[Axiom Query Language]
+* xref:midpoint-query-language/[midPoint Query Language]

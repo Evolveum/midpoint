@@ -53,7 +53,7 @@ import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionUtil;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -456,7 +456,6 @@ public class ReportServiceImpl implements ReportService {
 
     @Nullable
     public String missingSubscriptionFooter() {
-        return SubscriptionUtil.missingSubscriptionAppeal(
-                systemObjectCache, localizationService, Locale.getDefault());
+        return SubscriptionUtil.missingSubscriptionAppeal(localizationService, Locale.getDefault());
     }
 }

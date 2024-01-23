@@ -8,7 +8,7 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div wicket:id="popover">
         <div class="search-popover popover-body">
-            <input wicket:id="searchText" type="text" class="form-control form-control-sm mt-1 mb-2" style="width: auto;" size="20">
+            <input wicket:message="aria-label:SelectableItemListPopoverPanel.searchItem" wicket:id="searchText" type="text" class="form-control form-control-sm mt-1 mb-2" style="width: auto;" size="20">
 
             <dl class="border-bottom mb-2" wicket:id="itemList">
                 <dt class="mb-1">
@@ -17,15 +17,15 @@
                 <dd wicket:id="items">
                     <label>
                         <input wicket:id="itemCheckbox" type="checkbox">&nbsp;
-                        <a wicket:id="itemLink"><span wicket:id="itemName"/></a>
+                        <a wicket:id="itemLink" wicket:message="title:SelectableItemListPopoverPanel.addItem"><span wicket:id="itemName"/></a>
                         <i wicket:id="itemHelp"/>
                     </label>
                 </dd>
             </dl>
 
             <div class="mt-2 mb-1">
-                <a wicket:id="addButton" class="btn btn-sm btn-success"/>
-                <a wicket:id="closeButton" class="btn btn-sm btn-default"/>
+                <a wicket:id="addButton" class="btn btn-sm btn-success" wicket:message="title:SelectableItemListPopoverPanel.addSelectedItem"/>
+                <a wicket:id="closeButton" class="btn btn-sm btn-default" wicket:message="title:SelectableItemListPopoverPanel.close"/>
             </div>
         </div>
     </div>

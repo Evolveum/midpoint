@@ -34,7 +34,7 @@ public class QNameObjectTypeChoiceRenderer implements IChoiceRenderer<QName> {
             key = WebComponentUtil.createEnumResourceKey(ot);
         } catch (Exception e) {
             key = ObjectType.class.getSimpleName() + "." + qname.getLocalPart();   //HACK exception occurs during the attempt to find ObjectTypes value for
-                                                                                    // containerable (not objectable) type. therefore generate key in this way
+            // containerable (not objectable) type. therefore generate key in this way
         }
         return new StringResourceModel(key).setDefaultValue(key).getString();
     }

@@ -68,6 +68,7 @@ import org.joda.time.format.DateTimeFormat;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.common.AvailableLocale;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.AdminLTESkin;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -121,7 +122,6 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.util.SubscriptionUtil.SubscriptionType;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -425,7 +425,7 @@ public final class WebComponentUtil {
         String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
         StringResourceModel stringResourceModel = new StringResourceModel(key, component)
                 .setModel(new Model<String>())
-                .setDefaultValue(localizableMessage.getFallbackMessage())
+                .setDefaultValue(localizableMessage.getFallbackMessage().replace('{', '(').replace('}', ')'))
                 .setParameters(resolveArguments(localizableMessage.getArgs(), component));
         //System.out.println("GUI: Resolving [" + key + "]: to [" + rv + "]");
         return stringResourceModel.getString();
@@ -1318,41 +1318,6 @@ public final class WebComponentUtil {
         }
 
         return getValue(object.getValue(), propertyName, type);
-    }
-
-    public static Locale getLocaleFromString(String localeString) {
-        if (localeString == null) {
-            return null;
-        }
-        localeString = localeString.trim();
-        if (localeString.toLowerCase().equals("default")) {
-            return Locale.getDefault();
-        }
-
-        // Extract language
-        int languageIndex = localeString.indexOf('_');
-        String language;
-        if (languageIndex == -1) {
-            // No further "_" so is "{language}" only
-            return new Locale(localeString, "");
-        } else {
-            language = localeString.substring(0, languageIndex);
-        }
-
-        // Extract country
-        int countryIndex = localeString.indexOf('_', languageIndex + 1);
-        String country;
-        if (countryIndex == -1) {
-            // No further "_" so is "{language}_{country}"
-            country = localeString.substring(languageIndex + 1);
-            return new Locale(language, country);
-        } else {
-            // Assume all remaining is the variant so is
-            // "{language}_{country}_{variant}"
-            country = localeString.substring(languageIndex + 1, countryIndex);
-            String variant = localeString.substring(countryIndex + 1);
-            return new Locale(language, country, variant);
-        }
     }
 
     public static void encryptCredentials(ObjectDelta delta, boolean encrypt, MidPointApplication app) {
@@ -2876,7 +2841,7 @@ public final class WebComponentUtil {
      * This will simplify creating of a new_assignment_button
      */
     public static List<AssignmentObjectRelation> divideAssignmentRelationsByAllValues(
-            List<AssignmentObjectRelation> initialAssignmentRelationsList, boolean isMemberAssignment) {
+            List<AssignmentObjectRelation> initialAssignmentRelationsList, boolean addDefaultObjectRelations) {
         if (initialAssignmentRelationsList == null) {
             return null;
         }
@@ -2886,7 +2851,7 @@ public final class WebComponentUtil {
             if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getObjectTypes())) {
                 assignmentObjectRelation.getObjectTypes().forEach(objectType -> {
                     if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getArchetypeRefs())) {
-                        if (isMemberAssignment) {
+                        if (addDefaultObjectRelations) {
                             //add at first type+relation combination without archetypeRef to cover default views (e.g. all users)
                             AssignmentObjectRelation defaultViewRelation = new AssignmentObjectRelation();
                             defaultViewRelation.setObjectTypes(Collections.singletonList(objectType));
@@ -3280,8 +3245,7 @@ public final class WebComponentUtil {
     }
 
     public static String getMidpointCustomSystemName(PageAdminLTE pageBase, String defaultSystemNameKey) {
-        SubscriptionType subscriptionType = MidPointApplication.get().getSubscriptionType();
-        if (!subscriptionType.isCorrect() || subscriptionType == SubscriptionType.DEMO_SUBSCRIPTION) {
+        if (MidPointApplication.get().getSubscriptionState().isInvalidOrDemo()) {
             return pageBase.createStringResource(defaultSystemNameKey).getString();
         }
 
@@ -3442,10 +3406,14 @@ public final class WebComponentUtil {
         return CollectionUtils.isNotEmpty(archetypeAssignments);
     }
 
+    /**
+     * @deprecated Use {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil#findLocale()}
+     */
+    @Deprecated
     public static <F extends FocusType> Locale getLocale() {
         GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal == null) {
-            return MidPointApplication.getDefaultLocale();
+            return AvailableLocale.getDefaultLocale();
         }
 
         Locale locale;
@@ -3460,17 +3428,18 @@ public final class WebComponentUtil {
 
         if (locale == null) {
             if (ThreadContext.getSession() == null) {
-                return MidPointApplication.getDefaultLocale();
+                return AvailableLocale.getDefaultLocale();
             }
 
             locale = Session.get().getLocale();
         }
 
-        if (MidPointApplication.containsLocale(locale)) {
+        locale = AvailableLocale.getBestMatchingLocale(locale);
+        if (locale != null) {
             return locale;
         }
 
-        return MidPointApplication.getDefaultLocale();
+        return AvailableLocale.getDefaultLocale();
     }
 
     public static Collator getCollator() {
@@ -3604,7 +3573,9 @@ public final class WebComponentUtil {
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
             if (modelServiceLocator instanceof PageBase) {
-                ((PageBase) modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.evaluateAllowedValuesExpression", expression).getString());
+                ((PageBase) modelServiceLocator).error(
+                        com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(
+                                "FilterSearchItem.message.error.evaluateAllowedValuesExpression", new Object[] { expression }));
             }
             return allowedValues;
         }
@@ -3615,7 +3586,9 @@ public final class WebComponentUtil {
         if (!(value instanceof Set)) {
             LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
             if (modelServiceLocator instanceof PageBase) {
-                ((PageBase) modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.wrongType", expression).getString());
+                ((PageBase) modelServiceLocator).error(
+                        com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(
+                                "FilterSearchItem.message.error.wrongType", new Object[] { expression }));
             }
             return allowedValues;
         }
@@ -3625,7 +3598,9 @@ public final class WebComponentUtil {
                     || !(((PrismPropertyValue) (((Set<?>) value).iterator().next())).getValue() instanceof DisplayableValue)) {
                 LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
                 if (modelServiceLocator instanceof PageBase) {
-                    ((PageBase) modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.wrongType", expression).getString());
+                    ((PageBase) modelServiceLocator).error(
+                            com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(
+                                    "FilterSearchItem.message.error.wrongType", new Object[] { expression }));
                 }
                 return allowedValues;
             }
@@ -3930,17 +3905,15 @@ public final class WebComponentUtil {
     private static void createToastForObject(String key, QName type, AjaxRequestTarget target) {
         new Toast()
                 .success()
-                .title(PageBase.createStringResourceStatic(
-                                key,
-                                (Object) translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true)))
-                        .getString())
+                .title(com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(
+                        key,
+                        new Object[] { translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, true)) }))
                 .icon("fas fa-circle-check")
                 .autohide(true)
                 .delay(5_000)
-                .body(PageBase.createStringResourceStatic(
-                                key + ".text",
-                                (Object) translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false)))
-                        .getString())
+                .body(com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(
+                        key + ".text",
+                        new Object[] { translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false)) }))
                 .show(target);
     }
 

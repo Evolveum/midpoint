@@ -174,16 +174,16 @@ if we want to run tests (which is likely).
 
 Alternatively we can wget the files from GitHub directly:
 ----
-wget https://raw.githubusercontent.com/Evolveum/midpoint/master/config/sql/generic-old/sqlserver-4.5-all.sql
+wget https://github.com/Evolveum/midpoint/raw/master/config/sql/generic/sqlserver-4.9-all.sql
 wget https://raw.githubusercontent.com/Evolveum/midpoint/master/repo/repo-sql-impl-test/sql-procedures/sqlserver.sql
 # now let's use them:
-/opt/mssql-tools/bin/sqlcmd -I -b -S localhost -U midtest -P password -d midtest -i sqlserver-4.5-all.sql -i sqlserver.sql
+/opt/mssql-tools/bin/sqlcmd -I -b -S localhost -U midtest -P password -d midtest -i sqlserver-4.9-all.sql -i sqlserver.sql
 ----
 
 
-Or for `support-4.4` it would look like this:
+Or for `support-4.8` it would look like this:
 ----
-wget https://raw.githubusercontent.com/Evolveum/midpoint/support-4.4/config/sql/generic-old/sqlserver-4.4-all.sql
+wget https://raw.githubusercontent.com/Evolveum/midpoint/support-4.8/config/sql/generic/sqlserver-4.8-all.sql
 wget https://raw.githubusercontent.com/Evolveum/midpoint/support-4.4/repo/repo-sql-impl-test/sql-procedures/sqlserver.sql
 # now let's use them:
 /opt/mssql-tools/bin/sqlcmd -I -b -S localhost -U midtest -P password -d midtest -i sqlserver-4.4-all.sql -i sqlserver.sql

@@ -19,6 +19,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Normalizes a given item using provided {@link IndexedItemValueNormalizer}.
@@ -48,15 +50,20 @@ class ItemNormalizer {
                 prismContext.itemFactory().createProperty(
                         valueNormalizer.getIndexItemName(),
                         (PrismPropertyDefinition<String>) valueNormalizer.getIndexItemDefinition());
+
+        // This intermediate set is here to avoid "Adding value to property XXX that already exists" warnings.
+        Set<String> normalizedValues = new HashSet<>();
         for (PrismValue originalValue : originalValues) {
             Object originalRealValue = originalValue.getRealValue();
             if (originalRealValue != null) {
-                normalizedItem.addRealValue(
+                normalizedValues.add(
                         valueNormalizer.normalize(originalRealValue, task, result));
             } else {
                 LOGGER.warn("No real value in {} in {}", originalValue, originalItemDef);
             }
         }
+
+        normalizedValues.forEach(normalizedItem::addRealValue);
         return normalizedItem;
     }
 }

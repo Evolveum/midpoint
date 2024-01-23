@@ -16,6 +16,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -376,7 +378,20 @@ public class PageRoleAnalysis extends PageAdmin {
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(createStringResource("Status")) {
+                column = new AbstractExportableColumn<>(
+                        createStringResource("RoleAnalysis.modificationTargetPanel.status")) {
+
+                    @Override
+                    public Component getHeader(String componentId) {
+                        return new LabelWithHelpPanel(componentId,
+                                createStringResource("RoleAnalysis.modificationTargetPanel.status")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysis.modificationTargetPanel.status.tooltip");
+                            }
+                        };
+                    }
+
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> iModel) {
                         return null;
@@ -397,14 +412,19 @@ public class PageRoleAnalysis extends PageAdmin {
                                 session.asPrismObject(),
                                 result, task);
 
-                        ObjectReferenceType taskRef = roleAnalysisService.extractTaskRef(session.getOperationExecution());
+                        ObjectReferenceType taskRef = null;
+                        RoleAnalysisOperationStatus operationStatus = session.getOperationStatus();
+                        if (operationStatus != null) {
+                            taskRef = operationStatus.getTaskRef();
+                        }
 
+                        ObjectReferenceType finalTaskRef = taskRef;
                         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId, Model.of(stateString)) {
                             @Override
                             public void onClick(AjaxRequestTarget target) {
                                 super.onClick(target);
-                                if (taskRef != null) {
-                                    DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskRef.getOid(),
+                                if (finalTaskRef != null && finalTaskRef.getOid() != null) {
+                                    DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, finalTaskRef.getOid(),
                                             this, true);
                                 }
                             }

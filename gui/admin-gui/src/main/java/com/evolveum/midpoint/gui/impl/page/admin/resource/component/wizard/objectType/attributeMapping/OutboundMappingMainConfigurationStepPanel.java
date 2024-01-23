@@ -29,15 +29,15 @@ import java.util.List;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-attributes-inbound-main",
+@PanelInstance(identifier = "rw-attributes-outbound-main",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.inbound.main", icon = "fa fa-screwdriver-wrench"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.outbound.main", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
 public class OutboundMappingMainConfigurationStepPanel<ODM extends ObjectDetailsModels>
         extends AbstractValueFormResourceWizardStepPanel<MappingType, ODM> {
 
-    public static final String PANEL_TYPE = "rw-attributes-inbound-main";
+    public static final String PANEL_TYPE = "rw-attributes-outbound-main";
 
     private static final List<ItemName> VISIBLE_ITEMS = List.of(
             MappingType.F_NAME,
@@ -64,17 +64,17 @@ public class OutboundMappingMainConfigurationStepPanel<ODM extends ObjectDetails
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.attributes.inbound.main");
+        return createStringResource("PageResource.wizard.step.attributes.outbound.main");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.attributes.inbound.main.text");
+        return createStringResource("PageResource.wizard.step.attributes.outbound.main.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.attributes.inbound.main.subText");
+        return createStringResource("PageResource.wizard.step.attributes.outbound.main.subText");
     }
 
     @Override

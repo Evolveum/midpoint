@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -25,7 +26,9 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
@@ -61,6 +64,8 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
     private StringBuilder messageBuilder = new StringBuilder();
     private PrismObject<AH> conflictingObject;
 
+    private SingleLocalizableMessage localizableMessage;
+
     public PrismContext getPrismContext() {
         return prismContext;
     }
@@ -95,6 +100,10 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 
     public String getMessages() {
         return messageBuilder.toString();
+    }
+
+    public SingleLocalizableMessage getLocalizableMessage() {
+        return localizableMessage;
     }
 
     public PrismObject<AH> getConflictingObject() {
@@ -177,6 +186,17 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
                     propPath, property, foundObjects.get(0).debugDumpLazily());
             message("Found conflicting existing object with property "+propPath+" = " + property + ": "
                     + foundObjects.get(0));
+
+            // move to message()
+            localizableMessage =  new SingleLocalizableMessage("FocusConstraintsChecker.object.already.exists",
+                    new Object[]{
+                        new SingleLocalizableMessage("ObjectType." + objectNew.getCompileTimeClass().getSimpleName()),
+                        propPath,
+                        property.getRealValues()
+                                .stream()
+                                .map(Object::toString)
+                                .collect(Collectors.joining(", "))
+                    });
 
             conflictingObject = foundObjects.get(0);
         }

@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
+import com.evolveum.midpoint.model.api.correlator.Correlator;
+
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,6 +71,9 @@ class CorrelationCaseDescriber<F extends FocusType> {
 
     @NotNull private final CorrelationContext correlationContext;
 
+    /** Not null after the start of {@link #describe(OperationResult)} method. */
+    private Correlator correlator;
+
     @NotNull private final F preFocus;
 
     @NotNull private final List<ResourceObjectOwnerOptionType> ownerOptionsList;
@@ -112,30 +118,36 @@ class CorrelationCaseDescriber<F extends FocusType> {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
 
-        setupCorrelationProperties();
+        correlator = beans.correlatorFactoryRegistry.instantiateCorrelator(correlatorContext, task, result);
+
+        setupCorrelationProperties(result);
         setupCandidates(result);
 
         return description;
     }
 
-    private void setupCorrelationProperties() {
-        // TODO create from other sources?
-        var properties = createCorrelationPropertiesFromPreFocus();
-        properties.forEach(description::addCorrelationProperty);
-        LOGGER.trace("Correlation properties:\n{}", DebugUtil.debugDumpLazily(description.getCorrelationProperties(), 1));
+    private void setupCorrelationProperties(OperationResult result) throws ConfigurationException, SchemaException {
+        addCorrelationPropertiesFromCorrelator(result);
+        addCorrelationPropertiesFromPreFocus();
+        LOGGER.trace("Correlation properties:\n{}", DebugUtil.debugDumpLazily(description.getCorrelationPropertiesDefinitions(), 1));
     }
 
-    private Collection<CorrelationCaseDescription.CorrelationProperty> createCorrelationPropertiesFromPreFocus() {
-        List<PrismProperty<?>> properties = MatchingUtil.getSingleValuedProperties(preFocus);
-        PathKeyedMap<CorrelationCaseDescription.CorrelationProperty> correlationPropertiesMap = new PathKeyedMap<>();
-        for (PrismProperty<?> property : properties) {
-            ItemPath path = property.getPath().namedSegmentsOnly();
-            correlationPropertiesMap.put(path,
-                    CorrelationCaseDescription.CorrelationProperty.createSimple(
-                            path,
-                            property.getDefinition()));
+    private void addCorrelationPropertiesFromCorrelator(OperationResult result) throws ConfigurationException, SchemaException {
+        var focusDefinition = correlationContext.getPreFocus().asPrismObject().getDefinition();
+        var correlationProperties = correlator.getCorrelationPropertiesDefinitions(focusDefinition, task, result);
+        for (CorrelationPropertyDefinition propertyDefinition : correlationProperties) {
+            description.addCorrelationPropertyDefinition(propertyDefinition);
         }
-        return correlationPropertiesMap.values();
+    }
+
+    private void addCorrelationPropertiesFromPreFocus() {
+        for (PrismProperty<?> preFocusProperty : MatchingUtil.getSingleValuedProperties(preFocus)) {
+            ItemPath path = preFocusProperty.getPath().namedSegmentsOnly();
+            if (!description.hasCorrelationProperty(path)) {
+                description.addCorrelationPropertyDefinition(
+                        CorrelationPropertyDefinition.fromData(path, preFocusProperty));
+            }
+        }
     }
 
     private void setupCandidates(OperationResult result)
@@ -154,42 +166,40 @@ class CorrelationCaseDescriber<F extends FocusType> {
             double confidence;
             CorrelationExplanation explanation;
             if (explain) {
-                explanation =
-                        beans.correlatorFactoryRegistry
-                                .instantiateCorrelator(correlatorContext, task, result)
-                                .explain(correlationContext, candidate, result);
-                confidence = explanation.getConfidence();
+                explanation = correlator.explain(correlationContext, candidate, result);
+                confidence = explanation.getConfidence().getValue();
             } else {
                 explanation = null;
                 confidence = or0(ownerOption.getConfidence());
             }
 
-            PathKeyedMap<CorrelationPropertyValuesDescription> properties = createCandidateProperties(candidate, result);
+            var propertiesValuesMap = createCandidatePropertiesValuesMap(candidate, result);
             description.addCandidate(
-                    new CandidateDescription<>(candidate, confidence, properties, explanation));
+                    new CandidateDescription<>(candidate, confidence, propertiesValuesMap, explanation));
         }
     }
 
-    private PathKeyedMap<CorrelationPropertyValuesDescription> createCandidateProperties(F candidate, OperationResult result)
+    private PathKeyedMap<CorrelationPropertyValuesDescription> createCandidatePropertiesValuesMap(
+            F candidate, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         PathKeyedMap<CorrelationPropertyValuesDescription> map = new PathKeyedMap<>();
-        for (CorrelationCaseDescription.CorrelationProperty correlationProperty : description.getCorrelationProperties().values()) {
+        for (CorrelationPropertyDefinition correlationPropertyDef : description.getCorrelationPropertiesDefinitions().values()) {
             map.put(
-                    correlationProperty.getItemPath(),
-                    createCandidateProperty(candidate, correlationProperty, result));
+                    correlationPropertyDef.getItemPath(),
+                    createCandidatePropertyValuesDescription(candidate, correlationPropertyDef, result));
         }
         return map;
     }
 
-    private CorrelationPropertyValuesDescription createCandidateProperty(
-            F candidate, CorrelationCaseDescription.CorrelationProperty correlationProperty, OperationResult result)
+    private CorrelationPropertyValuesDescription createCandidatePropertyValuesDescription(
+            F candidate, CorrelationPropertyDefinition correlationPropertyDef, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         PrismContainerValue<?> pcv = candidate.asPrismContainerValue();
-        ItemPath itemPath = correlationProperty.getItemPath();
+        ItemPath itemPath = correlationPropertyDef.getItemPath();
         Set<PrismValue> primaryValues = new HashSet<>(pcv.getAllValues(itemPath));
-        Set<PrismValue> allSecondaryValues = new HashSet<>(pcv.getAllValues(correlationProperty.getSecondaryPath()));
+        Set<PrismValue> allSecondaryValues = new HashSet<>(pcv.getAllValues(correlationPropertyDef.getSecondaryPath()));
         Set<PrismValue> secondaryOnlyValues = Sets.difference(allSecondaryValues, primaryValues);
         Set<PrismValue> allValues = Sets.union(primaryValues, allSecondaryValues);
 
@@ -198,10 +208,10 @@ class CorrelationCaseDescriber<F extends FocusType> {
         QName defaultMatchingRule = templateCorrelationConfiguration.getDefaultMatchingRuleName(itemPath);
         CorrelationCaseDescription.Match match =
                 new MatchDetermination(
-                        candidate, correlationProperty, preFocusValues, primaryValues, allValues, indexing, defaultMatchingRule)
+                        candidate, correlationPropertyDef, preFocusValues, primaryValues, allValues, indexing, defaultMatchingRule)
                         .determine(task, result);
         return new CorrelationPropertyValuesDescription(
-                correlationProperty, primaryValues, secondaryOnlyValues, match);
+                correlationPropertyDef, primaryValues, secondaryOnlyValues, match);
     }
 
     private @Nullable F retrieveCandidate(ObjectReferenceType candidateOwnerRef, OperationResult result)
@@ -235,7 +245,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
     private class MatchDetermination {
 
         @NotNull private final F candidate;
-        @NotNull private final CorrelationCaseDescription.CorrelationProperty correlationProperty;
+        @NotNull private final CorrelationPropertyDefinition correlationPropertyDef;
         @NotNull private final Collection<PrismValue> preFocusValues;
         @NotNull private final Set<PrismValue> primaryValues;
         @NotNull private final Set<PrismValue> allValues;
@@ -244,14 +254,14 @@ class CorrelationCaseDescriber<F extends FocusType> {
 
         private MatchDetermination(
                 @NotNull F candidate,
-                @NotNull CorrelationCaseDescription.CorrelationProperty correlationProperty,
+                @NotNull CorrelationPropertyDefinition correlationPropertyDef,
                 @NotNull Collection<PrismValue> preFocusValues,
                 @NotNull Set<PrismValue> primaryValues,
                 @NotNull Set<PrismValue> allValues,
                 @Nullable IndexingItemConfiguration indexing,
                 @Nullable QName defaultMatchingRule) {
             this.candidate = candidate;
-            this.correlationProperty = correlationProperty;
+            this.correlationPropertyDef = correlationPropertyDef;
             this.preFocusValues = preFocusValues;
             this.primaryValues = primaryValues;
             this.allValues = allValues;
@@ -263,7 +273,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
             LOGGER.trace("Determining match for {}, pre-focus: {}, primary: {}, all: {}, indexing: {}",
-                    correlationProperty, preFocusValues, primaryValues, allValues, indexing);
+                    correlationPropertyDef, preFocusValues, primaryValues, allValues, indexing);
             if (preFocusValues.size() != 1) {
                 LOGGER.trace("... not applicable because # values in pre-focus is not 1");
                 return NOT_APPLICABLE;
@@ -293,7 +303,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
                 }
             }
 
-            ItemPath itemPath = correlationProperty.getItemPath();
+            ItemPath itemPath = correlationPropertyDef.getItemPath();
             Set<CorrelationItemType> correlationDefSet =
                     correlatorContext.getConfiguration().getAllConfigurationsDeeply().stream()
                             .map(CorrelatorConfiguration::getConfigurationBean)

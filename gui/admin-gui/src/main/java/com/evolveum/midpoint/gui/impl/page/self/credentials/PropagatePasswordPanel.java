@@ -220,6 +220,13 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         return passwordAccountDto;
     }
 
+    private boolean isPasswordPropagationEnabled(PasswordAccountDto passwordAccountDto) {
+        if (passwordAccountDto.isMidpoint()) {
+            return true;
+        }
+        return passwordAccountDto.isPasswordCapabilityEnabled() || passwordAccountDto.isPasswordOutbound();
+    }
+
     private List<IColumn<PasswordAccountDto, String>> initColumns() {
         List<IColumn<PasswordAccountDto, String>> columns = new ArrayList<>();
 
@@ -538,6 +545,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     protected void collectDeltas(Collection<ObjectDelta<? extends ObjectType>> deltas, ProtectedStringType currentPassword, ItemPath valuePath) {
         List<PasswordAccountDto> selectedAccounts = Lists.newArrayList(provider.internalIterator(0, provider.size()));
         selectedAccounts.removeIf(account -> !account.isSelected());
+        selectedAccounts.removeIf(account -> !isPasswordPropagationEnabled(account));
 
         SchemaRegistry registry = getPrismContext().getSchemaRegistry();
         selectedAccounts.forEach(account -> {

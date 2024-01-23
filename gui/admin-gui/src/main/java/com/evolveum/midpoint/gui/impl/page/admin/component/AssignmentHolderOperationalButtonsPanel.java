@@ -301,33 +301,9 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
         getPageBase().showMainPopup(popupable, target);
     }
 
+    @Override
     protected boolean isSavePreviewButtonEnabled() {
-        //in case user isn't allowed to modify focus data but has
-        // e.g. #assign authorization, Save button is disabled on page load.
-        // Save button becomes enabled just if some changes are made
-        // on the Assignments tab (in the use case with #assign authorization)
-//                PrismContainerDefinition def = getObjectWrapper().getDefinition();
         return !ItemStatus.NOT_CHANGED.equals(getModelObject().getStatus()) || getModelObject().canModify() ||
-                isAssignmentAddedOrRemoved();
-    }
-
-    //if the user has just #assign authorization (no #edit), we need to enable Save/Preview buttons
-    // when the assignments model is changed
-    public boolean isAssignmentAddedOrRemoved() {
-        try {
-            PrismContainerWrapper<AssignmentType> assignmentsWrapper = getModelObject().findContainer(AssignmentHolderType.F_ASSIGNMENT);
-            if (assignmentsWrapper != null) {
-                for (PrismContainerValueWrapper<AssignmentType> assignmentWrapper : assignmentsWrapper.getValues()) {
-                    if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||
-                            ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
-                        return true;
-                    }
-                }
-            }
-        } catch (SchemaException e) {
-            LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage());
-            return false;
-        }
-        return false;
+                !getModelObject().isReadOnly(); //this check was added due to MID-9380
     }
 }

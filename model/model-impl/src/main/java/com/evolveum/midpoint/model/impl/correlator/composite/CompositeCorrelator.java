@@ -14,11 +14,16 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
 import com.evolveum.midpoint.model.api.correlator.CompositeCorrelationExplanation;
 import com.evolveum.midpoint.model.api.correlator.CompositeCorrelationExplanation.ChildCorrelationExplanationRecord;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation;
+
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Sets;
@@ -39,12 +44,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Composite correlator that evaluates its components (child correlators) and builds up the result according to their results.
  *
  * TODO ignore identifiers in owner options
  */
-class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
+public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
 
     private static final double DEFAULT_SCALE = 1.0;
 
@@ -76,13 +83,27 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
     }
 
     @Override
-    protected double checkCandidateOwnerInternal(
+    protected @NotNull Confidence checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, ObjectNotFoundException {
         return new CandidateCheckOperation(correlationContext, candidateOwner)
                 .execute(result);
+    }
+
+    @Override
+    public @NotNull Collection<CorrelationPropertyDefinition> getCorrelationPropertiesDefinitions(
+            @Nullable PrismObjectDefinition<? extends FocusType> focusDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws ConfigurationException, SchemaException {
+        PathKeyedMap<CorrelationPropertyDefinition> definitions = new PathKeyedMap<>();
+        for (CorrelatorConfiguration childConfiguration : getChildConfigurations(correlatorContext.getConfigurationBean())) {
+            var childCorrelator = instantiateChild(childConfiguration, task, result);
+            childCorrelator.getCorrelationPropertiesDefinitions(focusDefinition, task, result)
+                    .forEach(definition -> definitions.put(definition.getItemPath(), definition));
+        }
+        return definitions.values();
     }
 
     private abstract class CorrelationLikeOperation {
@@ -179,7 +200,7 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
             }
         }
 
-        public double getScale() {
+        double getScale() {
             CompositeCorrelatorScalingDefinitionType scaling = configurationBean.getScaling();
             Double scale = scaling != null ? scaling.getScale() : null;
             return Objects.requireNonNullElse(scale, DEFAULT_SCALE);
@@ -321,7 +342,7 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
             }
             CorrelationExplanation explanation = new CompositeCorrelationExplanation(
                     correlatorContext.getConfiguration(),
-                    or0(currentConfidences.get(candidateOwnerOid)),
+                    Confidence.of(or0(currentConfidences.get(candidateOwnerOid))),
                     childRecords);
             LOGGER.trace("Finishing the explanation operation evaluated:\n{}", explanation.debugDumpLazily(1));
             return explanation;
@@ -340,7 +361,7 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
 
             registerEvaluationAndCheckThatParentsWereEvaluated(childConfiguration);
             double weight = childConfiguration.getWeight();
-            double childConfidence = childExplanation.getConfidence();
+            double childConfidence = childExplanation.getConfidence().getValue();
             double confidenceIncrement;
             Set<String> ignoredBecause;
             if (childConfidence > 0) {
@@ -368,7 +389,7 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
             this.candidateOwnerOid = Objects.requireNonNull(candidateOwner.getOid());
         }
 
-        double execute(@NotNull OperationResult result)
+        @NotNull Confidence execute(@NotNull OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
 
@@ -384,9 +405,9 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
                     checkInChild(childConfiguration, result);
                 }
             }
-            double resultingConfidence = or0(currentConfidences.get(candidateOwnerOid));
-            LOGGER.trace("Finishing the candidate check operation with the resulting confidence of {}", resultingConfidence);
-            return resultingConfidence;
+            double resultingConfidenceValue = or0(currentConfidences.get(candidateOwnerOid));
+            LOGGER.trace("Finishing the candidate check operation with the resulting confidence of {}", resultingConfidenceValue);
+            return Confidence.of(resultingConfidenceValue);
         }
 
         private void checkInChild(CorrelatorConfiguration childConfiguration, OperationResult result)
@@ -396,7 +417,8 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
             LOGGER.trace("Going to check the candidate in child correlator '{}'", childConfiguration);
             double childConfidence =
                     instantiateChild(childConfiguration, task, result)
-                            .checkCandidateOwner(correlationContext, candidateOwner, result);
+                            .checkCandidateOwner(correlationContext, candidateOwner, result)
+                            .getValue();
             LOGGER.trace("Child correlator '{}' provided the following confidence: {}", childConfiguration, childConfidence);
 
             registerEvaluationAndCheckThatParentsWereEvaluated(childConfiguration);

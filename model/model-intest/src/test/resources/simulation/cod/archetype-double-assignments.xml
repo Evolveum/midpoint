@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="8d1cbdc3-52d6-4a87-9549-25d8370c3647">
+    <name>double-assignments</name>
+    <archetypePolicy>
+        <objectTemplateRef oid="e085cbb0-b88c-42ac-82c7-c5619615de36"/>
+    </archetypePolicy>
+</archetype>

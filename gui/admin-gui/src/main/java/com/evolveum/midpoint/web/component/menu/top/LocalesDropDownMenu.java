@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.menu.top;
 
 import java.util.List;
 
+import com.evolveum.midpoint.common.AvailableLocale;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -19,13 +21,11 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.security.LocaleDescriptor;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class LocalesDropDownMenu extends BasePanel<List<LocaleDescriptor>> {
+public class LocalesDropDownMenu extends BasePanel<List<AvailableLocale.LocaleDescriptor>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -43,12 +43,12 @@ public class LocalesDropDownMenu extends BasePanel<List<LocaleDescriptor>> {
     private void initLayout() {
         add(AttributeAppender.prepend("class", "dropdown-menu dropdown-menu-right"));
 
-        ListView<LocaleDescriptor> locales = new ListView<>(ID_LOCALES, Model.ofList(MidPointApplication.AVAILABLE_LOCALES)) {
+        ListView<AvailableLocale.LocaleDescriptor> locales = new ListView<>(ID_LOCALES, Model.ofList(AvailableLocale.AVAILABLE_LOCALES)) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(final ListItem<LocaleDescriptor> item) {
+            protected void populateItem(final ListItem<AvailableLocale.LocaleDescriptor> item) {
                 item.setRenderBodyOnly(true);
                 final AjaxLink<String> localeLink = new AjaxLink<>(ID_LOCALES_LINK) {
 
@@ -73,7 +73,7 @@ public class LocalesDropDownMenu extends BasePanel<List<LocaleDescriptor>> {
         add(locales);
     }
 
-    protected void changeLocale(AjaxRequestTarget target, LocaleDescriptor descriptor) {
+    protected void changeLocale(AjaxRequestTarget target, AvailableLocale.LocaleDescriptor descriptor) {
 
     }
 }

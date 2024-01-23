@@ -145,7 +145,7 @@ public class PageResources extends PageAdmin {
                     provider.setDefaultCountIfNull(Integer.MAX_VALUE);
                     return provider;
                 } else {
-                    return super.createProvider();
+                    return createSelectableBeanObjectDataProvider(null, null, getQueryOptions());
                 }
             }
 

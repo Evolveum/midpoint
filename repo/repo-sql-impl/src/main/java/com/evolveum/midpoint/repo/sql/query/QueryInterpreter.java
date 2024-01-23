@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sql.query;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
@@ -289,7 +291,13 @@ public class QueryInterpreter {
             ProperDataSearchResult propDefRes = resolver.findProperDataDefinition(
                     baseEntityDefinition, path, definition, JpaPropertyDefinition.class, context.getPrismContext());
             if (propDefRes == null) {
-                throw new QueryException("Couldn't find a proper data item to query, given base entity " + baseEntityDefinition + " and this filter: " + valFilter.debugDump());
+                String technicalMessage = "Couldn't find a proper data item to query, given base entity " +
+                        baseEntityDefinition + " and this filter: " + valFilter.debugDump();
+                SingleLocalizableMessage message = new SingleLocalizableMessage(
+                        "QueryModelMapping.item.not.searchable",
+                        new Object[]{definition != null ? definition.getItemName() : path.toStringStandalone()},
+                        technicalMessage);
+                throw new QueryException(message);
             }
             // TODO can't be unified?
             if (propDefRes.getTargetDefinition() instanceof JpaAnyPropertyDefinition) {

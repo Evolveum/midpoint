@@ -211,7 +211,8 @@ public class CorrelationServiceImpl implements CorrelationService {
                 task);
         double confidence = correlatorFactoryRegistry
                 .instantiateCorrelator(ctx.correlatorContext, task, result)
-                .checkCandidateOwner(ctx.correlationContext, candidateOwner, result);
+                .checkCandidateOwner(ctx.correlationContext, candidateOwner, result)
+                .getValue();
         return confidence >= ctx.correlatorContext.getDefiniteThreshold();
     }
 

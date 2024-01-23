@@ -26,6 +26,8 @@ public interface CorrelatorFactory<C extends Correlator, CB extends AbstractCorr
 
     /**
      * Instantiates correlator of given type with provided configuration.
+     *
+     * TODO consider deleting unused `task` parameter
      */
     @NotNull C instantiate(@NotNull CorrelatorContext<CB> configuration, @NotNull Task task, @NotNull OperationResult result)
             throws ConfigurationException;

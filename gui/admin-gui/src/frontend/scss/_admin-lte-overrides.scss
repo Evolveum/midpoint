@@ -5,6 +5,27 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
+.main-sidebar .sidebar > .user-panel {
+  & > .image {
+    padding-left: 0.8rem;
+    position: relative;
+    width: 100%;
+    min-width: 2.85rem;
+    max-width: 3.5rem;
+    transition: all ease 0.08s !important;
+    -webkit-transition: all ease 0.08s !important;
+
+    & > .user-image {
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: relative;
+      height: 0;
+      padding-bottom: 100%;
+    }
+  }
+}
+
 .user-panel {
   border-bottom: 0 !important;
 
@@ -55,18 +76,6 @@
   z-index:1040;
 }
 
-//:focus pseudo attribute fix for accessibility intentions
-.btn-default:focus {
-  background-color: #e9ecef;
-  color: #2b2b2b;
-}
-
-/* Accessibility classes and overrides */
-/* Contrast ratio overrides */
-.navbar-dark .navbar-nav .nav-link {
-  color:hsla(0,0%,100%,.85)
-}
-
 /* Override for info button based on new bootstrap color*/
 /*.btn-info {
   color: $button-default-color;
@@ -84,4 +93,10 @@
 
 .main-footer {
   color: #737373;
+}
+
+.layout-navbar-fixed.sidebar-mini.sidebar-collapse .wrapper .brand-link,
+.layout-navbar-fixed.sidebar-mini-md.sidebar-collapse .wrapper .brand-link,
+.layout-navbar-fixed.sidebar-mini-xs.sidebar-collapse .wrapper .brand-link {
+  height: 3.5rem;
 }

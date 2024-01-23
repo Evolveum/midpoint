@@ -12,29 +12,10 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
-public class CleanupEvent<I> {
+public record CleanupEvent<I>(
+        @NotNull CleanupResult result,
+        @NotNull PrismObject<?> object,
+        @NotNull ItemPath path,
+        @NotNull I value) {
 
-    private PrismObject<?> object;
-
-    private ItemPath path;
-
-    private I value;
-
-    public CleanupEvent(@NotNull PrismObject<?> object, @NotNull ItemPath path, @NotNull I value) {
-        this.object = object;
-        this.path = path;
-        this.value = value;
-    }
-
-    public @NotNull PrismObject<?> getObject() {
-        return object;
-    }
-
-    public @NotNull ItemPath getPath() {
-        return path;
-    }
-
-    public @NotNull I getValue() {
-        return value;
-    }
 }

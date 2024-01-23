@@ -139,6 +139,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 });
         initInputProperties(feedback, firstName);
         staticRegistrationForm.add(firstName);
+        firstName.getBaseFormComponent().add(
+                AttributeAppender.append("aria-label", createStringResource("UserType.givenName")));
 
         TextPanel<String> lastName = new TextPanel<>(ID_LAST_NAME,
                 new PropertyModel<>(getUserModel(), UserType.F_FAMILY_NAME.getLocalPart() + ".orig") {
@@ -153,11 +155,15 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 });
         initInputProperties(feedback, lastName);
         staticRegistrationForm.add(lastName);
+        lastName.getBaseFormComponent().add(
+                AttributeAppender.append("aria-label", createStringResource("UserType.familyName")));
 
         TextPanel<String> email = new TextPanel<>(ID_EMAIL,
                 new PropertyModel<>(getUserModel(), UserType.F_EMAIL_ADDRESS.getLocalPart()));
         initInputProperties(feedback, email);
         staticRegistrationForm.add(email);
+        email.getBaseFormComponent().add(
+                AttributeAppender.append("aria-label", createStringResource("UserType.emailAddress")));
 
         createPasswordPanel(staticRegistrationForm);
         return staticRegistrationForm;
@@ -174,6 +180,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
         PasswordPanel password = new PasswordPropertyPanel(ID_PASSWORD,
                 new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true, null);
         password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        password.getBaseFormComponent().add(
+                AttributeAppender.append("aria-label", createStringResource("CredentialsType.password")));
         password.getBaseFormComponent().setRequired(true);
         staticRegistrationForm.add(password);
 

@@ -36,7 +36,7 @@ import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -201,7 +201,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
 
         String subscriptionFooter =
-                SubscriptionUtil.missingSubscriptionAppeal(systemObjectCache, localizationService,
+                SubscriptionUtil.missingSubscriptionAppeal(localizationService,
                         LocalizationUtil.toLocale(focusLanguageOrLocale(recipient)));
         if (subscriptionFooter != null) {
             body += '\n' + subscriptionFooter;

@@ -3508,7 +3508,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Timestamp of last modification of the activation status to the disabled state.
+                            Timestamp of the last modification of the activation status to the disabled state
+                            OR of the last change of the disableReason property.
+
                             Note: This timestamp is used for recording purposes. Changing it will NOT change
                             the activation state.
                         </p>
@@ -4399,7 +4401,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
-                        <a:experimental>true</a:experimental>
                         <a:displayName>ItemRefinedDefinitionType.correlator</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>

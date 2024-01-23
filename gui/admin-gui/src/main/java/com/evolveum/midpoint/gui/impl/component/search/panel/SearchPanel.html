@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="form" class="search-panel-form d-flex flex-wrap justify-content-end gap-1 align-items-start">
+    <form wicket:id="form" class="search-panel-form d-flex flex-wrap justify-content-end gap-1 align-items-start" role="search">
 
         <div wicket:id="typeSelector"></div>
 
@@ -39,7 +39,7 @@
         <wicket:container wicket:id="items">
             <div wicket:id="item"/>
         </wicket:container>
-        <button wicket:id="more" class="btn btn-sm btn-default">
+        <button wicket:id="more" class="btn btn-sm btn-default" wicket:message="title:SearchPanel.moreTitle">
             <wicket:message key="SearchPanel.more"/>
             &nbsp;
             <span class="fa fa-caret-down"></span>
