@@ -168,7 +168,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             }
         };
 
-        PasswordLimitationsPanel passwordLimitationsPanel = new PasswordLimitationsPanel(ID_PASSWORD_VALIDATION_PANEL, limitationsModel);
+        PasswordLimitationsPanel passwordLimitationsPanel = createLimitationPanel(ID_PASSWORD_VALIDATION_PANEL, limitationsModel);
         passwordLimitationsPanel.add(new VisibleBehaviour(() -> !isPasswordLimitationPopupVisible()));
         passwordLimitationsPanel.setOutputMarkupId(true);
         add(passwordLimitationsPanel);
@@ -218,6 +218,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         changePasswordButton.setOutputMarkupId(true);
         add(changePasswordButton);
 
+    }
+
+    protected PasswordLimitationsPanel createLimitationPanel(String id, IModel<List<StringLimitationResult>> limitationsModel) {
+        return new PasswordLimitationsPanel(id, limitationsModel);
     }
 
     protected String getChangePasswordButtonStyle() {
