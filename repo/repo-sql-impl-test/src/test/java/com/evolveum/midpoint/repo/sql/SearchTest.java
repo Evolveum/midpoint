@@ -1762,6 +1762,34 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
     }
 
+    /** MID-9427 */
+    @Test
+    public void test981SearchByArchetypeName() throws Exception {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_ARCHETYPE_REF, T_OBJECT_REFERENCE, F_NAME)
+                .eqPoly("archetype1")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        assertThatOperationResult(result).isSuccess();
+        assertThat(users)
+                .as("users found")
+                .hasSize(2)
+                .map(u -> u.getName().getOrig())
+                .as("user names")
+                .containsExactlyInAnyOrder("atestuserX00002", "atestuserX00003");
+
+        // The same but arbitrary assignment holders now
+        var objects = repositoryService.searchObjects(AssignmentHolderType.class, query, null, result);
+        assertThatOperationResult(result).isSuccess();
+        assertThat(objects)
+                .as("objects found")
+                .hasSize(3)
+                .map(u -> u.getName().getOrig())
+                .as("object names")
+                .containsExactlyInAnyOrder("atestuserX00002", "atestuserX00003", "Synchronization: Embedded Test OpenDJ");
+    }
+
     @Test
     public void test999MultipleOrdersAreSupportedByFluentApiAndRepository() throws SchemaException {
         given("search users query ordered by family and given name");
