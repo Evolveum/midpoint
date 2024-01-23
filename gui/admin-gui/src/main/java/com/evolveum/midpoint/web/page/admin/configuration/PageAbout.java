@@ -17,11 +17,13 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 
+import com.evolveum.midpoint.repo.common.subscription.JarSignatureHolder;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 
 import org.apache.catalina.util.ServerInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -103,6 +105,8 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_BRANCH = "branch";
     private static final String ID_PROPERTY = "property";
     private static final String ID_VALUE = "value";
+    private static final String ID_OFFICIAL_BUILD = "officialBuild";
+    private static final String ID_UNOFFICIAL_BUILD = "unofficialBuild";
     private static final String ID_LIST_SYSTEM_ITEMS = "listSystemItems";
     private static final String ID_TEST_REPOSITORY = "testRepository";
     private static final String ID_TEST_REPOSITORY_CHECK_ORG_CLOSURE = "testRepositoryCheckOrgClosure";
@@ -204,6 +208,14 @@ public class PageAbout extends PageAdminConfiguration {
         Label build = new Label(ID_BUILD_TIMESTAMP, createStringResource("midpoint.system.buildTimestamp"));
         build.setRenderBodyOnly(true);
         add(build);
+
+        boolean jarSignatureValid = JarSignatureHolder.isJarSignatureValid();
+        add(new WebMarkupContainer(ID_OFFICIAL_BUILD)
+                .setRenderBodyOnly(true)
+                .setVisible(jarSignatureValid));
+        add(new WebMarkupContainer(ID_UNOFFICIAL_BUILD)
+                .setRenderBodyOnly(true)
+                .setVisible(!jarSignatureValid));
 
         ListView<LabeledString> listSystemItems = new ListView<>(ID_LIST_SYSTEM_ITEMS, getItems()) {
             private static final long serialVersionUID = 1L;
