@@ -25,11 +25,4 @@
     <activation>
         <administrativeStatus>enabled</administrativeStatus>
     </activation>
-    <credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-        <password>
-            <value>
-                 <t:clearValue>5ecr3t</t:clearValue>
-             </value>
-        </password>
-    </credentials>
 </user>

@@ -33,6 +33,7 @@
             init-method="init">
         <property name="model" ref="modelController"/>
         <property name="taskManager" ref="taskManager"/>
+        <!-- property name="modelInteractionService" ref="" / -->
     </bean>
 
     <bean id="modelInitialSetup"
