@@ -178,7 +178,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
             }
         };
 
-        save.add(new VisibleEnableBehaviour(this::isSaveButtonVisible, this::isSavePreviewButtonEnabled));
+        save.add(new VisibleBehaviour(this::isSaveButtonVisible));
         save.titleAsLabel(true);
         save.setOutputMarkupId(true);
         save.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
@@ -196,10 +196,6 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     protected boolean isSaveButtonVisible() {
         return !getModelObject().isReadOnly() && !isForcedPreview();
-    }
-
-    protected boolean isSavePreviewButtonEnabled() {
-        return true;
     }
 
     private boolean isForcedPreview() {
