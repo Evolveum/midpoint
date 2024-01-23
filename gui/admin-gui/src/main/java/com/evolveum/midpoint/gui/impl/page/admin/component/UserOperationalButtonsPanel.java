@@ -23,17 +23,18 @@ public class UserOperationalButtonsPanel extends FocusOperationalButtonsPanel<Us
 
     @Override
     protected boolean isSavePreviewButtonEnabled() {
-        return isAuthorizedToModifyUsers() || super.isSavePreviewButtonEnabled();
+        return isAuthorizedToModify() || super.isSavePreviewButtonEnabled();
     }
 
-
-    private boolean isAuthorizedToModifyUsers() {
+    @Override
+    protected boolean isAuthorizedToModify() {
         try {
-            return getPageBase().isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
+            boolean selfModify = super.isAuthorizedToModify();
+            boolean otherUserModify = getPageBase().isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
                     AuthorizationPhaseType.EXECUTION, new UserType().asPrismObject(), null, null);
+            return selfModify || otherUserModify;
         } catch (Exception e) {
             return false;
         }
     }
-
 }

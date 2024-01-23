@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -304,6 +305,15 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
     @Override
     protected boolean isSavePreviewButtonEnabled() {
         return !ItemStatus.NOT_CHANGED.equals(getModelObject().getStatus()) || getModelObject().canModify() ||
-                !getModelObject().isReadOnly(); //this check was added due to MID-9380
+                isAuthorizedToModify(); //this check was added due to MID-9380
+    }
+
+    protected boolean isAuthorizedToModify() {
+        try {
+            return getPageBase().isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
+                    AuthorizationPhaseType.EXECUTION, getModelObject().getObject(), null, null);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
