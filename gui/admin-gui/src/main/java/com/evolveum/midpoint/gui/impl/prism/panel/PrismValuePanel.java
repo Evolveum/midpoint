@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -285,7 +286,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         try {
             PrismObject<O> objectNew = objectWrapper.getObjectApplyDelta();
             return objectNew.asObjectable();
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             LOGGER.error("Cannot apply deltas to object for validation: {}", e.getMessage(), e);
             return null;
         }

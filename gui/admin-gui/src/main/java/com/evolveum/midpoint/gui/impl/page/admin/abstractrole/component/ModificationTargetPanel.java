@@ -10,6 +10,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -73,7 +75,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
         List<AssignmentType> inducement;
         try {
             inducement = getObjectDetailsModels().getObjectWrapper().getObjectApplyDelta().asObjectable().getInducement();
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             throw new RuntimeException(e);
         }
         BusinessRoleApplicationDto deltas = getObjectDetailsModels().getPatternDeltas();

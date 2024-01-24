@@ -181,7 +181,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
             getPrismContext().adopt(userDelta);
             WebModelServiceUtils.save(userDelta, result, this);
             result.recordSuccessIfUnknown();
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             LoggingUtils.logException(LOGGER, "Error during saving user.", e);
             result.recordFatalError(getString("PagePostAuthentication.message.submitRegistration.fatalError"), e);
         }
@@ -222,7 +222,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
 
     }
 
-    private ObjectDelta<UserType> getUserDelta() throws SchemaException {
+    private ObjectDelta<UserType> getUserDelta() throws CommonException {
         if (!isCustomFormDefined()) {
             return objectWrapper.getObjectDelta();
         }
