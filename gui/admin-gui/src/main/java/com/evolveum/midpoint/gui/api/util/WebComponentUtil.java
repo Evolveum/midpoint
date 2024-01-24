@@ -3252,7 +3252,7 @@ public final class WebComponentUtil {
     }
 
     public static String getMidpointCustomSystemName(PageAdminLTE pageBase, String defaultSystemNameKey) {
-        if (MidPointApplication.get().getSubscriptionState().isInvalidOrDemo()) {
+        if (MidPointApplication.get().getSubscriptionState().isInactiveOrDemo()) {
             return pageBase.createStringResource(defaultSystemNameKey).getString();
         }
 

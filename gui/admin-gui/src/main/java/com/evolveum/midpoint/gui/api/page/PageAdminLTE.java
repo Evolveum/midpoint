@@ -331,7 +331,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                     @Override
                     public String getObject() {
                         SubscriptionState subscription = MidPointApplication.get().getSubscriptionState();
-                        if (!subscription.isValid()) {
+                        if (!subscription.isActive()) {
                             return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
                         } else if (subscription.isDemo()) {
                             return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
@@ -357,7 +357,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     private boolean isFooterVisible() {
-        return MidPointApplication.get().getSubscriptionState().isInvalidOrDemo();
+        return MidPointApplication.get().getSubscriptionState().isInactiveOrDemo();
     }
 
     /**
