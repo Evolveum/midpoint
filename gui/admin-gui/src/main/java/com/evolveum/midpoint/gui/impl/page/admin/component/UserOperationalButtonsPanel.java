@@ -25,8 +25,11 @@ public class UserOperationalButtonsPanel extends FocusOperationalButtonsPanel<Us
     protected boolean isAuthorizedToModify() {
         try {
             boolean thisObjectModify = super.isAuthorizedToModify();
+
+            UserType user = new UserType();
+            getPageBase().getPrismContext().adopt(user);
             boolean otherUserModify = getPageBase().isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
-                    AuthorizationPhaseType.EXECUTION, new UserType().asPrismObject(), null, null);
+                    AuthorizationPhaseType.EXECUTION, user.asPrismObject(), null, null, null);
             return thisObjectModify || otherUserModify;
         } catch (Exception e) {
             return false;

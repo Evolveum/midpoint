@@ -324,7 +324,7 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
     protected boolean isAuthorizedToModify() {
         try {
             return getPageBase().isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
-                    AuthorizationPhaseType.EXECUTION, getModelObject().getObject(), null, null);
+                    AuthorizationPhaseType.EXECUTION, getModelObject().getObject(), null, null, null);
         } catch (Exception e) {
             return false;
         }
