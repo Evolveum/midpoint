@@ -239,16 +239,18 @@ public class PageSelfRegistration extends PageAbstractFlow {
         saveUser(result);
         result.computeStatus();
 
-        if (result.getStatus() == OperationResultStatus.SUCCESS) {
+        if (result.getStatus() == OperationResultStatus.SUCCESS || result.getStatus() == OperationResultStatus.HANDLED_ERROR) {
             getSession()
                     .success(createStringResource("PageSelfRegistration.registration.success").getString());
-
-            String sequenceIdentifier = getSelfRegistrationConfiguration().getAdditionalAuthentication();
-            if (SecurityUtils.sequenceExists(getSelfRegistrationConfiguration().getAuthenticationPolicy(), sequenceIdentifier)) {
-                target.add(PageSelfRegistration.this);
-            }
-            LOGGER.trace("Registration for user {} was successfull.", getUserModel().getObject());
-            isSubmitted = true;
+            afterUserRegistration(target);
+        } else if (result.getStatus() == OperationResultStatus.IN_PROGRESS) {
+            getSession()
+                    .info(createStringResource("PageSelfRegistration.registration.inprogress").getString());
+            afterUserRegistration(target);
+        } else if (result.getStatus() == OperationResultStatus.WARNING) {
+            getSession()
+                    .warn(createStringResource("PageSelfRegistration.registration.success").getString());
+            afterUserRegistration(target);
         } else {
             String message;
             if (result.getUserFriendlyMessage() != null) {
@@ -264,10 +266,18 @@ public class PageSelfRegistration extends PageAbstractFlow {
             target.add(getFeedbackPanel());
             LOGGER.error("Failed to register user {}. Reason {}", getUserModel().getObject(), result.getMessage());
             return;
-
         }
         target.add(getFeedbackPanel());
         target.add(PageSelfRegistration.this);
+    }
+
+    private void afterUserRegistration(AjaxRequestTarget target) {
+        String sequenceIdentifier = getSelfRegistrationConfiguration().getAdditionalAuthentication();
+        if (SecurityUtils.sequenceExists(getSelfRegistrationConfiguration().getAuthenticationPolicy(), sequenceIdentifier)) {
+            target.add(PageSelfRegistration.this);
+        }
+        LOGGER.trace("Registration for user {} was successfull.", getUserModel().getObject());
+        isSubmitted = true;
     }
 
     @Override
