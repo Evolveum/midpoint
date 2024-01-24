@@ -426,17 +426,17 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 for (Map.Entry<IconCssStyle, IconType> icon : layerIcons.entrySet()) {
                     builder.appendLayerIcon(icon.getValue(), icon.getKey());
                 }
-                CompositedIconButtonDto mainButton = createCompositedIconButtonDto(mainButtonDisplayType, null, builder.build());
+                CompositedIconButtonDto mainButton = createCompositedIconButtonDto(mainButtonDisplayType, null, null);
                 multiFunctinalButtonDto.setMainButton(mainButton);
 
                 List<AssignmentObjectRelation> loadedRelations = loadMemberRelationsList();
-                if (CollectionUtils.isEmpty(loadedRelations) && useDefaultObjectRelations) {
+                if (useDefaultObjectRelations) {
                     loadedRelations.addAll(getDefaultNewMemberRelations());
                 }
                 List<CompositedIconButtonDto> additionalButtons = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(loadedRelations)) {
                     List<AssignmentObjectRelation> relations =
-                            WebComponentUtil.divideAssignmentRelationsByAllValues(loadedRelations, true);
+                            WebComponentUtil.divideAssignmentRelationsByAllValues(loadedRelations, useDefaultObjectRelations);
                     relations.forEach(relation -> {
                         DisplayType additionalButtonDisplayType = GuiDisplayTypeUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation,
                                 "abstractRoleMemberPanel.menu.createMember");

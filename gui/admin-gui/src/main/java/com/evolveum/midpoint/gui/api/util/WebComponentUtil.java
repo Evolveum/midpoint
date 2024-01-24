@@ -2842,7 +2842,7 @@ public final class WebComponentUtil {
      * This will simplify creating of a new_assignment_button
      */
     public static List<AssignmentObjectRelation> divideAssignmentRelationsByAllValues(
-            List<AssignmentObjectRelation> initialAssignmentRelationsList, boolean isMemberAssignment) {
+            List<AssignmentObjectRelation> initialAssignmentRelationsList, boolean addDefaultObjectRelations) {
         if (initialAssignmentRelationsList == null) {
             return null;
         }
@@ -2852,7 +2852,7 @@ public final class WebComponentUtil {
             if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getObjectTypes())) {
                 assignmentObjectRelation.getObjectTypes().forEach(objectType -> {
                     if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getArchetypeRefs())) {
-                        if (isMemberAssignment) {
+                        if (addDefaultObjectRelations) {
                             //add at first type+relation combination without archetypeRef to cover default views (e.g. all users)
                             AssignmentObjectRelation defaultViewRelation = new AssignmentObjectRelation();
                             defaultViewRelation.setObjectTypes(Collections.singletonList(objectType));
@@ -2868,7 +2868,9 @@ public final class WebComponentUtil {
                             newRelation.setRelations(assignmentObjectRelation.getRelations());
                             newRelation.setArchetypeRefs(Collections.singletonList(archetypeRef));
                             newRelation.setDescription(assignmentObjectRelation.getDescription());
-                            resultList.add(newRelation);
+                            if (!assignmentObjectRelationAlreadyExists(resultList, newRelation)) {
+                                resultList.add(newRelation);
+                            }
                         });
                     } else {
                         AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
@@ -2876,7 +2878,9 @@ public final class WebComponentUtil {
                         newRelation.setRelations(assignmentObjectRelation.getRelations());
                         newRelation.setArchetypeRefs(assignmentObjectRelation.getArchetypeRefs());
                         newRelation.setDescription(assignmentObjectRelation.getDescription());
-                        resultList.add(newRelation);
+                        if (!assignmentObjectRelationAlreadyExists(resultList, newRelation)) {
+                            resultList.add(newRelation);
+                        }
                     }
                 });
             } else {
@@ -2918,34 +2922,34 @@ public final class WebComponentUtil {
         for (AssignmentObjectRelation rel : list) {
             if (CollectionUtils.isNotEmpty(rel.getRelations()) && CollectionUtils.isEmpty(relation.getRelations())
                     || CollectionUtils.isEmpty(rel.getRelations()) && CollectionUtils.isNotEmpty(relation.getRelations())) {
-                return false;
+                continue;
             }
             if (CollectionUtils.isNotEmpty(rel.getRelations()) && CollectionUtils.isNotEmpty(relation.getRelations())) {
-                if (!rel.getRelations().get(0).equals(relation.getRelations().get(0))) {
-                    return false;
+                if (!QNameUtil.match(rel.getRelations().get(0), (relation.getRelations().get(0)))) {
+                    continue;
                 }
             }
             if (CollectionUtils.isNotEmpty(rel.getObjectTypes()) && CollectionUtils.isEmpty(relation.getObjectTypes())
                     || CollectionUtils.isEmpty(rel.getObjectTypes()) && CollectionUtils.isNotEmpty(relation.getObjectTypes())) {
-                return false;
+                continue;
             }
             if (CollectionUtils.isNotEmpty(rel.getObjectTypes()) && CollectionUtils.isNotEmpty(relation.getObjectTypes())) {
-                if (!rel.getObjectTypes().get(0).equals(relation.getObjectTypes().get(0))) {
-                    return false;
+                if (!QNameUtil.match(rel.getObjectTypes().get(0), relation.getObjectTypes().get(0))) {
+                    continue;
                 }
             }
             if (CollectionUtils.isNotEmpty(rel.getArchetypeRefs()) && CollectionUtils.isEmpty(relation.getArchetypeRefs())
                     || CollectionUtils.isEmpty(rel.getArchetypeRefs()) && CollectionUtils.isNotEmpty(relation.getArchetypeRefs())) {
-                return false;
+                continue;
             }
             if (CollectionUtils.isNotEmpty(rel.getArchetypeRefs()) && CollectionUtils.isNotEmpty(relation.getArchetypeRefs())) {
                 if (!rel.getArchetypeRefs().get(0).equals(relation.getArchetypeRefs().get(0))) {
-                    return false;
+                    continue;
                 }
             }
             return true;
         }
-        return true;
+        return false;
     }
 
     private static Collection<ObjectDeltaOperation<? extends ObjectType>> saveTask(ObjectDelta<TaskType> delta, OperationResult result, PageBase pageBase) {

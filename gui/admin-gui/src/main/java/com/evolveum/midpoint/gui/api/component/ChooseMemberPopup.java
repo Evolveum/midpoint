@@ -217,20 +217,21 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                 relationSpec.getObjectTypes() : getAvailableObjectTypes();
         List<ObjectReferenceType> archetypeRefList = relationSpec != null && !CollectionUtils.isEmpty(relationSpec.getArchetypeRefs()) ?
                 relationSpec.getArchetypeRefs() : getArchetypeRefList();
+        List<QName> relationList = relationSpec != null ? relationSpec.getRelations() : null;
 
         if (objectTypes != null && objectTypes.size() == 1) {
             QName objectType = objectTypes.get(0);
-            tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, objectType));
+            tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, objectType, relationList));
             return tabs;
         }
 
-        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, UserType.COMPLEX_TYPE));
+        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, UserType.COMPLEX_TYPE, relationList));
 
-        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, RoleType.COMPLEX_TYPE));
+        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, RoleType.COMPLEX_TYPE, relationList));
 
-        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, OrgType.COMPLEX_TYPE));
+        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, OrgType.COMPLEX_TYPE, relationList));
 
-        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, ServiceType.COMPLEX_TYPE));
+        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, ServiceType.COMPLEX_TYPE, relationList));
 
         if (archetypeRefList == null || archetypeRefList.isEmpty()) {
             tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
@@ -272,7 +273,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     }
 
     private CountablePanelTab createCountablePanelTab(List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList,
-            QName complexType) {
+            QName complexType, List<QName> relationList) {
         ObjectTypes objectType = ObjectTypes.getObjectType(complexType.getLocalPart());
        return new CountablePanelTab(createStringResource("ObjectTypes." + objectType),
                 new VisibleBehaviour(() -> objectTypes == null || QNameUtil.contains(objectTypes, complexType))) {
@@ -281,7 +282,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return createMemberPopup(panelId, objectType, archetypeRefList);
+                return createMemberPopup(panelId, objectType, archetypeRefList, relationList);
             }
 
             @Override
@@ -291,7 +292,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         };
     }
 
-    private WebMarkupContainer createMemberPopup(String panelId, ObjectTypes objectType, List<ObjectReferenceType> archetypeRefList) {
+    private WebMarkupContainer createMemberPopup(String panelId, ObjectTypes objectType,
+            List<ObjectReferenceType> archetypeRefList, List<QName> relationList) {
         return new MemberPopupTabPanel(panelId, search, archetypeRefList) {
             private static final long serialVersionUID = 1L;
 
@@ -315,7 +317,18 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             protected QName getDefaultRelation() {
-                return getRelationIfIsStable() != null ? getRelationIfIsStable() : super.getDefaultRelation();
+                if (getRelationIfIsStable() != null) {
+                    return getRelationIfIsStable();
+                }
+                if (relationList != null && relationList.size() == 1) {
+                    return relationList.get(0);
+                }
+                return super.getDefaultRelation();
+            }
+
+            @Override
+            protected List<QName> getSupportedRelations() {
+                return CollectionUtils.isNotEmpty(relationList) ? relationList : super.getSupportedRelations();
             }
 
             @Override
@@ -415,8 +428,13 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
     private List<CompositedIconButtonDto> getAssignButtonDescription() {
         List<CompositedIconButtonDto> buttons = new ArrayList<>();
+        List<AssignmentObjectRelation> loadedRelations = loadMemberRelationsList();
+        boolean addDefaultObjectRelation = false;
+        if (CollectionUtils.isEmpty(loadedRelations)) {
+            addDefaultObjectRelation = true;
+        }
         List<AssignmentObjectRelation> assignmentObjectRelations =
-                WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList(), true);
+                WebComponentUtil.divideAssignmentRelationsByAllValues(loadedRelations, addDefaultObjectRelation);
         if (assignmentObjectRelations != null) {
             assignmentObjectRelations.forEach(relation -> {
                 DisplayType additionalDispayType = GuiDisplayTypeUtil.getAssignmentObjectRelationDisplayType(ChooseMemberPopup.this.getPageBase(),
