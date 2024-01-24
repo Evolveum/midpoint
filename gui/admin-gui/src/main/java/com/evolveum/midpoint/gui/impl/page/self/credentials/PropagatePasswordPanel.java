@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.self.credentials;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
+import com.evolveum.midpoint.gui.api.component.password.PasswordLimitationsPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -75,7 +76,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     private static final String ID_INDIVIDUAL_SYSTEMS_CONTAINER = "individualSystemsContainer";
     private static final String ID_INDIVIDUAL_SYSTEMS_TABLE = "individualSystemsTable";
 
-    private boolean propagatePassword = false;
+    private Boolean propagatePassword;
     private boolean showResultInTable = false;
     ListDataProvider<PasswordAccountDto> provider = null;
 
@@ -86,7 +87,16 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        initPropagatePasswordDefault();
         initLayout();
+    }
+
+    private void initPropagatePasswordDefault() {
+        if (propagatePassword == null) {
+            CredentialsPropagationUserControlType propagationUserControl = getCredentialsPropagationUserControl();
+            propagatePassword = propagationUserControl == CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY
+                    || propagationUserControl == CredentialsPropagationUserControlType.USER_CHOICE;
+        }
     }
 
     private void initLayout() {
@@ -614,5 +624,15 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
     private BoxedTablePanel<PasswordAccountDto> getTableComponent() {
         return (BoxedTablePanel<PasswordAccountDto>) get(createComponentPath(ID_INDIVIDUAL_SYSTEMS_CONTAINER, ID_INDIVIDUAL_SYSTEMS_TABLE));
+    }
+
+    @Override
+    protected PasswordLimitationsPanel createLimitationPanel(String id, IModel<List<StringLimitationResult>> limitationsModel) {
+        return new PasswordLimitationsPanel(id, limitationsModel) {
+            @Override
+            protected boolean showInTwoColumns() {
+                return true;
+            }
+        };
     }
 }
