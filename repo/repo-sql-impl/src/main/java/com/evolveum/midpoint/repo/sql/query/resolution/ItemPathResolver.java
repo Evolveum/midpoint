@@ -114,13 +114,20 @@ public class ItemPathResolver {
         }
         joinedItemAlias = hibernateQuery.createAlias(joinedItemDefinition);
         Condition condition = createJoinCondition(joinedItemAlias, joinedItemDefinition, hibernateQuery);
-        hibernateQuery.getPrimaryEntity().addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, condition));
+        String explicitType = joinedItemDefinition.getExplicitJoinedType();
+        hibernateQuery.getPrimaryEntity().addJoin(
+                new JoinSpecification(explicitType, joinedItemAlias, joinedItemFullPath, condition));
         return joinedItemAlias;
     }
 
     private String findExistingAlias(HibernateQuery hibernateQuery,
             JpaLinkDefinition<?> joinedItemDefinition, String joinedItemFullPath) throws QueryException {
         for (JoinSpecification existingJoin : hibernateQuery.getPrimaryEntity().getJoinsFor(joinedItemFullPath)) {
+            // Are both joins compatible in this regard? In theory, we could combine them even if they are not,
+            // but that would be too complex to implement.
+            if (!Objects.equals(existingJoin.getExplicitJoinedType(), joinedItemDefinition.getExplicitJoinedType())) {
+                continue;
+            }
             // but let's check the condition as well
             String existingAlias = existingJoin.getAlias();
             // we have to create condition for existing alias, to be matched to existing condition
@@ -138,7 +145,8 @@ public class ItemPathResolver {
         String joinedItemJpaName = RObject.F_TEXT_INFO_ITEMS;
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
         String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName, false);
-        hibernateQuery.getPrimaryEntity().addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, null));
+        hibernateQuery.getPrimaryEntity().addJoin(
+                new JoinSpecification(null, joinedItemAlias, joinedItemFullPath, null));
         return joinedItemAlias;
     }
 

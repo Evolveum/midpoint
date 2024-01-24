@@ -41,7 +41,7 @@
             <modifyChannel>http://modifyChannelUri</modifyChannel>
         </metadata>
 
-        <roleMembershipRef oid="r123" type="c:RoleType"/>
+        <roleMembershipRef oid="18ffc76e-2ad6-4fb6-a464-29c73a6d571b" type="c:RoleType"/>
 
         <assignment id="1">
             <description>Some assignment description</description>
@@ -72,7 +72,7 @@
         </assignment>
 
         <assignment id="2">
-            <targetRef oid="r123" type="RoleType"/>
+            <targetRef oid="18ffc76e-2ad6-4fb6-a464-29c73a6d571b" type="RoleType"/>
         </assignment>
 
         <assignment id="3">
@@ -155,7 +155,7 @@
 
         <linkRef oid="1234"/>
         <linkRef oid="11223344"/>
-        <roleMembershipRef oid="r123" type="c:RoleType"/>
+        <roleMembershipRef oid="18ffc76e-2ad6-4fb6-a464-29c73a6d571b" type="c:RoleType"/>
         <roleMembershipRef oid="r456" type="c:RoleType"/>
         <delegatedRef oid="r789" type="c:RoleType"/>
         <personaRef oid="u000" type="c:UserType">
@@ -1724,6 +1724,10 @@
         <name>archetype1</name>
     </archetype>
 
+    <role oid="18ffc76e-2ad6-4fb6-a464-29c73a6d571b">
+        <name>role123</name>
+    </role>
+
     <case oid="8e8c9a40-33b7-4ecf-940c-24c6fcfe80d3">
         <name>case-2</name>
         <state>open</state>
@@ -1741,4 +1745,8 @@
             <candidateRef oid="6ff9dce3-6301-4147-9989-d49f3bcfbdbd" type="UserType"/>
         </workItem>
     </case>
+
+    <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+        <name>dummy</name>
+    </resource>
 </objects>

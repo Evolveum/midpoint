@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 
 import org.apache.catalina.util.ServerInfo;
@@ -725,6 +726,7 @@ public class PageAbout extends PageAdminConfiguration {
         OperationResult result = parent.createSubresult(OPERATION_INITIAL_IMPORT);
 
         ModelService modelService = context.getBean(ModelService.class);
+        ModelInteractionService modelInteractionService = context.getBean(ModelInteractionService.class);
         CacheDispatcher cacheDispatcher = context.getBean(CacheDispatcher.class);
         TaskManager taskManager = context.getBean(TaskManager.class);
         PrismContext prismContext = context.getBean(PrismContext.class);
@@ -736,6 +738,7 @@ public class PageAbout extends PageAdminConfiguration {
             initialDataImport.setTaskManager(taskManager);
             initialDataImport.setPrismContext(prismContext);
             initialDataImport.setConfiguration(midpointConfiguration);
+            initialDataImport.setModelInteractionService(modelInteractionService);
             initialDataImport.init(true);
 
             // TODO consider if we need to go clusterwide here
