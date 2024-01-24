@@ -36,31 +36,32 @@ public class SequenceTest extends BaseSQLRepoTest {
 
     private static final String TEST_DIR = "src/test/resources/sequence/";
 
+    private static final long TEST_DURATION = 10000L;
     private static final int STOP_TIMEOUT = 10000;
 
     @Test
-    public void test001_OneThread() throws Exception {
+    public void test001OneThread() throws Exception {
 
         WorkerThread[] mts = new WorkerThread[] {
                 new WorkerThread(1)
         };
 
-        concurrencyUniversal("Test1", "sequence-unbound.xml", 10000L, mts, false);
+        concurrencyUniversal("Test1", "sequence-unbound.xml", TEST_DURATION, mts, false);
     }
 
     @Test
-    public void test002_TwoThreads() throws Exception {
+    public void test002TwoThreads() throws Exception {
 
         WorkerThread[] mts = new WorkerThread[] {
                 new WorkerThread(1),
                 new WorkerThread(2)
         };
 
-        concurrencyUniversal("Test2", "sequence-unbound.xml", 10000L, mts, false);
+        concurrencyUniversal("Test2", "sequence-unbound.xml", TEST_DURATION, mts, false);
     }
 
     @Test
-    public void test003_TenThreads() throws Exception {
+    public void test003TenThreads() throws Exception {
 
         WorkerThread[] mts = new WorkerThread[] {
                 new WorkerThread(1),
@@ -75,11 +76,11 @@ public class SequenceTest extends BaseSQLRepoTest {
                 new WorkerThread(10)
         };
 
-        concurrencyUniversal("Test3", "sequence-unbound.xml", 10000L, mts, false);
+        concurrencyUniversal("Test3", "sequence-unbound.xml", TEST_DURATION, mts, false);
     }
 
     @Test
-    public void test010_ReturningValues() throws Exception {
+    public void test010ReturningValues() throws Exception {
 
         OperationResult result = new OperationResult("test010_ReturningValues");
         final File file = new File(TEST_DIR + "sequence-bound-returned-wrapped.xml");
@@ -116,7 +117,7 @@ public class SequenceTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test020_ReachingLimit() throws Exception {
+    public void test020ReachingLimit() throws Exception {
         OperationResult result = new OperationResult("test020_ReachingLimit");
         final File file = new File(TEST_DIR + "sequence-bound.xml");
         PrismObject<SequenceType> sequence = prismContext.parseObject(file);
@@ -141,28 +142,28 @@ public class SequenceTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test031_OneThreadReturning() throws Exception {
+    public void test031OneThreadReturning() throws Exception {
 
         WorkerThread[] mts = new WorkerThread[] {
                 new WorkerThread(1, 5)
         };
 
-        concurrencyUniversal("Test031", "sequence-unbound.xml", 10000L, mts, true);
+        concurrencyUniversal("Test031", "sequence-unbound.xml", TEST_DURATION, mts, true);
     }
 
     @Test
-    public void test032_TwoThreadsReturning() throws Exception {
+    public void test032TwoThreadsReturning() throws Exception {
 
         WorkerThread[] mts = new WorkerThread[] {
                 new WorkerThread(1, 5),
                 new WorkerThread(2, 5)
         };
 
-        concurrencyUniversal("Test032", "sequence-unbound.xml", 10000L, mts, true);
+        concurrencyUniversal("Test032", "sequence-unbound.xml", TEST_DURATION, mts, true);
     }
 
     @Test
-    public void test033_TenThreadsReturning() throws Exception {
+    public void test033TenThreadsReturning() throws Exception {
 
         WorkerThread[] mts = new WorkerThread[] {
                 new WorkerThread(1, 5),
@@ -177,9 +178,10 @@ public class SequenceTest extends BaseSQLRepoTest {
                 new WorkerThread(10, 0)
         };
 
-        concurrencyUniversal("Test033", "sequence-unbound.xml", 10000L, mts, true);
+        concurrencyUniversal("Test033", "sequence-unbound.xml", TEST_DURATION, mts, true);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void concurrencyUniversal(String name, String sequenceFileName,
             long duration, WorkerThread[] workerThreads, boolean alwaysOrder) throws Exception {
 
@@ -223,6 +225,9 @@ public class SequenceTest extends BaseSQLRepoTest {
                 if (remaining <= 0) {
                     break;
                 }
+            }
+            if (Arrays.stream(workerThreads).noneMatch(t -> t.isAlive())) {
+                break;
             }
         }
 

@@ -13,11 +13,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The state of the subscription with regards to the current situation (time, system features, and so on).
+ * The state of the subscription with regards to the current situation
+ * (subscription ID presence, time, system features, and so on).
  *
  * See e.g.
  *
- * - {@link #isValid()}
+ * - {@link #isActive()}
  * - {@link #isDemo()}
  * - {@link #isInGracePeriod()}
  * - {@link #isProductionEnvironment()}
@@ -54,26 +55,26 @@ public class SubscriptionState {
             if (subscription.isNone()) {
                 return new SubscriptionState(subscription, productionEnvironment, Validity.NONE);
             }
-            if (subscription.isInvalid()) {
-                return new SubscriptionState(subscription, productionEnvironment, Validity.INVALID);
+            if (subscription.isMalformed()) {
+                return new SubscriptionState(subscription, productionEnvironment, Validity.MALFORMED);
             }
             int monthsAfter = subscription.computeMonthsAfter(LocalDate.now());
             if (monthsAfter == 0) {
-                return new SubscriptionState(subscription, productionEnvironment, Validity.VALID);
+                return new SubscriptionState(subscription, productionEnvironment, Validity.FULLY_ACTIVE);
             }
             if (!SubscriptionPolicies.isGracePeriodAvailable(subscription, systemFeatures)) {
-                return new SubscriptionState(subscription, productionEnvironment, Validity.INVALID);
+                return new SubscriptionState(subscription, productionEnvironment, Validity.EXPIRED);
             }
             return new SubscriptionState(subscription, productionEnvironment, Validity.fromMonthsAfter(monthsAfter));
 
         } catch (Exception e) {
-            return new SubscriptionState(subscription, productionEnvironment, Validity.INVALID);
+            return new SubscriptionState(subscription, productionEnvironment, Validity.EXPIRED);
         }
     }
 
     public static SubscriptionState error(@NotNull Subscription subscription) {
         // Very strange case, but let us handle it gracefully. Let us expect the worst (production environment).
-        return new SubscriptionState(subscription, true, Validity.INVALID);
+        return new SubscriptionState(subscription, true, Validity.EXPIRED);
     }
 
     /**
@@ -85,37 +86,45 @@ public class SubscriptionState {
         return error(Subscription.none());
     }
 
-    public boolean isValid() {
-        return validity.isValid();
+    /**
+     * Is the subscription active? The subscription ID must be present, well-formed, and within its time validity period.
+     * (The grace period - if available - counts also as the validity.) The expired or malformed subscriptions
+     * give `false` here.
+     */
+    public boolean isActive() {
+        return validity.isActive();
     }
 
+    /** Is the (valid) subscription in the grace period? */
     public boolean isInGracePeriod() {
         return validity.isInGracePeriod();
     }
 
-    /** Note that the subscription itself may be (e.g.) expired. */
+    /** Is this a demo subscription? Note that the subscription itself may be expired. */
     public boolean isDemo() {
         return subscription.isDemo();
     }
 
-    public boolean isInvalidOrDemo() {
-        return !isValid() || isDemo();
+    /** Just a convenience method. */
+    public boolean isInactiveOrDemo() {
+        return !isActive() || isDemo();
     }
 
+    /** Do we think we run in a production environment (regardless of the subscription ID present or not)? */
     public boolean isProductionEnvironment() {
         return productionEnvironment;
     }
 
     /**
-     * Enumeration for the validity of subscription.
+     * Enumeration for the validity of the subscription.
      *
-     * If the time has not passed yet, the validity is {@link #VALID}. There is an optional grace period after that,
-     * consisting of three parts (by default, they correspond to calendar months). Finally, the state goes to {@link #INVALID}.
+     * If the time has not passed yet, the validity is {@link #FULLY_ACTIVE}. There is an optional grace period after that,
+     * consisting of three parts (by default, they correspond to calendar months). Finally, the state goes to {@link #EXPIRED}.
      */
     public enum Validity {
 
         /** The subscription information is OK, and the time has not passed. */
-        VALID,
+        FULLY_ACTIVE,
 
         /** The subscription information is OK, and we are in the grace period part 1 of 3 (if available). */
         IN_GRACE_PERIOD_PART_ONE,
@@ -126,31 +135,38 @@ public class SubscriptionState {
         /** The subscription information is OK, and we are in the grace period part 3 of 3 (if available). */
         IN_GRACE_PERIOD_PART_THREE,
 
-        /** The subscription information is not OK, and/or the time has passed; including the (optional) grace period. */
-        INVALID,
+        /** The subscription period has passed; including the (optional) grace period. */
+        EXPIRED,
+
+        /** The subscription information is malformed. */
+        MALFORMED,
 
         /** There is no subscription information. */
         NONE;
 
+        /** Returns grace period level or "expired". Assumes not fully active. */
         public static Validity fromMonthsAfter(int monthsAfter) {
-            assert monthsAfter > 0;
-            if (monthsAfter == 1) {
+            if (monthsAfter <= 0) {
+                throw new IllegalArgumentException();
+            } else if (monthsAfter == 1) {
                 return IN_GRACE_PERIOD_PART_ONE;
             } else if (monthsAfter == 2) {
                 return IN_GRACE_PERIOD_PART_TWO;
             } else if (monthsAfter == 3) {
                 return IN_GRACE_PERIOD_PART_THREE;
             } else {
-                return INVALID;
+                return EXPIRED;
             }
         }
 
         /**
-         * Is this state generally considered "valid"? Note that not all subscriptions have the grace period.
-         * For those that have it, it is considered still valid, although with potential limitations.
+         * Is this state generally considered "active"?
+         *
+         * As for the grace period, note that not all subscriptions have it.
+         * For those that do, it is considered still active, although with potential limitations.
          */
-        public boolean isValid() {
-            return this == VALID || isInGracePeriod();
+        public boolean isActive() {
+            return this == FULLY_ACTIVE || isInGracePeriod();
         }
 
         public boolean isInGracePeriod() {

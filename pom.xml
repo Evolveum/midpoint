@@ -93,6 +93,11 @@
     repository test setup (config.xml).
     This is not supported by new repository, but standard config.xml override mechanism can be used,
     e.g. -Dmidpoint.repository.jdbcUrl=... and other properties.
+
+    CODE SIGNING:
+    - There is a profile `jar-signing` that causes `midpoint.jar` to be signed, as described in `midpoint-jar/pom.xml`.
+    In particular, the `MIDPOINT_BUILD_KEYSTORE` env variable must point to the keystore that contains a `build-signing-key`
+    that will be used for signing.
     -->
 
     <parent>
