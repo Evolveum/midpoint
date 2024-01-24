@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -37,7 +38,7 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
     }
 
     @Override
-    public ObjectDelta<O> getObjectDelta() throws SchemaException {
+    public ObjectDelta<O> getObjectDelta() throws CommonException {
         ObjectDelta<O> objectDelta = getPrismContext().deltaFor(getObject().getCompileTimeClass())
                 .asObjectDelta(getObject().getOid());
 
@@ -109,7 +110,7 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
     }
 
     @Override
-    public PrismObject<O> getObjectApplyDelta() throws SchemaException {
+    public PrismObject<O> getObjectApplyDelta() throws CommonException {
         PrismObject<O> oldObject = getObjectOld().clone();
 
         Collection<ItemDelta> deltas = new ArrayList<>();

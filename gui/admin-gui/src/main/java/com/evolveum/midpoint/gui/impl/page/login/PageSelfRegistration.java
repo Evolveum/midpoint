@@ -296,7 +296,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         }
     }
 
-    protected ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws CommonException {
         LOGGER.trace("Preparing user ADD delta (new user registration)");
         UserType userType = prepareUserToSave(task, result);
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userType.asPrismObject());
@@ -333,7 +333,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
             try {
                 userToSave = getDynamicFormPanel().getObject().asObjectable().clone();
-            } catch (SchemaException e) {
+            } catch (CommonException e) {
                 LoggingUtils.logException(LOGGER, "Failed to construct delta " + e.getMessage(), e);
                 throw new RestartResponseException(this);
             }

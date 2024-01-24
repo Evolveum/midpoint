@@ -12,6 +12,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -266,7 +268,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
     }
 
     @Override
-    protected void prepareObjectForAdd(PrismObject<F> focus) throws SchemaException {
+    protected void prepareObjectForAdd(PrismObject<F> focus) throws CommonException {
         super.prepareObjectForAdd(focus);
         F focusType = focus.asObjectable();
         // handle added accounts
@@ -289,7 +291,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
         }
     }
 
-    private List<ShadowType> prepareShadowObject(List<ShadowWrapper> projections) throws SchemaException {
+    private List<ShadowType> prepareShadowObject(List<ShadowWrapper> projections) throws CommonException {
         List<ShadowType> projectionsToAdd = new ArrayList<>();
         for (ShadowWrapper projection : projections) {
             if (UserDtoStatus.MODIFY.equals(projection.getProjectionStatus())) {
@@ -313,7 +315,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
     }
 
     @Override
-    protected void prepareObjectDeltaForModify(ObjectDelta<F> focusDelta) throws SchemaException {
+    protected void prepareObjectDeltaForModify(ObjectDelta<F> focusDelta) throws CommonException {
         super.prepareObjectDeltaForModify(focusDelta);
         // handle accounts
         PrismObjectDefinition<F> objectDefinition = getObjectDefinition();
@@ -331,7 +333,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
     }
 
     private ReferenceDelta prepareUserAccountsDeltaForModify(PrismReferenceDefinition refDef)
-            throws SchemaException {
+            throws CommonException {
         ReferenceDelta refDelta = getPrismContext().deltaFactory().reference().create(refDef);
 
         List<ShadowWrapper> accounts = projectionModel.getObject();
@@ -398,7 +400,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
         return false;
     }
 
-    private boolean skipDeleteShadow(ObjectReferenceType resourceRef, List<ShadowWrapper> accounts) throws SchemaException {
+    private boolean skipDeleteShadow(ObjectReferenceType resourceRef, List<ShadowWrapper> accounts) throws CommonException {
         if (resourceRef == null) {
             return false;
         }

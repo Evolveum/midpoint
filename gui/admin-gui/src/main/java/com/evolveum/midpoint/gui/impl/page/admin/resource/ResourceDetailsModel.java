@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -71,7 +72,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         OperationResult result = new OperationResult(OPERATION_FETCH_SCHEMA);
         try {
             schema = pageBase.getModelService().fetchSchema(objectWrapper.getObjectApplyDelta(), result);
-        } catch (SchemaException | RuntimeException e) {
+        } catch (CommonException | RuntimeException e) {
             result.recordFatalError("Cannot load schema object classes, " + e.getMessage());
             result.computeStatus();
             pageBase.showResult(result);

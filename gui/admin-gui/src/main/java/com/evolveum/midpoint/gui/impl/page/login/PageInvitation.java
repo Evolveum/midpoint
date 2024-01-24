@@ -47,7 +47,7 @@ public class PageInvitation extends PageSelfRegistration {
     }
 
     @Override
-    protected ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws CommonException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         LOGGER.trace("Preparing user MODIFY delta (preregistered user registration)");
         ObjectDelta<UserType> delta;
         if (!isCustomFormDefined()) {

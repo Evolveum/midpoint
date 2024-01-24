@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -86,7 +87,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
             protected ResourceType load() {
                 try {
                     return resourceModel.getObjectWrapper().getObjectApplyDelta().asObjectable();
-                } catch (SchemaException e) {
+                } catch (CommonException e) {
                     LOGGER.error("Couldn't get resource with applied deltas", e);
                 }
                 return null;
