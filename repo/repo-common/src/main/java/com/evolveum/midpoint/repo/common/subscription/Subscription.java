@@ -32,11 +32,11 @@ import org.jetbrains.annotations.TestOnly;
 public class Subscription implements Serializable {
 
     private static final Subscription NONE = new Subscription(Type.NONE, null);
-    private static final Subscription INVALID = new Subscription(Type.INVALID, null);
+    private static final Subscription MALFORMED = new Subscription(Type.MALFORMED, null);
 
     @NotNull private final Type type;
 
-    /** Always non-null if {@link #isValid()} is `true`. */
+    /** Always non-null if {@link #isWellFormed()} is `true`. */
     @Nullable private final TimeValidity timeValidity;
 
     private Subscription(@NotNull Type type, @Nullable TimeValidity timeValidity) {
@@ -44,12 +44,14 @@ public class Subscription implements Serializable {
         this.timeValidity = timeValidity;
     }
 
+    /** See {@link Type#NONE}. */
     public static Subscription none() {
         return NONE;
     }
 
-    public static Subscription invalid() {
-        return INVALID;
+    /** See {@link Type#MALFORMED}. */
+    public static Subscription malformed() {
+        return MALFORMED;
     }
 
     public static Subscription parse(String stringValue) {
@@ -57,17 +59,17 @@ public class Subscription implements Serializable {
             return none();
         }
         if (!NumberUtils.isDigits(stringValue)) {
-            return invalid();
+            return malformed();
         }
         if (stringValue.length() < 11) {
-            return invalid();
+            return malformed();
         }
 
         try {
             // Let us check the correctness first.
             VerhoeffCheckDigit checkDigit = new VerhoeffCheckDigit();
             if (!checkDigit.isValid(stringValue)) {
-                return invalid();
+                return malformed();
             }
 
             return new Subscription(
@@ -75,7 +77,7 @@ public class Subscription implements Serializable {
                     TimeValidity.parse(stringValue.substring(2, 6)));
 
         } catch (Exception ex) {
-            return invalid();
+            return malformed();
         }
     }
 
@@ -87,25 +89,29 @@ public class Subscription implements Serializable {
                 '}';
     }
 
+    /** Is this a 05-style (demo) subscription? */
     public boolean isDemo() {
         return type == Type.DEMO;
     }
 
+    /** Is the subscription information missing? */
     public boolean isNone() {
         return type == Type.NONE;
     }
 
-    public boolean isInvalid() {
-        return type == Type.INVALID;
+    /** Is the subscription information malformed (corrupted)? */
+    public boolean isMalformed() {
+        return type == Type.MALFORMED;
     }
 
-    public boolean isValid() {
-        return !isNone() && !isInvalid();
+    /** Is the subscription well-formed? Note it may or may not be expired. See also {@link SubscriptionState#isActive()}. */
+    public boolean isWellFormed() {
+        return !isNone() && !isMalformed();
     }
 
-    /** Call only on valid subscriptions. */
+    /** Call only on well-formed subscriptions. */
     public int computeMonthsAfter(@NotNull LocalDate now) {
-        stateCheck(isValid(), "Invalid subscription: %s", this);
+        stateCheck(isWellFormed(), "Malformed or no subscription: %s", this);
         assert timeValidity != null;
         return timeValidity.computeMonthsAfter(now);
     }
@@ -124,8 +130,8 @@ public class Subscription implements Serializable {
         /** No information about the subscription exists. */
         NONE(null),
 
-        /** The subscription string is not valid. Note that this does NOT include time-invalid strings that were valid before. */
-        INVALID(null),
+        /** The subscription string is not OK, e.g. it is too short or corrupted. The time aspect is NOT taken into account. */
+        MALFORMED(null),
 
         ANNUAL("01"),
         PLATFORM("02"),
@@ -145,7 +151,7 @@ public class Subscription implements Serializable {
                     return value;
                 }
             }
-            return INVALID;
+            return MALFORMED;
         }
     }
 

@@ -28,7 +28,7 @@ public class SubscriptionPolicies {
      */
     @SuppressWarnings("RedundantIfStatement")
     public static boolean isGracePeriodAvailable(@NotNull Subscription subscription, @NotNull SystemFeatures features) {
-        assert subscription.isValid();
+        assert subscription.isWellFormed();
 
         if (subscription.isDemo()) {
             return false;

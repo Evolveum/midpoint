@@ -15,7 +15,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 public class SubscriptionUtil {
 
     public static @Nullable String missingSubscriptionAppeal(LocalizationService localizationService, Locale locale) {
-        if (LocalBeans.get().subscriptionStateHolder.getSubscriptionState().isValid()) {
+        if (LocalBeans.get().subscriptionStateHolder.getSubscriptionState().isActive()) {
             return null;
         } else {
             return localizationService.translate("PageBase.nonActiveSubscriptionMessage", null, locale,
