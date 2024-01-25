@@ -436,3 +436,36 @@ We can restrict the selection (or domain) of the original metric to cover only s
 ----
 <1> The `after` item represents the object state after the operation.
 (Note that if the `department` attribute itself is modified to a value other than "Security services", this change is not seen by this simple filter.)
+
+Let's explore how to configure the system to determine whether any changes have occurred to
+a specific attribute such as `employeeNumber`.
+
+.Listing 7. Computation of attribute modifications for specific item path
+[source,xml]
+----
+<metric>
+    <identifier>attribute-modifications-employee-number</identifier>
+    <computation>
+        <domain>
+            <expression>
+                <script>
+                    <code>processedObject.isShadow()</code>
+                </script>
+            </expression>
+        </domain>
+        <valueExpression>
+            <script>
+                <code>
+                    import com.evolveum.midpoint.prism.path.ItemPath;
+                    def itemPath = ItemPath.create('attributes','employeeNumber');<!--1-->
+
+                    return processedObject.getItemModificationsCount(itemPath);<!--2-->
+                </code>
+            </script>
+        </valueExpression>
+    </computation>
+</metric>
+----
+<1> Define the item path for 'employeeNumber'. The item path must exactly match the configuration.
+<2> Compute the count of modifications for the specified item path.
+To include sub-item modifications, use `getItemModificationsCount(itemPath, true)`.

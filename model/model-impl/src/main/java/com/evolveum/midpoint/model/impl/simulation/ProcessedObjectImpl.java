@@ -675,6 +675,48 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     private boolean isAttributeModification(@NotNull ItemDelta<?, ?> modification) {
         return ShadowType.F_ATTRIBUTES.equivalent(modification.getParentPath());
     }
+    /**
+     * Counts modifications based on the specified path, excluding changes in ADD/DELETE deltas.
+     * <p>
+     * The item path must exactly match the configuration.
+     * </p>
+     * Sub-item modifications are not counted.
+     *
+     * @param itemPath the path to count modifications for
+     * @return the number of attribute modifications.
+     */
+    @SuppressWarnings("unused") // used in scripts
+    public int getItemModificationsCount(@NotNull ItemPath itemPath) {
+        return getItemModificationsCount(itemPath, false);
+    }
+
+    /**
+     * Counts modifications based on the specified path, excluding changes in ADD/DELETE deltas.
+     * <p>
+     * The item path must exactly match the configuration.
+     * </p>
+     * If {@code allowSubPaths} is true, sub-item modifications are also counted.
+     *
+     * @param itemPath the path to count modifications for
+     * @param allowSubPaths if true, sub-item modifications are allowed
+     * @return the number of attribute modifications
+     */
+
+    @SuppressWarnings("unused") // used in scripts
+    public int getItemModificationsCount(@NotNull ItemPath itemPath, boolean allowSubPaths) {
+        if (delta == null || !delta.isModify()) {
+            return 0;
+        }
+
+        return (int) delta.getModifications().stream()
+                .filter(itemDelta -> {
+                    ItemPath deltaPath = itemDelta.getPath();
+                    return allowSubPaths
+                            ? deltaPath.isSuperPathOrEquivalent(itemPath)
+                            : deltaPath.equivalent(itemPath);
+                })
+                .count();
+    }
 
     /**
      * Returns the number of VALUES of associations added or deleted.
