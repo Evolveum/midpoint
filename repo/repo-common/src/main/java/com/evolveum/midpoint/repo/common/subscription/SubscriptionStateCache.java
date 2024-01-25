@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.repo.common.subscription;
 
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,21 +30,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  * (The caching may change if needed.)
  */
 @Component
-public class SubscriptionStateCache {
+public class SubscriptionStateCache implements SystemConfigurationChangeListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(SubscriptionStateCache.class);
 
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private SystemFeaturesEnquirer systemFeaturesEnquirer;
+    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private static final String OP_GET_SUBSCRIPTION_STATE = SubscriptionStateCache.class.getName() + ".getSubscriptionState";
     private static final long FEATURES_REFRESH_INTERVAL = 60 * 1000L;
 
     /** Cached version of the features. */
-    private SystemFeatures lastKnownFeatures;
+    private volatile SystemFeatures lastKnownFeatures;
 
     /** When those were obtained. */
-    private long lastKnownFeaturesTimestamp;
+    private volatile long lastKnownFeaturesTimestamp;
 
     /** Use only if there's no way of obtaining the operation result! */
     public @NotNull SubscriptionState getSubscriptionState() {
@@ -77,15 +83,34 @@ public class SubscriptionStateCache {
     }
 
     private SystemFeatures getSystemFeatures(OperationResult result) {
-        if (lastKnownFeatures == null || System.currentTimeMillis() - lastKnownFeaturesTimestamp > FEATURES_REFRESH_INTERVAL) {
-            lastKnownFeatures = systemFeaturesEnquirer.getSystemFeatures(result);
+        var features = lastKnownFeatures;
+        if (features == null || System.currentTimeMillis() - lastKnownFeaturesTimestamp > FEATURES_REFRESH_INTERVAL) {
+            features = systemFeaturesEnquirer.getSystemFeatures(result);
+            lastKnownFeatures = features;
             lastKnownFeaturesTimestamp = System.currentTimeMillis();
         }
-        return lastKnownFeatures;
+        return features;
     }
 
     public static @NotNull SubscriptionId getSubscriptionId(@Nullable SystemConfigurationType systemConfiguration) {
         return SubscriptionId.parse(
                 SystemConfigurationTypeUtil.getSubscriptionId(systemConfiguration));
+    }
+
+    @Override
+    public void update(@Nullable SystemConfigurationType value) {
+        // Many of the features depend on the system configuration. So let's just invalidate the value if there's a change.
+        // The refresh is very cheap.
+        lastKnownFeatures = null;
+    }
+
+    @PostConstruct
+    public void init() {
+        systemConfigurationChangeDispatcher.registerListener(this);
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        systemConfigurationChangeDispatcher.unregisterListener(this);
     }
 }

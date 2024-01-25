@@ -88,6 +88,9 @@ public class SystemFeaturesEnquirer {
                 if (isMailOrSmsTransportEnabled(transportConfiguration.getMail())) {
                     return true;
                 }
+                if (isMailOrSmsTransportEnabled(transportConfiguration.getSms())) {
+                    return true;
+                }
                 if (isMailOrSmsTransportEnabled(transportConfiguration.getCustomTransport())) {
                     return true;
                 }
@@ -107,21 +110,21 @@ public class SystemFeaturesEnquirer {
 
         private boolean isMailTransportEnabled(MailTransportConfigurationType config) {
             return !config.getServer().isEmpty()
-                    && config.getRedirectToFile() != null;
+                    && config.getRedirectToFile() == null;
         }
 
         private boolean isSmsTransportEnabled(SmsTransportConfigurationType config) {
             return !config.getGateway().isEmpty()
-                    && config.getRedirectToFile() != null;
+                    && config.getRedirectToFile() == null;
         }
 
         private boolean areLegacyMailNotificationsEnabled(@Nullable MailConfigurationType config) {
-            return config != null && !config.getServer().isEmpty() && config.getRedirectToFile() != null;
+            return config != null && !config.getServer().isEmpty() && config.getRedirectToFile() == null;
         }
 
         private boolean areLegacySmsNotificationsEnabled(Collection<SmsConfigurationType> configs) {
             return configs.stream()
-                    .anyMatch(c -> !c.getGateway().isEmpty() && c.getRedirectToFile() != null);
+                    .anyMatch(c -> !c.getGateway().isEmpty() && c.getRedirectToFile() == null);
         }
 
         boolean isClusteringEnabled() {
@@ -129,7 +132,7 @@ public class SystemFeaturesEnquirer {
         }
 
         boolean isGenericNonH2DatabaseUsed() {
-            return !repositoryService.isGenericNonH2();
+            return repositoryService.isGenericNonH2();
         }
     }
 }
