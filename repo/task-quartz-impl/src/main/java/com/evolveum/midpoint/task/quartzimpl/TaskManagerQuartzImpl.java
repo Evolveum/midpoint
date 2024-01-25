@@ -10,6 +10,8 @@ import static java.util.Collections.emptySet;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -157,6 +159,8 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     /** Cached task prism definition. */
     private PrismObjectDefinition<TaskType> taskPrismDefinition;
+
+    @NotNull private final Set<ClusteringAvailabilityProvider> clusteringAvailabilityProviders = ConcurrentHashMap.newKeySet();
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
 
@@ -1267,6 +1271,25 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
             };
         }
         return null;
+    }
+
+    @Override
+    public void registerClusteringAvailabilityProvider(@NotNull ClusteringAvailabilityProvider provider) {
+        clusteringAvailabilityProviders.add(provider);
+    }
+
+    @Override
+    public void unregisterClusteringAvailabilityProvider(@NotNull ClusteringAvailabilityProvider provider) {
+        clusteringAvailabilityProviders.remove(provider);
+    }
+
+    @Override
+    public boolean isClusteringAvailable() {
+        if (clusteringAvailabilityProviders.isEmpty()) {
+            return true; // should not occur during the regular system operation; there should be exactly one such provider
+        }
+        return clusteringAvailabilityProviders.stream()
+                .anyMatch(provider -> provider.isClusteringAvailable());
     }
 
     public TaskBeans getBeans() {
