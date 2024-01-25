@@ -14,7 +14,7 @@ import java.net.URI;
 import java.util.*;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.repo.common.subscription.Subscription;
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionId;
 
 import com.evolveum.midpoint.repo.common.subscription.SubscriptionStateCache;
 
@@ -174,7 +174,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     private WebApplicationConfiguration webApplicationConfiguration;
 
     private DeploymentInformationType deploymentInfo;
-    private Subscription subscription;
+    private SubscriptionId subscriptionId;
 
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
@@ -333,10 +333,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     }
 
     public @NotNull SubscriptionState getSubscriptionState() {
-        var subscription = this.subscription;
-        if (subscription != null) {
+        var subscriptionId = this.subscriptionId;
+        if (subscriptionId != null) {
             // Should be always the case, maybe except the initialization.
-            return subscriptionStateCache.getSubscriptionState(subscription);
+            return subscriptionStateCache.getSubscriptionState(subscriptionId);
         } else {
             // This will try to get it from the current system configuration.
             return subscriptionStateCache.getSubscriptionState();
@@ -580,7 +580,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     private void updateDeploymentInfo(@Nullable SystemConfigurationType value) {
         deploymentInfo = value != null ? value.getDeploymentInformation() : null;
-        subscription = SubscriptionStateCache.getSubscription(value);
+        subscriptionId = SubscriptionStateCache.getSubscriptionId(value);
     }
 
     /* (non-Javadoc)

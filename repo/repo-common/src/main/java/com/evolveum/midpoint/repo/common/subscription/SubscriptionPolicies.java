@@ -9,6 +9,10 @@ package com.evolveum.midpoint.repo.common.subscription;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Period;
+
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
 /**
  * Policies related to the handling of subscriptions.
  *
@@ -22,34 +26,37 @@ import org.jetbrains.annotations.NotNull;
 public class SubscriptionPolicies {
 
     /**
-     * Is the 3-month grace period available?
+     * How long is the grace period? It may be zero.
      *
-     * Please adapt the code to match your needs.
+     * Assumes that there IS a well-formed subscription ID.
+     * (Otherwise, there's no point in asking about grace period.)
      */
-    @SuppressWarnings("RedundantIfStatement")
-    public static boolean isGracePeriodAvailable(@NotNull Subscription subscription, @NotNull SystemFeatures features) {
-        assert subscription.isWellFormed();
+    public static @NotNull Period getGracePeriod(@NotNull SubscriptionId subscriptionId) {
+        argCheck(subscriptionId.isWellFormed(), "Subscription ID is not well-formed");
 
-        if (subscription.isDemo()) {
-            return false;
-        }
-        if (features.isGenericProductionDatabasePresent()) {
-            return false;
-        }
-        return true;
+        return !subscriptionId.isDemo() ? Period.ofMonths(3) : Period.ZERO;
     }
 
     /**
      * This is how we estimate we are in a production environment.
-     *
-     * Please adapt the code to match your needs.
      */
-    public static boolean isProductionEnvironment(@NotNull SystemFeatures features) {
-        if (features.isClusterPresent()) {
+    @SuppressWarnings("RedundantIfStatement")
+    public static boolean isProductionEnvironment(@NotNull SubscriptionId subscriptionId, @NotNull SystemFeatures features) {
+        if (subscriptionId.isWellFormed() && !subscriptionId.isDemo()) {
             return true;
         }
-        return features.isPublicHttpUrlPatternPresent()
-                && features.isCustomLoggingPresent()
-                && features.isMailNotificationsPresent();
+        if (features.areRealNotificationsEnabled()) {
+            return true;
+        }
+        if (features.isPublicHttpsUrlPatternDefined()) {
+            return true;
+        }
+        if (features.isRemoteHostAddressHeaderDefined()) {
+            return true;
+        }
+        if (features.isCustomLoggingDefined()) {
+            return true;
+        }
+        return false;
     }
 }
