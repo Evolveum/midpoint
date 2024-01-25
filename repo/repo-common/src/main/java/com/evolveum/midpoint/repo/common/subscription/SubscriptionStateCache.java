@@ -49,9 +49,9 @@ public class SubscriptionStateCache {
     /** This is the recommended version. */
     public @NotNull SubscriptionState getSubscriptionState(OperationResult result) {
         try {
-            var subscription = getSubscription(systemObjectCache.getSystemConfigurationBean(result));
-            var features = getSystemFeatures(result);
-            return SubscriptionState.determine(subscription, features);
+            return SubscriptionState.determine(
+                    getSubscriptionId(systemObjectCache.getSystemConfigurationBean(result)),
+                    getSystemFeatures(result));
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine the subscription state", e);
             return SubscriptionState.error();
@@ -59,15 +59,17 @@ public class SubscriptionStateCache {
     }
 
     /** Useful when we know the subscription from the outside. Use only if there's no way of obtaining the operation result. */
-    public @NotNull SubscriptionState getSubscriptionState(@NotNull Subscription subscription) {
-        return getSubscriptionState(subscription, new OperationResult(OP_GET_SUBSCRIPTION_STATE));
+    public @NotNull SubscriptionState getSubscriptionState(@NotNull SubscriptionId subscriptionId) {
+        return getSubscriptionState(subscriptionId, new OperationResult(OP_GET_SUBSCRIPTION_STATE));
     }
 
     /** Useful when we know the subscription from the outside. */
-    public @NotNull SubscriptionState getSubscriptionState(@NotNull Subscription subscription, @NotNull OperationResult result) {
+    public @NotNull SubscriptionState getSubscriptionState(
+            @NotNull SubscriptionId subscriptionId, @NotNull OperationResult result) {
         try {
-            var features = getSystemFeatures(result);
-            return SubscriptionState.determine(subscription, features);
+            return SubscriptionState.determine(
+                    subscriptionId,
+                    getSystemFeatures(result));
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine the subscription state", e);
             return SubscriptionState.error();
@@ -82,8 +84,8 @@ public class SubscriptionStateCache {
         return lastKnownFeatures;
     }
 
-    public static @NotNull Subscription getSubscription(@Nullable SystemConfigurationType systemConfiguration) {
-        return Subscription.parse(
+    public static @NotNull SubscriptionId getSubscriptionId(@Nullable SystemConfigurationType systemConfiguration) {
+        return SubscriptionId.parse(
                 SystemConfigurationTypeUtil.getSubscriptionId(systemConfiguration));
     }
 }
