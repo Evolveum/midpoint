@@ -51,6 +51,8 @@ import org.apache.wicket.model.PropertyModel;
 
 import java.util.*;
 
+import org.jetbrains.annotations.NotNull;
+
 public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     private static final long serialVersionUID = 1L;
@@ -185,6 +187,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         };
         hint.setOutputMarkupId(true);
         hint.add(new EnableBehaviour(() -> !savedPassword));
+        hint.add(new VisibleBehaviour(this::isHintPanelVisible));
         add(hint);
 
         AjaxSubmitButton changePasswordButton = new AjaxSubmitButton(ID_CHANGE_PASSWORD,
@@ -218,6 +221,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         changePasswordButton.setOutputMarkupId(true);
         add(changePasswordButton);
 
+    }
+
+    protected boolean isHintPanelVisible() {
+        return true;
     }
 
     protected PasswordLimitationsPanel createLimitationPanel(String id, IModel<List<StringLimitationResult>> limitationsModel) {
@@ -415,6 +422,18 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     protected boolean isPasswordLimitationPopupVisible() {
         return false;
+    }
+
+    @NotNull
+    protected PasswordHintConfigurabilityType getPasswordHintConfigurability() {
+        CredentialsPolicyType credentialsPolicy = credentialsPolicyModel.getObject();
+
+        if (credentialsPolicy != null
+                && credentialsPolicy.getPassword() != null
+                && credentialsPolicy.getPassword().getPasswordHintConfigurability() != null) {
+            return credentialsPolicy.getPassword().getPasswordHintConfigurability();
+        }
+        return PasswordHintConfigurabilityType.ALWAYS_CONFIGURE;
     }
 
 }
