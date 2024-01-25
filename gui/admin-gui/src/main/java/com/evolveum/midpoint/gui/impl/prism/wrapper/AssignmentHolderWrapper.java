@@ -25,17 +25,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Wrapper for AssignmentHolderType. Modify object delta.
  * Removes `parentOrgRef` values from a to-be-created object that should not be there, because of the object's inactivity.
  */
-public class AssignmentHolderWrapper extends PrismObjectWrapperImpl<AssignmentHolderType> {
+public class AssignmentHolderWrapper<AH extends AssignmentHolderType> extends PrismObjectWrapperImpl<AH> {
 
     private static final long serialVersionUID = 1L;
 
-    public AssignmentHolderWrapper(PrismObject<AssignmentHolderType> item, ItemStatus status) {
+    public AssignmentHolderWrapper(PrismObject<AH> item, ItemStatus status) {
         super(item, status);
     }
 
     @Override
-    public ObjectDelta<AssignmentHolderType> getObjectDelta() throws CommonException {
-        ObjectDelta<AssignmentHolderType> delta = super.getObjectDelta();
+    public ObjectDelta<AH> getObjectDelta() throws CommonException {
+        ObjectDelta<AH> delta = super.getObjectDelta();
         if (delta.isAdd()) {
             removeExtraParentOrgRef(delta.getObjectToAdd().asObjectable());
         }
@@ -67,7 +67,7 @@ public class AssignmentHolderWrapper extends PrismObjectWrapperImpl<AssignmentHo
      * disabled, validity changed, LC state changed, etc.). We only treat the case when the object as a whole is
      * put into "assignments inactive" LC state.
      */
-    private void removeExtraParentOrgRef(@NotNull AssignmentHolderType object) throws ConfigurationException {
+    private void removeExtraParentOrgRef(@NotNull AH object) throws ConfigurationException {
         SystemConfigurationType config = MidPointApplication.get().getSystemConfigurationIfAvailable();
         LifecycleStateModelType objectStateModel =
                 ArchetypeManager.determineLifecycleModel(object.asPrismObject(), config);
