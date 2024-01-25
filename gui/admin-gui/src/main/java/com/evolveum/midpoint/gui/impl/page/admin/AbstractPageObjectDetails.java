@@ -311,12 +311,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             }
             checkValidationErrors(target, objectDetailsModels.getValidationErrors());
 
-            for (ObjectDelta<? extends ObjectType> delta : deltas) {
-                if (delta.isAdd()) {
-                    removeExtraParentOrgRef(delta.getObjectToAdd().asObjectable());
-                }
-            }
-
         } catch (Throwable ex) {
             result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);
@@ -337,53 +331,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
 
         return executedDeltas;
-    }
-
-    /**
-     * Removes `parentOrgRef` values from a to-be-created object that should not be there, because of the object's inactivity.
-     *
-     * == Rationale
-     *
-     * Because of the authorization requirements (both when the object editing starts - see edit schema,
-     * and when the operation is submitted to execution), we manually set-up a `parentOrgRef` value for each org assignment
-     * that is pre-created in the new object. This is typically when the object is created as a child in a given org via GUI:
-     * The GUI creates the respective org assignment and `parentOrgRef` value.
-     *
-     * (Note that this is not wholly correct, and is more a workaround than a real solution. The real solution would be
-     * to either call the projector to do this, or to change the authorization evaluation to not depend on `parentOrgRef`.
-     * That way or another, it is currently so. See also MID-3234.)
-     *
-     * The problem occurs when the object is changed to `draft` or similar LC state during editing. The added `parentOrgRef`
-     * should no longer be there, as the current implementation is that the org assignment(s) are inactive in such object LC
-     * states (unless the state model says otherwise). If they are present and should not be, the model refuses
-     * the ADD operation (see MID-9264). So this method removes them.
-     *
-     * == Limitations
-     *
-     * We do NOT treat general cases here, like when the respective assignment itself is modified (e.g.,
-     * disabled, validity changed, LC state changed, etc.). We only treat the case when the object as a whole is
-     * put into "assignments inactive" LC state.
-     */
-    private void removeExtraParentOrgRef(@NotNull ObjectType object) throws ConfigurationException {
-        if (!(object instanceof AssignmentHolderType)) {
-            return; // There are no assignments to be considered
-        }
-
-        SystemConfigurationType config = MidPointApplication.get().getSystemConfigurationIfAvailable();
-        LifecycleStateModelType objectStateModel =
-                ArchetypeManager.determineLifecycleModel(object.asPrismObject(), config);
-
-        // As for the task execution mode is concerned, we are interested only in whether production or development config
-        // is to be used. Currently, all GUI "object details page" actions are carried out in production mode. So we can
-        // safely use TaskExecutionMode.PRODUCTION here.
-        boolean assignmentsActive = MidPointApplication.get().getActivationComputer().lifecycleHasActiveAssignments(
-                object.getLifecycleState(), objectStateModel, TaskExecutionMode.PRODUCTION);
-
-        if (!assignmentsActive) {
-            // We assume that this is a new object. All parentOrgRef values should come through assignments.
-            // Hence, if assignments are not active, we can remove all such values.
-            object.getParentOrgRef().clear();
-        }
     }
 
     protected void postProcessResultForWizard(

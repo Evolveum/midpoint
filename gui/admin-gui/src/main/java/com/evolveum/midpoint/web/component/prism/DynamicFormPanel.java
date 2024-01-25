@@ -17,6 +17,8 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -161,7 +163,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
                 parentPage, task, result));
     }
 
-    public ObjectDelta<O> getObjectDelta() throws SchemaException {
+    public ObjectDelta<O> getObjectDelta() throws CommonException {
         return wrapperModel.getObject().getObjectDelta();
     }
 
@@ -174,7 +176,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
         return (DynamicFieldGroupPanel<O>) get(ID_FORM_FIELDS);
     }
 
-    public PrismObject<O> getObject() throws SchemaException {
+    public PrismObject<O> getObject() throws CommonException {
         ObjectDelta<O> delta = wrapperModel.getObject().getObjectDelta();
         if (delta != null && delta.isAdd()) {
             return delta.getObjectToAdd();

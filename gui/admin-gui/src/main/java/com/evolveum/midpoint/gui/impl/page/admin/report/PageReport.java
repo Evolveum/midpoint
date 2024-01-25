@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -165,7 +166,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     private ReportType getReportWithAppliedChanges() {
         try {
             return getModelWrapperObject().getObjectApplyDelta().asObjectable();
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             LOGGER.debug("Cannot apply changes for report, returning original state");
             return getModelWrapperObject().getObjectOld().asObjectable();
         }
@@ -210,7 +211,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
             if (getModelObjectType().getOid() != null) {
                 return getModelWrapperObject().getObjectApplyDelta();
             }
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             LOGGER.error("Couldn't apply deltas to report.", e);
         }
         return (PrismObject<ReportType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();

@@ -16,6 +16,8 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import com.evolveum.midpoint.prism.PrismObject;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -80,7 +82,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
         List<AssignmentType> inducement;
         try {
             inducement = getObjectDetailsModels().getObjectWrapper().getObjectApplyDelta().asObjectable().getInducement();
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             throw new RuntimeException(e);
         }
 

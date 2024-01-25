@@ -62,6 +62,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.visit.IVisitor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -631,8 +632,16 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         return new PasswordLimitationsPanel(id, limitationsModel) {
             @Override
             protected boolean showInTwoColumns() {
-                return true;
+                if (getModelObject().size() > 5) {
+                    return true;
+                }
+                return super.showInTwoColumns();
             }
         };
+    }
+
+    @Override
+    protected boolean isHintPanelVisible() {
+        return getPasswordHintConfigurability() == PasswordHintConfigurabilityType.ALWAYS_CONFIGURE;
     }
 }

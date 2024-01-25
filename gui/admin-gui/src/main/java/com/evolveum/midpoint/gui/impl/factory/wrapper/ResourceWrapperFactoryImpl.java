@@ -45,7 +45,7 @@ public class ResourceWrapperFactoryImpl extends PrismObjectWrapperFactoryImpl<Re
 
     @Override
     public int getOrder() {
-        return 99;
+        return 97;
     }
 
     @Override

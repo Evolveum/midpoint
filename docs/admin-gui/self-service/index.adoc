@@ -228,6 +228,7 @@ Old password field and Password propagation section can be configured (can be hi
 <password>
     <propagationUserControl>mapping</propagationUserControl>
     <passwordChangeSecurity>oldPassword</passwordChangeSecurity>
+    <passwordHintConfigurability>alwaysConfigure</passwordHintConfigurability>
 </password>
 ----
 
@@ -235,15 +236,32 @@ Old password field and Password propagation section can be configured (can be hi
 |===
 | Attribute | Description | Possible values
 
-| propagationUserControl
+| *propagationUserControl*
 | Constraints that define how propagation of the credentials can be controlled by the +
 user. E.g. if user can choose where the password change will be propagated.
-| _mapping_ (Credentials propagation will be determined by the mappings. User cannot choose where the credentials will be propagated.The credentials propagation dialog will not be shown.)_userChoice_ (The user can choose where the credentials will be propagated.The propagation dialog will be shown.)onlyMapping(Credentials propagation will be determined by the mappings. User cannot choose where the credentials will be propagated. But the propagation dialog will be shown.)identityManagerMandatory(Identity Manager Repository will be propagated always. The user can choose where the other credentials will be propagated. The propagation dialog will be shown.)
+| _**mapping**_ (Credentials propagation will be determined by the mappings. User cannot choose where the credentials will be propagated.The credentials propagation dialog will not be shown.)
 
+_**userChoice**_ (The user can choose where the credentials will be propagated.The propagation dialog will be shown.)
+
+_**onlyMapping**_(Credentials propagation will be determined by the mappings. User cannot choose where the credentials will be propagated. But the propagation dialog will be shown.)
+
+_**identityManagerMandatory**_(Identity Manager Repository will be propagated always. The user can choose where the other credentials will be propagated. The propagation dialog will be shown.)
 
 | passwordChangeSecurity
-| Additional security applied when changing a password.This applies when user is changing his own password. It does NOT applywhen administrator changes password of other user.
-| _none_ (No additional security. Password can be changed by supplying new value.)_oldPassword_ (User must supply old password to change the password.)
+| Additional security applied when changing a password.This applies when user is changing his own password. It does NOT apply when administrator changes password of other user.
+| _**none**_ (No additional security. Password can be changed by supplying new value.)
+
+_**oldPassword**_ (User must supply old password to change the password.)
+
+_**oldPasswordIfExists**_ (User must supply old password, if exists, to change the password.)
+
+| *passwordHintConfigurability*
+| Additional configurability applied when changing or resetting a password.
+This applies when user is changing or resetting his own password. It does NOT apply
+when administrator changes password of other user. Default value is _**alwaysConfigure**_.
+| _**alwaysConfigure**_ (Always configurable password hint, during changing and resetting password.)
+
+_**neverConfigure**_ (Never configurable password hint, during changing and resetting password.)
 
 |===
 

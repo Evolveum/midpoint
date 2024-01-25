@@ -160,8 +160,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             if (objectDeltas != null && !objectDeltas.isEmpty()) {
                 modelService.executeChanges(objectDeltas, null, task, result);
             }
-        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             LOGGER.error("Couldn't execute changes on RoleAnalysisSessionType object: {}", session.getOid(), e);
         }
 
