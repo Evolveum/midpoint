@@ -23,7 +23,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
  * . Effectively a utility class. Should not be instantiated.
  * . These methods should not throw any exceptions.
  */
-public class SubscriptionPolicies {
+class SubscriptionPolicies {
 
     /**
      * How long is the grace period? It may be zero.
@@ -31,7 +31,7 @@ public class SubscriptionPolicies {
      * Assumes that there IS a well-formed subscription ID.
      * (Otherwise, there's no point in asking about grace period.)
      */
-    public static @NotNull Period getGracePeriod(@NotNull SubscriptionId subscriptionId) {
+    static @NotNull Period getGracePeriod(@NotNull SubscriptionId subscriptionId) {
         argCheck(subscriptionId.isWellFormed(), "Subscription ID is not well-formed");
 
         return !subscriptionId.isDemo() ? Period.ofMonths(3) : Period.ZERO;
@@ -40,9 +40,9 @@ public class SubscriptionPolicies {
     /**
      * This is how we estimate we are in a production environment.
      */
-    public static boolean isProductionEnvironment(@NotNull SubscriptionId subscriptionId, @NotNull SystemFeatures features) {
+    static boolean isProductionEnvironment(@NotNull SubscriptionId subscriptionId, @NotNull SystemFeatures features) {
         int productionFeatures = count(
-            subscriptionId.isWellFormed() && !subscriptionId.isDemo(),
+                subscriptionId.isWellFormed() && !subscriptionId.isDemo(),
                 features.areRealNotificationsEnabled(),
                 features.isPublicHttpsUrlPatternDefined(),
                 features.isRemoteHostAddressHeaderDefined(),

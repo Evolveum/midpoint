@@ -14,8 +14,6 @@ import java.net.URI;
 import java.util.*;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.repo.common.subscription.SubscriptionId;
-
 import com.evolveum.midpoint.repo.common.subscription.SubscriptionStateCache;
 
 import jakarta.servlet.ServletContext;
