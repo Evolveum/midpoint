@@ -40,23 +40,23 @@ public class SubscriptionPolicies {
     /**
      * This is how we estimate we are in a production environment.
      */
-    @SuppressWarnings("RedundantIfStatement")
     public static boolean isProductionEnvironment(@NotNull SubscriptionId subscriptionId, @NotNull SystemFeatures features) {
-        if (subscriptionId.isWellFormed() && !subscriptionId.isDemo()) {
-            return true;
+        int productionFeatures = count(
+            subscriptionId.isWellFormed() && !subscriptionId.isDemo(),
+                features.areRealNotificationsEnabled(),
+                features.isPublicHttpsUrlPatternDefined(),
+                features.isRemoteHostAddressHeaderDefined(),
+                features.isCustomLoggingDefined());
+        return productionFeatures >= 2;
+    }
+
+    private static int count(boolean... values) {
+        int rv = 0;
+        for (boolean value : values) {
+            if (value) {
+                rv++;
+            }
         }
-        if (features.areRealNotificationsEnabled()) {
-            return true;
-        }
-        if (features.isPublicHttpsUrlPatternDefined()) {
-            return true;
-        }
-        if (features.isRemoteHostAddressHeaderDefined()) {
-            return true;
-        }
-        if (features.isCustomLoggingDefined()) {
-            return true;
-        }
-        return false;
+        return rv;
     }
 }

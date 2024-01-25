@@ -10,9 +10,18 @@ package com.evolveum.midpoint.repo.common.subscription;
 import static com.evolveum.midpoint.repo.common.subscription.SubscriptionState.TimeValidityStatus.FULLY_ACTIVE;
 import static com.evolveum.midpoint.repo.common.subscription.SubscriptionState.TimeValidityStatus.IN_GRACE_PERIOD;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
+
+import com.evolveum.midpoint.util.DebugDumpable;
+
+import com.evolveum.midpoint.util.DebugUtil;
+
+import com.evolveum.midpoint.util.logging.Trace;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -29,7 +38,9 @@ import org.jetbrains.annotations.VisibleForTesting;
  * - {@link #isProductionEnvironment()}
  * - ...
  */
-public class SubscriptionState {
+public class SubscriptionState implements DebugDumpable, Serializable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SubscriptionState.class);
 
     /** The parsed subscription ID. */
     @NotNull private final SubscriptionId subscriptionId;
@@ -56,11 +67,13 @@ public class SubscriptionState {
 
     public static @NotNull SubscriptionState determine(
             @NotNull SubscriptionId subscriptionId, @NotNull SystemFeatures systemFeatures) {
-        return new SubscriptionState(
+        var state = new SubscriptionState(
                 subscriptionId,
                 systemFeatures,
                 SubscriptionPolicies.isProductionEnvironment(subscriptionId, systemFeatures),
                 TimeValidity.determine(subscriptionId));
+        LOGGER.trace("Subscription state was determined to be:\n{}", state.debugDumpLazily(1));
+        return state;
     }
 
     /**
@@ -139,7 +152,7 @@ public class SubscriptionState {
 
     /** Representation of the subscription validity interval. */
     @VisibleForTesting
-    public static class TimeValidity {
+    public static class TimeValidity implements Serializable {
 
         /** The first day after the declared time validity. E.g., June 1st, 2024 for `0524` subscription. */
         @NotNull private final LocalDate firstDayAfter;
@@ -213,6 +226,15 @@ public class SubscriptionState {
         public boolean isInGracePeriod() {
             return status == IN_GRACE_PERIOD;
         }
+
+        @Override
+        public String toString() {
+            return "TimeValidity{" +
+                    "firstDayAfter=" + firstDayAfter +
+                    ", gracePeriod=" + gracePeriod +
+                    ", status=" + status +
+                    '}';
+        }
     }
 
     /** Enumeration for the validity status of the subscription. */
@@ -226,5 +248,24 @@ public class SubscriptionState {
 
         /** The subscription period has passed; including the (optional) grace period. */
         EXPIRED
+    }
+
+    @Override
+    public String toString() {
+        return "SubscriptionState{" +
+                "subscriptionId=" + subscriptionId +
+                ", productionEnvironment=" + productionEnvironment +
+                ", timeValidity=" + timeValidity +
+                '}';
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "subscriptionId", String.valueOf(subscriptionId), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "systemFeatures", systemFeatures, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "productionEnvironment", productionEnvironment, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "timeValidity", String.valueOf(timeValidity), indent + 1);
+        return sb.toString();
     }
 }
