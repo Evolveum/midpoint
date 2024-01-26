@@ -16,6 +16,8 @@ public class DownloadDistributionOptions extends UpgradeCommonOptions {
     public static final String P_DISTRIBUTION_ARCHIVE = "--distribution-archive";
     public static final String P_DISTRIBUTION_DIRECTORY = "--distribution-directory";
 
+    public static final String P_IGNORE_SSL_ERRORS = "--ignore-ssl-errors";
+
     @Parameter(names = { P_DISTRIBUTION_ARCHIVE }, descriptionKey = "upgradeDistribution.distributionArchive")
     private File distributionArchive;
 
@@ -24,6 +26,9 @@ public class DownloadDistributionOptions extends UpgradeCommonOptions {
 
     @Parameter(names = { P_DISTRIBUTION_VERSION }, descriptionKey = "upgradeDistribution.distributionVersion")
     private String distributionVersion = UpgradeConstants.SUPPORTED_VERSION_TARGET;
+
+    @Parameter(names = { P_IGNORE_SSL_ERRORS }, descriptionKey = "upgradeDistribution.ignoreSslErrors")
+    private boolean ignoreSslErrors;
 
     public File getDistributionArchive() {
         return distributionArchive;
@@ -47,5 +52,13 @@ public class DownloadDistributionOptions extends UpgradeCommonOptions {
 
     public void setDistributionDirectory(File distributionDirectory) {
         this.distributionDirectory = distributionDirectory;
+    }
+
+    public boolean isIgnoreSslErrors() {
+        return ignoreSslErrors;
+    }
+
+    public void setIgnoreSslErrors(boolean ignoreSslErrors) {
+        this.ignoreSslErrors = ignoreSslErrors;
     }
 }
