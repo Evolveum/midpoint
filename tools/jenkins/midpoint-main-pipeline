@@ -33,7 +33,7 @@ podTemplate(
                         resourceLimitMemory: '8Gi') // see also -Xmx flag lower
         ],
         envVars: [
-                envVar(key: MIDPOINT_BUILD_ALIAS, value: params.KEY_ALIAS_SINGING_JAR)
+                envVar(key: 'MIDPOINT_BUILD_ALIAS', value: params.KEY_ALIAS_SINGING_JAR)
         ]
 ) {
     node(POD_LABEL) {
