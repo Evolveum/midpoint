@@ -56,7 +56,7 @@ public class DistributionManagerTest {
     private void downloadAndAssert(String version) throws Exception {
         final TestProgressListener listener = new TestProgressListener();
 
-        File file = new DistributionManager(new File("./target")).downloadDistribution(version, listener);
+        File file = new DistributionManager(new File("./target"), true).downloadDistribution(version, listener);
         AssertJUnit.assertTrue(file.exists());
         AssertJUnit.assertTrue(file.length() > 0);
         AssertJUnit.assertEquals(listener.contentLength, file.length());
