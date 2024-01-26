@@ -170,4 +170,9 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
             }
         };
     }
+
+    @Override
+    protected boolean isContentVisible() {
+        return true;
+    }
 }

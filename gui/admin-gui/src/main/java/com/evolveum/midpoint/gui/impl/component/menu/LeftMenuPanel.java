@@ -535,7 +535,12 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {
-        SideBarMenuItem item = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled);
+        SideBarMenuItem item = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled) {
+            @Override
+            public boolean isVisible() {
+                return true;
+            }
+        };
         item.addMainMenuItem(createArchetypesItems());
         item.addMainMenuItem(createMessageTemplatesItems());
         item.addMainMenuItem(createObjectsCollectionItems());
@@ -778,9 +783,15 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private void createSystemConfigurationMenu(SideBarMenuItem item) {
-        MainMenuItem system = createMainMenuItem("PageAdmin.menu.top.configuration.basic",
+        MainMenuItem system = new MainMenuItem(
+                "PageAdmin.menu.top.configuration.basic",
                 GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON,
-                com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
+                com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class) {
+            @Override
+            public boolean isVisible() {
+                return true;
+            }
+        };
         PageBase page = getPageBase();
         if (page != null && PageBaseSystemConfiguration.class.isAssignableFrom(page.getClass())) {
 

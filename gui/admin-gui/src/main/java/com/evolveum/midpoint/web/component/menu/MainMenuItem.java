@@ -11,6 +11,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+
 import org.apache.wicket.markup.html.WebPage;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -135,5 +138,9 @@ public class MainMenuItem extends BaseMenuItem {
             return items.get(0);
         }
         return null;
+    }
+
+    public boolean isVisible() {
+        return !MidPointApplication.get().getSubscriptionState().isGenericRepoWithoutSubscription();
     }
 }

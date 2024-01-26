@@ -141,6 +141,12 @@ public class SubscriptionState implements DebugDumpable, Serializable {
         return !isActive() || isDemo();
     }
 
+    /** Is used generic repo (other than H2) and we detect */
+    public boolean isGenericRepoWithoutSubscription() {
+        return getSystemFeatures().isGenericNonH2DatabaseUsed()
+                && isProductionEnvironment() && !isActive();
+    }
+
     /** Do we think we run in a production environment (regardless of the subscription ID present or not)? */
     public boolean isProductionEnvironment() {
         return productionEnvironment;
