@@ -1,14 +1,16 @@
 = Query Playground and Query Converter
-:page-nav-title: Errors while querying
+:page-nav-title: Query playground and converter
 :page-display-order: 600
 
 To experiment with the query language, there is hardly a better place than the actual running midPoint.
-Log in the GUI as administrator and choose *Query playground* in the main menu on the left, all the way down, just above *About*.
+
 
 [#_query_playground]
 == Query playground
 
+Log in the GUI as administrator and choose *Query playground* in the main menu on the left, all the way down, just above *About*.
 
+image:query-playground.png[Query playground]
 
 To test the query, you have to:
 
@@ -63,7 +65,7 @@ To do this, follow these steps:
     </script>
 </expression>
 ----
-* Choose the *Object type*, just like for any other query.
+* Select the *Object type*, just like for any other query.
 Just use the type from `queryFor(...)` call, in our example `FocusType`.
 If the query does not provide expected results, very likely the object type selection is not right.
 * Press *Translate and execute*.
@@ -80,3 +82,49 @@ may need additional imports from packages like `com.evolveum.midpoint.schema`,
 [#_query_converter]
 == Query converter
 
+Midpoint can help you convert your old-fashioned XML queries to midPoint Query Language.
+Query converter allows such conversion.
+
+*Query converter* is available on the second tab of *Query playground*.
+
+image:query-converter.png[Query converter]
+
+To convert XML query, just:
+
+. Select the *Object type*,
+. Write or paste your original XML query into the query converter text area
+. Press *Convert query*.
+
+Following *hints* can help you while converting:
+
+* Select correct object type. The resulting query depends on object type.
+* When entering XML query please enter whole query starting with `<query>` element as seen on the picture above or example below.
+* Remove namespaces from XML elements, or define required namespaces in `<query>` element.
+
+.Example without namespaces
+[source,XML]
+----
+<query>
+    <filter>
+        <substring>
+            <path>emailAddress</path>
+            <value>gmail.com</value>
+            <anchorEnd>true</anchorEnd>
+        </substring>
+    </filter>
+</query>
+----
+
+.Example with namespace definition
+[source,XML]
+----
+<query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <q:filter>
+        <q:substring>
+            <q:path>emailAddress</q:path>
+            <q:value>gmail.com</q:value>
+            <q:anchorEnd>true</q:anchorEnd>
+        </q:substring>
+    </q:filter>
+</query>
+----

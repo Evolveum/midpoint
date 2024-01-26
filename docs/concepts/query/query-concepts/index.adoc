@@ -125,6 +125,31 @@ Reference queries were introduced for similar reasons.
 References can be directly filtered based on the target and/or owner criteria.
 This better supports reports or screens with proper pagination of the results.
 
+=== Object selection
+
+Midpoint performs queries over defined set of objects.
+In GUI, the set is defined by actually opened view.
+
+The object type must be *explicitly specified* for the query in configuration.
+
+[source,XML]
+----
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                    <query>
+                        <q:filter>
+                            <q:text>name = "XYZ"</q:text>
+                        </q:filter>
+                    </query>
+                </objects>
+            </recomputation>
+        </work>
+    </activity>
+----
+
 === Query anatomy
 
 Each query consists of two parts:
