@@ -335,6 +335,15 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                             return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
                         } else if (subscription.isDemo()) {
                             return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
+                        } else if (subscription.isInGracePeriod()) {
+                            int daysToGracePeriodGone = subscription.getDaysToGracePeriodGone();
+                            if(daysToGracePeriodGone < 2) {
+                                return " " + createStringResource("PageBase.gracePeriodSubscriptionMessage.lastDay").getString();
+                            }
+                            return " " + createStringResource(
+                                    "PageBase.gracePeriodSubscriptionMessage",
+                                    subscription.getDaysToGracePeriodGone())
+                                    .getString();
                         } else {
                             return "";
                         }
@@ -361,7 +370,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     private boolean isFooterVisible() {
-        return getSubscriptionState().isInactiveOrDemo();
+        SubscriptionState subscription = getSubscriptionState();
+        return subscription.isInactiveOrDemo() || subscription.isInGracePeriod();
     }
 
     /**
