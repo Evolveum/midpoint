@@ -177,4 +177,9 @@ public class PageError extends PageBase {
     protected void createBreadcrumb() {
         //don't create breadcrumb for error page
     }
+
+    @Override
+    protected boolean isContentVisible() {
+        return true;
+    }
 }

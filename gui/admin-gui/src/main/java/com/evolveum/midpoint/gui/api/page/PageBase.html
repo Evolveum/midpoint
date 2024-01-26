@@ -83,12 +83,15 @@
 
         <div class="content-wrapper" style="min-height: 916px; padding: 15px 0">
             <section class="content">
-                <div class="container-fluid">
-                    <div wicket:id="feedbackContainer" class="feedbackContainer">
-                        <div wicket:id="feedback" class="messagePanel"/>
+                <wicket:enclosure child="contentVisible">
+                    <div wicket:id="contentVisible"/>
+                    <div class="container-fluid">
+                        <div wicket:id="feedbackContainer" class="feedbackContainer">
+                            <div wicket:id="feedback" class="messagePanel"/>
+                        </div>
+                        <wicket:child/>
                     </div>
-                    <wicket:child/>
-                </div>
+                </wicket:enclosure>
             </section>
         </div>
         <footer wicket:id="footerContainer" class="main-footer">

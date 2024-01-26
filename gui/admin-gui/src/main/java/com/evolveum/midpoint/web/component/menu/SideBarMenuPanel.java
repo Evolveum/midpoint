@@ -11,6 +11,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -162,6 +164,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
             return getString(key, null, key);
         });
         header.add(name);
+        header.add(new VisibleBehaviour(() -> model.getObject().isVisible()));
         return header;
     }
 
@@ -178,6 +181,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
                 };
 
                 item.setOutputMarkupId(true);
+                item.add(new VisibleBehaviour(() -> listItem.getModelObject().isVisible()));
                 listItem.add(item);
             }
         };

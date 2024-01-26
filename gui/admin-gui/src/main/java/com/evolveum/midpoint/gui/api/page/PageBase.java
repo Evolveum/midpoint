@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.page;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.web.component.menu.top.LocaleTopMenuPanel;
@@ -23,6 +24,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalDialog;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -100,6 +102,7 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_PAGE_TITLE_CONTAINER = "pageTitleContainer";
     private static final String ID_PAGE_TITLE_REAL = "pageTitleReal";
     private static final String ID_PAGE_TITLE = "pageTitle";
+    public static final String ID_CONTENT_VISIBLE = "contentVisible";
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_CART_ITEMS_COUNT = "itemsCount";
@@ -129,6 +132,20 @@ public abstract class PageBase extends PageAdminLTE {
 
     public PageBase(PageParameters parameters) {
         super(parameters);
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        if (getSubscriptionState().isGenericRepoWithoutSubscription()) {
+            new Toast()
+                    .warning()
+                    .autohide(false)
+                    .title(getString("PageBase.nonActiveSubscription"))
+                    .body(getString("PageBase.nonActiveSubscriptionAndGenericRepo"))
+                    .show(response);
+        }
     }
 
     @Override
@@ -410,6 +427,11 @@ public abstract class PageBase extends PageAdminLTE {
         sidebarMenu.add(createUserStatusBehaviour());
         add(sidebarMenu);
 
+        WebMarkupContainer content = new WebMarkupContainer(ID_CONTENT_VISIBLE);
+        content.setOutputMarkupId(true);
+        content.add(new VisibleBehaviour(this::isContentVisible));
+        add(content);
+
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
         feedbackContainer.setOutputMarkupId(true);
         feedbackContainer.setOutputMarkupPlaceholderTag(true);
@@ -424,6 +446,10 @@ public abstract class PageBase extends PageAdminLTE {
 //        mainPopup.showUnloadConfirmation(false);
 //        mainPopup.setResizable(false);
         add(mainPopup);
+    }
+
+    protected boolean isContentVisible() {
+        return !getSubscriptionState().isGenericRepoWithoutSubscription();
     }
 
     public static AttributeAppender createHeaderColorStyleModel(boolean checkSkinUsage) {
