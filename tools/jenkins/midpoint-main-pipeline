@@ -47,7 +47,7 @@ podTemplate(
                     withCredentials(
                             [string(credentialsId: '4e3b82aa-6cdf-4e91-ae3c-fd5240ba3072', variable: 'MIDPOINT_BUILD_STOREPASS'),
                             string(credentialsId: '4e3b82aa-6cdf-4e91-ae3c-fd5240ba3072', variable: 'MIDPOINT_BUILD_KEYPASS'),
-                            string(credentialsId: 'build keystore test', variable: 'MIDPOINT_BUILD_KEYSTORE')
+                            file(credentialsId: 'build keystore test', variable: 'MIDPOINT_BUILD_KEYSTORE')
                             ]) {
                         sh """#!/bin/bash -ex
                             # .m2 is mutable and short-term, we just sym-link the settings.xml there.
