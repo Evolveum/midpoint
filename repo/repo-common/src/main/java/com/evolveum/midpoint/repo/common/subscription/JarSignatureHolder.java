@@ -14,7 +14,7 @@ package com.evolveum.midpoint.repo.common.subscription;
  */
 public class JarSignatureHolder {
 
-    public static Validity jarSignatureValidity;
+    private static Validity jarSignatureValidity;
 
     public static void setJarSignatureValidity(Validity validity) {
         jarSignatureValidity = validity;

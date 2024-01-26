@@ -152,6 +152,11 @@ public class SubscriptionState implements DebugDumpable, Serializable {
         return productionEnvironment;
     }
 
+    /** Should we allow clustering? In production environments ONLY with an active subscription. */
+    public boolean isClusteringAvailable() {
+        return isActive() || !isProductionEnvironment();
+    }
+
     public @NotNull SystemFeatures getSystemFeatures() {
         return systemFeatures;
     }

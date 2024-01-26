@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Responsible for keeping the cluster consistent.
@@ -165,9 +167,18 @@ public class ClusterManager {
 
             long nodeAlivenessCheckInterval = configuration.getNodeAlivenessCheckInterval() * 1000L;
             long lastNodeAlivenessCheck = 0;
+            long lastClusterUnavailableMessageInterval = TimeUnit.HOURS.toMillis(2);
+            long lastClusterUnavailableMessage = 0;
 
             long delay = configuration.getNodeRegistrationCycleTime() * 1000L;
             while (canRun) {
+
+                if (taskManager.isClustered() && !taskManager.isClusteringAvailable()) {
+                    if (System.currentTimeMillis() - lastClusterUnavailableMessage > lastClusterUnavailableMessageInterval) {
+                        TaskUtil.logClusteringWithoutSubscriptionError();
+                        lastClusterUnavailableMessage = System.currentTimeMillis();
+                    }
+                }
 
                 OperationResult result = new OperationResult(ClusterManagerThread.class + ".run");
 
@@ -330,7 +341,7 @@ public class ClusterManager {
     public List<PrismObject<NodeType>> getAllNodes(OperationResult result) {
         try {
             return getRepositoryService().searchObjects(NodeType.class, null, null, result);
-        } catch (SchemaException e) {       // should not occur
+        } catch (SchemaException e) { // should not occur
             throw new SystemException("Cannot get the list of nodes from the repository", e);
         }
     }

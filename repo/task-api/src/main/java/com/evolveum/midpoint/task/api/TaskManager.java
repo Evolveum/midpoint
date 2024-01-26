@@ -626,6 +626,15 @@ public interface TaskManager {
 
     void setDefaultHandlerUri(String uri);
 
+    /** Registers a provider for {@link #isClusteringAvailable()} information. */
+    void registerClusteringAvailabilityProvider(@NotNull ClusteringAvailabilityProvider provider);
+
+    /** Unregisters a provider for {@link #isClusteringAvailable()} information. */
+    void unregisterClusteringAvailabilityProvider(@NotNull ClusteringAvailabilityProvider provider);
+
+    /** Is clustering available (via subscription)? See {@link ClusteringAvailabilityProvider}. */
+    boolean isClusteringAvailable();
+
     //endregion
 
     //region TODO
@@ -723,6 +732,15 @@ public interface TaskManager {
      * TODO move to more appropriate place
      */
     Number[] getDBPoolStats();
+
+    /**
+     * Provides an information whether we can allow to run the system in clustered mode.
+     * This is done in a form of callback, because the decision is done in an upper layer.
+     * The implementation of this interface must be fast, and should not throw exceptions.
+     */
+    interface ClusteringAvailabilityProvider {
+        boolean isClusteringAvailable();
+    }
 
     //endregion
 }

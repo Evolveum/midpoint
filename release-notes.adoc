@@ -36,6 +36,10 @@ TODO
 
 TODO
 
+* The indication of official vs. unofficial build was added to the About page.
+See xref:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status/[MidPoint JAR Signature Status] for details.
+* #TODO some restrictions regarding running midPoint without subscription were added#
+
 === Releases Of Other Components
 
 // * New version (1.5.1.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
