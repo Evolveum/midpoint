@@ -31,9 +31,6 @@ podTemplate(
                         resourceLimitCpu: params.BUILDER_CPU ?: '4',
                         resourceRequestMemory: '8Gi',
                         resourceLimitMemory: '8Gi') // see also -Xmx flag lower
-        ],
-        envVars: [
-                containerEnvVar(key: MIDPOINT_BUILD_ALIAS, value: params.KEY_ALIAS_SINGING_JAR)
         ]
 ) {
     node(POD_LABEL) {
@@ -44,6 +41,7 @@ podTemplate(
             }
             stage("build") {
                 container('maven') {
+                    envVars([containerEnvVar(key: MIDPOINT_BUILD_ALIAS, value: params.KEY_ALIAS_SINGING_JAR)]){
                     withCredentials(
                             [string(credentialsId: '4e3b82aa-6cdf-4e91-ae3c-fd5240ba3072', variable: 'MIDPOINT_BUILD_STOREPASS'),
                             string(credentialsId: '4e3b82aa-6cdf-4e91-ae3c-fd5240ba3072', variable: 'MIDPOINT_BUILD_KEYPASS'),
@@ -69,7 +67,7 @@ podTemplate(
                                 df -h
                             fi
                         """
-                    }
+                    }}
                 }
             }
         } catch (Exception e) {
