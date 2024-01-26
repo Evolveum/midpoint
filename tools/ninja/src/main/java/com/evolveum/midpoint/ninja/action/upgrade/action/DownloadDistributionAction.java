@@ -8,18 +8,16 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
-
 import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.action.upgrade.ConsoleProgressListener;
 import com.evolveum.midpoint.ninja.action.upgrade.DistributionManager;
 import com.evolveum.midpoint.ninja.action.upgrade.ProgressListener;
 import com.evolveum.midpoint.ninja.impl.Log;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
 
 public class DownloadDistributionAction extends Action<DownloadDistributionOptions, DownloadDistributionResult> {
 
@@ -47,7 +45,7 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
             }
             log.info("Downloading version: {}", version);
 
-            DistributionManager manager = new DistributionManager(tempDirectory);
+            DistributionManager manager = new DistributionManager(tempDirectory, options.isIgnoreSslErrors());
             ProgressListener listener = new ConsoleProgressListener(log);
             distributionZipFile = manager.downloadDistribution(version, listener);
         } else {
