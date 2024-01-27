@@ -2,7 +2,7 @@
 :page-nav-title: Query playground and converter
 :page-display-order: 600
 
-To experiment with the query language, there is hardly a better place than the actual running midPoint.
+To experiment with the query language, there is hardly a better place than the actually running midPoint.
 
 
 [#_query_playground]
@@ -89,7 +89,7 @@ Query converter allows such conversion.
 
 image:query-converter.png[Query converter]
 
-To convert XML query, just:
+To convert the XML query, just:
 
 . Select the *Object type*,
 . Write or paste your original XML query into the query converter text area
@@ -99,7 +99,7 @@ Following *hints* can help you while converting:
 
 * Select correct object type. The resulting query depends on object type.
 * When entering XML query please enter whole query starting with `<query>` element as seen on the picture above or example below.
-* Remove namespaces from XML elements, or define required namespaces in `<query>` element.
+* Remove namespaces from XML elements, or define required namespaces in `<query>` element. See examples below.
 
 .Example without namespaces
 [source,XML]
