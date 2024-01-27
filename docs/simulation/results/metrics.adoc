@@ -329,6 +329,9 @@ And the aggregation functions are:
 | `selectionTotalValueToDomainSize`
 | `selectionTotalValue` / `domainSize`
 
+| `selectionTotalValueToSelectionSize`
+| `selectionTotalValue` / `selectionSize`
+
 | `selectionSizeToDomainSize`
 | `selectionSize` / `domainSize`
 
