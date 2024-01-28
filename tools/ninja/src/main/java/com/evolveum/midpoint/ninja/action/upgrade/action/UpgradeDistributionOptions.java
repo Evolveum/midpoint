@@ -23,8 +23,6 @@ public class UpgradeDistributionOptions {
     public static final String P_SKIP_PRE_CHECK = "--skip-pre-check";
     public static final String P_STOP_ON_CRITICAL_ERROR = "--stop-on-critical-error";
 
-    public static final String P_IGNORE_SSL_ERRORS = "--ignore-ssl-errors";
-
     @Parameter(names = { P_TEMP_DIR_LONG }, descriptionKey = "upgradeDistribution.tempDir")
     private File tempDirectory;
 
@@ -51,9 +49,6 @@ public class UpgradeDistributionOptions {
 
     @Parameter(names = { P_DISTRIBUTION_VERSION }, descriptionKey = "upgradeDistribution.distributionVersion", hidden = true)
     private String distributionVersion = UpgradeConstants.SUPPORTED_VERSION_TARGET;
-
-    @Parameter(names = { P_IGNORE_SSL_ERRORS }, descriptionKey = "upgradeDistribution.ignoreSslErrors")
-    private boolean ignoreSslErrors;
 
     public File getTempDirectory() {
         return tempDirectory;
@@ -125,13 +120,5 @@ public class UpgradeDistributionOptions {
 
     public void setDistributionVersion(String distributionVersion) {
         this.distributionVersion = distributionVersion;
-    }
-
-    public boolean isIgnoreSslErrors() {
-        return ignoreSslErrors;
-    }
-
-    public void setIgnoreSslErrors(boolean ignoreSslErrors) {
-        this.ignoreSslErrors = ignoreSslErrors;
     }
 }
