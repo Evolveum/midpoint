@@ -62,7 +62,6 @@ public class UpgradeDistributionAction extends UpgradeBaseAction<UpgradeDistribu
         downloadOpts.setTempDirectory(tempDirectory);
         downloadOpts.setDistributionArchive(options.getDistributionArchive());
         downloadOpts.setDistributionVersion(options.getDistributionVersion());
-        downloadOpts.setIgnoreSslErrors(options.isIgnoreSslErrors());
 
         DownloadDistributionResult downloadResult = executeAction(new DownloadDistributionAction(), downloadOpts);
 
