@@ -136,6 +136,34 @@ You can use round brackets to group logical statements into more readable form.
 familyName = "Doe" and (givenName = "John" or givenName ="Bill")
 ----
 
+=== Object selection
+
+Midpoint performs queries over defined set of objects.
+In GUI, the set is defined by actually opened view.
+
+In configuration, the object type must be *explicitly specified* for the query.
+Not within the query itself.
+See the configuration snippet below. The query will select `User` with name "XYZ".
+
+[source,XML]
+----
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                    <query>
+                        <q:filter>
+                            <q:text>name = "XYZ"</q:text>
+                        </q:filter>
+                    </query>
+                </objects>
+            </recomputation>
+        </work>
+    </activity>
+----
+
+
 == Advanced filters
 
 === matches filter
