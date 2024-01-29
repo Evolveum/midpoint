@@ -1,4 +1,4 @@
-MidPoint 4.8.1 "Curie" Update 1
+MidPoint 4.8 Support Branch
 -------------------------------
 
 General information:
