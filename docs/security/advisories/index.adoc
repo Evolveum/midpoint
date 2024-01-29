@@ -151,4 +151,10 @@
 | MidPoint may be vulnerable to CSRF attacks if user was authenticated using SAML 2 or OIDC.
 
 
+| 21
+| xref:/midpoint/reference/security/advisories/021-not-invited-user-able-to-register/[Not Invited User able to register if Invitation flow is configured]
+| 29 January 2024
+| High
+| MidPoint 4.8 may be vulnerable to unauthorized registration if invitation flow is enabled with custom registration form.
+
 |===
