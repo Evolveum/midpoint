@@ -94,15 +94,15 @@ public class PolyStringEditorPanel extends InputPanel {
     private void addLabelledBy() {
         get(createComponentPath(ID_LOCALIZED_VALUE_CONTAINER, ID_LOCALIZED_VALUE_WITH_BUTTON, ID_LOCALIZED_VALUE_PANEL, ID_INPUT)).add(AttributeAppender.append(
                 "aria-labelledby",
-                get(createComponentPath(ID_LOCALIZED_VALUE_CONTAINER, ID_LOCALIZED_VALUE_LABEL)).getMarkupId()));
+                () -> showFullData ? get(createComponentPath(ID_LOCALIZED_VALUE_CONTAINER, ID_LOCALIZED_VALUE_LABEL)).getMarkupId() : null));
 
         get(createComponentPath(ID_ORIGIN_VALUE_CONTAINER, ID_ORIG_VALUE_WITH_BUTTON, ID_ORIG_VALUE, ID_INPUT)).add(AttributeAppender.append(
                 "aria-labelledby",
-                get(createComponentPath(ID_ORIGIN_VALUE_CONTAINER, ID_ORIG_VALUE_LABEL)).getMarkupId()));
+                () -> showFullData ? get(createComponentPath(ID_ORIGIN_VALUE_CONTAINER, ID_ORIG_VALUE_LABEL)).getMarkupId() : null));
 
         get(createComponentPath(ID_FULL_DATA_CONTAINER, ID_KEY_VALUE, ID_INPUT)).add(AttributeAppender.append(
                 "aria-labelledby",
-                get(createComponentPath(ID_FULL_DATA_CONTAINER, ID_KEY_VALUE_LABEL)).getMarkupId()));
+                () -> showFullData ? get(createComponentPath(ID_FULL_DATA_CONTAINER, ID_KEY_VALUE_LABEL)).getMarkupId() : null));
     }
 
     private void initLayout() {
