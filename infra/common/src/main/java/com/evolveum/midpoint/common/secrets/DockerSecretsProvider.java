@@ -10,6 +10,7 @@ package com.evolveum.midpoint.common.secrets;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -17,9 +18,10 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DockerSecretsProviderType;
 
-public class DockerSecretsProvider extends AbstractSecretsProviderImpl<DockerSecretsProviderType> {
+public class DockerSecretsProvider extends CachedSecretsProvider<DockerSecretsProviderType> {
 
     private Charset charset;
 
@@ -36,7 +38,7 @@ public class DockerSecretsProvider extends AbstractSecretsProviderImpl<DockerSec
     }
 
     @Override
-    protected String resolveSecretString(@NotNull String key) {
+    protected <ST> ST resolveSecret(@NotNull String key, Class<ST> type) throws EncryptionException {
         File parent;
         if (SystemUtils.IS_OS_WINDOWS) {
             parent = new File("C:\\ProgramData\\Docker\\secrets");
@@ -47,10 +49,16 @@ public class DockerSecretsProvider extends AbstractSecretsProviderImpl<DockerSec
         // to avoid path traversal
         String filename = new File(key).getName();
         File valueFile = new File(parent, filename);
-        String value = null;
+        ST value = null;
         if (valueFile.exists() && valueFile.isFile() && valueFile.canRead()) {
             try (InputStream is = new FileInputStream(valueFile)) {
-                value = IOUtils.toString(is, charset);
+                if (type == String.class) {
+                    value = (ST) IOUtils.toString(is, charset);
+                } else if (type == ByteBuffer.class) {
+                    value = (ST) ByteBuffer.wrap(IOUtils.toByteArray(is));
+                } else {
+                    throw new IllegalStateException("Unknown type " + type);
+                }
             } catch (Exception ex) {
                 throw new IllegalStateException("Couldn't read secret from " + valueFile.getAbsolutePath(), ex);
             }

@@ -15,9 +15,11 @@ import javax.xml.datatype.Duration;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.SecretsProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractSecretsProviderType;
 
-public abstract class AbstractSecretsProviderImpl<T extends AbstractSecretsProviderType> implements SecretsProvider {
+public abstract class CachedSecretsProvider<T extends AbstractSecretsProviderType> implements SecretsProvider {
 
     private final T configuration;
 
@@ -25,30 +27,42 @@ public abstract class AbstractSecretsProviderImpl<T extends AbstractSecretsProvi
 
     private long ttl;
 
-    public AbstractSecretsProviderImpl(T configuration) {
+    public CachedSecretsProvider(@NotNull T configuration) {
         this.configuration = configuration;
     }
 
-    public T getConfiguration() {
+    public @NotNull T getConfiguration() {
         return configuration;
     }
 
-    @Override
     public void init() {
         Duration duration = configuration.getTtl();
 
         ttl = duration != null ? duration.getTimeInMillis(new Date()) : 0;
     }
 
-    @Override
     public void destroy() {
         cache.clear();
     }
 
     @Override
-    public String getSecretString(@NotNull String key) {
+    public @NotNull String getIdentifier() {
+        return configuration.getIdentifier();
+    }
+
+    @Override
+    public String getSecretString(@NotNull String key) throws EncryptionException {
+        return getOrResolveSecret(key, String.class);
+    }
+
+    @Override
+    public ByteBuffer getSecretBinary(@NotNull String key) throws EncryptionException {
+        return getOrResolveSecret(key, ByteBuffer.class);
+    }
+
+    private <ST> ST getOrResolveSecret(String key, Class<ST> type) throws EncryptionException {
         if (ttl <= 0) {
-            return resolveSecretString(key);
+            return resolveSecret(key, type);
         }
 
         CacheValue<?> value = cache.get(key);
@@ -58,28 +72,24 @@ public abstract class AbstractSecretsProviderImpl<T extends AbstractSecretsProvi
                     return null;
                 }
 
-                if (!(value.value instanceof String str)) {
+                Class<?> clazz = value.value().getClass();
+                if (!(type.isAssignableFrom(clazz))) {
                     throw new IllegalStateException(
-                            "Secret value for key " + key + " is not a string, but " + value.value.getClass());
+                            "Secret value for key " + key + " is not a " + type + ", but " + clazz);
                 }
-                return str;
+                return (ST) value.value();
             } else {
                 cache.remove(key);
             }
         }
 
-        String secret = resolveSecretString(key);
+        ST secret = resolveSecret(key, type);
         cache.put(key, new CacheValue<>(secret, System.currentTimeMillis() + ttl));
 
         return secret;
     }
 
-    @Override
-    public ByteBuffer getSecretBinary(@NotNull String key) {
-        return SecretsProvider.super.getSecretBinary(key);
-    }
-
-    protected abstract String resolveSecretString(@NotNull String key);
+    protected abstract <ST> ST resolveSecret(@NotNull String key, Class<ST> type) throws EncryptionException;
 
     private record CacheValue<T>(T value, long ttl) {
 
