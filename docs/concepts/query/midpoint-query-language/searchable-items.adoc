@@ -1,6 +1,5 @@
 = Searchable Items in midPoint
 :page-nav-title: Searchable items
-:page - since: 4.8
 :page-display-order: 400
 
 This document provides list of searchable items (elements) in midPoint that can be used while querying data with _MidPoint Query Language_.
@@ -8,7 +7,7 @@ This document provides list of searchable items (elements) in midPoint that can 
 It also provides easily searchable translation table between displayName that users can see in GUI and the item name that is being used in queries.
 
 NOTE: Column Display Name displays actual English translation of the element. It can be even modified in your implementation.
-NOTE: This list is not comprehensive at this moment.
+This list is not comprehensive at this moment.
 
 == Searchable items
 
@@ -26,11 +25,11 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| name | Name 
-| lifecycleState | Lifecycle State 
-| subtype | Subtype 
-| metadata/createTimestamp | Metadata/Created at 
-| metadata/modifyTimestamp | Metadata/Modified at 
+| name | Name
+| lifecycleState | Lifecycle State
+| subtype | Subtype
+| metadata/createTimestamp | Metadata/Created at
+| metadata/modifyTimestamp | Metadata/Modified at
 |===
 
 === FocusType
@@ -38,12 +37,12 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| roleMembershipRef | Role membership 
-| activation/administrativeStatus | Activation/Administrative status 
-| activation/effectiveStatus | Activation/Effective status 
-| activation/lockoutStatus | Activation/Lockout Status 
-| activation/validFrom | Activation/Valid from 
-| activation/validTo | Activation/Valid to 
+| roleMembershipRef | Role membership
+| activation/administrativeStatus | Activation/Administrative status
+| activation/effectiveStatus | Activation/Effective status
+| activation/lockoutStatus | Activation/Lockout Status
+| activation/validFrom | Activation/Valid from
+| activation/validTo | Activation/Valid to
 |===
 
 === UserType
@@ -51,18 +50,18 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| title | Title 
-| givenName | Given name 
-| familyName | Family name 
-| fullName | Full name 
-| additionalName | Additional Name 
-| costCenter | Cost Center 
-| emailAddress | Email 
-| telephoneNumber | Telephone Number 
-| employeeNumber | Employee Number 
-| organizationalUnit | Organizational Unit 
-| locality | Locality 
-| personalNumber | Personal Number 
+| title | Title
+| givenName | Given name
+| familyName | Family name
+| fullName | Full name
+| additionalName | Additional Name
+| costCenter | Cost Center
+| emailAddress | Email
+| telephoneNumber | Telephone Number
+| employeeNumber | Employee Number
+| organizationalUnit | Organizational Unit
+| locality | Locality
+| personalNumber | Personal Number
 |===
 
 === RoleType
@@ -70,9 +69,9 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| targetRef |  
-| tenantRef |  
-| orgRef |  
+| targetRef |
+| tenantRef |
+| orgRef |
 |===
 
 === ServiceType
@@ -80,8 +79,8 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| name | Name 
-| url | URL 
+| name | Name
+| url | URL
 |===
 
 === ConnectorHostType
@@ -89,7 +88,7 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| hostname |  
+| hostname |
 |===
 
 === ConnectorType
@@ -97,9 +96,9 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| connectorBundle |  
-| connectorVersion | Connector version 
-| connectorType | Connector type 
+| connectorBundle |
+| connectorVersion | Connector version
+| connectorType | Connector type
 |===
 
 === AbstractRoleType
@@ -107,9 +106,9 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| identifier | Identifier 
-| requestable | Requestable 
-| displayName | Display Name 
+| identifier | Identifier
+| requestable | Requestable
+| displayName | Display Name
 |===
 
 === OrgType
@@ -117,10 +116,10 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| costCenter | Cost center 
-| tenant | Tenant 
-| parentOrgRef |  
-| locality |  
+| costCenter | Cost center
+| tenant | Tenant
+| parentOrgRef |
+| locality |
 |===
 
 === NodeType
@@ -128,7 +127,7 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| nodeIdentifier | Node identifier 
+| nodeIdentifier | Node identifier
 |===
 
 === TaskType
@@ -136,12 +135,12 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| taskIdentifier | Task identifier 
-| node | Executing at (indicative) 
-| resultStatus | Result status 
-| executionState | Execution state 
-| handlerUri | Handler URI 
-| objectRef | Object 
+| taskIdentifier | Task identifier
+| node | Executing at (indicative)
+| resultStatus | Result status
+| executionState | Execution state
+| handlerUri | Handler URI
+| objectRef | Object
 |===
 
 === AssignmentType
@@ -149,10 +148,10 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| targetRef |  
-| construction/resourceRef | Construction/ 
-| activation/administrativeStatus | Activation/Administrative status 
-| activation/effectiveStatus | Activation/Effective status 
+| targetRef |
+| construction/resourceRef | Construction/
+| activation/administrativeStatus | Activation/Administrative status
+| activation/effectiveStatus | Activation/Effective status
 |===
 
 === CaseWorkItemType
@@ -160,12 +159,12 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| name | Name 
-| assigneeRef |  
-| originalAssigneeRef |  
-| parent/state | / 
-| parent/objectRef | / 
-| performerRef |  
+| name | Name
+| assigneeRef |
+| originalAssigneeRef |
+| parent/state | /
+| parent/objectRef | /
+| performerRef |
 |===
 
 === CaseType
@@ -173,11 +172,11 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| state |  
-| parentRef | Parent reference 
-| requestorRef | Requestor reference 
-| targetRef |  
-| objectRef |  
+| state |
+| parentRef | Parent reference
+| requestorRef | Requestor reference
+| targetRef |
+| objectRef |
 |===
 
 === ObjectPolicyConfigurationType
@@ -185,8 +184,8 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| subtype | Subtype 
-| objectTemplateRef | Object policy 
+| subtype | Subtype
+| objectTemplateRef | Object policy
 |===
 
 === AuditEventRecordType
@@ -194,17 +193,17 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| timestamp | Time 
-| initiatorRef | Initiator 
-| eventType | Event type 
-| targetOwnerRef | Target owner 
-| changedItem | Changed item 
-| outcome | Outcome 
-| channel | Channel 
-| hostIdentifier | Host identifier 
-| requestIdentifier | Request identifier 
-| reference | Reference 
-| taskIdentifier | Task identifier 
+| timestamp | Time
+| initiatorRef | Initiator
+| eventType | Event type
+| targetOwnerRef | Target owner
+| changedItem | Changed item
+| outcome | Outcome
+| channel | Channel
+| hostIdentifier | Host identifier
+| requestIdentifier | Request identifier
+| reference | Reference
+| taskIdentifier | Task identifier
 |===
 
 === ClassLoggerConfigurationType
@@ -212,8 +211,8 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| appender |  
-| package | Package 
+| appender |
+| package | Package
 |===
 
 === SimulationResultType
@@ -221,9 +220,9 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| startTimestamp | Started 
-| endTimestamp | Finished 
-| rootTaskRef | Task 
+| startTimestamp | Started
+| endTimestamp | Finished
+| rootTaskRef | Task
 |===
 
 === SimulationResultProcessedObjectType
@@ -231,11 +230,11 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| name | Name 
-| state | State 
-| type | Type 
-| oid | Oid 
-| eventMarkRef | Event mark 
+| name | Name
+| state | State
+| type | Type
+| oid | Oid
+| eventMarkRef | Event mark
 |===
 
 === CollectionPanelType
@@ -243,9 +242,9 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| dead | Dead 
-| exists | Exists 
-| synchronizationSituation | Situation 
+| dead | Dead
+| exists | Exists
+| synchronizationSituation | Situation
 |===
 
 === ResourceType
@@ -253,7 +252,7 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| construction/resourceRef | Construction/ 
+| construction/resourceRef | Construction/
 |===
 
 === PolicyRuleType
@@ -261,6 +260,6 @@ Please keep in mind inheritance of objects - each object inherits search element
 [options="header", cols="15, 20, width=50%]
 |===
 | Item name | Display name
-| policyRule/name | Policy rule/Name 
+| policyRule/name | Policy rule/Name
 |===
 

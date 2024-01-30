@@ -423,9 +423,14 @@ public final class WebComponentUtil {
             }
         }
         String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
+        String defaultValue = localizableMessage.getFallbackMessage();
+        if (defaultValue != null) {
+            defaultValue = defaultValue.replace('{', '(').replace('}', ')');
+        }
+
         StringResourceModel stringResourceModel = new StringResourceModel(key, component)
                 .setModel(new Model<String>())
-                .setDefaultValue(localizableMessage.getFallbackMessage().replace('{', '(').replace('}', ')'))
+                .setDefaultValue(defaultValue)
                 .setParameters(resolveArguments(localizableMessage.getArgs(), component));
         //System.out.println("GUI: Resolving [" + key + "]: to [" + rv + "]");
         return stringResourceModel.getString();

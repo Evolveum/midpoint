@@ -69,7 +69,8 @@ public class StartupConfiguration implements MidpointConfiguration {
             "midpoint.audit.jdbcUrl",
             "midpoint.audit.jdbcUsername",
             "midpoint.audit.jdbcPassword",
-            "midpoint.keystore.keyStorePassword"
+            "midpoint.keystore.keyStorePassword",
+            MidpointConfiguration.ADMINISTRATOR_INITIAL_PASSWORD
     );
     public static final String SENSITIVE_VALUE_OUTPUT = "[*****]";
 
