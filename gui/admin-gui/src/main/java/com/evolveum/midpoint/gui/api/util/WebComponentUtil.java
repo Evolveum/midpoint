@@ -423,9 +423,14 @@ public final class WebComponentUtil {
             }
         }
         String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
+        String defaultValue = localizableMessage.getFallbackMessage();
+        if (defaultValue != null) {
+            defaultValue = defaultValue.replace('{', '(').replace('}', ')');
+        }
+
         StringResourceModel stringResourceModel = new StringResourceModel(key, component)
                 .setModel(new Model<String>())
-                .setDefaultValue(localizableMessage.getFallbackMessage().replace('{', '(').replace('}', ')'))
+                .setDefaultValue(defaultValue)
                 .setParameters(resolveArguments(localizableMessage.getArgs(), component));
         //System.out.println("GUI: Resolving [" + key + "]: to [" + rv + "]");
         return stringResourceModel.getString();
@@ -2867,7 +2872,9 @@ public final class WebComponentUtil {
                             newRelation.setRelations(assignmentObjectRelation.getRelations());
                             newRelation.setArchetypeRefs(Collections.singletonList(archetypeRef));
                             newRelation.setDescription(assignmentObjectRelation.getDescription());
-                            resultList.add(newRelation);
+                            if (!assignmentObjectRelationAlreadyExists(resultList, newRelation)) {
+                                resultList.add(newRelation);
+                            }
                         });
                     } else {
                         AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
@@ -2875,7 +2882,9 @@ public final class WebComponentUtil {
                         newRelation.setRelations(assignmentObjectRelation.getRelations());
                         newRelation.setArchetypeRefs(assignmentObjectRelation.getArchetypeRefs());
                         newRelation.setDescription(assignmentObjectRelation.getDescription());
-                        resultList.add(newRelation);
+                        if (!assignmentObjectRelationAlreadyExists(resultList, newRelation)) {
+                            resultList.add(newRelation);
+                        }
                     }
                 });
             } else {
@@ -2917,34 +2926,34 @@ public final class WebComponentUtil {
         for (AssignmentObjectRelation rel : list) {
             if (CollectionUtils.isNotEmpty(rel.getRelations()) && CollectionUtils.isEmpty(relation.getRelations())
                     || CollectionUtils.isEmpty(rel.getRelations()) && CollectionUtils.isNotEmpty(relation.getRelations())) {
-                return false;
+                continue;
             }
             if (CollectionUtils.isNotEmpty(rel.getRelations()) && CollectionUtils.isNotEmpty(relation.getRelations())) {
-                if (!rel.getRelations().get(0).equals(relation.getRelations().get(0))) {
-                    return false;
+                if (!QNameUtil.match(rel.getRelations().get(0), (relation.getRelations().get(0)))) {
+                    continue;
                 }
             }
             if (CollectionUtils.isNotEmpty(rel.getObjectTypes()) && CollectionUtils.isEmpty(relation.getObjectTypes())
                     || CollectionUtils.isEmpty(rel.getObjectTypes()) && CollectionUtils.isNotEmpty(relation.getObjectTypes())) {
-                return false;
+                continue;
             }
             if (CollectionUtils.isNotEmpty(rel.getObjectTypes()) && CollectionUtils.isNotEmpty(relation.getObjectTypes())) {
-                if (!rel.getObjectTypes().get(0).equals(relation.getObjectTypes().get(0))) {
-                    return false;
+                if (!QNameUtil.match(rel.getObjectTypes().get(0), relation.getObjectTypes().get(0))) {
+                    continue;
                 }
             }
             if (CollectionUtils.isNotEmpty(rel.getArchetypeRefs()) && CollectionUtils.isEmpty(relation.getArchetypeRefs())
                     || CollectionUtils.isEmpty(rel.getArchetypeRefs()) && CollectionUtils.isNotEmpty(relation.getArchetypeRefs())) {
-                return false;
+                continue;
             }
             if (CollectionUtils.isNotEmpty(rel.getArchetypeRefs()) && CollectionUtils.isNotEmpty(relation.getArchetypeRefs())) {
                 if (!rel.getArchetypeRefs().get(0).equals(relation.getArchetypeRefs().get(0))) {
-                    return false;
+                    continue;
                 }
             }
             return true;
         }
-        return true;
+        return false;
     }
 
     private static Collection<ObjectDeltaOperation<? extends ObjectType>> saveTask(ObjectDelta<TaskType> delta, OperationResult result, PageBase pageBase) {
@@ -3245,7 +3254,7 @@ public final class WebComponentUtil {
     }
 
     public static String getMidpointCustomSystemName(PageAdminLTE pageBase, String defaultSystemNameKey) {
-        if (MidPointApplication.get().getSubscriptionState().isInvalidOrDemo()) {
+        if (MidPointApplication.get().getSubscriptionState().isInactiveOrDemo()) {
             return pageBase.createStringResource(defaultSystemNameKey).getString();
         }
 

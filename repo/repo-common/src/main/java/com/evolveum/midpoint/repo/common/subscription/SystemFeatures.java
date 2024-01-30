@@ -7,13 +7,9 @@
 
 package com.evolveum.midpoint.repo.common.subscription;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
@@ -23,68 +19,90 @@ import java.io.Serializable;
  */
 public class SystemFeatures implements Serializable, DebugDumpable {
 
-    private final boolean publicHttpUrlPatternPresent;
+    private final boolean publicHttpsUrlPatternDefined;
 
-    private final boolean customLoggingPresent;
+    private final boolean remoteHostAddressHeaderDefined;
 
-    private final boolean mailNotificationsPresent;
+    private final boolean customLoggingDefined;
 
-    private final boolean clusterPresent;
+    private final boolean realNotificationsEnabled;
 
-    private final boolean genericProductionDatabasePresent;
+    private final boolean clusteringEnabled;
+
+    private final boolean genericNonH2DatabaseUsed;
 
     SystemFeatures(
-            boolean publicHttpUrlPatternPresent,
-            boolean customLoggingPresent,
-            boolean mailNotificationsPresent,
-            boolean clusterPresent,
-            boolean genericProductionDatabasePresent) {
-        this.publicHttpUrlPatternPresent = publicHttpUrlPatternPresent;
-        this.customLoggingPresent = customLoggingPresent;
-        this.mailNotificationsPresent = mailNotificationsPresent;
-        this.clusterPresent = clusterPresent;
-        this.genericProductionDatabasePresent = genericProductionDatabasePresent;
+            boolean publicHttpsUrlPatternDefined,
+            boolean remoteHostAddressHeaderDefined,
+            boolean customLoggingDefined,
+            boolean realNotificationsEnabled,
+            boolean clusteringEnabled,
+            boolean genericNonH2DatabaseUsed) {
+        this.publicHttpsUrlPatternDefined = publicHttpsUrlPatternDefined;
+        this.remoteHostAddressHeaderDefined = remoteHostAddressHeaderDefined;
+        this.customLoggingDefined = customLoggingDefined;
+        this.realNotificationsEnabled = realNotificationsEnabled;
+        this.clusteringEnabled = clusteringEnabled;
+        this.genericNonH2DatabaseUsed = genericNonH2DatabaseUsed;
     }
 
-    public boolean isPublicHttpUrlPatternPresent() {
-        return publicHttpUrlPatternPresent;
+    /** Fallback values to be used in the case of an error. */
+    public static SystemFeatures error() {
+        return new SystemFeatures(
+                true, true, true, true, false, false);
     }
 
-    public boolean isCustomLoggingPresent() {
-        return customLoggingPresent;
+    /** Does the public HTTP URL pattern use secure (https) protocol? */
+    public boolean isPublicHttpsUrlPatternDefined() {
+        return publicHttpsUrlPatternDefined;
     }
 
-    public boolean isMailNotificationsPresent() {
-        return mailNotificationsPresent;
+    /** Is a header that defines the remote host (like `X-Forwarded-For`) defined? It indicates the use of a proxy. */
+    public boolean isRemoteHostAddressHeaderDefined() {
+        return remoteHostAddressHeaderDefined;
     }
 
-    public boolean isClusterPresent() {
-        return clusterPresent;
+    /** Custom logging currently means "using an appender other than the file-based one". */
+    public boolean isCustomLoggingDefined() {
+        return customLoggingDefined;
     }
 
-    public boolean isGenericProductionDatabasePresent() {
-        return genericProductionDatabasePresent;
+    /** Are there SMTP or SMS notifications configured, without being redirected to a file? */
+    public boolean areRealNotificationsEnabled() {
+        return realNotificationsEnabled;
+    }
+
+    /** Is the clustering enabled in the task manager configuration? */
+    public boolean isClusteringEnabled() {
+        return clusteringEnabled;
+    }
+
+    /** Are we using the generic repo (other than H2)? */
+    public boolean isGenericNonH2DatabaseUsed() {
+        return genericNonH2DatabaseUsed;
     }
 
     @Override
     public String debugDump(int indent) {
         var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "publicHttpUrlPatternPresent", publicHttpUrlPatternPresent, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "customLoggingPresent", customLoggingPresent, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "mailNotificationsPresent", mailNotificationsPresent, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "clusterPresent", clusterPresent, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "genericProductionDatabasePresent", genericProductionDatabasePresent, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "publicHttpsUrlPatternDefined", publicHttpsUrlPatternDefined, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "remoteHostAddressHeaderDefined", remoteHostAddressHeaderDefined, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "customLoggingDefined", customLoggingDefined, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "realNotificationsEnabled", realNotificationsEnabled, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "clusteringEnabled", clusteringEnabled, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "genericNonH2DatabaseUsed", genericNonH2DatabaseUsed, indent + 1);
         return sb.toString();
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-                "publicHttpUrlPatternPresent=" + publicHttpUrlPatternPresent +
-                ", customLoggingPresent=" + customLoggingPresent +
-                ", mailNotificationsPresent=" + mailNotificationsPresent +
-                ", clusterPresent=" + clusterPresent +
-                ", genericProductionDatabasePresent=" + genericProductionDatabasePresent +
+                "publicHttpsUrlPatternDefined=" + publicHttpsUrlPatternDefined +
+                ", remoteHostAddressHeaderDefined=" + remoteHostAddressHeaderDefined +
+                ", customLoggingDefined=" + customLoggingDefined +
+                ", realNotificationsEnabled=" + realNotificationsEnabled +
+                ", clusteringEnabled=" + clusteringEnabled +
+                ", genericNonH2DatabaseUsed=" + genericNonH2DatabaseUsed +
                 '}';
     }
 }

@@ -13,6 +13,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismObject;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
 public class SystemConfigurationTypeUtil {
 
     public static boolean isExperimentalCodeEnabled(SystemConfigurationType config) {
@@ -62,6 +66,17 @@ public class SystemConfigurationTypeUtil {
         return notificationConfiguration.getMail();
     }
 
+    public static @NotNull List<SmsConfigurationType> getLegacySmsTransportConfigurations(SystemConfigurationType systemConfiguration) {
+        if (systemConfiguration == null) {
+            return List.of();
+        }
+        NotificationConfigurationType notificationConfiguration = systemConfiguration.getNotificationConfiguration();
+        if (notificationConfiguration == null) {
+            return List.of();
+        }
+        return notificationConfiguration.getSms();
+    }
+
     public static LoggingConfigurationType getLogging(SystemConfigurationType systemConfiguration) {
         return systemConfiguration != null ? systemConfiguration.getLogging() : null;
     }
@@ -75,6 +90,17 @@ public class SystemConfigurationTypeUtil {
             return null;
         }
         return infrastructure.getPublicHttpUrlPattern();
+    }
+
+    public static @NotNull List<String> getRemoteHostAddressHeader(SystemConfigurationType sysconfig) {
+        if (sysconfig == null) {
+            return List.of();
+        }
+        InfrastructureConfigurationType infrastructure = sysconfig.getInfrastructure();
+        if (infrastructure == null) {
+            return List.of();
+        }
+        return infrastructure.getRemoteHostAddressHeader();
     }
 
     // TODO check the method name

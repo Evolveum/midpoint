@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -201,7 +202,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return delta;
     }
 
-    private Collection<ObjectDelta<? extends ObjectType>> collectDeltasFromObject(OperationResult result) throws SchemaException {
+    private Collection<ObjectDelta<? extends ObjectType>> collectDeltasFromObject(OperationResult result) throws CommonException {
         validationErrors = null;
 //        delta = null;
         PrismObjectWrapper<O> objectWrapper = getObjectWrapperModel().getObject();
@@ -302,11 +303,11 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return modelServiceLocator.getFormValidatorRegistry().getValidators();
     }
 
-    protected void prepareObjectForAdd(PrismObject<O> objectToAdd) throws SchemaException {
+    protected void prepareObjectForAdd(PrismObject<O> objectToAdd) throws CommonException {
 
     }
 
-    protected void prepareObjectDeltaForModify(ObjectDelta<O> modifyDelta) throws SchemaException {
+    protected void prepareObjectDeltaForModify(ObjectDelta<O> modifyDelta) throws CommonException {
 
     }
 
@@ -410,7 +411,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         summaryModel.detach();
     }
 
-    public Collection<ObjectDelta<? extends ObjectType>> collectDeltas(OperationResult result) throws SchemaException {
+    public Collection<ObjectDelta<? extends ObjectType>> collectDeltas(OperationResult result) throws CommonException {
         Collection<ObjectDelta<? extends ObjectType>> actualDeltas = collectDeltasFromObject(result);
         if (savedDeltas.isEmpty()) {
             return actualDeltas;
@@ -422,7 +423,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return localSavedDeltas;
     }
 
-    public Collection<ObjectDelta<? extends ObjectType>> collectDeltaWithoutSavedDeltas(OperationResult result) throws SchemaException {
+    public Collection<ObjectDelta<? extends ObjectType>> collectDeltaWithoutSavedDeltas(OperationResult result) throws CommonException {
         return collectDeltasFromObject(result);
     }
 
@@ -435,7 +436,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
             savedDeltas.clear();
             savedDeltas.addAll(newSavedDeltas);
 
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             LOGGER.error("Couldn't collect deltas from " + getObjectType());
         }
     }

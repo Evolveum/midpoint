@@ -330,11 +330,20 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
                     @Override
                     public String getObject() {
-                        SubscriptionState subscription = MidPointApplication.get().getSubscriptionState();
-                        if (!subscription.isValid()) {
+                        SubscriptionState subscription = getSubscriptionState();
+                        if (!subscription.isActive()) {
                             return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
                         } else if (subscription.isDemo()) {
                             return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
+                        } else if (subscription.isInGracePeriod()) {
+                            int daysToGracePeriodGone = subscription.getDaysToGracePeriodGone();
+                            if(daysToGracePeriodGone < 2) {
+                                return " " + createStringResource("PageBase.gracePeriodSubscriptionMessage.lastDay").getString();
+                            }
+                            return " " + createStringResource(
+                                    "PageBase.gracePeriodSubscriptionMessage",
+                                    subscription.getDaysToGracePeriodGone())
+                                    .getString();
                         } else {
                             return "";
                         }
@@ -343,6 +352,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         subscriptionMessage.setOutputMarkupId(true);
         subscriptionMessage.add(getFooterVisibleBehaviour());
         footerContainer.add(subscriptionMessage);
+    }
+
+    public SubscriptionState getSubscriptionState() {
+        return MidPointApplication.get().getSubscriptionState();
     }
 
     private VisibleEnableBehaviour getFooterVisibleBehaviour() {
@@ -357,7 +370,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     private boolean isFooterVisible() {
-        return MidPointApplication.get().getSubscriptionState().isInvalidOrDemo();
+        SubscriptionState subscription = getSubscriptionState();
+        return subscription.isInactiveOrDemo() || subscription.isInGracePeriod();
     }
 
     /**

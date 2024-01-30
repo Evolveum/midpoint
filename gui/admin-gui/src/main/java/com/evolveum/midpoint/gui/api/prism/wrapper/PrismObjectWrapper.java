@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.prism.wrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -18,13 +19,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface PrismObjectWrapper<O extends ObjectType> extends PrismContainerWrapper<O> {
 
-    ObjectDelta<O> getObjectDelta() throws SchemaException;
+    ObjectDelta<O> getObjectDelta() throws CommonException;
 
     PrismObject<O> getObject();
 
     PrismObject<O> getObjectOld();
 
-    PrismObject<O> getObjectApplyDelta() throws SchemaException;
+    PrismObject<O> getObjectApplyDelta() throws CommonException;
 
     String getOid();
 

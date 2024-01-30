@@ -45,13 +45,24 @@ public class BaseMenuItem implements Serializable {
      */
     private boolean dynamic;
 
+    /**
+     * determine if item is visible
+     */
+    private final boolean visibility;
+
     public BaseMenuItem(String nameModel, String iconClass, Class<? extends WebPage> pageClass,
-                        PageParameters params, Class<? extends WebPage>... aliases) {
+            PageParameters params, boolean visibility, Class<? extends WebPage>... aliases) {
         this.aliases = aliases;
         this.nameModel = nameModel;
         this.pageClass = pageClass;
         this.params = params;
         this.iconClass = iconClass;
+        this.visibility = visibility;
+    }
+
+    public BaseMenuItem(String nameModel, String iconClass, Class<? extends WebPage> pageClass,
+                        PageParameters params, Class<? extends WebPage>... aliases) {
+        this(nameModel, iconClass, pageClass, params, true, aliases);
     }
 
     public BaseMenuItem(String nameModel, String iconClass, Class<? extends WebPage> pageClass,
@@ -63,6 +74,7 @@ public class BaseMenuItem implements Serializable {
 
         this.iconClass = iconClass;
         this.active = active;
+        this.visibility = true;
     }
 
     /**
@@ -143,5 +155,9 @@ public class BaseMenuItem implements Serializable {
 
     public boolean isDynamic() {
         return dynamic;
+    }
+
+    public boolean isVisible() {
+        return visibility;
     }
 }

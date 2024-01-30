@@ -236,8 +236,12 @@ while read line; do
   ### exception for *_FILE key name ###
   [ "${_key: -5}" = ".FILE" ] && _key="${_key::$((${#_key} - 5))}_FILE"
   ###
-
-  echo "Processing variable (MAP) ... ${_key} .:. ${_val}" >&2
+  if [ "${_key: -7}" = "assword" ]
+  then
+    echo "Processing variable (MAP) ... ${_key} .:. *****" >&2
+  else
+    echo "Processing variable (MAP) ... ${_key} .:. ${_val}" >&2
+  fi
 
   if [ "${_key:0:1}" = "." ]; then
     JAVA_OPTS="${JAVA_OPTS:-} -D${_key:1}=\"${_val}\""

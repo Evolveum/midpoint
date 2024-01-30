@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformationRetriever;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -22,6 +23,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,7 @@ public class NodeRetriever {
 
     @Autowired private ClusterStatusInformationRetriever clusterStatusInformationRetriever;
     @Autowired private RepositoryService repositoryService;
+    @Autowired private TaskManagerQuartzImpl taskManager;
 
     /**
      * Gets nodes from repository and adds runtime information to them (taken from ClusterStatusInformation).
@@ -71,9 +75,7 @@ public class NodeRetriever {
                     // node is in repo, but no information on it is present in CSI
                     // (should not occur except for some temporary conditions, because CSI contains info on all nodes from repo)
                     returnedNode.setExecutionState(NodeExecutionStateType.COMMUNICATION_ERROR);
-                    OperationResult r = new OperationResult("connect");
-                    r.recordFatalError("Node not known at this moment");
-                    returnedNode.setConnectionResult(r.createOperationResultType());
+                    returnedNode.setConnectionResult(createFakeErrorOperationResult());
                 }
                 list.add(returnedNode.asPrismObject());
             }
@@ -82,5 +84,17 @@ public class NodeRetriever {
         }
         LOGGER.trace("searchNodes returning {}", list);
         return new SearchResultList<>(list);
+    }
+
+    private OperationResultType createFakeErrorOperationResult() {
+        OperationResult r = new OperationResult("connect");
+        if (!taskManager.isClusteringAvailable()) {
+            // Special case: clustering not supported.
+            // In the future, we should improve the error handling here - in general.
+            r.recordFatalError("Clustering is not available (no subscription)");
+        } else {
+            r.recordFatalError("Node not known at this moment");
+        }
+        return r.createOperationResultType();
     }
 }

@@ -168,4 +168,8 @@ public class PageSystemConfiguration extends PageBase {
         return button;
     }
 
+    @Override
+    protected boolean isContentVisible() {
+        return true;
+    }
 }

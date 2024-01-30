@@ -3008,6 +3008,18 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="passwordHintConfigurability" type="c:PasswordHintConfigurabilityType" minOccurs="0" default="alwaysConfigure">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Additional configurability applied when changing or resetting a password.
+                                This applies when user is changing or resetting his own password. It does NOT apply
+                                when administrator changes password of other user.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.8.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -3050,6 +3062,39 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OLD_PASSWORD_IF_EXISTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="PasswordHintConfigurabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Additional options for configuring the password hint when changing or resetting the password.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="alwaysConfigure">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Always configurable password hint, during changing and resetting password.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS_CONFIGURE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="neverConfigure">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Never configurable password hint, during changing and resetting password.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEVER_CONFIGURE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

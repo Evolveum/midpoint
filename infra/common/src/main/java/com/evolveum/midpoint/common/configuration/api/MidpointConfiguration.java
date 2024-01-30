@@ -48,6 +48,8 @@ public interface MidpointConfiguration {
     String WORKFLOW_CONFIGURATION = "midpoint.workflow";
     String INTERNALS_CONFIGURATION = "midpoint.internals";
 
+    String ADMINISTRATOR_INITIAL_PASSWORD = "midpoint.administrator.initialPassword";
+
     /**
      * Reference to midpoint-system.properties generated in system-init component.
      * It is generated during the build.

@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.web.component.menu;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -76,6 +78,10 @@ public class SideBarMenuItem implements Serializable {
             }
         }
         return null;
+    }
+
+    public boolean isVisible() {
+        return !MidPointApplication.get().getSubscriptionState().isGenericRepoWithoutSubscription();
     }
 
 }

@@ -251,7 +251,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
 
     }
 
-    private ObjectDelta<AH> getObjectDelta(OperationResult result) throws SchemaException {
+    private ObjectDelta<AH> getObjectDelta(OperationResult result) throws CommonException {
         ObjectDetailsModels<AH> model = ((PageAssignmentHolderDetails) getPageBase()).getObjectDetailsModels();
         model.collectDeltas(result);
         return model.getDelta();
@@ -266,7 +266,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
     }
 
     private List<PrismContainerValueWrapper<AssignmentType>> loadEvaluatedAssignments(IModel<PrismContainerWrapper<AssignmentType>> parent)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+            throws CommonException {
         if (!(getPageBase() instanceof PageAssignmentHolderDetails)) {
             return parent.getObject().getValues();
         }

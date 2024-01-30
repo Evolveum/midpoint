@@ -96,8 +96,6 @@
 
     CODE SIGNING:
     - There is a profile `jar-signing` that causes `midpoint.jar` to be signed, as described in `midpoint-jar/pom.xml`.
-    In particular, the `MIDPOINT_BUILD_KEYSTORE` env variable must point to the keystore that contains a `build-signing-key`
-    that will be used for signing.
     -->
 
     <parent>
@@ -261,7 +259,7 @@
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <javax.persistence.version>2.2</javax.persistence.version>
-        <keycloak.version>22.0.3</keycloak.version>
+        <keycloak.version>23.0.4</keycloak.version>
 
         <maven.api.version>3.8.5</maven.api.version>
         <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1,

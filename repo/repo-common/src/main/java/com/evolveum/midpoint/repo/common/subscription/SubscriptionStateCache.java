@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.repo.common.subscription;
 
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
+
+import com.evolveum.midpoint.task.api.TaskManager;
+
+import com.evolveum.midpoint.task.api.TaskManager.ClusteringAvailabilityProvider;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,70 +28,92 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
+import java.util.Objects;
+
 /**
  * Computes the {@link SubscriptionState}, caching components needed to compute it.
  * (The caching may change if needed.)
  */
 @Component
-public class SubscriptionStateCache {
+public class SubscriptionStateCache implements SystemConfigurationChangeListener, ClusteringAvailabilityProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(SubscriptionStateCache.class);
 
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private SystemFeaturesEnquirer systemFeaturesEnquirer;
+    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
+    @Autowired private TaskManager taskManager;
 
     private static final String OP_GET_SUBSCRIPTION_STATE = SubscriptionStateCache.class.getName() + ".getSubscriptionState";
-    private static final long FEATURES_REFRESH_INTERVAL = 60 * 1000L;
+    private static final long STATE_REFRESH_INTERVAL = 10 * 1000L;
 
     /** Cached version of the features. */
-    private SystemFeatures lastKnownFeatures;
+    private volatile SubscriptionState cachedState;
 
     /** When those were obtained. */
-    private long lastKnownFeaturesTimestamp;
+    private volatile long cachedStateTimestamp;
 
     /** Use only if there's no way of obtaining the operation result! */
     public @NotNull SubscriptionState getSubscriptionState() {
-        return getSubscriptionState(new OperationResult(OP_GET_SUBSCRIPTION_STATE));
+        return Objects.requireNonNullElseGet(
+                getCachedState(),
+                () -> determineAndCacheSubscriptionState(new OperationResult(OP_GET_SUBSCRIPTION_STATE)));
     }
 
     /** This is the recommended version. */
     public @NotNull SubscriptionState getSubscriptionState(OperationResult result) {
+        return Objects.requireNonNullElseGet(
+                getCachedState(),
+                () -> determineAndCacheSubscriptionState(result));
+    }
+
+    private SubscriptionState getCachedState() {
+        if (System.currentTimeMillis() - cachedStateTimestamp <= STATE_REFRESH_INTERVAL) {
+            return cachedState;
+        } else {
+            return null;
+        }
+    }
+
+    private @NotNull SubscriptionState determineAndCacheSubscriptionState(OperationResult result) {
         try {
-            var subscription = getSubscription(systemObjectCache.getSystemConfigurationBean(result));
-            var features = getSystemFeatures(result);
-            return SubscriptionState.determine(subscription, features);
+            var systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
+            var subscriptionId = SubscriptionId.parse(
+                    SystemConfigurationTypeUtil.getSubscriptionId(systemConfiguration));
+            var systemFeatures = systemFeaturesEnquirer.getSystemFeatures(result);
+            var currentSubscriptionState = SubscriptionState.determine(subscriptionId, systemFeatures);
+
+            cachedStateTimestamp = System.currentTimeMillis();
+            cachedState = currentSubscriptionState;
+            return currentSubscriptionState;
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine the subscription state", e);
+            // Not caching anything!
             return SubscriptionState.error();
         }
     }
 
-    /** Useful when we know the subscription from the outside. Use only if there's no way of obtaining the operation result. */
-    public @NotNull SubscriptionState getSubscriptionState(@NotNull Subscription subscription) {
-        return getSubscriptionState(subscription, new OperationResult(OP_GET_SUBSCRIPTION_STATE));
+    @Override
+    public boolean isClusteringAvailable() {
+        return getSubscriptionState().isClusteringAvailable();
     }
 
-    /** Useful when we know the subscription from the outside. */
-    public @NotNull SubscriptionState getSubscriptionState(@NotNull Subscription subscription, @NotNull OperationResult result) {
-        try {
-            var features = getSystemFeatures(result);
-            return SubscriptionState.determine(subscription, features);
-        } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine the subscription state", e);
-            return SubscriptionState.error();
-        }
+    @Override
+    public void update(@Nullable SystemConfigurationType value) {
+        // Many of the features depend on the system configuration. So let's just invalidate the value if there's a change.
+        // The refresh is very cheap.
+        cachedState = null;
     }
 
-    private SystemFeatures getSystemFeatures(OperationResult result) {
-        if (lastKnownFeatures == null || System.currentTimeMillis() - lastKnownFeaturesTimestamp > FEATURES_REFRESH_INTERVAL) {
-            lastKnownFeatures = systemFeaturesEnquirer.getSystemFeatures(result);
-            lastKnownFeaturesTimestamp = System.currentTimeMillis();
-        }
-        return lastKnownFeatures;
+    @PostConstruct
+    public void init() {
+        systemConfigurationChangeDispatcher.registerListener(this);
+        taskManager.registerClusteringAvailabilityProvider(this);
     }
 
-    public static @NotNull Subscription getSubscription(@Nullable SystemConfigurationType systemConfiguration) {
-        return Subscription.parse(
-                SystemConfigurationTypeUtil.getSubscriptionId(systemConfiguration));
+    @PreDestroy
+    public void shutdown() {
+        systemConfigurationChangeDispatcher.unregisterListener(this);
+        taskManager.unregisterClusteringAvailabilityProvider(this);
     }
 }

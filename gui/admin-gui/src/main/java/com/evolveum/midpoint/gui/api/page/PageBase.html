@@ -12,7 +12,9 @@
     <div wicket:id="mainPopup"/>
     <div class="wrapper">
         <div id="skip-link">
-            <a href="#main-content" class="btn-sm"><wicket:message key="Accessibility.PageBase.skiplink.title"/></a>
+            <a href="#main-content" class="btn-sm">
+                <wicket:message key="Accessibility.PageBase.skiplink.title"/>
+            </a>
         </div>
         <nav wicket:id="mainHeader" class="main-header navbar navbar-expand border-bottom-0">
             <div class="navbar-nav">
@@ -83,15 +85,18 @@
 
         <main class="content-wrapper" id="main-content" role="main" style="min-height: 916px; padding: 15px 0">
             <section class="content">
-                <div class="container-fluid">
-                    <div wicket:id="feedbackContainer" class="feedbackContainer">
-                        <div wicket:id="feedback" class="messagePanel"/>
+                <wicket:enclosure child="contentVisible">
+                    <div wicket:id="contentVisible"/>
+                    <div class="container-fluid">
+                        <div wicket:id="feedbackContainer" class="feedbackContainer">
+                            <div wicket:id="feedback" class="messagePanel"/>
+                        </div>
+                        <wicket:child/>
                     </div>
-                    <wicket:child/>
-                </div>
+                </wicket:enclosure>
             </section>
         </main>
-        <footer wicket:id="footerContainer" class="main-footer">
+        <footer wicket:id="footerContainer" class="main-footer d-flex flex-wrap">
             <span class="pull-right hidden-xs" wicket:id="version">
                 <b><wicket:message key="PageTemplate.version"/></b> <wicket:message key="midpoint.system.build"/>
             </span>

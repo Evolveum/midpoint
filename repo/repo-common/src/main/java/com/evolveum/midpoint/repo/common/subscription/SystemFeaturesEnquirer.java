@@ -19,12 +19,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 
 /** Collects the information to fill the {@link SystemFeatures} instance. */
@@ -38,11 +38,12 @@ public class SystemFeaturesEnquirer {
     public @NotNull SystemFeatures getSystemFeatures(@NotNull OperationResult result) {
         var enquiry = new Enquiry(getSystemConfiguration(result));
         return new SystemFeatures(
-                enquiry.isPublicHttpUrlPatternPresent(),
-                enquiry.isCustomLoggingPresent(),
-                enquiry.areMailNotificationsPresent(),
-                enquiry.isClusterPresent(),
-                enquiry.isGenericProductionDatabasePresent());
+                enquiry.isPublicHttpsUrlPatternDefined(),
+                enquiry.isRemoteHostAddressHeaderDefined(),
+                enquiry.isCustomLoggingDefined(),
+                enquiry.areRealNotificationsEnabled(),
+                enquiry.isClusteringEnabled(),
+                enquiry.isGenericNonH2DatabaseUsed());
     }
 
     private @Nullable SystemConfigurationType getSystemConfiguration(OperationResult result) {
@@ -62,17 +63,21 @@ public class SystemFeaturesEnquirer {
             this.systemConfiguration = systemConfiguration;
         }
 
-        boolean isPublicHttpUrlPatternPresent() {
-            return StringUtils.isNotBlank(
-                    SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration));
+        boolean isPublicHttpsUrlPatternDefined() {
+            var pattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration);
+            return pattern != null && pattern.toLowerCase().startsWith("https:");
         }
 
-        boolean isCustomLoggingPresent() {
+        boolean isRemoteHostAddressHeaderDefined() {
+            return !SystemConfigurationTypeUtil.getRemoteHostAddressHeader(systemConfiguration).isEmpty();
+        }
+
+        boolean isCustomLoggingDefined() {
             return LoggingConfigurationManager.isExtraAppenderPresent(
                     SystemConfigurationTypeUtil.getLogging(systemConfiguration));
         }
 
-        boolean areMailNotificationsPresent() {
+        boolean areRealNotificationsEnabled() {
             if (systemConfiguration == null) {
                 return false;
             }
@@ -80,39 +85,54 @@ public class SystemFeaturesEnquirer {
             // 4.5+ style ("new")
             MessageTransportConfigurationType transportConfiguration = systemConfiguration.getMessageTransportConfiguration();
             if (transportConfiguration != null) {
-                if (areMailNotificationsPresent(transportConfiguration.getMail())) {
+                if (isMailOrSmsTransportEnabled(transportConfiguration.getMail())) {
                     return true;
                 }
-                if (areMailNotificationsPresent(transportConfiguration.getCustomTransport())) {
+                if (isMailOrSmsTransportEnabled(transportConfiguration.getSms())) {
+                    return true;
+                }
+                if (isMailOrSmsTransportEnabled(transportConfiguration.getCustomTransport())) {
                     return true;
                 }
             }
 
             // legacy style
-            return areMailNotificationsPresent(
-                    SystemConfigurationTypeUtil.getLegacyMailTransportConfiguration(systemConfiguration));
+            return areLegacyMailNotificationsEnabled(SystemConfigurationTypeUtil.getLegacyMailTransportConfiguration(systemConfiguration))
+                    || areLegacySmsNotificationsEnabled(SystemConfigurationTypeUtil.getLegacySmsTransportConfigurations(systemConfiguration));
         }
 
-        private boolean areMailNotificationsPresent(@NotNull List<? extends GeneralTransportConfigurationType> transports) {
+        private boolean isMailOrSmsTransportEnabled(@NotNull List<? extends GeneralTransportConfigurationType> transports) {
             return transports.stream()
-                    .anyMatch(t -> t instanceof MailTransportConfigurationType mail && areMailNotificationsPresent(mail));
+                    .anyMatch(t ->
+                            t instanceof MailTransportConfigurationType mail && isMailTransportEnabled(mail)
+                                    || t instanceof SmsTransportConfigurationType sms && isSmsTransportEnabled(sms));
         }
 
-        private boolean areMailNotificationsPresent(MailTransportConfigurationType config) {
-            return !config.getServer().isEmpty();
+        private boolean isMailTransportEnabled(MailTransportConfigurationType config) {
+            return !config.getServer().isEmpty()
+                    && config.getRedirectToFile() == null;
         }
 
-        private boolean areMailNotificationsPresent(@Nullable MailConfigurationType config) {
-            return config != null && !config.getServer().isEmpty();
+        private boolean isSmsTransportEnabled(SmsTransportConfigurationType config) {
+            return !config.getGateway().isEmpty()
+                    && config.getRedirectToFile() == null;
         }
 
-        boolean isClusterPresent() {
+        private boolean areLegacyMailNotificationsEnabled(@Nullable MailConfigurationType config) {
+            return config != null && !config.getServer().isEmpty() && config.getRedirectToFile() == null;
+        }
+
+        private boolean areLegacySmsNotificationsEnabled(Collection<SmsConfigurationType> configs) {
+            return configs.stream()
+                    .anyMatch(c -> !c.getGateway().isEmpty() && c.getRedirectToFile() == null);
+        }
+
+        boolean isClusteringEnabled() {
             return taskManager.isClustered();
         }
 
-        boolean isGenericProductionDatabasePresent() {
-            return !repositoryService.isNative()
-                    && !repositoryService.getRepositoryDiag().isH2();
+        boolean isGenericNonH2DatabaseUsed() {
+            return repositoryService.isGenericNonH2();
         }
     }
 }
