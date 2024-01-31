@@ -261,14 +261,18 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
 
     private String getPublicKey() {
         try {
-            Optional<Object> jsonWithKey = ((JSONArray) JSONObjectUtils.parse(
-                    WebClient.create(getJwksUri()).get().readEntity(String.class)).get("keys"))
-                    .stream().filter(json ->
+            JSONArray keys = ((JSONArray) JSONObjectUtils.parse(
+                    WebClient.create(getJwksUri()).get().readEntity(String.class)).get("keys"));
+            Optional<Object> jsonWithKey = keys.stream()
+                    .filter(json ->
                             ((JSONObject) json).containsKey("use")
                             && "sig".equals(((JSONObject) json).get("use"))
                             && (getProperty(KID_KEY) == null || getProperty(KID_KEY).equals(((JSONObject) json).get("kid"))))
                     .findFirst();
-            return (String) ((JSONArray)((JSONObject)jsonWithKey.get()).get("x5c")).get(0);
+            if (jsonWithKey.isPresent()) {
+                return (String) ((JSONArray) ((JSONObject) jsonWithKey.get()).get("x5c")).get(0);
+            }
+            return (String) ((JSONArray) ((JSONObject) keys.stream().findFirst().get()).get("x5c")).get(0);
         } catch (Exception e) {
             LOGGER.error("Couldn't get public key for keycloak", e);
             return null;
