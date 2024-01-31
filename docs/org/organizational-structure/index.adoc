@@ -172,7 +172,7 @@ Users (and other objects) are linked to the org using OID-based references there
 .XML structure of a basic organizational unit
 [source,xml]
 ----
-    <org oid="c74a7d86-7798-11e2-964e-100000000100">
+    <org oid="c74a7d86-7798-11e2-964e-100000000000">
         <name>F0000</name>
         <description>Famous workshop of Leonardo da Vinci</description>
         <displayName>Leonardo's Workshop</displayName>
