@@ -13,7 +13,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Freezable;
 
+import com.evolveum.midpoint.repo.api.CacheRegistry;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -37,6 +42,8 @@ public class SchemaCache implements Cache {
     private PrismContext prismContext;
     private RepositoryService repositoryService;
 
+    @Autowired private CacheRegistry cacheRegistry;
+
     public void setPrismContext(PrismContext prismContext) {
         this.prismContext = prismContext;
     }
@@ -44,6 +51,17 @@ public class SchemaCache implements Cache {
     public void setRepositoryService(RepositoryService repositoryService) {
         this.repositoryService = repositoryService;
     }
+
+    @PostConstruct
+    public void register() {
+        cacheRegistry.registerCache(this);
+    }
+
+    @PreDestroy
+    public void unregister() {
+        cacheRegistry.unregisterCache(this);
+    }
+
 
     public void init() {
 
@@ -76,12 +94,12 @@ public class SchemaCache implements Cache {
         }
 
         //TODO reload schema registry
-//        ((SchemaRegistryImpl) prismContext.getSchemaRegistry()).registerDbSchemaExtensions(dbExtensions);
-//        try {
-//             prismContext.reload();
-//        } catch (SchemaException e) {
-//            throw new RuntimeException(e);
-//        }
+        ((SchemaRegistryImpl) prismContext.getSchemaRegistry()).registerDbSchemaExtensions(dbExtensions);
+        try {
+             prismContext.reload();
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private ComplexTypeDefinition detectExtensionSchemas(PrismSchema schema, Map<QName, ComplexTypeDefinition> extensionSchemas) {

@@ -124,6 +124,10 @@ public enum ObjectTypes {
             SimulationResultType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SIMULATION_RESULT, SimulationResultType.class,
             ObjectManager.MODEL, "simulationResults"),
 
+    SCHEMA(
+            SchemaExtensionType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SCHEMA_EXTENSION, SchemaExtensionType.class,
+            ObjectManager.MODEL, "schemaExtensions"),
+
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
 
