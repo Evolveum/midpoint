@@ -311,4 +311,5 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     default boolean isRaw() {
         return getObjectTypeDefinitions().isEmpty();
     }
+
 }
