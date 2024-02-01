@@ -15,6 +15,11 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,6 +31,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
@@ -304,6 +310,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 deltas = getObjectDetailsModels().collectDeltas(result);
             }
             checkValidationErrors(target, objectDetailsModels.getValidationErrors());
+
         } catch (Throwable ex) {
             result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);

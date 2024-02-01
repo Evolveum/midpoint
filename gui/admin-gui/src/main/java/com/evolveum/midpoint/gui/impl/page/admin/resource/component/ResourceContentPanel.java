@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -201,7 +202,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                     } else {
                         return Collections.emptyIterator();
                     }
-                } catch (SchemaException | ConfigurationException e) {
+                } catch (CommonException e) {
                     return Collections.emptyIterator();
                 }
             }
@@ -598,7 +599,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         ResourceSchema refinedSchema;
         try {
             refinedSchema = ResourceSchemaFactory.getCompleteSchema(model.getObject().getObjectApplyDelta());
-        } catch (SchemaException | ConfigurationException e) {
+        } catch (CommonException e) {
             warn("Could not determine defined object classes for resource");
             return new ArrayList<>();
         }

@@ -7,15 +7,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import java.io.Serial;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -34,6 +35,8 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -49,23 +52,22 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleA
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -77,11 +79,9 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
     OperationResult result = new OperationResult(OP_PREPARE_OBJECTS);
 
-    public RoleAnalysisDetectedPatternTable(String id, LoadableDetachableModel<List<DetectedPattern>> detectedPatternList,
-            boolean isOperationEnable, RoleAnalysisClusterType cluster) {
+    public RoleAnalysisDetectedPatternTable(String id, LoadableDetachableModel<List<DetectedPattern>> detectedPatternList, RoleAnalysisClusterType cluster) {
         super(id);
 
-        this.isOperationEnable = isOperationEnable;
         RoleMiningProvider<DetectedPattern> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(detectedPatternList.getObject()) {
 
@@ -154,7 +154,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
             public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
                     IModel<DetectedPattern> rowModel) {
                 if (rowModel.getObject() != null) {
-                    item.add(new Label(componentId, rowModel.getObject().getClusterMetric()));
+                    item.add(new Label(componentId, rowModel.getObject().getMetric()));
                 }
             }
 
@@ -299,160 +299,164 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
             }
 
         });
+        columns.add(new AbstractExportableColumn<>(getHeaderTitle("display")) {
 
-        if (isOperationEnable) {
-            columns.add(new AbstractExportableColumn<>(getHeaderTitle("display")) {
+            @Override
+            public IModel<?> getDataModel(IModel<DetectedPattern> iModel) {
+                return null;
+            }
 
-                @Override
-                public IModel<?> getDataModel(IModel<DetectedPattern> iModel) {
-                    return null;
-                }
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
 
-                @Override
-                public boolean isSortable() {
-                    return false;
-                }
+            @Override
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
 
-                @Override
-                public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
-                        IModel<DetectedPattern> rowModel) {
-                    if (rowModel.getObject() == null) {
-                        item.add(new EmptyPanel(componentId));
-                    } else {
+                if (rowModel.getObject() == null) {
+                    item.add(new EmptyPanel(componentId));
+                } else {
+                    CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                            GuiStyleConstants.CLASS_PLUS_CIRCLE, LayeredIconCssStyle.IN_ROW_STYLE);
+                    AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(componentId,
+                            iconBuilder.build(),
+                            createStringResource("RoleMining.button.title.candidate")) {
+                        @Serial private static final long serialVersionUID = 1L;
 
-                        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                                GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
-                        AjaxCompositedIconSubmitButton exploreButton = new AjaxCompositedIconSubmitButton(componentId,
-                                iconBuilder.build(),
-                                createStringResource("RoleMining.button.title.load")) {
-                            @Serial private static final long serialVersionUID = 1L;
+                        @Override
+                        protected void onSubmit(AjaxRequestTarget target) {
+                            Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
+                            OperationResult result = task.getResult();
+                            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
-                            @Override
-                            protected void onSubmit(AjaxRequestTarget target) {
-                                onLoad(target, rowModel);
+                            @NotNull String status = roleAnalysisService
+                                    .recomputeAndResolveClusterOpStatus(cluster.asPrismObject(), result, task);
+
+                            if (status.equals("processing")) {
+                                warn("Couldn't start detection. Some process is already in progress.");
+                                LOGGER.error("Couldn't start detection. Some process is already in progress.");
+                                target.add(getFeedbackPanel());
+                                return;
+                            }
+                            DetectedPattern pattern = rowModel.getObject();
+                            if (pattern == null) {
+                                return;
                             }
 
-                            @Override
-                            protected void onError(AjaxRequestTarget target) {
-                                target.add(((PageBase) getPage()).getFeedbackPanel());
+                            Set<String> roles = pattern.getRoles();
+                            Set<String> users = pattern.getUsers();
+                            Long patternId = pattern.getId();
+
+                            Set<RoleType> candidateInducements = new HashSet<>();
+
+                            for (String roleOid : roles) {
+                                PrismObject<RoleType> roleObject = roleAnalysisService
+                                        .getRoleTypeObject(roleOid, task, result);
+                                if (roleObject != null) {
+                                    candidateInducements.add(roleObject.asObjectable());
+                                }
                             }
-                        };
-                        exploreButton.titleAsLabel(true);
-                        exploreButton.setOutputMarkupId(true);
-                        exploreButton.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
 
-                        item.add(exploreButton);
+                            PrismObject<RoleType> businessRole = roleAnalysisService
+                                    .generateBusinessRole(new HashSet<>(), PolyStringType.fromOrig(""));
 
+                            List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
+
+                            for (String userOid : users) {
+                                PrismObject<UserType> userObject = roleAnalysisService
+                                        .getUserTypeObject(userOid, task, result);
+                                if (userObject != null) {
+                                    roleApplicationDtos.add(new BusinessRoleDto(userObject,
+                                            businessRole, candidateInducements, getPageBase()));
+                                }
+                            }
+
+                            PrismObject<RoleAnalysisClusterType> prismObjectCluster = cluster.asPrismObject();
+
+                            BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
+                                    prismObjectCluster, businessRole, roleApplicationDtos, candidateInducements);
+                            operationData.setPatternId(patternId);
+
+                            PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
+                            setResponsePage(pageRole);
+                        }
+
+                        @Override
+                        protected void onError(AjaxRequestTarget target) {
+                            target.add(((PageBase) getPage()).getFeedbackPanel());
+                        }
+                    };
+                    migrationButton.titleAsLabel(true);
+                    migrationButton.setOutputMarkupId(true);
+                    migrationButton.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
+
+                    item.add(migrationButton);
+                }
+
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(componentId, getHeaderTitle("display"));
+            }
+
+        });
+
+        columns.add(new AbstractExportableColumn<>(createStringResource("RoleMining.button.title.load")) {
+
+            @Override
+            public IModel<?> getDataModel(IModel<DetectedPattern> iModel) {
+                return null;
+            }
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
+
+                if (rowModel.getObject() == null) {
+                    item.add(new EmptyPanel(componentId));
+                }
+
+                CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                        GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
+                AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(componentId,
+                        iconBuilder.build(),
+                        createStringResource("RoleMining.button.title.load")) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onSubmit(AjaxRequestTarget target) {
+                        PageParameters parameters = new PageParameters();
+                        String clusterOid = cluster.getOid();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+                        parameters.add("panelId", "clusterDetails");
+                        parameters.add(PARAM_DETECTED_PATER_ID, rowModel.getObject().getId());
+                        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                                .getObjectDetailsPage(RoleAnalysisClusterType.class);
+                        getPageBase().navigateToNext(detailsPageClass, parameters);
                     }
 
-                }
-
-                @Override
-                public Component getHeader(String componentId) {
-                    return new Label(componentId, getHeaderTitle("display"));
-                }
-
-            });
-        } else {
-            columns.add(new AbstractExportableColumn<>(getHeaderTitle("display")) {
-
-                @Override
-                public IModel<?> getDataModel(IModel<DetectedPattern> iModel) {
-                    return null;
-                }
-
-                @Override
-                public boolean isSortable() {
-                    return false;
-                }
-
-                @Override
-                public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
-                        IModel<DetectedPattern> rowModel) {
-
-                    if (rowModel.getObject() == null) {
-                        item.add(new EmptyPanel(componentId));
-                    } else {
-                        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                                GuiStyleConstants.CLASS_PLUS_CIRCLE, LayeredIconCssStyle.IN_ROW_STYLE);
-                        AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(componentId,
-                                iconBuilder.build(),
-                                createStringResource("RoleMining.button.title.process")) {
-                            @Serial private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected void onSubmit(AjaxRequestTarget target) {
-                                Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
-                                OperationResult result = task.getResult();
-
-                                OperationResultStatusType status = getPageBase().getRoleAnalysisService()
-                                        .getOperationExecutionStatus(cluster.asPrismObject(), task, result);
-
-                                if (status != null && status.equals(OperationResultStatusType.IN_PROGRESS)) {
-                                    warn("Couldn't start detection. Some process is already in progress.");
-                                    LOGGER.error("Couldn't start detection. Some process is already in progress.");
-                                    target.add(getFeedbackPanel());
-                                    return;
-                                }
-
-                                Set<String> roles = rowModel.getObject().getRoles();
-                                Set<String> users = rowModel.getObject().getUsers();
-
-                                List<AssignmentType> roleAssignments = new ArrayList<>();
-
-                                for (String roleOid : roles) {
-                                    PrismObject<RoleType> roleObject = getPageBase().getRoleAnalysisService()
-                                            .getRoleTypeObject(roleOid, task, result);
-                                    if (roleObject != null) {
-                                        roleAssignments.add(ObjectTypeUtil.createAssignmentTo(roleOid, ObjectTypes.ROLE));
-                                    }
-                                }
-
-                                PrismObject<RoleType> businessRole = getPageBase().getRoleAnalysisService()
-                                        .generateBusinessRole(roleAssignments, PolyStringType.fromOrig(""));
-
-                                List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
-
-                                for (String userOid : users) {
-                                    PrismObject<UserType> userObject = getPageBase().getRoleAnalysisService()
-                                            .getUserTypeObject(userOid, task, result);
-                                    if (userObject != null) {
-                                        roleApplicationDtos.add(new BusinessRoleDto(userObject,
-                                                businessRole, getPageBase()));
-                                    }
-                                }
-
-                                PrismObject<RoleAnalysisClusterType> prismObjectCluster = cluster.asPrismObject();
-
-                                BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
-                                        prismObjectCluster, businessRole, roleApplicationDtos);
-
-                                PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
-                                setResponsePage(pageRole);
-                            }
-
-                            @Override
-                            protected void onError(AjaxRequestTarget target) {
-                                target.add(((PageBase) getPage()).getFeedbackPanel());
-                            }
-                        };
-                        migrationButton.titleAsLabel(true);
-                        migrationButton.setOutputMarkupId(true);
-                        migrationButton.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
-
-                        item.add(migrationButton);
+                    @Override
+                    protected void onError(AjaxRequestTarget target) {
+                        target.add(((PageBase) getPage()).getFeedbackPanel());
                     }
+                };
+                migrationButton.titleAsLabel(true);
+                migrationButton.setOutputMarkupId(true);
+                migrationButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
 
-                }
+                item.add(migrationButton);
+            }
 
-                @Override
-                public Component getHeader(String componentId) {
-                    return new Label(componentId, getHeaderTitle("display"));
-                }
+        });
 
-            });
-
-        }
         return columns;
     }
 
@@ -470,78 +474,6 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
     protected StringResourceModel getHeaderTitle(String identifier) {
         return createStringResource("RoleMining.cluster.table.column.header." + identifier);
-    }
-
-    protected void onLoad(AjaxRequestTarget ajaxRequestTarget, IModel<DetectedPattern> rowModel) {
-
-    }
-
-    private Set<String> resolveTotalOccupancy(
-            RoleAnalysisProcessModeType roleAnalysisProcessModeType,
-            DetectedPattern detectedPattern,
-            OperationResult result, PageBase pageBase) {
-
-        Set<String> membersOidList = new HashSet<>();
-        Set<String> detectedProperties = detectedPattern.getRoles();
-
-        if (roleAnalysisProcessModeType.equals(RoleAnalysisProcessModeType.USER)) {
-            ResultHandler<UserType> resultHandler = (object, parentResult) -> {
-                try {
-                    List<String> properties = getRolesOidAssignment(object.asObjectable());
-                    if (new HashSet<>(properties).containsAll(detectedProperties)) {
-                        membersOidList.add(object.getOid());
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                return true;
-            };
-            GetOperationOptionsBuilder optionsBuilder = pageBase.getSchemaService().getOperationOptionsBuilder();
-
-            RepositoryService repositoryService = pageBase.getRepositoryService();
-            try {
-                repositoryService.searchObjectsIterative(UserType.class, null, resultHandler, optionsBuilder.build(),
-                        true, result);
-            } catch (SchemaException e) {
-                throw new RuntimeException(e);
-            }
-
-        } else {
-            ListMultimap<String, String> roleToUserMap = ArrayListMultimap.create();
-
-            ResultHandler<UserType> resultHandler = (object, parentResult) -> {
-                try {
-                    UserType properties = object.asObjectable();
-                    List<String> members = getRolesOidAssignment(properties);
-                    for (String roleId : members) {
-                        roleToUserMap.putAll(roleId, Collections.singletonList(properties.getOid()));
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                return true;
-            };
-
-            GetOperationOptionsBuilder optionsBuilder = pageBase.getSchemaService().getOperationOptionsBuilder();
-            RepositoryService repositoryService = pageBase.getRepositoryService();
-
-            try {
-                repositoryService.searchObjectsIterative(UserType.class, null, resultHandler, optionsBuilder.build(),
-                        true, result);
-            } catch (SchemaException e) {
-                throw new RuntimeException(e);
-            }
-            for (String member : roleToUserMap.keySet()) {
-                List<String> properties = roleToUserMap.get(member);
-
-                if (new HashSet<>(properties).containsAll(detectedProperties)) {
-                    membersOidList.add(member);
-                }
-            }
-
-        }
-
-        return membersOidList;
     }
 
     private <C extends Containerable> PrismPropertyHeaderPanel<?> createColumnHeader(String componentId,

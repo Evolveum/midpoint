@@ -7,29 +7,61 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationPropertyValuesDescription;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
 /**
- * Values (primary and secondary) for given correlation property.
+ * Values (primary and secondary) for given correlation property. Currently in their {@link String} form.
  */
 public class CorrelationPropertyValues implements Serializable {
 
     @NotNull private final Set<String> primaryValues;
     @NotNull private final Set<String> secondaryValues;
-    @NotNull private final Set<String> allValues;
 
-    CorrelationPropertyValues(@NotNull Set<String> primaryValues, @NotNull Set<String> secondaryValues) {
+    private CorrelationPropertyValues(@NotNull Set<String> primaryValues, @NotNull Set<String> secondaryValues) {
         this.primaryValues = primaryValues;
         this.secondaryValues = Sets.difference(secondaryValues, primaryValues);
-        this.allValues = Sets.union(primaryValues, secondaryValues);
+    }
+
+    static @NotNull CorrelationPropertyValues fromDescription(
+            @Nullable CorrelationPropertyValuesDescription description) {
+        if (description != null) {
+            return new CorrelationPropertyValues(
+                    stringify(description.getPrimaryValues()),
+                    stringify(description.getSecondaryValues()));
+        } else {
+            return new CorrelationPropertyValues(Set.of(), Set.of());
+        }
+    }
+
+    static @NotNull CorrelationPropertyValues fromObject(
+            @NotNull PrismObject<?> object, @NotNull ItemPath path) {
+        return new CorrelationPropertyValues(stringify(object.getAllValues(path)), Set.of());
+    }
+
+    private static Set<String> stringify(@NotNull Collection<? extends PrismValue> values) {
+        try {
+            return values.stream()
+                    .map(PrismValue::getRealValue)
+                    .map(String::valueOf)
+                    .collect(Collectors.toSet());
+        } catch (Exception e) {
+            // "Get real value" method can throw an exception, so let's avoid crashing GUI because of that.
+            return Set.of(e.getMessage());
+        }
     }
 
     public String format() {
@@ -45,29 +77,6 @@ public class CorrelationPropertyValues implements Serializable {
         return values.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining(", "));
-    }
-
-    /**
-     * Uses `this` as a reference, and evaluates how the provided values match it.
-     */
-    public Match match(CorrelationPropertyValues other) {
-
-        Set<String> referenceValues = this.primaryValues;
-        stateCheck(secondaryValues.isEmpty(), "Reference cannot have secondary values: %s", this);
-
-        if (referenceValues.isEmpty()) {
-            return Match.NOT_APPLICABLE; // What if "other" has some values?
-        }
-
-        if (other.primaryValues.containsAll(referenceValues)) {
-            return Match.FULL; // We may distinguish proper subset vs equality
-        }
-
-        if (!Sets.intersection(other.allValues, referenceValues).isEmpty()) {
-            return Match.PARTIAL; // There may or may not be reference values not present in other: but there's some overlap.
-        }
-
-        return Match.NONE;
     }
 
     @Override

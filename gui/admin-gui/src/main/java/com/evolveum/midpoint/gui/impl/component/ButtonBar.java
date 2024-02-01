@@ -6,15 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.util.SelectableRow;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -23,9 +16,20 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
-import java.util.*;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.SelectableRow;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PreviewContainerPanelConfigurationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @param <C> the container of displayed objects in table
@@ -85,7 +89,7 @@ public class ButtonBar<C extends Containerable, PO extends SelectableRow> extend
             }
         };
         viewAll.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(action.getVisibility())));
-        viewAll.add(AttributeAppender.append("class", "btn btn-info btn-sm mr-2"));
+        viewAll.add(AttributeAppender.append("class", "btn btn-default btn-sm mr-2"));
         viewAll.showTitleAsLabel(true);
         return viewAll;
     }

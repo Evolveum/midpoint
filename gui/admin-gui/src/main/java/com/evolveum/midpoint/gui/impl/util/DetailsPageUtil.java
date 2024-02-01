@@ -138,6 +138,7 @@ public final class DetailsPageUtil {
                 // The parentOrgRef should be added by the projector. But
                 // this is needed to successfully pass through security
                 // TODO: fix MID-3234
+                //  see also TreeTablePanel.initObjectForAdd
                 if (ref.getType() != null && OrgType.COMPLEX_TYPE.equals(ref.getType())) {
                     if (ref.getRelation() == null || pageBase.getRelationRegistry().isStoredIntoParentOrgRef(ref.getRelation())) {
                         assignmentHolder.getParentOrgRef().add(ref.clone());

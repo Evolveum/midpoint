@@ -13,6 +13,8 @@ import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.query.resolution.HqlDataInstance;
 import com.evolveum.midpoint.repo.sql.query.resolution.RootedDataSearchResult;
 
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
@@ -288,9 +290,14 @@ public class QueryInterpreter {
             RootedDataSearchResult<JpaPropertyDefinition> propDefRes =
                     resolver.findProperDataDefinition(baseEntityDefinition, path, definition, JpaPropertyDefinition.class);
             if (propDefRes == null) {
-                throw new QueryException(
+                String technicalMessage =
                         "Couldn't find a proper data item to query, given base entity %s and this filter: %s".formatted(
-                                baseEntityDefinition, valFilter.debugDump()));
+                                baseEntityDefinition, valFilter.debugDump();
+                SingleLocalizableMessage message = new SingleLocalizableMessage(
+                        "QueryModelMapping.item.not.searchable",
+                        new Object[]{definition != null ? definition.getItemName() : path.toStringStandalone()},
+                        technicalMessage);
+                throw new QueryException(message));
             }
             // TODO can't be unified?
             if (propDefRes.getTargetDefinition() instanceof JpaAnyPropertyDefinition) {

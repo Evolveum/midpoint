@@ -51,25 +51,25 @@ public abstract class AbstractRestServiceInitializer extends AbstractGuiIntegrat
 
     public static final File USER_ADMINISTRATOR_FILE = new File(BASE_REPO_DIR, "user-administrator.xml");
     public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
-    public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
+    public static final String USER_ADMINISTRATOR_PASSWORD = "Test5ecr3t";
 
     // No authorization
     public static final File USER_NOBODY_FILE = new File(BASE_REPO_DIR, "user-nobody.xml");
     public static final String USER_NOBODY_OID = "ffb9729c-d48b-11e4-9720-001e8c717e5b";
     public static final String USER_NOBODY_USERNAME = "nobody";
-    public static final String USER_NOBODY_PASSWORD = "nopassword";
+    public static final String USER_NOBODY_PASSWORD = "N0pa55word";
 
     // REST authorization only
     public static final File USER_CYCLOPS_FILE = new File(BASE_REPO_DIR, "user-cyclops.xml");
     public static final String USER_CYCLOPS_OID = "6020bb52-d48e-11e4-9eaf-001e8c717e5b";
     public static final String USER_CYCLOPS_USERNAME = "cyclops";
-    public static final String USER_CYCLOPS_PASSWORD = "cyclopassword";
+    public static final String USER_CYCLOPS_PASSWORD = "Cycl0pa55word";
 
     // REST and reader authorization
     public static final File USER_SOMEBODY_FILE = new File(BASE_REPO_DIR, "user-somebody.xml");
     public static final String USER_SOMEBODY_OID = "a5f3e3c8-d48b-11e4-8d88-001e8c717e5b";
     public static final String USER_SOMEBODY_USERNAME = "somebody";
-    public static final String USER_SOMEBODY_PASSWORD = "somepassword";
+    public static final String USER_SOMEBODY_PASSWORD = "S0m3pa55word";
 
     // other
     public static final File USER_JACK_FILE = new File(BASE_REPO_DIR, "user-jack.xml");

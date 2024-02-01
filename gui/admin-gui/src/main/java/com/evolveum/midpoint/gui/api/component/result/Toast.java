@@ -14,6 +14,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -141,6 +143,19 @@ public class Toast implements Serializable {
             target.appendJavaScript("$(document).Toasts('create', " + toast + ");");
         } catch (Exception ex) {
             target.appendJavaScript("console.error('Couldn't create toast, reason: " + ex.getMessage() + "');");
+            LOGGER.debug("Couldn't create toast", ex);
+        }
+    }
+
+    public void show(@NotNull IHeaderResponse response) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String toast = mapper.writeValueAsString(this);
+
+            response.render(OnDomReadyHeaderItem.forScript("$(document).Toasts('create', " + toast + ");"));
+        } catch (Exception ex) {
+            response.render(OnDomReadyHeaderItem.forScript(
+                    "console.error('Couldn't create toast, reason: " + ex.getMessage() + "');"));
             LOGGER.debug("Couldn't create toast", ex);
         }
     }

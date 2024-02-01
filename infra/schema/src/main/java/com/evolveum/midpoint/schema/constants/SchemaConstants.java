@@ -174,36 +174,32 @@ public abstract class SchemaConstants {
             NonceType.F_VALUE);
 
     public static final ItemPath PATH_SECURITY_QUESTIONS = ItemPath.create(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS);
-    public static final ItemPath PATH_SECURITY_QUESTIONS_QUESTION_ANSWER = ItemPath.create(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS,
-            SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
-    public static final ItemPath PATH_ACTIVATION = ItemPath.create(C_ACTIVATION);
-    public static final ItemPath PATH_ACTIVATION_ADMINISTRATIVE_STATUS = ItemPath.create(C_ACTIVATION,
-            ActivationType.F_ADMINISTRATIVE_STATUS);
-    public static final ItemPath PATH_ACTIVATION_EFFECTIVE_STATUS = ItemPath.create(C_ACTIVATION,
-            ActivationType.F_EFFECTIVE_STATUS);
-    public static final ItemPath PATH_ACTIVATION_VALID_FROM = ItemPath.create(C_ACTIVATION,
-            ActivationType.F_VALID_FROM);
-    public static final ItemPath PATH_ACTIVATION_VALID_TO = ItemPath.create(C_ACTIVATION,
-            ActivationType.F_VALID_TO);
-    public static final ItemPath PATH_ACTIVATION_EXISTENCE = ItemPath.create(C_ACTIVATION,
-            "existence");
-    public static final ItemPath PATH_ACTIVATION_DISABLE_REASON = ItemPath.create(ShadowType.F_ACTIVATION,
-            ActivationType.F_DISABLE_REASON);
-    public static final ItemPath PATH_ACTIVATION_LOCKOUT_STATUS = ItemPath.create(C_ACTIVATION,
-            ActivationType.F_LOCKOUT_STATUS);
-    public static final ItemPath PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS = ItemPath.create(
-            ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS);
+    public static final ItemPath PATH_SECURITY_QUESTIONS_QUESTION_ANSWER =
+            ItemPath.create(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
+    public static final ItemPath PATH_ACTIVATION = C_ACTIVATION;
+    public static final ItemPath PATH_ACTIVATION_ADMINISTRATIVE_STATUS =
+            ItemPath.create(C_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+    public static final ItemPath PATH_ACTIVATION_EFFECTIVE_STATUS =
+            ItemPath.create(C_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
+    public static final ItemPath PATH_ACTIVATION_VALID_FROM = ItemPath.create(C_ACTIVATION, ActivationType.F_VALID_FROM);
+    public static final ItemPath PATH_ACTIVATION_VALID_TO = ItemPath.create(C_ACTIVATION, ActivationType.F_VALID_TO);
+    public static final ItemPath PATH_ACTIVATION_EXISTENCE = ItemPath.create(C_ACTIVATION, "existence");
+    public static final ItemPath PATH_ACTIVATION_DISABLE_REASON =
+            ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_REASON);
+    public static final ItemPath PATH_ACTIVATION_LOCKOUT_STATUS = ItemPath.create(C_ACTIVATION, ActivationType.F_LOCKOUT_STATUS);
+    public static final ItemPath PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS =
+            ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS);
     public static final ItemPath PATH_ATTRIBUTES = ItemPath.create(C_ATTRIBUTES);
     public static final ItemPath PATH_ASSIGNMENT = FocusType.F_ASSIGNMENT;
     public static final ItemPath PATH_INDUCEMENT = ItemPath.create(AbstractRoleType.F_INDUCEMENT);
     public static final ItemPath PATH_INDUCEMENT_POLICY_RULE = ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE);
 
-    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS = ItemPath
-            .create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
-    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_FROM = ItemPath
-            .create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM);
-    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_TO = ItemPath
-            .create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO);
+    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS =
+            ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
+    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_FROM =
+            ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM);
+    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_TO =
+            ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO);
     public static final ItemPath PATH_ASSIGNMENT_TARGET_REF = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF);
     public static final ItemPath PATH_ASSIGNMENT_DESCRIPTION = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
     public static final ItemPath PATH_ASSOCIATION = ItemPath.create(C_ASSOCIATION);

@@ -457,8 +457,13 @@ public class MockFactory {
             }
 
             @Override
-            public RepositoryDiag getRepositoryDiag() {
-                return null;
+            public @NotNull RepositoryDiag getRepositoryDiag() {
+                return new RepositoryDiag();
+            }
+
+            @Override
+            public boolean isGenericNonH2() {
+                return false;
             }
 
             @Override

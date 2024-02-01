@@ -430,6 +430,7 @@ Other limitations, not principal but practical, are:
 . Handling of objects created on demand is limited slightly more than described above:
 Their creation is reported multiple times, even for a single item being processed.
 The delta visualization is not finished yet: midPoint shows OIDs instead of names.
+The assignments created with targets that are created on demand are not evaluated (because the targets do not really exist).
 . Only selected xref:#_activities_supported[activities] are supported.
 . Approvals are skipped in simulation mode: the execution commences as if no approvals were defined.
 . Notifications are skipped in simulation mode: no notifications are sent (except where requested explicitly by the custom code).

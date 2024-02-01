@@ -16,6 +16,10 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
@@ -103,6 +107,18 @@ public abstract class BaseSearchDataProvider<C extends Serializable, T extends S
 
     public void setCompiledObjectCollectionView(CompiledObjectCollectionView objectCollectionView) {
         this.objectCollectionView = objectCollectionView;
+    }
+
+    protected void setupUserFriendlyMessage(OperationResult result, Throwable ex) {
+        if (ex instanceof CommonException) {
+            result.setUserFriendlyMessage(((CommonException) ex).getUserFriendlyMessage());
+            return;
+        }
+
+        if (ex instanceof SystemException) {
+            Throwable subError = ex.getCause();
+            setupUserFriendlyMessage(result, subError);
+        }
     }
 
     @Override

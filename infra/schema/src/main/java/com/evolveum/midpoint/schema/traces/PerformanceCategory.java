@@ -22,27 +22,51 @@ import static java.util.Collections.emptyList;
 public enum PerformanceCategory {
     REPOSITORY("Repo", "Repository (all)",
             "com.evolveum.midpoint.repo.api.*",
-            "com.evolveum.midpoint.repo.impl.*"),
+            "com.evolveum.midpoint.repo.impl.*",
+            // Operations for the new repo. Temporary, see MID-9421.
+            "SqaleRepositoryService.*"),
     REPOSITORY_READ("Repo:R", "Repository (read)",
             "com.evolveum.midpoint.repo.api.RepositoryService.getObject",
             "com.evolveum.midpoint.repo.api.RepositoryService.getVersion",
             "com.evolveum.midpoint.repo.api.RepositoryService.searchObjects",
             "com.evolveum.midpoint.repo.api.RepositoryService.searchObjectsIterative",
-            "com.evolveum.midpoint.repo.api.RepositoryService.listAccountShadowOwner",
+            "com.evolveum.midpoint.repo.api.RepositoryService.listAccountShadowOwner", // legacy
             "com.evolveum.midpoint.repo.api.RepositoryService.searchContainers",
             "com.evolveum.midpoint.repo.api.RepositoryService.countContainers",
-            "com.evolveum.midpoint.repo.api.RepositoryService.listResourceObjectShadows",
+            "com.evolveum.midpoint.repo.api.RepositoryService.listResourceObjectShadows", // legacy
             "com.evolveum.midpoint.repo.api.RepositoryService.countObjects",
-            "com.evolveum.midpoint.repo.api.RepositoryService.searchShadowOwner"
-            // TODO impl
+            "com.evolveum.midpoint.repo.api.RepositoryService.searchShadowOwner", // legacy
+            // Operations for the new repo. Temporary, see MID-9421.
+            "SqaleRepositoryService.getObject",
+            "SqaleRepositoryService.getVersion",
+            "SqaleRepositoryService.searchObjects",
+            "SqaleRepositoryService.searchObjectsIterative",
+            "SqaleRepositoryService.searchContainers",
+            "SqaleRepositoryService.searchContainersIterative",
+            "SqaleRepositoryService.countContainers",
+            "SqaleRepositoryService.countReferences",
+            "SqaleRepositoryService.searchReferences",
+            "SqaleRepositoryService.searchReferencesIterative",
+            "SqaleRepositoryService.countObjects"
             ),
     REPOSITORY_WRITE("Repo:W", "Repository (write)",
             "com.evolveum.midpoint.repo.api.RepositoryService.addObject",
             "com.evolveum.midpoint.repo.api.RepositoryService.modifyObject",
+            "com.evolveum.midpoint.repo.api.RepositoryService.modifyObjectDynamically",
             "com.evolveum.midpoint.repo.api.RepositoryService.deleteObject",
             "com.evolveum.midpoint.repo.api.RepositoryService.advanceSequence",
             "com.evolveum.midpoint.repo.api.RepositoryService.returnUnusedValuesToSequence",
-            "com.evolveum.midpoint.repo.api.RepositoryService.addDiagnosticInformation"),
+            "com.evolveum.midpoint.repo.api.RepositoryService.addDiagnosticInformation",
+            // Operations for the new repo. Temporary, see MID-9421.
+            "SqaleRepositoryService.addObject",
+            "SqaleRepositoryService.modifyObject",
+            "SqaleRepositoryService.modifyObjectDynamically",
+            "SqaleRepositoryService.deleteObject",
+            "SqaleRepositoryService.advanceSequence",
+            "SqaleRepositoryService.returnUnusedValuesToSequence",
+            "SqaleRepositoryService.allocateContainerIdentifiers",
+            "SqaleRepositoryService.addDiagnosticInformation"
+    ),
     REPOSITORY_OTHER("Repo:O", "Repository (other)", singletonList(REPOSITORY), Arrays.asList(REPOSITORY_READ, REPOSITORY_WRITE)),
     REPOSITORY_CACHE("RCache", "Repository cache (all)",
             "com.evolveum.midpoint.repo.cache.RepositoryCache.*"),
@@ -51,10 +75,10 @@ public enum PerformanceCategory {
             "com.evolveum.midpoint.repo.cache.RepositoryCache.getVersion",
             "com.evolveum.midpoint.repo.cache.RepositoryCache.searchObjects",
             "com.evolveum.midpoint.repo.cache.RepositoryCache.searchObjectsIterative",
-            "com.evolveum.midpoint.repo.cache.RepositoryCache.listAccountShadowOwner",
+            "com.evolveum.midpoint.repo.cache.RepositoryCache.listAccountShadowOwner", // legacy
             "com.evolveum.midpoint.repo.cache.RepositoryCache.searchContainers",
             "com.evolveum.midpoint.repo.cache.RepositoryCache.countContainers",
-            "com.evolveum.midpoint.repo.cache.RepositoryCache.listResourceObjectShadows",
+            "com.evolveum.midpoint.repo.cache.RepositoryCache.listResourceObjectShadows", // legacy
             "com.evolveum.midpoint.repo.cache.RepositoryCache.countObjects",
             "com.evolveum.midpoint.repo.cache.RepositoryCache.searchShadowOwner"),
     REPOSITORY_CACHE_WRITE("RCache:R", "Repository cache (write)",

@@ -8,11 +8,9 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectTileTablePanel;
@@ -63,8 +61,10 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
             }
 
             @Override
-            protected void processSelectOrDeselectItem(SelectableBean<O> value, AjaxRequestTarget target) {
-                MultiSelectTileWizardStepPanel.this.processSelectOrDeselectItem(value, target);
+            protected void processSelectOrDeselectItem(SelectableBean<O> value,
+                    SelectableBeanObjectDataProvider<O> provider,
+                    AjaxRequestTarget target) {
+                MultiSelectTileWizardStepPanel.this.processSelectOrDeselectItem(value, provider, target);
             }
 
             @Override
@@ -152,7 +152,7 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
         return new SearchContext();
     }
 
-    protected void processSelectOrDeselectItem(SelectableBean<O> value, AjaxRequestTarget target) {
+    protected void processSelectOrDeselectItem(SelectableBean<O> value, SelectableBeanObjectDataProvider<O> provider, AjaxRequestTarget target) {
 
     }
 

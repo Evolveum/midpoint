@@ -3361,35 +3361,36 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, AssignmentType.class, query, false);
-            assertThat(real).isEqualToIgnoringWhitespace("select\n"
-                    + "  _a.ownerOid,\n"
-                    + "  _a.id,\n"
-                    + "  _a.order,\n"
-                    + "  _a.lifecycleState,\n"
-                    + "  _a.activation,\n"
-                    + "  _a.targetRef,\n"
-                    + "  _a.tenantRef,\n"
-                    + "  _a.orgRef,\n"
-                    + "  _a.resourceRef,\n"
-                    + "  _a.createTimestamp,\n"
-                    + "  _a.creatorRef,\n"
-                    + "  _a.createChannel,\n"
-                    + "  _a.modifyTimestamp,\n"
-                    + "  _a.modifierRef,\n"
-                    + "  _a.modifyChannel\n"
-                    + "from\n"
-                    + "  RAssignment _a\n"
-                    + "    left join _a.targetRef.target _t\n"
-                    + "where\n"
-                    + "  (\n"
-                    + "    _a.targetRef.targetType = :targetType and\n"
-                    + "    (\n"
-                    + "      _t.name.orig = :orig and\n"
-                    + "      _t.name.norm = :norm\n"
-                    + "    ) and\n"
-                    + "    _a.ownerOid in (:ownerOid)\n"
-                    + "  )\n"
-                    + "order by _t.name.orig asc");
+            assertThat(real).isEqualToIgnoringWhitespace("""
+                    select
+                      _a.ownerOid,
+                      _a.id,
+                      _a.order,
+                      _a.lifecycleState,
+                      _a.activation,
+                      _a.targetRef,
+                      _a.tenantRef,
+                      _a.orgRef,
+                      _a.resourceRef,
+                      _a.createTimestamp,
+                      _a.creatorRef,
+                      _a.createChannel,
+                      _a.modifyTimestamp,
+                      _a.modifierRef,
+                      _a.modifyChannel
+                    from
+                      RAssignment _a
+                        left join RObject _t on _a.targetRef.target = _t
+                    where
+                      (
+                        _a.targetRef.targetType = :targetType and
+                        (
+                          _t.name.orig = :orig and
+                          _t.name.norm = :norm
+                        ) and
+                        _a.ownerOid in (:ownerOid)
+                      )
+                    order by _t.name.orig asc""");
         } finally {
             close(session);
         }
@@ -3418,17 +3419,19 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
-                    "  _u.oid, _u.fullObject\n" +
-                    "from\n" +
-                    "  RUser _u\n" +
-                    "    left join _u.linkRef _l\n" +
-                    "    left join _l.target _t\n" +
-                    "where\n" +
-                    "  (\n" +
-                    "    _t.nameCopy.orig like :orig escape '!' and\n" +
-                    "    _t.nameCopy.norm like :norm escape '!'\n" +
-                    "  )\n");
+            assertThat(real).isEqualToIgnoringWhitespace("""
+                    select
+                      _u.oid, _u.fullObject
+                    from
+                      RUser _u
+                        left join _u.linkRef _l
+                        left join RShadow _t on _l.target = _t
+                    where
+                      (
+                        _t.nameCopy.orig like :orig escape '!' and
+                        _t.nameCopy.norm like :norm escape '!'
+                      )
+                    """);
         } finally {
             close(session);
         }
@@ -3450,22 +3453,53 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
-                    "  _u.oid, _u.fullObject\n" +
-                    "from\n" +
-                    "  RUser _u\n" +
-                    "    left join _u.linkRef _l\n" +
-                    "    left join _l.target _t\n" +
-                    "    left join _t.resourceRef.target _t2\n" +
-                    "where\n" +
-                    "  _t2.name.norm like :norm escape '!'\n");
+            assertThat(real).isEqualToIgnoringWhitespace("""
+                    select
+                      _u.oid, _u.fullObject
+                    from
+                      RUser _u
+                        left join _u.linkRef _l
+                        left join RShadow _t on _l.target = _t
+                        left join RObject _t2 on _t.resourceRef.target = _t2
+                    where
+                      _t2.name.norm like :norm escape '!'
+                    """);
 
         } finally {
             close(session);
         }
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)             // at this time
+    /** See {@link SearchTest#test981SearchByArchetypeName()} */
+    @Test
+    public void test402DereferenceArchetypeName() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(UserType.F_ARCHETYPE_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME).eqPoly("System")
+                    .build();
+
+            String real = getInterpretedQuery(session, UserType.class, query);
+            assertThat(real).isEqualToIgnoringWhitespace("""
+                    select
+                      _u.oid,
+                      _u.fullObject
+                    from
+                      RUser _u
+                        left join _u.archetypeRef _a
+                        left join RArchetype _t on _a.target = _t
+                    where
+                      (
+                        _t.nameCopy.orig = :orig and
+                        _t.nameCopy.norm = :norm
+                      )""");
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class) // at this time
     public void test404DereferenceAssignedRoleType() throws Exception {
         Session session = open();
 
@@ -3583,12 +3617,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                             PrismConstants.T_OBJECT_REFERENCE, F_NAME), ASCENDING));
 
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query);
-            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
-                    "  _a.ownerOid, _a.id, _a.fullObject\n" +
-                    "from\n" +
-                    "  RAccessCertificationCase _a\n" +
-                    "    left join _a.targetRef.target _t\n" +
-                    "order by _t.name.orig asc\n");
+            assertThat(real).isEqualToIgnoringWhitespace("""
+                    select
+                      _a.ownerOid, _a.id, _a.fullObject
+                    from
+                      RAccessCertificationCase _a
+                        left join RObject _t on _a.targetRef.target = _t
+                    order by _t.name.orig asc
+                    """);
         } finally {
             close(session);
         }
@@ -5030,6 +5066,39 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     + "  RTask _t\n"
                     + "where\n"
                     + "  _t.recurrence = :recurrence");
+        } finally {
+            close(session);
+        }
+    }
+
+    /** @see SearchTest#test943MultiValueRefTargetWithTargetTypeSpecificCondition() */
+    @Test
+    public void test802MultiValueRefTargetWithTargetTypeSpecificCondition() throws Exception {
+        Session session = open();
+
+        try {
+            given();
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(UserType.F_LINK_REF, T_OBJECT_REFERENCE, ShadowType.F_RESOURCE_REF).ref("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2")
+                    .build();
+
+            when("the query is executed");
+            String real = getInterpretedQuery(session, UserType.class, query);
+
+            then("expected HQL is generated");
+            assertThat(real).isEqualToIgnoringWhitespace("""
+                  select
+                      _u.oid,
+                      _u.fullObject
+                  from
+                      RUser _u
+                        left join _u.linkRef _l
+                        left join RShadow _t on _l.target = _t
+                  where
+                      (
+                        _t.resourceRef.targetOid = :targetOid and
+                        _t.resourceRef.relation in (:relation)
+                      )""");
         } finally {
             close(session);
         }

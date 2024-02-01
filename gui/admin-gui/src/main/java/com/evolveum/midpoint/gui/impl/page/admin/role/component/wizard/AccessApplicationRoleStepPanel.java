@@ -4,6 +4,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectTileWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
@@ -31,6 +32,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -43,15 +45,18 @@ import java.util.*;
 public class AccessApplicationRoleStepPanel
         extends MultiSelectTileWizardStepPanel<AbstractMap.SimpleEntry<String, String>, RoleType, FocusDetailsModels<RoleType>, RoleType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AccessApplicationRoleStepPanel.class);
+    protected static final Trace LOGGER = TraceManager.getTrace(AccessApplicationRoleStepPanel.class);
 
     public static final String PANEL_TYPE = "brw-access";
-
     private IModel<List<AbstractMap.SimpleEntry<String, String>>> selectedItems = Model.ofList(new ArrayList<>());
 
     public AccessApplicationRoleStepPanel(FocusDetailsModels<RoleType> model) {
-
         super(model);
+    }
+
+    public AccessApplicationRoleStepPanel(FocusDetailsModels<RoleType> model, IModel<List<AbstractMap.SimpleEntry<String, String>>> selectedItems) {
+        super(model);
+        this.selectedItems = selectedItems;
     }
 
     @Override
@@ -111,13 +116,22 @@ public class AccessApplicationRoleStepPanel
     }
 
     @Override
-    protected void processSelectOrDeselectItem(SelectableBean<RoleType> value, AjaxRequestTarget target) {
+    protected void processSelectOrDeselectItem(SelectableBean<RoleType> value,
+            SelectableBeanObjectDataProvider<RoleType> provider,
+            AjaxRequestTarget target) {
+        processSelectOrDeselectItem(selectedItems, value, provider, target);
+    }
+
+    protected void processSelectOrDeselectItem(@NotNull IModel<List<AbstractMap.SimpleEntry<String, String>>> selectedItems,
+            @NotNull SelectableBean<RoleType> value,
+            @NotNull SelectableBeanObjectDataProvider<RoleType> provider,
+            @NotNull AjaxRequestTarget target) {
         refreshSubmitAndNextButton(target);
 
         RoleType applicationRole = value.getValue();
         if (value.isSelected()) {
             selectedItems.getObject().add(
-                    new AbstractMap.SimpleEntry(
+                    new AbstractMap.SimpleEntry<>(
                             applicationRole.getOid(),
                             WebComponentUtil.getDisplayNameOrName(applicationRole.asPrismObject())));
         } else {
@@ -145,6 +159,11 @@ public class AccessApplicationRoleStepPanel
         return PrismContext.get().queryFor(RoleType.class)
                 .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value())
                 .build();
+    }
+
+    @Override
+    protected SelectableBeanObjectDataProvider<RoleType> createProvider(SelectableBeanObjectDataProvider<RoleType> defaultProvider) {
+        return super.createProvider(defaultProvider);
     }
 
     @Override
@@ -227,5 +246,4 @@ public class AccessApplicationRoleStepPanel
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageRole.wizard.step.access.applicationRole.subText");
     }
-
 }

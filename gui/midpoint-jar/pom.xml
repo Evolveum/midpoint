@@ -37,6 +37,35 @@
    	</dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>jar-signing</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jarsigner-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>sign</id>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <keystore>${env.MIDPOINT_BUILD_KEYSTORE}</keystore>
+                            <alias>${env.MIDPOINT_BUILD_ALIAS}</alias>
+                            <storepass>${env.MIDPOINT_BUILD_STOREPASS}</storepass>
+                            <keypass>${env.MIDPOINT_BUILD_KEYPASS}</keypass>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <build>
         <finalName>midpoint</finalName>
         <resources>

@@ -2,6 +2,8 @@
 :page-since: "4.4"
 :page-toc: top
 :toclevels: 3
+:page-upkeep-status: orange
+:page-upkeep-note: Rewrite, remove mentions of Jasper, explain the basics
 
 Native reports are intended to be native reporting mechanism for midPoint.
 The aim is to use what midPoint provides without the need for Jasper framework.

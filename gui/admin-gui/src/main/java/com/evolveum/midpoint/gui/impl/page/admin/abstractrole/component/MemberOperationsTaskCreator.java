@@ -106,12 +106,12 @@ public abstract class MemberOperationsTaskCreator {
     }
 
     /** Helps with "member unassign" operations. */
-    static class Unassign extends Scoped {
+    public static class Unassign extends Scoped {
 
         /** Relations to unassign. Not empty. Used to find assignments to be deleted on each of the members found. */
         @NotNull private final Collection<QName> relations;
 
-        Unassign(
+        public Unassign(
                 @NotNull AbstractRoleType targetAbstractRole, @NotNull QName memberType, @NotNull ObjectQuery memberQuery,
                 @NotNull QueryScope scope, @NotNull Collection<QName> relations, @NotNull PageBase pageBase) {
             super(targetAbstractRole, memberType, memberQuery, scope, pageBase);
@@ -129,14 +129,15 @@ public abstract class MemberOperationsTaskCreator {
          * Creates and executes (i.e. submits) member unassign task: an iterative scripting task that un-assigns members
          * of a given abstract role.
          */
-        void createAndSubmitTask(Task task, OperationResult result) throws CommonException {
+        public void createAndSubmitTask(Task task, OperationResult result) throws CommonException {
             authorizeBulkActionExecution(BulkAction.UNASSIGN, task, result);
             submitTask(
                     createUnassignMembersActivity(), task, result);
         }
 
         /** Creates the member unassignment task. */
-        @NotNull PrismObject<TaskType> createTask(Task task, OperationResult result) throws CommonException {
+        @NotNull
+        public PrismObject<TaskType> createTask(Task task, OperationResult result) throws CommonException {
             authorizeBulkActionExecution(BulkAction.UNASSIGN, task, result);
             return createTask(
                     createUnassignMembersActivity(), task, result);

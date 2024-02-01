@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.common.mining.objects.chunk;
 
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
-import com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 
 /**
  * <p>

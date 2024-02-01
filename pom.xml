@@ -93,6 +93,9 @@
     repository test setup (config.xml).
     This is not supported by new repository, but standard config.xml override mechanism can be used,
     e.g. -Dmidpoint.repository.jdbcUrl=... and other properties.
+
+    CODE SIGNING:
+    - There is a profile `jar-signing` that causes `midpoint.jar` to be signed, as described in `midpoint-jar/pom.xml`.
     -->
 
     <parent>
@@ -256,7 +259,7 @@
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <javax.persistence.version>2.2</javax.persistence.version>
-        <keycloak.version>22.0.3</keycloak.version>
+        <keycloak.version>23.0.4</keycloak.version>
 
         <maven.api.version>3.8.5</maven.api.version>
         <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1,
@@ -994,7 +997,7 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
                 <!-- Do not forget to update provisioning/ucf-impl-connid/src/test/resources/connector-ldap.xml when changing connector version. -->
-                <version>3.7.1-M2</version>
+                <version>3.7.1</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>

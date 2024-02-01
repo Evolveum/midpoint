@@ -14,6 +14,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -384,7 +386,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             a.setExtension(modified.getExtension());
 
             updateSelectedAssignment();
-        } catch (SchemaException ex) {
+        } catch (CommonException ex) {
             getPageBase().error(getString("ShoppingCartEditPanel.message.couldntProcessExtension", ex.getMessage()));
             LOGGER.debug("Couldn't process extension attributes", ex);
         }

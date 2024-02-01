@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.self.credentials;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
+import com.evolveum.midpoint.gui.api.component.password.PasswordLimitationsPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -61,6 +62,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.visit.IVisitor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -75,7 +77,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     private static final String ID_INDIVIDUAL_SYSTEMS_CONTAINER = "individualSystemsContainer";
     private static final String ID_INDIVIDUAL_SYSTEMS_TABLE = "individualSystemsTable";
 
-    private boolean propagatePassword = false;
+    private Boolean propagatePassword;
     private boolean showResultInTable = false;
     ListDataProvider<PasswordAccountDto> provider = null;
 
@@ -86,7 +88,16 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        initPropagatePasswordDefault();
         initLayout();
+    }
+
+    private void initPropagatePasswordDefault() {
+        if (propagatePassword == null) {
+            CredentialsPropagationUserControlType propagationUserControl = getCredentialsPropagationUserControl();
+            propagatePassword = propagationUserControl == CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY
+                    || propagationUserControl == CredentialsPropagationUserControlType.USER_CHOICE;
+        }
     }
 
     private void initLayout() {
@@ -218,6 +229,13 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         }
 
         return passwordAccountDto;
+    }
+
+    private boolean isPasswordPropagationEnabled(PasswordAccountDto passwordAccountDto) {
+        if (passwordAccountDto.isMidpoint()) {
+            return true;
+        }
+        return passwordAccountDto.isPasswordCapabilityEnabled() || passwordAccountDto.isPasswordOutbound();
     }
 
     private List<IColumn<PasswordAccountDto, String>> initColumns() {
@@ -538,6 +556,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     protected void collectDeltas(Collection<ObjectDelta<? extends ObjectType>> deltas, ProtectedStringType currentPassword, ItemPath valuePath) {
         List<PasswordAccountDto> selectedAccounts = Lists.newArrayList(provider.internalIterator(0, provider.size()));
         selectedAccounts.removeIf(account -> !account.isSelected());
+        selectedAccounts.removeIf(account -> !isPasswordPropagationEnabled(account));
 
         SchemaRegistry registry = getPrismContext().getSchemaRegistry();
         selectedAccounts.forEach(account -> {
@@ -606,5 +625,23 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
     private BoxedTablePanel<PasswordAccountDto> getTableComponent() {
         return (BoxedTablePanel<PasswordAccountDto>) get(createComponentPath(ID_INDIVIDUAL_SYSTEMS_CONTAINER, ID_INDIVIDUAL_SYSTEMS_TABLE));
+    }
+
+    @Override
+    protected PasswordLimitationsPanel createLimitationPanel(String id, IModel<List<StringLimitationResult>> limitationsModel) {
+        return new PasswordLimitationsPanel(id, limitationsModel) {
+            @Override
+            protected boolean showInTwoColumns() {
+                if (getModelObject().size() > 5) {
+                    return true;
+                }
+                return super.showInTwoColumns();
+            }
+        };
+    }
+
+    @Override
+    protected boolean isHintPanelVisible() {
+        return getPasswordHintConfigurability() == PasswordHintConfigurabilityType.ALWAYS_CONFIGURE;
     }
 }

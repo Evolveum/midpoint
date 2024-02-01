@@ -1,6 +1,13 @@
 package com.evolveum.midpoint.gui.api.util;
 
+import java.util.Locale;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ThreadContext;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.common.AvailableLocale;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -10,10 +17,6 @@ import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Locale;
 
 public class LocalizationUtil {
 
@@ -23,17 +26,20 @@ public class LocalizationUtil {
             return principal.getLocale();
         }
 
-        MidPointAuthWebSession session = MidPointAuthWebSession.get();
-        if (session != null && session.getLocale() != null) {
-            return session.getLocale();
+        if (ThreadContext.getSession() != null) {
+            MidPointAuthWebSession session = MidPointAuthWebSession.get();
+            if (session != null && session.getLocale() != null) {
+                return session.getLocale();
+            }
         }
 
         MidPointApplication app = MidPointApplication.get();
-        if (app.getLocalizationService().getDefaultLocale() != null) {
-            return app.getLocalizationService().getDefaultLocale();
+        LocalizationService localizationService = app.getLocalizationService();
+        if (localizationService.getDefaultLocale() != null) {
+            return localizationService.getDefaultLocale();
         }
 
-        return Locale.getDefault();
+        return AvailableLocale.getDefaultLocale();
     }
 
     public static String translate(String key) {
@@ -78,7 +84,6 @@ public class LocalizationUtil {
     }
 
     public static String translateLookupTableRowLabel(@NotNull LookupTableRowType row) {
-        LocalizationService localizationService = MidPointApplication.get().getLocalizationService();
         if (row.getLabel() != null) {
             return translatePolyString(row.getLabel());
         }

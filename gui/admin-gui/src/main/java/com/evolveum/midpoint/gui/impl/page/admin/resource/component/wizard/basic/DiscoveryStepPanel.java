@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -89,7 +90,7 @@ public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
                     item.toMutable().toMutable().setEmphasized(true);
                 }
             }
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             result.recordFatalError("Couldn't get discovered configuration.", e);
         }
 

@@ -10,7 +10,9 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -116,6 +118,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 onSelectionUpdate(target, selectionModel.getObject());
+                target.add(RoleOfTeammateMenuPanel.this.get(createComponentPath(ID_CONTAINER, ID_INPUT)));
             }
         });
         container.add(select);
@@ -172,6 +175,8 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
 
         @Serial private static final long serialVersionUID = 1L;
 
+        private Map<String, String> mapOidToName = new HashMap<>();
+
         private final RoleOfTeammateMenuPanel<?> panel;
 
         public ObjectReferenceProvider(RoleOfTeammateMenuPanel<?> panel) {
@@ -227,11 +232,17 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
             try {
                 List<PrismObject<UserType>> objects = WebModelServiceUtils.searchObjects(UserType.class, query, result, panel.getPageBase());
 
+                mapOidToName.clear();
+
                 response.addAll(objects.stream()
-                        .map(o -> new ObjectReferenceType()
+                        .map(o ->  {
+                            String name = WebComponentUtil.getDisplayNameOrName(o);
+                            mapOidToName.put(o.getOid(), name);
+                            return new ObjectReferenceType()
                                 .oid(o.getOid())
                                 .type(UserType.COMPLEX_TYPE)
-                                .targetName(WebComponentUtil.getDisplayNameOrName(o))).collect(Collectors.toList()));
+                                .targetName(name);
+                        }).collect(Collectors.toList()));
             } catch (Exception ex) {
                 LOGGER.debug("Couldn't search users for multiselect", ex);
             }
@@ -242,7 +253,9 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
             return collection.stream()
                     .map(oid -> new ObjectReferenceType()
                             .oid(oid)
-                            .type(UserType.COMPLEX_TYPE)).collect(Collectors.toList());
+                            .type(UserType.COMPLEX_TYPE)
+                            .targetName(mapOidToName.containsKey(oid) ? mapOidToName.get(oid) : null))
+                    .collect(Collectors.toList());
         }
     }
 }

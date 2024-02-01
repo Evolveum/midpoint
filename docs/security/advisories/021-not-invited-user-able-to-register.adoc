@@ -1,0 +1,28 @@
+= Security Advisory: Not Invited User able to register if Invitation flow is configured
+:page-display-order: 21
+:page-upkeep-status: green
+
+*Date:* 29. 01. 2024
+
+*Severity:* High (CVSS 8.0)
+
+*Affected versions:* 4.8
+
+*Fixed in versions:* 4.8.1
+
+
+== Description
+
+If the invitation registration is was configured along with custom registration form or object template which generated `name` property, user which was not invited was able to register even without invitation email.
+
+== Severity and Impact
+
+This is High Severity Issue
+
+The invitation feature is turned off by default, only specific configuration combination (invitation flow and custom form with name property) is needed to expose this vulnerability.
+
+== Mitigation
+
+Users of affected MidPoint versions are advised to upgrade their deployments to the latest maintenance release 4.8.1.
+
+In the meantime users are advised to disable invitation registration or remove `name` property from custom registration form.

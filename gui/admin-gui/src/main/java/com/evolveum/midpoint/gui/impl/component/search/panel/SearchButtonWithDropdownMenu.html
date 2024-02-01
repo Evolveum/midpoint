@@ -7,12 +7,12 @@
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div class="btn-group btn-group-sm">
-        <button wicket:id="searchButton" class="btn btn-primary">
+        <button wicket:id="searchButton" class="btn btn-primary" wicket:message="aria-label:SearchButtonWithDropdownMenu.search">
             <i class="fa fa-search mr-1"/>&nbsp;
             <span wicket:id="searchButtonLabel"/>
         </button>
         <button aria-expanded="false" type="button" class="btn btn-primary dropdown-toggle dropdown-icon" data-toggle="dropdown"
-                wicket:id="dropdownButton">
+                wicket:id="dropdownButton" wicket:messages="aria-label:SearchButtonWithDropdownMenu.kindOfSearch">
             <span class="sr-only"><wicket:message key="SplitButtonDropDown.toggle"/></span>
         </button>
         <ul class="dropdown-menu dropdown-menu-right" role="menu">

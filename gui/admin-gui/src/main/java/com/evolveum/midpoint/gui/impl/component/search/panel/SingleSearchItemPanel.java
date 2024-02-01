@@ -88,6 +88,9 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
             }
         });
         help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
+        help.add(AttributeAppender.append(
+                "aria-label",
+                getParentPage().createStringResource("SingleSearchItemPanel.helpTooltip", createLabelModel().getObject())));
         searchItemContainer.add(help);
 
         Component searchItemField = initSearchItemField(ID_SEARCH_ITEM_FIELD);
@@ -96,20 +99,21 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
             baseFormComponent.add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
             baseFormComponent.add(AttributeAppender.append("style", "max-width: 400px !important;"));
             baseFormComponent.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-            baseFormComponent.add(new VisibleEnableBehaviour() {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public boolean isEnabled() {
-                    return isFieldEnabled();
-                }
-
+//            baseFormComponent.add(new VisibleEnableBehaviour() {
+//
+//                private static final long serialVersionUID = 1L;
+//
 //                @Override
-//                public boolean isVisible() {
-//                    return getModelObject().isVisible();
+//                public boolean isEnabled() {
+//                    return isFieldEnabled();
 //                }
-            });
+//
+////                @Override
+////                public boolean isVisible() {
+////                    return getModelObject().isVisible();
+////                }
+//            });
+            baseFormComponent.add(AttributeAppender.append("readonly", () -> isFieldEnabled() ? null : "readonly"));
         }
         searchItemField.add(new VisibleBehaviour(this::isSearchItemFieldVisible));
         searchItemField.setOutputMarkupId(true);

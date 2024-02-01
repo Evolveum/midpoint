@@ -22,7 +22,6 @@ import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -98,7 +97,6 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     public void setIsMemberPanel(boolean isMemberPanel) {
         this.isMemberPanel = isMemberPanel;
     }
-
 
     @Override
     protected List<O> searchObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {

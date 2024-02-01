@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -301,33 +302,18 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
         getPageBase().showMainPopup(popupable, target);
     }
 
-    protected boolean isSavePreviewButtonEnabled() {
-        //in case user isn't allowed to modify focus data but has
-        // e.g. #assign authorization, Save button is disabled on page load.
-        // Save button becomes enabled just if some changes are made
-        // on the Assignments tab (in the use case with #assign authorization)
-//                PrismContainerDefinition def = getObjectWrapper().getDefinition();
+    @Override
+    protected boolean isSaveButtonVisible() {
         return !ItemStatus.NOT_CHANGED.equals(getModelObject().getStatus()) || getModelObject().canModify() ||
-                isAssignmentAddedOrRemoved();
+                isAuthorizedToModify(); //this check was added due to MID-9380
     }
 
-    //if the user has just #assign authorization (no #edit), we need to enable Save/Preview buttons
-    // when the assignments model is changed
-    public boolean isAssignmentAddedOrRemoved() {
+    protected boolean isAuthorizedToModify() {
         try {
-            PrismContainerWrapper<AssignmentType> assignmentsWrapper = getModelObject().findContainer(AssignmentHolderType.F_ASSIGNMENT);
-            if (assignmentsWrapper != null) {
-                for (PrismContainerValueWrapper<AssignmentType> assignmentWrapper : assignmentsWrapper.getValues()) {
-                    if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||
-                            ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
-                        return true;
-                    }
-                }
-            }
-        } catch (SchemaException e) {
-            LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage());
+            return getPageBase().isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
+                    AuthorizationPhaseType.EXECUTION, getModelObject().getObject(), null, null);
+        } catch (Exception e) {
             return false;
         }
-        return false;
     }
 }

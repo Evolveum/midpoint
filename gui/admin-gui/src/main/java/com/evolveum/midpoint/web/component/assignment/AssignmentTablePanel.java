@@ -95,6 +95,12 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
             protected String getSpecialButtonClass() {
                 return "btn btn-default";
             }
+
+            @Override
+            protected void onInitialize() {
+                super.onInitialize();
+                getButtonContainer().add(AttributeModifier.append("aria-label", "AssignmentTablePanel.operationMenu"));
+            }
         };
         assignmentMenu.setVisible(getAssignmentMenuVisibility());
         assignments.add(assignmentMenu);
@@ -135,6 +141,11 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
                 return count != getModelObject().size();
             }
         });
+        checkAll.add(AttributeModifier.append(
+                "aria-label",
+                createStringResource(
+                        "AssignmentTablePanel.selectAll",
+                        createStringResource(getLabel().getObject()).getString())));
         assignments.add(checkAll);
 
     }

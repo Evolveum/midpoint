@@ -132,6 +132,12 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
 
         List<ObjectTypes> types = NinjaUtils.getTypes(options.getType());
         for (ObjectTypes type : types) {
+            if (!context.getRepository().supports(type.getClassDefinition())) {
+                log.warn("Repository doesn't support operation '{}' for objects of type '{}'",
+                        getOperationName(),  type.getClassDefinition().getSimpleName());
+                continue;
+            }
+
             ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, type.getClassDefinition());
             ObjectQuery query = queryFactory.createQuery(filter);
             if (ObjectTypes.SHADOW.equals(type)) {

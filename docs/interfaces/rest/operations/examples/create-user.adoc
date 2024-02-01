@@ -1,0 +1,22 @@
+= Create object
+:page-nav-title: Create object
+:page-display-order: 500
+:page-toc: top
+
+== Description
+Example of creating an midPoint object representing some identity data in the
+form of a new User type object
+
+include::../examples/raw/curl-authenticatoin-intro-note.adoc[]
+
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+== Example
+
+include::../examples/raw/create-user-jack.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

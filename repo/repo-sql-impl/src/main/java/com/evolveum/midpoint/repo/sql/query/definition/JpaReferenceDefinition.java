@@ -66,7 +66,7 @@ public class JpaReferenceDefinition extends JpaDataNodeDefinition {
             }
 
             return new DataSearchResult<>(
-                    new JpaLinkDefinition<>(SchemaConstants.PATH_OBJECT_REFERENCE, "target", null, false, resolvedEntityDef),
+                    new JpaLinkDefinition<>(SchemaConstants.PATH_OBJECT_REFERENCE, "target", null, false, resolvedEntityDef, true),
                     path.rest());
         } else {
             return null;

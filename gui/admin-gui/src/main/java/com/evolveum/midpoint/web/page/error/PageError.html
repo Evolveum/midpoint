@@ -21,22 +21,24 @@
     </style>
 </wicket:head>
 <wicket:extend>
-    <div class="error-page">
+    <div class="error-page" tabindex="0">
         <h2 class="headline text-red" wicket:id="code">500</h2>
         <div class="error-content">
             <h3>
                 <i class="fa fa-exclamation-triangle text-red"></i>
                 <span wicket:id="label">Unexpected error</span>
+                <span class="sr-only">.</span>
             </h3>
             <p>
-                <div wicket:id="errorMessage" />
+            <div wicket:id="errorMessage"/>
             </p>
-            <p wicket:id="message" />
-
-            <div class="main-button-bar">
-                <a class="btn btn-primary" wicket:id="home" />
-                <a class="btn btn-primary" wicket:id="back" />
-            </div>
+            <p wicket:id="message"/>
+        </div>
+    </div>
+    <div class="d-flex justify-content-center">
+        <div class="main-button-bar">
+            <a class="btn btn-primary" wicket:id="home"/>
+            <a class="btn btn-primary" wicket:id="back"/>
         </div>
     </div>
 </wicket:extend>

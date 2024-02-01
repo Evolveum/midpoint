@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql.query.definition;
 
+import com.evolveum.midpoint.repo.sql.query.hqm.JoinSpecification;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Visitable;
@@ -32,16 +33,25 @@ public class JpaLinkDefinition<TD extends JpaDataNodeDefinition>
 
     private final boolean embedded;
 
+    /** When joining, should we mention the target type explicitly? See {@link JoinSpecification#explicitJoinedType}. */
+    private final boolean explicitTargetTypeRequired;
+
     @NotNull private TD targetDefinition;
 
     public JpaLinkDefinition(
             @NotNull ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification,
             boolean embedded, @NotNull TD targetDefinition) {
+        this(itemPath, jpaName, collectionSpecification, embedded, targetDefinition, false);
+
+    }
+    public JpaLinkDefinition(@NotNull ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification,
+            boolean embedded, @NotNull D targetDefinition, boolean explicitTargetTypeRequired) {
         this.itemPath = itemPath;
         this.jpaName = jpaName;
         this.collectionSpecification = collectionSpecification;
         this.embedded = embedded;
         this.targetDefinition = targetDefinition;
+        this.explicitTargetTypeRequired = explicitTargetTypeRequired;
     }
 
     @NotNull
@@ -137,6 +147,14 @@ public class JpaLinkDefinition<TD extends JpaDataNodeDefinition>
         if (targetDefinition instanceof JpaEntityPointerDefinition pointerDefinition) {
             // typing hack but we don't mind
             targetDefinition = (TD) pointerDefinition.getResolvedEntityDefinition();
+        }
+    }
+
+    public String getExplicitJoinedType() {
+        if (explicitTargetTypeRequired) {
+            return getTargetDefinition().getJpaClassName();
+        } else {
+            return null;
         }
     }
 }

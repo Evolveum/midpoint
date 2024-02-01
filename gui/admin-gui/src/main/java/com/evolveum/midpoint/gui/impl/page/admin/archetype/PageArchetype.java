@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.archetype;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -83,7 +85,7 @@ public class PageArchetype extends PageAbstractRole<ArchetypeType, FocusDetailsM
     protected PrismObject<ArchetypeType> getObjectForResolvingArchetypePolicyDisplayType() {
         try {
             return getModelWrapperObject().getObjectApplyDelta();
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             LOGGER.error("Couldn't apply deltas for archetypes " + getModelWrapperObject().getObject(), e);
         }
         return null;

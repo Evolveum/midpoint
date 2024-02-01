@@ -7,32 +7,23 @@
 
 package com.evolveum.midpoint.model.impl.correlator.correlation;
 
-import static com.evolveum.midpoint.model.impl.correlator.correlation.TestCorrelators.DescriptionMode.*;
-
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
-
 import static org.assertj.core.api.Assertions.offset;
+
+import static com.evolveum.midpoint.model.impl.correlator.correlation.TestCorrelators.DescriptionMode.*;
+import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
-import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
-import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationPropertyValuesDescription;
-import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Match;
-import com.evolveum.midpoint.model.impl.correlation.TemplateCorrelationConfigurationImpl;
-import com.evolveum.midpoint.model.impl.correlator.CorrelatorFactoryRegistryImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.QNameUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,19 +34,27 @@ import org.testng.annotations.Test;
 
 import com.evolveum.concepts.func.FailableConsumer;
 import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationPropertyValuesDescription;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Match;
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService.CorrelationCaseDescriptionOptions;
 import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
+import com.evolveum.midpoint.model.impl.correlation.TemplateCorrelationConfigurationImpl;
+import com.evolveum.midpoint.model.impl.correlator.CorrelatorFactoryRegistryImpl;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchCorrelatorFactory;
 import com.evolveum.midpoint.model.test.idmatch.DummyIdMatchServiceImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
@@ -65,6 +64,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -84,6 +86,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
     protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "correlator/correlation");
+
+    private static final String CORRELATION_NS = "http://midpoint.evolveum.com/xml/ns/test/correlation";
+    private static final ItemName F_NATIONAL_ID = new ItemName(CORRELATION_NS, "nationalId");
 
     /** The vehicle for correlator testing. Contains the accounts that are correlated. */
     private static final DummyTestResource RESOURCE_DUMMY_CORRELATION = new DummyTestResource(
@@ -275,10 +280,24 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     @Test
     public void test230SmartMultiRuleComplex() throws Exception {
         skipIfNotNativeRepository();
+
+        AtomicReference<CorrelationCaseDescription<?>> lastDescriptionRef = new AtomicReference<>();
         executeTest(
                 "smart-multi-rule-complex",
                 FILE_USERS_SMART_BASIC,
-                USER_TEMPLATE_COMPLEX);
+                USER_TEMPLATE_COMPLEX,
+                lastDescriptionRef::set);
+
+        List<ItemPath> correlationItemPaths = lastDescriptionRef.get().getCorrelationPropertiesDefinitionsList().stream()
+                .map(CorrelationPropertyDefinition::getItemPath)
+                .toList();
+        assertThat(correlationItemPaths)
+                .as("correlation properties paths (ordered)")
+                .hasSize(4);
+        assertQualifiedAndEquivalent(correlationItemPaths.get(0), UserType.F_GIVEN_NAME);
+        assertQualifiedAndEquivalent(correlationItemPaths.get(1), UserType.F_FAMILY_NAME);
+        assertQualifiedAndEquivalent(correlationItemPaths.get(2), UserType.F_COST_CENTER);
+        assertQualifiedAndEquivalent(correlationItemPaths.get(3), UserType.F_EXTENSION.append(F_NATIONAL_ID));
 
         // Just for completeness, let us check the normalizations
         // @formatter:off
@@ -291,6 +310,15 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                         .assertNormalizedItem("familyName.polyStringNorm.prefix3", "smi")
                         .assertNormalizedItem("nationalId.digits", "0402061111");
         // @formatter:on
+    }
+
+    private void assertQualifiedAndEquivalent(ItemPath path, ItemPath expected) {
+        assertThat(path).satisfies(p -> p.equivalent(expected));
+        for (Object segment : path.getSegments()) {
+            assertThat(ItemPath.toName(segment))
+                    .as("name in " + path)
+                    .satisfies(name -> QNameUtil.isQualified(name));
+        }
     }
 
     /**
@@ -325,6 +353,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 usersFile,
                 accountsFile(name),
                 FULL,
+                null,
                 null);
     }
 
@@ -337,7 +366,22 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 usersFile,
                 accountsFile(name),
                 FULL,
+                null,
                 null);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void executeTest(String name, File usersFile, TestObject<ObjectTemplateType> template,
+            FailableConsumer<CorrelationCaseDescription<?>, CommonException> caseDescriptionAsserter)
+            throws ConflictException, EncryptionException, CommonException, IOException, SchemaViolationException,
+            InterruptedException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ObjectDoesNotExistException {
+        executeTest(
+                correlator(name, template),
+                usersFile,
+                accountsFile(name),
+                FULL,
+                null,
+                caseDescriptionAsserter);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -353,7 +397,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 usersFile,
                 accountsFile(name),
                 descriptionMode,
-                additionalInitializer);
+                additionalInitializer,
+                null);
     }
 
     private void executeTest(
@@ -361,7 +406,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             File usersFile,
             File accountsFile,
             DescriptionMode descriptionMode,
-            FailableConsumer<List<CorrelationTestingAccount>, CommonException> additionalInitializer)
+            FailableConsumer<List<CorrelationTestingAccount>, CommonException> additionalInitializer,
+            FailableConsumer<CorrelationCaseDescription<?>, CommonException> caseDescriptionAsserter)
             throws CommonException, IOException, ConflictException, SchemaViolationException,
             InterruptedException, EncryptionException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException,
             ObjectDoesNotExistException {
@@ -408,7 +454,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
             given(prefix + "correlation context is created");
             displayDumpable("account", account);
-            CorrelationContext correlationContext = createCorrelationContext(account, correlator, task, result);
+            CorrelationContext correlationContext = createCorrelationContext(account, task, result);
 
             when(prefix + "correlation is done (using a correlator)");
             CorrelationResult correlationResult = correlator.instance.correlate(correlationContext, result);
@@ -434,6 +480,10 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             then(prefix + "case description is OK");
             displayDumpable("case description", description);
             assertCorrelationDescription(description, descriptionMode, account);
+
+            if (caseDescriptionAsserter != null) {
+                caseDescriptionAsserter.accept(description);
+            }
         }
     }
 
@@ -477,8 +527,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     }
 
     @NotNull
-    private CorrelationContext createCorrelationContext(
-            CorrelationTestingAccount account, TestCorrelator correlator, Task task, OperationResult result)
+    private CorrelationContext createCorrelationContext(CorrelationTestingAccount account, Task task, OperationResult result)
             throws CommonException {
         ResourceType resource = RESOURCE_DUMMY_CORRELATION.getObjectable();
 
@@ -618,7 +667,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     }
 
     private void assertMatch(CandidateDescription<?> candidateDescription, ItemPath path, Match expectedMatch) {
-        CorrelationPropertyValuesDescription propertyDesc = candidateDescription.getProperties().get(path);
+        CorrelationPropertyValuesDescription propertyDesc = candidateDescription.getPropertyValuesDescription(path);
         assertThat(propertyDesc).as("property description for " + path).isNotNull();
         assertThat(propertyDesc.getMatch()).as("match for " + path).isEqualTo(expectedMatch);
     }

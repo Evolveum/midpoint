@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -15,14 +18,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class ActivationUtil {
 
     public static ActivationStatusType getAdministrativeStatus(FocusType focus) {
-        if (focus == null) {
-            return null;
-        }
-        ActivationType activation = focus.getActivation();
-        if (activation == null) {
-            return null;
-        }
-        return activation.getAdministrativeStatus();
+        return focus != null ? getAdministrativeStatus(focus.getActivation()) : null;
+    }
+
+    public static ActivationStatusType getAdministrativeStatus(ShadowType shadow) {
+        return shadow != null ? getAdministrativeStatus(shadow.getActivation()) : null;
+    }
+
+    public static ActivationStatusType getAdministrativeStatus(PrismObject<ShadowType> shadow) {
+        return getAdministrativeStatus(asObjectable(shadow));
+    }
+
+    private static ActivationStatusType getAdministrativeStatus(ActivationType activation) {
+        return activation != null ? activation.getAdministrativeStatus() : null;
     }
 
     public static boolean hasAdministrativeActivation(ShadowType objectType) {
@@ -78,5 +86,13 @@ public class ActivationUtil {
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.DISABLED);
         return activationType;
+    }
+
+    public static String getDisableReason(PrismObject<ShadowType> shadow) {
+        return shadow != null ? getDisableReason(shadow.asObjectable().getActivation()) : null;
+    }
+
+    public static String getDisableReason(ActivationType activation) {
+        return activation != null ? activation.getDisableReason() : null;
     }
 }

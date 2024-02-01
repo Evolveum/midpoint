@@ -34,6 +34,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
@@ -152,10 +153,19 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         if (delegatedToMe) {
             OperationResult result = new OperationResult(OPERATION_GET_TARGET_REF_NAME);
             Task task = pageBase.createSimpleTask(OPERATION_GET_TARGET_REF_NAME);
-            nameLabel = new Label(ID_NAME_LABEL,
-                    WebModelServiceUtils.resolveReferenceName(getModelObject().getTargetRef(), pageBase, task, result));
+            String nameValue = WebModelServiceUtils.resolveReferenceName(getModelObject().getTargetRef(), pageBase, task, result);
+            nameLabel = new Label(ID_NAME_LABEL,nameValue);
+            headerRow.add(AttributeModifier.append(
+                    "aria-label",
+                    createStringResource("DelegationEditorPanel.delegationFrom", nameValue)));
         } else {
             nameLabel = new Label(ID_NAME_LABEL, pageBase.createStringResource("DelegationEditorPanel.meLabel"));
+            name.add(AttributeAppender.append(
+                    "aria-expanded",
+                    () -> getModel().getObject().isMinimized() ? "false" : "true"));
+            name.add(AttributeAppender.append(
+                    "aria-label",
+                    () -> createStringResource("DelegationEditorPanel.showDetails." + !getModel().getObject().isMinimized()).getString()));
         }
         nameLabel.setOutputMarkupId(true);
         name.add(nameLabel);
@@ -193,8 +203,18 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         Label delegatedToNameLabel;
         if (delegatedToMe) {
             delegatedToNameLabel = new Label(ID_DELEGATED_TO_LABEL, pageBase.createStringResource("DelegationEditorPanel.meLabel"));
+            delegatedToName.add(AttributeAppender.append(
+                    "aria-expanded",
+                    () -> getModel().getObject().isMinimized() ? "false" : "true"));
+            delegatedToName.add(AttributeAppender.append(
+                    "aria-label",
+                    () -> createStringResource("DelegationEditorPanel.showDetails." + !getModel().getObject().isMinimized()).getString()));
         } else {
-            delegatedToNameLabel = new Label(ID_DELEGATED_TO_LABEL, getUserDisplayName());
+            String nameValue = getUserDisplayName();
+            headerRow.add(AttributeModifier.append(
+                    "aria-label",
+                    createStringResource("DelegationEditorPanel.delegationTo", nameValue)));
+            delegatedToNameLabel = new Label(ID_DELEGATED_TO_LABEL, nameValue);
         }
         delegatedToNameLabel.setOutputMarkupId(true);
         delegatedToName.add(delegatedToNameLabel);
@@ -214,6 +234,8 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         };
         headerRow.add(expandButton);
+        expandButton.add(AttributeAppender.append("aria-label", () -> createStringResource("DelegationEditorPanel.showDetails." + expandButton.isOn()).getString()));
+        expandButton.add(AttributeAppender.append("aria-expanded", () -> expandButton.isOn() ? "true" : "false"));
     }
 
     private void navigateToDetails(AjaxRequestTarget target, String oid) {
@@ -249,8 +271,8 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         body.add(validTo);
 
         TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
-                new PropertyModel<String>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
-        description.setEnabled(getModel().getObject().isEditable());
+                new PropertyModel<>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
+        description.add(AttributeAppender.append("readonly", () -> getModel().getObject().isEditable() ? null : "readonly"));
         body.add(description);
 
         WebMarkupContainer assignmentPrivilegesContainer = new WebMarkupContainer(ID_ASSIGNMENT_PRIVILEGES_CONTAINER);

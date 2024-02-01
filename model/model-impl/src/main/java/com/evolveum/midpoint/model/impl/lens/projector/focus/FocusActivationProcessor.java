@@ -363,10 +363,8 @@ public class FocusActivationProcessor implements ProjectorProcessor {
             }
         }
 
-        PropertyDelta<XMLGregorianCalendar> timestampDelta =
-                LensUtil.createActivationTimestampDelta(effectiveStatusNew, now, activationDefinition, OriginType.USER_POLICY,
-                        prismContext);
-        focusContext.swallowToSecondaryDelta(timestampDelta);
+        focusContext.swallowToSecondaryDelta(
+                LensUtil.createActivationTimestampDelta(effectiveStatusNew, now, activationDefinition, OriginType.USER_POLICY));
     }
 
     private PrismContainerDefinition<ActivationType> getActivationDefinition() {

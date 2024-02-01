@@ -6,8 +6,28 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self.credentials;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.PasswordTextField;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.password.*;
+import com.evolveum.midpoint.gui.api.component.password.PasswordHintPanel;
+import com.evolveum.midpoint.gui.api.component.password.PasswordLimitationsPanel;
+import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
@@ -32,24 +52,9 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.feedback.FeedbackMessage;
-import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.PasswordTextField;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-
-import java.util.*;
+import org.jetbrains.annotations.NotNull;
 
 public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
@@ -168,7 +173,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             }
         };
 
-        PasswordLimitationsPanel passwordLimitationsPanel = new PasswordLimitationsPanel(ID_PASSWORD_VALIDATION_PANEL, limitationsModel);
+        PasswordLimitationsPanel passwordLimitationsPanel = createLimitationPanel(ID_PASSWORD_VALIDATION_PANEL, limitationsModel);
         passwordLimitationsPanel.add(new VisibleBehaviour(() -> !isPasswordLimitationPopupVisible()));
         passwordLimitationsPanel.setOutputMarkupId(true);
         add(passwordLimitationsPanel);
@@ -185,10 +190,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         };
         hint.setOutputMarkupId(true);
         hint.add(new EnableBehaviour(() -> !savedPassword));
+        hint.add(new VisibleBehaviour(this::isHintPanelVisible));
         add(hint);
 
-        AjaxSubmitButton changePasswordButton = new AjaxSubmitButton(ID_CHANGE_PASSWORD,
-                createStringResource("ChangePasswordPanel.changePasswordButton")) {
+        AjaxSubmitButton changePasswordButton = new AjaxSubmitButton(ID_CHANGE_PASSWORD) {
 
             private static final long serialVersionUID = 1L;
 
@@ -218,6 +223,14 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         changePasswordButton.setOutputMarkupId(true);
         add(changePasswordButton);
 
+    }
+
+    protected boolean isHintPanelVisible() {
+        return true;
+    }
+
+    protected PasswordLimitationsPanel createLimitationPanel(String id, IModel<List<StringLimitationResult>> limitationsModel) {
+        return new PasswordLimitationsPanel(id, limitationsModel);
     }
 
     protected String getChangePasswordButtonStyle() {
@@ -411,6 +424,18 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     protected boolean isPasswordLimitationPopupVisible() {
         return false;
+    }
+
+    @NotNull
+    protected PasswordHintConfigurabilityType getPasswordHintConfigurability() {
+        CredentialsPolicyType credentialsPolicy = credentialsPolicyModel.getObject();
+
+        if (credentialsPolicy != null
+                && credentialsPolicy.getPassword() != null
+                && credentialsPolicy.getPassword().getPasswordHintConfigurability() != null) {
+            return credentialsPolicy.getPassword().getPasswordHintConfigurability();
+        }
+        return PasswordHintConfigurabilityType.ALWAYS_CONFIGURE;
     }
 
 }
