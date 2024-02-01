@@ -234,7 +234,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         if (method instanceof Levenshtein) {
             var levenshtein = (Levenshtein) method;
             var func = Expressions.numberTemplate(Integer.class,
-                    "levenshtein_less_equal({0}, '{1s}', {2})",
+                    "levenshtein_less_equal({0}, {1}, {2})",
                     path, String.valueOf(values.singleValue()), levenshtein.getThresholdRequired());
             // Lower value means more similar
             return levenshtein.isInclusive() ?
@@ -243,7 +243,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         } else if (method instanceof Similarity) {
             var spec = (Similarity) method;
             var func = Expressions.numberTemplate(Float.class,
-                    "similarity({0}, '{1s}')",
+                    "similarity({0}, {1})",
                     path, String.valueOf(values.singleValue()));
             // Higher value means more similar
             return spec.isInclusive() ?
