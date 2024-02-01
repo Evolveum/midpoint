@@ -15,10 +15,10 @@ import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -32,9 +32,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
@@ -61,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabili
  *
  * @author semancik
  */
-public class ProvisioningContext {
+public class ProvisioningContext implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningContext.class);
 
@@ -81,8 +78,9 @@ public class ProvisioningContext {
 
     /**
      * Type of objects that are to be processed by the current operation.
+     *
      * If this is a bulk operation (like search or live sync), this also drives its scope - i.e. whether to
-     * access the whole resource, an object class, or a object type.
+     * access the whole resource, an object class, or an object type.
      *
      * Note: the definition is always attached to the {@link #resource}.
      */
@@ -649,7 +647,7 @@ public class ProvisioningContext {
     /**
      * Returns association definitions, or an empty list if we do not have appropriate definition available.
      */
-    public @NotNull Collection<ResourceAssociationDefinition> getAssociationDefinitions() {
+    public @NotNull Collection<ShadowAssociationDefinition> getAssociationDefinitions() {
         return resourceObjectDefinition != null ?
                 resourceObjectDefinition.getAssociationDefinitions() : List.of();
     }
@@ -668,6 +666,16 @@ public class ProvisioningContext {
                 .findAttributeDefinitionRequired(name, contextSupplier);
     }
 
+    public @NotNull ShadowAssociationDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
+        return findAssociationDefinitionRequired(name, () -> "");
+    }
+
+    public @NotNull ShadowAssociationDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
+            throws SchemaException {
+        return getObjectDefinitionRequired()
+                .findAssociationDefinitionRequired(name, contextSupplier);
+    }
+
     /**
      * It's more logical to call this method right on {@link ProvisioningContext}. The exact placement of the implementation
      * is to be decided yet.
@@ -676,35 +684,37 @@ public class ProvisioningContext {
         return ProvisioningUtil.createAttributesToReturn(this);
     }
 
-    // Methods delegated to shadow caretaker (convenient to be here, but not sure if it's ok...)
-
     /** Beware! Creates a new context based on the shadow kind/intent/OC. */
-    public ProvisioningContext applyAttributesDefinition(@NotNull PrismObject<ShadowType> shadow)
+    public ProvisioningContext applyDefinitionInNewCtx(@NotNull PrismObject<ShadowType> shadow)
             throws SchemaException, ConfigurationException {
-        return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
+        return applyDefinitionInNewCtx(shadow.asObjectable());
     }
 
     /** Beware! Creates a new context based on the shadow kind/intent/OC. TODO check if not redundant! */
-    public ProvisioningContext applyAttributesDefinition(@NotNull ResourceObject resourceObject)
+    public ProvisioningContext applyDefinitionInNewCtx(@NotNull ResourceObject resourceObject)
             throws SchemaException, ConfigurationException {
-        return getCaretaker().applyAttributesDefinitionInNewContext(this, resourceObject.getBean());
+        return applyDefinitionInNewCtx(resourceObject.getBean());
     }
 
     /** Beware! Creates a new context based on the shadow kind/intent/OC. TODO check if not redundant! */
-    public ProvisioningContext applyAttributesDefinition(@NotNull RepoShadow repoShadow)
+    public ProvisioningContext applyDefinitionInNewCtx(@NotNull RepoShadow repoShadow)
             throws SchemaException, ConfigurationException {
-        return getCaretaker().applyAttributesDefinitionInNewContext(this, repoShadow.getBean());
+        return applyDefinitionInNewCtx(repoShadow.getBean());
     }
 
     /** Beware! Creates a new context based on the shadow kind/intent/OC. */
-    public ProvisioningContext applyAttributesDefinition(@NotNull ShadowType shadow)
+    public ProvisioningContext applyDefinitionInNewCtx(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
-        return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
+        ProvisioningContext subContext = spawnForShadow(shadow);
+        subContext.assertDefinition();
+        subContext.applyCurrentDefinition(shadow);
+        return subContext;
     }
 
     /** Does not create a new context. The current context should be derived from the shadow. TODO reconsider */
-    public void applyAttributesDefinitionHere(@NotNull ShadowType shadow) throws SchemaException {
-        getCaretaker().applyAttributesDefinition(getObjectDefinitionRequired(), shadow);
+    public void applyCurrentDefinition(@NotNull ShadowType shadow) throws SchemaException {
+        new ShadowDefinitionApplicator(getObjectDefinitionRequired())
+                .applyTo(shadow);
     }
 
     /**
@@ -716,7 +726,7 @@ public class ProvisioningContext {
      */
     private ProvisioningContext adoptShadowBean(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
-        return applyAttributesDefinition(shadow);
+        return applyDefinitionInNewCtx(shadow);
     }
 
     /**
@@ -763,74 +773,26 @@ public class ProvisioningContext {
         return ResourceObject.fromBean(bean, false, shadowCtx.getObjectDefinitionRequired());
     }
 
-    public @NotNull ExistingResourceObject adoptUcfResourceObject(@NotNull UcfResourceObject object)
-            throws SchemaException, ConfigurationException {
-        return adoptUcfResourceObjectBean(
-                object.bean(),
-                object.primaryIdentifierValue(),
-                true,
-                object);
+    public void applyCurrentDefinition(@NotNull ObjectDelta<ShadowType> delta) throws SchemaException {
+        new ShadowDefinitionApplicator(getObjectDefinitionRequired())
+                .applyTo(delta);
     }
 
-    public @NotNull ExistingResourceObject adoptDeletedUcfResourceObject(@NotNull UcfResourceObject object)
-            throws SchemaException, ConfigurationException {
-        return adoptUcfResourceObjectBean(
-                object.bean(),
-                object.primaryIdentifierValue(),
-                false,
-                object);
-    }
-
-    public @NotNull ExistingResourceObject adoptUcfResourceObjectBean(
-            @NotNull ShadowType bean, Object primaryIdentifierValue, boolean exists, @NotNull Object errorCtx)
-            throws SchemaException, ConfigurationException {
-
-        bean.setResourceRef(getResourceRef());
-        bean.setExists(exists);
-
-        var shadowObjectClassName = MiscUtil.requireNonNull(bean.getObjectClass(), () -> "No object class in " + errorCtx);
-        QName expectedObjectClassName = getObjectClassNameIfKnown(); // null e.g. for wildcard LS
-        if (expectedObjectClassName != null && !QNameUtil.match(shadowObjectClassName, expectedObjectClassName)) {
-            throw new IllegalStateException(
-                    "Object class mismatch in %s: expected %s, but was %s".formatted(
-                            errorCtx, expectedObjectClassName, shadowObjectClassName));
-        }
-
-        ResourceObjectDefinition objectDefinition = computeCompositeObjectDefinition(bean);
-
-        getCaretaker().applyAttributesDefinition(objectDefinition, bean);
-
-        return ExistingResourceObject.of(
-                bean,
-                primaryIdentifierValue);
-    }
-
-    /**
-     * Beware! For shadows being added, this method creates a separate (child) provisioning context.
-     */
-    public void applyAttributesDefinition(@NotNull ObjectDelta<ShadowType> delta)
-            throws SchemaException, ConfigurationException {
-        getCaretaker().applyAttributesDefinition(this, delta);
-    }
-
-    public void applyAttributesDefinition(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) throws SchemaException {
-        getCaretaker().applyAttributesDefinition(this, modifications);
-    }
-
-    private @NotNull ShadowCaretaker getCaretaker() {
-        return contextFactory.getCommonBeans().shadowCaretaker;
+    public void applyCurrentDefinition(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) throws SchemaException {
+        new ShadowDefinitionApplicator(getObjectDefinitionRequired())
+                .applyTo(modifications);
     }
 
     public void updateShadowState(ShadowType shadow) {
-        getCaretaker().updateShadowState(this, shadow);
+        ShadowLifecycleStateDeterminer.updateShadowState(this, shadow);
     }
 
     public void updateShadowState(RepoShadow shadow) {
-        getCaretaker().updateShadowState(this, shadow.getBean());
+        ShadowLifecycleStateDeterminer.updateShadowState(this, shadow.getBean());
     }
 
     public ShadowLifecycleStateType determineShadowState(ShadowType shadow) {
-        return getCaretaker().determineShadowState(this, shadow);
+        return ShadowLifecycleStateDeterminer.determineShadowState(this, shadow);
     }
 
     public boolean isAllowNotFound() {
@@ -995,5 +957,18 @@ public class ProvisioningContext {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "resource", resource, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "task", task, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "resourceObjectDefinition", resourceObjectDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "wholeClass", wholeClass, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "getOperationOptions", getOperationOptions, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "propagation", propagation, indent + 1);
+        DebugUtil.debugDumpWithLabelToString(sb, "operationContext", operationContext, indent + 1);
+        return sb.toString();
     }
 }

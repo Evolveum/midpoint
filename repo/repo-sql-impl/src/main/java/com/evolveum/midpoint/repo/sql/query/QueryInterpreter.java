@@ -292,12 +292,12 @@ public class QueryInterpreter {
             if (propDefRes == null) {
                 String technicalMessage =
                         "Couldn't find a proper data item to query, given base entity %s and this filter: %s".formatted(
-                                baseEntityDefinition, valFilter.debugDump();
+                                baseEntityDefinition, valFilter.debugDump());
                 SingleLocalizableMessage message = new SingleLocalizableMessage(
                         "QueryModelMapping.item.not.searchable",
                         new Object[]{definition != null ? definition.getItemName() : path.toStringStandalone()},
                         technicalMessage);
-                throw new QueryException(message));
+                throw new QueryException(message);
             }
             // TODO can't be unified?
             if (propDefRes.getTargetDefinition() instanceof JpaAnyPropertyDefinition) {

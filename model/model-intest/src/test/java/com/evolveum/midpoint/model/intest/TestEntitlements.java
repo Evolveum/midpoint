@@ -381,7 +381,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertModelShadow(accountWallyOid)
                 .associations()
-                .assertSize(2)
+                .assertSize(1)
                 .association(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME)
                 .assertShadowOids(groupLandlubersShadow.getOid(), groupMapmakersShadow.getOid());
 

@@ -85,23 +85,6 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
     }
 
     @Override
-    public <T2> @NotNull ResourceAttribute<T2> cloneWithNewDefinition(
-            @NotNull ResourceAttributeDefinition<T2> newDefinition)
-            throws SchemaException {
-
-        List<?> oldValuesCopied = List.copyOf(getRealValues());
-        clear();
-
-        // TODO it should be better to create special method to clone with a different definition
-        //noinspection unchecked
-        ResourceAttribute<T2> clone = (ResourceAttribute<T2>) clone();
-        clone.applyDefinition(newDefinition, true);
-        clone.addNormalizedValues(oldValuesCopied, newDefinition);
-
-        return clone;
-    }
-
-    @Override
     public void addNormalizedValues(@NotNull Collection<?> realValues, @NotNull ResourceAttributeDefinition<T> newDefinition)
             throws SchemaException {
         Normalizer<T> normalizer = newDefinition.getNormalizer();

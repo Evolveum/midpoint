@@ -7,14 +7,24 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import java.io.File;
+import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions.CompleteSchemaProvider;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
@@ -26,16 +36,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -58,8 +64,8 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest
 
     protected ConnectorFactory connectorFactory;
     protected PrismObject<ResourceType> resource;
-    protected ResourceType resourceType;
-    protected ConnectorType connectorType;
+    protected ResourceType resourceBean;
+    protected ConnectorType connectorBean;
     protected ConnectorInstance cc;
     protected ResourceSchema resourceSchema;
     protected static DummyResource dummyResource;
@@ -82,10 +88,10 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest
         connectorFactory = connectorFactoryIcfImpl;
 
         resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_FILE);
-        resourceType = resource.asObjectable();
+        resourceBean = resource.asObjectable();
 
         PrismObject<ConnectorType> connector = PrismTestUtil.parseObject(CONNECTOR_DUMMY_FILE);
-        connectorType = connector.asObjectable();
+        connectorBean = connector.asObjectable();
     }
 
     protected void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
@@ -110,10 +116,24 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest
     }
 
     protected UcfExecutionContext createExecutionContext() {
-        return createExecutionContext(resourceType);
+        return createExecutionContext(resourceBean);
     }
 
     protected UcfExecutionContext createExecutionContext(ResourceType resource) {
         return new UcfExecutionContext(lightweightIdentifierGenerator, resource, NullTaskImpl.INSTANCE);
     }
+
+    protected void configure(
+            @NotNull PrismContainerValue<?> configuration,
+            @Nullable List<QName> generateObjectClasses,
+            @NotNull OperationResult result)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
+        cc.configure(
+                configuration,
+                new ConnectorConfigurationOptions()
+                        .generateObjectClasses(generateObjectClasses)
+                        .completeSchemaProvider(CompleteSchemaProvider.forResource(resourceBean)),
+                result);
+    }
+
 }

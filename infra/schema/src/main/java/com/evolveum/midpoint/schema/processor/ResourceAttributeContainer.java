@@ -152,10 +152,6 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
 
     @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers();
 
-    @NotNull
-    Collection<ResourceAttribute<?>> extractAttributesByDefinitions(
-            Collection<? extends ResourceAttributeDefinition> definitions);
-
     /**
      * TODO review docs
      *

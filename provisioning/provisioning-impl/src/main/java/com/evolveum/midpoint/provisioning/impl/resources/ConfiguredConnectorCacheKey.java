@@ -9,13 +9,13 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 /**
  * @author semancik
  */
-public class ConfiguredConnectorCacheKey {
+@SuppressWarnings("ClassCanBeRecord")
+class ConfiguredConnectorCacheKey {
 
     private final String resourceOid;
     private final String connectorName;
 
     ConfiguredConnectorCacheKey(String resourceOid, String connectorName) {
-        super();
         this.resourceOid = resourceOid;
         this.connectorName = connectorName;
     }

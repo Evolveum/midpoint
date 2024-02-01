@@ -38,12 +38,13 @@ import org.jetbrains.annotations.NotNull;
  * @author Radovan Semancik
  */
 @SuppressWarnings("rawtypes")
-public final class ResourceAttributeContainerImpl extends PrismContainerImpl<ShadowAttributesType> implements ResourceAttributeContainer {
+public final class ResourceAttributeContainerImpl
+        extends PrismContainerImpl<ShadowAttributesType> implements ResourceAttributeContainer {
     @Serial private static final long serialVersionUID = 8878851067509560312L;
 
     /**
      * The constructors should be used only occasionally (if used at all).
-     * Use the factory methods in the ResourceObjectDefinition instead.
+     * Use the factory methods in the {@link ResourceObjectDefinition} instead.
      */
     ResourceAttributeContainerImpl(QName name, ResourceAttributeContainerDefinition definition) {
         super(name, definition, PrismContext.get());
@@ -55,10 +56,14 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         if (prismContainerDefinition == null) {
             return null;
         }
-        if (prismContainerDefinition instanceof ResourceAttributeContainerDefinition) {
-            return (ResourceAttributeContainerDefinition) prismContainerDefinition;
+        if (prismContainerDefinition instanceof ResourceAttributeContainerDefinition resourceAttributeContainerDefinition) {
+            return resourceAttributeContainerDefinition;
         } else {
-            throw new IllegalStateException("definition should be " + ResourceAttributeContainerDefinition.class + " but it is " + prismContainerDefinition.getClass() + " instead; definition = " + prismContainerDefinition.debugDump(0));
+            throw new IllegalStateException(
+                    "Definition should be %s but it is %s instead; definition = %s".formatted(
+                            ResourceAttributeContainerDefinition.class,
+                            prismContainerDefinition.getClass(),
+                            prismContainerDefinition.debugDump(0)));
         }
     }
 
@@ -73,17 +78,6 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
     public void add(ResourceAttribute<?> attribute) throws SchemaException {
         super.add(attribute);
     }
-
-    //    @Override
-//    public void addAdoptedIfNeeded(@NotNull PrismProperty<?> property) throws SchemaException {
-//        ResourceAttribute<?> attributeToAdd;
-//        if (property instanceof ResourceAttribute<?> attribute) {
-//            attributeToAdd = attribute.clone();
-//        } else {
-//            attributeToAdd = getResourceObjectDefinitionRequired().propertyToAttribute(property);
-//        }
-//        add(attributeToAdd);
-//    }
 
     @Override
     public ResourceAttribute<?> getPrimaryIdentifier() {
@@ -107,13 +101,12 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         return extractAttributesByDefinitions(getDefinitionRequired().getAllIdentifiers());
     }
 
-    @Override
-    public @NotNull Collection<ResourceAttribute<?>> extractAttributesByDefinitions(
+    private @NotNull Collection<ResourceAttribute<?>> extractAttributesByDefinitions(
             Collection<? extends ResourceAttributeDefinition> definitions) {
         Collection<ResourceAttribute<?>> attributes = new ArrayList<>(definitions.size());
         for (ResourceAttributeDefinition attrDef : definitions) {
-            for (ResourceAttribute<?> property : getAttributes()){
-                if (attrDef.getItemName().equals(property.getElementName())){
+            for (ResourceAttribute<?> property : getAttributes()) {
+                if (attrDef.getItemName().equals(property.getElementName())) {
                     //noinspection unchecked
                     property.setDefinition(attrDef);
                     attributes.add(property);
@@ -177,11 +170,13 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
 
     @Override
     public <X> ResourceAttribute<X> findOrCreateAttribute(ResourceAttributeDefinition attributeDefinition) throws SchemaException {
+        //noinspection unchecked
         return (ResourceAttribute<X>) getValue().findOrCreateProperty(attributeDefinition);
     }
 
     @Override
     public <X> ResourceAttribute<X> findOrCreateAttribute(QName attributeName) throws SchemaException {
+        //noinspection unchecked
         return (ResourceAttribute<X>) getValue().findOrCreateProperty(ItemName.fromQName(attributeName));
     }
 
@@ -206,7 +201,6 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         super.copyValues(strategy, clone);
         // Nothing to copy
     }
-
 
     @Override
     public void checkConsistenceInternal(

@@ -33,9 +33,6 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  *
  * - {@link ResourceObjectConverter#locateResourceObject(
  * ProvisioningContext, ResourceObjectIdentification, boolean, OperationResult)}
- *
- * @see ResourceObjectFetchOperation
- * @see ResourceObjectSearchOperation
  */
 class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOperation {
 
@@ -46,9 +43,8 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
     private ResourceObjectLocateOperation(
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectIdentification.SecondaryOnly identification,
-            boolean fetchAssociations,
-            @Nullable FetchErrorReportingMethodType errorReportingMethod) {
-        super(ctx, fetchAssociations, errorReportingMethod);
+            boolean fetchAssociations) {
+        super(ctx, fetchAssociations, null);
         this.identification = identification;
     }
 
@@ -63,7 +59,7 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        return new ResourceObjectLocateOperation(ctx, identification, fetchAssociations, null)
+        return new ResourceObjectLocateOperation(ctx, identification, fetchAssociations)
                 .execute(result);
     }
 
@@ -81,7 +77,7 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
         ObjectQuery query = PrismContext.get().queryFor(ShadowType.class)
                 .filter(secondaryIdentifier.plainEqFilter())
                 .build();
-        Holder<UcfObjectFound> objectHolder = new Holder<>();
+        Holder<UcfResourceObject> objectHolder = new Holder<>();
         UcfObjectHandler handler = (ucfObjectFound, lResult) -> {
             if (!objectHolder.isEmpty()) {
                 throw new IllegalStateException(
@@ -93,7 +89,7 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
             return true;
         };
         try {
-            // TODO constraints? scope?
+            // TODO constraints? scope? Why don't we use the standard search operation here?
             connector.search(
                     ctx.getObjectDefinitionRequired(),
                     query,
@@ -114,9 +110,10 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
                         ctx.isAllowNotFound());
             }
 
-            UcfObjectFound ucfObjectFound = objectHolder.getValue();
-            var resourceObject = ctx.adoptUcfResourceObject(ucfObjectFound.getResourceObject());
-            return complete(resourceObject, result);
+            var ucfResourceObject = objectHolder.getValue();
+            return complete(
+                    ExistingResourceObject.fromUcf(ucfResourceObject, ctx.getResourceRef()),
+                    result);
 
         } catch (GenericFrameworkException e) {
             throw new GenericConnectorException(

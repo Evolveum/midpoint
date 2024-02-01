@@ -498,9 +498,6 @@ public class ObjectRetriever {
                 }
             }
         } else if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
-            //we store it because provisioning now sends it to repo, but it should be transient
-            prismObject.removeContainer(ShadowType.F_ASSOCIATION);
-
             if (raw) {
                 LOGGER.trace("Loading definitions for shadow attributes.");
                 Class[] classes = GetObjectResult.EXT_COUNT_CLASSES;

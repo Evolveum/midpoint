@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl.toShadowDefinition;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
@@ -27,7 +26,6 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -42,7 +40,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 
@@ -54,7 +51,6 @@ class SearchExecutor {
     private static final Trace LOGGER = TraceManager.getTrace(SearchExecutor.class);
 
     @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
-    @NotNull private final PrismObjectDefinition<ShadowType> prismObjectDefinition;
     @NotNull private final ObjectClass icfObjectClass;
     private final ObjectQuery query;
     private final Filter connIdFilter;
@@ -84,7 +80,6 @@ class SearchExecutor {
             @NotNull ConnectorInstanceConnIdImpl connectorInstance) throws SchemaException {
 
         this.resourceObjectDefinition = resourceObjectDefinition;
-        this.prismObjectDefinition = toShadowDefinition(resourceObjectDefinition);
         this.icfObjectClass = connectorInstance.objectClassToConnId(resourceObjectDefinition);
         this.query = query;
         this.connIdFilter = connectorInstance.convertFilterToIcf(query, resourceObjectDefinition);
@@ -355,8 +350,8 @@ class SearchExecutor {
                     }
                 }
 
-                UcfObjectFound ucfObject = connectorInstance.connIdConvertor.convertToUcfObject(
-                        connectorObject, prismObjectDefinition, connectorInstance.isCaseIgnoreAttributeNames(),
+                var ucfObject = connectorInstance.connIdConvertor.convertToUcfObject(
+                        connectorObject, resourceObjectDefinition, connectorInstance.getResourceSchema(),
                         connectorInstance.isLegacySchema(), errorReportingMethod, result);
 
                 return handler.handle(ucfObject, result);

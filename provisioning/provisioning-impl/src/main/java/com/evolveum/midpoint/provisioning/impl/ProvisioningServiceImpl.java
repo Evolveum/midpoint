@@ -831,7 +831,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         try {
             stats = resourceManager.getConnectorOperationalStatus(resource, result);
         } catch (Throwable ex) {
-            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Getting operations status from connector for resource " + resourceOid + " failed: " + ex.getMessage(), ex);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(
+                    LOGGER, result, "Getting operations status from connector for resource " + resourceOid + " failed: " + ex.getMessage(), ex);
             throw ex;
         }
 

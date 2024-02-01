@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -139,29 +138,47 @@ public class ShadowUtil {
     }
 
     public static ResourceAttributeContainer getAttributesContainer(PrismObject<? extends ShadowType> shadow) {
-        return getAttributesContainer(shadow, ShadowType.F_ATTRIBUTES);
+        return castShadowContainer(shadow.getValue(), ShadowType.F_ATTRIBUTES, ResourceAttributeContainer.class);
     }
 
-    public static ResourceAttributeContainer getAttributesContainer(PrismObject<? extends ShadowType> shadow, QName containerName) {
-        return getAttributesContainer(shadow.getValue(), containerName);
+    /** Similar to {@link #getAttributesContainer(ShadowType)}. */
+    public static ShadowAssociationsContainer getAssociationsContainer(@NotNull ShadowType shadow) {
+        return getAssociationsContainer(shadow.asPrismObject());
     }
 
-    public static boolean isAttributesContainerRaw(ShadowType shadow) {
-        PrismContainer<ShadowAttributesType> container = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
-        return container != null && !(container instanceof ResourceAttributeContainer);
+    /** Similar to {@link #getAttributesContainer(ShadowType)}. */
+    public static ShadowAssociationsContainer getAssociationsContainer(@NotNull PrismObject<ShadowType> shadow) {
+        return castShadowContainer(
+                shadow.asObjectable().asPrismContainerValue(), ShadowType.F_ASSOCIATIONS, ShadowAssociationsContainer.class);
     }
 
-    public static ResourceAttributeContainer getAttributesContainer(PrismContainerValue<?> cval, QName containerName) {
-        PrismContainer<?> attributesContainer = cval.findContainer(containerName);
-        if (attributesContainer == null) {
+    private static <T> T castShadowContainer(
+            @NotNull PrismContainerValue<?> parent, QName containerName, Class<T> expectedClass) {
+        PrismContainer<?> container = parent.findContainer(containerName);
+        if (container == null) {
             return null;
-        }
-        if (attributesContainer instanceof ResourceAttributeContainer resourceAttributeContainer) {
-            return resourceAttributeContainer;
+        } else if (expectedClass.isInstance(container)) {
+            //noinspection unchecked
+            return (T) container;
         } else {
             throw new IllegalStateException(
-                    "Expected that <%s> will be ResourceAttributeContainer but it is %s".formatted(
-                            containerName.getLocalPart(), attributesContainer.getClass()));
+                    "Expected that <%s> will be %s but it is %s; in %s".formatted(
+                            containerName, expectedClass.getSimpleName(), container.getClass(), parent));
+        }
+    }
+
+    public static ResourceAttributeContainer getIdentifiersContainer(PrismContainerValue<ShadowAssociationValueType> cval) {
+        return castShadowContainer(cval, ShadowAssociationValueType.F_IDENTIFIERS, ResourceAttributeContainer.class);
+    }
+
+    /** Assuming the shadow has the correct definition. */
+    public static ResourceAttributeContainer getOrCreateAttributesContainer(ShadowType shadow) {
+        try {
+            return (ResourceAttributeContainer) shadow
+                    .asPrismObject()
+                    .<ShadowAttributesType>findOrCreateContainer(ShadowType.F_ATTRIBUTES);
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e);
         }
     }
 
@@ -328,28 +345,26 @@ public class ShadowUtil {
      * This is not supposed to be used in production code! It is just for the tests.
      */
     @VisibleForTesting
-    public static void applyResourceSchema(PrismObject<? extends ShadowType> shadow,
+    public static void applyResourceSchema(
+            PrismObject<? extends ShadowType> shadow,
             ResourceSchema resourceSchema) throws SchemaException {
-        ShadowType shadowType = shadow.asObjectable();
-        QName objectClass = shadowType.getObjectClass();
-        ResourceObjectDefinition objectClassDefinition = resourceSchema.findDefinitionForObjectClass(objectClass);
-        applyObjectDefinition(shadow, objectClassDefinition);
-    }
-
-    private static void applyObjectDefinition(PrismObject<? extends ShadowType> shadow,
-            ResourceObjectDefinition objectClassDefinition) throws SchemaException {
-        PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-        //noinspection unchecked,rawtypes
-        ((PrismContainer) attributesContainer).applyDefinition(
-                objectClassDefinition.toResourceAttributeContainerDefinition());
+        QName objectClass = shadow.asObjectable().getObjectClass();
+        shadow
+                .<ShadowAttributesType>findContainer(ShadowType.F_ATTRIBUTES)
+                .applyDefinition(
+                        resourceSchema
+                                .findDefinitionForObjectClassRequired(objectClass)
+                                .toResourceAttributeContainerDefinition());
     }
 
     public static PrismObjectDefinition<ShadowType> applyObjectDefinition(
             PrismObjectDefinition<ShadowType> shadowDefinition,
             ResourceObjectDefinition objectClassDefinition) throws SchemaException {
+        // FIXME eliminate double cloning!
         return shadowDefinition.cloneWithReplacedDefinition(
-                ShadowType.F_ATTRIBUTES,
-                objectClassDefinition.toResourceAttributeContainerDefinition());
+                        ShadowType.F_ATTRIBUTES, objectClassDefinition.toResourceAttributeContainerDefinition())
+                .cloneWithReplacedDefinition(
+                        ShadowType.F_ASSOCIATIONS, objectClassDefinition.toShadowAssociationsContainerDefinition());
     }
 
     public static String getIntent(PrismObject<ShadowType> shadow) {
@@ -720,8 +735,8 @@ public class ShadowUtil {
     }
 
     public static boolean matchesAttribute(ItemPath path, QName attributeName) {
-        return path.startsWithName(ShadowType.F_ATTRIBUTES) &&
-                path.rest().startsWithName(attributeName);
+        return path.startsWithName(ShadowType.F_ATTRIBUTES)
+                && path.rest().startsWithName(attributeName);
     }
 
     /** The shadow must have definitions applied. */
@@ -994,7 +1009,7 @@ public class ShadowUtil {
     public static boolean isNonAttributeResourceModification(QName firstPathName) {
         return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION)
                 || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS)
-                || QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION)
+                || QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATIONS)
                 || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
     }
 
@@ -1005,9 +1020,9 @@ public class ShadowUtil {
     }
 
     public static @NotNull ResourceAttributeContainer getIdentifiersContainerRequired(
-            @NotNull PrismContainerValue<ShadowAssociationType> associationValue) throws SchemaException {
+            @NotNull PrismContainerValue<ShadowAssociationValueType> associationValue) throws SchemaException {
         return MiscUtil.requireNonNull(
-                getAttributesContainer(associationValue, ShadowAssociationType.F_IDENTIFIERS),
+                getIdentifiersContainer(associationValue),
                 () -> "No identifiers in " + associationValue);
     }
 
@@ -1028,5 +1043,70 @@ public class ShadowUtil {
         var updatedShadowDef = applyObjectDefinition(standardShadowDef, objectDefinition);
         shadowBean.asPrismObject().applyDefinition(updatedShadowDef);
         return getOrCreateAttributesContainer(shadowBean, objectDefinition);
+    }
+
+    /**
+     * Returns the values of given association. The values are connected to the shadow. The list itself is not.
+     *
+     * Does not assume that shadow has a definition.
+     */
+    public static @NotNull Collection<PrismContainerValue<ShadowAssociationValueType>> getAssociationPrismValues(
+            @NotNull PrismObject<ShadowType> shadow, QName assocName) {
+        PrismContainer<ShadowAssociationValueType> association =
+                shadow.findContainer(ItemPath.create(ShadowType.F_ASSOCIATIONS, assocName));
+        if (association == null) {
+            return List.of();
+        } else {
+            return association.getValues();
+        }
+    }
+
+    /**
+     * Returns the values of given association. The values are connected to the shadow. The list itself is not.
+     *
+     * Does not assume that shadow has a definition.
+     */
+    public static @NotNull Collection<ShadowAssociationValueType> getAssociationValues(
+            @NotNull PrismObject<ShadowType> shadow, QName assocName) {
+        PrismContainer<ShadowAssociationValueType> association =
+                shadow.findContainer(ItemPath.create(ShadowType.F_ASSOCIATIONS, assocName));
+        if (association == null) {
+            return List.of();
+        } else {
+            return association.getRealValues();
+        }
+    }
+
+    /**
+     * Similar to {@link #getAssociationsContainer(ShadowType)} but has the advantage of never returning `null`.
+     * The collection itself is immutable. The values, however, are connected to ones in the shadow, so can be changed
+     * if needed.
+     */
+    public static @NotNull Collection<ShadowAssociation> getAssociations(@NotNull ShadowType shadow) {
+        var container = getAssociationsContainer(shadow);
+        if (container != null) {
+            return List.copyOf(container.getAssociations());
+        } else {
+            return List.of();
+        }
+    }
+
+    public static @NotNull Collection<ShadowAssociation> getAssociations(@NotNull PrismObject<ShadowType> shadow) {
+        return getAssociations(shadow.asObjectable());
+    }
+
+    /** Adds primary identifier value to the shadow. Assumes there's no primary identifier yet. */
+    public static void addPrimaryIdentifierValue(ShadowType shadow, Object primaryIdentifierValue) throws SchemaException {
+        var attributes = getOrCreateAttributesContainer(shadow);
+        attributes.add(
+                attributes
+                        .getResourceObjectDefinitionRequired()
+                        .getPrimaryIdentifierRequired()
+                        .instantiateFromRealValue(primaryIdentifierValue));
+    }
+
+    public static ShadowAssociation getAssociation(PrismObject<ShadowType> shadow, QName associationName) {
+        var container = getAssociationsContainer(shadow);
+        return container != null ? container.findAssociation(associationName) : null;
     }
 }

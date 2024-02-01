@@ -130,7 +130,7 @@ class ShadowDeltaComputerRelative {
                 if (effectiveMarkDelta != null) {
                     resultingRepoModifications.add(effectiveMarkDelta);
                 }
-            } else if (modification.getPath().startsWith(ShadowType.F_ASSOCIATION)) {
+            } else if (modification.getPath().startsWith(ShadowType.F_ASSOCIATIONS)) {
                 // associations are currently not stored in the shadow
             } else {
                 resultingRepoModifications.add(modification);

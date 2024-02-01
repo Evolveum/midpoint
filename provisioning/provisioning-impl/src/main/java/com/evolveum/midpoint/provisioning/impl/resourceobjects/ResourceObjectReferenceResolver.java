@@ -168,7 +168,7 @@ class ResourceObjectReferenceResolver {
                         ShadowType.class,
                         null);
             }
-            var shadowCtx = ctx.applyAttributesDefinition(repoShadow);
+            var shadowCtx = ctx.applyDefinitionInNewCtx(repoShadow);
 
             ResourceObjectIdentifier.Primary<?> primaryIdentifier =
                     ResourceObjectIdentifiers.of(shadowCtx.getObjectDefinitionRequired(), repoShadow.getBean())

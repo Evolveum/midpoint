@@ -58,10 +58,15 @@ public class ObjectFactory {
         return new ResourceSchemaImpl();
     }
 
-    public static PrismObjectDefinition<ShadowType> constructObjectDefinition(ResourceAttributeContainerDefinition rACD) {
+    public static PrismObjectDefinition<ShadowType> constructObjectDefinition(
+            ResourceAttributeContainerDefinition rACD,
+            ShadowAssociationsContainerDefinition rAsCD) {
         // Almost-shallow clone of object definition and complex type
         PrismObjectDefinition<ShadowType> shadowDefinition =
                 PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-        return shadowDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, rACD);
+        // FIXME eliminate double cloning!
+        return shadowDefinition
+                .cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, rACD)
+                .cloneWithReplacedDefinition(ShadowType.F_ASSOCIATIONS, rAsCD);
     }
 }

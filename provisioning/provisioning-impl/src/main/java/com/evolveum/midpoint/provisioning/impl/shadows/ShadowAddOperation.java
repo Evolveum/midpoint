@@ -129,7 +129,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             ExpressionEvaluationException, EncryptionException {
         AddOperationState opState = AddOperationState.fromPendingOperation(repoShadow, pendingOperation);
         ShadowType resourceObjectToAdd = pendingDelta.getObjectToAdd().asObjectable();
-        ctx.applyAttributesDefinition(resourceObjectToAdd);
+        ctx.applyDefinitionInNewCtx(resourceObjectToAdd);
         var resourceObject = ResourceObject.fromBean(resourceObjectToAdd, false, ctx.getObjectDefinitionRequired());
         new ShadowAddOperation(ctx, resourceObject, null, opState, options)
                 .execute(result);
@@ -161,7 +161,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             resourceObjectToAdd.checkConsistence();
 
             checkAttributesPresent();
-            ctx.applyAttributesDefinition(resourceObjectToAdd); // TODO is this necessary?
+            ctx.applyDefinitionInNewCtx(resourceObjectToAdd); // TODO is this necessary?
             ctx.validateSchemaIfConfigured(resourceObjectToAdd.getBean());
 
             accessChecker.checkAddAccess(ctx, resourceObjectToAdd, result);
@@ -304,7 +304,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         return previousDeadShadows.stream()
                 .anyMatch(deadShadow ->
-                        shadowCaretaker.findPendingLifecycleOperationInGracePeriod(ctx, deadShadow.asObjectable(), now) == ChangeTypeType.DELETE);
+                        ShadowLifecycleStateDeterminer.findPendingLifecycleOperationInGracePeriod(ctx, deadShadow.asObjectable(), now) == ChangeTypeType.DELETE);
     }
 
     private OperationResultStatus handleAddError(

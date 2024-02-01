@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowDeleteOperation;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
@@ -44,7 +43,6 @@ class ObjectNotFoundHandler extends HardErrorHandler {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectNotFoundHandler.class);
 
     @Autowired private ShadowUpdater shadowUpdater;
-    @Autowired private ShadowCaretaker shadowCaretaker;
 
     @Override
     public RepoShadow handleGetError(

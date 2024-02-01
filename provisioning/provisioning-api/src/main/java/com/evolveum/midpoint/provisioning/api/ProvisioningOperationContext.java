@@ -69,4 +69,13 @@ public class ProvisioningOperationContext {
         this.expressionEnvironmentSupplier = expressionEnvironment;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "ProvisioningOperationContext{" +
+                "requestIdentifier='" + requestIdentifier + '\'' +
+                ", expressionProfile=" + expressionProfile +
+                ", shadowRef=" + shadowRef +
+                '}';
+    }
 }

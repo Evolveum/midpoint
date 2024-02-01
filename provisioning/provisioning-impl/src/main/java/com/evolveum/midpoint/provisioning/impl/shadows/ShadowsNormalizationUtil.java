@@ -12,6 +12,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,7 +22,6 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.Visitor;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.NormalizationAwareResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -79,7 +80,7 @@ public class ShadowsNormalizationUtil {
 
     private static <T, N> void transformEqFilter(EqualFilter<T> eqFilter, @NotNull ResourceObjectDefinition objectDef)
             throws SchemaException {
-        if (!eqFilter.getParentPath().equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
+        if (!eqFilter.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
             return;
         }
 

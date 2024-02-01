@@ -179,6 +179,11 @@ public final class ResourceObjectTypeDefinitionImpl
         refinedObjectClassDefinition.trimTo(paths);
     }
 
+    @Override
+    public @Nullable QName getDefaultItemTypeName() {
+        return null;
+    }
+
     //region Cloning ========================================================
     @NotNull
     @Override

@@ -76,7 +76,8 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
 
     @Override
     protected void debugDumpExtra(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "token", String.valueOf(token), indent + 1);
+        sb.append('\n');
+        DebugUtil.debugDumpWithLabel(sb, "token", String.valueOf(token), indent + 1);
     }
 
     @Override
@@ -87,7 +88,11 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
     @Override
     public void checkConsistence() throws SchemaException {
         super.checkConsistence();
-        // Currently, livesync ADD+MODIFY changes contain the whole object.
-        stateCheck(completeResourceObject != null || isDelete(), "No resource object for non-delete delta");
+        stateCheck(ucfResourceObject != null || isDelete(), "No UCF resource object for non-delete delta");
+
+        if (isInitialized() && isOk()) {
+            // Currently, livesync ADD+MODIFY changes contain the whole object.
+            stateCheck(completeResourceObject != null || isDelete(), "No resource object for non-delete delta");
+        }
     }
 }

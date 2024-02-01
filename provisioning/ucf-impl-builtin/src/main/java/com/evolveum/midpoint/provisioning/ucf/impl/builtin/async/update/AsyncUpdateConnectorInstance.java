@@ -347,7 +347,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    protected void setResourceSchema(ResourceSchema resourceSchema) {
+    protected void setResourceSchema(CompleteResourceSchema resourceSchema) {
         super.setResourceSchema(resourceSchema);
         // TODO eliminate these diagnostic messages when no longer needed (MID-5931)
         if (resourceSchema == null) {

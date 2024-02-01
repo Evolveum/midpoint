@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -40,10 +41,10 @@ public class ConnIdNameMapper {
     private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
     private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
 
-    private static final Map<String,QName> SPECIAL_ATTRIBUTE_MAP_ICF = new HashMap<>();
+    private static final Map<String,ItemName> SPECIAL_ATTRIBUTE_MAP_ICF = new HashMap<>();
     private static final Map<QName,String> SPECIAL_ATTRIBUTE_MAP_MP = new HashMap<>();
 
-    private ResourceSchema resourceSchema = null;
+    private CompleteResourceSchema resourceSchema = null;
 
     public ConnIdNameMapper() {
         super();
@@ -53,7 +54,7 @@ public class ConnIdNameMapper {
         return resourceSchema;
     }
 
-    public void setResourceSchema(ResourceSchema resourceSchema) {
+    public void setResourceSchema(CompleteResourceSchema resourceSchema) {
         this.resourceSchema = resourceSchema;
     }
 
@@ -75,7 +76,7 @@ public class ConnIdNameMapper {
         addOperationalAttributeMapping(SecretIcfOperationalAttributes.LAST_LOGIN_DATE);
     }
 
-    private static void addSpecialAttributeMapping(String icfName, QName qname) {
+    private static void addSpecialAttributeMapping(String icfName, ItemName qname) {
         SPECIAL_ATTRIBUTE_MAP_ICF.put(icfName, qname);
         SPECIAL_ATTRIBUTE_MAP_MP.put(qname, icfName);
     }
@@ -90,13 +91,7 @@ public class ConnIdNameMapper {
     }
 
     private static void addOperationalAttributeMapping(String icfName) {
-        QName qName = convertUnderscoreAttributeNameToQName(icfName);
-        addSpecialAttributeMapping(icfName, qName);
-    }
-
-    public QName convertAttributeNameToQName(String icfAttrName, ResourceAttributeContainerDefinition attributesContainerDefinition) {
-        return convertAttributeNameToQName(
-                icfAttrName, attributesContainerDefinition.getComplexTypeDefinition());
+        addSpecialAttributeMapping(icfName, convertUnderscoreAttributeNameToQName(icfName));
     }
 
     /** The ocDef may or may not contain the definition of the attribute we are asking about. */
@@ -115,7 +110,7 @@ public class ConnIdNameMapper {
         }
     }
 
-    public QName convertAttributeNameToQName(String icfAttrName, ResourceObjectDefinition ocDef) {
+    public ItemName convertAttributeNameToQName(String icfAttrName, ResourceObjectDefinition ocDef) {
         if (SPECIAL_ATTRIBUTE_MAP_ICF.containsKey(icfAttrName)) {
             for (ResourceAttributeDefinition<?> attributeDefinition : ocDef.getAttributeDefinitions()) {
                 if (icfAttrName.equals(attributeDefinition.getFrameworkAttributeName())) {
@@ -125,7 +120,7 @@ public class ConnIdNameMapper {
             // fallback, compatibility
             return SPECIAL_ATTRIBUTE_MAP_ICF.get(icfAttrName);
         }
-        return new QName(MidPointConstants.NS_RI, QNameUtil.escapeElementName(icfAttrName), MidPointConstants.PREFIX_NS_RI);
+        return new ItemName(MidPointConstants.NS_RI, QNameUtil.escapeElementName(icfAttrName), MidPointConstants.PREFIX_NS_RI);
     }
 
     public String convertAttributeNameToConnId(PropertyDelta<?> attributeDelta, ResourceObjectDefinition ocDef)
@@ -182,7 +177,7 @@ public class ConnIdNameMapper {
         return icfAttrName.startsWith("__") && icfAttrName.endsWith("__");
     }
 
-    private static QName convertUnderscoreAttributeNameToQName(String icfAttrName) {
+    private static ItemName convertUnderscoreAttributeNameToQName(String icfAttrName) {
         // Strip leading and trailing underscores
         String inside = icfAttrName.substring(2, icfAttrName.length()-2);
 
@@ -200,7 +195,7 @@ public class ConnIdNameMapper {
             lastIndex = nextIndex + 1;
         }
 
-        return new QName(SchemaConstants.NS_ICF_SCHEMA, sb.toString());
+        return new ItemName(SchemaConstants.NS_ICF_SCHEMA, sb.toString());
     }
 
     private static String toCamelCase(String upcase, boolean lowCase) {

@@ -7,6 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -14,20 +25,15 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociation;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Maintains a list of mapped items: the items ready to produce prepared {@link MappingImpl} objects.
@@ -43,14 +49,6 @@ class MappedItems<F extends FocusType> {
     @NotNull private final Context context;
 
     @NotNull private final List<MappedItem<?, ?, F>> mappedItems = new ArrayList<>();
-
-    /**
-     * Definition of `association` container in shadows.
-     */
-    private final Lazy<PrismContainerDefinition<ShadowAssociationType>> lazyAssociationContainerDefinition =
-            Lazy.from(() -> getBeans().prismContext.getSchemaRegistry()
-                    .findObjectDefinitionByCompileTimeClass(ShadowType.class)
-                    .findContainerDefinition(ShadowType.F_ASSOCIATION));
 
     /**
      * Definition of `auxiliaryObjectClass` property in shadows.
@@ -109,9 +107,8 @@ class MappedItems<F extends FocusType> {
 
         // 1. Definitions and mapping beans
 
-        //noinspection unchecked
         ResourceAttributeDefinition<T> attributeDefinition =
-                (ResourceAttributeDefinition<T>) Objects.requireNonNull(
+                Objects.requireNonNull(
                         source.resourceObjectDefinition.findAttributeDefinition(attributeName),
                         () -> "No definition for attribute " + attributeName);
 
@@ -131,8 +128,6 @@ class MappedItems<F extends FocusType> {
         // 2. Values
 
         ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> attributeAPrioriDelta = getItemAPrioriDelta(attributePath);
-        MappedItem.ItemProvider<PrismPropertyValue<T>, PrismPropertyDefinition<T>> attributeProvider =
-                () -> getCurrentAttribute(attributeName);
 
         // 3. Processing source
 
@@ -159,7 +154,7 @@ class MappedItems<F extends FocusType> {
                         itemDescription,
                         attributeAPrioriDelta,
                         attributeDefinition,
-                        attributeProvider,
+                        () -> getCurrentAttribute(attributeName),
                         null, // postprocessor
                         null, // variable producer
                         processingMode));
@@ -177,11 +172,11 @@ class MappedItems<F extends FocusType> {
 
         // 1. Definitions
 
-        ResourceAssociationDefinition associationDefinition =
+        ShadowAssociationDefinition associationDefinition =
                 Objects.requireNonNull(
                         source.resourceObjectDefinition.findAssociationDefinition(associationName),
                         () -> "No definition for association " + associationName);
-        ItemName itemPath = ShadowType.F_ASSOCIATION;
+        ItemPath itemPath = ShadowType.F_ASSOCIATIONS.append(associationName);
         String itemDescription = "association " + associationName;
         List<InboundMappingType> mappingBeans =
                 source.selectMappingBeansForEvaluationPhase(
@@ -195,11 +190,21 @@ class MappedItems<F extends FocusType> {
 
         // 2. Values
 
-        // TODO Shouldn't we filter the apriori delta for specific association? (Instead of passing any association deltas?)
-        ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>
+        ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>
                 associationAPrioriDelta = getItemAPrioriDelta(itemPath);
-        MappedItem.ItemProvider<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>
-                associationProvider = () -> getCurrentAssociation(associationName);
+        MappedItem.ItemProvider<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>
+                associationProvider = () -> {
+                    //noinspection unchecked,rawtypes
+                    return (Item) MappedItems.this.getCurrentAssociation(associationName);
+                };
+        MappedItem.PostProcessor<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition> associationPostProcessor =
+                (aPrioriDelta, currentItem) -> {
+                    // FIXME remove this ugly hacking
+                    //noinspection unchecked,rawtypes
+                    source.resolveInputEntitlements(
+                            (ContainerDelta<ShadowAssociationValueType>) (ContainerDelta) aPrioriDelta,
+                            (ShadowAssociation) (Item) currentItem);
+                };
 
         // 3. Processing source
 
@@ -224,10 +229,10 @@ class MappedItems<F extends FocusType> {
                         mappingBeans, // [EP:M:IM] DONE mappings are from the resource
                         itemPath, // source path (cannot point to specified association name!)
                         itemDescription,
-                        associationAPrioriDelta, // a priori delta for all associations - see TO-DO above
-                        lazyAssociationContainerDefinition.get(),
-                        associationProvider, // association item provider
-                        source::resolveInputEntitlements, // postprocessor
+                        associationAPrioriDelta,
+                        associationDefinition,
+                        associationProvider,
+                        associationPostProcessor,
                         source::getEntitlementVariableProducer, // so-called variable producer
                         processingMode));
     }
@@ -318,26 +323,8 @@ class MappedItems<F extends FocusType> {
         }
     }
 
-    private @Nullable PrismContainer<ShadowAssociationType> getCurrentAssociation(QName associationName)
-            throws SchemaException {
-        LOGGER.trace("Getting filtered associations for {}", associationName);
-        PrismContainer<ShadowAssociationType> currentAssociation = source.currentShadow != null ?
-                source.currentShadow.findContainer(ShadowType.F_ASSOCIATION) : null;
-
-        if (currentAssociation != null) {
-            PrismContainer<ShadowAssociationType> filteredAssociations = currentAssociation.getDefinition().instantiate();
-            Collection<PrismContainerValue<ShadowAssociationType>> filteredAssociationValues = currentAssociation.getValues().stream()
-                    .filter(rVal -> associationName.equals(rVal.asContainerable().getName()))
-                    .map(PrismContainerValue::clone)
-                    .collect(Collectors.toList());
-            context.beans.prismContext.adopt(filteredAssociations);
-            // Make sure all the modified/cloned associations have proper definition
-            filteredAssociations.applyDefinitionIfMissing(currentAssociation.getDefinition());
-            filteredAssociations.addAll(filteredAssociationValues);
-            return filteredAssociations;
-        } else {
-            return null;
-        }
+    private @Nullable ShadowAssociation getCurrentAssociation(QName associationName) {
+        return source.currentShadow != null ? ShadowUtil.getAssociation(source.currentShadow, associationName) : null;
     }
 
     private @Nullable PrismProperty<QName> getCurrentAuxiliaryObjectClasses() {

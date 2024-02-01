@@ -103,6 +103,7 @@ class ShadowRefreshOperation {
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
         ProvisioningContext ctx = ShadowsLocalBeans.get().ctxFactory.createForRepoShadow(repoShadow, task);
+        ctx.applyCurrentDefinition(repoShadow.getBean()); // TODO is this necessary?
         return executeFullInternal(ctx, repoShadow, options, context, result);
     }
 
@@ -128,7 +129,6 @@ class ShadowRefreshOperation {
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
         ctx.setOperationContext(context);
         ctx.assertDefinition();
-        ctx.applyAttributesDefinition(repoShadow.getBean());
 
         var op = new ShadowRefreshOperation(ctx, repoShadow, options);
         op.executeFull(result);
@@ -372,7 +372,7 @@ class ShadowRefreshOperation {
         expirePendingOperations(shadowDelta);
 
         if (!shadowDelta.isEmpty()) {
-            ctx.applyAttributesDefinition(shadowDelta);
+            ctx.applyCurrentDefinition(shadowDelta);
             b.shadowUpdater.modifyRepoShadow(ctx, shadow, shadowDelta.getModifications(), result);
         }
 

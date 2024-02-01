@@ -20,7 +20,7 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.*;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.CollectionUtils;
@@ -62,9 +62,6 @@ import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -182,7 +179,7 @@ public class IntegrationTestTools {
     }
 
     @NotNull
-    private static QName toRiQName(String name) {
+    public static QName toRiQName(String name) {
         return new QName(MidPointConstants.NS_RI, name);
     }
 
@@ -763,7 +760,7 @@ public class IntegrationTestTools {
     private static ObjectQuery createShadowQuery(ShadowType shadow, ResourceObjectDefinition objectDef)
             throws SchemaException {
         //noinspection unchecked
-        var identifierDef = (ResourceAttributeDefinition<String>) objectDef.getPrimaryIdentifierRequired();
+        var identifierDef = objectDef.getPrimaryIdentifierRequired();
 
         PrismContainer<?> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<?> identifierProperty = attributesContainer.findProperty(identifierDef.getItemName());
@@ -928,34 +925,32 @@ public class IntegrationTestTools {
 
     public static ObjectDelta<ShadowType> createEntitleDelta(
             String accountOid, QName associationName, String groupOid) throws SchemaException {
-        ShadowAssociationType association = new ShadowAssociationType();
-        association.setName(associationName);
+        var association = new ShadowAssociationValueType();
         ObjectReferenceType shadowRefType = new ObjectReferenceType();
         shadowRefType.setOid(groupOid);
         shadowRefType.setType(ShadowType.COMPLEX_TYPE);
         association.setShadowRef(shadowRefType);
         return PrismContext.get().deltaFactory().object().createModificationAddContainer(
-                ShadowType.class, accountOid, ShadowType.F_ASSOCIATION, association);
+                ShadowType.class, accountOid, ShadowType.F_ASSOCIATIONS.append(associationName), association);
     }
 
     public static ObjectDelta<ShadowType> createDetitleDelta(
             String accountOid, QName associationName, String groupOid) throws SchemaException {
-        ShadowAssociationType association = new ShadowAssociationType();
-        association.setName(associationName);
+        var association = new ShadowAssociationValueType();
         ObjectReferenceType shadowRefType = new ObjectReferenceType();
         shadowRefType.setOid(groupOid);
         shadowRefType.setType(ShadowType.COMPLEX_TYPE);
         association.setShadowRef(shadowRefType);
         return PrismContext.get().deltaFactory().object().createModificationDeleteContainer(
-                ShadowType.class, accountOid, ShadowType.F_ASSOCIATION, association);
+                ShadowType.class, accountOid, ShadowType.F_ASSOCIATIONS.append(associationName), association);
     }
 
-    public static ObjectDelta<ShadowType> createEntitleDeltaIdentifiers(String accountOid, QName associationName, QName identifierQname, String identifierValue) throws SchemaException {
-        ShadowAssociationType association = new ShadowAssociationType();
-        association.setName(associationName);
-        ObjectDelta<ShadowType> delta = PrismContext.get().deltaFactory().object().createModificationAddContainer(ShadowType.class,
-                accountOid, ShadowType.F_ASSOCIATION, association);
-        PrismContainer<ShadowIdentifiersType> identifiersContainer = association.asPrismContainerValue().findOrCreateContainer(ShadowAssociationType.F_IDENTIFIERS);
+    public static ObjectDelta<ShadowType> createEntitleDeltaIdentifiers(
+            String accountOid, QName associationName, QName identifierQname, String identifierValue) throws SchemaException {
+        var association = new ShadowAssociationValueType();
+        ObjectDelta<ShadowType> delta = PrismContext.get().deltaFactory().object().createModificationAddContainer(
+                ShadowType.class, accountOid, ShadowType.F_ASSOCIATIONS.append(associationName), association);
+        PrismContainer<ShadowIdentifiersType> identifiersContainer = association.asPrismContainerValue().findOrCreateContainer(ShadowAssociationValueType.F_IDENTIFIERS);
         PrismContainerValue<ShadowIdentifiersType> identifiersContainerValue = identifiersContainer.createNewValue();
         PrismProperty<String> identifier = PrismContext.get().itemFactory().createProperty(identifierQname);
         identifier.addRealValue(identifierValue);
@@ -963,12 +958,12 @@ public class IntegrationTestTools {
         return delta;
     }
 
-    public static ObjectDelta<ShadowType> createDetitleDeltaIdentifiers(String accountOid, QName associationName, QName identifierQname, String identifierValue) throws SchemaException {
-        ShadowAssociationType association = new ShadowAssociationType();
-        association.setName(associationName);
-        ObjectDelta<ShadowType> delta = PrismContext.get().deltaFactory().object().createModificationDeleteContainer(ShadowType.class,
-                accountOid, ShadowType.F_ASSOCIATION, association);
-        PrismContainer<ShadowIdentifiersType> identifiersContainer = association.asPrismContainerValue().findOrCreateContainer(ShadowAssociationType.F_IDENTIFIERS);
+    public static ObjectDelta<ShadowType> createDetitleDeltaIdentifiers(
+            String accountOid, QName associationName, QName identifierQname, String identifierValue) throws SchemaException {
+        var association = new ShadowAssociationValueType();
+        ObjectDelta<ShadowType> delta = PrismContext.get().deltaFactory().object().createModificationDeleteContainer(
+                ShadowType.class, accountOid, ShadowType.F_ASSOCIATIONS.append(associationName), association);
+        PrismContainer<ShadowIdentifiersType> identifiersContainer = association.asPrismContainerValue().findOrCreateContainer(ShadowAssociationValueType.F_IDENTIFIERS);
         PrismContainerValue<ShadowIdentifiersType> identifiersContainerValue = identifiersContainer.createNewValue();
         PrismProperty<String> identifier = PrismContext.get().itemFactory().createProperty(identifierQname);
         identifier.addRealValue(identifierValue);
@@ -1008,31 +1003,21 @@ public class IntegrationTestTools {
         assertTrue("Group " + group.getName() + " has members while not expecting it, members: " + members, members == null || members.isEmpty());
     }
 
-    public static ShadowAssociationType assertAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
-        ShadowType accountType = shadow.asObjectable();
-        List<ShadowAssociationType> associations = accountType.getAssociation();
-        assertNotNull("Null associations in " + shadow, associations);
-        assertFalse("Empty associations in " + shadow, associations.isEmpty());
-        for (ShadowAssociationType association : associations) {
-            if (associationName.equals(association.getName()) &&
-                    association.getShadowRef() != null &&
-                    entitlementOid.equals(association.getShadowRef().getOid())) {
-                return association;
+    public static ShadowAssociationValueType assertAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
+        for (var value : ShadowUtil.getAssociationValues(shadow, associationName)) {
+            ObjectReferenceType ref = value.getShadowRef();
+            if (ref != null && entitlementOid.equals(ref.getOid())) {
+                return value;
             }
         }
         AssertJUnit.fail("No association for entitlement " + entitlementOid + " in " + shadow);
-        throw new IllegalStateException("not reached");
+        throw new NotHereAssertionError();
     }
 
     public static void assertNoAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
-        ShadowType accountType = shadow.asObjectable();
-        List<ShadowAssociationType> associations = accountType.getAssociation();
-        if (associations == null) {
-            return;
-        }
-        for (ShadowAssociationType association : associations) {
-            if (associationName.equals(association.getName()) &&
-                    entitlementOid.equals(association.getShadowRef().getOid())) {
+        for (var value : ShadowUtil.getAssociationValues(shadow, associationName)) {
+            ObjectReferenceType ref = value.getShadowRef();
+            if (ref != null && entitlementOid.equals(ref.getOid())) {
                 AssertJUnit.fail("Unexpected association for entitlement " + entitlementOid + " in " + shadow);
             }
         }

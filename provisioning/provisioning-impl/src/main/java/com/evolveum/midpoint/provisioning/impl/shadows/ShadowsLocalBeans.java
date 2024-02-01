@@ -10,7 +10,6 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
@@ -51,7 +50,6 @@ public class ShadowsLocalBeans {
     @Autowired AccessChecker accessChecker;
     @Autowired ClassificationHelper classificationHelper;
     @Autowired ShadowsFacade shadowsFacade;
-    @Autowired ShadowCaretaker shadowCaretaker;
     @Autowired ShadowFinder shadowFinder;
     @Autowired OperationResultRecorder operationResultRecorder;
     @Autowired ShadowUpdater shadowUpdater;

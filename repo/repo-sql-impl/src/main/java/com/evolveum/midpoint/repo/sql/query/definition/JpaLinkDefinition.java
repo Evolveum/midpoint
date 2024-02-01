@@ -45,7 +45,7 @@ public class JpaLinkDefinition<TD extends JpaDataNodeDefinition>
 
     }
     public JpaLinkDefinition(@NotNull ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification,
-            boolean embedded, @NotNull D targetDefinition, boolean explicitTargetTypeRequired) {
+            boolean embedded, @NotNull TD targetDefinition, boolean explicitTargetTypeRequired) {
         this.itemPath = itemPath;
         this.jpaName = jpaName;
         this.collectionSpecification = collectionSpecification;

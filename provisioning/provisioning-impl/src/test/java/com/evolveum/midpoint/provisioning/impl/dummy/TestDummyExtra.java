@@ -34,7 +34,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -98,9 +98,9 @@ public class TestDummyExtra extends TestDummy {
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         ResourceObjectDefinition accountRDef = refinedSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
 
-        Collection<ResourceAssociationDefinition> associationDefinitions = accountRDef.getAssociationDefinitions();
+        Collection<ShadowAssociationDefinition> associationDefinitions = accountRDef.getAssociationDefinitions();
         assertEquals("Wrong number of association defs", 3, associationDefinitions.size());
-        ResourceAssociationDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
+        ShadowAssociationDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
         assertNotNull("No definition for crew association", crewAssociationDef);
     }
 

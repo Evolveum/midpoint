@@ -46,7 +46,7 @@ public class CompositeObjectDefinitionImpl
 
     @NotNull private final LayerType currentLayer;
     @NotNull private final ResourceObjectDefinition structuralDefinition;
-    @NotNull private final Collection<ResourceObjectDefinition> auxiliaryDefinitions;
+    @NotNull private final Collection<? extends ResourceObjectDefinition> auxiliaryDefinitions;
 
     /** Lazily computed, but only when this instance is immutable. */
     private volatile List<ResourceAttributeDefinition<?>> allAttributeDefinitions;
@@ -56,7 +56,7 @@ public class CompositeObjectDefinitionImpl
     private CompositeObjectDefinitionImpl(
             @NotNull LayerType currentLayer,
             @NotNull ResourceObjectDefinition structuralDefinition,
-            @Nullable Collection<ResourceObjectDefinition> auxiliaryDefinitions,
+            @Nullable Collection<? extends ResourceObjectDefinition> auxiliaryDefinitions,
             boolean allowMutableDefinitions) {
         this.currentLayer = currentLayer;
         this.structuralDefinition = structuralDefinition;
@@ -69,9 +69,9 @@ public class CompositeObjectDefinitionImpl
         }
     }
 
-    static CompositeObjectDefinitionImpl immutable(
+    static @NotNull CompositeObjectDefinitionImpl immutable(
             @NotNull ResourceObjectDefinition structuralDefinition,
-            @Nullable Collection<ResourceObjectDefinition> auxiliaryDefinitions) {
+            @Nullable Collection<? extends ResourceObjectDefinition> auxiliaryDefinitions) {
         var definition = new CompositeObjectDefinitionImpl(
                 DEFAULT_LAYER, structuralDefinition, auxiliaryDefinitions, false);
         definition.freeze();
@@ -85,7 +85,7 @@ public class CompositeObjectDefinitionImpl
 
     @NotNull
     @Override
-    public Collection<ResourceObjectDefinition> getAuxiliaryDefinitions() {
+    public Collection<? extends ResourceObjectDefinition> getAuxiliaryDefinitions() {
         return auxiliaryDefinitions;
     }
 
@@ -94,7 +94,8 @@ public class CompositeObjectDefinitionImpl
         if (prismObjectDefinition == null) {
             prismObjectDefinition =
                     ObjectFactory.constructObjectDefinition(
-                            toResourceAttributeContainerDefinition());
+                            toResourceAttributeContainerDefinition(),
+                            toShadowAssociationsContainerDefinition());
         }
         return prismObjectDefinition;
     }
@@ -253,7 +254,7 @@ public class CompositeObjectDefinitionImpl
     // TODO - ok???
     @NotNull
     @Override
-    public Collection<ResourceAssociationDefinition> getAssociationDefinitions() {
+    public Collection<ShadowAssociationDefinition> getAssociationDefinitions() {
         return structuralDefinition.getAssociationDefinitions();
     }
 
@@ -690,6 +691,11 @@ public class CompositeObjectDefinitionImpl
     @Override
     public boolean isListMarker() {
         return structuralDefinition.isListMarker();
+    }
+
+    @Override
+    public @Nullable QName getDefaultItemTypeName() {
+        return null;
     }
 
     @Override

@@ -79,7 +79,7 @@ class DefinitionsHelper {
         } else {
             ctx = ctxFactory.createForShadow(shadow, task, result);
         }
-        ctx.applyAttributesDefinition(delta);
+        ctx.applyCurrentDefinition(delta);
     }
 
     public void applyDefinition(ShadowType shadow, Task task, OperationResult result)
@@ -87,7 +87,7 @@ class DefinitionsHelper {
             ExpressionEvaluationException {
         ctxFactory
                 .createForShadow(shadow, task, result)
-                .applyAttributesDefinitionHere(shadow);
+                .applyCurrentDefinition(shadow);
     }
 
     public void applyDefinition(ObjectQuery query, Task task, OperationResult result)

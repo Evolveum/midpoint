@@ -81,11 +81,6 @@ public interface ResourceAttributeContainerDefinitionDelegator
     }
 
     @Override
-    default <T extends ShadowType> @NotNull PrismObjectDefinition<T> toShadowDefinition() {
-        return delegate().toShadowDefinition();
-    }
-
-    @Override
     default @NotNull ResourceAttributeContainer instantiate() {
         return delegate().instantiate();
     }

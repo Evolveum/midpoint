@@ -11,8 +11,6 @@ import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.task.api.Task;
-
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,8 +78,8 @@ public class ResourceObjectConverter {
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
     /**
-     * For object-to-subject entitlements, the {@link ShadowAssociationType#F_IDENTIFIERS} containers can contain
-     * the full object ({@link UcfResourceObject}) of the relevant entitlement, to avoid is repeated fetching
+     * For object-to-subject entitlements, the {@link ShadowAssociationValueType#F_IDENTIFIERS} containers can contain
+     * the full object ({@link ExistingResourceObject}) of the relevant entitlement, to avoid is repeated fetching
      * for the sake of the shadowization.
      */
     public static final String ENTITLEMENT_OBJECT_KEY = ResourceObjectConverter.class.getName() + ".entitlementObject";
@@ -104,8 +102,7 @@ public class ResourceObjectConverter {
 
     /**
      * "Completes" the provided "raw" resource object, i.e. executes
-     * {@link AbstractLazilyInitializableResourceEntity#completeResourceObject(ProvisioningContext, ResourceObject,
-     * boolean, OperationResult)}.
+     * {@link ResourceObjectCompleter#completeResourceObject(ProvisioningContext, ExistingResourceObject, boolean, OperationResult)}.
      */
     public @NotNull CompleteResourceObject completeResourceObject(
             @NotNull ProvisioningContext ctx,
@@ -114,9 +111,8 @@ public class ResourceObjectConverter {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        ResourceObjectFetched objectFetched = new ResourceObjectFetched(rawObject, ctx, fetchAssociations);
-        objectFetched.initialize(ctx.getTask(), result);
-        return objectFetched.asCompleteResourceObject();
+
+        return ResourceObjectCompleter.completeResourceObject(ctx, rawObject, fetchAssociations, result);
     }
 
     /**

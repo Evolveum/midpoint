@@ -416,11 +416,6 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return asserter;
     }
 
-    public ShadowAsserter<RA> assertNoAssociations() {
-        assertNull("Unexpected associations in " + desc(), getObject().findContainer(ShadowType.F_ASSOCIATION));
-        return this;
-    }
-
     public ShadowAsserter<RA> assertNoLegacyConsistency() {
         // Nothing to do. Those are gone in midPoint 4.0.
         return this;

@@ -158,7 +158,7 @@ public class ShadowCreator {
         // attributes are no longer ResourceAttribute instances. We delete them also because the application of the
         // raw PCD definition (below) would fail on a RAC. The same reasons for associations.
         repoShadowBean.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);
-        repoShadowBean.asPrismObject().removeContainer(ShadowType.F_ASSOCIATION);
+        repoShadowBean.asPrismObject().removeContainer(ShadowType.F_ASSOCIATIONS);
 
         // For similar reason, we remove any traces of RACD from the definition.
         PrismObjectDefinition<ShadowType> standardDefinition =

@@ -3484,11 +3484,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
     }
 
     protected void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
-        ShadowAssociationType associationType = IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
+        ShadowAssociationValueType associationType = IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
         PrismContainerValue<?> identifiersCVal = associationType.getIdentifiers().asPrismContainerValue();
         PrismProperty<String> dnProp = identifiersCVal.findProperty(getSecondaryIdentifierQName());
         assertNotNull("No DN identifier in group association in " + account + ", got " + identifiersCVal, dnProp);
-
     }
 
     @SuppressWarnings("SameParameterValue")

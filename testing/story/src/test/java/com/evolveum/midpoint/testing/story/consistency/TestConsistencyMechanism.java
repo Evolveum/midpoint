@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.testing.story.consistency;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.toRiQName;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -2210,7 +2212,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
                 .delta()
                 .assertNoModification(attributePath(QNAME_EMPLOYEE_TYPE))
-                .assertHasModification(ShadowType.F_ASSOCIATION);
+                .assertHasModification(ShadowType.F_ASSOCIATIONS.append(toRiQName("group")));
 
         //THEN
         openDJController.assumeRunning();

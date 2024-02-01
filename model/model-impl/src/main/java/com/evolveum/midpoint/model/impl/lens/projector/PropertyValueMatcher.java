@@ -14,26 +14,30 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
- * @author semancik
+ * Helps with the consolidation of attribute and auxiliary object class values.
  *
+ * @author semancik
  */
-public class ValueMatcher<T> {
+public class PropertyValueMatcher<T> implements EqualsChecker<PrismPropertyValue<T>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ValueMatcher.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PropertyValueMatcher.class);
 
-    MatchingRule<T> matchingRule;
+    private final MatchingRule<T> matchingRule;
 
-    public ValueMatcher(MatchingRule<T> matchingRule) {
+    private PropertyValueMatcher(MatchingRule<T> matchingRule) {
         this.matchingRule = matchingRule;
     }
 
-    public static <T> ValueMatcher<T> createMatcher(ResourceAttributeDefinition<?> rAttrDef, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+    static @NotNull <T> PropertyValueMatcher<T> createMatcher(ResourceAttributeDefinition<?> rAttrDef, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
         MatchingRule<T> matchingRule;
         try {
@@ -41,12 +45,12 @@ public class ValueMatcher<T> {
         } catch (SchemaException e) {
             throw new SchemaException(e.getMessage()+", defined for attribute "+rAttrDef.getItemName(), e);
         }
-        return new ValueMatcher<>(matchingRule);
+        return new PropertyValueMatcher<>(matchingRule);
     }
 
-    public static <T> ValueMatcher<T> createDefaultMatcher(QName type, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(null, type);
-        return new ValueMatcher<>((MatchingRule<T>) matchingRule);
+    @SuppressWarnings("SameParameterValue")
+    static <T> PropertyValueMatcher<T> createDefaultMatcher(QName typeName, MatchingRuleRegistry matchingRuleRegistry) {
+        return new PropertyValueMatcher<>( matchingRuleRegistry.getMatchingRuleSafe(null, typeName));
     }
 
     public boolean match(T realA, T realB) throws SchemaException {
@@ -79,25 +83,6 @@ public class ValueMatcher<T> {
         return false;
     }
 
-    @Experimental // FIXME
-    public PrismPropertyValue<T> findValue(PrismProperty<T> property, PrismPropertyValue<T> pValue) {
-        for (PrismPropertyValue<T> existingValue: property.getValues()) {
-            try {
-                if (matchingRule.match(existingValue.getRealValue(), pValue.getValue())) {
-                    return existingValue;
-                }
-            } catch (SchemaException e) {
-                // At least one of the values is invalid. But we do not want to throw exception from
-                // a comparison operation. That will make the system very fragile. Let's fall back to
-                // ordinary equality mechanism instead.
-                if (existingValue.getRealValue().equals(pValue.getValue())) {
-                    return existingValue;
-                }
-            }
-        }
-        return null;
-    }
-
     public boolean isRealValueToAdd(PropertyDelta<T> delta, PrismPropertyValue<T> pValue) {
         if (delta.getValuesToAdd() == null){
             return false;
@@ -128,4 +113,14 @@ public class ValueMatcher<T> {
         return "ValueMatcher(" + matchingRule + ")";
     }
 
+    @Override
+    public boolean test(PrismPropertyValue<T> v1, PrismPropertyValue<T> v2) {
+        try {
+            return match(v1.getRealValue(), v2.getRealValue());
+        } catch (SchemaException e) {
+            // We do not want to throw exception from a comparison operation. That would make the system very fragile.
+            LOGGER.warn("Couldn't match values: {} and {}: {}", v1, v2, e.getMessage(), e);
+            return v1.equals(v2);
+        }
+    }
 }

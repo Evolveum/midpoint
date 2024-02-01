@@ -31,9 +31,7 @@ import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
-import com.evolveum.midpoint.schema.util.AbstractShadow;
-import com.evolveum.midpoint.schema.util.RawRepoShadow;
-import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.*;
 
 import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
@@ -60,7 +58,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -4538,10 +4535,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         // @formatter:on
 
         and("the association has correct definition");
-        List<ShadowAssociationType> associationBeans = accountAfter.asObjectable().getAssociation();
-        assertThat(associationBeans).as("association beans").hasSize(1);
+        var associationValues = ShadowAssociationsCollection.ofShadow(accountAfter.asObjectable()).getAllValues();
+        assertThat(associationValues).as("associations").hasSize(1);
         PrismContainerDefinition<?> identifiersDefinition =
-                associationBeans.get(0).getIdentifiers().asPrismContainerValue().getParent().getDefinition();
+                associationValues.iterator().next().value().getIdentifiers().asPrismContainerValue().getParent().getDefinition();
         assertThat(identifiersDefinition)
                 .as("definition of identifiers")
                 .isInstanceOf(ResourceAttributeContainerDefinition.class);

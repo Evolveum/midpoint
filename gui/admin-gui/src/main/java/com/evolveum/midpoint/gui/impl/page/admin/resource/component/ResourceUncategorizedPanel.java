@@ -271,7 +271,7 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
 
     private Collection<SelectorOptions<GetOperationOptions>> createSearchOptions() {
         GetOperationOptionsBuilder builder = getPageBase().getOperationOptionsBuilder()
-                .item(ShadowType.F_ASSOCIATION).dontRetrieve();
+                .item(ShadowType.F_ASSOCIATIONS).dontRetrieve();
         return builder.build();
     }
 

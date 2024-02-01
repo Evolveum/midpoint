@@ -14,7 +14,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
@@ -22,13 +21,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Handles `fetch` method calls:
+ * Fetches resource objects by their primary identifiers, handling the following methods:
  *
  * - {@link ResourceObjectConverter#fetchResourceObject(ProvisioningContext, ResourceObjectIdentification.WithPrimary,
  * AttributesToReturn, boolean, OperationResult)}
  * - plus "fetch raw" called from various places, mainly related to entitlements
- *
- * @see ResourceObjectSearchOperation
  */
 class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperation {
 
@@ -37,9 +34,8 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
     private ResourceObjectFetchOperation(
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectIdentification.WithPrimary primaryIdentification,
-            boolean fetchAssociations,
-            @Nullable FetchErrorReportingMethodType errorReportingMethod) {
-        super(ctx, fetchAssociations, errorReportingMethod);
+            boolean fetchAssociations) {
+        super(ctx, fetchAssociations, null);
         this.primaryIdentification = primaryIdentification;
     }
 
@@ -52,14 +48,14 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        return new ResourceObjectFetchOperation(ctx, identification, fetchAssociations, null)
+        return new ResourceObjectFetchOperation(ctx, identification, fetchAssociations)
                 .execute(attributesToReturn, result);
     }
 
     /**
      * As {@link #execute(ProvisioningContext, ResourceObjectIdentification.WithPrimary, boolean,
      * AttributesToReturn, OperationResult)} but without the "post-processing" contained in
-     * {@link ResourceObjectFound#completeResourceObject(ProvisioningContext, ResourceObject, boolean, OperationResult)}.
+     * {@link ResourceObjectCompleter}.
      *
      * This means no simulated activation, associations, and so on.
      */
@@ -69,7 +65,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        return new ResourceObjectFetchOperation(ctx, identification, false, null)
+        return new ResourceObjectFetchOperation(ctx, identification, false)
                 .executeRaw(null, result);
     }
 
@@ -97,7 +93,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
         try {
             UcfResourceObject object =
                     connector.fetchObject(primaryIdentification, attributesToReturn, ctx.getUcfExecutionContext(), result);
-            return ctx.adoptUcfResourceObject(object);
+            return ExistingResourceObject.fromUcf(object, ctx.getResourceRef());
         } catch (ObjectNotFoundException e) {
             // Not finishing the result because we did not create it! (The same for other catch clauses.)
             // We do not use simple "e.wrap" because there is a lot of things to be filled-in here.

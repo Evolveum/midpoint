@@ -85,7 +85,6 @@ public abstract class SchemaConstants {
     public static final ItemName C_SHADOW = new ItemName(NS_C, "shadow");
     public static final QName C_SHADOW_TYPE = new QName(NS_C, "ShadowType");
     public static final ItemName C_ATTRIBUTES = new ItemName(NS_C, "attributes");
-    public static final ItemName C_ASSOCIATION = new ItemName(NS_C, "association");
     public static final ItemName C_CREDENTIALS = new ItemName(NS_C, "credentials");
     public static final ItemName C_ACTIVATION = new ItemName(NS_C, "activation");
     public static final QName C_SYSTEM_CONFIGURATION_TYPE = new QName(NS_C, "SystemConfigurationType");
@@ -189,9 +188,6 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_ACTIVATION_LOCKOUT_STATUS = ItemPath.create(C_ACTIVATION, ActivationType.F_LOCKOUT_STATUS);
     public static final ItemPath PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS =
             ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS);
-    public static final ItemPath PATH_ATTRIBUTES = ItemPath.create(C_ATTRIBUTES);
-    public static final ItemPath PATH_ASSIGNMENT = FocusType.F_ASSIGNMENT;
-    public static final ItemPath PATH_INDUCEMENT = ItemPath.create(AbstractRoleType.F_INDUCEMENT);
     public static final ItemPath PATH_INDUCEMENT_POLICY_RULE = ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE);
 
     public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS =
@@ -202,7 +198,6 @@ public abstract class SchemaConstants {
             ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO);
     public static final ItemPath PATH_ASSIGNMENT_TARGET_REF = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF);
     public static final ItemPath PATH_ASSIGNMENT_DESCRIPTION = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
-    public static final ItemPath PATH_ASSOCIATION = ItemPath.create(C_ASSOCIATION);
     public static final ItemPath PATH_TRIGGER = ItemPath.create(ObjectType.F_TRIGGER);
     public static final ItemPath PATH_AUTHENTICATION_BEHAVIOR_FAILED_LOGINS = ItemPath.create(FocusType.F_BEHAVIOR,
             BehaviorType.F_AUTHENTICATION, AuthenticationBehavioralDataType.F_FAILED_LOGINS);
@@ -270,6 +265,12 @@ public abstract class SchemaConstants {
 
     public static final String NS_REPORT = NS_MIDPOINT_PUBLIC + "/report";
     public static final String NS_REPORT_EXTENSION = NS_REPORT + "/extension-3";
+    /**
+     * Must not be the same namespace as {@link #NS_REPORT_EXTENSION}, because the parameters are _not_ defined in the schema.
+     * The parser would then fail on them, as the schema is not present, but these definitions would not be.
+     * So they must be in a separate schema, which has no XSD. Then the parser is OK with that.
+     */
+    public static final String NS_REPORT_PARAM_EXTENSION = NS_REPORT_EXTENSION + "/reportParam";
     public static final String NS_CERTIFICATION = NS_MIDPOINT_PUBLIC + "/certification";
     public static final String NS_WORKFLOW = NS_MIDPOINT_PUBLIC + "/workflow"; // TODO change to "case" or "cases"
 

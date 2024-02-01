@@ -9,13 +9,20 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
+
+import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
+
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 
 import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 
 /**
  * Operations to be executed on given resource object.
@@ -57,6 +64,23 @@ public class ResourceObjectOperations {
         if (!ucfOperations.contains(operation)) {
             ucfOperations.add(operation);
         }
+    }
+
+    public <T> @NotNull PropertyModificationOperation<T> findOrCreateAttributeOperation(
+            @NotNull ResourceAttributeDefinition<T> attrDef, QName matchingRuleName) {
+        var attrName = attrDef.getItemName();
+        for (Operation ucfOperation: ucfOperations) {
+            if (ucfOperation instanceof PropertyModificationOperation<?> propOp) {
+                if (propOp.getItemName().equals(attrName)) {
+                    //noinspection unchecked
+                    return (PropertyModificationOperation<T>) propOp;
+                }
+            }
+        }
+        var newOp = new PropertyModificationOperation<>(attrDef.createEmptyDelta());
+        newOp.setMatchingRuleQName(matchingRuleName);
+        add(newOp);
+        return newOp;
     }
 
     @Override

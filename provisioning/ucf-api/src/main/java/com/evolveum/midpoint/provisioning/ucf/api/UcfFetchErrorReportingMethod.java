@@ -20,12 +20,12 @@ public enum UcfFetchErrorReportingMethod {
     /**
      * Errors are reported by throwing an exception. No object is passed to the handler (nor returned). This is the legacy way.
      *
-     * {@link UcfObjectFound} instances are guaranteed to be in {@link UcfErrorState#isSuccess()} state.
+     * {@link UcfResourceObject} instances are guaranteed to be in {@link UcfErrorState#isSuccess()} state.
      */
     EXCEPTION,
 
     /**
-     * Errors are reported within {@link UcfObjectFound} instance passed to the handler or returned.
+     * Errors are reported within {@link UcfResourceObject} instance passed to the handler or returned.
      * This allows more selective error handling in the client.
      */
     UCF_OBJECT

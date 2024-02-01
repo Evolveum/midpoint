@@ -133,8 +133,6 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
                 result.addReturn(DEFAULT, "not found");
             }
 
-            projCtx.recompute();
-
             LOGGER.trace("Loading of full resource object resulted in isFullShadow={}:\n{}",
                     projCtx.isFullShadow(), projCtx.debugDumpLazily(1));
 

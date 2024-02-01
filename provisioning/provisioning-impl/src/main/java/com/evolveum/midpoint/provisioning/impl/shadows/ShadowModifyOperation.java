@@ -141,7 +141,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
 
         options = setForceRetryIfNotDisabled(options);
 
-        ctx.applyAttributesDefinition(modifications);
+        ctx.applyCurrentDefinition(modifications);
 
         // We have to resolve entitlements here. For example, we want them to be stored in the pending operation list,
         // should the execution fail. (Because the shadow OIDs may be volatile.) Before 4.7, the inclusion to the pending
@@ -196,7 +196,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             ObjectAlreadyExistsException {
         ModifyOperationState opState = ModifyOperationState.fromPendingOperation(repoShadow, pendingOperation);
         if (repoShadow.doesExist()) {
-            ctx.applyAttributesDefinition(modifications);
+            ctx.applyCurrentDefinition(modifications);
             new ShadowModifyOperation(ctx, modifications, options, null, opState, true)
                 .execute(result);
         } else {
@@ -216,7 +216,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             PolicyViolationException, ObjectAlreadyExistsException {
         ModifyOperationState opState = new ModifyOperationState(repoShadow);
         opState.setPropagatedPendingOperations(pendingOperations);
-        ctx.applyAttributesDefinition(modifications);
+        ctx.applyCurrentDefinition(modifications);
         new ShadowModifyOperation(ctx, modifications, null, null, opState, true)
                 .execute(result);
     }
@@ -231,7 +231,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         }
 
         RepoShadow repoShadow = opState.getRepoShadowRequired(); // Shadow in opState was updated in the above call!
-        ctx.applyAttributesDefinition(repoShadow);
+        ctx.applyDefinitionInNewCtx(repoShadow);
 
         accessChecker.checkModifyAccess(ctx, requestedModifications, result);
 

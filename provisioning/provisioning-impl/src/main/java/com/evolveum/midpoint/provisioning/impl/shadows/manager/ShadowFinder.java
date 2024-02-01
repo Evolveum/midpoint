@@ -100,7 +100,7 @@ public class ShadowFinder {
         return getRepoShadow(ctx, oid, null, result);
     }
 
-    /** A convenience method. */
+    /** A convenience method. (The context is used mainly to provide resource information.) */
     public @NotNull RepoShadow getRepoShadow(
             @NotNull ProvisioningContext ctx,
             @NotNull String oid,

@@ -82,7 +82,7 @@ public class AutoAssignMappingCollector {
                 return true;
             }
             for (var autoMapping: focalAutoassignSpec.getMappings()) {
-                var mappingWithTarget = autoMapping.setTargetIfMissing(SchemaConstants.PATH_ASSIGNMENT);
+                var mappingWithTarget = autoMapping.setTargetIfMissing(FocusType.F_ASSIGNMENT);
                 mappings.add(
                         // [EP:M:AAFM] DONE, chained calls from verified CI above
                         new AutoassignRoleMappingEvaluationRequest(mappingWithTarget, role.asObjectable()));

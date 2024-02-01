@@ -17,6 +17,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -63,7 +64,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
     @Override
     public TaskRunResult run(@NotNull RunningTask task) {
         OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
-        TaskRunResult runResult = new TaskRunResult();
+        TaskRunResultStatus runResultStatus;
         try {
             PrismObject<CaseType> caseObject = task.getObject(CaseType.class, result);
             if (caseObject == null) {
@@ -75,19 +76,16 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
             } else {
                 executeLocalChanges(aCase, task, result);
             }
-            result.computeStatus();
-            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-        } catch (RuntimeException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
-                ExpressionEvaluationException | PolicyViolationException | PreconditionViolationException |
-                ObjectAlreadyExistsException | SecurityViolationException e) {
+            runResultStatus = TaskRunResultStatus.FINISHED;
+        } catch (Throwable t) {
             String message = "An exception occurred when trying to execute model operation for a case in " + task;
-            LoggingUtils.logUnexpectedException(LOGGER, message, e);
-            result.recordFatalError(message, e);
-            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR); // let's assume it's temporary
+            LoggingUtils.logUnexpectedException(LOGGER, message, t);
+            result.recordFatalError(message, t);
+            runResultStatus = TaskRunResultStatus.TEMPORARY_ERROR; // let's assume it's temporary
+        } finally {
+            result.close();
         }
-        task.getResult().recomputeStatus();
-        runResult.setOperationResultStatus(task.getResult().getStatus());
-        return runResult;
+        return TaskRunResult.of(runResultStatus, result.getStatus());
     }
 
     private void executeLocalChanges(CaseType subcase, RunningTask task, OperationResult result)
@@ -105,7 +103,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
         if (focusChange != null) {
             approvalMetadataHelper.addAssignmentApprovalMetadata(focusChange, subcase, task, result);
         }
-        lensContextHelper.mergeDeltasToModelContext(modelContext, singletonList(deltas));
+        lensContextHelper.mergeDeltasToModelContext(modelContext, singletonList(deltas), task, result);
         executeModelContext(modelContext, subcase, task, result);
         executionHelper.closeCaseInRepository(subcase, result);
         executionHelper.checkDependentCases(subcase.getParentRef().getOid(), result);

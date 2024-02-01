@@ -12,15 +12,17 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
+
+import com.evolveum.midpoint.provisioning.util.ErrorState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,20 +43,45 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class ExistingResourceObject extends ResourceObject {
 
-    private ExistingResourceObject(@NotNull ShadowType bean, Object primaryIdentifierValue) {
+    @NotNull private final ErrorState errorState;
+
+    private ExistingResourceObject(
+            @NotNull ShadowType bean,
+            @NotNull Object primaryIdentifierValue,
+            @NotNull ErrorState errorState) {
         super(bean, primaryIdentifierValue);
+        this.errorState = errorState;
     }
 
-    /** To be used only by informed clients, e.g. the adoption methods in {@link ProvisioningContext}. */
-    public static ExistingResourceObject of(@NotNull ShadowType bean, Object primaryIdentifierValue) {
-        return new ExistingResourceObject(bean, primaryIdentifierValue);
+    /** To be used only by informed clients. */
+    public static ExistingResourceObject of(
+            @NotNull ShadowType bean,
+            @NotNull Object primaryIdentifierValue,
+            @NotNull ErrorState errorState) {
+        return new ExistingResourceObject(bean, primaryIdentifierValue, errorState);
+    }
+
+    static ExistingResourceObject fromUcf(
+            @NotNull UcfResourceObject ucfResourceObject, @NotNull ObjectReferenceType resourceRef) {
+        return fromUcf(ucfResourceObject, resourceRef, true);
+    }
+
+    static ExistingResourceObject fromUcf(
+            @NotNull UcfResourceObject ucfResourceObject, @NotNull ObjectReferenceType resourceRef, boolean exists) {
+        ShadowType bean = ucfResourceObject.getBean();
+        bean.setResourceRef(resourceRef);
+        bean.setExists(exists);
+        return new ExistingResourceObject(
+                bean,
+                ucfResourceObject.getPrimaryIdentifierValue(),
+                ErrorState.fromUcfErrorState(ucfResourceObject.getErrorState()));
     }
 
     /** TODO we should perhaps indicate that the source is repo! OR REMOVE THIS BRUTAL HACK SOMEHOW! */
     public static ExistingResourceObject fromRepoShadow(
             @NotNull RepoShadow repoShadow,
             Object primaryIdentifierValue) {
-        return new ExistingResourceObject(repoShadow.getBean(), primaryIdentifierValue);
+        return new ExistingResourceObject(repoShadow.getBean(), primaryIdentifierValue, ErrorState.ok());
     }
 
     /** TODO we should perhaps indicate that the source is repo! OR REMOVE THIS BRUTAL HACK SOMEHOW! */
@@ -62,27 +89,16 @@ public class ExistingResourceObject extends ResourceObject {
             @NotNull RepoShadow repoShadow) throws SchemaException {
         return new ExistingResourceObject(
                 repoShadow.getBean(),
-                repoShadow.getPrimaryIdentifierValueFromAttributes());
+                repoShadow.getPrimaryIdentifierValueFromAttributes(),
+                ErrorState.ok());
     }
 
-    /** E.g. for shadowization of fatally corrupted objects. */
-    public static ExistingResourceObject minimal(
-            @NotNull ResourceObjectDefinition definition,
-            @NotNull Object primaryIdentifierValue,
-            boolean doesExist,
-            @NotNull String resourceOid) throws SchemaException {
+    public @NotNull ErrorState getErrorState() {
+        return errorState;
+    }
 
-        var shadowBean = definition.getObjectClassDefinition()
-                .createBlankShadow(resourceOid, null)
-                .asObjectable();
-
-        //noinspection unchecked
-        ResourceAttribute<Object> primaryIdAttr = (ResourceAttribute<Object>) definition.getPrimaryIdentifierRequired().instantiate();
-        primaryIdAttr.setRealValue(primaryIdentifierValue);
-        ShadowUtil.getOrCreateAttributesContainer(shadowBean, definition).add(primaryIdAttr);
-        shadowBean.setExists(doesExist);
-
-        return new ExistingResourceObject(shadowBean, primaryIdentifierValue);
+    public boolean isError() {
+        return errorState.isError();
     }
 
     public @NotNull PrismProperty<?> getSingleValuedPrimaryIdentifier() {
@@ -94,12 +110,12 @@ public class ExistingResourceObject extends ResourceObject {
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ExistingResourceObject clone() {
-        return new ExistingResourceObject(bean.clone(), primaryIdentifierValue);
+        return new ExistingResourceObject(bean.clone(), primaryIdentifierValue, errorState);
     }
 
     public @NotNull ExistingResourceObject withNewContent(@NotNull ShadowType newData) {
         // TODO shouldn't we check the consistence of new data vs. old metadata?
-        return new ExistingResourceObject(newData, primaryIdentifierValue);
+        return new ExistingResourceObject(newData, primaryIdentifierValue, errorState);
     }
 
     /** For creating shadows in emergency situations. */

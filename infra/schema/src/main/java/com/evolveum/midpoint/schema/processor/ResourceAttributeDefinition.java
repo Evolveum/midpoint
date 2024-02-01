@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.JavaTypeConverter;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
@@ -207,6 +209,12 @@ public interface ResourceAttributeDefinition<T>
         return attribute;
     }
 
+    default @NotNull ResourceAttribute<T> instantiateFromValue(PrismPropertyValue<T> value) throws SchemaException {
+        ResourceAttribute<T> attribute = instantiate();
+        attribute.add(value);
+        return attribute;
+    }
+
     /**
      * Creates a new {@link ResourceAttribute} from given real values, converting them if necessary.
      *
@@ -214,12 +222,16 @@ public interface ResourceAttributeDefinition<T>
      */
     default @NotNull ResourceAttribute<T> instantiateFromRealValues(@NotNull Collection<T> realValues) throws SchemaException {
         ResourceAttribute<T> attribute = instantiate();
-        attribute.addNormalizedValues(realValues, this);
+        attribute.addNormalizedValues(realValues, this); // FIXME SKIP NORMALIZATION!!!
         return attribute;
     }
 
     default @NotNull ResourceAttribute<T> instantiateFromRealValue(@NotNull T realValue) throws SchemaException {
         return instantiateFromRealValues(List.of(realValue));
+    }
+
+    default @NotNull PrismPropertyValue<T> convertPrismValue(@NotNull PrismPropertyValue<?> srcValue) {
+        return PrismUtil.convertPropertyValue(srcValue, this);
     }
 
     @Override

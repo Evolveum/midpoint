@@ -13,7 +13,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperat
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.schema.util.*;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,13 +21,11 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -46,8 +43,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Experimental
 public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RepoShadow.class);
-
     @NotNull private final ShadowType bean;
 
     /**
@@ -58,7 +53,7 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
     @NotNull private final Resource resource;
 
     /** True if the shadow is known to be deleted from the repository. TODO reconsider */
-    boolean deleted;
+    private boolean deleted;
 
     private RepoShadow(
             @NotNull ShadowType bean,
@@ -79,10 +74,6 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
         this.resource = resource;
 
         checkConsistence();
-    }
-
-    private @NotNull ResourceObjectDefinition determineObjectDefinition(ShadowType bean) {
-        return ShadowUtil.getAttributesContainer(bean).getDefinition().getComplexTypeDefinition();
     }
 
     public static @NotNull RepoShadow of(

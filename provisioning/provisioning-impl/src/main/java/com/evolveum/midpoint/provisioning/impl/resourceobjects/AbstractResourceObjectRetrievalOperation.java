@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,14 +22,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingM
  *
  * @see ResourceObjectSearchOperation
  * @see ResourceObjectLocateOperation
+ * @see ResourceObjectFetchOperation
  */
 abstract class AbstractResourceObjectRetrievalOperation {
 
     @NotNull final ProvisioningContext ctx;
 
-    /** Whether associations should be fetched for the object found. */
+    /** Whether associations should be fetched for the object(s) found. */
     final boolean fetchAssociations;
 
+    /** Currently used only for search operations. Placed here to remind about future extension to fetch/locate ops. */
     @Nullable private final FetchErrorReportingMethodType errorReportingMethod;
 
     @NotNull final ResourceObjectsBeans b = ResourceObjectsBeans.get();
@@ -52,12 +56,14 @@ abstract class AbstractResourceObjectRetrievalOperation {
     /**
      * Does all the necessary processing at "resource objects" layer: activation, protected flag, associations, and so on.
      *
-     * @see AbstractLazilyInitializableResourceEntity#completeResourceObject(
-     * ProvisioningContext, ResourceObject, boolean, OperationResult)
+     * Limitation: to be used only for fetch/locate operations, which do not support in-object error reporting.
+     * Hence, we do not need to use the error-handling machinery provided by lazy initialization
+     * in {@link ResourceObjectFound} here.
      */
-    @NotNull CompleteResourceObject complete(@NotNull ExistingResourceObject object, @NotNull OperationResult result) {
-        ResourceObjectFetched objectFetched = new ResourceObjectFetched(object, ctx, fetchAssociations);
-        objectFetched.initialize(ctx.getTask(), result);
-        return objectFetched.asCompleteResourceObject();
+    @NotNull CompleteResourceObject complete(@NotNull ExistingResourceObject object, @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        assert errorReportingMethod == null;
+        return ResourceObjectCompleter.completeResourceObject(ctx, object, fetchAssociations, result);
     }
 }

@@ -8,13 +8,15 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
 
+import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
+
+import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection.IterableAssociationValue;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +30,6 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -76,7 +77,7 @@ class ShadowedObjectConstruction {
     @NotNull private final ResourceAttributeContainer resourceObjectAttributes;
 
     /** Associations of the resource object. */
-    @Nullable private final PrismContainer<ShadowAssociationType> resourceObjectAssociations;
+    @Nullable private final PrismContainer<ShadowAssociationsType> resourceObjectAssociations;
 
     /**
      * Provisioning context related to the object fetched from the resource.
@@ -178,20 +179,22 @@ class ShadowedObjectConstruction {
             ConfigurationException, ExpressionEvaluationException, SecurityViolationException,
             EncryptionException {
 
-        if (resourceObjectAssociations == null) {
+        if (resourceObjectAssociations == null || resourceObjectAssociations.hasNoValues()) {
             return;
         }
 
-        LOGGER.trace("Start adopting associations: {} value(s)", resourceObjectAssociations.size());
+        LOGGER.trace("Start adopting associations: {} item(s)", resourceObjectAssociations.getValue().size());
 
-        PrismContainer<ShadowAssociationType> associationsCloned = resourceObjectAssociations.clone();
+        PrismContainer<ShadowAssociationsType> associationsCloned = resourceObjectAssociations.clone();
         resultingShadowedBean.asPrismObject().addReplaceExisting(associationsCloned);
-        Iterator<PrismContainerValue<ShadowAssociationType>> associationIterator = associationsCloned.getValues().iterator();
-        while (associationIterator.hasNext()) {
-            if (!adoptAssociationValue(associationIterator.next(), result)) {
-                associationIterator.remove();
+        ShadowAssociationsCollection collection = ShadowAssociationsCollection.ofAssociations(associationsCloned.getRealValue());
+        var associationValueIterator = collection.iterator();
+        while (associationValueIterator.hasNext()) {
+            if (!adoptAssociationValue(associationValueIterator.next(), result)) {
+                associationValueIterator.remove();
             }
         }
+        collection.cleanup();
     }
 
     /**
@@ -318,17 +321,19 @@ class ShadowedObjectConstruction {
      *
      * @return false if the association value does not fit and should be removed
      */
-    private boolean adoptAssociationValue(PrismContainerValue<ShadowAssociationType> associationValue, OperationResult result)
+    private boolean adoptAssociationValue(IterableAssociationValue associationValue, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException, EncryptionException {
 
         LOGGER.trace("Determining shadowRef for {}", associationValue);
 
-        ResourceAttributeContainer identifierContainer = ShadowUtil.getIdentifiersContainerRequired(associationValue);
+        QName associationName = associationValue.name();
+        var associationValueBean = associationValue.value();
+        var associationValuePcv = associationValue.associationPcv();
 
-        ShadowAssociationType associationValueBean = associationValue.asContainerable();
-        QName associationName = associationValueBean.getName();
-        ResourceAssociationDefinition rAssociationDef = getAssociationDefinition(associationName);
+        ResourceAttributeContainer identifierContainer = ShadowUtil.getIdentifiersContainerRequired(associationValuePcv);
+
+        ShadowAssociationDefinition rAssociationDef = getAssociationDefinition(associationName);
         ShadowKindType entitlementKind = rAssociationDef.getKind();
 
         // TODO what if we find a shadow given one of the intents? Shouldn't we stop there? Overall, the process seems
@@ -382,7 +387,7 @@ class ShadowedObjectConstruction {
     }
 
     private @Nullable RepoShadow acquireEntitlementRepoShadow(
-            PrismContainerValue<ShadowAssociationType> associationValue,
+            IterableAssociationValue iterableAssociationValue,
             ResourceAttributeContainer identifierContainer,
             ProvisioningContext ctxEntitlement,
             OperationResult result)
@@ -392,11 +397,11 @@ class ShadowedObjectConstruction {
         // TODO should we fully cache the entitlement shadow (~ attribute/shadow caching)?
         //  (If yes, maybe we should retrieve also the associations below?)
 
-        UcfResourceObject providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.ENTITLEMENT_OBJECT_KEY);
+        ExistingResourceObject providedResourceObject =
+                identifierContainer.getUserData(ResourceObjectConverter.ENTITLEMENT_OBJECT_KEY);
         if (providedResourceObject != null) {
-            var resourceObject = ctxEntitlement.adoptUcfResourceObject(providedResourceObject);
-            return ShadowAcquisition.acquireRepoShadow(
-                    ctxEntitlement, resourceObject, result); // TODO not doing classification here?
+            // TODO not doing classification here?
+            return ShadowAcquisition.acquireRepoShadow(ctxEntitlement, providedResourceObject, result);
         }
 
         try {
@@ -422,7 +427,8 @@ class ShadowedObjectConstruction {
             // TODO the following code requires that all attributes in shadow association value are identifiers
             //  (primary or secondary). However, at other places in the code we also allow non-identifiers in these situations.
             //  What is the correct approach?
-            var entitlementIdentification = ResourceObjectIdentification.fromAssociationValue(entitlementObjDef, associationValue);
+            var associationPcv = iterableAssociationValue.associationPcv();
+            var entitlementIdentification = ResourceObjectIdentification.fromAssociationValue(entitlementObjDef, associationPcv);
             CompleteResourceObject fetchedResourceObject =
                     b.resourceObjectConverter.locateResourceObject(
                             ctxEntitlement, entitlementIdentification, false, result);
@@ -437,34 +443,33 @@ class ShadowedObjectConstruction {
             // The entitlement to which we point is not there. Simply ignore this association value.
             result.muteLastSubresultError();
             LOGGER.warn("The entitlement identified by {} referenced from {} does not exist. Skipping.",
-                    associationValue, resourceObject);
+                    iterableAssociationValue, resourceObject);
             return null;
         } catch (SchemaException e) {
             // The entitlement to which we point is bad. Simply ignore this association value.
             result.muteLastSubresultError();
             LOGGER.warn("The entitlement identified by {} referenced from {} violates the schema. Skipping. Original error: {}",
-                    associationValue, resourceObject, e.getMessage(), e);
+                    iterableAssociationValue, resourceObject, e.getMessage(), e);
             return null;
         }
     }
 
-    @NotNull
-    private ResourceAssociationDefinition getAssociationDefinition(QName associationName) throws SchemaException {
+    private @NotNull ShadowAssociationDefinition getAssociationDefinition(QName associationName) throws SchemaException {
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
-        ResourceAssociationDefinition rEntitlementAssociationDef = objectDefinition.findAssociationDefinition(associationName);
-        if (rEntitlementAssociationDef == null) {
-            LOGGER.trace("Entitlement association with name {} couldn't be found in {} {}\nresource shadow:\n{}\nrepo shadow:\n{}",
+        ShadowAssociationDefinition associationDefinition = objectDefinition.findAssociationDefinition(associationName);
+        if (associationDefinition == null) {
+            LOGGER.error("Entitlement association with name {} couldn't be found in {} {}\nresource shadow:\n{}\nrepo shadow:\n{}",
                     associationName, objectDefinition, ctx.getDesc(),
                     resourceObject.debugDumpLazily(1), repoShadow.debugDumpLazily(1));
-            LOGGER.trace("Full [refined] definition: {}", objectDefinition.debugDumpLazily());
-            throw new SchemaException("Entitlement association with name " + associationName
-                    + " couldn't be found in " + ctx);
+            LOGGER.error("Full [refined] definition: {}", objectDefinition.debugDumpLazily());
+            throw new SchemaException(
+                    "Entitlement association with name %s couldn't be found in %s".formatted(associationName, ctx));
         }
-        return rEntitlementAssociationDef;
+        return associationDefinition;
     }
 
     private boolean doesAssociationMatch(
-            ResourceAssociationDefinition rEntitlementAssociationDef, @NotNull RepoShadow entitlementRepoShadow) {
+            ShadowAssociationDefinition rEntitlementAssociationDef, @NotNull RepoShadow entitlementRepoShadow) {
 
         ShadowKindType shadowKind = entitlementRepoShadow.getKind();
         String shadowIntent = entitlementRepoShadow.getIntent();

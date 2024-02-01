@@ -18,6 +18,11 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.processor.ShadowAssociation;
+
+import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +41,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfModifyReturnValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
@@ -48,7 +52,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -271,15 +274,15 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
      * Determines and executes the entitlement-related operations on *other objects*, i.e. the entitlements themselves.
      * There are various situations regarding the information available:
      *
-     * . both `objectBefore` and `objectAfter` are known (this is the ideal case)
-     * . only `objectBefore` is known (there was no need to fetch the object after the operation)
+     * . both `subjectBefore` and `subjectAfter` are known (this is the ideal case)
+     * . only `subjectBefore` is known (there was no need to fetch the resource object after the operation)
      * . only the {@link #repoShadow} (before operation) is known
      *
-     * In the second and the third case, we have to determine the expected object state by applying the deltas.
+     * In the second and the third case, we have to determine the expected subject state by applying the deltas.
      */
     private void determineAndExecuteEntitlementObjectsOperations(
-            @Nullable ExistingResourceObject objectBefore,
-            @Nullable ExistingResourceObject objectAfter,
+            @Nullable ExistingResourceObject subjectBefore,
+            @Nullable ExistingResourceObject subjectAfter,
             @NotNull Collection<? extends ItemDelta<?, ?>> subjectDeltas,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
@@ -290,17 +293,17 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
 
         ShadowType subjectShadowBefore;
         ShadowType subjectShadowAfter;
-        if (objectBefore != null) {
-            subjectShadowBefore = objectBefore.getBean();
-            if (objectAfter != null) {
-                subjectShadowAfter = objectAfter.getBean();
+        if (subjectBefore != null) {
+            subjectShadowBefore = subjectBefore.getBean();
+            if (subjectAfter != null) {
+                subjectShadowAfter = subjectAfter.getBean();
             } else {
-                var expectedObjectAfter = objectBefore.clone();
-                expectedObjectAfter.updateWith(subjectDeltas);
-                subjectShadowAfter = expectedObjectAfter.bean;
+                var expectedSubjectAfter = subjectBefore.clone();
+                expectedSubjectAfter.updateWith(subjectDeltas);
+                subjectShadowAfter = expectedSubjectAfter.bean;
             }
         } else {
-            assert objectAfter == null;
+            assert subjectAfter == null;
             subjectShadowBefore = repoShadow.getBean();
             var repoShadowAfter = repoShadow.clone();
             // We hope that all relevant attributes (regarding entitlement search) are in the shadow!
@@ -310,77 +313,70 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
             subjectShadowAfter = repoShadowAfter.getBean();
         }
 
+        var associations = ShadowUtil.getAssociations(subjectShadowBefore);
+
         LOGGER.trace("determineAndExecuteEntitlementObjectsOperations, old subject state:\n{}",
                 subjectShadowBefore.debugDumpLazily(1));
 
         for (ItemDelta<?, ?> subjectDelta : subjectDeltas) {
 
-            ItemPath subjectItemPath = subjectDelta.getPath();
+            ItemPath itemDeltaPath = subjectDelta.getPath();
 
-            if (ShadowType.F_ASSOCIATION.equivalent(subjectItemPath)) {
+            if (itemDeltaPath.startsWith(ShadowType.F_ASSOCIATIONS)) {
 
-                // Adding or removing an association value.
-
-                //noinspection unchecked
-                ContainerDelta<ShadowAssociationType> assocContainerDelta = (ContainerDelta<ShadowAssociationType>) subjectDelta;
+                // Directly manipulating the associations. We need to update the target objects, e.g. by adding/removing members.
+                var associationCollection = ShadowAssociationsCollection.ofDelta(subjectDelta);
                 subjectShadowAfter = entitlementConverter.transformToObjectOpsOnModify(
-                        objectsOperations, assocContainerDelta, subjectShadowBefore, subjectShadowAfter, result);
+                        objectsOperations, associationCollection, subjectShadowBefore, subjectShadowAfter, result);
 
             } else {
 
-                // Changing any other attribute. We check if the attribute matches any of the current associations of the subject.
+                // Changing any other attribute. This may affect the associations, typically when the subject is renamed,
+                // we (for resources without the referential integrity) have to adapt the association targets, e.g. groups.
+                // This is done by simulating DELETE/ADD of association value.
 
-                ContainerDelta<ShadowAssociationType> associationDelta =
-                        PrismContext.get().deltaFactory().container().createDelta(
-                                ShadowType.F_ASSOCIATION, subjectShadowBefore.asPrismObject().getDefinition());
-                PrismContainer<ShadowAssociationType> associationContainer =
-                        subjectShadowBefore.asPrismObject().findContainer(ShadowType.F_ASSOCIATION);
-                if (associationContainer == null || associationContainer.isEmpty()) {
-                    LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change for {}.",
-                            subjectItemPath);
+                if (associations.isEmpty()) {
+                    LOGGER.trace("No associations in old shadow. Skipping processing entitlements change for {}.", itemDeltaPath);
                     continue;
                 }
-                LOGGER.trace("Processing association container in old shadow for {}:\n{}",
-                        subjectItemPath, associationContainer.debugDumpLazily(1));
+                LOGGER.trace("Processing associations in old shadow for {}:\n{}",
+                        itemDeltaPath, DebugUtil.debugDumpLazily(associations, 1));
 
                 // Delete + re-add association values that should ensure correct functioning in case of rename
                 // This has to be done only for associations that require explicit referential integrity.
                 // For these that do not, it is harmful, so it must be skipped.
-                for (PrismContainerValue<ShadowAssociationType> associationValue : associationContainer.getValues()) {
-                    QName associationName = associationValue.asContainerable().getName();
-                    if (associationName == null) {
-                        throw new IllegalStateException(String.format("No association name in %s (%s)",
-                                associationValue, ctx.getExceptionDescription()));
-                    }
-                    ResourceAssociationDefinition associationDefinition =
-                            ctx.getObjectDefinitionRequired().findAssociationDefinition(associationName);
-                    if (associationDefinition == null) {
-                        throw new IllegalStateException(String.format("No association definition for %s (%s)",
-                                associationValue, ctx.getExceptionDescription()));
-                    }
+                for (ShadowAssociation association : associations) {
+                    ItemName associationName = association.getElementName();
+                    var associationDefinition =
+                            ctx.getObjectDefinitionRequired().findAssociationDefinitionRequired(
+                                    associationName, () -> ctx.getExceptionDescription());
                     if (!associationDefinition.requiresExplicitReferentialIntegrity()) {
                         continue;
                     }
-                    QName valueAttributeName = associationDefinition.getDefinitionBean().getValueAttribute();
-                    if (!ShadowUtil.matchesAttribute(subjectItemPath, valueAttributeName)) {
+                    if (!associationDefinition.isObjectToSubject()) {
                         continue;
                     }
-                    if (isChangeReal(subjectShadowBefore, subjectShadowAfter, subjectItemPath)) {
-                        LOGGER.trace("Processing association {} on association-binding attribute ({}) change",
-                                associationName, valueAttributeName);
-                        //noinspection unchecked
-                        associationDelta.addValuesToDelete(associationValue.clone());
-                        //noinspection unchecked
-                        associationDelta.addValuesToAdd(associationValue.clone());
-                    } else {
-                        LOGGER.trace("NOT processing association {} because the related attribute ({}) change is phantom",
-                                associationName, valueAttributeName);
+                    QName valueAttributeName = associationDefinition.getValueAttributeName();
+                    if (!ShadowUtil.matchesAttribute(itemDeltaPath, valueAttributeName)) {
+                        continue;
                     }
-                }
-                LOGGER.trace("Resulting association delta for {}:\n{}", subjectItemPath, associationDelta.debugDumpLazily(1));
-                if (!associationDelta.isEmpty()) {
-                    entitlementConverter.transformToObjectOpsOnModify(
-                            objectsOperations, associationDelta, subjectShadowBefore, subjectShadowAfter, result);
+                    for (var associationValue : association.getRealValues()) {
+                        if (isChangeReal(subjectShadowBefore, subjectShadowAfter, itemDeltaPath)) {
+                            LOGGER.trace("Processing association {} on association-binding attribute ({}) change",
+                                    associationName, valueAttributeName);
+                            var associationDelta = associationDefinition.createEmptyDelta();
+                            associationDelta.addValuesToDelete(associationValue.asPrismContainerValue().clone());
+                            associationDelta.addValuesToAdd(associationValue.asPrismContainerValue().clone());
+                            LOGGER.trace("Add-delete association delta for {} and {}:\n{}",
+                                    itemDeltaPath, associationName, associationDelta.debugDumpLazily(1));
+                            entitlementConverter.transformToObjectOpsOnModify(
+                                    objectsOperations, ShadowAssociationsCollection.ofDelta(associationDelta),
+                                    subjectShadowBefore, subjectShadowAfter, result);
+                        } else {
+                            LOGGER.trace("NOT processing association {} because the related attribute ({}) change is phantom",
+                                    associationName, valueAttributeName);
+                        }
+                    }
                 }
             }
         }
@@ -447,16 +443,12 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                             .transformOnModify(repoShadow, requestedDeltas, result));
                     activationProcessed = true;
                 }
-            } else if (ShadowType.F_ASSOCIATION.equivalent(itemDelta.getPath())) {
-                if (itemDelta instanceof ContainerDelta) {
-                    //noinspection unchecked
-                    ucfOperations.addAll(
-                            new EntitlementConverter(ctx)
-                                    .transformToSubjectOpsOnModify((ContainerDelta<ShadowAssociationType>) itemDelta)
-                                    .getOperations());
-                } else {
-                    throw unsupported(itemDelta);
-                }
+            } else if (itemDelta.getPath().startsWith(ShadowType.F_ASSOCIATIONS)) {
+                ShadowAssociationsCollection associationCollections = ShadowAssociationsCollection.ofDelta(itemDelta);
+                ucfOperations.addAll(
+                        new EntitlementConverter(ctx)
+                                .transformToSubjectOpsOnModify(associationCollections)
+                                .getOperations());
             } else if (ShadowType.F_AUXILIARY_OBJECT_CLASS.equivalent(itemDelta.getPath())) {
                 if (itemDelta instanceof PropertyDelta<?> propertyDelta) {
                     ucfOperations.add(

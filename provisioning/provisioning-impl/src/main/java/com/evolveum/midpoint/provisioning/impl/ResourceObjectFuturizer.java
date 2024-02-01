@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.isCompletedAndOverPeriod;
-import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTION_PENDING;
@@ -17,11 +16,12 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.processor.ShadowDefinitionApplicator;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
@@ -29,8 +29,6 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -109,6 +107,7 @@ public class ResourceObjectFuturizer {
         if (sortedOperations.isEmpty()) {
             return currentResourceObject;
         }
+        var shadowDefinitionApplicator = new ShadowDefinitionApplicator(shadowCtx.getObjectDefinitionRequired());
         Duration gracePeriod = shadowCtx.getGracePeriod();
         boolean resourceReadIsCachingOnly = shadowCtx.isReadingCachingOnly();
         for (PendingOperationType pendingOperation : sortedOperations) {
@@ -138,20 +137,24 @@ public class ResourceObjectFuturizer {
                 // on the resource yet. E.g. they may be not be present in the CSV export until the next export cycle is scheduled
             }
             ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingOperation.getDelta());
+            shadowDefinitionApplicator.applyTo(pendingDelta);
             if (pendingDelta.isAdd()) {
-                if (originalResourceObject == null) {
-                    // In case that we have resourceShadow then we need to ignore the ADD operation.
-                    // In that case the object was obviously already created. The data that we have from the
-                    // resource are going to be more precise than the pending ADD delta (which might not have been applied completely)
+                if (originalResourceObject != null) {
+                    // If we have the resource object, we need to ignore the ADD operation.
+                    // In that case the object was obviously already created. The data that we have from the resource
+                    // are going to be more precise than the pending ADD delta (which might not have been applied completely).
+                } else {
+                    // But if we have no resource object, we need to take the data from the ADD operation.
                     ShadowType newBean = pendingDelta.getObjectToAdd().clone().asObjectable();
                     newBean.setOid(repoShadow.getOid());
                     newBean.setName(repoShadow.getName());
                     newBean.setShadowLifecycleState(repoShadow.getShadowLifecycleState());
-                    List<PendingOperationType> newPendingOperations = newBean.getPendingOperation();
-                    for (PendingOperationType pendingOperation2 : repoShadow.getBean().getPendingOperation()) {
-                        newPendingOperations.add(pendingOperation2.clone());
-                    }
-                    shadowCtx.applyAttributesDefinition(newBean);
+                    // Here we transfer pending operations from repo shadow to the new bean, so that they will be returned
+                    // to the caller as part of that object.
+                    newBean.getPendingOperation().addAll(
+                            CloneUtil.cloneCollectionMembers(
+                                    repoShadow.getBean().getPendingOperation()));
+                    shadowCtx.applyCurrentDefinition(newBean);
                     currentResourceObject = ResourceObject.fromBean(newBean, true, shadowCtx.getObjectDefinitionRequired());
                     // We also ignore the fact that there may be multiple pending ADD operations. We just take the last one.
                 }
@@ -170,7 +173,7 @@ public class ResourceObjectFuturizer {
             }
         }
 
-        applyAssociationsDefinitions(currentResourceObject);
+        shadowDefinitionApplicator.applyToAssociationIdentifiers(currentResourceObject.getBean());
 
         // TODO: check schema, remove non-readable attributes, activation, password, etc.
 //        CredentialsType creds = resultShadowType.getCredentials();
@@ -181,38 +184,5 @@ public class ResourceObjectFuturizer {
 //            }
 //        }
         return currentResourceObject;
-    }
-
-    /** Applies the correct definitions to identifier containers in association values. Assumes known shadow type. */
-    private void applyAssociationsDefinitions(ResourceObject resourceObject)
-            throws ConfigurationException, SchemaException {
-        for (ShadowAssociationType association : resourceObject.getBean().getAssociation()) {
-            var associationPcv = association.asPrismContainerValue();
-            // Identifiers are ShadowIdentifiersType but to make compiler happy let's pretend it's ShadowAttributesType.
-            //noinspection unchecked
-            PrismContainer<ShadowAttributesType> identifiersContainer =
-                    associationPcv.findContainer(ShadowAssociationType.F_IDENTIFIERS);
-            if (identifiersContainer == null) {
-                continue;
-            }
-
-            QName associationName = association.getName();
-            if (associationName == null) {
-                continue;
-            }
-            ResourceAssociationDefinition assocDef =
-                    shadowCtx.getObjectDefinitionRequired().findAssociationDefinition(associationName);
-            if (assocDef == null) {
-                continue;
-            }
-
-            ProvisioningContext assocCtx = shadowCtx.spawnForKindIntent(assocDef.getKind(), assocDef.getAnyIntent());
-            ResourceObjectDefinition assocObjectDef = assocCtx.getObjectDefinition();
-            if (assocObjectDef == null) {
-                continue;
-            }
-            ShadowCaretaker.applyAttributesDefinitionToContainer(
-                    assocObjectDef, identifiersContainer, associationPcv, lazy(() -> "futurizing " + repoShadow));
-        }
     }
 }

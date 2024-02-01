@@ -32,7 +32,7 @@ import java.io.Serializable;
  * (Except for {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResourceObjectHandler, ObjectQuery,
  * boolean, FetchErrorReportingMethodType, OperationResult)} that should return lazily-initializable objects!)
  *
- * TODO decide on the fate of this object
+ * TODO Decide on the fate of this object. It is quite similar to {@link ExistingResourceObject}.
  *
  * @see ResourceObjectFound
  */
@@ -60,16 +60,6 @@ public record CompleteResourceObject (
 
     public @NotNull PrismObject<ShadowType> getPrismObject() {
         return resourceObject.getPrismObject();
-    }
-
-    @Contract("null -> null; !null -> !null")
-    public static ShadowType getBean(CompleteResourceObject completeResourceObject) {
-        return completeResourceObject != null ? completeResourceObject.getBean() : null;
-    }
-
-    @Contract("null -> null; !null -> !null")
-    public static ResourceObject getResourceObject(CompleteResourceObject completeResourceObject) {
-        return completeResourceObject != null ? completeResourceObject.resourceObject : null;
     }
 
     @Override

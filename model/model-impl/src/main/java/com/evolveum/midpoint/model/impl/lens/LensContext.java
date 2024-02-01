@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.model.impl.lens.LensFocusContext.fromLensFoc
 import static com.evolveum.midpoint.model.impl.lens.LensProjectionContext.fromLensProjectionContextBean;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Supplier;
@@ -73,7 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class LensContext<F extends ObjectType> implements ModelContext<F>, Cloneable {
 
-    private static final long serialVersionUID = -778283437426659540L;
+    @Serial private static final long serialVersionUID = -778283437426659540L;
     private static final String DOT_CLASS = LensContext.class.getName() + ".";
 
     private static final Trace LOGGER = TraceManager.getTrace(LensContext.class);
@@ -929,23 +930,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return rottenExecutedDeltas;
     }
 
-    public void recompute() throws SchemaException {
-        recomputeFocus();
-        recomputeProjections();
-    }
-
-    public void recomputeFocus() throws SchemaException {
-        if (focusContext != null) {
-            focusContext.recompute();
-        }
-    }
-
-    private void recomputeProjections() throws SchemaException {
-        for (LensProjectionContext projCtx : getProjectionContexts()) {
-            projCtx.recompute();
-        }
-    }
-
     public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException, ConfigurationException {
         for (LensProjectionContext projCtx : getProjectionContexts()) {
             projCtx.refreshAuxiliaryObjectClassDefinitions();
@@ -976,8 +960,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             focusContext.checkConsistence();
         }
         for (LensProjectionContext projectionContext : projectionContexts) {
-            projectionContext.checkConsistence(this.toString(), isFresh, ModelExecuteOptions.isForce(options));
+            projectionContext.checkConsistence(this.toString(), isFresh, isForce());
         }
+    }
+
+    boolean isForce() {
+        return ModelExecuteOptions.isForce(options);
     }
 
     void checkEncryptedIfNeeded() {
@@ -1048,7 +1036,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         for (LensProjectionContext projectionContext : projectionContexts) {
             projectionContext.cleanup();
         }
-        recompute();
     }
 
     public void normalize() {
@@ -1922,7 +1909,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     public boolean isForcedFocusDelete() {
-        return focusContext != null && focusContext.isDelete() && ModelExecuteOptions.isForce(options);
+        return focusContext != null && focusContext.isDelete() && isForce();
     }
 
     void resetClickCounter() {

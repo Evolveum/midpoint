@@ -1184,7 +1184,11 @@ public interface MidpointFunctions {
 
     String getConst(String name);
 
-    ShadowType resolveEntitlement(ShadowAssociationType shadowAssociationType);
+    /**
+     * Returns cached entitlement (target object) for given association value. Returns a value only if the object is present
+     * in the lens context cache.
+     */
+    ShadowType resolveEntitlement(ShadowAssociationValueType associationValue);
 
     ExtensionType collectExtensions(AssignmentPathType path, int startAt)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,

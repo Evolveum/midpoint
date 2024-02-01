@@ -440,8 +440,8 @@ class ShadowGetOperation {
      */
     private @NotNull Shadow returnCached(String reason) throws SchemaException, ConfigurationException {
         LOGGER.trace("Returning cached (repository) version of shadow {} because of: {}", repoShadow, reason);
+        ctx.applyCurrentDefinition(repoShadow.getBean());
         var futurized = futurizeRepoShadow(ctx, repoShadow, false, options, now);
-        ctx.applyAttributesDefinition(futurized.getBean());
         LOGGER.trace("Futurized shadow:\n{}", DebugUtil.debugDumpLazily(futurized));
         return createShadow(ctx, futurized);
     }

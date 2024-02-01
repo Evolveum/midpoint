@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.Collection;
 import java.util.Objects;
 
+import com.evolveum.midpoint.provisioning.util.ErrorState;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -162,8 +164,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         }
     }
 
-    private @NotNull ExistingResourceObject determineCurrentResourceObjectBeforeShadow()
-            throws SchemaException, ConfigurationException {
+    private @NotNull ExistingResourceObject determineCurrentResourceObjectBeforeShadow() {
         assert !isDelete();
         CompleteResourceObject completeResourceObject = resourceObjectChange.getCompleteResourceObject();
         if (completeResourceObject != null) {
@@ -180,7 +181,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
 
     private @NotNull ExistingResourceObject createIdentifiersOnlyFakeResourceObject() {
         assert !isDelete();
-        ResourceObjectDefinition objectDefinition = resourceObjectChange.getCurrentResourceObjectDefinition();
+        ResourceObjectDefinition objectDefinition = resourceObjectChange.getResourceObjectDefinition();
         if (objectDefinition == null) {
             throw new IllegalStateException(
                     "Could not create shadow from change description. Object definition is not specified: " + this);
@@ -201,7 +202,8 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         fakeResourceObject.setExists(true); // the change is not "delete", so we assume the existence
         return ExistingResourceObject.of(
                 fakeResourceObject,
-                getPrimaryIdentifierValue());
+                getPrimaryIdentifierValue(),
+                ErrorState.ok());
     }
 
     private @NotNull ExistingResourceObject determineCurrentResourceObject(@NotNull OperationResult result)
@@ -247,7 +249,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
             throw new IllegalStateException(
                     "Cannot get current resource object: read capability is not present and passive caching is not configured");
         }
-        effectiveCtx.applyAttributesDefinition(resourceObject.getPrismObject()); // is this really needed?
+        effectiveCtx.applyDefinitionInNewCtx(resourceObject.getPrismObject()); // is this really needed?
         return resourceObject;
     }
 
@@ -261,7 +263,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     }
 
     public ResourceObjectDefinition getObjectDefinition() {
-        return resourceObjectChange.getCurrentResourceObjectDefinition();
+        return resourceObjectChange.getResourceObjectDefinition();
     }
 
     /**
@@ -337,7 +339,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         return shadowChangeDescription;
     }
 
-    public Object getPrimaryIdentifierValue() {
+    public @NotNull Object getPrimaryIdentifierValue() {
         return resourceObjectChange.getPrimaryIdentifierRealValue();
     }
 
@@ -369,11 +371,11 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(this.getClass().getSimpleName());
         sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "initializationState", String.valueOf(initializationState), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectChange", resourceObjectChange, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "repoShadow", repoShadow, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowedObject", getShadowedObject(), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "context", String.valueOf(effectiveCtx), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "initializationState", String.valueOf(initializationState), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "context", String.valueOf(effectiveCtx), indent + 1);
         return sb.toString();
     }
 }

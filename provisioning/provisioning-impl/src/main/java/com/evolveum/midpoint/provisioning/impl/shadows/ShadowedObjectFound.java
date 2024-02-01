@@ -11,8 +11,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorRep
 
 import java.util.Objects;
 
-import com.evolveum.midpoint.util.exception.*;
-import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,19 +19,20 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.AbstractLazilyInitializableResourceEntity;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectFound;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Represents the processing of an object found on the resource using `searchObjects` call
@@ -170,19 +169,10 @@ public class ShadowedObjectFound extends AbstractLazilyInitializableShadowedEnti
         return mostRelevantObject;
     }
 
-    /**
-     * The resource object as obtained from the resource object converter. It has no connection to the repo.
-     *
-     * @see ResourceObjectFound#resourceObject
-     */
+    /** The resource object as obtained from the resource object converter. It has no connection to the repo. */
     @Override
     public @NotNull ExistingResourceObject getExistingResourceObjectRequired() {
         return resourceObjectFound.getResourceObject();
-    }
-
-    /** @see ResourceObject#primaryIdentifierValue */
-    private Object getPrimaryIdentifierValue() {
-        return resourceObjectFound.getPrimaryIdentifierValue();
     }
 
     @Override
@@ -191,9 +181,9 @@ public class ShadowedObjectFound extends AbstractLazilyInitializableShadowedEnti
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(this.getClass().getSimpleName());
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectFound", resourceObjectFound, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "shadowedObject", getShadowedObject(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "initializationState", String.valueOf(initializationState), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectFound", resourceObjectFound, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "shadowedObject", getShadowedObject(), indent + 1);
         return sb.toString();
     }
 

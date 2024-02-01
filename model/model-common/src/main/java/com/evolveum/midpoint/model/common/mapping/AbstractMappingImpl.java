@@ -544,7 +544,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     @Override
-    public MappingStrengthType getStrength() {
+    public @NotNull MappingStrengthType getStrength() {
         return getStrength(mappingBean);
     }
 

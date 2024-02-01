@@ -320,6 +320,11 @@ public class ResourceObjectClassDefinitionImpl
         }
     }
 
+    @Override
+    public @Nullable QName getDefaultItemTypeName() {
+        return null;
+    }
+
     @NotNull
     @Override
     public ResourceObjectClassDefinitionImpl clone() {
@@ -377,6 +382,11 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public void setReferenceMarker(boolean value) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setDefaultItemTypeName(QName value) {
         throw new UnsupportedOperationException();
     }
 

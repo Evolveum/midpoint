@@ -13,6 +13,7 @@ import com.evolveum.midpoint.provisioning.util.InitializationState;
 import com.evolveum.midpoint.provisioning.util.InitializationState.LifecycleState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Checkable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -39,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
  * TODO where to put statistics related e.g. to the processing time?
  */
 @Experimental
-public interface LazilyInitializableMixin extends DebugDumpable {
+public interface LazilyInitializableMixin extends DebugDumpable, Checkable {
 
     /**
      * Initializes given object.
@@ -89,9 +90,17 @@ public interface LazilyInitializableMixin extends DebugDumpable {
     }
 
     /** The object can have a prerequisite that must be initialized before it. */
-    @Nullable LazilyInitializableMixin getPrerequisite();
+    default @Nullable LazilyInitializableMixin getPrerequisite() {
+        return null;
+    }
 
-    private void initializeInternal(Task task, OperationResult result)
+    /**
+     * Initializes this object. Assumes the prerequisite is already initialized (successfully or not).
+     *
+     * If needed, the whole logic can be replaced - on your risk! Do not forget to propagate errors from the prerequisite.
+     * A typical reason is when the whole initialization logic is so simple that it fits into a single method.
+     */
+    default void initializeInternal(Task task, OperationResult result)
             throws CommonException, NotApplicableException, EncryptionException {
         initializeInternalCommon(task, result);
         LazilyInitializableMixin prerequisite = getPrerequisite();
@@ -111,14 +120,20 @@ public interface LazilyInitializableMixin extends DebugDumpable {
         // to be overridden in the implementations
     }
 
-    void initializeInternalForPrerequisiteOk(Task task, OperationResult result)
-            throws CommonException, NotApplicableException, EncryptionException;
+    default void initializeInternalForPrerequisiteOk(Task task, OperationResult result)
+            throws CommonException, NotApplicableException, EncryptionException {
+        // to be overridden in the implementations
+    }
 
-    void initializeInternalForPrerequisiteError(Task task, OperationResult result)
-            throws CommonException, EncryptionException;
+    default void initializeInternalForPrerequisiteError(Task task, OperationResult result)
+            throws CommonException, EncryptionException {
+        // to be overridden in the implementations
+    }
 
-    void initializeInternalForPrerequisiteNotApplicable(Task task, OperationResult result)
-            throws CommonException, EncryptionException;
+    default void initializeInternalForPrerequisiteNotApplicable(Task task, OperationResult result)
+            throws CommonException, EncryptionException {
+        // to be overridden in the implementations
+    }
 
     Trace getLogger();
 

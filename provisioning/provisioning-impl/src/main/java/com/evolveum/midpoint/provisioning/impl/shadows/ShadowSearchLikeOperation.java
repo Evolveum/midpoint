@@ -167,7 +167,7 @@ class ShadowSearchLikeOperation {
             }
         };
 
-        boolean fetchAssociations = SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATION, options, true);
+        boolean fetchAssociations = SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATIONS, options, true);
         try {
             return b.resourceObjectConverter.searchResourceObjects(
                     ctx, shadowHandler, createOnResourceQuery(), fetchAssociations, ucfErrorReportingMethod, result);
@@ -338,7 +338,7 @@ class ShadowSearchLikeOperation {
             ExpressionEvaluationException, SecurityViolationException {
 
         if (isRaw()) {
-            ctx.applyAttributesDefinition(rawRepoShadow); // TODO is this really OK?
+            ctx.applyDefinitionInNewCtx(rawRepoShadow); // TODO is this really OK?
             return;
         }
 

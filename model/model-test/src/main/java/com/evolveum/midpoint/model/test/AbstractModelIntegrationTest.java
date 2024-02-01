@@ -1674,9 +1674,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             String resourceOid, ShadowKindType kind, String intent, boolean add) throws SchemaException {
         Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add(createAssignmentModification(resourceOid, kind, intent, add));
-        ObjectDelta<F> userDelta = prismContext.deltaFactory().object()
+        return prismContext.deltaFactory().object()
                 .createModifyDelta(focusOid, modifications, type);
-        return userDelta;
     }
 
     protected <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(

@@ -115,7 +115,7 @@ class ShadowOperationPropagationHelper {
         ObjectDelta<ShadowType> aggregateDelta = null;
         for (PendingOperationType pendingOperation : sortedOperations) {
             ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingOperation.getDelta());
-            ctx.applyAttributesDefinition(pendingDelta);
+            ctx.applyCurrentDefinition(pendingDelta);
             if (aggregateDelta == null) {
                 aggregateDelta = pendingDelta;
             } else {

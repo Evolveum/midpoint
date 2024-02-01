@@ -12,6 +12,10 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+
+import com.evolveum.midpoint.schema.processor.ShadowAssociation;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -207,8 +211,8 @@ abstract class MSource implements DebugDumpable {
      * Used in request creator, called from mappings creator.
      */
     abstract void resolveInputEntitlements(
-            ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> associationAPrioriDelta,
-            Item<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> currentAssociation);
+            ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
+            ShadowAssociation currentAssociation);
 
     /**
      * Provides the `entitlement` variable for mapping evaluation.

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -682,8 +683,9 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_GUYBRUSH_DUMMY_UPCASE_NAME, "title", "FOOL!");
         assertDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_DUMMY_FOOLS_NAME, ACCOUNT_GUYBRUSH_DUMMY_UPCASE_NAME);
 
-        assertEquals(1, accountModel.asObjectable().getAssociation().size());
-        ObjectReferenceType shadowRef = accountModel.asObjectable().getAssociation().get(0).getShadowRef();
+        var associationValues = ShadowAssociationsCollection.ofShadow(accountModel.asObjectable()).getAllValues();
+        assertEquals(1, associationValues.size());
+        ObjectReferenceType shadowRef = associationValues.iterator().next().value().getShadowRef();
         PrismObject<ShadowType> groupFoolsRepoShadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
         display("group fools repo shadow", groupFoolsRepoShadow);
 

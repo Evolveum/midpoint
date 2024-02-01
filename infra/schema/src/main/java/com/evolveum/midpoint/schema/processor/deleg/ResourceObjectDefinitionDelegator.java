@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.processor.*;
 
@@ -146,7 +146,7 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
 
     @Override
     @NotNull
-    default Collection<ResourceAssociationDefinition> getAssociationDefinitions() {
+    default Collection<ShadowAssociationDefinition> getAssociationDefinitions() {
         return delegate().getAssociationDefinitions();
     }
     @Override

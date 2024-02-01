@@ -11,13 +11,14 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -84,7 +85,7 @@ class AccessChecker {
                 if (!(modification instanceof PropertyDelta<?> attrDelta)) {
                     continue;
                 }
-                if (!SchemaConstants.PATH_ATTRIBUTES.equivalent(attrDelta.getParentPath())) {
+                if (!ShadowType.F_ATTRIBUTES.equivalent(attrDelta.getParentPath())) {
                     // Not an attribute
                     continue;
                 }

@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -166,7 +165,7 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
         List<ItemDelta<?,?>> assignmentMetadataDeltas = new ArrayList<>();
         for (ItemDelta<?,?> itemDelta: objectDelta.getModifications()) {
             ItemPath deltaPath = itemDelta.getPath();
-            CompareResult comparison = deltaPath.compareComplex(SchemaConstants.PATH_ASSIGNMENT);
+            CompareResult comparison = deltaPath.compareComplex(FocusType.F_ASSIGNMENT);
             if (comparison == EQUIVALENT) {
                 // whole assignment is being added/replaced (or deleted but we are not interested in that)
                 //noinspection unchecked

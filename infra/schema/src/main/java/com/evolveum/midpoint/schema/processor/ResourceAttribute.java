@@ -9,18 +9,20 @@ package com.evolveum.midpoint.schema.processor;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -46,6 +48,37 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  * @author Radovan Semancik
  */
 public interface ResourceAttribute<T> extends PrismProperty<T> {
+
+    /** Converts the {@link PrismProperty} into {@link ResourceAttribute}, if needed. */
+    static <T> ResourceAttribute<T> of(@NotNull Item<?, ?> item) {
+        if (item instanceof ResourceAttribute<?> resourceAttribute) {
+            //noinspection unchecked
+            return (ResourceAttribute<T>) resourceAttribute;
+        } else if (item instanceof PrismProperty<?> property) {
+            ResourceAttributeImpl<T> attr = new ResourceAttributeImpl<>(item.getElementName(), null);
+            for (PrismPropertyValue<?> value : property.getValues()) {
+                //noinspection unchecked
+                attr.addValue((PrismPropertyValue<T>) value, true);
+            }
+            return attr;
+        } else {
+            throw new IllegalArgumentException("Not a property: " + item);
+        }
+    }
+
+    // TODO remove
+//    static Collection<ResourceAttribute<?>> collectionOf(ShadowAttributesType bean) {
+//        if (bean != null) {
+//            List<ResourceAttribute<?>> list = new ArrayList<>();
+//            //noinspection unchecked
+//            for (Item<?, ?> item : ((PrismContainerValue<ShadowAttributesType>) bean.asPrismContainerValue()).getItems()) {
+//                list.add(ResourceAttribute.of(item));
+//            }
+//            return list;
+//        } else {
+//            return List.of();
+//        }
+//    }
 
     ResourceAttributeDefinition<T> getDefinition();
 
@@ -87,16 +120,6 @@ public interface ResourceAttribute<T> extends PrismProperty<T> {
         applyDefinition((ResourceAttributeDefinition<T>) attrDef);
         return this;
     }
-
-    /**
-     * Creates a clone with the new definition applied. (Including the normalization.)
-     *
-     * This may involve conversion of values from {@link String} to {@link PolyString}, if string normalizer is used.
-     *
-     * TODO remove eventually if not needed
-     */
-    @NotNull <T2> ResourceAttribute<T2> cloneWithNewDefinition(@NotNull ResourceAttributeDefinition<T2> newDefinition)
-            throws SchemaException;
 
     @Override
     ResourceAttribute<T> clone();

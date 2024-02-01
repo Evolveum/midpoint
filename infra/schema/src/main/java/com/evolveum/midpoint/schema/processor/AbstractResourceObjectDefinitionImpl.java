@@ -129,7 +129,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
      *
      * Immutable.
      */
-    @NotNull final DeeplyFreezableList<ResourceAssociationDefinition> associationDefinitions =
+    @NotNull final DeeplyFreezableList<ShadowAssociationDefinition> associationDefinitions =
             new DeeplyFreezableList<>();
 
     /**
@@ -193,7 +193,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<ResourceAssociationDefinition> getAssociationDefinitions() {
+    public @NotNull Collection<ShadowAssociationDefinition> getAssociationDefinitions() {
         return associationDefinitions;
     }
 
@@ -314,7 +314,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @Override
     public PrismObjectDefinition<ShadowType> getPrismObjectDefinition() {
         if (prismObjectDefinition == null) {
-            PrismObjectDefinition<ShadowType> definition = computePrismObjectDefinition();
+            PrismObjectDefinition<ShadowType> definition = toPrismObjectDefinition();
             definition.freeze();
             this.prismObjectDefinition = definition;
         }
@@ -379,25 +379,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
         return ResourceTypeUtil.getEnabledCapability(resource, definitionBean, capabilityClass);
     }
     //endregion
-
-    @Override
-    public PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
-        ShadowType shadow =
-                new ShadowType()
-                        .tag(tag)
-                        .objectClass(getObjectClassName())
-                        .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
-
-        PrismObject<ShadowType> shadowPrismObject = shadow.asPrismObject();
-
-        // Setup definition
-        shadowPrismObject.setDefinition(
-                shadowPrismObject.getDefinition()
-                        .cloneWithReplacedDefinition(
-                                ShadowType.F_ATTRIBUTES, toResourceAttributeContainerDefinition()));
-
-        return shadowPrismObject;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -830,7 +811,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         return definitionBean;
     }
 
-    void addAssociationDefinition(@NotNull ResourceAssociationDefinition associationDef) {
+    void addAssociationDefinition(@NotNull ShadowAssociationDefinition associationDef) {
         checkMutable();
         associationDefinitions.add(associationDef);
     }

@@ -9,15 +9,12 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.TokenUtil.toUcf;
 
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl.toShadowDefinition;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -29,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -72,11 +68,11 @@ class SyncDeltaConverter {
         Collection<ResourceAttribute<?>> identifiers = new ArrayList<>();
         ResourceObjectDefinition actualObjectDefinition = null;
         ObjectDelta<ShadowType> objectDelta = null;
-        PrismObject<ShadowType> resourceObject = null;
+        UcfResourceObject resourceObject = null;
 
         LOGGER.trace("START creating delta of type {}", icfDeltaType);
 
-        UcfErrorState errorState;
+        @NotNull UcfErrorState errorState;
         try {
             actualObjectDefinition = getActualObjectDefinition(connIdDelta);
             assert actualObjectDefinition != null || icfDeltaType == SyncDeltaType.DELETE;
@@ -85,39 +81,38 @@ class SyncDeltaConverter {
 
                 identifiers.addAll(
                         ConnIdUtil.convertToIdentifiers(
-                                uid, actualObjectDefinition, connectorInstance.getRawResourceSchema()));
+                                uid, actualObjectDefinition, connectorInstance.getResourceSchema()));
                 objectDelta = PrismContext.get().deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
 
             } else if (icfDeltaType == SyncDeltaType.CREATE || icfDeltaType == SyncDeltaType.CREATE_OR_UPDATE || icfDeltaType == SyncDeltaType.UPDATE) {
 
-                PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(actualObjectDefinition);
-                LOGGER.trace("Object definition: {}", objectDefinition);
-
-                // We can consider using "fetch result" error reporting method here, and go along with a partial object.
+                // We use the "object" error reporting method here, to be able to proceed with partial object.
+                // This is to avoid having to artificially add e.g. identifiers to the object later. If not done here,
+                // we have no possibility to guess the identifiers later! This is the best place to do that.
                 resourceObject = connIdConvertor
                         .convertToUcfObject(
-                                connIdDelta.getObject(), objectDefinition,
-                                connectorInstance.isCaseIgnoreAttributeNames(), connectorInstance.isLegacySchema(),
-                                UcfFetchErrorReportingMethod.EXCEPTION, result)
-                        .getPrismObject();
+                                connIdDelta.getObject(),
+                                actualObjectDefinition,
+                                connectorInstance.getResourceSchema(),
+                                connectorInstance.isLegacySchema(),
+                                UcfFetchErrorReportingMethod.UCF_OBJECT,
+                                result);
+
+                LOGGER.trace("Conversion result: {}", resourceObject.getErrorState());
 
                 LOGGER.trace("Got (current) resource object: {}", resourceObject.debugDumpLazily());
-                identifiers.addAll(ShadowUtil.getAllIdentifiers(resourceObject));
+                identifiers.addAll(ShadowUtil.getAllIdentifiers(resourceObject.getPrismObject()));
 
                 if (icfDeltaType == SyncDeltaType.CREATE) {
                     objectDelta = PrismContext.get().deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
-                    objectDelta.setObjectToAdd(resourceObject);
+                    objectDelta.setObjectToAdd(resourceObject.getPrismObject());
                 }
 
             } else {
                 throw new GenericFrameworkException("Unexpected sync delta type " + icfDeltaType);
             }
 
-            if (identifiers.isEmpty()) {
-                throw new SchemaException("No identifiers in sync delta " + connIdDelta);
-            }
-
-            errorState = UcfErrorState.success();
+            errorState = resourceObject != null ? resourceObject.getErrorState() : UcfErrorState.success();
 
         } catch (Exception e) {
             result.recordFatalError(e);
@@ -142,8 +137,7 @@ class SyncDeltaConverter {
         QName deltaObjectClassName = nameMapper.objectClassToQname(deltaConnIdObjectClass, connectorInstance.isLegacySchema());
         ResourceObjectDefinition deltaObjectClass;
         if (deltaConnIdObjectClass != null) {
-            deltaObjectClass = (ResourceObjectClassDefinition) connectorInstance.getRawResourceSchema()
-                    .findComplexTypeDefinitionByType(deltaObjectClassName);
+            deltaObjectClass = connectorInstance.getResourceSchema().findDefinitionForObjectClass(deltaObjectClassName);
         } else {
             deltaObjectClass = null;
         }
@@ -151,8 +145,9 @@ class SyncDeltaConverter {
             if (connIdDelta.getDeltaType() == SyncDeltaType.DELETE) {
                 // tolerate this. E.g. LDAP changelogs do not have objectclass in delete deltas.
             } else {
-                throw new SchemaException("Got delta with object class " + deltaObjectClassName + " (" +
-                        deltaConnIdObjectClass + ") that has no definition in resource schema");
+                throw new SchemaException(
+                        "Got delta with object class %s (%s) that has no definition in resource schema".formatted(
+                                deltaObjectClassName, deltaConnIdObjectClass));
             }
         }
         return deltaObjectClass;

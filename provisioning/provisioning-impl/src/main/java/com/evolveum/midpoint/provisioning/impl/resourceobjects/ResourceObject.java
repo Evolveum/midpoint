@@ -12,7 +12,6 @@ import java.io.Serializable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -149,10 +147,6 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
         }
     }
 
-    public @Nullable PrismContainer<ShadowAssociationType> getAssociationsContainer() {
-        return getPrismObject().findContainer(ShadowType.F_ASSOCIATION);
-    }
-
     public @NotNull Shadow asShadow(@NotNull ResourceType resource) {
         return Shadow.of(bean, Resource.of(resource));
     }
@@ -167,9 +161,5 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
 
     public void setOid(String oid) {
         bean.setOid(oid);
-    }
-
-    public String getOid() {
-        return bean.getOid();
     }
 }
