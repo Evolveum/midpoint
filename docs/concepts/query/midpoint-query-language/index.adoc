@@ -37,7 +37,7 @@ Examples how to use the midPoint query in GUI can be found in xref:/midpoint/gui
 
 === Using in Configuration
 
-Advanced query filters can be used in any configuration place. In XML configuration files it is wrapped inside `<text>` element inside `<filter>` element.
+MidPoint Query filters can be used in any configuration place. In XML configuration files it is wrapped inside `<text>` element inside `<filter>` element.
 
 For example query `givenName startsWith "J"` is stored in midPoint configuration this way.
 
