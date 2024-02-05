@@ -18,7 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jose.shaded.json.JSONObject;
 import com.nimbusds.jose.util.JSONObjectUtils;
-import jakarta.annotation.Nullable;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -308,7 +307,6 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
         return prepareClient();
     }
 
-    @Nullable
     private Map<String, String> getPublicKeys() {
         Map<String, String> publicKeys = new HashMap<>();
         try {
