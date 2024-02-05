@@ -87,7 +87,7 @@ public class ConfigurableProtectorFactory {
     public Protector getProtector() {
         // We cannot use KeyStoreBasedProtectorBuilder here, because there is no prism context yet.
         // This means that system-init will depend on prism-impl.
-        KeyStoreBasedProtectorImpl protector = new KeyStoreBasedProtectorImpl();
+        KeyStoreBasedProtectorImpl protector = new ConfigurableProtector();
         protector.setEncryptionKeyAlias(protectorConfig.getEncryptionKeyAlias());
         protector.setKeyStorePassword(protectorConfig.getKeyStorePassword());
         protector.setKeyStorePath(protectorConfig.getKeyStorePath());

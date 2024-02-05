@@ -3454,6 +3454,15 @@
     </xsd:complexType>
 
     <xsd:complexType name="SecretsProvidersType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Secrets providers configuration container.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:dockerSecretsProvider" minOccurs="0"/>
             <xsd:element ref="tns:kubernetesSecretsProvider" minOccurs="0"/>
@@ -3492,7 +3501,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="ttl" type="xsd:duration" default="PT0S" minOccurs="0">
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Order used during initialization of secret providers.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="cache" type="xsd:duration" default="PT0S" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Time-to-live when caching the secrets provided by this provider.

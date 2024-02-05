@@ -35,12 +35,14 @@ public abstract class CachedSecretsProvider<T extends AbstractSecretsProviderTyp
         return configuration;
     }
 
+    @Override
     public void init() {
-        Duration duration = configuration.getTtl();
+        Duration duration = configuration.getCache();
 
         ttl = duration != null ? duration.getTimeInMillis(new Date()) : 0;
     }
 
+    @Override
     public void destroy() {
         cache.clear();
     }
