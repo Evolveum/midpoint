@@ -69,6 +69,12 @@ filter:
 
 To start with midPoint Query Language, please read xref:introduction.adoc[*Introduction to midPoint Query Language*].
 
+
+=== Using in midPoint Studio
+
+xref:/midpoint/tools/studio[Midpoint Studio] is great tool helping midPoint engineers and administrators with configuration and daily work.
+You can use midPoint Query Language for xref:/midpoint/tools/studio/usage#_browsing_objects[querying of midPoint objects in midPoint Studio] as well.
+
 === Query Playground
 
 To experiment with the query language, there is hardly a better place than the actual running midPoint.

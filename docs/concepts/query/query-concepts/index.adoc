@@ -1529,8 +1529,8 @@ For authoritative information about provisioning filter interpretation, see link
 
 Filters can be created using Fluent Java API or via XML (or equivalentYAML/JSON).
 
-The following samples are taken from link:https://github.com/Evolveum/midpoint/blob/master/infra/schema/src/test/java/com/evolveum/midpoint/schema/TestQueryConvertor.java[TestQueryConvertor] class.
-XML versions are in the files named `test*.xml` in link:https://github.com/Evolveum/midpoint/tree/master/infra/schema/src/test/resources/queryconvertor[this directory].
+The following samples are taken from link:https://github.com/Evolveum/midpoint/blob/master/infra/schema/src/test/java/com/evolveum/midpoint/schema/TestQueryConverter.java[TestQueryConvertor] class.
+XML versions are in the files named `test*.xml` in link:https://github.com/Evolveum/midpoint/tree/master/infra/schema/src/test/resources/queryconverter[this directory].
 
 ==== Primitive filters
 
@@ -2138,6 +2138,20 @@ The operation may return specified number of entries or less.
 Following is the example for using paging in the query.
 
 .Paging example
+[source,midPoint-query]
+----
+<q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <q:filter>
+        <q:text>activation/administrativeStatus="enabled"</q:text>
+    </q:filter>
+    <q:paging>
+        <q:orderBy>name</q:orderBy>
+        <q:offset>0</q:offset>
+        <q:maxSize>10</q:maxSize>
+    </q:paging>
+</q:query>
+----
+
 [source,xml]
 ----
 <q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -2149,8 +2163,8 @@ Following is the example for using paging in the query.
     </q:filter>
     <q:paging>
         <q:orderBy>name</q:orderBy>
-        <offset>0</offset>
-        <maxSize>10</maxSize>
+        <q:offset>0</q:offset>
+        <q:maxSize>10</q:maxSize>
     </q:paging>
 </q:query>
 ----
