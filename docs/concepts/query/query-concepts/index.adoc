@@ -6,8 +6,6 @@ scripts: [ 'multi-source.js' ]
 :page-display-order: 300
 :page-toc: top
 :toclevels: 3
-:sectnums:
-:sectnumlevels: 3
 
 This document contain advanced documentation describing concepts of querying in midPoint and midPoint Query language building blocks. New midPoint users and engineers may find this information hard to follow and confusing.
 

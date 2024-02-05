@@ -2,8 +2,6 @@
 :page-display-order: 100
 :page-toc: top
 :toclevels: 3
-:sectnums:
-:sectnumlevels: 3
 :page-moved-from: /midpoint/reference/concepts/query/axiom-query-language/
 
 _MidPoint Query Language_ is designed to query objects in midPoint repository.
