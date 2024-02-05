@@ -3,8 +3,6 @@
 :page-display-order: 500
 :page-toc: top
 :toclevels: 3
-:sectnums:
-:sectnumlevels: 3
 
 
 While searching with midPoint Query Language you can encounter various error messages.
