@@ -57,6 +57,7 @@ public class SecretsProviderManager {
             }
 
             consumer.addSecretsProvider(newProvider);
+            existingProviders.remove(newProvider.getIdentifier());
         }
 
         // we'll just clear existing providers

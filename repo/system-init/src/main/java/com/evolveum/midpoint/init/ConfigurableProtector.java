@@ -41,12 +41,39 @@ public class ConfigurableProtector extends KeyStoreBasedProtectorImpl implements
     }
 
     @Override
+    public <T> void decrypt(ProtectedData<T> protectedData) throws EncryptionException, SchemaException {
+        ExternalDataType external = protectedData.getExternalData();
+        if (external == null) {
+            super.decrypt(protectedData);
+            return;
+        }
+
+        ByteBuffer value = resolveExternalData(external, ByteBuffer.class);
+        protectedData.setClearBytes(value.array());
+    }
+
+    @Override
+    public String decryptString(ProtectedData<String> protectedString) throws EncryptionException {
+        ExternalDataType external = protectedString.getExternalData();
+        if (external == null) {
+            return super.decryptString(protectedString);
+        }
+
+        return resolveExternalData(external, String.class);
+    }
+
+    @Override
     protected <T> byte[] decryptBytes(ProtectedData<T> protectedData) throws SchemaException, EncryptionException {
         ExternalDataType external = protectedData.getExternalData();
         if (external == null) {
             return super.decryptBytes(protectedData);
         }
 
+        ByteBuffer buffer = resolveExternalData(external, ByteBuffer.class);
+        return buffer.array();
+    }
+
+    private <T> T resolveExternalData(ExternalDataType external, Class<T> type) throws EncryptionException {
         String provider = external.getProvider();
         String key = external.getKey();
         if (provider == null) {
@@ -62,12 +89,20 @@ public class ConfigurableProtector extends KeyStoreBasedProtectorImpl implements
             throw new EncryptionException("No secrets provider with identifier " + provider + " found");
         }
 
-        ByteBuffer buffer = secretsProvider.getSecretBinary(key);
-        if (buffer == null) {
+        T value;
+        if (type == String.class) {
+            value = (T) secretsProvider.getSecretString(key);
+        } else if (type == ByteBuffer.class) {
+            value = (T) secretsProvider.getSecretBinary(key);
+        } else {
+            throw new EncryptionException("Unsupported external data type " + type);
+        }
+
+        if (value == null) {
             throw new EncryptionException("No secret with key " + key + " found in provider " + provider);
         }
 
-        return buffer.array();
+        return value;
     }
 
     @Override
