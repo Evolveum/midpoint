@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -75,7 +77,9 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
             return;
         }
 
-        RoleAnalysisProcessModeType processMode = parentClusterByOid.asObjectable().getProcessMode();
+        RoleAnalysisSessionType session = parentClusterByOid.asObjectable();
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareExpandedMiningStructure(cluster,
                 true, processMode, result, task);

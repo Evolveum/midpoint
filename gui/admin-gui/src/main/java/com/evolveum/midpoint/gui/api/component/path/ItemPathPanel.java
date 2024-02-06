@@ -59,10 +59,11 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
     private boolean switchToTextFieldEnabled = false;
 
-    public enum ItemPathPanelMode{
+    public enum ItemPathPanelMode {
         NAMESPACE_MODE,
         TEXT_MODE;
     }
+
     private ItemPathPanelMode panelMode = ItemPathPanelMode.NAMESPACE_MODE;
 
     public ItemPathPanel(String id, IModel<ItemPathDto> model) {
@@ -92,15 +93,16 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
     }
 
     @Override
-    protected void onConfigure(){
+    protected void onConfigure() {
         super.onConfigure();
-        if (getModelObject() == null || getModelObject().getItemDef() == null){
+        if (getModelObject() == null || getModelObject().getItemDef() == null) {
             ItemPathSegmentPanel itemPathSegmentPanel = getItemPathSegmentPanel();
-            if (itemPathSegmentPanel != null){
+            if (itemPathSegmentPanel != null) {
                 itemPathSegmentPanel.getBaseFormComponent().getDefaultModel().setObject(null);
             }
         }
     }
+
     private void initLayout() {
         initItemPathPanel();
 
@@ -191,9 +193,10 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         minusButton.setOutputMarkupId(true);
         namespaceModeContainer.add(minusButton);
 
+        setDefaultItemPath();
         DropDownChoicePanel<QName> namespacePanel = new DropDownChoicePanel<>(ID_NAMESPACE,
-            new PropertyModel<>(getModel(), "objectType"),
-            new ListModel<>(ObjectTypeListUtil.createObjectTypeList()), new QNameObjectTypeChoiceRenderer());
+                new PropertyModel<>(getModel(), "objectType"),
+                new ListModel<>(ObjectTypeListUtil.createObjectTypeList()), new QNameObjectTypeChoiceRenderer());
         namespacePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
             private static final long serialVersionUID = 1L;
@@ -211,7 +214,14 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
             @Override
             public boolean isVisible() {
-                return getModelObject().getParentPath() == null || getModelObject().getParentPath().toItemPath() == null;
+                return isNamespaceVisible()
+                        && (getModelObject().getParentPath() == null
+                        || getModelObject().getParentPath().toItemPath() == null);
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return isNamespaceEnable();
             }
         });
         namespacePanel.setOutputMarkupId(true);
@@ -316,11 +326,22 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
     }
 
     private void refreshItemPath(ItemPathDto itemPathDto, AjaxRequestTarget target) {
-
         this.getModel().setObject(itemPathDto);
         target.add(this);
 
         onUpdate(itemPathDto);
+    }
+
+    protected boolean setDefaultItemPath() {
+        return true;
+    }
+
+    protected boolean isNamespaceVisible() {
+        return true;
+    }
+
+    protected boolean isNamespaceEnable() {
+        return true;
     }
 
     private Map<QName, Collection<ItemDefinition<?>>> initNamspaceDefinitionMap() {
@@ -345,17 +366,16 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         return schemaDefinitionsMap;
     }
 
-
     protected void onUpdate(ItemPathDto itemPathDto) {
 
     }
 
-    protected ItemPathSegmentPanel getItemPathSegmentPanel(){
+    protected ItemPathSegmentPanel getItemPathSegmentPanel() {
         return (ItemPathSegmentPanel) get(ID_ITEM_PATH).get(ID_NAMESPACE_MODE_CONTAINER).get(ID_DEFINITION);
     }
 
-    protected void switchButtonClickPerformed(AjaxRequestTarget target){
-        if (ItemPathPanelMode.TEXT_MODE.equals(panelMode)){
+    protected void switchButtonClickPerformed(AjaxRequestTarget target) {
+        if (ItemPathPanelMode.TEXT_MODE.equals(panelMode)) {
             panelMode = ItemPathPanelMode.NAMESPACE_MODE;
         } else {
             panelMode = ItemPathPanelMode.TEXT_MODE;
@@ -363,11 +383,11 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         target.add(ItemPathPanel.this);
     }
 
-    public boolean isTextMode(){
+    public boolean isTextMode() {
         return ItemPathPanelMode.TEXT_MODE.equals(panelMode);
     }
 
-    protected ItemPathPanelMode getPanelMode(){
+    protected ItemPathPanelMode getPanelMode() {
         return panelMode;
     }
 }

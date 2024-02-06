@@ -8,20 +8,20 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RangeSliderPanel;
-
 import jakarta.annotation.PostConstruct;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionOptionType;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.MatchRulePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MatchType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisMatchingRuleType;
 
 //TODO check serializable
 @Component
-public class ValueSelectorSliderPanelFactory extends AbstractInputGuiComponentFactory<Double> implements Serializable {
+public class MatchRulePanelFactory extends AbstractGuiComponentFactory<MatchType> implements Serializable {
 
     @PostConstruct
     public void register() {
@@ -30,13 +30,12 @@ public class ValueSelectorSliderPanelFactory extends AbstractInputGuiComponentFa
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        return RoleAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD.equals(wrapper.getItemName());
+        return RoleAnalysisMatchingRuleType.F_MATCH_RULE.equals(wrapper.getItemName());
     }
 
     @Override
-    protected InputPanel getPanel(PrismPropertyPanelContext<Double> panelCtx) {
-        RangeSliderPanel rangeSliderPanel = new RangeSliderPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
-        rangeSliderPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+    protected Panel getPanel(PrismPropertyPanelContext<MatchType> panelCtx) {
+        MatchRulePanel rangeSliderPanel = new MatchRulePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(),false);
         rangeSliderPanel.setOutputMarkupId(true);
         return rangeSliderPanel;
     }

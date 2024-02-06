@@ -53,6 +53,10 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
                 "aria-label",
                 () -> {
                     if (getModelObject().isMultiValue()) {
+                        if(getHeader() == null){
+                            return getParentPage().createStringResource(
+                                    "PrismContainerPanel.container");
+                        }
                         return getParentPage().createStringResource(
                                 "PrismContainerPanel.container", getHeader().createLabelModel().getObject())
                                 .getString();

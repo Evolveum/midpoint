@@ -616,7 +616,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
 
         RoleAnalysisSessionType sessionObject = session.asObjectable();
-        return sessionObject.getProcessMode();
+        RoleAnalysisOptionType analysisOption = sessionObject.getAnalysisOption();
+        return analysisOption.getProcessMode();
     }
 
     @Override

@@ -7,15 +7,19 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
+import java.util.Set;
+
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.AttributeMatch;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 
 /**
  * A distance measure implementation for calculating the Jaccard distance/similarity between two sets of values.
  */
 public class JaccardDistancesMeasure implements DistanceMeasure {
     private final int minIntersection;
+    Set<AttributeMatch> attributesMatch;
 
     /**
      * Constructs a JaccardDistancesMeasure with the specified minimum intersection size for calculation.
@@ -24,6 +28,11 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
      */
     public JaccardDistancesMeasure(int minIntersection) {
         this.minIntersection = minIntersection;
+    }
+
+    public JaccardDistancesMeasure(int minIntersection, Set<AttributeMatch> attributesMatch) {
+        this.minIntersection = minIntersection;
+        this.attributesMatch = attributesMatch;
     }
 
     /**
@@ -71,6 +80,61 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
 
         }
 
+    }
+    @Override
+    public double compute(ExtensionProperties valueA, ExtensionProperties valueB) {
+
+        double weightSum = 0;
+
+        for (AttributeMatch attributeMatch : attributesMatch) {
+
+            boolean multiValue = attributeMatch.isMultiValue();
+            if (!multiValue) {
+                weightSum += computeSingleValue(valueA, valueB, attributeMatch);
+            } else {
+                weightSum += computeMultiValue(valueA, valueB, attributeMatch);
+            }
+
+            if(weightSum >= 1.0){
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+    private double calculateConfidence(double weightSum){
+        return weightSum / attributesMatch.size();
+    }
+
+    private double computeSingleValue(ExtensionProperties valueA, ExtensionProperties valueB, AttributeMatch attributeMatch) {
+        String valuesForKeyA = valueA.getSingleValueForKey(attributeMatch);
+        String valuesForKeyB = valueB.getSingleValueForKey(attributeMatch);
+
+        if (valuesForKeyA != null && valuesForKeyB != null) {
+            if (valuesForKeyA.equals(valuesForKeyB)) {
+                return attributeMatch.getWeight();
+            }
+        }
+        return 0;
+    }
+
+    private double computeMultiValue(ExtensionProperties valueA, ExtensionProperties valueB, AttributeMatch attributeMatch) {
+        Set<String> valuesForKeyA = valueA.getSetValuesForKeys(attributeMatch);
+        Set<String> valuesForKeyB = valueB.getSetValuesForKeys(attributeMatch);
+        double percentage = attributeMatch.getSimilarity();
+
+        if (valuesForKeyA != null
+                && valuesForKeyB != null
+                && !valuesForKeyA.isEmpty()
+                && !valuesForKeyB.isEmpty()) {
+            double compute = compute(valuesForKeyA, valuesForKeyB);
+
+            if ((1 - compute) >= percentage) {
+                return attributeMatch.getWeight();
+            }
+        }
+
+        return 0;
     }
 
 }

@@ -36,11 +36,11 @@ public class RoleAnalysisUtils {
     public static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisUtils.class);
 
     public static AbstractAnalysisSessionOptionType getSessionOptionType(RoleAnalysisSessionType roleAnalysisSession) {
-        if (roleAnalysisSession == null || roleAnalysisSession.getProcessMode() == null) {
+        if (roleAnalysisSession == null || roleAnalysisSession.getAnalysisOption() == null) {
             return null;
         }
-
-        if (roleAnalysisSession.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
+        RoleAnalysisOptionType analysisOption = roleAnalysisSession.getAnalysisOption();
+        if (analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
             return roleAnalysisSession.getRoleModeOptions();
         }
         return roleAnalysisSession.getUserModeOptions();

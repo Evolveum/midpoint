@@ -42,7 +42,8 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
             Task task = getPageBase().createSimpleTask("countObjects");
             OperationResult result = task.getResult();
             LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-            RoleAnalysisProcessModeType processMode = objectWrapperModel.getObject().getObject().asObjectable().getProcessMode();
+            RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
+            RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
 
             PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType = getContainerFormModel().getObject()
                     .getValue();
@@ -111,7 +112,8 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
     @Override
     protected IModel<? extends PrismContainerWrapper<AbstractAnalysisSessionOptionType>> getContainerFormModel() {
         LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-        RoleAnalysisProcessModeType processMode = objectWrapperModel.getObject().getObject().asObjectable().getProcessMode();
+        RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
 
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
             return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),

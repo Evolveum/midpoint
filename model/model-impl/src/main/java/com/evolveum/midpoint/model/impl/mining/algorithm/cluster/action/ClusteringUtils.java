@@ -11,19 +11,23 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 
 import java.util.*;
 
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.DataPoint;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.AttributeMatch;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -32,8 +36,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Utility class for performing clustering operations in the context of role analysis.
@@ -219,9 +222,91 @@ public class ClusteringUtils {
 
         for (List<String> points : chunkMap.keySet()) {
             List<String> elements = chunkMap.get(points);
-
             dataPoints.add(new DataPoint(new HashSet<>(elements), new HashSet<>(points)));
+        }
+        return dataPoints;
+    }
 
+    public static List<DataPoint> prepareDataPointsUserModerRules(@NotNull ListMultimap<List<String>, String> chunkMap,
+            RoleAnalysisService roleAnalysisService, Task task, List<AttributeMatch> attributeMatches) {
+        List<DataPoint> dataPoints = new ArrayList<>();
+
+        for (List<String> points : chunkMap.keySet()) {
+            for (String element : chunkMap.get(points)) {
+                PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(element, task, task.getResult());
+
+                if (userTypeObject != null) {
+                    ExtensionProperties extensionProperties = new ExtensionProperties();
+
+                    for (AttributeMatch rule : attributeMatches) {
+                        ItemPathType itemPath = rule.getKey();
+
+                        if (rule.isMultiValue()) {
+                            Collection<Item<?, ?>> items = userTypeObject.getAllItems(itemPath.getItemPath());
+                            for (Item<?, ?> item : items) {
+                                Object oid = item.find(ItemPath.create("oid"));
+                                if (oid != null) {
+                                    extensionProperties.addProperty(rule, oid.toString());
+                                }
+                            }
+                        } else {
+                            Item<PrismValue, ItemDefinition<?>> item = userTypeObject.findItem(itemPath.getItemPath());
+                            if (item != null) {
+                                Object realValue = item.getValue();
+                                if (realValue != null) {
+                                    extensionProperties.addProperty(rule, realValue.toString());
+                                }
+                            }
+                        }
+                    }
+
+                    dataPoints.add(new DataPoint(new HashSet<>(Collections.singleton(element)),
+                            new HashSet<>(points),
+                            extensionProperties));
+                }
+            }
+        }
+        return dataPoints;
+    }
+
+    public static List<DataPoint> prepareDataPointsRoleModerRules(@NotNull ListMultimap<List<String>, String> chunkMap,
+            RoleAnalysisService roleAnalysisService, Task task, List<AttributeMatch> attributeMatches) {
+        List<DataPoint> dataPoints = new ArrayList<>();
+
+        for (List<String> points : chunkMap.keySet()) {
+            for (String element : chunkMap.get(points)) {
+                PrismObject<RoleType> roleType = roleAnalysisService.getRoleTypeObject(element, task, task.getResult());
+
+                if (roleType != null) {
+                    ExtensionProperties extensionProperties = new ExtensionProperties();
+
+                    for (AttributeMatch rule : attributeMatches) {
+                        ItemPathType itemPath = rule.getKey();
+
+                        if (rule.isMultiValue()) {
+                            Collection<Item<?, ?>> items = roleType.getAllItems(itemPath.getItemPath());
+                            for (Item<?, ?> item : items) {
+                                Object oid = item.find(ItemPath.create("oid"));
+                                if (oid != null) {
+                                    extensionProperties.addProperty(rule, oid.toString());
+                                }
+                            }
+                        } else {
+                            Item<PrismValue, ItemDefinition<?>> item = roleType.findItem(itemPath.getItemPath());
+                            if (item != null) {
+                                Object realValue = item.getValue();
+                                if (realValue != null) {
+                                    extensionProperties.addProperty(rule, realValue.toString());
+                                }
+                            }
+                        }
+                    }
+
+                    dataPoints.add(new DataPoint(new HashSet<>(Collections.singleton(element)),
+                            new HashSet<>(points),
+                            extensionProperties));
+                }
+            }
         }
         return dataPoints;
     }

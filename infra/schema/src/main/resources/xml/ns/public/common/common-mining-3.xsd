@@ -156,12 +156,25 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+
+                    <xsd:element name="outlier" type="c:RoleAnalysisOutliersType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Contains information about outliers and their analysis.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisOutliersType.outlier</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
 
     </xsd:complexType>
-
     <xsd:element name="roleAnalysisCluster" type="tns:RoleAnalysisClusterType" substitutionGroup="tns:object"/>
 
     <xsd:complexType name="RoleAnalysisSessionType">
@@ -182,7 +195,7 @@
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
 
-                    <xsd:element name="processMode" type="tns:RoleAnalysisProcessModeType" minOccurs="0">
+                    <xsd:element name="analysisOption" type="c:RoleAnalysisOptionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -206,7 +219,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>RoleAnalysisProcessModeType.processMode</a:displayName>
+                                <a:displayName>RoleAnalysisOptionType.analysisOption</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -297,6 +310,19 @@
                                     cases). The number of operations to be kept here is configurable.
                                 </p>
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="matchingRule" type="c:RoleAnalysisMatchingRuleType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Matching rule for cluster.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisMatchingRuleType.matchingRule</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -828,6 +854,39 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="MatchType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="isMultiValue" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>If true, the matching rule is applied to each value of the property.</p>
+                        <p>Also, there must be specified a matchSimilarity value. If not default 100% is used.</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisMatchingRuleType.isMultiValue</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="matchSimilarity" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>Similarity threshold used for comparison (Jaccard metric).</p>
+                        <p>If the condition is not met, then the objects are excluded.</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisMatchingRuleType.matchSimilarity</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="match" type="tns:MatchType"/>
+
 
     <xsd:complexType name="RangeType">
         <xsd:annotation>
@@ -1062,4 +1121,356 @@
     </xsd:simpleType>
 
 
+    <xsd:complexType name="RoleAnalysisMatchingRuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>Contains information about matching rules for role analysis.</p>
+                <p>Matching rule presupposes the business logic for the comparison of objects.</p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>Path to the property used for comparison.</p>
+                        <p>It is necessary that the output be a simple object convertible to a String type</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisMatchingRuleType.itemPath</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="matchRule" type="tns:MatchType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>If true, the matching rule is applied to each value of the property.</p>
+                        <p>Also, there must be specified a matchSimilarity value. If not default 100% is used.</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisMatchingRuleType.isMultiValue</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!--<xsd:element name="isMultiValue" type="xsd:boolean" minOccurs="0">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            <p>If true, the matching rule is applied to each value of the property.</p>-->
+            <!--            <p>Also, there must be specified a matchSimilarity value. If not default 100% is used.</p>-->
+            <!--        </xsd:documentation>-->
+            <!--        <xsd:appinfo>-->
+            <!--            <a:displayName>RoleAnalysisMatchingRuleType.isMultiValue</a:displayName>-->
+            <!--        </xsd:appinfo>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
+            <!--<xsd:element name="matchSimilarity" type="xsd:double" minOccurs="0">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            <p>Similarity threshold used for comparison (Jaccard metric).</p>-->
+            <!--            <p>If the condition is not met, then the objects are excluded.</p>-->
+            <!--        </xsd:documentation>-->
+            <!--        <xsd:appinfo>-->
+            <!--            <a:displayName>RoleAnalysisMatchingRuleType.matchSimilarity</a:displayName>-->
+            <!--        </xsd:appinfo>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
+            <xsd:element name="weight" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>Weight of the matching rule.</p>
+                        <p>For inclusion object in the cluster, the sum of the weights of the matching
+                            rules must be greater than or equal to 1.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisMatchingRuleType.weight</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisMatchingRule" type="tns:RoleAnalysisMatchingRuleType"/>
+
+    <!--Currently not used (reserved for future use).-->
+    <xsd:complexType name="RoleAnalysisSimilarityMetricType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains information about the similarity metric for role analysis.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to the property used for similarity metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mode" type="tns:MetricMode" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Mode of the similarity metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="similarity" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Similarity threshold used for similarity metric (Jaccard).
+                        If the condition is not met, then the objects are not grouped.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisSimilarityMetricType" type="tns:RoleAnalysisSimilarityMetricType"/>
+    <!--Currently not used (reserved for future use).-->
+    <xsd:simpleType name="MetricMode">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role analysis metric mode.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="exact">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Check for exact match.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXACT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="partial">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Check for partial match. Required for similarity metric.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PARTIAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="RoleAnalysisOutliersType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains information about outliers regarding cluster objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="outlier" type="c:RoleAnalysisOutlierResultType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object that is identified as an outlier during the analysis.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisOutliersType" type="tns:RoleAnalysisOutliersType"/>
+
+    <xsd:complexType name="RoleAnalysisOutlierResultType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains information about the result of role analysis.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="object" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object that is identified as an outlier during the analysis.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outliers" type="tns:RoleAnalysisOutlierDescriptionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Additional information about the properties that make from object an outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisOutlierResultType" type="tns:RoleAnalysisOutlierResultType"/>
+
+    <xsd:complexType name="RoleAnalysisOutlierDescriptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains detailed information about an outlier identified during role analysis.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="object" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object that is identified as an outlier during the analysis.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="confidence" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Confidence level associated with the identified outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="category" type="tns:OutlierCategory" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Category classification of the outlier (inner or outer outlier).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisOutlierDescriptionType" type="tns:RoleAnalysisOutlierDescriptionType"/>
+
+    <xsd:simpleType name="OutlierCategory">
+        <xsd:annotation>
+            <xsd:documentation>
+                Represents the outlier status in role analysis.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="inner_outlier">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Inner outlier: An outlier that is inside the cluster.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INNER_OUTLIER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="outer_outlier">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Outer outlier: An outlier that is outside the cluster.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OUTER_OUTLIER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+    <xsd:complexType name="RoleAnalysisOptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains information about outliers regarding cluster objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="processMode" type="tns:RoleAnalysisProcessModeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Process mode for role analysis. It determines the specific approach
+                            or methodology used during the analysis.
+
+                            We currently use an enum type to identify the mode (ROLE MODE, USER MODE)
+                            For Role Analysis (ROLE):
+                            Role perspective is taken into account. The role mining process focuses on identifying
+                            and analyzing roles based on their similarity and considering the perspective of roles
+                            (vectors of users who have this role are compared). Objects
+                            that meet the specified conditions, determined by the input parameters, are added to the data set
+                            to facilitate role mining
+
+                            For User Analysis (USER):
+                            User perspective is taken into account. The user mining process focuses on identifying and
+                            analyzing users based on their similarity and considering the perspective of users
+                            (the role vectors assigned to the given users are compared). Objects that
+                            meet the specified conditions, determined by the input parameters, are added to the data set to
+                            facilitate role mining.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisProcessModeType.processMode</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="analysisCategory" type="tns:RoleAnalysisCategoryType" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisOptionType" type="tns:RoleAnalysisOptionType"/>
+
+    <xsd:simpleType name="RoleAnalysisCategoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Category classification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="standard">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during basic analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STANDARD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="advanced">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during advanced analysis (matching rules).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADVANCED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="outliers">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during outlier analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OUTLIERS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

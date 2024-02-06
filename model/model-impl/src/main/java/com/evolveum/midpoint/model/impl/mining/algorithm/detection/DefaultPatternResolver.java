@@ -117,7 +117,8 @@ public class DefaultPatternResolver {
             @NotNull OperationResult operationResult,
             @NotNull Task task) {
         List<DetectedPattern> possibleBusinessRole;
-        RoleAnalysisProcessModeType mode = session.getProcessMode();
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcessModeType mode = analysisOption.getProcessMode();
 
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(
                 clusterType, false, roleAnalysisProcessModeType, operationResult, task);

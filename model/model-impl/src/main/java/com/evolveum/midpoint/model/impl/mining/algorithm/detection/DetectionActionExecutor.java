@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.model.impl.mining.algorithm.detection.Defaul
 
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
@@ -29,10 +31,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 /**
  * The `DetectionActionExecutor` class is responsible for executing the pattern detection process
@@ -94,8 +92,9 @@ public class DetectionActionExecutor extends BaseAction {
             LOGGER.error("Failed to resolve RoleAnalysisSessionType from UUID: {}", sessionOid);
             return;
         }
-
-        RoleAnalysisProcessModeType processMode = sessionTypeObject.asObjectable().getProcessMode();
+        RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(cluster, true,
                 processMode, result, task);

@@ -36,6 +36,9 @@ to a file, not its content, is the actual value.
         <webApplication>
             <importFolder>${midpoint.home}/import</importFolder>
         </webApplication>
+        <administrator>
+            <initialPassword>5ecr3t</initialPassword>
+        </administrator>
         <repository>
             <!--
             Uncomment this section to use the new Native repository (and comment the rest).

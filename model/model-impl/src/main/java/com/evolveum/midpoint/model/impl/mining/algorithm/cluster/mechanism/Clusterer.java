@@ -1,9 +1,10 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
-import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
-
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 
 /**
  * An abstract base class for role analysis clustering data points of a specific type using a distance measure.
@@ -18,7 +19,12 @@ public abstract class Clusterer<T extends Clusterable> {
 
     public abstract List<? extends Cluster<T>> cluster(Collection<T> var1, RoleAnalysisProgressIncrement handler);
 
-    protected double distance(Clusterable p1, Clusterable p2) {
+    protected double accessDistance(Clusterable p1, Clusterable p2) {
         return this.measure.compute(p1.getPoint(), p2.getPoint());
     }
+
+    protected double rulesDistance(ExtensionProperties p1, ExtensionProperties p2) {
+        return this.measure.compute(p1, p2);
+    }
+
 }

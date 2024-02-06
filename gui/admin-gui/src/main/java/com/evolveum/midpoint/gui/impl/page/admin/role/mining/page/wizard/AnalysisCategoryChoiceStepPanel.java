@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
-import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
-import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_USER_ICON;
-
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -29,30 +26,26 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
-@PanelType(name = "rm-process")
-@PanelInstance(identifier = "rm-process",
+@PanelType(name = "rm-category")
+@PanelInstance(identifier = "rm-category",
         applicableForType = RoleAnalysisSessionType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRoleAnalysisSession.wizard.step.choice", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessModeChoiceStepPanel.ProcessMode, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
+public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<AnalysisCategoryChoiceStepPanel.AnalysisCategory, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
-    public static final String PANEL_TYPE = "rm-process";
+    public static final String PANEL_TYPE = "rm-category";
 
-    /**
-     * @param id
-     * @param resourceModel
-     **/
-    public ProcessModeChoiceStepPanel(String id, AssignmentHolderDetailsModel<RoleAnalysisSessionType> resourceModel) {
-        super(id, resourceModel, ProcessMode.class);
+    public AnalysisCategoryChoiceStepPanel(String id, AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
+        super(id, model, AnalysisCategory.class);
     }
 
     @Override
-    protected void addDefaultTile(List<Tile<ProcessMode>> list) {
+    protected void addDefaultTile(List<Tile<AnalysisCategory>> list) {
 
     }
 
@@ -62,31 +55,33 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
     }
 
     @Override
-    protected void onTileClickPerformed(ProcessMode value, AjaxRequestTarget target) {
-        RoleAnalysisProcessModeType mode;
-        if (value.equals(ProcessMode.ROLE)) {
-            mode = RoleAnalysisProcessModeType.ROLE;
+    protected void onTileClickPerformed(AnalysisCategory value, AjaxRequestTarget target) {
+        RoleAnalysisCategoryType mode;
+        if (value.equals(AnalysisCategory.STANDARD)) {
+            mode = RoleAnalysisCategoryType.STANDARD;
+        } else if (value.equals(AnalysisCategory.ADVANCED)) {
+            mode = RoleAnalysisCategoryType.ADVANCED;
         } else {
-            mode = RoleAnalysisProcessModeType.USER;
+            mode = RoleAnalysisCategoryType.OUTLIERS;
         }
 
         PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
         PrismContainer<Containerable> property = objectWrapper.getObject()
                 .findContainer(RoleAnalysisSessionType.F_ANALYSIS_OPTION);
-
-        property.findProperty(RoleAnalysisOptionType.F_PROCESS_MODE)
+        property.findProperty(RoleAnalysisOptionType.F_ANALYSIS_CATEGORY)
                 .setRealValue(mode);
 
         onSubmitPerformed(target);
     }
 
-    public enum ProcessMode implements TileEnum {
-        USER(CLASS_OBJECT_USER_ICON),
-        ROLE(CLASS_OBJECT_ROLE_ICON);
+    public enum AnalysisCategory implements TileEnum {
+        STANDARD("fa fa-cogs"),
+        ADVANCED("fa fa-sliders-h"),
+        OUTLIER("fa fa-wrench");
 
         private final String icon;
 
-        ProcessMode(String icon) {
+        AnalysisCategory(String icon) {
             this.icon = icon;
         }
 

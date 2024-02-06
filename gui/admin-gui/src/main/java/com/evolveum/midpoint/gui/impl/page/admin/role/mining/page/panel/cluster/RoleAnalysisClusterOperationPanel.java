@@ -110,7 +110,9 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         }
 
         if (getParent != null) {
-            isRoleMode = getParent.asObjectable().getProcessMode().equals(RoleAnalysisProcessModeType.ROLE);
+            RoleAnalysisSessionType session = getParent.asObjectable();
+            RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+            isRoleMode = analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE);
         }
 
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();

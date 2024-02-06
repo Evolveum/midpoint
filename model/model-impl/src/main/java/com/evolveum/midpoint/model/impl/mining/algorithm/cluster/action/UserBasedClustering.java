@@ -7,10 +7,16 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
 
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringUtils.prepareDataPoints;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringUtils.*;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.AttributeMatch.generateMatchingRulesList;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.AttributeMatch;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
@@ -24,9 +30,6 @@ import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserAnalysisSessionOptionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
@@ -56,6 +59,14 @@ public class UserBasedClustering implements Clusterable {
             @NotNull OperationResult result) {
 
         UserAnalysisSessionOptionType sessionOptionType = session.getUserModeOptions();
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        if (analysisOption == null) {
+            return null;
+        }
+        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        if (analysisCategory == null) {
+            return null;
+        }
 
         int minRolesOccupancy = sessionOptionType.getPropertiesRange().getMin().intValue();
         int maxRolesOccupancy = sessionOptionType.getPropertiesRange().getMax().intValue();
@@ -66,14 +77,28 @@ public class UserBasedClustering implements Clusterable {
         ListMultimap<List<String>, String> chunkMap = loadUserBasedMultimapData(modelService, minRolesOccupancy,
                 maxRolesOccupancy, sessionOptionType.getQuery(), task, result);
         handler.iterateActualStatus();
+        handler.enterNewStep("Prepare Data");
+        handler.setOperationCountToProcess(1);
 
         if (chunkMap.isEmpty()) {
             return null;
         }
 
-        handler.enterNewStep("Prepare Data");
-        handler.setOperationCountToProcess(1);
-        List<DataPoint> dataPoints = prepareDataPoints(chunkMap);
+        List<DataPoint> dataPoints;
+        List<AttributeMatch> attributeMatches = null;
+        boolean rule = false;
+        if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
+            List<RoleAnalysisMatchingRuleType> matchingRule = session.getMatchingRule();
+            attributeMatches = generateMatchingRulesList(matchingRule);
+            if (attributeMatches.isEmpty()) {
+                dataPoints = prepareDataPoints(chunkMap);
+            } else {
+                rule = true;
+                dataPoints = prepareDataPointsUserModerRules(chunkMap, roleAnalysisService, task, attributeMatches);
+            }
+        } else {
+            dataPoints = prepareDataPoints(chunkMap);
+        }
         handler.iterateActualStatus();
 
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
@@ -86,10 +111,16 @@ public class UserBasedClustering implements Clusterable {
 
         int minRolesOverlap = sessionOptionType.getMinPropertiesOverlap();
         int minUsersCount = sessionOptionType.getMinMembersCount();
+        DistanceMeasure distanceMeasure;
 
-        DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap);
+        if (rule) {
+            distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap, new HashSet<>(attributeMatches));
+        } else {
+            distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap);
+        }
+
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(similarityDifference,
-                minUsersCount, distanceMeasure, minRolesOverlap);
+                minUsersCount, distanceMeasure, minRolesOverlap, rule);
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
         return new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,

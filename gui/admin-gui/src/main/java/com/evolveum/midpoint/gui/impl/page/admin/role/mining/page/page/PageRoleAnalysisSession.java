@@ -239,7 +239,13 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     public IModel<List<ContainerPanelConfigurationType>> getPanelConfigurations() {
 
         IModel<List<ContainerPanelConfigurationType>> panelConfigurations = super.getPanelConfigurations();
-        RoleAnalysisProcessModeType processMode = getObjectDetailsModels().getObjectWrapper().getObject().asObjectable().getProcessMode();
+        RoleAnalysisSessionType session = getObjectDetailsModels()
+                .getObjectWrapper()
+                .getObject()
+                .asObjectable();
+
+        RoleAnalysisOptionType processModeObject = session.getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
 
         if (processMode == null) {
             return super.getPanelConfigurations();

@@ -59,18 +59,21 @@ public class ClusteringActionExecutor extends BaseAction {
 
         PrismObject<RoleAnalysisSessionType> prismSession = roleAnalysisService.getSessionTypeObject(
                 sessionOid, task, result);
+
         if (prismSession != null) {
+
+            RoleAnalysisSessionType session = prismSession.asObjectable();
+            RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
 
             roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result);
 
-            RoleAnalysisProcessModeType processMode = prismSession.asObjectable().getProcessMode();
+            RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
             if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
                 this.clusterable = new UserBasedClustering();
             } else if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
                 this.clusterable = new RoleBasedClustering();
             }
 
-            RoleAnalysisSessionType session = prismSession.asObjectable();
             List<PrismObject<RoleAnalysisClusterType>> clusterObjects =
                     clusterable.executeClustering(roleAnalysisService, modelService, session, handler, task, result);
 
@@ -93,9 +96,9 @@ public class ClusteringActionExecutor extends BaseAction {
         sessionRef.setOid(sessionOid);
         sessionRef.setType(RoleAnalysisSessionType.COMPLEX_TYPE);
         sessionRef.setTargetName(session.getName());
-
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         int processedObjectCount = 0;
-        QName complexType = session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
+        QName complexType = analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
                 ? RoleType.COMPLEX_TYPE
                 : UserType.COMPLEX_TYPE;
 
@@ -115,7 +118,7 @@ public class ClusteringActionExecutor extends BaseAction {
 
             AnalysisClusterStatisticType clusterStatistic = clusterTypePrismObject.asObjectable().getClusterStatistics();
             meanDensity += clusterStatistic.getMembershipDensity();
-            if (session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
+            if (analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
                 processedObjectCount += clusterStatistic.getRolesCount();
             } else {
                 processedObjectCount += clusterStatistic.getUsersCount();

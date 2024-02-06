@@ -10,7 +10,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.panel.Fragment;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
@@ -31,8 +37,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+
+import org.apache.wicket.model.IModel;
 
 public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -48,7 +54,9 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
     protected void initLayout() {
         getPageBase().getFeedbackPanel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
 
-        add(createChoiceFragment(new ProcessModeChoiceStepPanel(getIdOfChoicePanel(), getHelper().getDetailsModel()) {
+        String idOfChoicePanel = getIdOfChoicePanel();
+
+        AnalysisCategoryChoiceStepPanel components = new AnalysisCategoryChoiceStepPanel(idOfChoicePanel, getHelper().getDetailsModel()) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 RoleAnalysisSessionWizardPanel.this.onExitPerformed();
@@ -56,17 +64,30 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(),
-                        new WizardModel(createBasicSteps())));
+                showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
                 super.onSubmitPerformed(target);
             }
+        };
 
-        }));
+        Fragment choiceFragment = createChoiceFragment(new ProcessModeChoiceStepPanel(idOfChoicePanel, getHelper().getDetailsModel()) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                RoleAnalysisSessionWizardPanel.this.onExitPerformed();
+            }
 
+            @Override
+            protected void onSubmitPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, components);
+                super.onSubmitPerformed(target);
+            }
+        });
+
+        add(choiceFragment);
     }
 
     private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
+
         steps.add(new BasicSessionInformationStepPanel(getHelper().getDetailsModel()) {
             @Override
             public VisibleEnableBehaviour getBackBehaviour() {
@@ -97,10 +118,73 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
             }
         });
 
+        RoleAnalysisSessionType session = getAssignmentHolderModel().getObjectType();
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+
+        if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
+            steps.add(new RoleAnalysisMatchingRulesWizardPanel(getHelper().getDetailsModel()) {
+                @Override
+                public VisibleEnableBehaviour getBackBehaviour() {
+                    return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
+                }
+
+                @Override
+                public boolean onNextPerformed(AjaxRequestTarget target) {
+                    return super.onNextPerformed(target);
+                }
+
+                @Override
+                protected void onExitPerformed(AjaxRequestTarget target) {
+                    RoleAnalysisSessionWizardPanel.this.onExitPerformed();
+                }
+            });
+        }
+
+        boolean outlier = analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS);
+
         steps.add(new RoleAnalysisSessionDetectionOptionsWizardPanel(getHelper().getDetailsModel()) {
             @Override
             public VisibleEnableBehaviour getBackBehaviour() {
                 return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
+            }
+
+            @Override
+            public IModel<String> getTitle() {
+                return super.getTitle();
+            }
+
+            @Override
+            protected IModel<String> getTextModel() {
+                if (outlier) {
+                    return createStringResource("PageRoleAnalysisSession.wizard.step.work.filter.options.outlier.text");
+                }
+                return super.getTextModel();
+            }
+
+            @Override
+            protected IModel<String> getSubTextModel() {
+                if (outlier) {
+                    return createStringResource("PageRoleAnalysisSession.wizard.step.work.filter.options.outlier.subText");
+                }
+                return super.getSubTextModel();
+            }
+
+            @Override
+            protected ItemVisibilityHandler getVisibilityHandler() {
+                return wrapper -> {
+                    if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)
+                            && (wrapper.getItemName().equals(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
+                            || wrapper.getItemName().equals(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY))) {
+                        return ItemVisibility.HIDDEN;
+                    }
+                    return ItemVisibility.AUTO;
+                };
+            }
+
+            @Override
+            protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+                return super.isVisibleSubContainer(c);
             }
 
             @Override
