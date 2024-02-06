@@ -51,7 +51,7 @@ public class PropertiesSecretsProvider extends CachedSecretsProvider<PropertiesS
     }
 
     @Override
-    protected <ST> ST resolveSecret(@NotNull String key, Class<ST> type) throws EncryptionException {
+    protected <ST> ST resolveSecret(@NotNull String key, @NotNull Class<ST> type) throws EncryptionException {
         try (Reader reader = new FileReader(properties, charset)) {
             Properties props = new Properties();
             props.load(reader);

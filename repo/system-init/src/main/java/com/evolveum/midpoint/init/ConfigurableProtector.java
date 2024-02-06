@@ -21,6 +21,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ExternalDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.jetbrains.annotations.NotNull;
+
 public class ConfigurableProtector extends KeyStoreBasedProtectorImpl implements SecretsProviderConsumer {
 
     private final Map<String, SecretsProvider> providers = new ConcurrentHashMap<>();
@@ -35,6 +37,7 @@ public class ConfigurableProtector extends KeyStoreBasedProtectorImpl implements
         providers.remove(provider.getIdentifier());
     }
 
+    @NotNull
     @Override
     public List<SecretsProvider> getSecretsProviders() {
         return List.copyOf(providers.values());
@@ -106,17 +109,14 @@ public class ConfigurableProtector extends KeyStoreBasedProtectorImpl implements
     }
 
     @Override
-    public ProtectedStringType encryptString(String text) throws EncryptionException {
-        return super.encryptString(text);
-    }
-
-    @Override
     public <T> void encrypt(ProtectedData<T> protectedData) throws EncryptionException {
         ExternalDataType external = protectedData.getExternalData();
         if (external == null) {
             super.encrypt(protectedData);
             return;
         }
+
+        // nothing to encrypt (data are stored externally), just remove clear text data
 
         protectedData.destroyCleartext();
     }

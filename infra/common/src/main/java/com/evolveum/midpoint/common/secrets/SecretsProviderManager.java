@@ -13,15 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertiesSecretsProviderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractSecretsProviderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DockerSecretsProviderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecretsProvidersType;
 
 @Component
 public class SecretsProviderManager {
@@ -29,7 +26,8 @@ public class SecretsProviderManager {
     private static final Map<Class<? extends AbstractSecretsProviderType>, Class<? extends SecretsProvider>> PROVIDER_TYPES =
             Map.ofEntries(
                     Map.entry(DockerSecretsProviderType.class, DockerSecretsProvider.class),
-                    Map.entry(PropertiesSecretsProviderType.class, PropertiesSecretsProvider.class)
+                    Map.entry(PropertiesSecretsProviderType.class, PropertiesSecretsProvider.class),
+                    Map.entry(EnvironmentVariablesSecretsProviderType.class, EnvironmentVariablesSecretsProvider.class)
             );
 
     public synchronized void configure(SecretsProviderConsumer consumer, SecretsProvidersType configuration) {
@@ -38,6 +36,7 @@ public class SecretsProviderManager {
         }
 
         List<AbstractSecretsProviderType> configurations = new ArrayList<>();
+        configurations.add(configuration.getEnvironmentVariablesSecretsProvider());
         configurations.add(configuration.getDockerSecretsProvider());
         configurations.addAll(configuration.getKubernetesSecretsProvider());
         configurations.addAll(configuration.getPropertiesSecretsProvider());

@@ -3464,9 +3464,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element ref="tns:environmentVariablesSecretsProvider" minOccurs="0"/>
             <xsd:element ref="tns:dockerSecretsProvider" minOccurs="0"/>
-            <xsd:element ref="tns:kubernetesSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element ref="tns:propertiesSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="tns:kubernetesSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -3523,6 +3524,35 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="EnvironmentVariablesSecretsProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Environment variables secrets provider.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSecretsProviderType">
+                <xsd:sequence>
+                    <xsd:element name="prefix" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Prefix to filter only specific environment variables.
+
+                                E.g. "MYAPP_" - provider will only be able to use environment variables that start with "MYAPP_".
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="environmentVariablesSecretsProvider" type="tns:EnvironmentVariablesSecretsProviderType"/>
 
     <xsd:complexType name="DockerSecretsProviderType">
         <xsd:annotation>

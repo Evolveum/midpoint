@@ -38,7 +38,7 @@ public class DockerSecretsProvider extends CachedSecretsProvider<DockerSecretsPr
     }
 
     @Override
-    protected <ST> ST resolveSecret(@NotNull String key, Class<ST> type) throws EncryptionException {
+    protected <ST> ST resolveSecret(@NotNull String key, @NotNull Class<ST> type) throws EncryptionException {
         File parent;
         if (SystemUtils.IS_OS_WINDOWS) {
             parent = new File("C:\\ProgramData\\Docker\\secrets");
@@ -62,6 +62,10 @@ public class DockerSecretsProvider extends CachedSecretsProvider<DockerSecretsPr
             } catch (Exception ex) {
                 throw new IllegalStateException("Couldn't read secret from " + valueFile.getAbsolutePath(), ex);
             }
+        }
+
+        if (value == null) {
+            throw new EncryptionException("Secret " + key + " not found in provider " + getIdentifier());
         }
 
         return value;

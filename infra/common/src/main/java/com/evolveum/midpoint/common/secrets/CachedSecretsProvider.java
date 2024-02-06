@@ -91,7 +91,10 @@ public abstract class CachedSecretsProvider<T extends AbstractSecretsProviderTyp
         return secret;
     }
 
-    protected abstract <ST> ST resolveSecret(@NotNull String key, Class<ST> type) throws EncryptionException;
+    /**
+     * TODO document, should it return null or throw exception?
+     */
+    protected abstract <ST> ST resolveSecret(@NotNull String key, @NotNull Class<ST> type) throws EncryptionException;
 
     protected <ST> ST mapValue(String value, Class<ST> type) {
         if (value == null) {
