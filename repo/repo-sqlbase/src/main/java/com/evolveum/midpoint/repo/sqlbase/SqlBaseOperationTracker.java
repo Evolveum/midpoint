@@ -18,6 +18,11 @@ public abstract class SqlBaseOperationTracker implements AutoCloseable {
 
     private static final String RESOLVE_NAMES = "primary.resolveNames";
 
+    private static final String PARSE_JSON_TO_XNODE = "parse.json2xnode.";
+
+    private static final String PARSE_XNODE_TO_PRISM = "parse.xnode2prism.";
+
+
 
 
     private static Factory impl = new OpResultBased();
@@ -81,6 +86,14 @@ public abstract class SqlBaseOperationTracker implements AutoCloseable {
 
     public static Tracker parseChildren(String name) {
         return createTracker(PARSE_CHILDREN + name);
+    }
+
+    public static Tracker parseJson2XNode(String name) {
+        return createTracker(PARSE_JSON_TO_XNODE + name);
+    }
+
+    public static Tracker parseXnode2Prism(String name) {
+        return createTracker(PARSE_XNODE_TO_PRISM + name);
     }
 
     public static Tracker resolveNames() {
