@@ -3465,7 +3465,8 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:dockerSecretsProvider" minOccurs="0"/>
-            <xsd:element ref="tns:kubernetesSecretsProvider" minOccurs="0"/>
+            <xsd:element ref="tns:kubernetesSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="tns:propertiesSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 

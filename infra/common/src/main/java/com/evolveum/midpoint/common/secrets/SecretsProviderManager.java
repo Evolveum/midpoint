@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertiesSecretsProviderType;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
@@ -26,7 +28,8 @@ public class SecretsProviderManager {
 
     private static final Map<Class<? extends AbstractSecretsProviderType>, Class<? extends SecretsProvider>> PROVIDER_TYPES =
             Map.ofEntries(
-                    Map.entry(DockerSecretsProviderType.class, DockerSecretsProvider.class)
+                    Map.entry(DockerSecretsProviderType.class, DockerSecretsProvider.class),
+                    Map.entry(PropertiesSecretsProviderType.class, PropertiesSecretsProvider.class)
             );
 
     public synchronized void configure(SecretsProviderConsumer consumer, SecretsProvidersType configuration) {
@@ -36,7 +39,8 @@ public class SecretsProviderManager {
 
         List<AbstractSecretsProviderType> configurations = new ArrayList<>();
         configurations.add(configuration.getDockerSecretsProvider());
-        configurations.add(configuration.getKubernetesSecretsProvider());
+        configurations.addAll(configuration.getKubernetesSecretsProvider());
+        configurations.addAll(configuration.getPropertiesSecretsProvider());
 
         configurations = configurations.stream()
                 .filter(c -> c != null)

@@ -93,6 +93,20 @@ public abstract class CachedSecretsProvider<T extends AbstractSecretsProviderTyp
 
     protected abstract <ST> ST resolveSecret(@NotNull String key, Class<ST> type) throws EncryptionException;
 
+    protected <ST> ST mapValue(String value, Class<ST> type) {
+        if (value == null) {
+            return null;
+        }
+
+        if (type == String.class) {
+            return (ST) value;
+        } else if (type == ByteBuffer.class) {
+            return (ST) ByteBuffer.wrap(value.getBytes());
+        }
+
+        throw new IllegalStateException("Unsupported type " + type);
+    }
+
     private record CacheValue<T>(T value, long ttl) {
 
         @Override
