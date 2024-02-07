@@ -6,26 +6,11 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.PROJECTOR;
-import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
-import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
-import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
-
-import java.util.List;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorRunTraceType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.LensContext.AuthorizationState;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentHolderProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
@@ -38,19 +23,23 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorRunTraceType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.List;
+
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.PROJECTOR;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
+import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 /**
  * Projector recomputes the context. It takes the context with a few basic data as input. It uses all the policies
@@ -82,6 +71,7 @@ public class Projector {
     @Autowired private DependencyProcessor dependencyProcessor;
     @Autowired private Clock clock;
     @Autowired private ClockworkMedic medic;
+    @Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
 
     private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
 
@@ -190,6 +180,14 @@ public class Projector {
                         partialProcessingOptions::getLoad,
                         Projector.class, context, result);
             }
+
+            if (context.getAuthorizationState() == AuthorizationState.NONE) {
+                // We need the context to be fully loaded before the authorization is done, hence we do the authorization
+                // after the loading. But we still evaluate it under "full information may not be available" mode,
+                // as parentOrgRef, tenantRef, and roleMembershipRef values may be missing here.
+                clockworkAuthorizationHelper.authorizeContextRequest(context, false, task, result);
+            }
+
             // For now let's pretend to do just one wave. The maxWaves number will be corrected in the
             // first wave when dependencies are sorted out for the first time.
             int maxWaves = context.getExecutionWave() + 1;

@@ -110,8 +110,9 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
- * @author semancik
+ * The "clockwork" that drives the change processing. The main entry is {@link #run(LensContext, Task, OperationResult)} method.
  *
+ * @author semancik
  */
 @Component
 public class Clockwork {
@@ -593,8 +594,10 @@ public class Clockwork {
                 LOGGER.trace("Skipping projection because the context is fresh and projection for current wave has already run");
             }
 
-            if (!context.isRequestAuthorized()) {
-                clockworkAuthorizationHelper.authorizeContextRequest(context, task, result);
+            // The preliminary authorization is done in the projector after loading the context.
+            // Here we finish it, as we have now the full information from the projector.
+            if (context.getAuthorizationState() != LensContext.AuthorizationState.FULL) {
+                clockworkAuthorizationHelper.authorizeContextRequest(context, true, task, result);
             }
 
             medic.traceContext(LOGGER, "CLOCKWORK (" + state + ")", "before processing", true, context, false);

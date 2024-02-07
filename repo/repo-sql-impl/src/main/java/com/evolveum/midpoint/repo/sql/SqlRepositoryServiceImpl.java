@@ -1129,7 +1129,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @Override
     public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector,
-            PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            PrismObject<O> object,boolean fullInformationAvailable, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (objectSelector == null) {
             logger.trace("{} null object specification", logMessagePrefix);
             return false;
@@ -1181,7 +1181,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         // Org
-        if (specOrgRef != null) {
+        if (specOrgRef != null && fullInformationAvailable) {
             if (!isDescendant(object, specOrgRef.getOid())) {
                 logger.trace("{} object OID {} (org={})",
                         logMessagePrefix, object.getOid(), specOrgRef.getOid());

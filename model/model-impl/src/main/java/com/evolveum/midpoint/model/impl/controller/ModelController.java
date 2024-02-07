@@ -487,7 +487,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                                     PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
                                     objectToDetermineDetailsForAudit = existingObject;
                                     if (!preAuthorized) {
-                                        AuthorizationParameters autzParams = AuthorizationParameters.Builder.buildObjectDelta(existingObject, delta);
+                                        AuthorizationParameters autzParams = AuthorizationParameters.Builder.buildObjectDelta(existingObject, delta, true);
                                         securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, autzParams, null, task, result1);
                                         securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, autzParams, null, task, result1);
                                     }
@@ -613,6 +613,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         PartialProcessingOptionsType partialProcessing = ModelExecuteOptions.getPartialProcessing(options);
         if (partialProcessing != null) {
             PrismObject<? extends ObjectType> object = context.getFocusContext().getObjectAny();
+            // FIXME the information about the object may be incomplete (orgs, tenants, roles) but we treat it as complete here.
+            //  See also MID-9454.
+            // TODO audit the request failure if this check fails
             securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(), null, AuthorizationParameters.Builder.buildObject(object), null, task, result);
         }
     }

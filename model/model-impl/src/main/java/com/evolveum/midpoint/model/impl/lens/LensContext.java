@@ -167,7 +167,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
      * carried out.
      */
     transient private boolean isFresh = false;
-    private boolean isRequestAuthorized = false;
+
+    @NotNull private AuthorizationState authorizationState = AuthorizationState.NONE;
 
     /**
      * Cache of resource instances. It is used to reduce the number of read
@@ -446,11 +447,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     }
 
     public boolean isRequestAuthorized() {
-        return isRequestAuthorized;
+        return getAuthorizationState() == AuthorizationState.FULL;
     }
 
-    public void setRequestAuthorized(boolean isRequestAuthorized) {
-        this.isRequestAuthorized = isRequestAuthorized;
+    public @NotNull AuthorizationState getAuthorizationState() {
+        return java.util.Objects.requireNonNull(authorizationState);
+    }
+
+    public void setRequestAuthorized(@NotNull AuthorizationState authorizationState) {
+        this.authorizationState = authorizationState;
     }
 
     /**
@@ -865,7 +870,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         clone.executionPhaseOnly = this.executionPhaseOnly;
         clone.focusClass = this.focusClass;
         clone.isFresh = this.isFresh;
-        clone.isRequestAuthorized = this.isRequestAuthorized;
+        clone.authorizationState = this.authorizationState;
         clone.prismContext = this.prismContext;
         clone.resourceCache = cloneResourceCache();
         // User template is de-facto immutable, OK to just pass reference here.
@@ -948,7 +953,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         }
         sb.append(" changes, ");
         sb.append("fresh=").append(isFresh);
-        sb.append(", reqAutz=").append(isRequestAuthorized);
+        sb.append(", reqAutz=").append(authorizationState);
         if (systemConfiguration == null) {
             sb.append(" null-system-configuration");
         }
@@ -1206,7 +1211,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
             lensContextType.setLazyAuditRequest(lazyAuditRequest);
             lensContextType.setRequestAudited(requestAudited);
             lensContextType.setExecutionAudited(executionAudited);
-            lensContextType.setRequestAuthorized(isRequestAuthorized);
+            lensContextType.setRequestAuthorized(isRequestAuthorized());
             lensContextType.setStats(stats);
             lensContextType.setRequestMetadata(requestMetadata);
             lensContextType.setOwnerOid(ownerOid);
@@ -1288,7 +1293,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         if (lensContextType.isExecutionAudited() != null) {
             lensContext.setExecutionAudited(lensContextType.isExecutionAudited());
         }
-        lensContext.setRequestAuthorized(Boolean.TRUE.equals(lensContextType.isRequestAuthorized()));
+        // Let us consider the "request authorized" as "request fully authorized".
+        lensContext.setRequestAuthorized(
+                Boolean.TRUE.equals(lensContextType.isRequestAuthorized()) ? AuthorizationState.FULL : AuthorizationState.NONE);
         lensContext.setStats(lensContextType.getStats());
         lensContext.setRequestMetadata(lensContextType.getRequestMetadata());
         lensContext.setOwnerOid(lensContextType.getOwnerOid());
@@ -1618,5 +1625,16 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
             }
             return null;
         };
+    }
+
+    public enum AuthorizationState {
+        /** No authorization was carried out yet. */
+        NONE,
+
+        /** Only preliminary authorization was carried out (without e.g. org or tenant clauses). */
+        PRELIMINARY,
+
+        /** The full authorization was carried out. */
+        FULL
     }
 }

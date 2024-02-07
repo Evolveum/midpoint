@@ -1662,10 +1662,10 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 
     @Override
     public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector,
-            PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            PrismObject<O> object, boolean fullInformationAvailable, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         Long startTime = repoOpStart();
         try {
-            return repositoryService.selectorMatches(objectSelector, object, filterEvaluator, logger, logMessagePrefix);
+            return repositoryService.selectorMatches(objectSelector, object, fullInformationAvailable, filterEvaluator, logger, logMessagePrefix);
         } finally {
             repoOpEnd(startTime);
         }

@@ -163,10 +163,10 @@ public class SchemaTransformer {
         }
     }
 
-    private <O extends ObjectType> void authorizeOptions(GetOperationOptions rootOptions, PrismObject<O> object, ObjectDelta<O> delta, AuthorizationPhaseType phase, Task task, OperationResult result)
+    private <O extends ObjectType> void authorizeOptions(GetOperationOptions rootOptions, PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         if (GetOperationOptions.isRaw(rootOptions)) {
-            securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), phase, AuthorizationParameters.Builder.buildObjectDelta(object, delta), null, task, result);
+            securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), phase, AuthorizationParameters.Builder.buildObject(object), null, task, result);
         }
     }
 
@@ -181,7 +181,7 @@ public class SchemaTransformer {
                     throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
         LOGGER.trace("applySchemasAndSecurity({}) starting", object);
         OperationResult result = parentResult.createMinorSubresult(SchemaTransformer.class.getName()+".applySchemasAndSecurity");
-        authorizeOptions(rootOptions, object, null, phase, task, result);
+        authorizeOptions(rootOptions, object, phase, task, result);
         validateObject(object, rootOptions, result);
 
         ObjectSecurityConstraints securityConstraints = compileSecurityConstraints(object, task, result);
@@ -293,7 +293,7 @@ public class SchemaTransformer {
             }
         }
         GetOperationOptions getOptions = ModelExecuteOptions.toGetOperationOptions(context.getOptions());
-        authorizeOptions(getOptions, object, null, phase, task, result);
+        authorizeOptions(getOptions, object, phase, task, result);
 
         ObjectSecurityConstraints securityConstraints = compileSecurityConstraints(object, task, result);
 
@@ -356,7 +356,7 @@ public class SchemaTransformer {
 
     private <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
         try {
-            ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null, task, result);
+            ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, true, null, task, result);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Security constraints for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
             }

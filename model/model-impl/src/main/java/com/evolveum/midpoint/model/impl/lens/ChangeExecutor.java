@@ -1485,7 +1485,7 @@ public class ChangeExecutor {
         OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
         try {
             securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(),
-                    AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta), ownerResolver, task, result);
+                    AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta, true), ownerResolver, task, result);
 
             if (shouldApplyModifyMetadata(objectTypeClass, context.getSystemConfigurationType())) {
                 metadataManager.applyMetadataModify(delta, objectContext, objectTypeClass,
