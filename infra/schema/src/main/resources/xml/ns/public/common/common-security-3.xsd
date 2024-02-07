@@ -3468,6 +3468,7 @@
             <xsd:element ref="tns:dockerSecretsProvider" minOccurs="0"/>
             <xsd:element ref="tns:propertiesSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element ref="tns:kubernetesSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="tns:customSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -3522,6 +3523,56 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="CustomSecretsProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Environment variables secrets provider.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSecretsProviderType">
+                <xsd:sequence>
+                    <xsd:element name="className" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Class name of the custom secrets provider.
+                                Class must be available on classpath.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="configuration" type="tns:CustomSecretsProviderConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the custom secrets provider.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="customSecretsProvider" type="tns:CustomSecretsProviderType"/>
+
+    <xsd:complexType name="CustomSecretsProviderConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of the custom secrets provider.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 

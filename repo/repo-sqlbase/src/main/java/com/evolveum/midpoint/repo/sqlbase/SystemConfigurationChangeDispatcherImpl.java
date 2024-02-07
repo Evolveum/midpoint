@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.evolveum.midpoint.common.secrets.SecretsProviderConsumer;
+import com.evolveum.midpoint.prism.crypto.SecretsProviderConsumer;
 import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
 
 import com.evolveum.midpoint.prism.crypto.Protector;

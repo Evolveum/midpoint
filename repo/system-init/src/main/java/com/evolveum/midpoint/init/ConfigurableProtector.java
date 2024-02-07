@@ -12,14 +12,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.evolveum.midpoint.common.secrets.SecretsProviderConsumer;
+import com.evolveum.midpoint.prism.crypto.SecretsProviderConsumer;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.ProtectedData;
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
 import com.evolveum.midpoint.prism.impl.crypto.KeyStoreBasedProtectorImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ExternalDataType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,12 +27,12 @@ public class ConfigurableProtector extends KeyStoreBasedProtectorImpl implements
     private final Map<String, SecretsProvider> providers = new ConcurrentHashMap<>();
 
     @Override
-    public void addSecretsProvider(SecretsProvider provider) {
+    public void addSecretsProvider(@NotNull SecretsProvider provider) {
         providers.put(provider.getIdentifier(), provider);
     }
 
     @Override
-    public void removeSecretsProvider(SecretsProvider provider) {
+    public void removeSecretsProvider(@NotNull SecretsProvider provider) {
         providers.remove(provider.getIdentifier());
     }
 

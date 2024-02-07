@@ -13,13 +13,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
+import com.evolveum.midpoint.prism.crypto.SecretsProviderConsumer;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Manages secrets providers instances.
+ *
+ * It's used to handle configuration changes in {@link SystemConfigurationType} related to secrets providers.
+ */
 @Component
 public class SecretsProviderManager {
 
@@ -40,6 +45,7 @@ public class SecretsProviderManager {
         configurations.add(configuration.getDockerSecretsProvider());
         configurations.addAll(configuration.getKubernetesSecretsProvider());
         configurations.addAll(configuration.getPropertiesSecretsProvider());
+        configurations.addAll(configuration.getCustomSecretsProvider());
 
         configurations = configurations.stream()
                 .filter(c -> c != null)
@@ -73,19 +79,37 @@ public class SecretsProviderManager {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private <C extends AbstractSecretsProviderType> SecretsProvider createProvider(C configuration) {
         if (configuration == null) {
             return null;
         }
 
-        Class<? extends SecretsProvider> providerClass = PROVIDER_TYPES.get(configuration.getClass());
-        if (providerClass == null) {
-            throw new SystemException(
-                    "Unknown secrets provider type for configuration of type: " + configuration.getClass());
+        Class<? extends SecretsProvider> providerClass;
+        if (configuration instanceof CustomSecretsProviderType custom) {
+            String className = custom.getClassName();
+            if (className == null) {
+                throw new SystemException("No class name specified for custom secrets provider");
+            }
+
+            try {
+                providerClass = (Class<? extends SecretsProvider>) Class.forName(className);
+            } catch (Exception ex) {
+                throw new SystemException("Couldn't find custom secrets provider class: " + className, ex);
+            }
+        } else {
+            providerClass = PROVIDER_TYPES.get(configuration.getClass());
+
+            if (providerClass == null) {
+                throw new SystemException(
+                        "Unknown secrets provider type for configuration of type: " + configuration.getClass());
+            }
         }
 
         try {
-            SecretsProvider provider = providerClass.getConstructor(configuration.getClass()).newInstance(configuration);
+            SecretsProvider provider = providerClass
+                    .getConstructor(configuration.getClass())
+                    .newInstance(configuration);
             provider.init();
 
             return provider;
