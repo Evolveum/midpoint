@@ -1021,6 +1021,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     public <O extends ObjectType> boolean selectorMatches(
             ObjectSelectorType objectSelector,
             PrismObject<O> object,
+            boolean fullInformationAvailable,
             ObjectFilterExpressionEvaluator filterEvaluator,
             Trace logger,
             String logMessagePrefix)
@@ -1065,7 +1066,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         // Archetype
         List<ObjectReferenceType> specArchetypeRefs = objectSelector.getArchetypeRef();
-        if (!specArchetypeRefs.isEmpty()) {
+        if (!specArchetypeRefs.isEmpty() && fullInformationAvailable) {
             if (object.canRepresent(AssignmentHolderType.class)) {
                 boolean match = false;
                 List<ObjectReferenceType> actualArchetypeRefs = ((AssignmentHolderType) object.asObjectable()).getArchetypeRef();
@@ -1111,7 +1112,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         // Org
-        if (specOrgRef != null) {
+        if (specOrgRef != null && fullInformationAvailable) {
             if (!isDescendant(object, specOrgRef.getOid())) {
                 logger.trace("{} object OID {} (org={})",
                         logMessagePrefix, object.getOid(), specOrgRef.getOid());

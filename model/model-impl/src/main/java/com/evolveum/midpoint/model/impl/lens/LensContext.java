@@ -204,7 +204,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * carried out.
      */
     private transient boolean isFresh = false;
-    private boolean isRequestAuthorized = false;
+
+    @NotNull private AuthorizationState authorizationState = AuthorizationState.NONE;
 
     /**
      * Cache of resource instances. It is used to reduce the number of read
@@ -520,11 +521,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     public boolean isRequestAuthorized() {
-        return isRequestAuthorized;
+        return getAuthorizationState() == AuthorizationState.FULL;
     }
 
-    public void setRequestAuthorized(boolean isRequestAuthorized) {
-        this.isRequestAuthorized = isRequestAuthorized;
+    public @NotNull AuthorizationState getAuthorizationState() {
+        return Objects.requireNonNull(authorizationState);
+    }
+
+    public void setRequestAuthorized(@NotNull AuthorizationState authorizationState) {
+        this.authorizationState = authorizationState;
     }
 
     /**
@@ -1014,7 +1019,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         clone.executionPhaseOnly = this.executionPhaseOnly;
         clone.focusClass = this.focusClass;
         clone.isFresh = this.isFresh;
-        clone.isRequestAuthorized = this.isRequestAuthorized;
+        clone.authorizationState = this.authorizationState;
         clone.resourceCache = cloneResourceCache();
         // User template is de-facto immutable, OK to just pass reference here.
         clone.focusTemplate = this.focusTemplate;
@@ -1085,7 +1090,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         sb.append(getAllChanges());
         sb.append(" changes, ");
         sb.append("fresh=").append(isFresh);
-        sb.append(", reqAutz=").append(isRequestAuthorized);
+        sb.append(", reqAutz=").append(authorizationState);
         if (systemConfiguration == null) {
             sb.append(" null-system-configuration");
         }
@@ -1342,7 +1347,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             lensContextType.setLazyAuditRequest(lazyAuditRequest);
             lensContextType.setRequestAudited(requestAudited);
             lensContextType.setExecutionAudited(executionAudited);
-            lensContextType.setRequestAuthorized(isRequestAuthorized);
+            lensContextType.setRequestAuthorized(isRequestAuthorized());
             lensContextType.setStats(stats);
             lensContextType.setRequestMetadata(requestMetadata);
             lensContextType.setOwnerOid(ownerOid);
@@ -1425,7 +1430,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         if (bean.isExecutionAudited() != null) {
             lensContext.setExecutionAudited(bean.isExecutionAudited());
         }
-        lensContext.setRequestAuthorized(Boolean.TRUE.equals(bean.isRequestAuthorized()));
+        // Let us consider the "request authorized" as "request fully authorized".
+        lensContext.setRequestAuthorized(
+                Boolean.TRUE.equals(bean.isRequestAuthorized()) ? AuthorizationState.FULL : AuthorizationState.NONE);
         lensContext.setStats(bean.getStats());
         lensContext.setRequestMetadata(bean.getRequestMetadata());
         lensContext.setOwnerOid(bean.getOwnerOid());
@@ -1906,5 +1913,16 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public enum ExportType {
         MINIMAL, REDUCED, OPERATIONAL, TRACE
+    }
+
+    public enum AuthorizationState {
+        /** No authorization was carried out yet. */
+        NONE,
+
+        /** Only preliminary authorization was carried out (without e.g. org or tenant clauses). */
+        PRELIMINARY,
+
+        /** The full authorization was carried out. */
+        FULL
     }
 }

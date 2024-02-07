@@ -237,7 +237,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             PrismObject<O> fullObject = getFullObjectReadWrite(object, result);
 
             // TODO: maybe we need to expose owner resolver in the interface?
-            ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(fullObject, null, task, result);
+            ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(fullObject, true, null, task, result);
             LOGGER.trace("Security constrains for {}:\n{}", object, DebugUtil.debugDumpLazily(securityConstraints));
             if (securityConstraints == null) {
                 // Nothing allowed => everything denied
@@ -339,7 +339,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         LayerRefinedObjectClassDefinition layeredROCD = rocd.forLayer(LayerType.PRESENTATION);
 
         // TODO: maybe we need to expose owner resolver in the interface?
-        ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(shadow, null, task, result);
+        ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(shadow, true, null, task, result);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Security constrains for {}:\n{}", shadow, securityConstraints == null ? "null" : securityConstraints.debugDump());
         }
@@ -444,7 +444,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         ObjectSecurityConstraints securityConstraints;
         try {
-            securityConstraints = securityEnforcer.compileSecurityConstraints(focus, null, task, result);
+            securityConstraints = securityEnforcer.compileSecurityConstraints(focus, true, null, task, result);
         } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException | SecurityViolationException e) {
             result.recordFatalError(e);
             throw e;

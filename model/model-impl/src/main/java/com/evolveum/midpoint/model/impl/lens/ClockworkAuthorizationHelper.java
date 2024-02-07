@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -73,7 +74,10 @@ public class ClockworkAuthorizationHelper {
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private PrismContext prismContext;
 
-    public <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public <F extends ObjectType> void authorizeContextRequest(
+            LensContext<F> context, boolean fullInformationAvailable, Task task, OperationResult parentResult)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
         OperationResult result = parentResult.createMinorSubresult(Clockwork.class.getName()+".authorizeRequest");
         LOGGER.trace("Authorizing request for context");
         try {
@@ -81,15 +85,18 @@ public class ClockworkAuthorizationHelper {
             final LensFocusContext<F> focusContext = context.getFocusContext();
             OwnerResolver ownerResolver = new LensOwnerResolver<>(context, objectResolver, task, result);
             if (focusContext != null) {
-                authorizeElementContext(context, focusContext, ownerResolver, true, task, result);
+                authorizeElementContext(context, focusContext, fullInformationAvailable, ownerResolver, true, task, result);
             }
             for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-                authorizeElementContext(context, projectionContext, ownerResolver, false, task, result);
+                authorizeElementContext(context, projectionContext, fullInformationAvailable, ownerResolver, false, task, result);
             }
-            context.setRequestAuthorized(true);
-            result.recordSuccess();
 
-            LOGGER.trace("Request authorized");
+            var authorizationState = fullInformationAvailable ?
+                    LensContext.AuthorizationState.FULL : LensContext.AuthorizationState.PRELIMINARY;
+            context.setRequestAuthorized(authorizationState);
+            LOGGER.trace("Request authorized: {}", authorizationState);
+
+            result.recordSuccess();
 
         } catch (Throwable e) {
             result.recordFatalError(e);
@@ -97,9 +104,10 @@ public class ClockworkAuthorizationHelper {
         }
     }
 
-    private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints authorizeElementContext(
+    private <F extends ObjectType, O extends ObjectType> void authorizeElementContext(
             LensContext<F> context,
             LensElementContext<O> elementContext,
+            boolean fullInformationAvailable,
             OwnerResolver ownerResolver,
             boolean isFocus,
             Task task,
@@ -122,8 +130,18 @@ public class ClockworkAuthorizationHelper {
                 // the same account in one operation
                 object = elementContext.getObjectNew();
             }
+            if (object == null) {
+                if (!isFocus && !fullInformationAvailable) {
+                    LOGGER.trace("No projection object during preliminary autz evaluation -> skipping the check for now: {}",
+                            elementContext);
+                    return;
+                } else {
+                    throw new IllegalStateException("No object? In: " + elementContext);
+                }
+            }
             String deltaOperationUrl = ModelImplUtils.getOperationUrlFromDelta(primaryDeltaClone);
-            ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, ownerResolver, task, result);
+            ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(
+                    object, fullInformationAvailable, ownerResolver, task, result);
             if (securityConstraints == null) {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Denied request for element context {}: null security constraints", elementContext.getHumanReadableName());
@@ -135,10 +153,10 @@ public class ClockworkAuthorizationHelper {
                 // Process assignments/inducements first. If the assignments/inducements are allowed then we
                 // have to ignore the assignment item in subsequent security checks
                 if (object.canRepresent(AssignmentHolderType.class)) {
-                    processAssignment(context, elementContext, primaryDeltaClone, deltaOperationUrl, AssignmentHolderType.F_ASSIGNMENT, object, ownerResolver, securityConstraints, task, result);
+                    processAssignment(context, elementContext, fullInformationAvailable, primaryDeltaClone, deltaOperationUrl, AssignmentHolderType.F_ASSIGNMENT, object, ownerResolver, securityConstraints, task, result);
                 }
                 if (object.canRepresent(AbstractRoleType.class)) {
-                    processAssignment(context, elementContext, primaryDeltaClone, deltaOperationUrl, AbstractRoleType.F_INDUCEMENT, object, ownerResolver, securityConstraints, task, result);
+                    processAssignment(context, elementContext, fullInformationAvailable, primaryDeltaClone, deltaOperationUrl, AbstractRoleType.F_INDUCEMENT, object, ownerResolver, securityConstraints, task, result);
                 }
             }
 
@@ -196,25 +214,30 @@ public class ClockworkAuthorizationHelper {
 
             if (!primaryDeltaClone.isEmpty()) {
                 // TODO: optimize, avoid evaluating the constraints twice
-                securityEnforcer.authorize(deltaOperationUrl, getRequestAuthorizationPhase(context) , AuthorizationParameters.Builder.buildObjectDelta(object, primaryDeltaClone), ownerResolver, task, result);
+                securityEnforcer.authorize(
+                        deltaOperationUrl,
+                        getRequestAuthorizationPhase(context) ,
+                        AuthorizationParameters.Builder.buildObjectDelta(object, primaryDeltaClone, fullInformationAvailable),
+                        ownerResolver,
+                        task,
+                        result);
             }
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Authorized request for element context {}, constraints:\n{}", elementContext.getHumanReadableName(), securityConstraints.debugDump(1));
+                LOGGER.trace("Authorized request for element context {} (full info: {}), constraints:\n{}",
+                        elementContext.getHumanReadableName(), fullInformationAvailable, securityConstraints.debugDump(1));
             }
-
-            return securityConstraints;
         } else {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Authorized request for element context {}, constraints=null", elementContext.getHumanReadableName());
             }
-            return null;
         }
     }
 
     private <F extends ObjectType,O extends ObjectType> void processAssignment(
             LensContext<F> context,
             LensElementContext<O> elementContext,
+            boolean fullInformationAvailable,
             ObjectDelta<O> primaryDeltaClone,
             String deltaOperationUrl,
             ItemName assignmentElementQName,
@@ -254,14 +277,14 @@ public class ClockworkAuthorizationHelper {
                 } else {
                     // No blank decision for assignment modification yet
                     // process each assignment individually
-                    authorizeAssignmentRequest(context, deltaOperationUrl, ModelAuthorizationAction.ASSIGN.getUrl(),
+                    authorizeAssignmentRequest(context, fullInformationAvailable, deltaOperationUrl, ModelAuthorizationAction.ASSIGN.getUrl(),
                             assignmentElementQName,
                             object, ownerResolver, securityConstraints, PlusMinusZero.PLUS, true, task, result);
 
                     if (!primaryDeltaClone.isAdd()) {
                         // We want to allow unassignment even if there are policies. Otherwise we would not be able to get
                         // rid of that assignment
-                        authorizeAssignmentRequest(context, deltaOperationUrl, ModelAuthorizationAction.UNASSIGN.getUrl(),
+                        authorizeAssignmentRequest(context, fullInformationAvailable, deltaOperationUrl, ModelAuthorizationAction.UNASSIGN.getUrl(),
                                 assignmentElementQName,
                                 object, ownerResolver, securityConstraints, PlusMinusZero.MINUS, false, task, result);
                     }
@@ -280,6 +303,7 @@ public class ClockworkAuthorizationHelper {
 
     private <F extends ObjectType,O extends ObjectType> void authorizeAssignmentRequest(
             LensContext<F> context,
+            boolean fullInformationAvailable,
             String operationUrl,
             String assignActionUrl,
             ItemName assignmentElementQName,
@@ -320,14 +344,24 @@ public class ClockworkAuthorizationHelper {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Denied request for object {}: {} of non-target {} not allowed", object, operationDesc, assignmentElementQName.getLocalPart());
                     }
-                    securityEnforcer.failAuthorization(operationDesc, getRequestAuthorizationPhase(context), AuthorizationParameters.Builder.buildObject(object), result);
+                    securityEnforcer.failAuthorization(
+                            operationDesc,
+                            getRequestAuthorizationPhase(context),
+                            AuthorizationParameters.Builder.buildObject(object, fullInformationAvailable),
+                            result);
+                    throw new AssertionError("not here");
                 }
             }
 
             PrismObject<ObjectType> target;
             try {
+                // We do cloning to avoid modification of the original value.
+                // (Just in case; as currently the resolver does not modify the value.)
+                PrismReferenceValue targetRefClone = targetRef.clone().asReferenceValue();
+                targetRefClone.setObject(null); // This is also just in case. We want to do the resolution in full.
+
                 // We do not worry about performance here too much. The target was already evaluated. This will be retrieved from repo cache anyway.
-                target = objectResolver.resolve(targetRef.asReferenceValue(), "resolving " + assignmentElementQName.getLocalPart() + " target", task, result);
+                target = objectResolver.resolve(targetRefClone, "resolving " + assignmentElementQName.getLocalPart() + " target", task, result);
             } catch (ObjectNotFoundException e) {
                 LOGGER.warn("Object {} referenced as {} target in {} was not found", targetRef.asReferenceValue().getOid(), assignmentElementQName.getLocalPart(), object);
                 target = null;
@@ -350,6 +384,7 @@ public class ClockworkAuthorizationHelper {
                     .target(target)
                     .relation(relation)
                     .orderConstraints(orderConstraints)
+                    .fullInformationAvailable(fullInformationAvailable)
                     .build();
 
             if (prohibitPolicies) {

@@ -57,8 +57,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * @author semancik
+ * The "clockwork" that drives the change processing. The main entry is {@link #run(LensContext, Task, OperationResult)} method.
  *
+ * As a special responsibility, this class ensures the conflict resolution with the help of {@link ClockworkConflictResolver}.
+ *
+ * @author semancik
  */
 @Component
 public class Clockwork {

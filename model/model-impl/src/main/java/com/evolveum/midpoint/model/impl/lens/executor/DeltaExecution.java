@@ -531,7 +531,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         try {
             OwnerResolver ownerResolver = createOwnerResolver(result);
             b.securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.EXECUTION,
-                    AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta), ownerResolver, task, result);
+                    AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta, true), ownerResolver, task, result);
 
             if (shouldApplyModifyMetadata(objectClass, context.getSystemConfigurationBean())) {
                 b.metadataManager.applyMetadataModify(delta, objectClass, elementContext,

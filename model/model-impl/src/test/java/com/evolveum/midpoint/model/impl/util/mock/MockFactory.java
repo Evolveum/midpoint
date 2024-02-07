@@ -312,7 +312,8 @@ public class MockFactory {
             }
 
             @Override
-            public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector, PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) {
+            public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector, PrismObject<O> object,boolean fullInformationAvailable,
+                    ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) {
                 return false;
             }
 
