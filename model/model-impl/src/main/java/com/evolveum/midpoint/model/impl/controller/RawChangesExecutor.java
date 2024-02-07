@@ -331,7 +331,7 @@ class RawChangesExecutor {
             if (!preAuthorized) {
                 //noinspection unchecked
                 AuthorizationParameters<T, ObjectType> autzParams =
-                        AuthorizationParameters.Builder.buildObjectDelta((PrismObject<T>) existingObject.asPrismObject(), delta);
+                        AuthorizationParameters.Builder.buildObjectDelta((PrismObject<T>) existingObject.asPrismObject(), delta, true);
                 securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, autzParams, null, task, result);
                 securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, autzParams, null, task, result);
             }

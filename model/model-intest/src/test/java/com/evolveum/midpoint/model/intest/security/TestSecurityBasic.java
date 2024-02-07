@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.intest.security;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
@@ -18,7 +19,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
-import org.assertj.core.api.Assertions;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -61,6 +63,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSecurityBasic extends AbstractSecurityTest {
+
+    public static boolean unauthorizedScriptRun = false;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -1549,8 +1553,21 @@ public class TestSecurityBasic extends AbstractSecurityTest {
             addObject(ORG_CHEATERS_FILE, task, result); // MID-3874
             assertNotReached();
         } catch (PolicyViolationException e) {
-            displayExpectedException(e);
-            assertFailure(result);
+            if (fullControl) {
+                // Allowed by authorizations, disallowed by policy (parentOrgRef vs assignment)
+                displayExpectedException(e);
+                assertFailure(result);
+            } else {
+                fail("Unexpected exception: " + e.getMessage());
+            }
+        } catch (SecurityViolationException e) {
+            if (!fullControl) {
+                // Disallowed by authorizations
+                displayExpectedException(e);
+                assertFailure(result);
+            } else {
+                fail("Unexpected exception: " + e.getMessage());
+            }
         }
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -3170,8 +3187,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assertGetDeny(TaskType.class, TASK_USELESS_ADMINISTRATOR_OID);
         var task = assertGetAllow(TaskType.class, TASK_USELESS_JACK_OID).asObjectable();
-        Assertions.assertThat(task.getActivity()).as("activity in the task").isNotNull();
-        Assertions.assertThat(task.getActivityState()).as("activity state in the task, denied by the autz").isNull();
+        assertThat(task.getActivity()).as("activity in the task").isNotNull();
+        assertThat(task.getActivityState()).as("activity state in the task, denied by the autz").isNull();
 
         assertOwnTaskEditSchema(task.asPrismObject());
 
@@ -3263,6 +3280,75 @@ public class TestSecurityBasic extends AbstractSecurityTest {
                 .assertDenyAdd()
                 .assertDenyModify()
                 .assertAllowRead();
+    }
+
+    /**
+     * Checks that no expressions are evaluated before the [first round of] authorization is checked,
+     * as well as that `#assign` does not allow to create assignments with `targetRef` expressions.
+     */
+    @Test
+    public void test420TargetRefExpression() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ASSIGN_ANY_ROLES_OID);
+
+        when();
+        login(USER_JACK_USERNAME);
+
+        then("targetRef expression is not evaluated during 'assignment add' operation");
+        try {
+            executeChanges(
+                    deltaFor(UserType.class)
+                            .item(UserType.F_ASSIGNMENT)
+                            .add(createAssignmentWithExpression())
+                            .asObjectDelta(USER_JACK_OID),
+                    null, task, result);
+            fail("Unexpected success");
+        } catch (SecurityViolationException e) {
+            displayExpectedException(e);
+        }
+        assertThat(unauthorizedScriptRun).withFailMessage("Unauthorized script was run").isFalse();
+
+        and("targetRef expression is not evaluated during 'object add' operation");
+        try {
+            UserType newUser = new UserType()
+                    .name("new")
+                            .assignment(createAssignmentWithExpression());
+            executeChanges(
+                    newUser.asPrismObject().createAddDelta(),
+                    null, task, result);
+            fail("Unexpected success");
+        } catch (SecurityViolationException e) {
+            displayExpectedException(e);
+        }
+        assertThat(unauthorizedScriptRun).withFailMessage("Unauthorized script was run").isFalse();
+    }
+
+    private AssignmentType createAssignmentWithExpression() throws SchemaException {
+        var filterXml = "<q:inOid xmlns:q=\"http://prism.evolveum.com/xml/ns/public/query-3\"\n" +
+                        "         xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">\n" +
+                        "    <expression>\n" +
+                        "        <script>\n" +
+                        "            <code>\n" +
+                        "                import com.evolveum.midpoint.model.intest.security.TestSecurityBasic\n" +
+                        "                TestSecurityBasic.unauthorizedScriptRun = true\n" +
+                        "                null\n" +
+                        "            </code>\n" +
+                        "        </script>\n" +
+                        "    </expression>\n" +
+                        "</q:inOid>\n";
+
+        var searchFilter = new SearchFilterType();
+        searchFilter.setFilterClauseXNode(
+                prismContext.parserFor(filterXml).parseToXNode());
+
+        return new AssignmentType()
+                .targetRef(new ObjectReferenceType()
+                        .type(RoleType.COMPLEX_TYPE)
+                        .filter(searchFilter));
     }
 
     @SuppressWarnings("SameParameterValue")

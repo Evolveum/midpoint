@@ -96,7 +96,7 @@ public interface SecurityEnforcer {
 
     MidPointPrincipal getMidPointPrincipal();
 
-    <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, boolean fullInformationAvailable, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
      * Returns a filter that applies to all the objects/targets for which the principal is authorized.

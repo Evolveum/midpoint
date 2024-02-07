@@ -182,7 +182,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                 }
 
                 // object
-                if (isApplicableObject(authority, params.getOdo(), midPointPrincipal, ownerResolver, autzHumanReadableDesc, task, result)) {
+                if (isApplicableObject(authority, params.getOdo(), params.isFullInformationAvailable(), midPointPrincipal, ownerResolver, autzHumanReadableDesc, task, result)) {
                     LOGGER.trace("    {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, params.getAnyObject());
                 } else {
                     LOGGER.trace("    {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
@@ -191,7 +191,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                 }
 
                 // target
-                if (isApplicable(authority.getTarget(), params.getTarget(), midPointPrincipal, ownerResolver, "target", autzHumanReadableDesc, task, result)) {
+                if (isApplicable(authority.getTarget(), params.getTarget(), params.isFullInformationAvailable(), midPointPrincipal, ownerResolver, "target", autzHumanReadableDesc, task, result)) {
                     LOGGER.trace("    {} applicable for target {} (continuing evaluation)", autzHumanReadableDesc, params.getAnyObject());
                 } else {
                     LOGGER.trace("    {} not applicable for target {}, none of the target specifications match (breaking evaluation)",
@@ -517,6 +517,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     }
 
     private <O extends ObjectType> boolean isApplicableObject(Authorization autz, ObjectDeltaObject<O> odo,
+            boolean fullInformationAvailable,
             MidPointPrincipal midPointPrincipal, OwnerResolver ownerResolver, String autzHumanReadableDesc, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         List<OwnedObjectSelectorType> objectSpecTypes = autz.getObject();
@@ -531,20 +532,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                     if (oldObject == null) {
                         throw new IllegalStateException("No old object in odo " + odo);
                     }
-                    if (!isApplicable(objectSpecTypes, oldObject, midPointPrincipal, ownerResolver, "object(old)", autzHumanReadableDesc, task, result)) {
+                    if (!isApplicable(objectSpecTypes, oldObject, fullInformationAvailable, midPointPrincipal, ownerResolver, "object(old)", autzHumanReadableDesc, task, result)) {
                         return false;
                     }
                     PrismObject<O> newObject = odo.getNewObject();
                     if (newObject == null) {
                         throw new IllegalStateException("No new object in odo " + odo);
                     }
-                    return isApplicable(objectSpecTypes, newObject, midPointPrincipal, ownerResolver, "object(new)", autzHumanReadableDesc, task, result);
+                    return isApplicable(objectSpecTypes, newObject, fullInformationAvailable, midPointPrincipal, ownerResolver, "object(new)", autzHumanReadableDesc, task, result);
                 } else {
                     PrismObject<O> object = odo.getOldObject();
                     if (object == null) {
                         throw new IllegalStateException("No old object in odo " + odo);
                     }
-                    return isApplicable(objectSpecTypes, object, midPointPrincipal, ownerResolver, "object(old)", autzHumanReadableDesc, task, result);
+                    return isApplicable(objectSpecTypes, object, fullInformationAvailable, midPointPrincipal, ownerResolver, "object(old)", autzHumanReadableDesc, task, result);
                 }
             } else {
                 // Old and new object should be the same. Or there is just one of them. Any one of them will do.
@@ -552,7 +553,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                 if (object == null) {
                     throw new IllegalStateException("No object in odo " + odo);
                 }
-                return isApplicable(objectSpecTypes, object, midPointPrincipal, ownerResolver, "object", autzHumanReadableDesc, task, result);
+                return isApplicable(objectSpecTypes, object, fullInformationAvailable, midPointPrincipal, ownerResolver, "object", autzHumanReadableDesc, task, result);
             }
         } else {
             LOGGER.trace("    {}: No object specification in authorization (authorization is applicable)", autzHumanReadableDesc);
@@ -561,6 +562,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     }
 
     private <O extends ObjectType> boolean isApplicable(List<OwnedObjectSelectorType> objectSpecTypes, PrismObject<O> object,
+            boolean fullInformationAvailable,
             MidPointPrincipal midPointPrincipal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
@@ -569,7 +571,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                 return false;
             }
             for (OwnedObjectSelectorType autzObject : objectSpecTypes) {
-                if (isApplicable(autzObject, object, midPointPrincipal, emptySet(), ownerResolver, desc, autzHumanReadableDesc, task, result)) {
+                if (isApplicable(autzObject, object, fullInformationAvailable, midPointPrincipal, emptySet(), ownerResolver, desc, autzHumanReadableDesc, task, result)) {
                     return true;
                 }
             }
@@ -587,12 +589,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
      * we want to give appropriate privileges also to assignee/requestor delegates.
      */
     private <O extends ObjectType> boolean isApplicable(SubjectedObjectSelectorType objectSelector, PrismObject<O> object,
+            boolean fullInformationAvailable,
             MidPointPrincipal principal, Collection<String> otherSelfOids, OwnerResolver ownerResolver, String desc,
             String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectFilterExpressionEvaluator filterExpressionEvaluator =
                 createFilterEvaluator(principal, desc, autzHumanReadableDesc, task, result);
-        if (!repositoryService.selectorMatches(objectSelector, object, filterExpressionEvaluator, LOGGER,
+        if (!repositoryService.selectorMatches(objectSelector, object, fullInformationAvailable, filterExpressionEvaluator, LOGGER,
                 "    " + autzHumanReadableDesc + " not applicable for " + desc + " because of")) {
             // No need to log inapplicability here. It should be logged inside repositoryService.selectorMatches()
             return false;
@@ -638,7 +641,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         }
 
         // orgRelation
-        if (specOrgRelation != null) {
+        if (specOrgRelation != null && fullInformationAvailable) {
             boolean match = false;
             for (ObjectReferenceType subjectParentOrgRef : principal.getFocus().getParentOrgRef()) {
                 if (matchesOrgRelation(object, subjectParentOrgRef, specOrgRelation, autzHumanReadableDesc, desc)) {
@@ -656,7 +659,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         }
 
         // roleRelation
-        if (specRoleRelation != null) {
+        if (specRoleRelation != null && fullInformationAvailable) {
             boolean match = false;
             for (ObjectReferenceType subjectRoleMembershipRef : principal.getFocus().getRoleMembershipRef()) {
                 if (matchesRoleRelation(object, subjectRoleMembershipRef, specRoleRelation)) {
@@ -693,7 +696,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                             autzHumanReadableDesc, desc, object.getOid());
                     return false;
                 }
-                boolean ownerApplicable = isApplicable(ownerSpec, owner, principal, emptySet(), ownerResolver,
+                boolean ownerApplicable = isApplicable(ownerSpec, owner, fullInformationAvailable, principal, emptySet(), ownerResolver,
                         "owner of " + desc, autzHumanReadableDesc, task, result);
                 if (!ownerApplicable) {
                     LOGGER.trace("    {}: owner object spec not applicable for {}, object OID {} because owner does not match (owner={})",
@@ -704,7 +707,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
             // Delegator
             SubjectedObjectSelectorType delegatorSpec = ownedObjectSelector.getDelegator();
-            if (delegatorSpec != null) {
+            if (delegatorSpec != null && fullInformationAvailable) {
                 if (!isSelf(delegatorSpec)) {
                     throw new SchemaException("Unsupported non-self delegator clause");
                 }
@@ -753,7 +756,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                             autzHumanReadableDesc, desc, object.getOid());
                     return false;
                 }
-                boolean requestorApplicable = isApplicable(requestorSpec, requestor, principal, getDelegatorsForRequestor(principal),
+                boolean requestorApplicable = isApplicable(requestorSpec, requestor, true, principal, getDelegatorsForRequestor(principal),
                         ownerResolver, "requestor of " + desc, autzHumanReadableDesc, task, result);
                 if (!requestorApplicable) {
                     LOGGER.trace("    {}: requester object spec not applicable for {}, object OID {} because requestor does not match (requestor={})",
@@ -762,7 +765,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                 }
             }
 
-            // Requestor
+            // Related object
             SubjectedObjectSelectorType relatedObjectSpec = ownedObjectSelector.getRelatedObject();
             if (relatedObjectSpec != null) {
                 PrismObject<? extends ObjectType> relatedObject = getRelatedObject(object, result);
@@ -771,7 +774,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                             autzHumanReadableDesc, desc, object.getOid());
                     return false;
                 }
-                boolean relatedObjectApplicable = isApplicable(relatedObjectSpec, relatedObject, principal, getDelegatorsForRelatedObjects(principal),
+                boolean relatedObjectApplicable = isApplicable(relatedObjectSpec, relatedObject, true, principal, getDelegatorsForRelatedObjects(principal),
                         ownerResolver, "related object of " + desc, autzHumanReadableDesc, task, result);
                 if (!relatedObjectApplicable) {
                     LOGGER.trace("    {}: related object spec not applicable for {}, object OID {} because related object does not match (related object={})",
@@ -792,7 +795,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                 Collection<String> relevantDelegators = getDelegatorsForAssignee(principal);
                 boolean assigneeApplicable = false;
                 for (PrismObject<? extends ObjectType> assignee : assignees) {
-                    if (isApplicable(assigneeSpec, assignee, principal, relevantDelegators,
+                    if (isApplicable(assigneeSpec, assignee, true, principal, relevantDelegators,
                             ownerResolver, "assignee of " + desc, autzHumanReadableDesc, task, result)) {
                         assigneeApplicable = true;
                         break;
@@ -807,7 +810,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
             // Tenant
             TenantSelectorType tenantSpec = ownedObjectSelector.getTenant();
-            if (tenantSpec != null) {
+            if (tenantSpec != null && fullInformationAvailable) {
                 if (BooleanUtils.isTrue(tenantSpec.isSameAsSubject())) {
                     ObjectReferenceType subjectTenantRef = principal.getFocus().getTenantRef();
                     if (subjectTenantRef == null || subjectTenantRef.getOid() == null) {
@@ -1181,7 +1184,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     @Override
     public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(
-            PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result)
+            PrismObject<O> object, boolean fullInformationAvailable, OwnerResolver ownerResolver, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         MidPointPrincipal principal = getMidPointPrincipal();
@@ -1189,7 +1192,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             throw new IllegalArgumentException("Cannot compile security constraints of null object");
         }
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("AUTZ: evaluating security constraints principal={}, object={}", getUsername(principal), object);
+            LOGGER.trace("AUTZ: evaluating security constraints principal={}, object={} (full: {})",
+                    getUsername(principal), object, fullInformationAvailable);
         }
         ObjectSecurityConstraintsImpl objectSecurityConstraints = new ObjectSecurityConstraintsImpl();
         Collection<Authorization> authorities = getAuthorities(principal);
@@ -1201,7 +1205,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                 // skip action applicability evaluation. We are interested in all actions
 
                 // object
-                if (isApplicable(autz.getObject(), object, principal, ownerResolver, "object", autzHumanReadableDesc, task, result)) {
+                if (isApplicable(autz.getObject(), object, fullInformationAvailable, principal, ownerResolver, "object", autzHumanReadableDesc, task, result)) {
                     LOGGER.trace("    {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
                 } else {
                     LOGGER.trace("    {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
@@ -1409,7 +1413,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                     objectTargetSpec = "target";
 
                     // .. but we need to decide whether this authorization is applicable to the object
-                    if (isApplicable(authority.getObject(), object, principal, null, "object", autzHumanReadableDesc, task, result)) {
+                    if (isApplicable(authority.getObject(), object, true, principal, null, "object", autzHumanReadableDesc, task, result)) {
                         LOGGER.trace("      Authorization is applicable for object {}", object);
                     } else {
                         LOGGER.trace("      Authorization is not applicable for object {}", object);
@@ -2138,7 +2142,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             }
 
             // object
-            if (isApplicable(autz.getObject(), object, midPointPrincipal, ownerResolver, "object", autzHumanReadableDesc, task, result)) {
+            if (isApplicable(autz.getObject(), object, true, midPointPrincipal, ownerResolver, "object", autzHumanReadableDesc, task, result)) {
                 LOGGER.trace("    {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
             } else {
                 LOGGER.trace("    {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
@@ -2147,7 +2151,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             }
 
             // target
-            if (isApplicable(autz.getTarget(), target, midPointPrincipal, ownerResolver, "target", autzHumanReadableDesc, task, result)) {
+            if (isApplicable(autz.getTarget(), target, true, midPointPrincipal, ownerResolver, "target", autzHumanReadableDesc, task, result)) {
                 LOGGER.trace("    {} applicable for target {} (continuing evaluation)", autzHumanReadableDesc, object);
             } else {
                 LOGGER.trace("    {} not applicable for target {}, none of the target specifications match (breaking evaluation)",

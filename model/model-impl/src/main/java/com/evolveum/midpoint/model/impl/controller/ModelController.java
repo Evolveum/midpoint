@@ -382,6 +382,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         PartialProcessingOptionsType partialProcessing = ModelExecuteOptions.getPartialProcessing(options);
         if (partialProcessing != null) {
             PrismObject<? extends ObjectType> object = context.getFocusContext().getObjectAny();
+            // FIXME the information about the object may be incomplete (orgs, tenants, roles) but we treat it as complete here.
+            //  See also MID-9454.
+            // TODO audit the request failure if this check fails
             securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(),
                     null, AuthorizationParameters.Builder.buildObject(object), null, task, result);
         }

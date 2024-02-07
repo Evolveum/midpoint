@@ -317,9 +317,9 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result)
+    public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, boolean fullInformationAvailable, OwnerResolver ownerResolver, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return securityEnforcer.compileSecurityConstraints(object, ownerResolver, task, result);
+        return securityEnforcer.compileSecurityConstraints(object, fullInformationAvailable, ownerResolver, task, result);
     }
 
     @Override
