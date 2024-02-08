@@ -10,14 +10,11 @@ import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecu
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
@@ -119,11 +116,8 @@ public class RecomputationActivityHandler
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
                 throws CommonException {
-            LensContext<FocusType> syncContext = getActivityHandler().contextFactory.createRecomputeContext(
+            getActivityHandler().modelController.executeRecompute(
                     object.asPrismObject(), getWorkDefinition().getExecutionOptions(), workerTask, result);
-            LOGGER.trace("Recomputation of object {}: context:\n{}", object, syncContext.debugDumpLazily());
-
-            getActivityHandler().clockwork.run(syncContext, workerTask, result);
             LOGGER.trace("Recomputation of object {}: {}", object, result.getStatus());
             return true;
         }

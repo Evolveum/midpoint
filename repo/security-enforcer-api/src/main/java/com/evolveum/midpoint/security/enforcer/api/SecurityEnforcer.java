@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
@@ -30,6 +31,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @author Radovan Semancik
  */
@@ -42,6 +46,25 @@ public interface SecurityEnforcer {
      * required actions is important.
      */
     AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+
+    /**
+     * Checks if the currently logged-in user is authorized for any of the specified actions.
+     *
+     * BEWARE: Only for preliminary/coarse-grained decisions! Use only when followed by more precise authorization checks.
+     *
+     * For example, it ignores any object or target qualification, DENY authorizations, and so on.
+     */
+    default boolean hasAnyAllowAuthorization(
+            @NotNull List<String> actions, @Nullable AuthorizationPhaseType phase) {
+        for (Authorization authorization : SecurityEnforcerUtil.getAuthorizations(getMidPointPrincipal())) {
+            if (authorization.isAllow()
+                    && authorization.matchesPhase(phase)
+                    && authorization.matchesAnyAction(actions)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Simple access control decision similar to that used by spring security.

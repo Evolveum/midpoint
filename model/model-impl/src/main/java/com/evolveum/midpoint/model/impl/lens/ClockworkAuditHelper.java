@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -356,5 +357,28 @@ public class ClockworkAuditHelper {
             }
         }
         auditRecord.setMessage(sb.toString());
+    }
+
+    /**
+     * The request was denied before its execution was even started.
+     * This is a special case.
+     *
+     * @param opResult The (closed) result of the operation that failed
+     * @param execResult The (open) result under which the auditing should be done
+     */
+    public void auditRequestDenied(
+            @NotNull LensContext<? extends ObjectType> context,
+            @NotNull Task task,
+            @NotNull OperationResult opResult,
+            @NotNull OperationResult execResult) {
+        Preconditions.checkArgument(opResult.isClosed());
+        Preconditions.checkArgument(!execResult.isClosed());
+        // We do not care much about the event type here. At least not now.
+        AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.REQUEST);
+        auditRecord.setRequestIdentifier(context.getRequestIdentifier());
+        auditRecord.setChannel(context.getChannel());
+        auditRecord.setOutcome(opResult.getStatus());
+        auditRecord.setMessage(opResult.getMessage());
+        auditHelper.audit(auditRecord, context.getNameResolver(), task, execResult);
     }
 }

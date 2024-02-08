@@ -59,7 +59,7 @@ public class TestResourceExecutor extends AbstractObjectBasedActionExecutor<Reso
             ExecutionContext context,
             OperationResult result)
             throws ObjectNotFoundException, ExpressionEvaluationException, ScriptExecutionException, SchemaException,
-            ConfigurationException {
+            ConfigurationException, SecurityViolationException, CommunicationException {
         String oid = object.getOid();
         OperationResult testResult = modelService.testResource(oid, context.getTask(), result);
         context.println("Tested " + object + ": " + testResult.getStatus());

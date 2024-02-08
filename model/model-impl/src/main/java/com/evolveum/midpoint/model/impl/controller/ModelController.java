@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
 
 import org.apache.commons.lang3.Validate;
@@ -72,9 +73,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -123,6 +121,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     static final String RESOLVE_REFERENCE = CLASS_NAME_WITH_DOT + "resolveReference";
     private static final String OP_APPLY_PROVISIONING_DEFINITION = CLASS_NAME_WITH_DOT + "applyProvisioningDefinition";
     static final String OP_REEVALUATE_SEARCH_FILTERS = CLASS_NAME_WITH_DOT + "reevaluateSearchFilters";
+    static final String OP_AUTHORIZE_CHANGE_EXECUTION_START = CLASS_NAME_WITH_DOT + "authorizeChangeExecutionStart";
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 
@@ -149,6 +148,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Autowired private ObjectMerger objectMerger;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ClockworkMedic clockworkMedic;
+    @Autowired private ClockworkAuditHelper clockworkAuditHelper;
     @Autowired private EventDispatcher dispatcher;
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -328,7 +328,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
 
-        authorizePartialExecution(context, options, task, result);
+        authorizeExecutionStart(context, options, task, result);
 
         if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
             String m = "ReevaluateSearchFilters option is not fully supported for non-raw operations yet. "
@@ -375,18 +375,44 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
     }
 
-    private void authorizePartialExecution(LensContext<? extends ObjectType> context,
-            ModelExecuteOptions options, Task task, OperationResult result)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        PartialProcessingOptionsType partialProcessing = ModelExecuteOptions.getPartialProcessing(options);
-        if (partialProcessing != null) {
-            PrismObject<? extends ObjectType> object = context.getFocusContext().getObjectAny();
-            // FIXME the information about the object may be incomplete (orgs, tenants, roles) but we treat it as complete here.
-            //  See also MID-9454.
-            // TODO audit the request failure if this check fails
+    /**
+     * This is not a complete authorization! Here we just check if the user is roughly authorized to request the operation
+     * to be started, along with authorization for partial processing.
+     */
+    private void authorizeExecutionStart(
+            LensContext<? extends ObjectType> context, ModelExecuteOptions options, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        List<String> relevantActions = List.of(
+                ModelAuthorizationAction.ADD.getUrl(),
+                ModelAuthorizationAction.MODIFY.getUrl(),
+                ModelAuthorizationAction.DELETE.getUrl(),
+                ModelAuthorizationAction.RECOMPUTE.getUrl(),
+                ModelAuthorizationAction.ASSIGN.getUrl(),
+                ModelAuthorizationAction.UNASSIGN.getUrl(),
+                ModelAuthorizationAction.DELEGATE.getUrl(),
+                ModelAuthorizationAction.CHANGE_CREDENTIALS.getUrl());
+        var result = parentResult.createSubresult(OP_AUTHORIZE_CHANGE_EXECUTION_START);
+        try {
+            // We do not need to check both phases here: normally, only REQUEST should be needed.
+            // (For example, the #assign operation is relevant for the EXECUTION phase.)
+            var phase = context.isExecutionPhaseOnly() ? AuthorizationPhaseType.EXECUTION : AuthorizationPhaseType.REQUEST;
+            if (!securityEnforcer.hasAnyAllowAuthorization(relevantActions, phase)) {
+                throw new SecurityViolationException("Not authorized to request execution of changes");
+            }
+            PartialProcessingOptionsType partialProcessing = ModelExecuteOptions.getPartialProcessing(options);
+            if (partialProcessing != null) {
+                // TODO Note that the information about the object may be incomplete (orgs, tenants, roles) or even missing.
+                //  See MID-9454.
+                PrismObject<? extends ObjectType> object = context.getFocusContext().getObjectAny();
             securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(),
-                    null, AuthorizationParameters.Builder.buildObject(object), null, task, result);
+                    phase, AuthorizationParameters.Builder.buildObject(object), null, task, result);}
+        } catch (Throwable t) {
+            result.recordException(t);
+            clockworkAuditHelper.auditRequestDenied(context, task, result, parentResult);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 
@@ -427,13 +453,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             // Not using read-only for now
             //noinspection unchecked
             focus = objectResolver.getObject(type, oid, null, task, result).asPrismContainer();
-            LOGGER.debug("Recomputing {}", focus);
-
-            LensContext<F> lensContext = contextFactory.createRecomputeContext(focus, options, task, result);
-            LOGGER.trace("Recomputing {}, context:\n{}", focus, lensContext.debugDumpLazily());
-
-            clockwork.run(lensContext, task, result);
-
+            executeRecompute(focus, options, task, result);
         } catch (Throwable t) {
             ModelImplUtils.recordException(result, t);
             throw t;
@@ -444,6 +464,26 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
 
         LOGGER.trace("Recomputing of {}: {}", focus, result.getStatus());
+    }
+
+    /** Generally useful convenience method. */
+    public <F extends ObjectType> void executeRecompute(
+            @NotNull PrismObject<F> focus,
+            @Nullable ModelExecuteOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
+        LOGGER.debug("Recomputing {}", focus);
+        LensContext<F> lensContext = contextFactory.createRecomputeContext(focus, options, task, result);
+
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.RECOMPUTE.getUrl(), AuthorizationPhaseType.REQUEST,
+                AuthorizationParameters.Builder.buildObject(focus),
+                null, task, result);
+
+        LOGGER.trace("Recomputing {}, context:\n{}", focus, lensContext.debugDumpLazily());
+        clockwork.run(lensContext, task, result);
     }
 
     private void applyDefinitions(
@@ -1207,12 +1247,14 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public OperationResult testResource(String resourceOid, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException {
         Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
         LOGGER.trace("Testing resource OID: {}", resourceOid);
 
         enterModelMethod();
         try {
+            authorizeResourceOperation(ModelAuthorizationAction.TEST, resourceOid, task, result);
             OperationResult testResult = provisioning.testResource(resourceOid, task, result);
             LOGGER.debug("Finished testing resource OID: {}, result: {} ", resourceOid, testResult.getStatus());
             LOGGER.trace("Test result:\n{}", lazy(() -> testResult.dump(false)));
@@ -1224,6 +1266,22 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         } finally {
             exitModelMethod();
         }
+    }
+
+    private ResourceType authorizeResourceOperation(
+            @NotNull ModelAuthorizationAction action, @NotNull String resourceOid,
+            @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        // Retrieved in full in order to evaluate the authorization
+        var fullResource = provisioning.getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result);
+        securityEnforcer.authorize(
+                action.getUrl(),
+                null,
+                AuthorizationParameters.Builder.buildObject(fullResource),
+                null,
+                task, result);
+        return fullResource.asObjectable();
     }
 
     @Override
@@ -1335,10 +1393,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         result.addArbitraryObjectAsParam(OperationResult.PARAM_TASK, task);
         // TODO: add context to the result
 
-        // Fetch resource definition from the repo/provisioning
-        ResourceType resource;
         try {
-            resource = getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result).asObjectable();
+            var resource = authorizeResourceOperation(ModelAuthorizationAction.IMPORT_FROM_RESOURCE, resourceOid, task, result);
 
             // Here was a check on synchronization configuration, providing a warning if there is no configuration set up.
             // But with changes in 4.6 it is not so easy to definitely tell that there's no synchronization set up,
@@ -1378,6 +1434,11 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         // TODO: add context to the result
 
         try {
+            // fetching the shadow just to get the resource OID (for the authorization)
+            var shadow = cacheRepositoryService.getObject(ShadowType.class, shadowOid, null, result);
+            var resourceOid = ShadowUtil.getResourceOidRequired(shadow.asObjectable());
+            authorizeResourceOperation(ModelAuthorizationAction.IMPORT_FROM_RESOURCE, resourceOid, task, result);
+
             importFromResourceLauncher.importSingleShadow(shadowOid, task, result);
         } catch (Throwable t) {
             ModelImplUtils.recordException(result, t);
@@ -2414,6 +2475,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             PrismObject<ShadowType> oldRepoShadow = getOldRepoShadow(changeDescription, task, result);
             PrismObject<ShadowType> resourceObject = getResourceObject(changeDescription);
             ObjectDelta<ShadowType> objectDelta = getObjectDelta(changeDescription, result);
+
+            securityEnforcer.authorize(ModelAuthorizationAction.NOTIFY_CHANGE.getUrl(), task, result);
 
             ExternalResourceEvent event = new ExternalResourceEvent(objectDelta, resourceObject,
                     oldRepoShadow, changeDescription.getChannel());

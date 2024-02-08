@@ -1302,7 +1302,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public OperationResult testResource(String resourceOid)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, CommunicationException {
         return modelService.testResource(resourceOid, getCurrentTask(), getCurrentResult("testResource"));
     }
 
