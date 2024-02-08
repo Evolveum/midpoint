@@ -103,7 +103,9 @@ public abstract class SecretsProviderImpl<T extends SecretsProviderType> impleme
     }
 
     /**
-     * TODO document, should it return null or throw exception?
+     * Should return secret value for given key or null if the secret does not exist.
+     *
+     * @throws EncryptionException if the secret cannot be resolved (e.g. due to network problems, or unforeseen error)
      */
     protected abstract <ST> ST resolveSecret(@NotNull String key, @NotNull Class<ST> type) throws EncryptionException;
 
