@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Component
 public class SecretsProviderManager {
 
-    private static final Map<Class<? extends AbstractSecretsProviderType>, Class<? extends SecretsProvider>> PROVIDER_TYPES =
+    private static final Map<Class<? extends SecretsProviderType>, Class<? extends SecretsProvider>> PROVIDER_TYPES =
             Map.ofEntries(
                     Map.entry(DockerSecretsProviderType.class, DockerSecretsProvider.class),
                     Map.entry(PropertiesSecretsProviderType.class, PropertiesSecretsProvider.class),
@@ -40,7 +40,7 @@ public class SecretsProviderManager {
             configuration = new SecretsProvidersType();
         }
 
-        List<AbstractSecretsProviderType> configurations = new ArrayList<>();
+        List<SecretsProviderType> configurations = new ArrayList<>();
         configurations.add(configuration.getEnvironmentVariablesSecretsProvider());
         configurations.add(configuration.getDockerSecretsProvider());
         configurations.addAll(configuration.getKubernetesSecretsProvider());
@@ -49,13 +49,13 @@ public class SecretsProviderManager {
 
         configurations = configurations.stream()
                 .filter(c -> c != null)
-                .sorted(Comparator.nullsLast(Comparator.comparing(AbstractSecretsProviderType::getOrder)))
+                .sorted(Comparator.nullsLast(Comparator.comparing(SecretsProviderType::getOrder)))
                 .toList();
 
         Map<String, SecretsProvider> existingProviders = consumer.getSecretsProviders().stream()
                 .collect(Collectors.toMap(SecretsProvider::getIdentifier, p -> p));
 
-        for (AbstractSecretsProviderType config : configurations) {
+        for (SecretsProviderType config : configurations) {
             SecretsProvider newProvider = createProvider(config);
             if (newProvider == null) {
                 continue;
@@ -80,7 +80,7 @@ public class SecretsProviderManager {
     }
 
     @SuppressWarnings("unchecked")
-    private <C extends AbstractSecretsProviderType> SecretsProvider createProvider(C configuration) {
+    private <C extends SecretsProviderType> SecretsProvider createProvider(C configuration) {
         if (configuration == null) {
             return null;
         }

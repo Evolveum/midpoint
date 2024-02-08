@@ -3472,7 +3472,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AbstractSecretsProviderType" abstract="true">
+    <xsd:complexType name="SecretsProviderType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
                 Abstract definition of a secrets provider.
@@ -3487,6 +3487,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Unique identifier of this secrets provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Display name, icon and styles for secret provider.
+                        This is mostly for UI purposes.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3537,7 +3545,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractSecretsProviderType">
+            <xsd:extension base="tns:SecretsProviderType">
                 <xsd:sequence>
                     <xsd:element name="className" type="xsd:string">
                         <xsd:annotation>
@@ -3587,7 +3595,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractSecretsProviderType">
+            <xsd:extension base="tns:SecretsProviderType">
                 <xsd:sequence>
                     <xsd:element name="prefix" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
@@ -3616,7 +3624,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractSecretsProviderType">
+            <xsd:extension base="tns:SecretsProviderType">
                 <xsd:sequence>
                     <xsd:element name="charset" type="xsd:string" minOccurs="0" default="utf-8">
                         <xsd:annotation>
@@ -3643,7 +3651,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractSecretsProviderType">
+            <xsd:extension base="tns:SecretsProviderType">
                 <xsd:sequence>
                     <!-- todo configuration -->
                 </xsd:sequence>
@@ -3664,7 +3672,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractSecretsProviderType">
+            <xsd:extension base="tns:SecretsProviderType">
                 <xsd:sequence>
                     <xsd:element name="charset" type="xsd:string" minOccurs="0" default="utf-8">
                         <xsd:annotation>

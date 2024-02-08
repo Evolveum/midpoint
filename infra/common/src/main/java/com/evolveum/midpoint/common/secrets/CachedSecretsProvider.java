@@ -13,13 +13,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecretsProviderType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractSecretsProviderType;
 
-public abstract class CachedSecretsProvider<T extends AbstractSecretsProviderType> implements SecretsProvider {
+public abstract class CachedSecretsProvider<T extends SecretsProviderType> implements SecretsProvider {
 
     private final T configuration;
 
