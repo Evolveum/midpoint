@@ -651,7 +651,7 @@ public class GuiProfileCompiler {
     }
 
     private void joinResourceDetails(GuiObjectDetailsSetType objectDetailsSet, GuiResourceDetailsPageType newObjectDetails, Optional<GuiResourceDetailsPageType> detailForAllResources, OperationResult result) {
-        objectDetailsSet.getResourceDetailsPage().removeIf(currentDetails -> isTheSameConnectorType(currentDetails, newObjectDetails, result));
+        objectDetailsSet.getResourceDetailsPage().removeIf(currentDetails -> isTheSameConnector(currentDetails, newObjectDetails, result));
         if (!detailForAllResources.isEmpty() && newObjectDetails.getConnectorRef() != null) {
             GuiResourceDetailsPageType merged = adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(
                     detailForAllResources.get(),
@@ -696,17 +696,17 @@ public class GuiProfileCompiler {
         return oldCoords.equals(newCoords);
     }
 
-    private boolean isTheSameConnectorType(GuiResourceDetailsPageType oldConf, GuiResourceDetailsPageType newConf, OperationResult result) {
+    private boolean isTheSameConnector(GuiResourceDetailsPageType oldConf, GuiResourceDetailsPageType newConf, OperationResult result) {
         if (oldConf.getConnectorRef() == null || newConf.getConnectorRef() == null) {
             LOGGER.trace("Cannot join resource details configuration as defined in {} and {}. No connector defined", oldConf, newConf);
             return false;
         }
-        String oldConnectorRef = resolveReferenceIfNeeded(oldConf.getConnectorRef(), result);
-        String newConnctorRef = resolveReferenceIfNeeded(newConf.getConnectorRef(), result);
-        if (oldConnectorRef == null || newConnctorRef == null) {
+        String oldConnectorOid = resolveReferenceIfNeeded(oldConf.getConnectorRef(), result);
+        String newConnectorOid = resolveReferenceIfNeeded(newConf.getConnectorRef(), result);
+        if (oldConnectorOid == null || newConnectorOid == null) {
             return false;
         }
-        return oldConnectorRef.equals(newConnctorRef);
+        return oldConnectorOid.equals(newConnectorOid);
     }
 
     private String resolveReferenceIfNeeded(ObjectReferenceType reference, OperationResult result) {
