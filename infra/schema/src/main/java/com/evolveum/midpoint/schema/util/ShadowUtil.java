@@ -937,4 +937,10 @@ public class ShadowUtil {
         stateCheck(state != null, "Unknown lifecycle state of %s", shadow);
         return state == ShadowLifecycleStateType.CORPSE || state == ShadowLifecycleStateType.TOMBSTONE;
     }
+
+    public static String getResourceOidRequired(ShadowType shadow) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                getResourceOid(shadow),
+                () -> "No resource OID in " + shadow);
+    }
 }

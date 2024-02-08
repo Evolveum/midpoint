@@ -11,6 +11,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -18,5 +19,5 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface ResourceTester {
 
-    OperationResult testResource(@NotNull String oid, @NotNull Task task) throws ObjectNotFoundException;
+    OperationResult testResource(@NotNull String oid, @NotNull Task task) throws ObjectNotFoundException, SecurityViolationException;
 }

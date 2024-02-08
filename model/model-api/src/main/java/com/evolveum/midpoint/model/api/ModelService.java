@@ -415,7 +415,6 @@ public interface ModelService {
                     throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
     /**
-     * <p>
      * Test the resource connection and basic resource connector functionality.
      * </p>
      * <p>
@@ -440,7 +439,7 @@ public interface ModelService {
      * @throws IllegalArgumentException
      *             wrong OID format
      */
-    OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException;
+    OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException, SecurityViolationException;
 
     /**
      * <p>

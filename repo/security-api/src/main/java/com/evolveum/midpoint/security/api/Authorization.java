@@ -12,12 +12,15 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static com.evolveum.midpoint.security.api.AuthorizationConstants.AUTZ_ALL_URL;
 
 /**
  * @author semancik
@@ -63,12 +66,27 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
          return decision;
     }
 
+    public boolean isAllow() {
+        return getDecision() == AuthorizationDecisionType.ALLOW;
+    }
+
     public List<String> getAction() {
         return authorizationType.getAction();
     }
 
     public AuthorizationPhaseType getPhase() {
         return authorizationType.getPhase();
+    }
+
+    public boolean matchesPhase(@Nullable AuthorizationPhaseType phase) {
+        var autzPhase = getPhase();
+        return autzPhase == null || autzPhase == phase;
+    }
+
+    public boolean matchesAnyAction(@NotNull List<String> actionUrls) {
+        var authorizedActions = getAction();
+        return authorizedActions.contains(AUTZ_ALL_URL)
+                || authorizedActions.stream().anyMatch(actionUrls::contains);
     }
 
     public AuthorizationEnforcementStrategyType getEnforcementStrategy() {

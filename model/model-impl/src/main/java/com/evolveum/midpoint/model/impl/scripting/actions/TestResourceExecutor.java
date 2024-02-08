@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
@@ -54,7 +56,7 @@ public class TestResourceExecutor extends AbstractObjectBasedActionExecutor<Reso
     }
 
     private void test(PrismObject<? extends ResourceType> object, PipelineData output, PipelineItem item, ExecutionContext context,
-            OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, ScriptExecutionException {
+            OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, ScriptExecutionException, SecurityViolationException {
         String oid = object.getOid();
         OperationResult testResult = modelService.testResource(oid, context.getTask());
         context.println("Tested " + object + ": " + testResult.getStatus());

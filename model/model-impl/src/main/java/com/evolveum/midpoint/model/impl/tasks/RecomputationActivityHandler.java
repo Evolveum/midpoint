@@ -118,16 +118,17 @@ public class RecomputationActivityHandler
             boolean simulate = isPreview();
             String action = simulate ? "Simulated recomputation" : "Recomputation";
 
-            LOGGER.trace("{} of object {}", action, object);
-
-            LensContext<FocusType> syncContext = getActivityHandler().contextFactory.createRecomputeContext(
-                    object.asPrismObject(), getWorkDefinition().getExecutionOptions(), workerTask, result);
-            LOGGER.trace("{} of object {}: context:\n{}", action, object, syncContext.debugDumpLazily());
-
             if (simulate) {
+                LOGGER.trace("{} of object {}", action, object);
+
+                LensContext<FocusType> syncContext = getActivityHandler().contextFactory.createRecomputeContext(
+                        object.asPrismObject(), getWorkDefinition().getExecutionOptions(), workerTask, result);
                 getActivityHandler().clockwork.previewChanges(syncContext, null, workerTask, result);
+
+                LOGGER.trace("{} of object {}: context:\n{}", action, object, syncContext.debugDumpLazily());
             } else {
-                getActivityHandler().clockwork.run(syncContext, workerTask, result);
+                getActivityHandler().modelController.executeRecompute(
+                        object.asPrismObject(), getWorkDefinition().getExecutionOptions(), workerTask, result);
             }
             LOGGER.trace("{} of object {}: {}", action, object, result.getStatus());
             return true;

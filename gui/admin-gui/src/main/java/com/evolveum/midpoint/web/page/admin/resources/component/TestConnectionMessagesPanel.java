@@ -66,7 +66,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
             Task task = parentPage.createSimpleTask(OPERATION_TEST_CONNECTION);
             try {
                 result = parentPage.getModelService().testResource(resourceOid, task);
-            } catch (ObjectNotFoundException e) {
+            } catch (ObjectNotFoundException | SecurityViolationException e) {
                 result.recordFatalError(getString("TestConnectionMessagesPanel.message.testConnection.fatalError"), e);
             }
 

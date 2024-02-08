@@ -6674,7 +6674,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     @Override
-    public OperationResult testResource(@NotNull String oid, @NotNull Task task) throws ObjectNotFoundException {
+    public OperationResult testResource(@NotNull String oid, @NotNull Task task)
+            throws ObjectNotFoundException, SecurityViolationException {
         return modelService.testResource(oid, task);
     }
 
