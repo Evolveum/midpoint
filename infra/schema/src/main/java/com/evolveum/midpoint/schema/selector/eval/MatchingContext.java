@@ -16,6 +16,8 @@ import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 import static com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext.*;
 
 /**
@@ -26,6 +28,13 @@ import static com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationCont
  */
 public class MatchingContext extends SelectorProcessingContext {
 
+    /**
+     * Do we have the full information about the object being matched?
+     *
+     * @see SelectorClause#requiresFullInformation()
+     */
+    private final boolean fullInformationAvailable;
+
     public MatchingContext(
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
             @NotNull ProcessingTracer<? super SelectorTraceEvent> tracer,
@@ -34,7 +43,8 @@ public class MatchingContext extends SelectorProcessingContext {
             @Nullable OwnerResolver ownerResolver,
             @Nullable ObjectResolver objectResolver,
             @NotNull ClauseProcessingContextDescription description,
-            @NotNull DelegatorSelection delegatorSelection) {
+            @NotNull DelegatorSelection delegatorSelection,
+            boolean fullInformationAvailable) {
         super(
                 filterEvaluator,
                 tracer,
@@ -44,10 +54,14 @@ public class MatchingContext extends SelectorProcessingContext {
                 objectResolver,
                 description,
                 delegatorSelection);
+        this.fullInformationAvailable = fullInformationAvailable;
     }
 
     public @NotNull MatchingContext next(
-            @NotNull DelegatorSelection delegatorSelection, @NotNull String idDelta, @NotNull String textDelta) {
+            @NotNull DelegatorSelection delegatorSelection,
+            @NotNull String idDelta,
+            @NotNull String textDelta,
+            boolean fullInformationAvailable) {
         return new MatchingContext(
                 filterEvaluator,
                 tracer,
@@ -56,10 +70,12 @@ public class MatchingContext extends SelectorProcessingContext {
                 ownerResolver,
                 objectResolver,
                 description.child(idDelta, textDelta),
-                delegatorSelection);
+                delegatorSelection,
+                fullInformationAvailable);
     }
 
-    public @NotNull MatchingContext next(@NotNull String idDelta, @NotNull String textDelta) {
+    public @NotNull MatchingContext next(
+            @NotNull String idDelta, @NotNull String textDelta, Boolean fullInformationAvailable) {
         return new MatchingContext(
                 filterEvaluator,
                 tracer,
@@ -68,6 +84,11 @@ public class MatchingContext extends SelectorProcessingContext {
                 ownerResolver,
                 objectResolver,
                 description.child(idDelta, textDelta),
-                delegatorSelection);
+                delegatorSelection,
+                Objects.requireNonNullElse(fullInformationAvailable, this.fullInformationAvailable));
+    }
+
+    public boolean isFullInformationAvailable() {
+        return fullInformationAvailable;
     }
 }

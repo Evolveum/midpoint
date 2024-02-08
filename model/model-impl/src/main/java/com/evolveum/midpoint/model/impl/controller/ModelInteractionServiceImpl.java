@@ -262,7 +262,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
             // TODO: maybe we need to expose owner resolver in the interface?
             ObjectSecurityConstraints securityConstraints =
-                    securityEnforcer.compileSecurityConstraints(fullObject, SecurityEnforcer.Options.create(), task, result);
+                    securityEnforcer.compileSecurityConstraints(fullObject, true, SecurityEnforcer.Options.create(), task, result);
             LOGGER.trace("Security constrains for {}:\n{}", object, DebugUtil.debugDumpLazily(securityConstraints));
             TransformableObjectDefinition<O> objectDefinition = schemaTransformer.transformableDefinition(object.getDefinition());
             applyArchetypePolicy(objectDefinition, object, task, result);
@@ -382,7 +382,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         // TODO: maybe we need to expose owner resolver in the interface?
         ObjectSecurityConstraints securityConstraints =
-                securityEnforcer.compileSecurityConstraints(shadow, SecurityEnforcer.Options.create(), task, result);
+                securityEnforcer.compileSecurityConstraints(shadow, true, SecurityEnforcer.Options.create(), task, result);
         LOGGER.trace("Security constrains for {}:\n{}", shadow, DebugUtil.debugDumpLazily(securityConstraints));
 
         AuthorizationDecisionType attributesReadDecision =
@@ -516,7 +516,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         ObjectSecurityConstraints securityConstraints;
         try {
             securityConstraints = securityEnforcer.compileSecurityConstraints(
-                    focus, SecurityEnforcer.Options.create(), task, result);
+                    focus, true, SecurityEnforcer.Options.create(), task, result);
         } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException |
                 SecurityViolationException e) {
             result.recordFatalError(e);

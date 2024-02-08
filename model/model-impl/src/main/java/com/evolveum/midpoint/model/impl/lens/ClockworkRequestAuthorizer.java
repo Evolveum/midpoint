@@ -14,6 +14,7 @@ import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -27,11 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -72,6 +68,7 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
 
     @NotNull private final LensContext<F> context;
     @NotNull private final LensElementContext<E> elementContext;
+    private final boolean fullInformationAvailable;
     private final boolean isFocus;
     @NotNull private final Task task;
 
@@ -94,12 +91,13 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
     private ClockworkRequestAuthorizer(
             @NotNull LensContext<F> context,
             @NotNull LensElementContext<E> elementContext,
-            boolean isFocus,
+            boolean fullInformationAvailable,
             @NotNull Task task,
             @NotNull OperationResult result) {
         this.context = context;
         this.elementContext = elementContext;
-        this.isFocus = isFocus;
+        this.fullInformationAvailable = fullInformationAvailable;
+        this.isFocus = elementContext instanceof LensFocusContext<E>;
         this.task = task;
         this.result = result;
         this.ctxHumanReadableName = elementContext.getHumanReadableName();
@@ -112,7 +110,8 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
         this.prismContext = PrismContext.get();
     }
 
-    static <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult parentResult)
+    public static <F extends ObjectType> void authorizeContextRequest(
+            LensContext<F> context, boolean fullInformationAvailable, Task task, OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
         OperationResult result = parentResult.createMinorSubresult(OP_AUTHORIZE_REQUEST);
@@ -120,15 +119,17 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
         try {
             LensFocusContext<F> focusContext = context.getFocusContext();
             if (focusContext != null) {
-                new ClockworkRequestAuthorizer<>(context, focusContext, true, task, result)
+                new ClockworkRequestAuthorizer<>(context, focusContext, fullInformationAvailable, task, result)
                         .authorize();
             }
             for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-                new ClockworkRequestAuthorizer<>(context, projectionContext, false, task, result)
+                new ClockworkRequestAuthorizer<>(context, projectionContext, fullInformationAvailable, task, result)
                         .authorize();
             }
-            context.setRequestAuthorized(true);
-            LOGGER.trace("Request authorized");
+            var authorizationState = fullInformationAvailable ?
+                    LensContext.AuthorizationState.FULL : LensContext.AuthorizationState.PRELIMINARY;
+            context.setRequestAuthorized(authorizationState);
+            LOGGER.trace("Request authorized: {}", authorizationState);
         } catch (Throwable e) {
             result.recordException(e);
             throw e;
@@ -155,11 +156,20 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
         // But also in cases such as assignment of account and modification of
         // the same account in one operation.
         PrismObject<E> objectCurrentOrNew = elementContext.getObjectCurrentOrNew();
-        stateCheck(objectCurrentOrNew != null, "No object? In: %s", elementContext);
+        if (objectCurrentOrNew == null) {
+            if (!isFocus && !fullInformationAvailable) {
+                LOGGER.trace("No projection object during preliminary autz evaluation -> skipping the check for now: {}",
+                        elementContext);
+                return;
+            } else {
+                throw new IllegalStateException("No object? In: " + elementContext);
+            }
+        }
 
         ObjectSecurityConstraints securityConstraints =
                 securityEnforcer.compileSecurityConstraints(
                         objectCurrentOrNew,
+                        fullInformationAvailable,
                         SecurityEnforcer.Options.create().withCustomOwnerResolver(lensOwnerResolver),
                         task, result);
 
@@ -202,7 +212,7 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
 
         void authorize()
                 throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-                CommunicationException, ConfigurationException{
+                CommunicationException, ConfigurationException {
             if (isFocus) {
                 // Process assignments/inducements first. If the assignments/inducements are allowed then we
                 // have to ignore the assignment item in subsequent security checks
@@ -223,13 +233,15 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
                 securityEnforcer.authorize(
                         operationUrl,
                         authorizationPhase,
-                        AuthorizationParameters.Builder.buildObjectDelta(objectCurrentOrNew, primaryDeltaClone),
-                        SecurityEnforcer.Options.create().withCustomOwnerResolver(lensOwnerResolver),
+                        AuthorizationParameters.Builder.buildObjectDelta(
+                                objectCurrentOrNew, primaryDeltaClone, fullInformationAvailable),
+                        SecurityEnforcer.Options.create()
+                                .withCustomOwnerResolver(lensOwnerResolver),
                         task, result);
             }
 
-            LOGGER.trace("Authorized request for element context {}, constraints:\n{}",
-                    ctxHumanReadableName, securityConstraints.debugDumpLazily(1));
+            LOGGER.trace("Authorized request for element context {} (full info: {}), constraints:\n{}",
+                    ctxHumanReadableName, fullInformationAvailable, securityConstraints.debugDumpLazily(1));
         }
 
         private void authorizeAssignmentsOrInducementsOperation(@NotNull AssignmentOrInducement type)
@@ -336,17 +348,22 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
                     throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
                     CommunicationException, ConfigurationException {
                 ObjectReferenceType targetRef = changedAssignment.getTargetRef();
-                if (targetRef == null || targetRef.getOid() == null) {
-                    authorizeNoTargetAssignmentValue();
+                var oid = Referencable.getOid(targetRef);
+                if (oid == null) {
+                    authorizeNoTargetOidAssignmentValue();
                     return;
                 }
 
                 PrismObject<ObjectType> target;
                 try {
-                    // We do not worry about performance here too much. The target was already evaluated.
-                    // This will be retrieved from repo cache anyway.
+                    // We do cloning to avoid modification of the original value.
+                    // (Just in case; as currently the resolver does not modify the value.)
+                    PrismReferenceValue targetRefClone = targetRef.clone().asReferenceValue();
+                    targetRefClone.setObject(null); // This is also just in case. We want to do the resolution in full.
+
+                    // We do not worry about performance here too much. The value will be read only once because of the caching.
                     target = objectResolver.resolve(
-                            targetRef.asReferenceValue(),
+                            targetRefClone,
                             "resolving " + type + " target",
                             task, result);
                 } catch (ObjectNotFoundException e) {
@@ -368,6 +385,7 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
                         .target(target)
                         .relation(relation)
                         .orderConstraints(determineOrderConstraints())
+                        .fullInformationAvailable(fullInformationAvailable)
                         .build();
 
                 if (prohibitPolicies) {
@@ -399,7 +417,7 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
                 securityEnforcer.failAuthorization("with " + type, authorizationPhase, autzParams, result);
             }
 
-            private void authorizeNoTargetAssignmentValue() throws SecurityViolationException {
+            private void authorizeNoTargetOidAssignmentValue() throws SecurityViolationException {
                 // This may still be allowed by #add and #modify authorizations.
                 // We have already checked these, but there may be combinations of
                 // assignments, one of the assignments allowed by #assign, other allowed by #modify (e.g. MID-4517).
@@ -418,7 +436,7 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
                     securityEnforcer.failAuthorization(
                             operationDesc,
                             authorizationPhase,
-                            AuthorizationParameters.Builder.buildObject(objectCurrentOrNew),
+                            AuthorizationParameters.Builder.buildObject(objectCurrentOrNew, fullInformationAvailable),
                             result);
                     throw new NotHereAssertionError();
                 }
