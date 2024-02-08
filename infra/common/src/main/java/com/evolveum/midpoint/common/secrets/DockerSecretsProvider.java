@@ -9,8 +9,8 @@ package com.evolveum.midpoint.common.secrets;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -52,20 +52,12 @@ public class DockerSecretsProvider extends SecretsProviderImpl<DockerSecretsProv
         ST value = null;
         if (valueFile.exists() && valueFile.isFile() && valueFile.canRead()) {
             try (InputStream is = new FileInputStream(valueFile)) {
-                if (type == String.class) {
-                    value = (ST) IOUtils.toString(is, charset);
-                } else if (type == ByteBuffer.class) {
-                    value = (ST) ByteBuffer.wrap(IOUtils.toByteArray(is));
-                } else {
-                    throw new IllegalStateException("Unknown type " + type);
-                }
-            } catch (Exception ex) {
-                throw new IllegalStateException("Couldn't read secret from " + valueFile.getAbsolutePath(), ex);
-            }
-        }
+                String content = IOUtils.toString(is, charset);
 
-        if (value == null) {
-            throw new EncryptionException("Secret " + key + " not found in provider " + getIdentifier());
+                value = mapValue(content, type);
+            } catch (IOException ex) {
+                throw new EncryptionException("Couldn't read secret from " + valueFile.getAbsolutePath(), ex);
+            }
         }
 
         return value;

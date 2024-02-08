@@ -57,9 +57,6 @@ public class PropertiesSecretsProvider extends SecretsProviderImpl<PropertiesSec
             props.load(reader);
 
             String value = props.getProperty(key);
-            if (value == null) {
-                throw new EncryptionException("No value for key '" + key + "' available in provider '" + getIdentifier() + "'");
-            }
 
             return mapValue(value, type);
         } catch (IOException ex) {

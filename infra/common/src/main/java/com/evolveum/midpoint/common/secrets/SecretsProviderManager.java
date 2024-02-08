@@ -78,6 +78,7 @@ public class SecretsProviderManager {
             provider.initialize();
 
             LOGGER.trace("Adding secrets provider: {} to resolver", identifier);
+
             consumer.addSecretsProvider(provider);
             existingProviders.remove(provider.getIdentifier());
         }
