@@ -1,0 +1,9 @@
+:page-visibility: hidden
+.Delete a User type object
+[source,bash]
+----
+# Authenticating with the credentials "administrator" and password "5ecr3t" on a localhost instance running on port 8080
+curl --user administrator:5ecr3t -X DELETE http://localhost:8080/midpoint/ws/rest/users/e4b0c81e-7fc7-462d-a92c-b3e0b10b8b49 -v
+----
+
+The response is an HTTP 204 code in case of success *without* a response body.

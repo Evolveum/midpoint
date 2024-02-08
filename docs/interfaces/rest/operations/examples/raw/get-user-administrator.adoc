@@ -1,3 +1,4 @@
+:page-visibility: hidden
 [source,bash]
 ----
 # Authenticating with the credentials "administrator" and password "5ecr3t" on a localhost instance running on port 8080
