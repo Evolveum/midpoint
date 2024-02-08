@@ -1,5 +1,5 @@
-= Node Type Web Resource
-:page-nav-title: Node Resource
+= Node Type REST Endpoint
+:page-nav-title: Node
 :page-display-order: 2300
 :page-toc: top
 

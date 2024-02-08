@@ -1,5 +1,5 @@
-= Resource Type Web Resource
-:page-nav-title: Resource Type Resource
+= Resource Type
+:page-nav-title: Resource
 :page-display-order: 700
 :page-toc: top
 

@@ -1,5 +1,5 @@
-= Value Policy Type Web Resource
-:page-nav-title: Value Policy Resource
+= Value Policy Type REST Endpoint
+:page-nav-title: Value Policy
 :page-display-order: 3200
 :page-toc: top
 == Description

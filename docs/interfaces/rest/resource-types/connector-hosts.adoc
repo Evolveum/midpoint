@@ -1,5 +1,5 @@
-= Connector Host Type Web Resource
-:page-nav-title: Connector Host Resource
+= Connector Host Type REST Endpoint
+:page-nav-title: Connector Host
 :page-display-order: 1400
 :page-toc: top
 

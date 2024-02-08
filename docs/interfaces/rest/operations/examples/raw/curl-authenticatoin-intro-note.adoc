@@ -1,3 +1,4 @@
+:page-visibility: hidden
 For the purpose of the sample we are using the CURL tool as it is a well maintained, well
 tested, and it's widely accessible.
 
