@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.security.enforcer.api;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.selector.spec.SelectorClause;
 import com.evolveum.midpoint.util.ShortDumpable;
 
 /**
@@ -29,4 +30,7 @@ public interface AbstractAuthorizationParameters extends ShortDumpable {
     default boolean hasValue() {
         return getValue() != null;
     }
+
+    /** Is the value fully known? See {@link SelectorClause#requiresFullInformation()}. */
+    boolean isFullInformationAvailable();
 }

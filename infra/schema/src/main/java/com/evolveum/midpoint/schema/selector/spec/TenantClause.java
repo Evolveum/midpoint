@@ -38,6 +38,11 @@ public class TenantClause extends SelectorClause {
     }
 
     @Override
+    public boolean requiresFullInformation() {
+        return true;
+    }
+
+    @Override
     public @NotNull String getName() {
         return "tenant";
     }

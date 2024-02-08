@@ -605,7 +605,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             b.securityEnforcer.authorize(
                     ModelAuthorizationAction.MODIFY.getUrl(),
                     AuthorizationPhaseType.EXECUTION,
-                    AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta),
+                    AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta, true),
                     enforcerOptionsWithLensOwnerResolver(result),
                     task,
                     result);
