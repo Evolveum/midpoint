@@ -712,7 +712,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         this.doReconciliationForAllProjections = doReconciliationForAllProjections;
     }
 
-    boolean isExecutionPhaseOnly() {
+    public boolean isExecutionPhaseOnly() {
         return executionPhaseOnly;
     }
 
