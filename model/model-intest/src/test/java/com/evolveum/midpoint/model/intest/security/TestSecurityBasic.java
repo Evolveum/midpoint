@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.test.TestObject;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -3309,6 +3310,8 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_ANY_ROLES.oid);
+        dummyAuditService.setEnabled(true);
+        dummyAuditService.clear();
 
         when();
         login(USER_JACK_USERNAME);
@@ -3326,8 +3329,10 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
             displayExpectedException(e);
         }
         assertThat(unauthorizedScriptRun).withFailMessage("Unauthorized script was run").isFalse();
+        assertAssignOperationFailureAudited();
 
         and("targetRef expression is not evaluated during 'object add' operation");
+        dummyAuditService.clear();
         try {
             UserType newUser = new UserType()
                     .name("new")
@@ -3340,6 +3345,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
             displayExpectedException(e);
         }
         assertThat(unauthorizedScriptRun).withFailMessage("Unauthorized script was run").isFalse();
+        assertAssignOperationFailureAudited();
     }
 
     private AssignmentType createAssignmentWithExpression() throws SchemaException {
@@ -3366,6 +3372,92 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
                 .targetRef(new ObjectReferenceType()
                         .type(RoleType.COMPLEX_TYPE)
                         .filter(searchFilter));
+    }
+
+    private void assertAssignOperationFailureAudited() {
+        displayDumpable("audit", dummyAuditService);
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+        assertThat(dummyAuditService.getExecutionRecord(0).getMessage())
+                .contains("User ''jack'' not authorized for operation ASSIGN");
+    }
+
+    /** Checks that the clockwork is not started if there's no relevant authorization. */
+    @Test
+    public void test430UnauthorizedClockworkStart() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READONLY.oid);
+        dummyAuditService.setEnabled(true);
+        dummyAuditService.clear();
+
+        when();
+        login(USER_JACK_USERNAME);
+
+        then("clockwork will not be started");
+        try {
+            executeChanges(
+                    deltaFor(UserType.class) // empty delta
+                            .asObjectDelta(USER_JACK_OID),
+                    null, task, result);
+            fail("Unexpected success");
+        } catch (SecurityViolationException e) {
+            displayExpectedException(e);
+        }
+
+        displayDumpable("audit", dummyAuditService);
+    }
+
+    /** Checks the authorization is enforced on selected model-level operations. */
+    @Test
+    public void test440UnauthorizedModelOperations() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        String accountOid = getSingleLinkOid(user);
+
+        when();
+        login(USER_JACK_USERNAME);
+
+        then("notifyChange cannot be called");
+        try {
+            modelService.notifyChange(
+                    new ResourceObjectShadowChangeDescriptionType(),
+                    task, result);
+            fail("Unexpected success");
+        } catch (AuthorizationException e) {
+            displayExpectedException(e);
+        }
+
+        and("testResource cannot be called");
+        try {
+            modelService.testResource(RESOURCE_DUMMY_OID, task, result);
+            fail("Unexpected success");
+        } catch (AuthorizationException e) {
+            displayExpectedException(e);
+        }
+
+        and("importFromResource (the whole) cannot be called");
+        try {
+            modelService.importFromResource(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS, task, result);
+            fail("Unexpected success");
+        } catch (AuthorizationException e) {
+            displayExpectedException(e);
+        }
+
+        and("importFromResource (for single shadow) cannot be called");
+        try {
+            modelService.importFromResource(accountOid, task, result);
+            fail("Unexpected success");
+        } catch (AuthorizationException e) {
+            displayExpectedException(e);
+        }
     }
 
     @SuppressWarnings("SameParameterValue")
