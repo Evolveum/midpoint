@@ -12,36 +12,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.evolveum.midpoint.prism.crypto.SecretsResolver;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.ProtectedData;
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
+import com.evolveum.midpoint.prism.crypto.SecretsResolver;
 import com.evolveum.midpoint.prism.impl.crypto.KeyStoreBasedProtectorImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ExternalDataType;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO better name (also for factory)
  */
 public class ConfigurableProtector extends KeyStoreBasedProtectorImpl implements SecretsResolver {
 
-    private final Map<String, SecretsProvider> providers = new ConcurrentHashMap<>();
+    private final Map<String, SecretsProvider<?>> providers = new ConcurrentHashMap<>();
 
     @Override
-    public void addSecretsProvider(@NotNull SecretsProvider provider) {
+    public void addSecretsProvider(@NotNull SecretsProvider<?> provider) {
         providers.put(provider.getIdentifier(), provider);
     }
 
     @Override
-    public void removeSecretsProvider(@NotNull SecretsProvider provider) {
+    public void removeSecretsProvider(@NotNull SecretsProvider<?> provider) {
         providers.remove(provider.getIdentifier());
     }
 
     @NotNull
     @Override
-    public List<SecretsProvider> getSecretsProviders() {
+    public List<SecretsProvider<?>> getSecretsProviders() {
         return List.copyOf(providers.values());
     }
 
@@ -89,7 +89,7 @@ public class ConfigurableProtector extends KeyStoreBasedProtectorImpl implements
             throw new EncryptionException("No key specified for provider " + provider);
         }
 
-        SecretsProvider secretsProvider = providers.get(provider);
+        SecretsProvider<?> secretsProvider = providers.get(provider);
         if (secretsProvider == null) {
             throw new EncryptionException("No secrets provider with identifier " + provider + " found");
         }

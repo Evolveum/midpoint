@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecretsProviderType;
 
-public abstract class SecretsProviderImpl<T extends SecretsProviderType> implements SecretsProvider {
+public abstract class SecretsProviderImpl<T extends SecretsProviderType> implements SecretsProvider<T> {
 
     private static final String[] EMPTY_DEPENDENCIES = new String[0];
 

@@ -7,15 +7,14 @@
 
 package com.evolveum.midpoint.common.secrets;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
 import com.evolveum.midpoint.prism.crypto.SecretsResolver;
+import com.evolveum.midpoint.util.DependencyGraph;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -32,7 +31,7 @@ public class SecretsProviderManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(SecretsProviderManager.class);
 
-    private static final Map<Class<? extends SecretsProviderType>, Class<? extends SecretsProvider>> PROVIDER_TYPES =
+    private static final Map<Class<? extends SecretsProviderType>, Class<? extends SecretsProvider<? extends SecretsProviderType>>> PROVIDER_TYPES =
             Map.ofEntries(
                     Map.entry(DockerSecretsProviderType.class, DockerSecretsProvider.class),
                     Map.entry(PropertiesSecretsProviderType.class, PropertiesSecretsProvider.class),
@@ -44,8 +43,10 @@ public class SecretsProviderManager {
             configuration = new SecretsProvidersType();
         }
 
-        Map<String, SecretsProvider> existingProviders = consumer.getSecretsProviders().stream()
+        Map<String, SecretsProvider<?>> existingProviders = consumer.getSecretsProviders().stream()
                 .collect(Collectors.toMap(SecretsProvider::getIdentifier, p -> p));
+
+        LOGGER.debug("Existing providers: {}", existingProviders.keySet());
 
         List<SecretsProviderType> configurations = new ArrayList<>();
         configurations.add(configuration.getEnvironmentVariablesSecretsProvider());
@@ -54,21 +55,34 @@ public class SecretsProviderManager {
         configurations.addAll(configuration.getPropertiesSecretsProvider());
         configurations.addAll(configuration.getCustomSecretsProvider());
 
-        List<SecretsProvider> newProviders = configurations.stream()
+        Map<String, SecretsProvider<?>> newProviders = configurations.stream()
                 .map(c -> createProvider(c))
                 .filter(p -> p != null)
-                .toList();
+                .collect(Collectors.toMap(SecretsProvider::getIdentifier, p -> p));
 
-        // todo sort based on dependencies
+        LOGGER.debug("Preparing new providers: {}", newProviders.keySet());
 
-        for (SecretsProvider provider : newProviders) {
+        Map<String, Collection<String>> dependencies = newProviders.values().stream()
+                .collect(Collectors.toMap(
+                        p -> p.getIdentifier(),
+                        p -> Arrays.asList(p.getDependencies())));
+
+        List<String> sorted = DependencyGraph.ofMap(dependencies).getSortedItems();
+
+        LOGGER.debug("Sorted providers by dependencies: {}", sorted);
+
+        for (String identifier : sorted) {
+            LOGGER.trace("Initializing secrets provider: {}", identifier);
+
+            SecretsProvider<?> provider = newProviders.get(identifier);
             provider.initialize();
 
+            LOGGER.trace("Adding secrets provider: {} to resolver", identifier);
             consumer.addSecretsProvider(provider);
             existingProviders.remove(provider.getIdentifier());
         }
 
-        // we'll just clear existing providers
+        LOGGER.debug("Removing remaining old providers: {}", existingProviders.keySet());
         existingProviders.values().forEach(p -> destroyProvider(consumer, p));
     }
 
@@ -91,10 +105,12 @@ public class SecretsProviderManager {
                         }));
     }
 
-    private void destroyProvider(SecretsResolver consumer, SecretsProvider provider) {
+    private void destroyProvider(SecretsResolver consumer, SecretsProvider<?> provider) {
         try {
+            LOGGER.trace("Removing secrets provider: {} from resolver", provider.getIdentifier());
             consumer.removeSecretsProvider(provider);
 
+            LOGGER.trace("Destroying secrets provider: {}", provider.getIdentifier());
             provider.destroy();
         } catch (Exception ex) {
             throw new SystemException("Couldn't destroy secrets provider: " + provider.getIdentifier(), ex);
@@ -102,12 +118,12 @@ public class SecretsProviderManager {
     }
 
     @SuppressWarnings("unchecked")
-    private <C extends SecretsProviderType> SecretsProvider createProvider(C configuration) {
+    private <C extends SecretsProviderType> SecretsProvider<?> createProvider(C configuration) {
         if (configuration == null) {
             return null;
         }
 
-        Class<? extends SecretsProvider> providerClass;
+        Class<? extends SecretsProvider<?>> providerClass;
         if (configuration instanceof CustomSecretsProviderType custom) {
             String className = custom.getClassName();
             if (className == null) {
@@ -115,7 +131,7 @@ public class SecretsProviderManager {
             }
 
             try {
-                providerClass = (Class<? extends SecretsProvider>) Class.forName(className);
+                providerClass = (Class<? extends SecretsProvider<?>>) Class.forName(className);
             } catch (Exception ex) {
                 throw new SystemException("Couldn't find custom secrets provider class: " + className, ex);
             }
@@ -129,11 +145,9 @@ public class SecretsProviderManager {
         }
 
         try {
-            SecretsProvider provider = providerClass
+            return providerClass
                     .getConstructor(configuration.getClass())
                     .newInstance(configuration);
-
-            return provider;
         } catch (Exception ex) {
             throw new SystemException(
                     "Couldn't create secrets provider instance for configuration of type: " + configuration.getClass(), ex);
