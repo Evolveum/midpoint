@@ -29,10 +29,8 @@ curl --user administrator:5ecr3t -H "Accept: application/json" -X GET http://loc
 ----
 
 .Get Object in JSON format with the Raw option set to true
-[source,bash]
-----
+
 include::../examples/raw/get-user-administrator.adoc[]
-----
 
 == See Also
 
