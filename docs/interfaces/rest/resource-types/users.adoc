@@ -1,5 +1,5 @@
-= User Type REST Objects
-:page-nav-title: User Type REST Objects
+= User Type REST Endpoint
+:page-nav-title: User Type
 :page-display-order: 200
 :page-toc: top
 

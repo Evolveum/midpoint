@@ -1,5 +1,5 @@
-= Connector Type Web Resource
-:page-nav-title: Connector Resource
+= Connector Type REST Endpoint
+:page-nav-title: Connector
 :page-display-order: 1500
 :page-toc: top
 

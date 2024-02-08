@@ -1,5 +1,5 @@
-= Form Type Web Resource
-:page-nav-title: Form Resource
+= Form Type REST Endpoint
+:page-nav-title: Form
 :page-display-order: 1700
 :page-toc: top
 
