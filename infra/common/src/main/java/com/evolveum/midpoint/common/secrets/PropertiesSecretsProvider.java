@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertiesSecretsProviderType;
 
-public class PropertiesSecretsProvider extends CachedSecretsProvider<PropertiesSecretsProviderType> {
+public class PropertiesSecretsProvider extends SecretsProviderImpl<PropertiesSecretsProviderType> {
 
     private Charset charset;
     private File properties;
@@ -31,8 +31,8 @@ public class PropertiesSecretsProvider extends CachedSecretsProvider<PropertiesS
     }
 
     @Override
-    public void init() {
-        super.init();
+    public void initialize() {
+        super.initialize();
 
         PropertiesSecretsProviderType config = getConfiguration();
         charset = config.getCharset() != null ? Charset.forName(config.getCharset()) : StandardCharsets.UTF_8;

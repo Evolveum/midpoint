@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentVariablesSecretsProviderType;
 
-public class EnvironmentVariablesSecretsProvider extends CachedSecretsProvider<EnvironmentVariablesSecretsProviderType> {
+public class EnvironmentVariablesSecretsProvider extends SecretsProviderImpl<EnvironmentVariablesSecretsProviderType> {
 
     public EnvironmentVariablesSecretsProvider(EnvironmentVariablesSecretsProviderType configuration) {
         super(configuration);

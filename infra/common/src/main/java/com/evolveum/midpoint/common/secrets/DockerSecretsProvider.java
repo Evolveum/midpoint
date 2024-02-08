@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DockerSecretsProviderType;
 
-public class DockerSecretsProvider extends CachedSecretsProvider<DockerSecretsProviderType> {
+public class DockerSecretsProvider extends SecretsProviderImpl<DockerSecretsProviderType> {
 
     private Charset charset;
 
@@ -30,8 +30,8 @@ public class DockerSecretsProvider extends CachedSecretsProvider<DockerSecretsPr
     }
 
     @Override
-    public void init() {
-        super.init();
+    public void initialize() {
+        super.initialize();
 
         DockerSecretsProviderType config = getConfiguration();
         charset = config.getCharset() != null ? Charset.forName(config.getCharset()) : StandardCharsets.UTF_8;

@@ -3512,13 +3512,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="order" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Order used during initialization of secret providers.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="cache" type="xsd:duration" default="PT0S" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3537,11 +3530,15 @@
     <xsd:complexType name="CustomSecretsProviderType">
         <xsd:annotation>
             <xsd:documentation>
-                Environment variables secrets provider.
+                Custom secrets provider implementation, that is not known at the compile time. E.g. not bundled with midPoint.
+
+                EXPERIMENTAL:
+                This provider implementation is experimental. It may be changed or removed in the future versions.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -3572,11 +3569,15 @@
     <xsd:complexType name="CustomSecretsProviderConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                Configuration of the custom secrets provider.
+                Configuration of the custom secrets provider, that is not known at the compile time.
+
+                EXPERIMENTAL:
+                Implementation is experimental. It may be changed or removed in the future versions.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

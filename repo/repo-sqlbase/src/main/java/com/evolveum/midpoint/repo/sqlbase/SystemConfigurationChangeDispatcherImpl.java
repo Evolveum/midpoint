@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.evolveum.midpoint.prism.crypto.SecretsProviderConsumer;
+import com.evolveum.midpoint.prism.crypto.SecretsResolver;
 import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
 
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -255,7 +255,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 
     private void applySecretsProviderConfiguration(SystemConfigurationType configuration) {
         try {
-            if (!(protector instanceof SecretsProviderConsumer consumer)) {
+            if (!(protector instanceof SecretsResolver consumer)) {
                 LOGGER.warn("Protector is not a secrets provider consumer, cannot apply secrets provider configuration");
                 return;
             }

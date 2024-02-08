@@ -13,14 +13,18 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecretsProviderType;
-
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecretsProviderType;
 
-public abstract class CachedSecretsProvider<T extends SecretsProviderType> implements SecretsProvider {
+public abstract class SecretsProviderImpl<T extends SecretsProviderType> implements SecretsProvider {
+
+    private static final String[] EMPTY_DEPENDENCIES = new String[0];
+
+    private static final long DEFAULT_TTL = 0;
 
     private final T configuration;
 
@@ -28,19 +32,20 @@ public abstract class CachedSecretsProvider<T extends SecretsProviderType> imple
 
     private long ttl;
 
-    public CachedSecretsProvider(@NotNull T configuration) {
+    public SecretsProviderImpl(@NotNull T configuration) {
         this.configuration = configuration;
     }
 
+    @Override
     public @NotNull T getConfiguration() {
         return configuration;
     }
 
     @Override
-    public void init() {
+    public void initialize() {
         Duration duration = configuration.getCache();
 
-        ttl = duration != null ? duration.getTimeInMillis(new Date()) : 0;
+        ttl = duration != null ? duration.getTimeInMillis(new Date()) : DEFAULT_TTL;
     }
 
     @Override
@@ -51,6 +56,11 @@ public abstract class CachedSecretsProvider<T extends SecretsProviderType> imple
     @Override
     public @NotNull String getIdentifier() {
         return configuration.getIdentifier();
+    }
+
+    @Override
+    public @NotNull String[] getDependencies() {
+        return EMPTY_DEPENDENCIES;
     }
 
     @Override
@@ -70,7 +80,7 @@ public abstract class CachedSecretsProvider<T extends SecretsProviderType> imple
 
         CacheValue<?> value = cache.get(key);
         if (value != null) {
-            if (System.currentTimeMillis() <= ttl) {
+            if (Clock.get().currentTimeMillis() <= ttl) {
                 if (value.value == null) {
                     return null;
                 }

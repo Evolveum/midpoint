@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.common.secrets;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -16,9 +15,12 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
-import com.evolveum.midpoint.prism.crypto.SecretsProviderConsumer;
+import com.evolveum.midpoint.prism.crypto.SecretsResolver;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Manages secrets providers instances.
@@ -28,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Component
 public class SecretsProviderManager {
 
+    private static final Trace LOGGER = TraceManager.getTrace(SecretsProviderManager.class);
+
     private static final Map<Class<? extends SecretsProviderType>, Class<? extends SecretsProvider>> PROVIDER_TYPES =
             Map.ofEntries(
                     Map.entry(DockerSecretsProviderType.class, DockerSecretsProvider.class),
@@ -35,10 +39,13 @@ public class SecretsProviderManager {
                     Map.entry(EnvironmentVariablesSecretsProviderType.class, EnvironmentVariablesSecretsProvider.class)
             );
 
-    public synchronized void configure(SecretsProviderConsumer consumer, SecretsProvidersType configuration) {
+    public synchronized void configure(SecretsResolver consumer, SecretsProvidersType configuration) {
         if (configuration == null) {
             configuration = new SecretsProvidersType();
         }
+
+        Map<String, SecretsProvider> existingProviders = consumer.getSecretsProviders().stream()
+                .collect(Collectors.toMap(SecretsProvider::getIdentifier, p -> p));
 
         List<SecretsProviderType> configurations = new ArrayList<>();
         configurations.add(configuration.getEnvironmentVariablesSecretsProvider());
@@ -47,29 +54,44 @@ public class SecretsProviderManager {
         configurations.addAll(configuration.getPropertiesSecretsProvider());
         configurations.addAll(configuration.getCustomSecretsProvider());
 
-        configurations = configurations.stream()
-                .filter(c -> c != null)
-                .sorted(Comparator.nullsLast(Comparator.comparing(SecretsProviderType::getOrder)))
+        List<SecretsProvider> newProviders = configurations.stream()
+                .map(c -> createProvider(c))
+                .filter(p -> p != null)
                 .toList();
 
-        Map<String, SecretsProvider> existingProviders = consumer.getSecretsProviders().stream()
-                .collect(Collectors.toMap(SecretsProvider::getIdentifier, p -> p));
+        // todo sort based on dependencies
 
-        for (SecretsProviderType config : configurations) {
-            SecretsProvider newProvider = createProvider(config);
-            if (newProvider == null) {
-                continue;
-            }
+        for (SecretsProvider provider : newProviders) {
+            provider.initialize();
 
-            consumer.addSecretsProvider(newProvider);
-            existingProviders.remove(newProvider.getIdentifier());
+            consumer.addSecretsProvider(provider);
+            existingProviders.remove(provider.getIdentifier());
         }
 
         // we'll just clear existing providers
         existingProviders.values().forEach(p -> destroyProvider(consumer, p));
     }
 
-    private void destroyProvider(SecretsProviderConsumer consumer, SecretsProvider provider) {
+    public Map<String, DisplayType> getSecretsProviderDescriptions(SecretsResolver consumer) {
+        return consumer.getSecretsProviders().stream()
+                .collect(Collectors.toMap(
+                        SecretsProvider::getIdentifier,
+                        p -> {
+                            DisplayType display = null;
+                            if (p.getConfiguration() instanceof SecretsProviderType spConfig) {
+                                display = spConfig.getDisplay();
+                            }
+
+                            if (display == null) {
+                                display = new DisplayType();
+                                display.setLabel(new PolyStringType(p.getIdentifier()));
+                            }
+
+                            return display;
+                        }));
+    }
+
+    private void destroyProvider(SecretsResolver consumer, SecretsProvider provider) {
         try {
             consumer.removeSecretsProvider(provider);
 
@@ -110,7 +132,6 @@ public class SecretsProviderManager {
             SecretsProvider provider = providerClass
                     .getConstructor(configuration.getClass())
                     .newInstance(configuration);
-            provider.init();
 
             return provider;
         } catch (Exception ex) {
