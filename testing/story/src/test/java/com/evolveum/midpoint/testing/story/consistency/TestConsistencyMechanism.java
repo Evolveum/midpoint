@@ -2798,7 +2798,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     /** Prepares OpenDJ resource for tests that we want to run standalone. (Contains the required core of test001.) */
     @SuppressWarnings("unused") // enabled on demand
     private void prepareOpenDjResource(Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
+            SecurityViolationException, CommunicationException {
         assertSuccess(
                 modelService.testResource(RESOURCE_OPENDJ_OID, task, result));
         fetchResourceObject(result);

@@ -57,6 +57,8 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     EXECUTE_SCRIPT("executeScript", "Execute script", "EXECUTE_SCRIPT_HELP"),
     CHANGE_CREDENTIALS("changeCredentials", "Change credentials", "CHANGE_CREDENTIALS_HELP"),
 
+    NOTIFY_CHANGE("notifyChange", "Notify change", "NOTIFY_CHANGE_HELP"),
+
     SUSPEND_TASK("suspendTask", "Suspend task", "SUSPEND_TASK_HELP"),
     RESUME_TASK("resumeTask", "Resume task", "RESUME_TASK_HELP"),
     RUN_TASK_IMMEDIATELY("runTaskImmediately", "Run task immediately", "RUN_TASK_IMMEDIATELY_HELP"),
