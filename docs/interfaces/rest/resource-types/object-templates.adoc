@@ -1,5 +1,5 @@
-= Object Template Type Web Resource
-:page-nav-title: Object Template Resource
+= Object Template Type REST Endpoint
+:page-nav-title: Object Template
 :page-display-order: 2500
 :page-toc: top
 

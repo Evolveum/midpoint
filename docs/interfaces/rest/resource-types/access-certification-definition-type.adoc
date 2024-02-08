@@ -1,5 +1,5 @@
-= Access Certification Definition Type Web Resource
-:page-nav-title: Access Certification Definition Resource
+= Access Certification Definition Type REST Endpoint
+:page-nav-title: Access Certification Definition
 :page-display-order: 1000
 :page-toc: top
 

@@ -1,5 +1,5 @@
-= Archetype Type Web Resource
-:page-nav-title: Archetype Resource
+= Archetype Type REST Endpoint
+:page-nav-title: Archetype
 :page-display-order: 1200
 :page-toc: top
 
