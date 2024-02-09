@@ -24,6 +24,7 @@ import com.evolveum.midpoint.task.api.SimulationTransaction;
 
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,8 +59,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * @author semancik
+ * The "clockwork" that drives the change processing. The main entry is {@link #run(LensContext, Task, OperationResult)} method.
  *
+ * As a special responsibility, this class ensures the conflict resolution with the help of {@link ClockworkConflictResolver}.
+ *
+ * @author semancik
  */
 @Component
 public class Clockwork {
@@ -402,6 +406,7 @@ public class Clockwork {
         //DefaultSearchExpressionEvaluatorCache.exitCache();
     }
 
+    @VisibleForTesting
     public <F extends ObjectType> @NotNull HookOperationMode click(
             @NotNull LensContext<F> context,
             @NotNull Task task, @NotNull OperationResult result)

@@ -214,6 +214,7 @@ public interface SecurityEnforcer {
      */
     <O extends ObjectType> @NotNull ObjectSecurityConstraints compileSecurityConstraints(
             @NotNull PrismObject<O> object,
+            boolean fullInformationAvailable,
             @NotNull Options options,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -223,7 +224,7 @@ public interface SecurityEnforcer {
     /**
      * Compiles the security constraints related to given `actionUrls` and `phase` for a given principal against the `object`.
      *
-     * So, unlike {@link #compileSecurityConstraints(PrismObject, Options, Task, OperationResult)}, it is focused
+     * So, unlike {@link #compileSecurityConstraints(PrismObject, boolean, Options, Task, OperationResult)}, it is focused
      * on a given operation, usually `#get`, `#search`, or `#read`.
      *
      * Note that the `value` is currently always {@link PrismObjectValue}. In the future we may lift this restriction,

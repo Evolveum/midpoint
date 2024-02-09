@@ -40,6 +40,11 @@ public class DelegatorClause extends SelectorClause {
     }
 
     @Override
+    public boolean requiresFullInformation() {
+        return true;
+    }
+
+    @Override
     public @NotNull String getName() {
         return "delegator";
     }

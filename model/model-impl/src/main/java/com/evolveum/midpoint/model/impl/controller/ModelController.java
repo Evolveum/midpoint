@@ -269,7 +269,10 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             // 3) for MODIFY operation: filters contained in deltas -> these have to be treated here, because if OID is missing from such a delta, the change would be rejected by the repository
             if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
                 for (ObjectDelta<? extends ObjectType> delta : deltas) {
-                    ModelImplUtils.resolveReferences(delta, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, true, result);
+                    ModelImplUtils.resolveReferences(
+                            delta, cacheRepositoryService,
+                            false, true, EvaluationTimeType.IMPORT,
+                            true, result);
                 }
             } else if (ModelExecuteOptions.isIsImport(options)) {
                 // if plain import is requested, we simply evaluate filters in ADD operation (and we do not force reevaluation if OID is already set)
@@ -426,6 +429,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         PartialProcessingOptionsType partialProcessing = ModelExecuteOptions.getPartialProcessing(options);
         if (partialProcessing != null) {
             PrismObject<? extends ObjectType> object = context.getFocusContext().getObjectAny();
+            // FIXME the information about the object may be incomplete (orgs, tenants, roles) but we treat it as complete here.
+            //  See also MID-9454.
+            // TODO audit the request failure if this check fails
             securityEnforcer.authorize(
                     ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(),
                     null, AuthorizationParameters.Builder.buildObject(object), task, result);
@@ -469,12 +475,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             // Not using read-only for now
             //noinspection unchecked
             focus = objectResolver.getObject(type, oid, null, task, result).asPrismContainer();
-            LOGGER.debug("Recomputing {}", focus);
 
-            LensContext<F> lensContext = contextFactory.createRecomputeContext(focus, options, task, result);
-            LOGGER.trace("Recomputing {}, context:\n{}", focus, lensContext.debugDumpLazily());
-
-            clockwork.run(lensContext, task, result);
+            executeRecompute(focus, options, task, result);
 
         } catch (Throwable t) {
             ModelImplUtils.recordException(result, t);
@@ -486,6 +488,21 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
 
         LOGGER.trace("Recomputing of {}: {}", focus, result.getStatus());
+    }
+
+    /** Generally useful convenience method. */
+    public <F extends ObjectType> void executeRecompute(
+            @NotNull PrismObject<F> focus,
+            @Nullable ModelExecuteOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
+        LOGGER.debug("Recomputing {}", focus);
+        LensContext<F> lensContext = contextFactory.createRecomputeContext(focus, options, task, result);
+
+        LOGGER.trace("Recomputing {}, context:\n{}", focus, lensContext.debugDumpLazily());
+        clockwork.run(lensContext, task, result);
     }
 
     private void applyDefinitions(
@@ -1548,6 +1565,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         // TODO: add context to the result
 
         try {
+            // FIXME autz?
             importFromResourceLauncher.importSingleShadow(shadowOid, task, result);
         } catch (Throwable t) {
             ModelImplUtils.recordException(result, t);
@@ -2565,6 +2583,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             PrismObject<ShadowType> resourceObject = getResourceObject(changeDescription);
             ObjectDelta<ShadowType> objectDelta = getObjectDelta(changeDescription, result);
 
+            // FIXME autz
             ExternalResourceEvent event = new ExternalResourceEvent(objectDelta, resourceObject,
                     oldRepoShadow, changeDescription.getChannel());
 

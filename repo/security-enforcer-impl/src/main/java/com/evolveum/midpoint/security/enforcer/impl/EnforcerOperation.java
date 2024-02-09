@@ -150,4 +150,8 @@ class EnforcerOperation {
             return Set.of();
         }
     }
+
+    public boolean isFullInformationAvailable() {
+        return true;
+    }
 }

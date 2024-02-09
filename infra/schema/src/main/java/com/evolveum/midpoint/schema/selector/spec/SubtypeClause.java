@@ -46,10 +46,10 @@ public class SubtypeClause extends SelectorClause {
     public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx) {
         Object realValue = value.getRealValueIfExists();
         List<String> actualSubtypes;
-        if (realValue instanceof ObjectType) {
-            actualSubtypes = ((ObjectType) realValue).getSubtype();
-        } else if (realValue instanceof AssignmentType) {
-            actualSubtypes = ((AssignmentType) realValue).getSubtype();
+        if (realValue instanceof ObjectType object) {
+            actualSubtypes = object.getSubtype();
+        } else if (realValue instanceof AssignmentType assignment) {
+            actualSubtypes = assignment.getSubtype();
         } else {
             traceNotApplicable(
                     ctx, "subtype mismatch, expected '%s' but object has none (it is neither object nor assignment)",

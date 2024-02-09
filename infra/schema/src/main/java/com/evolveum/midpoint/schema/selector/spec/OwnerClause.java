@@ -63,8 +63,10 @@ public class OwnerClause extends SelectorClause {
             traceNotApplicable(ctx, "no owner");
             return false;
         }
+        // The availability of the full information about the parent is the same as for the current value (for shadows),
+        // or guaranteed for other kind of data. Let's keep it simple and assume the worst (i.e. the same as for current value).
         boolean matches =
-                selector.matches(owner.getValue(), ctx.next("o", "owner"));
+                selector.matches(owner.getValue(), ctx.next("o", "owner", null));
         traceApplicability(ctx, matches, "owner (%s) matches: %s", owner, matches);
         return matches;
     }
