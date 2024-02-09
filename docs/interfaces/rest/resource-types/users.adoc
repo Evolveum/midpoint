@@ -1,5 +1,5 @@
 = User Type REST Endpoint
-:page-nav-title: User Type
+:page-nav-title: User
 :page-display-order: 200
 :page-toc: top
 
