@@ -19,17 +19,14 @@ users/
 The User web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
 present in midPoint. This is apparent in the operations which are available for this type of object.
 
-[cols="a"]
-|===
-|.Create
 
-Object creation.
+=== Create User Object
 
 include::../operations/examples/raw/create-user-jack.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
 
-|.Get
+=== Get User Object
 
 Get operation for fetching a single specific object.
 
@@ -39,7 +36,7 @@ include::../operations/examples/raw/get-user-administrator.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
 
-|.Search
+=== Search for User Objects
 
 Search operation usable for fetching the full list of objects or a list based on filter.
 
@@ -49,37 +46,39 @@ include::../operations/examples/raw/search-all.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
 
-|.Modify
+=== Modify User Objects
 
-Object Modification.
 
 include::../operations/examples/raw/modify-attr-user.adoc[]
 
 include::../operations/examples/raw/modify-attr.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
-|.Delete
+
+=== Delete User Objects
 
 Object deletion.
 
 include::../operations/examples/raw/delete-user.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
-|.User specific
+
+=== User Object Specific Operations
 
 A set of operations specific for the User REST objects. i.e. password reset and others.
 
 include::../operations/examples/raw/user-pwd-reset.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/user-specific-op-rest/[User specific Operations]
-|.Generate and Validate
+
+=== Generate and Validate operations for User Objects
 
 Operations to generate or validate values, here we have an example of a simple password generate use-case.
 
 include::../operations/examples/raw/user-pwd-generate.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
-|===
+
 == Common Use-case Examples
 
 1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-user/[Create User]

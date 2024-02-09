@@ -3,7 +3,7 @@
 :page-display-order: 300
 :page-toc: top
 
-== Description
+== Role Type REST Endpoint
 
 Here we are describing the Role object type in relation to midPoints REST API. The
 Role objects are a part of the REST API web resources.
@@ -14,16 +14,58 @@ Role objects are a part of the REST API web resources.
 roles/
 ----
 
-== Applicable Operations
+== Operations And Examples
 
 The Role web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
 present in midPoint. This is apparent in the operations which are available for this type of object.
 
+
+=== Create Role Objects
+
+include::../operations/examples/raw/create-role-emloyee.adoc[]
+
 - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Role Objects
+
+Get operation for fetching a single specific object.
+
+.Get Default Administrator User with REST
+
+include::../operations/examples/raw/get-role-end-user.adoc[]
+
 - xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Role Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all-roles.adoc[]
+
+include::../operations/examples/raw/search-all.adoc[]
+
 - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Role Objects
+
+include::../operations/examples/raw/modify-attr-role-employee.adoc[]
+
+include::../operations/examples/raw/modify-attr.adoc[]
+
 - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Role Objects
+
+include::../operations/examples/raw/delete-role.adoc[]
+
 - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Role Objects
+
+Operations to generate or validate values, here we have an example of a simple password generate use-case.
+
+include::../operations/examples/raw/user-pwd-generate.adoc[]
+
 - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
 
 == JSON Example
