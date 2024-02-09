@@ -22,7 +22,7 @@ present in midPoint. This is apparent in the operations which are available for 
 
 === Create Role Objects
 
-include::../operations/examples/raw/create-role-emloyee.adoc[]
+include::../operations/examples/raw/create-role-employee.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
 
@@ -62,9 +62,11 @@ include::../operations/examples/raw/delete-role.adoc[]
 
 === Generate and Validate Operations for Role Objects
 
-Operations to generate or validate values, here we have an example of a simple password generate use-case.
+Operations to generate or validate values, here we have an example of a simple identifier generate use-case.
 
-include::../operations/examples/raw/user-pwd-generate.adoc[]
+include::../operations/examples/raw/role-id-generate.adoc[]
+
+include::../operations/examples/raw/modify-id-generate.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
 
