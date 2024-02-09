@@ -26,45 +26,27 @@ The response is an HTTP 200 code in case of success with a response body contain
       "oid" : "",
       "version" : "",
       "name" : "",
-      "metadata" : {
-        "requestTimestamp" : "",
-        "requestorRef" : {
-          "oid" : "",
-          "relation" : "",
-          "type" : ""
-        },
-        "createTimestamp" : "",
-        "creatorRef" : {
-          "oid" : "",
-          "relation" : "",
-          "type" : ""
-        },
-        "createChannel" : ""
-      },
+      "metadata" : {},
+      "operationExecution": {},
+      "indestructible": ,
       "iteration" : ,
-      "iterationToken" : ""
+      "iterationToken" : "",
+      "archetypeRef": {},
+      "roleMembershipRef": {},
+      "activation": {}
     }, {
       "@type" : "",
       "oid" : "",
       "version" : "",
       "name" : "",
-      "metadata" : {
-        "requestTimestamp" : "",
-        "requestorRef" : {
-          "oid" : "",
-          "relation" : "",
-          "type" : ""
-        },
-        "createTimestamp" : "",
-        "creatorRef" : {
-          "oid" : "",
-          "relation" : "",
-          "type" : ""
-        },
-        "createChannel" : ""
-      },
+      "metadata" : {},
+      "operationExecution": {},
+      "indestructible": ,
       "iteration" : ,
-      "iterationToken" : ""
+      "iterationToken" : "",
+      "archetypeRef": {},
+      "roleMembershipRef": {},
+      "activation": {}
     } ]
   }
 }
