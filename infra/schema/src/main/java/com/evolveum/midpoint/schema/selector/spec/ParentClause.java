@@ -78,7 +78,8 @@ public class ParentClause extends SelectorClause {
             }
             value = parent2;
         }
-        boolean matches = parentSelector.matches(value, ctx.next("p", "parent"));
+        // The availability of the full information about the parent is the same as for the current value.
+        boolean matches = parentSelector.matches(value, ctx.next("p", "parent", null));
         traceApplicability(ctx, matches, "parent specification matches: %s", matches);
         return matches;
     }

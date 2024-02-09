@@ -8,15 +8,14 @@
 package com.evolveum.midpoint.security.enforcer.impl;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.schema.traces.details.AbstractTraceEvent;
+
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcerUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -75,20 +74,7 @@ class EnforcerOperation {
     }
 
     Collection<Authorization> getAuthorizations() {
-        if (principal == null) {
-            // Anonymous access, possibly with elevated privileges
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null) {
-                return authentication.getAuthorities().stream()
-                        .filter(a -> a instanceof Authorization)
-                        .map(a -> (Authorization) a)
-                        .collect(Collectors.toList());
-            } else {
-                return List.of();
-            }
-        } else {
-            return principal.getAuthorities();
-        }
+        return SecurityEnforcerUtil.getAuthorizations(principal);
     }
 
     String getPrincipalOid() {
@@ -149,5 +135,9 @@ class EnforcerOperation {
         } else {
             return Set.of();
         }
+    }
+
+    public boolean isFullInformationAvailable() {
+        return true;
     }
 }

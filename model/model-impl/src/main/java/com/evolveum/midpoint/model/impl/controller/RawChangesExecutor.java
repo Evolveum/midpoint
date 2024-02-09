@@ -47,7 +47,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -202,8 +201,7 @@ class RawChangesExecutor {
         ObjectDeltaOperation<? extends ObjectType> odoToAudit = new ObjectDeltaOperation<>(delta, executionResult);
         if (objectToDetermineDetailsForAudit != null) {
             odoToAudit.setObjectName(toPolyString(objectToDetermineDetailsForAudit.getName()));
-            if (objectToDetermineDetailsForAudit instanceof ShadowType) {
-                ShadowType shadow = (ShadowType) objectToDetermineDetailsForAudit;
+            if (objectToDetermineDetailsForAudit instanceof ShadowType shadow) {
                 odoToAudit.setResourceOid(ShadowUtil.getResourceOid(shadow));
                 odoToAudit.setResourceName(getResourceName(shadow, parentResult));
                 odoToAudit.setShadowKind(ShadowUtil.getKind(shadow));
@@ -366,7 +364,7 @@ class RawChangesExecutor {
             if (!preAuthorized) {
                 //noinspection unchecked
                 AuthorizationParameters<T, ObjectType> autzParams =
-                        AuthorizationParameters.Builder.buildObjectDelta((PrismObject<T>) existingObject.asPrismObject(), delta);
+                        AuthorizationParameters.Builder.buildObjectDelta((PrismObject<T>) existingObject.asPrismObject(), delta, true);
                 securityEnforcer.authorize(
                         ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, autzParams, task, result);
                 securityEnforcer.authorize(
