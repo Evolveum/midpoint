@@ -10,10 +10,12 @@
 :page-upkeep-status: green
 :page-liquid:
 
-Following pages describe mechanism that deal with security, auditing, authentication, authorization and related topics.
+Following pages describe configuration of mechanism that deal with security, auditing, authentication, authorization and related topics.
 
 ++++
 {% children %}
 ++++
+
+For general security information such as xref:/midpoint/security/security-guide/[security guide] and xref:/midpoint/security/advisories/[security advisories] please see xref:/midpoint/security[] page.
 
 include::../_reference-disclaimer.adoc[]
