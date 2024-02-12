@@ -425,4 +425,4 @@ Of course, in the future we plan to support safe definition of roles by less tru
 
 * xref:/midpoint/reference/expressions/expressions/profiles/configuration/[Expression Profile Configuration]
 
-* xref:/midpoint/reference/security/security-guide/[Security Guide]
+* xref:/midpoint/security/security-guide/[Security Guide]

@@ -1,5 +1,5 @@
-= Generic Object Type Web Resource
-:page-nav-title: Generic Object Resource
+= Generic Object Type REST Endpoint
+:page-nav-title: Generic Object
 :page-display-order: 1900
 :page-toc: top
 

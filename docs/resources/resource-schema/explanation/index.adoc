@@ -16,7 +16,7 @@ This page explains how are these schemas used and how they work together to supp
 ====
 The examples provided on this page are considerably simplified.
 The goal is to demonstrate the concept.
-Complete and working examples can be found in the link:https://svn.evolveum.com/midpoint/trunk/samples/[samples section of source code respository].
+Complete and working examples can be found in the https://github.com/Evolveum/midpoint-samples[samples section of source code repository].
 ====
 
 

@@ -78,7 +78,8 @@ class SelectorEvaluation implements SubjectedEvaluationContext {
                 enforcerOp.ownerResolver,
                 this::resolveReference,
                 ClauseProcessingContextDescription.defaultOne(id, desc),
-                DelegatorSelection.NO_DELEGATOR);
+                DelegatorSelection.NO_DELEGATOR,
+                enforcerOp.isFullInformationAvailable());
 
         assert value != null;
         return selector.matches(value, ctx);

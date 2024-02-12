@@ -56,10 +56,11 @@ public class RequesterClause extends SelectorClause {
             traceNotApplicable(ctx, "no requestor");
             return false;
         }
+        // The requestor is always known "in full", as it is fetched from the repository via objectResolver.
         boolean matches =
                 selector.matches(
                         requestor.getValue(),
-                        ctx.next(DelegatorSelection.NO_DELEGATOR, "req", "requestor"));
+                        ctx.next(DelegatorSelection.NO_DELEGATOR, "req", "requestor", true));
         traceApplicability(ctx, matches, "requestor object (%s) matches: %s", requestor, matches);
         return matches;
     }

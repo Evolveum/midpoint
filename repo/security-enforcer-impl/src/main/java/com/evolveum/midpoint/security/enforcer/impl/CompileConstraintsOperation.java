@@ -129,4 +129,9 @@ class CompileConstraintsOperation<O extends ObjectType> extends EnforcerOperatio
                     new CompileValueOperationConstraintsFinished(this, value, constraints));
         }
     }
+
+    @Override
+    public boolean isFullInformationAvailable() {
+        return options.isFullInformationAvailable();
+    }
 }

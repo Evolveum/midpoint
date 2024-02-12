@@ -309,11 +309,11 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
     @Override
     public @NotNull <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(
-            @NotNull PrismObject<O> object, @NotNull Options options,
+            @NotNull PrismObject<O> object, boolean fullInformationAvailable, @NotNull Options options,
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        return securityEnforcer.compileSecurityConstraints(object, options, task, result);
+        return securityEnforcer.compileSecurityConstraints(object, fullInformationAvailable, options, task, result);
     }
 
     @Override

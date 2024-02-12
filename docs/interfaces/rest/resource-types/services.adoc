@@ -1,5 +1,5 @@
-= Service Type Web Resource
-:page-nav-title: Service Type Resource
+= Service Type
+:page-nav-title: Service
 :page-display-order: 500
 :page-toc: top
 

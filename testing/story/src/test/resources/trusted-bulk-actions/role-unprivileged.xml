@@ -11,6 +11,7 @@
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#recompute</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeScript</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#use</action>
     </authorization>
