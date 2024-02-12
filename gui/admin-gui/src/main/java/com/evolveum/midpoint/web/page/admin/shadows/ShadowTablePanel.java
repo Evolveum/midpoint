@@ -1024,4 +1024,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         return null;
     }
 
+    @Override
+    protected boolean isDuplicationSupported() {
+        return false;
+    }
 }

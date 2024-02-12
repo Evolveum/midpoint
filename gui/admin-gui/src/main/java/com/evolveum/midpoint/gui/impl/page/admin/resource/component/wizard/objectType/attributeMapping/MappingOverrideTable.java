@@ -60,12 +60,14 @@ public abstract class MappingOverrideTable extends AbstractResourceWizardTable<R
         super(id, valueModel, config, ResourceAttributeDefinitionType.class);
     }
 
-    protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
+    protected PrismContainerValueWrapper createNewValue(PrismContainerValue<ResourceAttributeDefinitionType> value, AjaxRequestTarget target) {
         try {
             PrismContainerWrapper<ResourceAttributeDefinitionType> mappingAttributeContainer =
                     getValueModel().getObject().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
-            PrismContainerValue<ResourceAttributeDefinitionType> newMapping
-                    = mappingAttributeContainer.getItem().createNewValue();
+            PrismContainerValue<ResourceAttributeDefinitionType> newMapping = value;
+            if (newMapping == null) {
+                newMapping = mappingAttributeContainer.getItem().createNewValue();
+            }
 
             ResourceAttributeMappingValueWrapper newAttributeMappingWrapper =
                     WebPrismUtil.createNewValueWrapper(mappingAttributeContainer, newMapping, getPageBase(), target);

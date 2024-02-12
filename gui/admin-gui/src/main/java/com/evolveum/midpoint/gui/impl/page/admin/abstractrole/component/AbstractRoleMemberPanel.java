@@ -302,6 +302,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             protected boolean isCreateNewObjectVisible() {
                 return isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE);
             }
+
+            @Override
+            protected boolean isDuplicationSupported() {
+                return false;
+            }
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);

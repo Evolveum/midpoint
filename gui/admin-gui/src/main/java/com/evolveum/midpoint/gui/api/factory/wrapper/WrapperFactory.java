@@ -27,7 +27,4 @@ public interface WrapperFactory {
 
     int getOrder();
 
-//    T createBuilder();
-//
-//    Class<T> getBuilderClass();
 }

@@ -18,13 +18,13 @@ import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.Counter;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -180,15 +180,17 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
     }
 
     @Override
-    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
-        PrismContainerValue<AppenderConfigurationType> container;
-        if (QNameUtil.match(newAppenderChoice.getModel().getObject(), FileAppenderConfigurationType.COMPLEX_TYPE)) {
-            container = new FileAppenderConfigurationType().asPrismContainerValue();
-        } else {
-            container = new SyslogAppenderConfigurationType().asPrismContainerValue();
+    protected void newItemPerformed(PrismContainerValue<AppenderConfigurationType> value, AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+        PrismContainerValue<AppenderConfigurationType> container = value;
+        if (container == null) {
+            if (QNameUtil.match(newAppenderChoice.getModel().getObject(), FileAppenderConfigurationType.COMPLEX_TYPE)) {
+                container = new FileAppenderConfigurationType().asPrismContainerValue();
+            } else {
+                container = new SyslogAppenderConfigurationType().asPrismContainerValue();
+            }
+            container.setParent(model.getObject().getItem());
+            container.setPrismContext(PrismContext.get());
         }
-        container.setParent(model.getObject().getItem());
-        container.setPrismContext(getPageBase().getPrismContext());
 
         PrismContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = createNewItemContainerValueWrapper(container, model.getObject(), target);
         itemDetailsPerformed(target, Collections.singletonList(newAppenderContainerWrapper));

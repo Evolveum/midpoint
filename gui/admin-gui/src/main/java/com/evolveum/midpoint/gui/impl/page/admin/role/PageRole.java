@@ -109,36 +109,21 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         return new RoleSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
-    protected DetailsFragment createDetailsFragment() {
-
-        Class<? extends AbstractWizardPanel> wizardClass = null;
-
-        if (canShowWizard(SystemObjectsType.ARCHETYPE_APPLICATION_ROLE)) {
-            wizardClass = ApplicationRoleWizardPanel.class;
-        }
-
-        if (canShowWizard(SystemObjectsType.ARCHETYPE_BUSINESS_ROLE)) {
-            wizardClass = BusinessRoleWizardPanel.class;
-        }
-
-        if (wizardClass != null) {
-            setShowedByWizard(true);
-            PrismObject<RoleType> obj = getObjectDetailsModels().getObjectWrapper().getObject();
-            try {
-                obj.findOrCreateProperty(ResourceType.F_LIFECYCLE_STATE).setRealValue(SchemaConstants.LIFECYCLE_DRAFT);
-            } catch (SchemaException ex) {
-                getFeedbackMessages().error(PageRole.this, ex.getUserFriendlyMessage());
-            }
-            return createRoleWizardFragment(wizardClass);
-        }
-
-        return super.createDetailsFragment();
-    }
-
     protected boolean canShowWizard(SystemObjectsType archetype) {
-        return !isHistoryPage() && !isEditObject() && WebComponentUtil.hasArchetypeAssignment(
+        return !isHistoryPage() && (!isEditObject()) && WebComponentUtil.hasArchetypeAssignment(
                 getObjectDetailsModels().getObjectType(),
                 archetype.value());
+    }
+
+    @Override
+    protected boolean canShowWizard() {
+        return !isHistoryPage() && !isEditObject()
+                && (WebComponentUtil.hasArchetypeAssignment(
+                getObjectDetailsModels().getObjectType(),
+                SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value())
+                || WebComponentUtil.hasArchetypeAssignment(
+                getObjectDetailsModels().getObjectType(),
+                SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value()));
     }
 
     @Override
@@ -167,30 +152,46 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         navigateToNext(detailsPageClass, parameters);
     }
 
-    private void navigateToClusterCandidateRolePanel() {
-        PageParameters parameters = new PageParameters();
-        String clusterOid = getObjectDetailsModels().getPatternDeltas().getCluster().getOid();
-        parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
-        parameters.add("panelId", "candidateRoles");
-        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                .getObjectDetailsPage(RoleAnalysisClusterType.class);
-        navigateToNext(detailsPageClass, parameters);
-    }
+    @Override
+    protected DetailsFragment createWizardFragment() {
 
-    private DetailsFragment createRoleWizardFragment(Class<? extends AbstractWizardPanel> clazz) {
+        Class<? extends AbstractWizardPanel> wizardClass = getWizardPanelClass();
+
+        PrismObject<RoleType> obj = getObjectDetailsModels().getObjectWrapper().getObject();
+        try {
+            obj.findOrCreateProperty(ResourceType.F_LIFECYCLE_STATE).setRealValue(SchemaConstants.LIFECYCLE_DRAFT);
+        } catch (SchemaException ex) {
+            getFeedbackMessages().error(PageRole.this, ex.getUserFriendlyMessage());
+        }
+
         return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageRole.this) {
             @Override
             protected void initFragmentLayout() {
                 try {
-                    Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
+                    Constructor<? extends AbstractWizardPanel> constructor = wizardClass.getConstructor(String.class, WizardPanelHelper.class);
                     AbstractWizardPanel wizard = constructor.newInstance(ID_TEMPLATE, createObjectWizardPanelHelper());
                     add(wizard);
                 } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()
+                    LOGGER.error("Couldn't create panel by constructor for class " + wizardClass.getSimpleName()
                             + " with parameters type: String, WizardPanelHelper");
                 }
             }
         };
+    }
+
+    private Class<? extends AbstractWizardPanel> getWizardPanelClass() {
+        if (WebComponentUtil.hasArchetypeAssignment(
+                getObjectDetailsModels().getObjectType(),
+                SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value())) {
+            return ApplicationRoleWizardPanel.class;
+        }
+
+        if (WebComponentUtil.hasArchetypeAssignment(
+                getObjectDetailsModels().getObjectType(),
+                SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value())) {
+            return BusinessRoleWizardPanel.class;
+        }
+        return null;
     }
 
     @Override
