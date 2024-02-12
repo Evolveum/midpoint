@@ -1,5 +1,5 @@
-= Report Type Web Resource
-:page-nav-title: Report Resource
+= Report Type REST Endpoint
+:page-nav-title: Report
 :page-display-order: 2600
 :page-toc: top
 

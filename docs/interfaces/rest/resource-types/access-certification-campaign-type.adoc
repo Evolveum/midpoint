@@ -1,5 +1,5 @@
-= Access Certification Campaign Type Web Resource
-:page-nav-title: Access Certification Campaign Resource
+= Access Certification Campaign Type REST Endpoint
+:page-nav-title: Access Certification Campaign
 :page-display-order: 900
 :page-toc: top
 

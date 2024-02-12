@@ -1,5 +1,5 @@
-= Create object
-:page-nav-title: Create object
+= Create Object
+:page-nav-title: Create Object
 :page-display-order: 400
 :page-toc: top
 
@@ -46,6 +46,7 @@ Sometimes the newlines are not correctly handled during the transfer.
 .Create a new Resource object in MidPoint with file data source
 [source,bash]
 ----
+# Authenticating with the credentials "administrator" and password "5ecr3t" on a localhost instance running on port 8080
 curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/resources -d @pathToMidpointGit\samples\rest\opendj-resource-sync.xml -v
 ----
 

@@ -1,5 +1,5 @@
-= System Configuration Type Web Resource
-:page-nav-title: System Configuration Resource
+= System Configuration Type REST Endpoint
+:page-nav-title: System Configuration
 :page-display-order: 3100
 :page-toc: top
 

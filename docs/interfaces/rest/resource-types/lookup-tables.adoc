@@ -1,5 +1,5 @@
-= Lookup Table type Web Resource
-:page-nav-title: Lookup Table Resource
+= Lookup Table type REST Endpoint
+:page-nav-title: Lookup Table
 :page-display-order: 2100
 :page-toc: top
 
