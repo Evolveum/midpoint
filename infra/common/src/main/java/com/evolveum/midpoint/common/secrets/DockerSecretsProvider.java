@@ -19,9 +19,13 @@ import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DockerSecretsProviderType;
 
 public class DockerSecretsProvider extends SecretsProviderImpl<DockerSecretsProviderType> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(DockerSecretsProvider.class);
 
     private Charset charset;
 
@@ -49,6 +53,11 @@ public class DockerSecretsProvider extends SecretsProviderImpl<DockerSecretsProv
         // to avoid path traversal
         String filename = new File(key).getName();
         File valueFile = new File(parent, filename);
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Reading secret from {}", valueFile.getAbsolutePath());
+        }
+
         ST value = null;
         if (valueFile.exists() && valueFile.isFile() && valueFile.canRead()) {
             try (InputStream is = new FileInputStream(valueFile)) {
