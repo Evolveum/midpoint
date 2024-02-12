@@ -548,6 +548,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                         protected RoleAnalysisOperationMode onClickPerformedAction(
                                 AjaxRequestTarget target,
                                 RoleAnalysisOperationMode status) {
+                            roleChunk.setStatus(status.toggleStatus());
                             target.add(getTable().setOutputMarkupId(true));
                             return roleChunk.getStatus();
                         }
