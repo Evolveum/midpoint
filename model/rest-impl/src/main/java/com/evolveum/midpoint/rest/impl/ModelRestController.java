@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.rest.impl;
 
+import static com.evolveum.midpoint.security.api.RestMethod.*;
+
 import static org.springframework.http.ResponseEntity.status;
 
 import java.net.URI;
@@ -14,10 +16,12 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 
-import jakarta.ws.rs.core.Response;
+import com.evolveum.midpoint.security.api.RestMethod;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -37,10 +41,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.DefinitionProcessingOption;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -55,6 +55,9 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptOutpu
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
+/**
+ * All these methods callable via REST should be protected by the {@link #authorize(RestMethod, Task, OperationResult)} call.
+ */
 @RestController
 @RequestMapping({ "/ws/rest", "/rest/model", "/api/model" })
 public class ModelRestController extends AbstractRestController {
@@ -83,13 +86,13 @@ public class ModelRestController extends AbstractRestController {
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
         try {
+            authorize(GENERATE_VALUE, task, result);
             PrismObject<? extends ObjectType> object = model.getObject(clazz, oid, null, task, result);
             response = generateValue(object, policyItemsDefinition, task, result);
         } catch (Exception ex) {
             result.computeStatus();
             response = handleException(result, ex);
         }
-
         finishRequest(task, result);
         return response;
     }
@@ -97,12 +100,19 @@ public class ModelRestController extends AbstractRestController {
     @PostMapping("/rpc/generate")
     public ResponseEntity<?> generateValueRpc(
             @RequestBody PolicyItemsDefinitionType policyItemsDefinition) {
+
         Task task = initRequest();
-        OperationResult result = task.getResult().createSubresult("generateValueRpc");
+        OperationResult result = createSubresult(task, "generateValueRpc");
 
-        ResponseEntity<?> response = generateValue(null, policyItemsDefinition, task, result);
+        ResponseEntity<?> response;
+        try {
+            authorize(RPC_GENERATE_VALUE, task, result);
+            response = generateValue(null, policyItemsDefinition, task, result);
+        } catch (Exception e) {
+            result.computeStatus();
+            response = handleException(result, e);
+        }
         finishRequest(task, result);
-
         return response;
     }
 
@@ -138,18 +148,18 @@ public class ModelRestController extends AbstractRestController {
             @RequestBody PolicyItemsDefinitionType policyItemsDefinition) {
 
         Task task = initRequest();
-        OperationResult result = task.getResult().createSubresult("validateValue");
+        OperationResult result = createSubresult(task, "validateValue");
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
         try {
+            authorize(VALIDATE_VALUE, task, result);
             PrismObject<? extends ObjectType> object = model.getObject(clazz, oid, null, task, result);
             response = validateValue(object, policyItemsDefinition, task, result);
         } catch (Exception ex) {
             result.computeStatus();
             response = handleException(result, ex);
         }
-
         finishRequest(task, result);
         return response;
     }
@@ -157,10 +167,18 @@ public class ModelRestController extends AbstractRestController {
     @PostMapping("/rpc/validate")
     public ResponseEntity<?> validateValue(
             @RequestBody PolicyItemsDefinitionType policyItemsDefinition) {
-        Task task = initRequest();
-        OperationResult result = task.getResult().createSubresult("validateValue");
 
-        ResponseEntity<?> response = validateValue(null, policyItemsDefinition, task, result);
+        Task task = initRequest();
+        OperationResult result = createSubresult(task, "validateValue");
+
+        ResponseEntity<?> response;
+        try {
+            authorize(RPC_VALIDATE_VALUE, task, result);
+            response = validateValue(null, policyItemsDefinition, task, result);
+        } catch (Exception e) {
+            result.computeStatus();
+            response = handleException(result, e);
+        }
         finishRequest(task, result);
         return response;
     }
@@ -216,6 +234,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(GET_VALUE_POLICY, task, result);
             Collection<SelectorOptions<GetOperationOptions>> options =
                     SelectorOptions.createCollection(GetOperationOptions.createRaw());
             PrismObject<UserType> user = model.getObject(UserType.class, oid, options, task, result);
@@ -254,6 +273,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(GET_OBJECT, task, result);
             PrismObject<? extends ObjectType> object;
             if (NodeType.class.equals(clazz) && CURRENT.equals(id)) {
                 object = getCurrentNodeObject(getOptions, task, result);
@@ -302,12 +322,12 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
 
         try {
+            authorize(GET_SELF, task, result);
             String loggedInUserOid = SecurityUtil.getPrincipalOidIfAuthenticated();
             PrismObject<UserType> user = model.getObject(UserType.class, loggedInUserOid, null, task, result);
             response = createResponse(HttpStatus.OK, user, result, true);
             result.recordSuccessIfUnknown();
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException |
-                CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(logger, e);
             response = status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -332,21 +352,23 @@ public class ModelRestController extends AbstractRestController {
         logger.debug("model rest service for add operation start");
 
         Task task = initRequest();
-        OperationResult result = task.getResult().createSubresult("addObject");
-
-        Class<?> clazz = ObjectTypes.getClassFromRestType(type);
-        if (object.getCompileTimeClass() == null || !object.getCompileTimeClass().equals(clazz)) {
-            String simpleName = object.getCompileTimeClass() != null ? object.getCompileTimeClass().getSimpleName() : null;
-            result.recordFatalError("Request to add object of type " + simpleName + " to the collection of " + type);
-            finishRequest(task, result);
-            return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, result);
-        }
-
-        ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
+        OperationResult result = createSubresult(task, "addObject");
 
         String oid;
         ResponseEntity<?> response;
         try {
+            authorize(POST_OBJECT, task, result);
+
+            Class<?> clazz = ObjectTypes.getClassFromRestType(type);
+            if (object.getCompileTimeClass() == null || !object.getCompileTimeClass().equals(clazz)) {
+                String simpleName = object.getCompileTimeClass() != null ? object.getCompileTimeClass().getSimpleName() : null;
+                result.recordFatalError("Request to add object of type " + simpleName + " to the collection of " + type);
+                finishRequest(task, result);
+                return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, result);
+            }
+
+            ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
+
             oid = model.addObject(object, modelExecuteOptions, task, result);
             logger.debug("returned oid: {}", oid);
 
@@ -383,12 +405,13 @@ public class ModelRestController extends AbstractRestController {
             @RequestParam(value = "exclude", required = false) List<String> exclude,
             @RequestParam(value = "resolveNames", required = false) List<String> resolveNames) {
         Task task = initRequest();
-        OperationResult result = task.getResult().createSubresult("searchObjectsByType");
+        OperationResult result = createSubresult(task, "searchObjectsByType");
 
         //noinspection unchecked
         Class<T> clazz = (Class<T>) ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
         try {
+            authorize(GET_OBJECTS, task, result);
 
             Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include,
                     exclude, resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
@@ -441,6 +464,7 @@ public class ModelRestController extends AbstractRestController {
         String oid;
         ResponseEntity<?> response;
         try {
+            authorize(PUT_OBJECT, task, result);
             oid = model.addObject(object, modelExecuteOptions, task, result);
             logger.debug("returned oid : {}", oid);
 
@@ -471,10 +495,11 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         if (ObjectType.class.equals(clazz)) {
-            result.recordFatalError("Type object ( path /objects/) does not supported deletion, use concrete type.");
+            result.recordFatalError("Type object (path /objects/) does not support deletion, use concrete type.");
             response = createResponse(HttpStatus.METHOD_NOT_ALLOWED, result);
         } else {
             try {
+                authorize(DELETE_OBJECT, task, result);
                 if (clazz.isAssignableFrom(TaskType.class)) {
                     taskService.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, result);
                     result.computeStatus();
@@ -520,13 +545,14 @@ public class ModelRestController extends AbstractRestController {
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
 
         Task task = initRequest();
-        OperationResult result = task.getResult().createSubresult("modifyObjectPatch");
+        OperationResult result = createSubresult(task, "modifyObjectPatch");
         ResponseEntity<?> response;
         if (ObjectType.class.equals(clazz)) {
-            result.recordFatalError("Type 'object' (path /objects/) does not supported modifications, use concrete type.");
+            result.recordFatalError("Type 'object' (path /objects/) does not support modifications, use concrete type.");
             response = createResponse(HttpStatus.METHOD_NOT_ALLOWED, result);
         } else {
             try {
+                authorize(MODIFY_OBJECT, task, result);
                 ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
                 Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
                 model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, result);
@@ -552,6 +578,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(NOTIFY_CHANGE, task, result);
             modelService.notifyChange(changeDescription, task, result);
             response = createResponse(HttpStatus.OK, result);
         } catch (Exception ex) {
@@ -568,10 +595,11 @@ public class ModelRestController extends AbstractRestController {
             @PathVariable("oid") String shadowOid) {
 
         Task task = initRequest();
-        OperationResult result = task.getResult().createSubresult("findShadowOwner");
+        OperationResult result = createSubresult(task, "findShadowOwner");
 
         ResponseEntity<?> response;
         try {
+            authorize(FIND_SHADOW_OWNER, task, result);
             PrismObject<? extends FocusType> focus = modelService.searchShadowOwner(shadowOid, null, task, result);
             response = createResponse(HttpStatus.OK, focus, result);
         } catch (Exception ex) {
@@ -589,10 +617,11 @@ public class ModelRestController extends AbstractRestController {
         logger.debug("model rest service for import shadow from resource operation start");
 
         Task task = initRequest();
-        OperationResult result = task.getResult().createSubresult("importShadow");
+        OperationResult result = createSubresult(task, "importShadow");
 
         ResponseEntity<?> response;
         try {
+            authorize(IMPORT_SHADOW, task, result);
             modelService.importFromResource(shadowOid, task, result);
 
             response = createResponse(HttpStatus.OK, result, result);
@@ -620,6 +649,7 @@ public class ModelRestController extends AbstractRestController {
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
         try {
+            authorize(SEARCH_OBJECTS, task, result);
             ObjectQuery query = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
             Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include,
                     exclude, resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
@@ -660,6 +690,7 @@ public class ModelRestController extends AbstractRestController {
         QName objClass = new QName(MidPointConstants.NS_RI, objectClass);
         ResponseEntity<?> response;
         try {
+            authorize(IMPORT_FROM_RESOURCE, task, result);
             modelService.importFromResource(resourceOid, objClass, task, result);
             response = createResponseWithLocation(
                     HttpStatus.SEE_OTHER,
@@ -685,6 +716,7 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
         OperationResult testResult = null;
         try {
+            authorize(TEST_RESOURCE, task, result);
             testResult = modelService.testResource(resourceOid, task, result);
             response = createResponse(HttpStatus.OK, testResult, result);
         } catch (Exception ex) {
@@ -708,6 +740,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(SUSPEND_TASK, task, result);
             taskService.suspendTask(taskOid, WAIT_FOR_TASK_STOP, task, result);
             result.computeStatus();
             response = createResponse(HttpStatus.NO_CONTENT, task, result);
@@ -728,6 +761,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(RESUME_TASK, task, result);
             taskService.resumeTask(taskOid, task, result);
             result.computeStatus();
             response = createResponse(HttpStatus.ACCEPTED, result);
@@ -747,6 +781,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(RUN_TASK, task, result);
             taskService.scheduleTaskNow(taskOid, task, result);
             result.computeStatus();
             response = createResponse(HttpStatus.NO_CONTENT, result);
@@ -767,6 +802,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(EXECUTE_SCRIPT, task, result);
             if (Boolean.TRUE.equals(asynchronous)) {
                 var taskOid = modelInteraction.submitScriptingExpression(command, task, result);
                 response = createResponseWithLocation(
@@ -810,6 +846,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(COMPARE_OBJECT, task, result);
             List<ItemPath> ignoreItemPaths = ItemPathCollectionsUtil.pathListFromStrings(restIgnoreItems, prismContext);
             final GetOperationOptions getOpOptions = GetOperationOptions.fromRestOptions(restReadOptions, DefinitionProcessingOption.ONLY_IF_EXISTS);
             Collection<SelectorOptions<GetOperationOptions>> readOptions =
@@ -836,6 +873,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(GET_LOG_SIZE, task, result);
             long size = modelDiagnosticService.getLogFileSize(task, result);
             response = createResponse(HttpStatus.OK, String.valueOf(size), result);
         } catch (Exception ex) {
@@ -858,6 +896,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(GET_LOG, task, result);
             LogFileContentType content = modelDiagnosticService.getLogFileContent(fromPosition, maxSize, task, result);
 
             ResponseEntity.BodyBuilder builder = ResponseEntity.ok();
@@ -884,6 +923,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(RESET_CREDENTIAL, task, result);
             PrismObject<UserType> user = modelService.getObject(UserType.class, oid, null, task, result);
 
             ExecuteCredentialResetResponseType executeCredentialResetResponse = modelInteraction.executeCredentialsReset(user, executeCredentialResetRequest, task, result);
@@ -906,6 +946,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(GET_THREADS, task, result);
             String dump = taskService.getThreadsDump(task, result);
             response = ResponseEntity.ok(dump);
         } catch (Exception ex) {
@@ -926,6 +967,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(GET_TASKS_THREADS, task, result);
             String dump = taskService.getRunningTasksThreadsDump(task, result);
             response = ResponseEntity.ok(dump);
         } catch (Exception ex) {
@@ -946,6 +988,7 @@ public class ModelRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(GET_TASK_THREADS, task, result);
             String dump = taskService.getTaskThreadsDump(oid, task, result);
             response = ResponseEntity.ok(dump);
         } catch (Exception ex) {

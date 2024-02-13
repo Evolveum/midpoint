@@ -10,7 +10,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.api.RestMethod;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaFileType;
@@ -30,6 +30,14 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
+/**
+ * Special REST methods to access external schemas.
+ *
+ * Note about authorizations: These methods were covered by {@link ModelAuthorizationAction#GET_EXTENSION_SCHEMA} authorization.
+ * It is sufficient. However, to avoid the need of having `rest-3#all` authorization to use these methods, we also added
+ * special (much more specific, i.e. weaker) replacement for it: the one limited to {@link RestMethod#GET_EXTENSION_SCHEMA}.
+ * So, a user accessing these methods need just the above two (rather weak) authorizations.
+ */
 @RestController
 @RequestMapping({ "/ws/schema", "/rest/schema", "/api/schema" })
 public class ExtensionSchemaRestController extends AbstractRestController {
@@ -43,6 +51,7 @@ public class ExtensionSchemaRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(RestMethod.GET_EXTENSION_SCHEMA, task, result);
             securityEnforcer.authorize(
                     ModelAuthorizationAction.GET_EXTENSION_SCHEMA.getUrl(), task, result);
 
@@ -100,6 +109,7 @@ public class ExtensionSchemaRestController extends AbstractRestController {
 
         ResponseEntity<?> response;
         try {
+            authorize(RestMethod.GET_EXTENSION_SCHEMA, task, result);
             securityEnforcer.authorize(
                     ModelAuthorizationAction.GET_EXTENSION_SCHEMA.getUrl(), task, result);
 

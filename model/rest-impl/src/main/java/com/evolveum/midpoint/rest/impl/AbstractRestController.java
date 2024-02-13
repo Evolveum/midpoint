@@ -6,13 +6,24 @@
  */
 package com.evolveum.midpoint.rest.impl;
 
+import static com.evolveum.midpoint.security.api.AuthorizationConstants.AUTZ_REST_ALL_URL;
+
 import static org.springframework.http.ResponseEntity.status;
 
 import java.net.URI;
+import java.util.Set;
+
+import com.evolveum.midpoint.schema.AccessDecision;
+import com.evolveum.midpoint.security.api.RestMethod;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,6 +71,7 @@ public class AbstractRestController {
     @Autowired protected TaskManager taskManager;
     @Autowired protected PrismContext prismContext;
     @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private SecurityEnforcer securityEnforcer;
 
     protected Task initRequest() {
         // No need to audit login. it was already audited during authentication
@@ -127,17 +139,26 @@ public class AbstractRestController {
         return builder.body(result);
     }
 
+    /** Records the exception into the operation result (if it's empty!), logs it and creates the response. */
     protected ResponseEntity<?> handleException(OperationResult result, Throwable t) {
         LoggingUtils.logUnexpectedException(logger, "Got exception while servicing REST request: {}", t,
                 result != null ? result.getOperation() : "(null)");
         return handleExceptionNoLog(result, t);
     }
 
-    protected ResponseEntity<?> handleExceptionNoLog(OperationResult result, Throwable t) {
-        if (result.isEmpty()) {
-            result.recordFatalError("Unknown exception occurred", t);
-        } else {
-            result.computeStatus();
+    /** The version without operation result handling. */
+    protected ResponseEntity<?> handleException(Throwable t) {
+        LoggingUtils.logUnexpectedException(logger, "Got exception while servicing REST request", t);
+        return handleExceptionNoLog(null, t);
+    }
+
+    protected ResponseEntity<?> handleExceptionNoLog(@Nullable OperationResult result, Throwable t) {
+        if (result != null) {
+            if (result.isEmpty()) {
+                result.recordFatalError("Unknown exception occurred", t);
+            } else {
+                result.computeStatus();
+            }
         }
 
         return createErrorResponseBuilder(result, t);
@@ -220,7 +241,9 @@ public class AbstractRestController {
 
         record.setChannel(SchemaConstants.CHANNEL_REST_URI);
         record.setTimestamp(System.currentTimeMillis());
-        record.setOutcome(OperationResultStatus.SUCCESS);
+        // To be discussed: should we record SUCCESS here (as the logout is successful), or the real result of the operation?
+        record.setOutcome(result.getStatus());
+        record.setMessage(result.getMessage());
         if (authentication instanceof MidpointAuthentication) {
             record.setSessionIdentifier(((MidpointAuthentication) authentication).getSessionId());
         }
@@ -258,5 +281,14 @@ public class AbstractRestController {
         }
 
         throw new NullPointerException("Base controller URL could not be determined.");
+    }
+
+    /** Makes sure that the current principal is authorized to call the specified REST method. */
+    protected void authorize(RestMethod method, Task task, OperationResult result) throws CommonException {
+        MidPointPrincipal principal = securityEnforcer.getMidPointPrincipal();
+        String methodUri = method.getActionUri();
+        if (securityEnforcer.decideAccess(principal, Set.of(methodUri, AUTZ_REST_ALL_URL), task, result) != AccessDecision.ALLOW) {
+            securityEnforcer.failAuthorization(methodUri, null, AuthorizationParameters.EMPTY, result);
+        }
     }
 }

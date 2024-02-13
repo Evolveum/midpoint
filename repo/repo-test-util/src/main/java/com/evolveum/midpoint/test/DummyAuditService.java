@@ -541,12 +541,21 @@ public class DummyAuditService implements AuditService, DebugDumpable {
      * Checks that the first record is login and the last is logout.
      */
     public synchronized void assertLoginLogout(String expectedChannel) {
+        assertLoginLogout(expectedChannel, OperationResultStatus.SUCCESS);
+    }
+
+    /** The operation failed; the status is written into the logout record (TODO is this correct?) */
+    public synchronized void assertLoginLogoutWithFatalError(String expectedChannel) {
+        assertLoginLogout(expectedChannel, OperationResultStatus.FATAL_ERROR);
+    }
+
+    public synchronized void assertLoginLogout(String expectedChannel, OperationResultStatus expectedLogoutStatus) {
         AuditEventRecord firstRecord = records.get(0);
         assertEquals("Wrong type of first audit record: " + firstRecord.getEventType(), AuditEventType.CREATE_SESSION, firstRecord.getEventType());
         assertEquals("Wrong outcome of first audit record: " + firstRecord.getOutcome(), OperationResultStatus.SUCCESS, firstRecord.getOutcome());
         AuditEventRecord lastRecord = records.get(records.size() - 1);
         assertEquals("Wrong type of last audit record: " + lastRecord.getEventType(), AuditEventType.TERMINATE_SESSION, lastRecord.getEventType());
-        assertEquals("Wrong outcome of last audit record: " + lastRecord.getOutcome(), OperationResultStatus.SUCCESS, lastRecord.getOutcome());
+        assertEquals("Wrong outcome of last audit record: " + lastRecord.getOutcome(), expectedLogoutStatus, lastRecord.getOutcome());
         // TODO fix "login" "logout" auditing
         assertEquals("Audit session ID does not match", firstRecord.getSessionIdentifier(), lastRecord.getSessionIdentifier());
         assertThat(firstRecord.getEventIdentifier())

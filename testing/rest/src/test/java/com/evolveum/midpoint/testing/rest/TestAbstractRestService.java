@@ -153,7 +153,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
-        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertLoginLogoutWithFatalError(SchemaConstants.CHANNEL_REST_URI);
     }
 
     @Test
@@ -281,7 +281,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
-        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertLoginLogoutWithFatalError(SchemaConstants.CHANNEL_REST_URI);
     }
 
     @Test
@@ -343,7 +343,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
-        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertLoginLogoutWithFatalError(SchemaConstants.CHANNEL_REST_URI);
     }
 
     @Test
@@ -379,7 +379,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
-        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI, OperationResultStatus.HANDLED_ERROR);
         getDummyAuditService().assertHasDelta(1, ChangeType.ADD, ShadowType.class);
     }
 
@@ -455,7 +455,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
-        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertLoginLogoutWithFatalError(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertExecutionOutcome(1, OperationResultStatus.FATAL_ERROR);
     }
 
@@ -746,7 +746,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
-        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertLoginLogoutWithFatalError(SchemaConstants.CHANNEL_REST_URI);
     }
 
     @Test
@@ -908,7 +908,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
-        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertLoginLogoutWithFatalError(SchemaConstants.CHANNEL_REST_URI);
     }
 
     @Test
@@ -964,7 +964,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
-        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertLoginLogoutWithFatalError(SchemaConstants.CHANNEL_REST_URI);
     }
 
     @Test
@@ -984,7 +984,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
-        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertLoginLogoutWithFatalError(SchemaConstants.CHANNEL_REST_URI);
     }
 
     @Test
@@ -1102,7 +1102,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
-        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertLoginLogoutWithFatalError(SchemaConstants.CHANNEL_REST_URI);
 
     }
 
@@ -1123,7 +1123,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
-        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertLoginLogoutWithFatalError(SchemaConstants.CHANNEL_REST_URI);
 
         ExecuteScriptResponseType responseData = response.readEntity(ExecuteScriptResponseType.class);
         displayValue("Response", getPrismContext().xmlSerializer().serializeRealValue(responseData));
@@ -1383,7 +1383,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
-        getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertLoginLogoutWithFatalError(SchemaConstants.CHANNEL_REST_URI);
     }
 
     @Test
@@ -1643,13 +1643,45 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
     }
 
+    /* User has both ADD and READ model autz, but only REST getObject. So this fails. */
+    @Test
+    public void test690RestMethodNotAuthorized() {
+        WebClient client = prepareClient(USER_REST_LIMITED_NAME, USER_REST_LIMITED_PASSWORD);
+        client.path("/users");
+
+        when();
+        Response response = client.post(getRepoFile(USER_DARTHADDER_FILE));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 403);
+
+        displayDumpable("Audit", getDummyAuditService());
+        getDummyAuditService().assertRecords(2);
+        getDummyAuditService().assertLoginLogoutWithFatalError(SchemaConstants.CHANNEL_REST_URI);
+    }
+
+    /* User has both REST and model autz for "get object" operation. So this succeeds. */
+    @Test
+    public void test695RestMethodAuthorized() {
+        WebClient client = prepareClient(USER_REST_LIMITED_NAME, USER_REST_LIMITED_PASSWORD);
+        client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+
+        when();
+        Response response = client.get();
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+    }
+
     private WebClient prepareClient() {
         return prepareClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
     }
 
     private void displayResponse(Response response) {
-        logger.info("response : {} ", response.getStatus());
-        logger.info("response : {} ", response.getStatusInfo().getReasonPhrase());
+        displayValue("response status", response.getStatus());
+        displayValue("response reason phrase", response.getStatusInfo().getReasonPhrase());
     }
 
     protected <O extends ObjectType> PrismObject<O> getObjectRepo(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
