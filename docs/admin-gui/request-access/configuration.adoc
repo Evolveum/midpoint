@@ -104,6 +104,11 @@ Which types of views of role catalog are allowed to be shown to user.
 |Reference to the root object of the role catalog (org. structure).
 Up to 3 levels of org. structure will be shown as menus/submenus.
 
+|roleCatalogDepth
+|positive integer
+|
+|Maximum depth of org. structure to be shown in role catalog.
+
 |collection
 |RoleCollectionViewType
 |
