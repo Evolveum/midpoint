@@ -1104,7 +1104,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
      * required actions is important.
      */
     @Override
-    public AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, Task task, OperationResult result)
+    public AccessDecision decideAccess(MidPointPrincipal principal, Collection<String> requiredActions, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         return decideAccess(principal, requiredActions, AuthorizationParameters.EMPTY, task, result);
@@ -1118,7 +1118,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
      */
     @Override
     public <O extends ObjectType, T extends ObjectType> AccessDecision decideAccess(MidPointPrincipal principal,
-            List<String> requiredActions, AuthorizationParameters<O, T> params, Task task, OperationResult result)
+            Collection<String> requiredActions, AuthorizationParameters<O, T> params, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 

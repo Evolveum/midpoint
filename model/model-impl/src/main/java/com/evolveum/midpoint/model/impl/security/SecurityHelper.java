@@ -62,7 +62,6 @@ public class SecurityHelper implements ModelAuditRecorder {
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ArchetypeManager archetypeManager;
 
-
     @Override
     public void auditLoginSuccess(@NotNull FocusType user, @NotNull ConnectionEnvironment connEnv) {
         auditLogin(user.getName().getOrig(), user, connEnv, OperationResultStatus.SUCCESS, null);

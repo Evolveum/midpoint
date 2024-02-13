@@ -8,6 +8,7 @@ package com.evolveum.midpoint.authentication.impl.authorization.evaluator;
 
 import java.util.Collection;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -24,8 +25,8 @@ import com.evolveum.midpoint.task.api.TaskManager;
 public class MidpointAllowAllAuthorizationEvaluator extends MidPointGuiAuthorizationEvaluator {
 
     public MidpointAllowAllAuthorizationEvaluator(SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager,
-                                                  TaskManager taskManager) {
-        super(securityEnforcer, securityContextManager, taskManager);
+                                                  TaskManager taskManager, ApplicationContext applicationContext) {
+        super(securityEnforcer, securityContextManager, taskManager, applicationContext);
     }
 
     @Override

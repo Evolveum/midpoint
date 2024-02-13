@@ -21,6 +21,9 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -44,6 +47,9 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends OidcResourc
     @Autowired
     private TaskManager taskManager;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     public OidcResourceServerModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
     }
@@ -60,7 +66,8 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends OidcResourc
         if (rememberMeServices != null) {
             filter.setRememberMeServices(rememberMeServices);
         }
-        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, model));
+        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(
+                securityEnforcer, securityContextManager, taskManager, model, applicationContext));
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
 
         SequenceAuditFilter sequenceAuditFilter = getObjectPostProcessor().postProcess(new SequenceAuditFilter());

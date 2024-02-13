@@ -29,6 +29,7 @@ public abstract class RestServiceInitializer extends AbstractRestServiceInitiali
         PrismObject<RoleType> endRole = parseObject(ROLE_ENDUSER_FILE);
         addObject(endRole, executeOptions().overwrite(), initTask, result);
         addObject(ROLE_REST_FILE, initTask, result);
+        addObject(ROLE_REST_LIMITED_FILE, initTask, result);
         addObject(ROLE_READER_FILE, initTask, result);
         PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
         addObject(adminUser, executeOptions().overwrite(), initTask, result);
@@ -36,6 +37,7 @@ public abstract class RestServiceInitializer extends AbstractRestServiceInitiali
         addObject(USER_CYCLOPS_FILE, initTask, result);
         addObject(USER_SOMEBODY_FILE, initTask, result);
         addObject(USER_JACK_FILE, initTask, result);
+        addObject(USER_REST_LIMITED_FILE, initTask, result);
         addObject(parseObject(VALUE_POLICY_GENERAL), executeOptions().overwrite(), initTask, result);
         addObject(VALUE_POLICY_NUMERIC, initTask, result);
         addObject(VALUE_POLICY_SIMPLE, initTask, result);

@@ -16,6 +16,9 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -43,6 +46,9 @@ public class HttpBasicModuleWebSecurityConfigurer<C extends ModuleWebSecurityCon
     @Autowired
     private TaskManager taskManager;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     public HttpBasicModuleWebSecurityConfigurer(C configuration) {
         super(configuration);
     }
@@ -59,7 +65,8 @@ public class HttpBasicModuleWebSecurityConfigurer<C extends ModuleWebSecurityCon
         if (rememberMeServices != null) {
             filter.setRememberMeServices(rememberMeServices);
         }
-        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, model));
+        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(
+                securityEnforcer, securityContextManager, taskManager, model, applicationContext));
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
 
         SequenceAuditFilter sequenceAuditFilter = getObjectPostProcessor().postProcess(new SequenceAuditFilter());

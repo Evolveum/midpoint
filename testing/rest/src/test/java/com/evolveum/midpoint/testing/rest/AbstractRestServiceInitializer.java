@@ -74,10 +74,14 @@ public abstract class AbstractRestServiceInitializer extends AbstractGuiIntegrat
     // other
     public static final File USER_JACK_FILE = new File(BASE_REPO_DIR, "user-jack.xml");
     public static final String USER_JACK_OID = "229487cb-59b6-490b-879d-7a6d925dd08c";
+    public static final File USER_REST_LIMITED_FILE = new File(BASE_REPO_DIR, "user-rest-limited.xml");
+    public static final String USER_REST_LIMITED_NAME = "rest-limited";
+    public static final String USER_REST_LIMITED_PASSWORD = "r3stL1m1t3d";
 
     public static final File ROLE_SUPERUSER_FILE = new File(BASE_REPO_DIR, "role-superuser.xml");
     public static final File ROLE_ENDUSER_FILE = new File(BASE_REPO_DIR, "role-enduser.xml");
     public static final File ROLE_REST_FILE = new File(BASE_REPO_DIR, "role-rest.xml");
+    public static final File ROLE_REST_LIMITED_FILE = new File(BASE_REPO_DIR, "role-rest-limited.xml");
     public static final File ROLE_READER_FILE = new File(BASE_REPO_DIR, "role-reader.xml");
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(BASE_REPO_DIR, "system-configuration.xml");
@@ -131,8 +135,8 @@ public abstract class AbstractRestServiceInitializer extends AbstractGuiIntegrat
     }
 
     protected void assertStatus(Response response, int expStatus) {
-        assertEquals("Expected " + expStatus + " but got " + response.getStatus(), expStatus,
-                response.getStatus());
+        assertEquals("Expected " + expStatus + " but got " + response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase(),
+                expStatus, response.getStatus());
     }
 
     public PrismContext getPrismContext() {

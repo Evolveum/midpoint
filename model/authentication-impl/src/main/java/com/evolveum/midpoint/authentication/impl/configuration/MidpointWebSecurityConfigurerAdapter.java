@@ -24,6 +24,7 @@ import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -63,6 +64,9 @@ public class MidpointWebSecurityConfigurerAdapter extends WebSecurityConfigurerA
     @Autowired
     private SessionRegistry sessionRegistry;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
 
     public MidpointWebSecurityConfigurerAdapter() {
@@ -80,7 +84,7 @@ public class MidpointWebSecurityConfigurerAdapter extends WebSecurityConfigurerA
     public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer,
             SecurityContextManager securityContextManager,
             TaskManager taskManager) {
-        return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager);
+        return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, applicationContext);
     }
 
     @Bean

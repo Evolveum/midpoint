@@ -6,12 +6,18 @@
  */
 package com.evolveum.midpoint.rest.impl;
 
+import static com.evolveum.midpoint.security.api.RestAuthorizationAction.*;
+
 import static org.springframework.http.ResponseEntity.status;
 
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.*;
+
+import com.evolveum.midpoint.security.api.RestHandlerMethod;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
@@ -32,10 +38,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.DefinitionProcessingOption;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -66,6 +68,7 @@ public class ModelRestController extends AbstractRestController {
     @Autowired private ScriptingService scriptingService;
     @Autowired private TaskService taskService;
 
+    @RestHandlerMethod(authorization = GENERATE_VALUE)
     @PostMapping("/{type}/{oid}/generate")
     public ResponseEntity<?> generateValue(
             @PathVariable("type") String type,
@@ -89,6 +92,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = RPC_GENERATE_VALUE)
     @PostMapping("/rpc/generate")
     public ResponseEntity<?> generateValueRpc(
             @RequestBody PolicyItemsDefinitionType policyItemsDefinition) {
@@ -126,6 +130,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = VALIDATE_VALUE)
     @PostMapping("/{type}/{oid}/validate")
     public ResponseEntity<?> validateValue(
             @PathVariable("type") String type,
@@ -149,6 +154,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = RPC_VALIDATE_VALUE)
     @PostMapping("/rpc/validate")
     public ResponseEntity<?> validateValue(
             @RequestBody PolicyItemsDefinitionType policyItemsDefinition) {
@@ -201,6 +207,7 @@ public class ModelRestController extends AbstractRestController {
         return status(HttpStatus.BAD_REQUEST).body(parentResult);
     }
 
+    @RestHandlerMethod(authorization = GET_VALUE_POLICY)
     @GetMapping("/users/{id}/policy")
     public ResponseEntity<?> getValuePolicyForUser(
             @PathVariable("id") String oid) {
@@ -229,6 +236,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = GET_OBJECT)
     @GetMapping(GET_OBJECT_PATH)
     public ResponseEntity<?> getObject(
             @PathVariable("type") String type,
@@ -284,6 +292,7 @@ public class ModelRestController extends AbstractRestController {
         }
     }
 
+    @RestHandlerMethod(authorization = GET_SELF)
     @GetMapping("/self")
     public ResponseEntity<?> getSelf() {
         logger.debug("model rest service for get operation start");
@@ -296,8 +305,7 @@ public class ModelRestController extends AbstractRestController {
             PrismObject<UserType> user = model.getObject(UserType.class, loggedInUserOid, null, task, result);
             response = createResponse(HttpStatus.OK, user, result, true);
             result.recordSuccessIfUnknown();
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException |
-                CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(logger, e);
             response = status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -306,6 +314,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = POST_OBJECT)
     @PostMapping("/{type}")
     public <T extends ObjectType> ResponseEntity<?> addObject(
             @PathVariable("type") String type,
@@ -350,13 +359,13 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
-    @NotNull
-    public URI uriGetObject(@PathVariable("type") String type, String oid) {
+    public @NotNull URI uriGetObject(@PathVariable("type") String type, String oid) {
         return ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path(controllerBasePath() + GET_OBJECT_PATH)
                 .build(type, oid);
     }
 
+    @RestHandlerMethod(authorization = GET_OBJECTS)
     @GetMapping("/{type}")
     public <T extends ObjectType> ResponseEntity<?> searchObjectsByType(
             @PathVariable("type") String type,
@@ -391,6 +400,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = PUT_OBJECT)
     @PutMapping("/{type}/{id}")
     public <T extends ObjectType> ResponseEntity<?> addObject(
             @PathVariable("type") String type,
@@ -439,6 +449,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = DELETE_OBJECT)
     @DeleteMapping("/{type}/{id}")
     public ResponseEntity<?> deleteObject(
             @PathVariable("type") String type,
@@ -477,6 +488,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = MODIFY_OBJECT)
     @PostMapping("/{type}/{oid}")
     public ResponseEntity<?> modifyObjectPost(
             @PathVariable("type") String type,
@@ -486,6 +498,7 @@ public class ModelRestController extends AbstractRestController {
         return modifyObjectPatch(type, oid, options, modificationType);
     }
 
+    @RestHandlerMethod(authorization = MODIFY_OBJECT)
     @PatchMapping("/{type}/{oid}")
     public ResponseEntity<?> modifyObjectPatch(
             @PathVariable("type") String type,
@@ -515,6 +528,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = NOTIFY_CHANGE)
     @PostMapping("/notifyChange")
     public ResponseEntity<?> notifyChange(
             @RequestBody ResourceObjectShadowChangeDescriptionType changeDescription) {
@@ -537,6 +551,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = FIND_SHADOW_OWNER)
     @GetMapping("/shadows/{oid}/owner")
     public ResponseEntity<?> findShadowOwner(
             @PathVariable("oid") String shadowOid) {
@@ -557,6 +572,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = IMPORT_SHADOW)
     @PostMapping("/shadows/{oid}/import")
     public ResponseEntity<?> importShadow(
             @PathVariable("oid") String shadowOid) {
@@ -579,6 +595,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = SEARCH_OBJECTS)
     @PostMapping("/{type}/search")
     public ResponseEntity<?> searchObjects(
             @PathVariable("type") String type,
@@ -622,6 +639,7 @@ public class ModelRestController extends AbstractRestController {
                 ItemPathCollectionsUtil.pathListFromStrings(exclude, prismContext));
     }
 
+    @RestHandlerMethod(authorization = IMPORT_FROM_RESOURCE)
     @PostMapping("/resources/{resourceOid}/import/{objectClass}")
     public ResponseEntity<?> importFromResource(
             @PathVariable("resourceOid") String resourceOid,
@@ -648,6 +666,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = TEST_RESOURCE)
     @PostMapping("/resources/{resourceOid}/test")
     public ResponseEntity<?> testResource(
             @PathVariable("resourceOid") String resourceOid) {
@@ -673,6 +692,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = SUSPEND_TASK)
     @PostMapping("/tasks/{oid}/suspend")
     public ResponseEntity<?> suspendTask(
             @PathVariable("oid") String taskOid) {
@@ -693,6 +713,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = RESUME_TASK)
     @PostMapping("/tasks/{oid}/resume")
     public ResponseEntity<?> resumeTask(
             @PathVariable("oid") String taskOid) {
@@ -713,6 +734,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = RUN_TASK)
     @PostMapping("tasks/{oid}/run")
     public ResponseEntity<?> scheduleTaskNow(
             @PathVariable("oid") String taskOid) {
@@ -732,6 +754,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = EXECUTE_SCRIPT)
     @PostMapping("/rpc/executeScript")
     public ResponseEntity<?> executeScript(
             @RequestParam(value = "asynchronous", required = false) Boolean asynchronous,
@@ -766,6 +789,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = COMPARE_OBJECT)
     @PostMapping("/rpc/compare")
 //    @Consumes({ "application/xml" }) TODO do we need to limit it to XML?
     public <T extends ObjectType> ResponseEntity<?> compare(
@@ -796,6 +820,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = GET_LOG_SIZE)
     @GetMapping(value = "/log/size",
             produces = { MediaType.TEXT_PLAIN_VALUE, MimeTypeUtils.ALL_VALUE })
     public ResponseEntity<?> getLogFileSize() {
@@ -816,6 +841,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = GET_LOG)
     @GetMapping(value = "/log",
             produces = { MediaType.TEXT_PLAIN_VALUE, MimeTypeUtils.ALL_VALUE })
     public ResponseEntity<?> getLog(
@@ -844,6 +870,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = RESET_CREDENTIAL)
     @PostMapping("/users/{oid}/credential")
     public ResponseEntity<?> executeCredentialReset(
             @PathVariable("oid") String oid,
@@ -867,6 +894,7 @@ public class ModelRestController extends AbstractRestController {
 
     }
 
+    @RestHandlerMethod(authorization = GET_THREADS)
     @GetMapping(value = "/threads",
             produces = { MediaType.TEXT_PLAIN_VALUE, MimeTypeUtils.ALL_VALUE })
     public ResponseEntity<?> getThreadsDump() {
@@ -886,6 +914,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = GET_TASKS_THREADS)
     @GetMapping(value = "/tasks/threads",
             produces = { MediaType.TEXT_PLAIN_VALUE, MimeTypeUtils.ALL_VALUE })
     public ResponseEntity<?> getRunningTasksThreadsDump() {
@@ -906,6 +935,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = GET_TASK_THREADS)
     @GetMapping(value = "/tasks/{oid}/threads",
             produces = { MediaType.TEXT_PLAIN_VALUE, MimeTypeUtils.ALL_VALUE })
     public ResponseEntity<?> getTaskThreadsDump(

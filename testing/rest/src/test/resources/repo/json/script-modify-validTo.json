@@ -33,7 +33,7 @@
       "value": [
         {
           "@type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ObjectReferenceType",
-          "oid": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+          "oid": "142f4a38-01d8-4864-8cb4-ea42a02b724e",
           "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
         },
         {
