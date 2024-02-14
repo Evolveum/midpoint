@@ -62,7 +62,7 @@ public abstract class ContainerSecretsProvider<T extends ContainerSecretsProvide
         ST value = null;
         if (valueFile.exists() && valueFile.isFile() && valueFile.canRead()) {
             try (InputStream is = new FileInputStream(valueFile)) {
-                String content = IOUtils.toString(is, charset);
+                byte[] content = IOUtils.toByteArray(is);
 
                 value = mapValue(content, type);
             } catch (IOException ex) {

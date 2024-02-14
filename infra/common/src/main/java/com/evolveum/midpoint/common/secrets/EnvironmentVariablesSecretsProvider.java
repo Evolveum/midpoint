@@ -10,7 +10,6 @@ package com.evolveum.midpoint.common.secrets;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentVariablesSecretsProviderType;
@@ -24,7 +23,7 @@ public class EnvironmentVariablesSecretsProvider extends SecretsProviderImpl<Env
     }
 
     @Override
-    protected <ST> ST resolveSecret(@NotNull String key, @NotNull Class<ST> type) throws EncryptionException {
+    protected <ST> ST resolveSecret(@NotNull String key, @NotNull Class<ST> type) {
         String prefix = getConfiguration().getPrefix();
 
         String finalKey = StringUtils.isNotEmpty(prefix) ? prefix + key : key;
@@ -35,6 +34,6 @@ public class EnvironmentVariablesSecretsProvider extends SecretsProviderImpl<Env
 
         String value = System.getenv(finalKey);
 
-        return mapValue(value, type);
+        return mapValue(value.getBytes(), type);
     }
 }

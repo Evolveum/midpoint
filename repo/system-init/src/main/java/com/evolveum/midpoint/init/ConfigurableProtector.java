@@ -46,6 +46,24 @@ public class ConfigurableProtector extends KeyStoreBasedProtectorImpl implements
     }
 
     @Override
+    public @NotNull String resolveSecretString(@NotNull String provider, @NotNull String key) throws EncryptionException {
+        ExternalDataType data = new ExternalDataType();
+        data.setProvider(provider);
+        data.setKey(key);
+
+        return resolveExternalData(data, String.class);
+    }
+
+    @Override
+    public @NotNull ByteBuffer resolveSecretBinary(@NotNull String provider, @NotNull String key) throws EncryptionException {
+        ExternalDataType data = new ExternalDataType();
+        data.setProvider(provider);
+        data.setKey(key);
+
+        return resolveExternalData(data, ByteBuffer.class);
+    }
+
+    @Override
     public <T> void decrypt(ProtectedData<T> protectedData) throws EncryptionException, SchemaException {
         ExternalDataType external = protectedData.getExternalData();
         if (external == null) {
