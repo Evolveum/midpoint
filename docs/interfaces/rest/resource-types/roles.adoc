@@ -30,7 +30,7 @@ include::../operations/examples/raw/create-role-employee.adoc[]
 
 Get operation for fetching a single specific object.
 
-.Get Default Administrator User with REST
+.Get Role object with REST
 
 include::../operations/examples/raw/get-role-end-user.adoc[]
 
@@ -72,15 +72,28 @@ include::../operations/examples/raw/modify-id-generate.adoc[]
 
 == JSON Example
 
-Example output of information regarding a specific role object. Metadata is usually a
-part of the output, yet it was removed for the purpose of the example.
+Example output of information regarding a specific object. Some data vas omitted to simplify the example.
 
 .Show JSON Example
 [%collapsible]
 ====
 [source, http]
 ----
-TODO
+{
+  "role" : {
+    "oid" : "00000000-0000-0000-0000-000000000008",
+    "version" : "1",
+    "name" : "End user",
+    "description" : "Role authorizing end users to log in, change their passwords and review assigned accounts. Note: This role definition is just an example. It should be tailored for each specific deployment.",
+    "metadata" : {},
+    "operationExecution" : {},
+    "iteration" : 0,
+    "iterationToken" : "",
+    "activation" : {},
+    "authorization" : [ {}, {} ],
+    "adminGuiConfiguration" : {}
+  }
+}
 ----
 ====
 
