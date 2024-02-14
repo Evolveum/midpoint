@@ -7,12 +7,17 @@
 
 package com.evolveum.midpoint.common.secrets;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentVariablesSecretsProviderType;
 
 public class EnvironmentVariablesSecretsProvider extends SecretsProviderImpl<EnvironmentVariablesSecretsProviderType> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(EnvironmentVariablesSecretsProvider.class);
 
     public EnvironmentVariablesSecretsProvider(EnvironmentVariablesSecretsProviderType configuration) {
         super(configuration);
@@ -22,11 +27,13 @@ public class EnvironmentVariablesSecretsProvider extends SecretsProviderImpl<Env
     protected <ST> ST resolveSecret(@NotNull String key, @NotNull Class<ST> type) throws EncryptionException {
         String prefix = getConfiguration().getPrefix();
 
-        if (prefix != null && !key.startsWith(prefix)) {
-            throw new EncryptionException("Key not available in provider " + getIdentifier() + ": " + key);
+        String finalKey = StringUtils.isNotEmpty(prefix) ? prefix + key : key;
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Reading secret from environment variable {}", finalKey);
         }
 
-        String value = System.getenv(key);
+        String value = System.getenv(finalKey);
 
         return mapValue(value, type);
     }

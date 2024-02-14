@@ -42,7 +42,7 @@ public class SecretProviderManagerTest {
 
         SecretsProvidersType providers = new SecretsProvidersType();
         providers.setDockerSecretsProvider(docker);
-        providers.setEnvironmentVariablesSecretsProvider(env);
+        providers.getEnvironmentVariablesSecretsProvider().add(env);
         providers.getPropertiesSecretsProvider().add(properties);
 
         Map<String, SecretsProvider<?>> map = new ConcurrentHashMap<>();
