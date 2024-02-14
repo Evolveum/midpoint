@@ -151,8 +151,8 @@
         <url>https://github.com/Evolveum/midpoint.git</url>
     </scm>
     <issueManagement>
-        <system>Atlassian JIRA</system>
-        <url>https://jira.evolveum.com/browse/MID</url>
+        <system>OpenProject</system>
+        <url>https://support.evolveum.com/</url>
     </issueManagement>
 
     <distributionManagement>
@@ -1701,7 +1701,7 @@
                             <SCM-Revision>${git.describe}</SCM-Revision>
                             <Organization>Evolveum</Organization>
                             <Organization-URL>https://www.evolveum.com</Organization-URL>
-                            <Bugtracking-System>https://jira.evolveum.com</Bugtracking-System>
+                            <Bugtracking-System>https://support.evolveum.com</Bugtracking-System>
                             <License>dual-licensed under the Apache License 2.0 and European Union Public License</License>
                             <License-URL>https://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
                         </manifestEntries>
