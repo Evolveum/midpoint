@@ -83,13 +83,12 @@ include::../operations/examples/raw/user-pwd-generate.adoc[]
 
 1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-user/[Create User]
 2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get user based on his unique identificator]
-3. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get own profile information]
+3. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get Users Data with Direct and Indirect assignments]
 
 
 == UserType JSON Example
 
-Example output of information regarding a specific user object. Metadata is usually a part of
-the output, yet it was removed for the purpose of the example.
+Example output of information regarding a specific object. Some data vas omitted to simplify the example.
 
 .Show JSON Example
 [%collapsible]

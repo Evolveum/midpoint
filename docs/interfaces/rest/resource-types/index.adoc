@@ -1,5 +1,5 @@
 = REST Endpoints
-:page-nav-title: REST Endpoint
+:page-nav-title: REST Endpoints
 :page-display-order: 100
 :page-toc: top
 
