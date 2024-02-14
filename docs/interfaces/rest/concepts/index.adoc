@@ -1,5 +1,5 @@
-= REST API Concepts
-:page-nav-title: REST API Concepts
+= API Concepts
+:page-nav-title: API Concepts
 :page-display-order: 100
 
 == Description
