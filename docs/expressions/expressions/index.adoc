@@ -447,7 +447,10 @@ Possible values are `inRepository`, `onResource`, and `onResourceIfNeeded`.
                     <expression>
                          <associationTargetSearch>
                             <filter>
-                                <q:text>attributes/dn = "cn=library,ou=groups,dc=example,dc=com"</q:text>
+                                <q:equal>
+                                    <q:path>attributes/ri:dn</q:path>
+                                    <q:value>cn=library,ou=groups,dc=example,dc=com</q:value>
+                                </q:equal>
                             </filter>
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>
@@ -509,10 +512,6 @@ Otherwise, the association from link won't be able to work properly.
     </inducement>
 </role>
 ----
-
-=== Assignment From Association
-
-TODO
 
 === Sequential Value
 
