@@ -259,7 +259,12 @@ while read line; do
   [ "${_key: -5}" = ".FILE" ] && _key="${_key::$((${#_key} - 5))}_FILE"
   ###
 
-  echo "Processing variable (UNMAP) ... ${_key} .:. ${_val}" >&2
+  if [ "${_key: -7}" = "assword" ]
+  then
+    echo "Processing variable (UNMAP) ... ${_key} .:. *****" >&2
+  else
+    echo "Processing variable (UNMAP) ... ${_key} .:. ${_val}" >&2
+  fi
 
   JAVA_OPTS="$(echo -n "${JAVA_OPTS:-}" | sed "s/ -D${_key}=\"[^\"]*\"//g;s/ -D${_key}=[^[:space:]]*//g")"
 done < <(env | grep "^${ENV_UNMAP_PREFIX}")
