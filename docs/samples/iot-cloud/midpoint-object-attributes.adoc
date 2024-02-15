@@ -135,7 +135,7 @@ These resources have majority of items the same:
 * synchronization.
 
 They are stored in _ThingSpeak (master resource)_ object.
-We would need to use Resource template feature (link:https://jira.evolveum.com/browse/MID-1653[MID-1653]). Until it is ready, however, we do a small workaround by creating resource object by simply copying the "master".
+We would need to use Resource template feature (bug:MID-1653[]). Until it is ready, however, we do a small workaround by creating resource object by simply copying the "master".
 Properties specific for each resource copy are:
 
 [%autowidth]

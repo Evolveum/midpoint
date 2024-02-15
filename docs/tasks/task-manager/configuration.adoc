@@ -175,7 +175,7 @@ Available since midPoint 4.1.
 Specified in milliseconds.
 Increase if you experience "This scheduler instance (...) is still active but was recovered by another instance in the cluster.
 This may cause inconsistent behavior." messages and you are sure that clocks in your cluster are correctly synchronized.
-See link:https://jira.evolveum.com/browse/MID-5500[MID-5500]. Available since midPoint 4.1.
+See bug:MID-5500[]. Available since midPoint 4.1.
 | 7500
 
 

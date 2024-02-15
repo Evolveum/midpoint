@@ -41,7 +41,7 @@ For more information about midPoint identity manager please go to:
 https://midpoint.evolveum.com/
 
 For bugtracking system please go to:
-https://jira.evolveum.com/
+https://support.evolveum.com/
 
 MidPoint source code is maintained on github:
 https://github.com/Evolveum/midpoint
