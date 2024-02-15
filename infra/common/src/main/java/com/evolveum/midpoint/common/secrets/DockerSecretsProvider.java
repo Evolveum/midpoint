@@ -8,67 +8,24 @@
 package com.evolveum.midpoint.common.secrets;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DockerSecretsProviderType;
 
-public class DockerSecretsProvider extends SecretsProviderImpl<DockerSecretsProviderType> {
+public class DockerSecretsProvider extends ContainerSecretsProvider<DockerSecretsProviderType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(DockerSecretsProvider.class);
+    private static final File PARENT_DIRECTORY_WINDOWS = new File("C:\\ProgramData\\Docker\\secrets");
 
-    private Charset charset;
+    private static final File PARENT_DIRECTORY_LINUX = new File("/run/secrets");
 
     public DockerSecretsProvider(DockerSecretsProviderType configuration) {
         super(configuration);
     }
 
     @Override
-    public void initialize() {
-        super.initialize();
-
-        DockerSecretsProviderType config = getConfiguration();
-        charset = config.getCharset() != null ? Charset.forName(config.getCharset()) : StandardCharsets.UTF_8;
-    }
-
-    @Override
-    protected <ST> ST resolveSecret(@NotNull String key, @NotNull Class<ST> type) throws EncryptionException {
-        File parent;
-        if (SystemUtils.IS_OS_WINDOWS) {
-            parent = new File("C:\\ProgramData\\Docker\\secrets");
-        } else {
-            parent = new File("/run/secrets");
-        }
-
-        // to avoid path traversal
-        String filename = new File(key).getName();
-        File valueFile = new File(parent, filename);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Reading secret from {}", valueFile.getAbsolutePath());
-        }
-
-        ST value = null;
-        if (valueFile.exists() && valueFile.isFile() && valueFile.canRead()) {
-            try (InputStream is = new FileInputStream(valueFile)) {
-                String content = IOUtils.toString(is, charset);
-
-                value = mapValue(content, type);
-            } catch (IOException ex) {
-                throw new EncryptionException("Couldn't read secret from " + valueFile.getAbsolutePath(), ex);
-            }
-        }
-
-        return value;
+    protected @NotNull File getParentDirectory() {
+        return SystemUtils.IS_OS_WINDOWS ? PARENT_DIRECTORY_WINDOWS : PARENT_DIRECTORY_LINUX;
     }
 }

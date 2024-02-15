@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.common;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
 import com.evolveum.midpoint.prism.crypto.SecretsResolver;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -42,7 +44,7 @@ public class SecretProviderManagerTest {
 
         SecretsProvidersType providers = new SecretsProvidersType();
         providers.setDockerSecretsProvider(docker);
-        providers.setEnvironmentVariablesSecretsProvider(env);
+        providers.getEnvironmentVariablesSecretsProvider().add(env);
         providers.getPropertiesSecretsProvider().add(properties);
 
         Map<String, SecretsProvider<?>> map = new ConcurrentHashMap<>();
@@ -62,6 +64,16 @@ public class SecretProviderManagerTest {
             @Override
             public @NotNull List<SecretsProvider<?>> getSecretsProviders() {
                 return new ArrayList<>(map.values());
+            }
+
+            @Override
+            public @NotNull String resolveSecretString(@NotNull String provider, @NotNull String key) throws EncryptionException {
+                throw new UnsupportedOperationException("Not implemented");
+            }
+
+            @Override
+            public @NotNull ByteBuffer resolveSecretBinary(@NotNull String provider, @NotNull String key) throws EncryptionException {
+                throw new UnsupportedOperationException("Not implemented");
             }
         };
 

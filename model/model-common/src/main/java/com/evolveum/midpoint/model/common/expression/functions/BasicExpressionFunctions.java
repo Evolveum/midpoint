@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.common.expression.functions;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -35,6 +36,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.SecretsResolver;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -1041,6 +1043,30 @@ public class BasicExpressionFunctions {
     public ProtectedStringType encrypt(String string) {
         try {
             return protector.encryptString(string);
+        } catch (EncryptionException e) {
+            throw new SystemException(e.getMessage(), e);
+        }
+    }
+
+    public String resolveSecretString(@NotNull String provider, @NotNull String key) {
+        if (!(protector instanceof SecretsResolver sr)) {
+            throw new SystemException("Current protector instance can't resolve secrets");
+        }
+
+        try {
+            return sr.resolveSecretString(provider, key);
+        } catch (EncryptionException e) {
+            throw new SystemException(e.getMessage(), e);
+        }
+    }
+
+    public ByteBuffer resolveSecretBinary(@NotNull String provider, @NotNull String key) {
+        if (!(protector instanceof SecretsResolver sr)) {
+            throw new SystemException("Current protector instance can't resolve secrets");
+        }
+
+        try {
+            return sr.resolveSecretBinary(provider, key);
         } catch (EncryptionException e) {
             throw new SystemException(e.getMessage(), e);
         }
