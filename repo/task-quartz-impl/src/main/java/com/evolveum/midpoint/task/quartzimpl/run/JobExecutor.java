@@ -265,7 +265,7 @@ public class JobExecutor implements InterruptableJob {
 
     private void checkLocalSchedulerRunning(OperationResult result) throws StopJobException {
         // if task manager is stopping or stopped, stop this task immediately
-        // this can occur in rare situations, see https://jira.evolveum.com/browse/MID-1167
+        // this can occur in rare situations, see https://support.evolveum.com/wp/1167
         if (beans.localScheduler.isRunningChecked()) {
             return;
         }
