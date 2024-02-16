@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
@@ -40,7 +41,11 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
 
 
     protected void initLayout() {
-        add(createChoiceFragment(createTemplateChoicePanel()));
+        if (isStartWithChoiceTemplate()) {
+            add(createChoiceFragment(createTemplateChoicePanel()));
+        } else {
+            add(createWizardFragment(new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps()))));
+        }
     }
 
     private Component createTemplateChoicePanel() {
@@ -89,6 +94,21 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 super.onSubmitPerformed(target);
                 BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                getHelper().onExitPerformed(target);
+            }
+
+            @Override
+            protected boolean isExitButtonVisible() {
+                return !isStartWithChoiceTemplate();
+            }
+
+            @Override
+            public VisibleEnableBehaviour getBackBehaviour() {
+                return new VisibleEnableBehaviour(BasicResourceWizardPanel.this::isStartWithChoiceTemplate);
             }
         });
 

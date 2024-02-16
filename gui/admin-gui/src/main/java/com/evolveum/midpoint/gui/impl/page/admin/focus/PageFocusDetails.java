@@ -65,10 +65,6 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         super();
     }
 
-    public PageFocusDetails(PrismObject<F> focus, List<BusinessRoleDto> patternDeltas) {
-        super(focus, patternDeltas);
-    }
-
     public PageFocusDetails(PageParameters pageParameters) {
         super(pageParameters);
     }

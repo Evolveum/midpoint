@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.commons.collections4.CollectionUtils;
@@ -520,6 +521,22 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     protected String getConfirmMessageKeyForSingleObject() {
         throw new UnsupportedOperationException("getConfirmMessageKeyForSingleObject() not implemented for " + getClass());
+    }
+
+    @Override
+    protected void addBasicActions(List<InlineMenuItem> menuItems) {
+        if (!isDuplicationSupported()) {
+            return;
+        }
+
+        DuplicationProcessHelper.addDuplicationActionForObject(menuItems, getPageBase());
+    }
+
+    /**
+     * Define whether duplication action for item of table will be added to item menu.
+     */
+    protected boolean isDuplicationSupported() {
+        return isCreateNewObjectVisible();
     }
 
     public InlineMenuItem createDeleteInlineMenu() {

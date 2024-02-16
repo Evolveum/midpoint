@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.duplication.ContainerableDuplicateResolver;
+
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -36,7 +41,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  */
 @Component
-public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismContainerWrapperFactoryImpl<O> implements PrismObjectWrapperFactory<O> {
+public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismContainerWrapperFactoryImpl<O> implements ContainerableDuplicateResolver<O>, PrismObjectWrapperFactory<O> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismObjectWrapperFactoryImpl.class);
 
@@ -223,7 +228,8 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     @Override
     @PostConstruct
     public void register() {
-        getRegistry().addToRegistry(this);
+        getRegistry().addToRegistry((ItemWrapperFactory) this);
+        getRegistry().addToRegistry((ContainerableDuplicateResolver) this);
     }
 
     @Override
@@ -231,4 +237,16 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         return 100;
     }
 
+    @Override
+    public O duplicateObject(O originalObject) {
+        PrismObject<? extends ObjectType> duplicatedObject = DuplicationProcessHelper.duplicateObjectDefault(originalObject.asPrismObject());
+        O duplicatedBean = (O) duplicatedObject.asObjectable();
+        String copyOf = LocalizationUtil.translate("DuplicationProcessHelper.copyOf", new Object[]{originalObject.getName().getOrig()});
+
+        duplicatedBean
+                .name(copyOf)
+                .description(copyOf +
+                        (originalObject.getDescription() == null ? null : (System.lineSeparator() + originalObject.getDescription())));
+        return duplicatedBean;
+    }
 }

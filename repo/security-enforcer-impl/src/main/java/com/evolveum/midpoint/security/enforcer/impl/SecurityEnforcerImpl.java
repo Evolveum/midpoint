@@ -152,12 +152,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     @Override
     public @NotNull <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(
-            @NotNull PrismObject<O> object, @NotNull Options options,
+            @NotNull PrismObject<O> object, boolean fullInformationAvailable, @NotNull Options options,
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         return new CompileConstraintsOperation<O>(
-                getMidPointPrincipal(), options, beans, CompileConstraintsOptions.create(), task)
+                getMidPointPrincipal(),
+                options,
+                beans,
+                CompileConstraintsOptions.create().withFullInformationAvailable(fullInformationAvailable),
+                task)
                 .compileSecurityConstraints(object, result);
     }
 

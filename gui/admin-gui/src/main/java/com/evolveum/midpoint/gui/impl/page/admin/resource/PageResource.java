@@ -9,9 +9,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -81,13 +83,24 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     protected boolean isApplicableTemplate() {
-        return true;
+        return false;
     }
 
-    protected WebMarkupContainer createTemplatePanel(String id) {
-        setShowedByWizard(true);
+    @Override
+    protected boolean canShowWizard() {
+        return isAdd();
+    }
+
+    @Override
+    protected DetailsFragment createWizardFragment() {
         getObjectDetailsModels().reset();
-        return new ResourceWizardPanel(id, createObjectWizardPanelHelper());
+        return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageResource.this) {
+            @Override
+            protected void initFragmentLayout() {
+                add(new ResourceWizardPanel(ID_TEMPLATE, createObjectWizardPanelHelper()));
+            }
+        };
+
     }
 
     @Override
@@ -151,8 +164,12 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public ResourceObjectTypeWizardPanel showObjectTypeWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        return showObjectTypeWizard(null, target, pathToValue);
+    }
+
+    public ResourceObjectTypeWizardPanel showObjectTypeWizard(PrismContainerValue<ResourceObjectTypeDefinitionType> value, AjaxRequestTarget target, ItemPath pathToValue) {
         ResourceObjectTypeWizardPanel wizard =
-                showWizard(target, pathToValue, ResourceObjectTypeWizardPanel.class);
+                showWizard(value, target, pathToValue, ResourceObjectTypeWizardPanel.class);
         return wizard;
     }
 
@@ -201,6 +218,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         String displayName = GuiDisplayNameUtil.getDisplayName(objectType);
         IModel<String> breadcrumbLabelModel = Model.of(displayName);
 
-            breadcrumbs.add(0, new Breadcrumb(breadcrumbLabelModel));
+        breadcrumbs.add(0, new Breadcrumb(breadcrumbLabelModel));
     }
 }

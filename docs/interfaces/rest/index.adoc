@@ -9,6 +9,8 @@
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
 :page-toc: top
+:page-keywords: [ 'rest', 'restful', 'api', 'web', 'service', 'interface', 'ui', 'operations' ]
+
 
 //TODO ask about the version
 
@@ -27,11 +29,11 @@ access and interact with the data present in your midPoint instance.
 The REST api gives you a feature rich toolset with which you can operate over different
 *web resources*, these are represented as specific endpoints to which you send your operation request.
 
-There are many possibilities which we provide in regard to the web resources you can access. So many
+There are many possibilities which we provide in regard to the endpoints you can access. So many
 that we have a dedicated page for them.
 
-.To display a *list of the types of resources* please have a look at:
-xref:/midpoint/reference/interfaces/rest/resource-types/[Web Resource Types]
+.To display a *list of REST endpoints* please have a look at:
+xref:/midpoint/reference/interfaces/rest/resource-types/[REST Endpoints]
 
 .For a *more technical description* of our REST api please have a look here:
 xref:/midpoint/reference/interfaces/rest/concepts/[Concepts]

@@ -1,0 +1,30 @@
+---
+layout: page
+title: Params (midPoint reference)
+visibility: hidden
+---
+<p>
+    Page that shows all parameters and variables available for the page in Jekyll.
+</p>
+
+<h2>Page</h2>
+
+<table class="tableblock frame-all grid-all fit-content">
+
+    <thead>
+    <tr>
+        <th class="tableblock halign-left valign-top">Key</th>
+        <th class="tableblock halign-left valign-top">Value</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for item in page %}
+    <tr>
+        <td class="tableblock halign-left valign-top">{{ item[0] }}</td>
+        <td class="tableblock halign-left valign-top">{{ item[1] }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+
+</table>

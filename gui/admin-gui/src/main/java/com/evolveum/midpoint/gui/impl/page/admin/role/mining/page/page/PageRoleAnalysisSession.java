@@ -27,6 +27,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
@@ -75,25 +76,18 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     private static final String DOT_CLASS = PageRoleAnalysisSession.class.getName() + ".";
     private static final String OP_DELETE_CLEANUP = DOT_CLASS + "deleteCleanup";
     private static final String OP_PERFORM_CLUSTERING = DOT_CLASS + "performClustering";
-    public static final String PARAM_IS_WIZARD = "isWizard";
-    boolean isWizardPanel = false;
     private static final Trace LOGGER = TraceManager.getTrace(PageRoleAnalysisSession.class);
-
-    public boolean isWizardPanel() {
-        StringValue stringValue = getPageParameters().get(PARAM_IS_WIZARD);
-        if (stringValue != null) {
-            if ("true".equalsIgnoreCase(stringValue.toString())
-                    || "false".equalsIgnoreCase(stringValue.toString())) {
-                this.isWizardPanel = getPageParameters().get(PARAM_IS_WIZARD).toBoolean();
-            } else {
-                getPageParameters().remove(PARAM_IS_WIZARD);
-            }
-        }
-        return isWizardPanel;
-    }
 
     public PageRoleAnalysisSession() {
         super();
+    }
+
+    public PageRoleAnalysisSession(PageParameters pageParameters) {
+        super(pageParameters);
+    }
+
+    public PageRoleAnalysisSession(PrismObject<RoleAnalysisSessionType> roleAnalysisSession) {
+        super(roleAnalysisSession);
     }
 
     @Override
@@ -277,8 +271,9 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         return createStringResource("RoleMining.page.cluster.title");
     }
 
-    private boolean canShowWizard() {
-        return isWizardPanel();
+    @Override
+    protected boolean canShowWizard() {
+        return !isEditObject();
     }
 
     protected DetailsFragment createDetailsFragment() {
@@ -290,12 +285,6 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                             createStringResource("RoleAnalysis.menu.nonNativeRepositoryWarning")));
                 }
             };
-        }
-
-        if (canShowWizard()) {
-            setShowedByWizard(true);
-            getObjectDetailsModels().reset();
-            return createRoleWizardFragment(RoleAnalysisSessionWizardPanel.class);
         }
 
         return super.createDetailsFragment();
@@ -362,19 +351,12 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         ((PageBase) getPage()).navigateToNext(PageRoleAnalysis.class);
     }
 
-    private DetailsFragment createRoleWizardFragment(Class<? extends AbstractWizardPanel> clazz) {
-
+    @Override
+    protected DetailsFragment createWizardFragment() {
         return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageRoleAnalysisSession.this) {
             @Override
             protected void initFragmentLayout() {
-                try {
-                    Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
-                    AbstractWizardPanel wizard = constructor.newInstance(ID_TEMPLATE, createObjectWizardPanelHelper());
-                    add(wizard);
-                } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
-                        InvocationTargetException ignored) {
-
-                }
+                add(new RoleAnalysisSessionWizardPanel(ID_TEMPLATE, createObjectWizardPanelHelper()));
             }
         };
 

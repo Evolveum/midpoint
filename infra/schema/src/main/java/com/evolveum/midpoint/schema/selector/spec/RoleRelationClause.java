@@ -21,10 +21,7 @@ import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
 import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleRelationObjectSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +43,11 @@ public class RoleRelationClause extends SelectorClause {
 
     static RoleRelationClause of(@NotNull RoleRelationObjectSpecificationType bean) {
         return new RoleRelationClause(bean);
+    }
+
+    @Override
+    public boolean requiresFullInformation() {
+        return true;
     }
 
     @Override
@@ -86,10 +88,10 @@ public class RoleRelationClause extends SelectorClause {
             return true;
         }
         if (!BooleanUtils.isFalse(bean.isIncludeMembers())) {
-            if (!(object instanceof FocusType)) {
+            if (!(object instanceof AssignmentHolderType assignmentHolder)) {
                 return false;
             }
-            for (ObjectReferenceType objectRoleMembershipRef : ((FocusType) object).getRoleMembershipRef()) {
+            for (ObjectReferenceType objectRoleMembershipRef : assignmentHolder.getRoleMembershipRef()) {
                 if (!subjectRoleMembershipRef.getOid().equals(objectRoleMembershipRef.getOid())) {
                     continue;
                 }

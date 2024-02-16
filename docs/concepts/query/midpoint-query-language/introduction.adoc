@@ -3,8 +3,6 @@
 :page-display-order: 100
 :page-toc: top
 :toclevels: 2
-:sectnums:
-:sectnumlevels: 3
 
 
 This document provides introduction to the *midPoint Query Language*.

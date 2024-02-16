@@ -1,5 +1,5 @@
-= Object Collection Type Web Resource
-:page-nav-title: Object Collection Resource
+= Object Collection Type REST Endpoint
+:page-nav-title: Object Collection
 :page-display-order: 2400
 :page-toc: top
 

@@ -7,18 +7,14 @@
 package com.evolveum.midpoint.model.impl.trigger;
 
 import jakarta.annotation.PostConstruct;
-
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.impl.lens.Clockwork;
-import com.evolveum.midpoint.model.impl.lens.ContextFactory;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
+import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -41,9 +37,7 @@ public class RecomputeTriggerHandler implements SingleTriggerHandler {
     private static final Trace LOGGER = TraceManager.getTrace(RecomputeTriggerHandler.class);
 
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
-    @Autowired private Clockwork clockwork;
-    @Autowired private ContextFactory contextFactory;
-    @Autowired private PrismContext prismContext;
+    @Autowired private ModelController modelController;
 
     @PostConstruct
     private void initialize() {
@@ -55,13 +49,9 @@ public class RecomputeTriggerHandler implements SingleTriggerHandler {
             @NotNull RunningTask task, @NotNull OperationResult result) {
         try {
 
-            LOGGER.trace("Recomputing {}", object);
             // Reconcile option used for compatibility. TODO: do we need it?
-            LensContext<O> lensContext = contextFactory.createRecomputeContext(object,
-                    ModelExecuteOptions.create().reconcile(), task, result);
-            LOGGER.trace("Recomputing of {}: context:\n{}", object, lensContext.debugDumpLazily());
-            clockwork.run(lensContext, task, result);
-            LOGGER.trace("Recomputing of {}: {}", object, result.getStatus());
+            ModelExecuteOptions options = ModelExecuteOptions.create().reconcile();
+            modelController.executeRecompute(object, options, task, result);
 
         } catch (CommonException | RuntimeException | Error  e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't recompute object {}", e, object);

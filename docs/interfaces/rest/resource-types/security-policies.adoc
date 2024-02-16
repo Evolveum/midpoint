@@ -1,5 +1,5 @@
-= Security Policy Type Web Resource
-:page-nav-title: Security Policy Resource
+= Security Policy Type REST Endpoint
+:page-nav-title: Security Policy
 :page-display-order: 2900
 :page-toc: top
 

@@ -30,8 +30,7 @@ If the mapping is strong then it will enforce consistency of `fullName` property
 
 == Examples
 
-You can check defined templates for a definition through GUI via Configuration->Repository objects->Object template (from List objects).
-Also advanced resources samples from midpoint development master branch (link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/objects[here]) contain examples of templates used in a process of synchronization.
+You can check defined templates for a definition through GUI or examine advanced resources samples from midpoint development master branch (link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/objects[here]), which contain examples of templates used in a process of synchronization.
 
 The user template object definition could look like this one:
 
@@ -54,21 +53,20 @@ The user template object definition could look like this one:
                        </description>
 			<strength>weak</strength>
 			<source>
-				<path>$user/givenName</path>
+				<path>givenName</path>
 			</source>
 			<source>
-				<path>$user/familyName</path>
+				<path>familyName</path>
 			</source>
 			<expression>
 				<script>
-					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
 					<code>
 						givenName + ' ' + familyName
 					</code>
 				</script>
 			</expression>
 			<target>
-				<path>$user/fullName</path>
+				<path>fullName</path>
 			</target>
 		</mapping>
 
@@ -89,7 +87,7 @@ The user template object definition could look like this one:
 
 == Global User Template
 
-A user template may be applied globally by including the following snippet in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration]*just after the "logging" element*:
+A user template may be applied globally by including the following snippet in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration] *just after the "logging" element*:
 
 [source,xml]
 ----
@@ -97,7 +95,6 @@ A user template may be applied globally by including the following snippet in xr
 ----
 
 The system configuration object is accessible through GUI via Configuration->Repository objects->System configuration(from List objects).
-Templates available for use could be listed in similar way Configuration->Repository objects->Object template(from List objects).
 
 
 == Includes
@@ -121,8 +118,8 @@ The include is a simple `includeRef` clause at the beginning of a template defin
 == Limitations and FAQ
 
 Object template works just with a single object which is typically a user.
-Therefore it only has the data from this object and no other objects.
-It means that variables such as `$account` cannot be used in an object template.
+Therefore, it only has the data from this object and no other objects.
+It means that variables such as `$projection` cannot be used in an object template.
 The reason for this is the link:http://en.wikipedia.org/wiki/Separation_of_concerns[separation of concerns] principle.
 We try to design each component or mechanism in midPoint to do a single thing.
 This allows us a significant development advantage (debugging, testing) and also provides a better code reusability.

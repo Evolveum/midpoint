@@ -1,5 +1,5 @@
-= Web Resource Types
-:page-nav-title: Web Resource Types
+= REST Endpoints
+:page-nav-title: REST Endpoints
 :page-display-order: 100
 :page-toc: top
 

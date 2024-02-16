@@ -58,6 +58,7 @@ class ObjectSelectorMatcher {
                         null,
                         null,
                         new ClauseProcessingContextDescription.Default(),
-                        NO_DELEGATOR));
+                        NO_DELEGATOR,
+                        true));
     }
 }

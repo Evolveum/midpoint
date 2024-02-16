@@ -17,20 +17,20 @@ xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authent
 .Get default administrator object
 [source,bash]
 ----
+# Authenticating with the credentials "administrator" and password "5ecr3t" on a localhost instance running on port 8080
 curl --user administrator:5ecr3t -X GET http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002
 ----
 
 .Get Object in JSON format
 [source,bash]
 ----
+# Authenticating with the credentials "administrator" and password "5ecr3t" on a localhost instance running on port 8080
 curl --user administrator:5ecr3t -H "Accept: application/json" -X GET http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002
 ----
 
 .Get Object in JSON format with the Raw option set to true
-[source,bash]
-----
+
 include::../examples/raw/get-user-administrator.adoc[]
-----
 
 == See Also
 

@@ -15,11 +15,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,7 +26,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
@@ -90,33 +84,26 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private boolean isShowedByWizard;
 
     public AbstractPageObjectDetails() {
-        this(null, null, null);
+        this(null, null);
     }
 
     public AbstractPageObjectDetails(PageParameters pageParameters) {
-        this(pageParameters, null, null);
+        this(pageParameters, null);
     }
 
     public AbstractPageObjectDetails(PrismObject<O> object) {
-        this(null, object, null);
+        this(null, object);
     }
 
-    private AbstractPageObjectDetails(PageParameters params, PrismObject<O> object, List<BusinessRoleDto> patternDeltas) {
+    protected AbstractPageObjectDetails(PageParameters params, PrismObject<O> object) {
         super(params);
-        isAdd = (params == null || params.isEmpty()) && object == null;
+        isAdd = (params == null || params.isEmpty()) && (object == null || object.getOid() == null);
         objectDetailsModels = createObjectDetailsModels(object);
 
-//        if (patternDeltas != null && !patternDeltas.isEmpty()) {
-//            objectDetailsModels.addPatternDeltas(patternDeltas);
-//        }
     }
 
     protected void postProcessModel(ODM objectDetailsModels) {
 
-    }
-
-    public AbstractPageObjectDetails(PrismObject<O> object, List<BusinessRoleDto> patternDeltas) {
-        this(null, object, patternDeltas);
     }
 
     @Override

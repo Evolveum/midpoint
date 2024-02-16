@@ -111,11 +111,8 @@ public class RecomputationActivityHandler
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
                 throws CommonException {
-            LensContext<FocusType> syncContext = getActivityHandler().contextFactory.createRecomputeContext(
+            getActivityHandler().modelController.executeRecompute(
                     object.asPrismObject(), getWorkDefinition().getExecutionOptions(), workerTask, result);
-            LOGGER.trace("Recomputation of object {}: context:\n{}", object, syncContext.debugDumpLazily());
-
-            getActivityHandler().clockwork.run(syncContext, workerTask, result);
             LOGGER.trace("Recomputation of object {}: {}", object, result.getStatus());
             return true;
         }

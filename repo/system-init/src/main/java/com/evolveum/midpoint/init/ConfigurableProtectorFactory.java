@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.impl.crypto.KeyStoreBasedProtectorImpl;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -87,7 +86,7 @@ public class ConfigurableProtectorFactory {
     public Protector getProtector() {
         // We cannot use KeyStoreBasedProtectorBuilder here, because there is no prism context yet.
         // This means that system-init will depend on prism-impl.
-        KeyStoreBasedProtectorImpl protector = new KeyStoreBasedProtectorImpl();
+        ConfigurableProtector protector = new ConfigurableProtector();
         protector.setEncryptionKeyAlias(protectorConfig.getEncryptionKeyAlias());
         protector.setKeyStorePassword(protectorConfig.getKeyStorePassword());
         protector.setKeyStorePath(protectorConfig.getKeyStorePath());

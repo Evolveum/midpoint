@@ -38,6 +38,11 @@ public class ValueAuthorizationParameters<V extends PrismValue> implements Abstr
     }
 
     @Override
+    public boolean isFullInformationAvailable() {
+        return true;
+    }
+
+    @Override
     public void shortDump(StringBuilder sb) {
         sb.append("value='").append(MiscUtil.getDiagInfo(value, 100)).append('\'');
     }

@@ -198,19 +198,14 @@ public final class DetailsPageUtil {
         Constructor<?> constructor;
         try {
             PageBase page;
-            if (ResourceType.class.equals(obj.getCompileTimeClass())) {
-                constructor = newObjectPageClass.getConstructor(PageParameters.class);
-                page = (PageBase) constructor.newInstance(new PageParameters());
+            if (isNewDesignEnabled()) {
+                constructor = newObjectPageClass.getConstructor(PrismObject.class);
+                page = (PageBase) constructor.newInstance(obj);
             } else {
-                if (isNewDesignEnabled()) {
-                    constructor = newObjectPageClass.getConstructor(PrismObject.class);
-                    page = (PageBase) constructor.newInstance(obj);
-                } else {
-                    constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
-                    page = (PageBase) constructor.newInstance(obj, isNewObject);
-                }
-
+                constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
+                page = (PageBase) constructor.newInstance(obj, isNewObject);
             }
+
             if (component.getPage() instanceof PageBase pb) {
                 // this way we have correct breadcrumbs
                 pb.navigateToNext(page);

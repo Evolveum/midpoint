@@ -1,5 +1,5 @@
-= User Type Web Resource
-:page-nav-title: User Type Resource
+= User Type REST Endpoint
+:page-nav-title: User
 :page-display-order: 200
 :page-toc: top
 
@@ -19,43 +19,76 @@ users/
 The User web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
 present in midPoint. This is apparent in the operations which are available for this type of object.
 
-[cols="a"]
-|===
-|.Create
+
+=== Create User Object
 
 include::../operations/examples/raw/create-user-jack.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
 
-|.Get
+=== Get User Object
+
+Get operation for fetching a single specific object.
+
 .Get Default Administrator User with REST
-[source, http]
-----
+
 include::../operations/examples/raw/get-user-administrator.adoc[]
-----
+
 - xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
-|.Search
+
+=== Search for User Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all-users.adoc[]
+
+include::../operations/examples/raw/search-all.adoc[]
+
 - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
-|.Modify
+
+=== Modify User Objects
+
+
+include::../operations/examples/raw/modify-attr-user.adoc[]
+
+include::../operations/examples/raw/modify-attr.adoc[]
+
 - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
-|.Delete
+
+=== Delete User Objects
+
+Object deletion.
+
+include::../operations/examples/raw/delete-user.adoc[]
+
 - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
-|.User specific
+
+=== User Object Specific Operations
+
+A set of operations specific for the User REST objects. i.e. password reset and others.
+
+include::../operations/examples/raw/user-pwd-reset.adoc[]
+
 - xref:/midpoint/reference/interfaces/rest/operations/user-specific-op-rest/[User specific Operations]
-|.Generate and Validate
+
+=== Generate and Validate operations for User Objects
+
+Operations to generate or validate values, here we have an example of a simple password generate use-case.
+
+include::../operations/examples/raw/user-pwd-generate.adoc[]
+
 - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
-|===
+
 == Common Use-case Examples
 
-1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-object/[Create object]
+1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-user/[Create User]
 2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get user based on his unique identificator]
-3. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get own profile information]
+3. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get Users Data with Direct and Indirect assignments]
 
 
-== JSON Example
+== UserType JSON Example
 
-Example output of information regarding a specific user object. Metadata is usually a part of
-the output, yet it was removed for the purpose of the example.
+Example output of information regarding a specific object. Some data vas omitted to simplify the example.
 
 .Show JSON Example
 [%collapsible]

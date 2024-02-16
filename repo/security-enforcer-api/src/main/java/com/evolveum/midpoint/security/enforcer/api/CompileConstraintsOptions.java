@@ -22,15 +22,26 @@ public class CompileConstraintsOptions {
      */
     private final boolean skipSubObjectSelectors;
 
+    /**
+     * Is full information available?
+     *
+     * TODO This is maybe not the right place; we should probably have a variant of {@link AuthorizationParameters} here.
+     *
+     * @see AuthorizationParameters#fullInformationAvailable
+     */
+    private final boolean fullInformationAvailable;
+
     private static final CompileConstraintsOptions DEFAULT = new CompileConstraintsOptions();
     private static final CompileConstraintsOptions SKIP_SUB_OBJECT_SELECTORS = DEFAULT.withSkipSubObjectSelectors();
 
     private CompileConstraintsOptions() {
         this.skipSubObjectSelectors = false;
+        this.fullInformationAvailable = true;
     }
 
-    private CompileConstraintsOptions(boolean skipSubObjectSelectors) {
+    private CompileConstraintsOptions(boolean skipSubObjectSelectors, boolean fullInformationAvailable) {
         this.skipSubObjectSelectors = skipSubObjectSelectors;
+        this.fullInformationAvailable = fullInformationAvailable;
     }
 
     public static CompileConstraintsOptions create() {
@@ -45,8 +56,16 @@ public class CompileConstraintsOptions {
         return skipSubObjectSelectors;
     }
 
+    public boolean isFullInformationAvailable() {
+        return fullInformationAvailable;
+    }
+
     @SuppressWarnings("WeakerAccess")
     public CompileConstraintsOptions withSkipSubObjectSelectors() {
-        return new CompileConstraintsOptions(true);
+        return new CompileConstraintsOptions(true, fullInformationAvailable);
+    }
+
+    public CompileConstraintsOptions withFullInformationAvailable(boolean fullInformationAvailable) {
+        return new CompileConstraintsOptions(skipSubObjectSelectors, fullInformationAvailable);
     }
 }

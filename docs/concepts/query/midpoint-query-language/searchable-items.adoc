@@ -1,265 +1,1604 @@
-= Searchable Items in midPoint
-:page-nav-title: Searchable items
+= Searchable Elements in midPoint
+:page-nav-title: Searchable elements
 :page-display-order: 400
 
-This document provides list of searchable items (elements) in midPoint that can be used while querying data with _MidPoint Query Language_.
+
+This document provides list of searchable elements (items) in midPoint that can be used while querying data with _MidPoint Query Language_.
 
 It also provides easily searchable translation table between displayName that users can see in GUI and the item name that is being used in queries.
 
 NOTE: Column Display Name displays actual English translation of the element. It can be even modified in your implementation.
-This list is not comprehensive at this moment.
+NOTE: The document is not comprehensive at this moment.
 
 == Searchable items
 
 Each object type has different set of searchable items.
 Display name contains element identification in GUI.
 Item name contains name of the element according the schema.
-Item constant code displays constant by which is the element referenced in midPoint source code.
 
-NOTE: Use names in the Item name column for preparation of queries in midPoint Query Language
+NOTE: For preparation of queries use names in the Item name column.
 
-Please keep in mind inheritance of objects - each object inherits search elements also from its parents.
 
-=== ObjectType
+[#_abstractroletype]
+== AbstractRoleType
 
-[options="header", cols="15, 20, width=50%]
+[options="header", cols="10,10,15,30,15" width=85%]
 |===
-| Item name | Display name
-| name | Name
-| lifecycleState | Lifecycle State
-| subtype | Subtype
-| metadata/createTimestamp | Metadata/Created at
-| metadata/modifyTimestamp | Metadata/Modified at
-|===
-
-=== FocusType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| roleMembershipRef | Role membership
-| activation/administrativeStatus | Activation/Administrative status
-| activation/effectiveStatus | Activation/Effective status
-| activation/lockoutStatus | Activation/Lockout Status
-| activation/validFrom | Activation/Valid from
-| activation/validTo | Activation/Valid to
-|===
-
-=== UserType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| title | Title
-| givenName | Given name
-| familyName | Family name
-| fullName | Full name
-| additionalName | Additional Name
-| costCenter | Cost Center
-| emailAddress | Email
-| telephoneNumber | Telephone Number
-| employeeNumber | Employee Number
-| organizationalUnit | Organizational Unit
-| locality | Locality
-| personalNumber | Personal Number
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activation |  | xref:#_activationtype[tns:ActivationType] | xref:#_focustype[FocusType] | 
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| autoassign |  | xref:#_autoassignspecificationtype[tns:AutoassignSpecificationType] |  | 
+| costCenter | Cost Center | xsd:string | xref:#_focustype[FocusType] | 
+| credentials | Credentials | xref:#_credentialstype[tns:CredentialsType] | xref:#_focustype[FocusType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| displayName | Display Name | t:PolyStringType |  | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| emailAddress | Email | xsd:string | xref:#_focustype[FocusType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| identifier | Identifier | xsd:string |  | 
+| identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_focustype[FocusType] | 
+| inducement | Inducement | xref:#_assignmenttype[tns:AssignmentType] |  | 
+| jpegPhoto | Jpeg photo | xsd:base64Binary | xref:#_focustype[FocusType] | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| linkRef | Projections | c:ObjectReferenceType | xref:#_focustype[FocusType] | 
+| locale | Locale | xsd:string | xref:#_focustype[FocusType] | 
+| locality | Locality | t:PolyStringType | xref:#_focustype[FocusType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| personaRef |  | c:ObjectReferenceType | xref:#_focustype[FocusType] | 
+| policySituation |  | xsd:anyURI | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| preferredLanguage | Preferred Language | xsd:string | xref:#_focustype[FocusType] | 
+| requestable | Requestable | xsd:boolean |  | 
+| riskLevel | Risk Level | xsd:string |  | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| telephoneNumber | Telephone Number | xsd:string | xref:#_focustype[FocusType] | 
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| timezone | Timezone | xsd:string | xref:#_focustype[FocusType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-=== RoleType
+[#_abstractworkitemoutputtype]
+== AbstractWorkItemOutputType
 
-[options="header", cols="15, 20, width=50%]
+[options="header", cols="10,10,15,30,15" width=85%]
 |===
-| Item name | Display name
-| targetRef |
-| tenantRef |
-| orgRef |
-|===
-
-=== ServiceType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| name | Name
-| url | URL
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| outcome |  |  |  | 
 |===
 
-=== ConnectorHostType
+[#_accesscertificationcampaigntype]
+== AccessCertificationCampaignType
 
-[options="header", cols="15, 20, width=50%]
+[options="header", cols="10,10,15,30,15" width=85%]
 |===
-| Item name | Display name
-| hostname |
-|===
-
-=== ConnectorType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| connectorBundle |
-| connectorVersion | Connector version
-| connectorType | Connector type
-|===
-
-=== AbstractRoleType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| identifier | Identifier
-| requestable | Requestable
-| displayName | Display Name
-|===
-
-=== OrgType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| costCenter | Cost center
-| tenant | Tenant
-| parentOrgRef |
-| locality |
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| case |  |  |  | 
+| definitionRef |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| endTimestamp |  |  |  | 
+| extension |  |  |  | 
+| handlerUri |  |  |  | 
+| id |  |  |  | 
+| iteration |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| operationExecution |  |  |  | 
+| ownerRef |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| stageNumber |  |  |  | 
+| startTimestamp |  |  |  | 
+| state |  |  |  | 
+| subtype |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
 |===
 
-=== NodeType
+[#_accesscertificationcasetype]
+== AccessCertificationCaseType
 
-[options="header", cols="15, 20, width=50%]
+[options="header", cols="10,10,15,30,15" width=85%]
 |===
-| Item name | Display name
-| nodeIdentifier | Node identifier
-|===
-
-=== TaskType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| taskIdentifier | Task identifier
-| node | Executing at (indicative)
-| resultStatus | Result status
-| executionState | Execution state
-| handlerUri | Handler URI
-| objectRef | Object
-|===
-
-=== AssignmentType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| targetRef |
-| construction/resourceRef | Construction/
-| activation/administrativeStatus | Activation/Administrative status
-| activation/effectiveStatus | Activation/Effective status
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activation |  |  |  | 
+| currentStageCreateTimestamp |  |  |  | 
+| currentStageDeadline |  |  |  | 
+| currentStageOutcome |  |  |  | 
+| id |  |  |  | 
+| iteration |  |  |  | 
+| objectRef |  |  |  | 
+| orgRef |  |  |  | 
+| outcome |  |  |  | 
+| remediedTimestamp |  |  |  | 
+| stageNumber |  |  |  | 
+| targetRef |  |  |  | 
+| tenantRef |  |  |  | 
+| workItem |  |  |  | 
 |===
 
-=== CaseWorkItemType
+[#_accesscertificationdefinitiontype]
+== AccessCertificationDefinitionType
 
-[options="header", cols="15, 20, width=50%]
+[options="header", cols="10,10,15,30,15" width=85%]
 |===
-| Item name | Display name
-| name | Name
-| assigneeRef |
-| originalAssigneeRef |
-| parent/state | /
-| parent/objectRef | /
-| performerRef |
-|===
-
-=== CaseType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| state |
-| parentRef | Parent reference
-| requestorRef | Requestor reference
-| targetRef |
-| objectRef |
-|===
-
-=== ObjectPolicyConfigurationType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| subtype | Subtype
-| objectTemplateRef | Object policy
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| extension |  |  |  | 
+| handlerUri |  |  |  | 
+| id |  |  |  | 
+| lastCampaignClosedTimestamp |  |  |  | 
+| lastCampaignStartedTimestamp |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| operationExecution |  |  |  | 
+| ownerRef |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| subtype |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
 |===
 
-=== AuditEventRecordType
+[#_accesscertificationworkitemtype]
+== AccessCertificationWorkItemType
 
-[options="header", cols="15, 20, width=50%]
+[options="header", cols="10,10,15,30,15" width=85%]
 |===
-| Item name | Display name
-| timestamp | Time
-| initiatorRef | Initiator
-| eventType | Event type
-| targetOwnerRef | Target owner
-| changedItem | Changed item
-| outcome | Outcome
-| channel | Channel
-| hostIdentifier | Host identifier
-| requestIdentifier | Request identifier
-| reference | Reference
-| taskIdentifier | Task identifier
-|===
-
-=== ClassLoggerConfigurationType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| appender |
-| package | Package
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| assigneeRef |  |  |  | 
+| candidateRef |  |  |  | 
+| closeTimestamp |  |  |  | 
+| id |  |  |  | 
+| iteration |  |  |  | 
+| output |  |  |  | 
+| outputChangeTimestamp |  |  |  | 
+| performerRef |  |  |  | 
+| stageNumber |  |  |  | 
 |===
 
-=== SimulationResultType
+[#_activationtype]
+== ActivationType
 
-[options="header", cols="15, 20, width=50%]
+[options="header", cols="10,10,15,30,15" width=85%]
 |===
-| Item name | Display name
-| startTimestamp | Started
-| endTimestamp | Finished
-| rootTaskRef | Task
-|===
-
-=== SimulationResultProcessedObjectType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| name | Name
-| state | State
-| type | Type
-| oid | Oid
-| eventMarkRef | Event mark
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| administrativeStatus | Administrative status | xref:#_activationstatustype[tns:ActivationStatusType] |  | 
+| archiveTimestamp |  | xsd:dateTime |  | 
+| disableReason |  | xsd:anyURI |  | 
+| disableTimestamp |  | xsd:dateTime |  | 
+| effectiveStatus | Effective status | xref:#_activationstatustype[tns:ActivationStatusType] |  | 
+| enableTimestamp |  | xsd:dateTime |  | 
+| lockoutStatus | Lock-out Status | xref:#_lockoutstatustype[tns:LockoutStatusType] |  | 
+| validFrom | Valid from | xsd:dateTime |  | 
+| validTo | Valid to | xsd:dateTime |  | 
+| validityChangeTimestamp |  | xsd:dateTime |  | 
+| validityStatus | Validity Status | xref:#_timeintervalstatustype[tns:TimeIntervalStatusType] |  | 
 |===
 
-=== CollectionPanelType
+[#_activityaffectedobjectstype]
+== ActivityAffectedObjectsType
 
-[options="header", cols="15, 20, width=50%]
+[options="header", cols="10,10,15,30,15" width=85%]
 |===
-| Item name | Display name
-| dead | Dead
-| exists | Exists
-| synchronizationSituation | Situation
-|===
-
-=== ResourceType
-
-[options="header", cols="15, 20, width=50%]
-|===
-| Item name | Display name
-| construction/resourceRef | Construction/
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activityType |  |  |  | 
+| executionMode |  |  |  | 
+| id |  |  |  | 
+| objects |  |  |  | 
+| predefinedConfigurationToUse |  |  |  | 
+| resourceObjects |  |  |  | 
 |===
 
-=== PolicyRuleType
+[#_administrativeoperationalstatetype]
+== AdministrativeOperationalStateType
 
-[options="header", cols="15, 20, width=50%]
+[options="header", cols="10,10,15,30,15" width=85%]
 |===
-| Item name | Display name
-| policyRule/name | Policy rule/Name
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| administrativeAvailabilityStatus |  |  |  | 
 |===
 
+[#_archetypetype]
+== ArchetypeType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activation |  | xref:#_activationtype[tns:ActivationType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| autoassign |  | xref:#_autoassignspecificationtype[tns:AutoassignSpecificationType] | xref:#_abstractroletype[AbstractRoleType] | 
+| costCenter | Cost Center | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| credentials | Credentials | xref:#_credentialstype[tns:CredentialsType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| displayName | Display Name | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| emailAddress | Email | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| identifier | Identifier | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
+| identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| inducement | Inducement | xref:#_assignmenttype[tns:AssignmentType] | xref:#_abstractroletype[AbstractRoleType] | 
+| jpegPhoto | Jpeg photo | xsd:base64Binary | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| linkRef | Projections | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| locale | Locale | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| locality | Locality | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| personaRef |  | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| policySituation |  | xsd:anyURI | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| preferredLanguage | Preferred Language | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| requestable | Requestable | xsd:boolean | xref:#_abstractroletype[AbstractRoleType] | 
+| riskLevel | Risk Level | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| telephoneNumber | Telephone Number | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| timezone | Timezone | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_assignmentholdertype]
+== AssignmentHolderType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef | Archetype | c:ObjectReferenceType |  | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] |  | 
+| delegatedRef |  | c:ObjectReferenceType |  | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_objecttype[ObjectType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_objecttype[ObjectType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_objecttype[ObjectType] | 
+| policySituation |  | xsd:anyURI | xref:#_objecttype[ObjectType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType |  | 
+| subtype | Subtype | xsd:string | xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_objecttype[ObjectType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_objecttype[ObjectType] | 
+|===
+
+[#_assignmenttype]
+== AssignmentType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activation |  | xref:#_activationtype[tns:ActivationType] |  | 
+| construction | Construction | xref:#_constructiontype[tns:ConstructionType] |  | 
+| extension |  | xref:#_extensiontype[tns:ExtensionType] |  | 
+| id |  |  |  | 
+| lifecycleState | Lifecycle state | xsd:string |  | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] |  | 
+| order | Order | xsd:int |  | 
+| orgRef | Organization reference | c:ObjectReferenceType |  | 
+| policySituation |  | xsd:anyURI |  | 
+| subtype | Subtype | xsd:string |  | 
+| targetRef | Target | c:ObjectReferenceType |  | 
+| tenantRef | Tenant reference | c:ObjectReferenceType |  | 
+|===
+
+[#_auditeventrecordtype]
+== AuditEventRecordType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| attorneyRef |  |  |  | 
+| changedItem |  |  |  | 
+| channel |  |  |  | 
+| customColumnProperty |  |  |  | 
+| effectivePrincipalRef |  |  |  | 
+| effectivePrivilegesModification |  |  |  | 
+| eventIdentifier |  |  |  | 
+| eventStage |  |  |  | 
+| eventType |  |  |  | 
+| hostIdentifier |  |  |  | 
+| initiatorRef |  |  |  | 
+| message |  |  |  | 
+| nodeIdentifier |  |  |  | 
+| outcome |  |  |  | 
+| parameter |  |  |  | 
+| property |  |  |  | 
+| remoteHostAddress |  |  |  | 
+| repoId |  |  |  | 
+| requestIdentifier |  |  |  | 
+| resourceOid |  |  |  | 
+| result |  |  |  | 
+| sessionIdentifier |  |  |  | 
+| targetOwnerRef |  |  |  | 
+| targetRef |  |  |  | 
+| taskIdentifier |  |  |  | 
+| taskOID |  |  |  | 
+| timestamp |  |  |  | 
+|===
+
+[#_autoassignspecificationtype]
+== AutoassignSpecificationType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| enabled | AutoassignSpecificationType.enabled | xsd:boolean |  | 
+|===
+
+[#_basicobjectsettype]
+== BasicObjectSetType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| type |  |  |  | 
+|===
+
+[#_basicresourceobjectsettype]
+== BasicResourceObjectSetType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| intent |  |  |  | 
+| kind |  |  |  | 
+| objectclass |  |  |  | 
+| resourceRef |  |  |  | 
+|===
+
+[#_casetype]
+== CaseType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| closeTimestamp |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| extension |  |  |  | 
+| id |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| objectRef |  |  |  | 
+| operationExecution |  |  |  | 
+| parentOrgRef |  |  |  | 
+| parentRef |  |  |  | 
+| policySituation |  |  |  | 
+| requestorRef |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| state |  |  |  | 
+| subtype |  |  |  | 
+| targetRef |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+| workItem |  |  |  | 
+|===
+
+[#_caseworkitemtype]
+== CaseWorkItemType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| assigneeRef |  |  |  | 
+| candidateRef |  |  |  | 
+| closeTimestamp |  |  |  | 
+| createTimestamp |  |  |  | 
+| deadline |  |  |  | 
+| id |  |  |  | 
+| originalAssigneeRef |  |  |  | 
+| output |  |  |  | 
+| performerRef |  |  |  | 
+| stageNumber |  |  |  | 
+|===
+
+[#_connectorhosttype]
+== ConnectorHostType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| extension |  |  |  | 
+| hostname |  |  |  | 
+| id |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| operationExecution |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| port |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| subtype |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+|===
+
+[#_connectortype]
+== ConnectorType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| available |  |  |  | 
+| connectorBundle |  |  |  | 
+| connectorHostRef |  |  |  | 
+| connectorType |  |  |  | 
+| connectorVersion |  |  |  | 
+| delegatedRef |  |  |  | 
+| displayName |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| extension |  |  |  | 
+| framework |  |  |  | 
+| id |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| operationExecution |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| subtype |  |  |  | 
+| targetSystemType |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+|===
+
+[#_constructiontype]
+== ConstructionType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| resourceRef |  | c:ObjectReferenceType |  | 
+|===
+
+[#_containerable]
+== Containerable
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| id |  |  |  | 
+|===
+
+[#_credentialstype]
+== CredentialsType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| password | Password | xref:#_passwordtype[tns:PasswordType] |  | 
+|===
+
+[#_dashboardtype]
+== DashboardType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| extension |  |  |  | 
+| id |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| operationExecution |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| subtype |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+|===
+
+[#_focusidentitiestype]
+== FocusIdentitiesType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| identity |  |  |  | 
+| normalizedData |  |  |  | 
+|===
+
+[#_focusidentitysourcetype]
+== FocusIdentitySourceType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| resourceRef |  |  |  | 
+|===
+
+[#_focusidentitytype]
+== FocusIdentityType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| id |  |  |  | 
+| source |  |  |  | 
+|===
+
+[#_focustype]
+== FocusType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activation |  | xref:#_activationtype[tns:ActivationType] |  | 
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| costCenter | Cost Center | xsd:string |  | 
+| credentials | Credentials | xref:#_credentialstype[tns:CredentialsType] |  | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| emailAddress | Email | xsd:string |  | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] |  | 
+| jpegPhoto | Jpeg photo | xsd:base64Binary |  | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| linkRef | Projections | c:ObjectReferenceType |  | 
+| locale | Locale | xsd:string |  | 
+| locality | Locality | t:PolyStringType |  | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| personaRef |  | c:ObjectReferenceType |  | 
+| policySituation |  | xsd:anyURI | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| preferredLanguage | Preferred Language | xsd:string |  | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| telephoneNumber | Telephone Number | xsd:string |  | 
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| timezone | Timezone | xsd:string |  | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_formtype]
+== FormType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| extension |  |  |  | 
+| id |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| operationExecution |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| subtype |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+|===
+
+[#_functionlibrarytype]
+== FunctionLibraryType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| policySituation |  | xsd:anyURI | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_genericobjecttype]
+== GenericObjectType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activation |  | xref:#_activationtype[tns:ActivationType] | xref:#_focustype[FocusType] | 
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| costCenter | Cost Center | xsd:string | xref:#_focustype[FocusType] | 
+| credentials | Credentials | xref:#_credentialstype[tns:CredentialsType] | xref:#_focustype[FocusType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| emailAddress | Email | xsd:string | xref:#_focustype[FocusType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_focustype[FocusType] | 
+| jpegPhoto | Jpeg photo | xsd:base64Binary | xref:#_focustype[FocusType] | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| linkRef | Projections | c:ObjectReferenceType | xref:#_focustype[FocusType] | 
+| locale | Locale | xsd:string | xref:#_focustype[FocusType] | 
+| locality | Locality | t:PolyStringType | xref:#_focustype[FocusType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| personaRef |  | c:ObjectReferenceType | xref:#_focustype[FocusType] | 
+| policySituation |  | xsd:anyURI | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| preferredLanguage | Preferred Language | xsd:string | xref:#_focustype[FocusType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| telephoneNumber | Telephone Number | xsd:string | xref:#_focustype[FocusType] | 
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| timezone | Timezone | xsd:string | xref:#_focustype[FocusType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_lookuptablerowtype]
+== LookupTableRowType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| id |  |  |  | 
+| key |  | xsd:string |  | 
+| label |  | t:PolyStringType |  | 
+| lastChangeTimestamp |  | xsd:dateTime |  | 
+| value |  | xsd:string |  | 
+|===
+
+[#_lookuptabletype]
+== LookupTableType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| policySituation |  | xsd:anyURI | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| row |  | xref:#_lookuptablerowtype[tns:LookupTableRowType] |  | 
+| subtype | Subtype | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_marktype]
+== MarkType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| policySituation |  | xsd:anyURI | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_messagetemplatetype]
+== MessageTemplateType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| extension |  |  |  | 
+| id |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| operationExecution |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| subtype |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+|===
+
+[#_metadatatype]
+== MetadataType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| createApproverRef | Creation approved by | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
+| createChannel | Creation channel | xsd:anyURI |  | 
+| createTimestamp | Created at | xsd:dateTime |  | 
+| creatorRef | Creator | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
+| modifierRef | Modifier | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
+| modifyApproverRef | Last modification approved by | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
+| modifyChannel | Modification channel | xsd:anyURI |  | 
+| modifyTimestamp | Modified at | xsd:dateTime |  | 
+|===
+
+[#_nodetype]
+== NodeType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| extension |  |  |  | 
+| id |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| nodeIdentifier |  |  |  | 
+| operationExecution |  |  |  | 
+| operationalState |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| subtype |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+|===
+
+[#_objectcollectiontype]
+== ObjectCollectionType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| policySituation |  | xsd:anyURI | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_objectdeltaoperationtype]
+== ObjectDeltaOperationType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| objectName |  | t:PolyStringType |  | 
+| objectOid |  | xsd:string |  | 
+| resourceName |  | t:PolyStringType |  | 
+| resourceOid |  | xsd:string |  | 
+| shadowIntent |  | xsd:string |  | 
+| shadowKind |  | xref:#_shadowkindtype[tns:ShadowKindType] |  | 
+|===
+
+[#_objectreferencetype]
+== ObjectReferenceType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+|  |  |  |  | 
+|===
+
+[#_objecttemplatetype]
+== ObjectTemplateType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| includeRef | Include | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| policySituation |  | xsd:anyURI | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_objecttype]
+== ObjectType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] |  | 
+| id |  |  |  | 
+| lifecycleState | Lifecycle State | xsd:string |  | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] |  | 
+| name | Name | t:PolyStringType |  | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] |  | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType |  | 
+| policySituation |  | xsd:anyURI |  | 
+| subtype | Subtype | xsd:string |  | Deprecated since 4.2
+| tenantRef | Tenant | c:ObjectReferenceType |  | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] |  | 
+|===
+
+[#_operationexecutiontype]
+== OperationExecutionType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| id |  |  |  | 
+| initiatorRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
+| recordType |  | xref:#_operationexecutionrecordtypetype[tns:OperationExecutionRecordTypeType] |  | 
+| status |  | xref:#_operationresultstatustype[tns:OperationResultStatusType] |  | 
+| taskRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
+| timestamp |  | xsd:dateTime |  | 
+|===
+
+[#_operationalstatetype]
+== OperationalStateType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| lastAvailabilityStatus |  |  |  | 
+|===
+
+[#_orgtype]
+== OrgType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activation |  | xref:#_activationtype[tns:ActivationType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| autoassign |  | xref:#_autoassignspecificationtype[tns:AutoassignSpecificationType] | xref:#_abstractroletype[AbstractRoleType] | 
+| costCenter | Cost Center | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| credentials | Credentials | xref:#_credentialstype[tns:CredentialsType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| displayName | Display Name | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType] | 
+| displayOrder | Display Order | xsd:int |  | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| emailAddress | Email | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| identifier | Identifier | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
+| identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| inducement | Inducement | xref:#_assignmenttype[tns:AssignmentType] | xref:#_abstractroletype[AbstractRoleType] | 
+| jpegPhoto | Jpeg photo | xsd:base64Binary | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| linkRef | Projections | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| locale | Locale | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| locality | Locality | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| personaRef |  | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| policySituation |  | xsd:anyURI | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| preferredLanguage | Preferred Language | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| requestable | Requestable | xsd:boolean | xref:#_abstractroletype[AbstractRoleType] | 
+| riskLevel | Risk Level | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| telephoneNumber | Telephone Number | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| tenant | Is Tenant | xsd:boolean |  | 
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| timezone | Timezone | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_passwordtype]
+== PasswordType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_abstractcredentialtype[AbstractCredentialType] | 
+|===
+
+[#_reportdatatype]
+== ReportDataType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| policySituation |  | xsd:anyURI | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| reportRef |  | c:ObjectReferenceType |  | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_reporttype]
+== ReportType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| policySituation |  | xsd:anyURI | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_resourcebusinessconfigurationtype]
+== ResourceBusinessConfigurationType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| administrativeState |  |  |  | 
+| approverRef |  |  |  | 
+|===
+
+[#_resourcetype]
+== ResourceType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| abstract |  |  |  | 
+| administrativeOperationalState |  |  |  | 
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| business |  |  |  | 
+| connectorRef |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| extension |  |  |  | 
+| id |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| operationExecution |  |  |  | 
+| operationalState |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| subtype |  |  |  | 
+| super |  |  |  | 
+| template |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+|===
+
+[#_roleanalysisclustertype]
+== RoleAnalysisClusterType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| extension |  |  |  | 
+| id |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| operationExecution |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| roleAnalysisSessionRef |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| subtype |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+|===
+
+[#_roleanalysissessiontype]
+== RoleAnalysisSessionType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| extension |  |  |  | 
+| id |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| operationExecution |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| subtype |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+|===
+
+[#_roletype]
+== RoleType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activation |  | xref:#_activationtype[tns:ActivationType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| autoassign |  | xref:#_autoassignspecificationtype[tns:AutoassignSpecificationType] | xref:#_abstractroletype[AbstractRoleType] | 
+| costCenter | Cost Center | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| credentials | Credentials | xref:#_credentialstype[tns:CredentialsType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| displayName | Display Name | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| emailAddress | Email | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| identifier | Identifier | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
+| identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| inducement | Inducement | xref:#_assignmenttype[tns:AssignmentType] | xref:#_abstractroletype[AbstractRoleType] | 
+| jpegPhoto | Jpeg photo | xsd:base64Binary | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| linkRef | Projections | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| locale | Locale | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| locality | Locality | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| personaRef |  | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| policySituation |  | xsd:anyURI | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| preferredLanguage | Preferred Language | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| requestable | Requestable | xsd:boolean | xref:#_abstractroletype[AbstractRoleType] | 
+| riskLevel | Risk Level | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| telephoneNumber | Telephone Number | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| timezone | Timezone | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_scheduletype]
+== ScheduleType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| recurrence |  |  |  | 
+|===
+
+[#_securitypolicytype]
+== SecurityPolicyType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| extension |  |  |  | 
+| id |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| operationExecution |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| subtype |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+|===
+
+[#_sequencetype]
+== SequenceType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| policySituation |  | xsd:anyURI | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_servicetype]
+== ServiceType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activation |  | xref:#_activationtype[tns:ActivationType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| autoassign |  | xref:#_autoassignspecificationtype[tns:AutoassignSpecificationType] | xref:#_abstractroletype[AbstractRoleType] | 
+| costCenter | Cost Center | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| credentials | Credentials | xref:#_credentialstype[tns:CredentialsType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| displayName | Display Name | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType] | 
+| displayOrder | Display Order | xsd:int |  | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| emailAddress | Email | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| identifier | Identifier | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
+| identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| inducement | Inducement | xref:#_assignmenttype[tns:AssignmentType] | xref:#_abstractroletype[AbstractRoleType] | 
+| jpegPhoto | Jpeg photo | xsd:base64Binary | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| linkRef | Projections | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| locale | Locale | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| locality | Locality | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| personaRef |  | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| policySituation |  | xsd:anyURI | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| preferredLanguage | Preferred Language | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| requestable | Requestable | xsd:boolean | xref:#_abstractroletype[AbstractRoleType] | 
+| riskLevel | Risk Level | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| telephoneNumber | Telephone Number | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| timezone | Timezone | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_shadowcorrelationstatetype]
+== ShadowCorrelationStateType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| correlationCaseCloseTimestamp |  |  |  | 
+| correlationCaseOpenTimestamp |  |  |  | 
+| correlationEndTimestamp |  |  |  | 
+| correlationStartTimestamp |  |  |  | 
+| situation |  |  |  | 
+|===
+
+[#_shadowtype]
+== ShadowType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| attributes |  |  |  | 
+| correlation |  |  |  | 
+| dead |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| exists |  |  |  | 
+| extension |  |  |  | 
+| fullSynchronizationTimestamp |  |  |  | 
+| id |  |  |  | 
+| intent |  |  |  | 
+| kind |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| objectClass |  |  |  | 
+| operationExecution |  |  |  | 
+| parentOrgRef |  |  |  | 
+| pendingOperation |  |  |  | 
+| policySituation |  |  |  | 
+| primaryIdentifierValue |  |  |  | 
+| resourceRef |  |  |  | 
+| subtype |  |  |  | 
+| synchronizationSituation |  |  |  | 
+| synchronizationTimestamp |  |  |  | 
+| tag |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+|===
+
+[#_simulationdefinitiontype]
+== SimulationDefinitionType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| useOwnPartitionForProcessedObjects |  |  |  | 
+|===
+
+[#_simulationresultprocessedobjecttype]
+== SimulationResultProcessedObjectType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| eventMarkRef |  |  |  | 
+| focusRecordId |  |  |  | 
+| id |  |  |  | 
+| name |  |  |  | 
+| oid |  |  |  | 
+| state |  |  |  | 
+| transactionId |  |  |  | 
+| type |  |  |  | 
+|===
+
+[#_simulationresulttype]
+== SimulationResultType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| definition |  |  |  | 
+| delegatedRef |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| endTimestamp |  |  |  | 
+| extension |  |  |  | 
+| id |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| operationExecution |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| processedObject |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| rootTaskRef |  |  |  | 
+| startTimestamp |  |  |  | 
+| subtype |  |  |  | 
+| tenantRef |  |  |  | 
+| trigger |  |  |  | 
+|===
+
+[#_superresourcedeclarationtype]
+== SuperResourceDeclarationType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| resourceRef |  |  |  | 
+|===
+
+[#_systemconfigurationtype]
+== SystemConfigurationType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| policySituation |  | xsd:anyURI | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_taskaffectedobjectstype]
+== TaskAffectedObjectsType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activity |  |  |  | 
+|===
+
+[#_taskautoscalingtype]
+== TaskAutoScalingType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| mode |  |  |  | 
+|===
+
+[#_tasktype]
+== TaskType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| affectedObjects |  |  |  | 
+| archetypeRef |  |  |  | 
+| assignment |  |  |  | 
+| autoScaling |  |  |  | 
+| binding |  |  |  | 
+| completionTimestamp |  |  |  | 
+| delegatedRef |  |  |  | 
+| dependent |  |  |  | 
+| effectiveMarkRef |  |  |  | 
+| executionState |  |  |  | 
+| extension |  |  |  | 
+| handlerUri |  |  |  | 
+| id |  |  |  | 
+| lastRunFinishTimestamp |  |  |  | 
+| lastRunStartTimestamp |  |  |  | 
+| lifecycleState |  |  |  | 
+| metadata |  |  |  | 
+| name |  |  |  | 
+| node |  |  |  | 
+| objectRef |  |  |  | 
+| operationExecution |  |  |  | 
+| ownerRef |  |  |  | 
+| parent |  |  |  | 
+| parentOrgRef |  |  |  | 
+| policySituation |  |  |  | 
+| result |  |  |  | 
+| resultStatus |  |  |  | 
+| roleMembershipRef |  |  |  | 
+| schedule |  |  |  | 
+| schedulingState |  |  |  | 
+| subtype |  |  |  | 
+| taskIdentifier |  |  |  | 
+| tenantRef |  |  |  | 
+| threadStopAction |  |  |  | 
+| trigger |  |  |  | 
+| waitingReason |  |  |  | 
+|===
+
+[#_triggertype]
+== TriggerType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| handlerUri |  | xsd:anyURI |  | 
+| id |  |  |  | 
+| timestamp |  | xsd:dateTime |  | 
+|===
+
+[#_usertype]
+== UserType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activation |  | xref:#_activationtype[tns:ActivationType] | xref:#_focustype[FocusType] | 
+| additionalName | Additional Name | t:PolyStringType |  | 
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| costCenter | Cost Center | xsd:string | xref:#_focustype[FocusType] | 
+| credentials | Credentials | xref:#_credentialstype[tns:CredentialsType] | xref:#_focustype[FocusType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| emailAddress | Email | xsd:string | xref:#_focustype[FocusType] | 
+| employeeNumber | Employee Number | xsd:string |  | Deprecated since 4.8
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| familyName | Family name | t:PolyStringType |  | 
+| fullName | Full name | t:PolyStringType |  | 
+| givenName | Given name | t:PolyStringType |  | 
+| honorificPrefix | Honorific Prefix | t:PolyStringType |  | 
+| honorificSuffix | Honorific Suffix | t:PolyStringType |  | 
+| identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_focustype[FocusType] | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| linkRef | Projections | c:ObjectReferenceType | xref:#_focustype[FocusType] | 
+| locale | Locale | xsd:string | xref:#_focustype[FocusType] | 
+| locality | Locality | t:PolyStringType | xref:#_focustype[FocusType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| nickName | Nickname | t:PolyStringType |  | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| organization | Organization | t:PolyStringType |  | 
+| organizationalUnit | Organizational Unit | t:PolyStringType |  | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| personaRef |  | c:ObjectReferenceType | xref:#_focustype[FocusType] | 
+| personalNumber | Personal Number | xsd:string |  | 
+| policySituation |  | xsd:anyURI | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| preferredLanguage | Preferred Language | xsd:string | xref:#_focustype[FocusType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| telephoneNumber | Telephone Number | xsd:string | xref:#_focustype[FocusType] | 
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| timezone | Timezone | xsd:string | xref:#_focustype[FocusType] | 
+| title | Title | t:PolyStringType |  | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
+
+[#_valuepolicytype]
+== ValuePolicyType
+
+[options="header", cols="10,10,15,30,15" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| id |  |  |  | 
+| lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| name | Name | t:PolyStringType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| policySituation |  | xsd:anyURI | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
+| subtype | Subtype | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+|===
