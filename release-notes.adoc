@@ -66,6 +66,8 @@ Details are described below.
 
 * New `personalNumber` user property was added (bug:MID-9016[]).
 
+NOTE: The support in the generic repository is limited, as this repository is deprecated now: the `personalNumber` is not searchable there.
+
 * Shadow creation and modification timestamps are now being consistently added for all shadows at all times.
 This may change the behavior related to dead shadows retention, as described xref:/midpoint/reference/synchronization/consistency/#configuration[here].
 
