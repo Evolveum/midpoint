@@ -106,7 +106,7 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
         return createStringResource("RoleMining.page.cluster.title");
     }
 
-    private boolean canShowWizard() {
+    protected boolean canShowWizard() {
         return isWizardPanel();
     }
 
