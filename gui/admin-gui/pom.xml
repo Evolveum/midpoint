@@ -586,6 +586,12 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket-tester</artifactId>
+            <version>${wicket.version}</version>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Dependencies to connectors -->
         <dependency>

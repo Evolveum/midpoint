@@ -1,9 +1,9 @@
-= Searchable Items in midPoint
+= Searchable Elements in midPoint
 :page-nav-title: Searchable elements
 :page-display-order: 400
 
 
-This document provides list of searchable items (elements) in midPoint that can be used while querying data with _MidPoint Query Language_.
+This document provides list of searchable elements (items) in midPoint that can be used while querying data with _MidPoint Query Language_.
 
 It also provides easily searchable translation table between displayName that users can see in GUI and the item name that is being used in queries.
 
@@ -16,9 +16,10 @@ Each object type has different set of searchable items.
 Display name contains element identification in GUI.
 Item name contains name of the element according the schema.
 
-NOTE: Use names in the Item name column for preparation of queries in midPoint Query Language
+NOTE: For preparation of queries use names in the Item name column.
 
 
+[#_abstractroletype]
 == AbstractRoleType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -62,6 +63,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_abstractworkitemoutputtype]
 == AbstractWorkItemOutputType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -71,6 +73,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | outcome |  |  |  | 
 |===
 
+[#_accesscertificationcampaigntype]
 == AccessCertificationCampaignType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -104,6 +107,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_accesscertificationcasetype]
 == AccessCertificationCaseType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -126,6 +130,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | workItem |  |  |  | 
 |===
 
+[#_accesscertificationdefinitiontype]
 == AccessCertificationDefinitionType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -154,6 +159,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_accesscertificationworkitemtype]
 == AccessCertificationWorkItemType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -171,6 +177,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | stageNumber |  |  |  | 
 |===
 
+[#_activationtype]
 == ActivationType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -190,6 +197,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | validityStatus | Validity Status | xref:#_timeintervalstatustype[tns:TimeIntervalStatusType] |  | 
 |===
 
+[#_activityaffectedobjectstype]
 == ActivityAffectedObjectsType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -204,6 +212,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | resourceObjects |  |  |  | 
 |===
 
+[#_administrativeoperationalstatetype]
 == AdministrativeOperationalStateType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -213,6 +222,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | administrativeAvailabilityStatus |  |  |  | 
 |===
 
+[#_archetypetype]
 == ArchetypeType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -256,6 +266,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_assignmentholdertype]
 == AssignmentHolderType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -280,6 +291,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_objecttype[ObjectType] | 
 |===
 
+[#_assignmenttype]
 == AssignmentType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -300,6 +312,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | tenantRef | Tenant reference | c:ObjectReferenceType |  | 
 |===
 
+[#_auditeventrecordtype]
 == AuditEventRecordType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -335,6 +348,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | timestamp |  |  |  | 
 |===
 
+[#_autoassignspecificationtype]
 == AutoassignSpecificationType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -344,6 +358,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | enabled | AutoassignSpecificationType.enabled | xsd:boolean |  | 
 |===
 
+[#_basicobjectsettype]
 == BasicObjectSetType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -354,6 +369,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | type |  |  |  | 
 |===
 
+[#_basicresourceobjectsettype]
 == BasicResourceObjectSetType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -366,6 +382,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | resourceRef |  |  |  | 
 |===
 
+[#_casetype]
 == CaseType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -397,6 +414,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | workItem |  |  |  | 
 |===
 
+[#_caseworkitemtype]
 == CaseWorkItemType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -415,6 +433,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | stageNumber |  |  |  | 
 |===
 
+[#_connectorhosttype]
 == ConnectorHostType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -441,6 +460,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_connectortype]
 == ConnectorType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -473,6 +493,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_constructiontype]
 == ConstructionType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -482,6 +503,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | resourceRef |  | c:ObjectReferenceType |  | 
 |===
 
+[#_containerable]
 == Containerable
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -491,6 +513,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | id |  |  |  | 
 |===
 
+[#_credentialstype]
 == CredentialsType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -500,6 +523,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | password | Password | xref:#_passwordtype[tns:PasswordType] |  | 
 |===
 
+[#_dashboardtype]
 == DashboardType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -524,6 +548,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_focusidentitiestype]
 == FocusIdentitiesType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -534,6 +559,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | normalizedData |  |  |  | 
 |===
 
+[#_focusidentitysourcetype]
 == FocusIdentitySourceType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -543,6 +569,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | resourceRef |  |  |  | 
 |===
 
+[#_focusidentitytype]
 == FocusIdentityType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -553,6 +580,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | source |  |  |  | 
 |===
 
+[#_focustype]
 == FocusType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -590,6 +618,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_formtype]
 == FormType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -614,6 +643,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_functionlibrarytype]
 == FunctionLibraryType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -638,6 +668,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_genericobjecttype]
 == GenericObjectType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -675,6 +706,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_lookuptablerowtype]
 == LookupTableRowType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -688,6 +720,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | value |  | xsd:string |  | 
 |===
 
+[#_lookuptabletype]
 == LookupTableType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -713,6 +746,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_marktype]
 == MarkType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -737,6 +771,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_messagetemplatetype]
 == MessageTemplateType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -761,6 +796,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_metadatatype]
 == MetadataType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -777,6 +813,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | modifyTimestamp | Modified at | xsd:dateTime |  | 
 |===
 
+[#_nodetype]
 == NodeType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -803,6 +840,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_objectcollectiontype]
 == ObjectCollectionType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -827,6 +865,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_objectdeltaoperationtype]
 == ObjectDeltaOperationType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -841,6 +880,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | shadowKind |  | xref:#_shadowkindtype[tns:ShadowKindType] |  | 
 |===
 
+[#_objectreferencetype]
 == ObjectReferenceType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -850,6 +890,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 |  |  |  |  | 
 |===
 
+[#_objecttemplatetype]
 == ObjectTemplateType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -875,6 +916,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_objecttype]
 == ObjectType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -895,6 +937,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] |  | 
 |===
 
+[#_operationexecutiontype]
 == OperationExecutionType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -909,6 +952,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | timestamp |  | xsd:dateTime |  | 
 |===
 
+[#_operationalstatetype]
 == OperationalStateType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -918,6 +962,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | lastAvailabilityStatus |  |  |  | 
 |===
 
+[#_orgtype]
 == OrgType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -963,6 +1008,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_passwordtype]
 == PasswordType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -972,6 +1018,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_abstractcredentialtype[AbstractCredentialType] | 
 |===
 
+[#_reportdatatype]
 == ReportDataType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -997,6 +1044,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_reporttype]
 == ReportType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1021,6 +1069,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_resourcebusinessconfigurationtype]
 == ResourceBusinessConfigurationType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1031,6 +1080,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | approverRef |  |  |  | 
 |===
 
+[#_resourcetype]
 == ResourceType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1062,6 +1112,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_roleanalysisclustertype]
 == RoleAnalysisClusterType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1087,6 +1138,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_roleanalysissessiontype]
 == RoleAnalysisSessionType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1111,6 +1163,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_roletype]
 == RoleType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1154,6 +1207,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_scheduletype]
 == ScheduleType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1163,6 +1217,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | recurrence |  |  |  | 
 |===
 
+[#_securitypolicytype]
 == SecurityPolicyType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1187,6 +1242,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_sequencetype]
 == SequenceType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1211,6 +1267,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_servicetype]
 == ServiceType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1255,6 +1312,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_shadowcorrelationstatetype]
 == ShadowCorrelationStateType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1268,6 +1326,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | situation |  |  |  | 
 |===
 
+[#_shadowtype]
 == ShadowType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1302,6 +1361,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_simulationdefinitiontype]
 == SimulationDefinitionType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1311,6 +1371,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | useOwnPartitionForProcessedObjects |  |  |  | 
 |===
 
+[#_simulationresultprocessedobjecttype]
 == SimulationResultProcessedObjectType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1327,6 +1388,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | type |  |  |  | 
 |===
 
+[#_simulationresulttype]
 == SimulationResultType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1356,6 +1418,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
+[#_superresourcedeclarationtype]
 == SuperResourceDeclarationType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1365,6 +1428,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | resourceRef |  |  |  | 
 |===
 
+[#_systemconfigurationtype]
 == SystemConfigurationType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1389,6 +1453,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_taskaffectedobjectstype]
 == TaskAffectedObjectsType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1398,6 +1463,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | activity |  |  |  | 
 |===
 
+[#_taskautoscalingtype]
 == TaskAutoScalingType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1407,6 +1473,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | mode |  |  |  | 
 |===
 
+[#_tasktype]
 == TaskType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1451,6 +1518,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | waitingReason |  |  |  | 
 |===
 
+[#_triggertype]
 == TriggerType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1462,6 +1530,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | timestamp |  | xsd:dateTime |  | 
 |===
 
+[#_usertype]
 == UserType
 
 [options="header", cols="10,10,15,30,15" width=85%]
@@ -1509,6 +1578,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
+[#_valuepolicytype]
 == ValuePolicyType
 
 [options="header", cols="10,10,15,30,15" width=85%]

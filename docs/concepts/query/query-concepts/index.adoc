@@ -819,7 +819,7 @@ is applied to the SQL `EXISTS` resulting in `NOT EXISTS` query, which works as e
 `exists` for the old Generic repo was implemented using `LEFT JOIN` which works fine for positive
 conditions, but does not work with `NOT` as usual in SQL.
 In the Generic repo, `not` with `exists` is interpreted as "any of the entries does not match the condition inside".
-See https://jira.evolveum.com/browse/MID-7203[MID-7203].
+See bug:MID-7203[].
 ====
 
 // TODO example with nesting exists, show the need for .block() in fluent API (see sqale search test)

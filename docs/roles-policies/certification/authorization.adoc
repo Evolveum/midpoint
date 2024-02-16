@@ -199,4 +199,4 @@ The last privilege could be added by adding action URI #closeCertificationCampai
 ----
 
 Alternatively, we might want to specify the second authorization in a way of "all campaigns whose owner is currently logged-in user".
-But the implementation of owner = self is not quite finished yet (see link:https://jira.evolveum.com/browse/MID-2789[MID-2789]).
+But the implementation of owner = self is not quite finished yet (see bug:MID-2789[]).

@@ -58,7 +58,7 @@ public class PropertiesSecretsProvider extends SecretsProviderImpl<PropertiesSec
 
             String value = props.getProperty(key);
 
-            return mapValue(value, type);
+            return mapValue(value.getBytes(charset), type);
         } catch (IOException ex) {
             throw new EncryptionException("Couldn't read properties file in provider " + getIdentifier(), ex);
         }

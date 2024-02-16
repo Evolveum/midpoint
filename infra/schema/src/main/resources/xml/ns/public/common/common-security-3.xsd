@@ -3464,10 +3464,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element ref="tns:environmentVariablesSecretsProvider" minOccurs="0"/>
             <xsd:element ref="tns:dockerSecretsProvider" minOccurs="0"/>
+            <xsd:element ref="tns:fileSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="tns:environmentVariablesSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element ref="tns:propertiesSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="tns:kubernetesSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element ref="tns:customSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -3614,10 +3614,10 @@
 
     <xsd:element name="environmentVariablesSecretsProvider" type="tns:EnvironmentVariablesSecretsProviderType"/>
 
-    <xsd:complexType name="DockerSecretsProviderType">
+    <xsd:complexType name="ContainerSecretsProviderType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
-                Docker secrets provider.
+                Abstract container secrets provider.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -3630,7 +3630,7 @@
                     <xsd:element name="charset" type="xsd:string" minOccurs="0" default="utf-8">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Charset of the files for string secrets.
+                                Charset of the files where secrets are stored.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -3639,12 +3639,10 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:element name="dockerSecretsProvider" type="tns:DockerSecretsProviderType"/>
-
-    <xsd:complexType name="KubernetesSecretsProviderType">
+    <xsd:complexType name="FileSecretsProviderType">
         <xsd:annotation>
             <xsd:documentation>
-                Kubernetes secrets provider.
+                Secrets provider that reads secrets from files.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -3652,15 +3650,45 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:SecretsProviderType">
+            <xsd:extension base="tns:ContainerSecretsProviderType">
                 <xsd:sequence>
-                    <!-- todo configuration -->
+                    <xsd:element name="parentDirectoryPath" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Path or parent directory where files with secrets are stored.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:element name="kubernetesSecretsProvider" type="tns:KubernetesSecretsProviderType"/>
+    <xsd:element name="fileSecretsProvider" type="tns:FileSecretsProviderType"/>
+
+    <xsd:complexType name="DockerSecretsProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Docker secrets provider.
+
+                Files with secrets are by default located in "/run/secrets/*" directory
+                or in "C:\ProgramData\Docker\secrets\*" directory.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ContainerSecretsProviderType">
+                <xsd:sequence>
+                    <!-- intentionally empty -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="dockerSecretsProvider" type="tns:DockerSecretsProviderType"/>
 
     <xsd:complexType name="PropertiesSecretsProviderType">
         <xsd:annotation>

@@ -76,17 +76,15 @@ request.
 
 Example of usage of options:
 
-//TODO full example
-[source, http]
-----
-?options=raw
-----
-
 The *"get"* operations support specifying options influencing the operation execution. You can find the
 supported options in these references:
 
 .Usable options for this type of operation
 link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
+
+include::../../rest/operations/raw/options-usage.adoc[]
+
+include::../../rest/operations/raw/operation-prop-search.adoc[]
 
 include::../../rest/concepts/raw/outcome.adoc[]
 
