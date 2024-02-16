@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.mining.chunk;
 
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -23,6 +24,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class is responsible for preparing the chunk structure for role analysis in the Midpoint system.
@@ -39,7 +42,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
             @NotNull RoleAnalysisProcessModeType mode,
             @NotNull OperationResult result,
             @NotNull Task task) {
-        return this.executeAction(roleAnalysisService, cluster, fullProcess, mode, handler, task, result);
+        return this.executeAction(roleAnalysisService, cluster, fullProcess, mode, handler, task, result,null);
     }
 
     @Override
@@ -48,7 +51,8 @@ public class CompressedMiningStructure extends BasePrepareAction {
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @Nullable DisplayValueOption option) {
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
         List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();
@@ -77,7 +81,8 @@ public class CompressedMiningStructure extends BasePrepareAction {
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @Nullable DisplayValueOption option) {
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
         List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();

@@ -59,6 +59,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         expanded = true)
 
 @PanelInstance(
+        identifier = "matchingOptions",
+        applicableForType = RoleAnalysisSessionType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisSessionType.matchingOptions",
+                icon = GuiStyleConstants.CLASS_OPTIONS,
+                order = 40
+        ),
+        containerPath = "matchingRule",
+        type = "RoleAnalysisMatchingRuleType",
+        expanded = true)
+
+@PanelInstance(
         identifier = "sessionOptions",
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(

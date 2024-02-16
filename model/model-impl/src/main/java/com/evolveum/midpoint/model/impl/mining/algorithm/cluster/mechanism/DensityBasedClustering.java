@@ -58,6 +58,8 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
         List<Cluster<T>> clusters = new ArrayList<>();
         Map<Clusterable, PointStatus> visited = new HashMap<>();
 
+        Set<ClusterExplanation> explanation = new HashSet<>();
+
         handler.setActive(true);
         handler.enterNewStep("Clustering");
         handler.setOperationCountToProcess(points.size());
@@ -65,14 +67,20 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             handler.iterateActualStatus();
 
             if (visited.get(point) == null) {
-                List<T> neighbors = this.getNeighbors(point, points, rule);
+                List<T> neighbors = this.getNeighbors(point, points, rule, explanation);
                 int neighborsSize = getNeightborsSize(neighbors);
 
-                if (neighborsSize >= this.minPts || (point.getMembersCount() >= this.minPts && point.getPoint().size() >= minPropertiesOverlap)) {
+                if (neighborsSize >= this.minPts
+                        || (point.getMembersCount() >= this.minPts
+                        && point.getPoint().size() >= minPropertiesOverlap)) {
                     Cluster<T> cluster = new Cluster<>();
-                    clusters.add(this.expandCluster(cluster, point, neighbors, points, visited));
+                    Cluster<T> tCluster = this.expandCluster(cluster, point, neighbors, points, visited, explanation);
+                    tCluster.setExplanations(explanation);
+                    clusters.add(tCluster);
+                    explanation = new HashSet<>();
                 } else {
                     visited.put(point, PointStatus.NOISE);
+                    explanation = new HashSet<>();
                 }
             }
         }
@@ -81,7 +89,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
     }
 
     private Cluster<T> expandCluster(Cluster<T> cluster, T point, List<T> neighbors, Collection<T> points,
-            Map<Clusterable, PointStatus> visited) {
+            Map<Clusterable, PointStatus> visited, Set<ClusterExplanation> explanation) {
         cluster.addPoint(point);
         visited.put(point, PointStatus.PART_OF_CLUSTER);
         List<T> seeds = new ArrayList<>(neighbors);
@@ -90,7 +98,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             T current = (T) ((List) seeds).get(index);
             PointStatus pStatus = visited.get(current);
             if (pStatus == null) {
-                List<T> currentNeighbors = this.getNeighbors(current, points, rule);
+                List<T> currentNeighbors = this.getNeighbors(current, points, rule, explanation);
                 int currentNeighborsCount = getNeightborsSize(currentNeighbors);
                 if (currentNeighborsCount >= this.minPts) {
                     this.merge(seeds, currentNeighbors);
@@ -106,9 +114,9 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
         return cluster;
     }
 
-    private List<T> getNeighbors(T point, Collection<T> points, boolean rule) {
+    private List<T> getNeighbors(T point, Collection<T> points, boolean rule, Set<ClusterExplanation> explanation) {
         if (rule) {
-            return getNeighborsRule(point, points);
+            return getNeighborsRule(point, points, explanation);
         } else {
             return getNeighborsClean(point, points);
         }
@@ -126,12 +134,12 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
         return neighbors;
     }
 
-    private List<T> getNeighborsRule(T point, Collection<T> points) {
+    private List<T> getNeighborsRule(T point, Collection<T> points, Set<ClusterExplanation> explanation) {
         List<T> neighbors = new ArrayList<>();
 
         for (T neighbor : points) {
             if (point != neighbor && this.accessDistance(neighbor, point) <= this.eps
-                    && this.rulesDistance(neighbor.getExtensionProperties(), point.getExtensionProperties()) == 0) {
+                    && this.rulesDistance(neighbor.getExtensionProperties(), point.getExtensionProperties(), explanation) == 0) {
                 neighbors.add(neighbor);
             }
         }

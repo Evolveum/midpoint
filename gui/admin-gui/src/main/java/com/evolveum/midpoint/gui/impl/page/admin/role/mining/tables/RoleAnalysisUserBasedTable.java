@@ -16,10 +16,15 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
 import java.io.Serial;
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.utils.values.*;
+import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.impl.component.icon.*;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experimental.RoleAnalysisPathTableSelector;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -96,6 +101,18 @@ public class RoleAnalysisUserBasedTable extends Panel {
     List<DetectedPattern> detectedPattern;
     RoleAnalysisSortMode roleAnalysisSortMode;
 
+    LoadableDetachableModel<DisplayValueOption> displayValueOptionModel = new LoadableDetachableModel<>() {
+        @Serial private static final long serialVersionUID = 1L;
+
+        @Override
+        protected DisplayValueOption load() {
+            return null;
+        }
+    };
+
+    public LoadableDetachableModel<DisplayValueOption> getDisplayValueOptionModel() {
+        return displayValueOptionModel;
+    }
     public RoleAnalysisUserBasedTable(String id,
             MiningOperationChunk miningOperationChunk,
             List<DetectedPattern> detectedPattern,
@@ -244,6 +261,40 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                 repeatingView.add(refreshIcon);
 
+                iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                        "fa fa-cog", LayeredIconCssStyle.IN_ROW_STYLE);
+                AjaxCompositedIconButton experiment = new AjaxCompositedIconButton(
+                        repeatingView.newChildId(), iconBuilder.build(), createStringResource("")) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        RoleAnalysisPathTableSelector selector = new RoleAnalysisPathTableSelector(
+                                ((PageBase) getPage()).getMainPopupBodyId(),
+                                createStringResource("RoleAnalysisPathTableSelector.title"), displayValueOptionModel) {
+
+                            @Override
+                            public void performAfterFinish(AjaxRequestTarget target) {
+                                resetTable(target, displayValueOptionModel.getObject());
+                            }
+                        };
+                        ((PageBase) getPage()).showMainPopup(selector, target);
+                    }
+
+                };
+
+                experiment.add(new VisibleEnableBehaviour() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public boolean isVisible() {
+                        return RoleAnalysisChunkMode.valueOf(getCompressStatus()).equals(RoleAnalysisChunkMode.EXPAND);
+                    }
+                });
+                experiment.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+
+                repeatingView.add(experiment);
                 return repeatingView;
             }
 
@@ -670,7 +721,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
         return ((RoleAnalysisTable<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
     }
 
-    protected void resetTable(AjaxRequestTarget target) {
+    protected void resetTable(AjaxRequestTarget target, @Nullable DisplayValueOption displayValueOption) {
 
     }
 

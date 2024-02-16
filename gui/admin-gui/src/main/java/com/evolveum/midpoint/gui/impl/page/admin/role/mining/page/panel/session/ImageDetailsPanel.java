@@ -82,7 +82,7 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareExpandedMiningStructure(cluster,
-                true, processMode, result, task);
+                true, processMode, result, task, null);
 
         CustomImageResource imageResource;
 

@@ -24,6 +24,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public enum ObjectTypes {
 
+    ROLE_ANALYSIS_OUTLIER(SchemaConstants.C_ROLE_ANALYSIS_OUTLIER_TYPE, SchemaConstants.C_ROLE_ANALYSIS_OUTLIER,
+            RoleAnalysisOutlierType.class, ObjectManager.MODEL, "roleAnalysisOutlier"),
     ROLE_ANALYSIS_SESSION(SchemaConstants.C_ROLE_ANALYSIS_SESSION_TYPE, SchemaConstants.C_ROLE_ANALYSIS_SESSION,
             RoleAnalysisSessionType.class, ObjectManager.MODEL, "roleAnalysisSession"),
     ROLE_ANALYSIS_CLUSTER(SchemaConstants.C_ROLE_ANALYSIS_CLUSTER_TYPE, SchemaConstants.C_ROLE_ANALYSIS_CLUSTER,

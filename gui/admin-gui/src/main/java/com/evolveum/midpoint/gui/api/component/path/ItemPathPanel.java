@@ -144,6 +144,16 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
             protected void onUpdateAutoCompletePanel(AjaxRequestTarget target) {
                 ItemPathPanel.this.onUpdate(ItemPathPanel.this.getModelObject());
             }
+
+            @Override
+            protected boolean isRoleAnalysis() {
+                return ItemPathPanel.this.isRoleAnalysis();
+            }
+
+            @Override
+            protected boolean isRoleAnalysisSimple() {
+                return ItemPathPanel.this.isRoleAnalysisSimple();
+            }
         };
         itemDefPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         itemDefPanel.setOutputMarkupId(true);
@@ -163,6 +173,9 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
             @Override
             public boolean isVisible() {
+                if (isRoleAnalysisSimple()) {
+                    return false;
+                }
                 if (getModelObject().getParentPath() == null || getModelObject().getParentPath().toItemPath() == null) {
                     return true;
                 }
@@ -187,6 +200,10 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
             @Override
             public boolean isVisible() {
+
+                if (isRoleAnalysisSimple()) {
+                    return false;
+                }
                 return getModelObject().getParentPath() != null && getModelObject().getParentPath().toItemPath() != null;
             }
         });
@@ -389,5 +406,13 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
     protected ItemPathPanelMode getPanelMode() {
         return panelMode;
+    }
+
+    protected boolean isRoleAnalysis() {
+        return false;
+    }
+
+    protected boolean isRoleAnalysisSimple() {
+        return false;
     }
 }

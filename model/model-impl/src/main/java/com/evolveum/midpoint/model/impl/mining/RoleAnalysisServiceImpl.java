@@ -7,14 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 
 import static java.util.Collections.singleton;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getCurrentXMLGregorianCalendar;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.loadIntersections;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
 
 import java.io.Serializable;
@@ -24,10 +23,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
@@ -257,6 +258,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         clusterObject.setRoleAnalysisSessionRef(parentRef);
         clusterObject.setDetectionOption(roleAnalysisSessionDetectionOption);
         modelService.importObject(clusterPrismObject, null, task, result);
+    }
+
+    @Override
+    public void importOutlier(@NotNull RoleAnalysisOutlierType outlier, @NotNull Task task, @NotNull OperationResult result) {
+        modelService.importObject(outlier.asPrismObject(), null, task, result);
     }
 
     @Override
@@ -599,7 +605,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @Override
-    public RoleAnalysisProcessModeType resolveClusterProcessMode(
+    public RoleAnalysisOptionType resolveClusterOptionType(
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -616,8 +622,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
 
         RoleAnalysisSessionType sessionObject = session.asObjectable();
-        RoleAnalysisOptionType analysisOption = sessionObject.getAnalysisOption();
-        return analysisOption.getProcessMode();
+        return sessionObject.getAnalysisOption();
     }
 
     @Override
@@ -668,9 +673,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
-            @NotNull Task task) {
+            @NotNull Task task,
+            @Nullable DisplayValueOption option) {
         return new ExpandedMiningStructure().executeOperation(this, cluster, fullProcess,
-                processMode, result, task);
+                processMode, result, task, option);
     }
 
     @Override
@@ -688,7 +694,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         RoleAnalysisClusterType clusterObject = cluster.asObjectable();
 
         ItemName fClusterUserBasedStatistic = RoleAnalysisClusterType.F_CLUSTER_STATISTICS;
-        RoleAnalysisProcessModeType processMode = resolveClusterProcessMode(cluster, task, result);
+        RoleAnalysisProcessModeType processMode = resolveClusterOptionType(cluster, task, result).getProcessMode();
 
         if (processMode == null) {
             LOGGER.error("Failed to resolve processMode from RoleAnalysisCluster object: {}", clusterRefOid);
@@ -753,7 +759,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
         RoleAnalysisClusterType clusterObject = cluster.asObjectable();
 
-        RoleAnalysisProcessModeType processMode = resolveClusterProcessMode(cluster, task, result);
+        RoleAnalysisProcessModeType processMode = resolveClusterOptionType(cluster, task, result).getProcessMode();
 
         if (processMode == null) {
             LOGGER.error("Failed to resolve processMode from RoleAnalysisCluster object: {}", clusterRefOid);
@@ -1394,20 +1400,95 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     public <T extends ObjectType> void loadSearchObjectIterative(
-            @NotNull ModelService modelService, @NotNull Class<T> type,
+            @NotNull ModelService modelService,
+            @NotNull Class<T> type,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull List<T> modifyList,
             @NotNull Task task,
             @NotNull OperationResult parentResult) {
         try {
-            this.modelService.searchObjectsIterative(type, query, (object, result) -> {
-                modifyList.add(object.asObjectable());
+            Set<String> existingOidSet = modifyList.stream()
+                    .map(ObjectType::getOid)
+                    .collect(Collectors.toSet());
+
+            ResultHandler<RoleType> resultHandler = (role, lResult) -> {
+                try {
+                    if (!existingOidSet.contains(role.getOid())) {
+                        modifyList.add((T) role.asObjectable());
+                    }
+                } catch (Exception e) {
+                    String errorMessage = "Cannot resolve role: " + toShortString(role.asObjectable())
+                            + ": " + e.getMessage();
+                    throw new SystemException(errorMessage, e);
+                }
+
                 return true;
-            }, options, task, parentResult);
+            };
+
+            modelService.searchObjectsIterative(RoleType.class, query, resultHandler, null,
+                    task, parentResult);
+
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | SecurityViolationException e) {
             LOGGER.error("Couldn't search  search and load object iterative {}", type, e);
         }
+    }
+
+    public void resolveOutliers(
+            @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull String sessionOid) {
+        ObjectReferenceType targetObjectRef = roleAnalysisOutlierType.getTargetObjectRef();
+
+        RoleAnalysisOutlierType outlier = null;
+
+        try {
+
+            ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
+                    .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF).ref(targetObjectRef.getOid())
+                    .build();
+            SearchResultList<PrismObject<RoleAnalysisOutlierType>> outlierSearch = modelService
+                    .searchObjects(RoleAnalysisOutlierType.class, query, null, task, result);
+
+            if (outlierSearch == null || outlierSearch.isEmpty()) {
+                this.importOutlier(roleAnalysisOutlierType, task, result);
+                return;
+            }
+
+            Collection<PrismContainerValue<?>> collection = new ArrayList<>();
+            for (RoleAnalysisOutlierDescriptionType outlierResult : roleAnalysisOutlierType.getResult()) {
+                collection.add(outlierResult.clone().asPrismContainerValue());
+            }
+
+            outlier = outlierSearch.get(0).asObjectable();
+
+            List<RoleAnalysisOutlierDescriptionType> result1 = outlier.getResult();
+            Collection<PrismContainerValue<?>> delete = new ArrayList<>();
+
+            for (RoleAnalysisOutlierDescriptionType roleAnalysisOutlierDescriptionType : result1) {
+                ObjectReferenceType session = roleAnalysisOutlierDescriptionType.getSession();
+                if (session.getOid().equals(sessionOid)) {
+                    delete.add(roleAnalysisOutlierDescriptionType.clone().asPrismContainerValue());
+                }
+            }
+
+            ObjectDelta<RoleAnalysisOutlierType> delta = PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
+                    .item(RoleAnalysisOutlierType.F_RESULT).add(collection)
+                    .asObjectDelta(outlier.getOid());
+            modelService.executeChanges(singleton(delta), null, task, result);
+
+            if (!delete.isEmpty()) {
+                delta = PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
+                        .item(RoleAnalysisOutlierType.F_RESULT).delete(delete)
+                        .asObjectDelta(outlier.getOid());
+                modelService.executeChanges(singleton(delta), null, task, result);
+            }
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't modify  RoleAnalysisOutlierType {}", outlier, e);
+        }
+
     }
 }

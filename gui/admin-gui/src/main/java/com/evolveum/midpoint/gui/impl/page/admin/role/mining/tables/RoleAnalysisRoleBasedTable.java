@@ -15,11 +15,15 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import java.io.Serial;
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
 import com.evolveum.midpoint.gui.impl.component.icon.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experimental.RoleAnalysisPathTableSelector;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -95,6 +99,19 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
     List<DetectedPattern> detectedPattern;
 
     RoleAnalysisSortMode roleAnalysisSortMode;
+
+    public LoadableDetachableModel<DisplayValueOption> getDisplayValueOptionModel() {
+        return displayValueOptionModel;
+    }
+
+    LoadableDetachableModel<DisplayValueOption> displayValueOptionModel = new LoadableDetachableModel<>() {
+        @Serial private static final long serialVersionUID = 1L;
+
+        @Override
+        protected DisplayValueOption load() {
+            return null;
+        }
+    };
 
     public RoleAnalysisRoleBasedTable(String id,
             MiningOperationChunk miningOperationChunk,
@@ -235,6 +252,40 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
                 repeatingView.add(refreshIcon);
 
+                iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                        "fa fa-cog", LayeredIconCssStyle.IN_ROW_STYLE);
+                AjaxCompositedIconButton experiment = new AjaxCompositedIconButton(
+                        repeatingView.newChildId(), iconBuilder.build(), createStringResource("")) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        RoleAnalysisPathTableSelector selector = new RoleAnalysisPathTableSelector(
+                                ((PageBase) getPage()).getMainPopupBodyId(),
+                                createStringResource("RoleAnalysisPathTableSelector.title"), displayValueOptionModel) {
+
+                            @Override
+                            public void performAfterFinish(AjaxRequestTarget target) {
+                                resetTable(target, displayValueOptionModel.getObject());
+                            }
+                        };
+                        ((PageBase) getPage()).showMainPopup(selector, target);
+                    }
+
+                };
+
+                experiment.add(new VisibleEnableBehaviour() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public boolean isVisible() {
+                        return RoleAnalysisChunkMode.valueOf(getCompressStatus()).equals(RoleAnalysisChunkMode.EXPAND);
+                    }
+                });
+                experiment.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+
+                repeatingView.add(experiment);
                 return repeatingView;
             }
 
@@ -651,7 +702,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
         return ((RoleAnalysisTable<MiningOperationChunk>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
     }
 
-    protected void resetTable(AjaxRequestTarget target) {
+    protected void resetTable(AjaxRequestTarget target, DisplayValueOption displayValueOption) {
 
     }
 
@@ -807,9 +858,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
             operationData.setPatternId(detectedPattern.get(0).getId());
         }
 
-        @NotNull RoleType candidateBusinessRole = operationData.getBusinessRole().asObjectable();
         List<BusinessRoleDto> businessRoleDtos = operationData.getBusinessRoleDtos();
-        List<AssignmentType> inducement = candidateBusinessRole.getInducement();
+        Set<RoleType> inducement = operationData.getCandidateRoles();
         if (!inducement.isEmpty() && !businessRoleDtos.isEmpty()) {
             PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
             setResponsePage(pageRole);

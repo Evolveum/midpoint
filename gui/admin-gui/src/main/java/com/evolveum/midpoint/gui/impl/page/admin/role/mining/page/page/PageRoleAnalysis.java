@@ -506,7 +506,8 @@ public class PageRoleAnalysis extends PageAdmin {
             RoleAnalysisSessionType value = model.getObject().getValue();
             if (value != null
                     && value.getAnalysisOption() != null && value.getAnalysisOption().getProcessMode() != null) {
-                return Model.of(value.getAnalysisOption().getProcessMode().value());
+                return Model.of(value.getAnalysisOption().getProcessMode().value()
+                        + "/" + value.getAnalysisOption().getAnalysisCategory().value());
             }
 
         }

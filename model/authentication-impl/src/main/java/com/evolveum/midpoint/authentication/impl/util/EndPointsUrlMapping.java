@@ -65,6 +65,14 @@ public enum EndPointsUrlMapping {
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminCluster.authUri.rolesAll.label", "PageAdminCluster.authUri.guiAll.description")),
 
+    ROLE_ANALYSIS_OUTLIER_DETAILS("/admin/roleAnalysisOutlier/**",
+            new AuthorizationActionValue(AUTZ_UI_ROLE_ANALYSIS_ALL_URL,
+                    "PageAdminSession.authUri.roleDetails.label", "PageAdminSession.authUri.roleDetails.description"),
+            new AuthorizationActionValue(AUTZ_UI_ROLE_ANALYSIS_SESSION_URL,
+                    "PageAdminSession.authUri.rolesAll.label", "PageAdminSession.authUri.rolesAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminCluster.authUri.rolesAll.label", "PageAdminCluster.authUri.guiAll.description")),
+
     ORG_DETAILS("/admin/org/unit/**",
             new AuthorizationActionValue(AUTZ_UI_ORG_ALL_URL,
                     "PageAdminUsers.auth.orgAll.label", "PageAdminUsers.auth.orgAll.description"),

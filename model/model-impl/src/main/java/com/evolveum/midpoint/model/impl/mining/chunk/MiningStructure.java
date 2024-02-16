@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.mining.chunk;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface MiningStructure {
 
@@ -26,6 +28,7 @@ public interface MiningStructure {
      * @param handler The progress handler for role analysis.
      * @param task The task associated with the operation.
      * @param result The result object for tracking the operation's outcome.
+     * @param option
      * @return A MiningOperationChunk containing user and role chunks for further processing.
      */
     @NotNull MiningOperationChunk prepareRoleBasedStructure(
@@ -33,7 +36,8 @@ public interface MiningStructure {
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @Nullable DisplayValueOption option);
 
     /**
      * This method prepares a user-based structure for mining operations.
@@ -43,6 +47,7 @@ public interface MiningStructure {
      * @param handler The progress handler for role analysis.
      * @param task The task associated with the operation.
      * @param result The result object for tracking the operation's outcome.
+     * @param option
      * @return A MiningOperationChunk containing user and role chunks for further processing.
      */
     @NotNull MiningOperationChunk prepareUserBasedStructure(
@@ -50,7 +55,8 @@ public interface MiningStructure {
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @Nullable DisplayValueOption option);
 
     /**
      * Prepares a partial role-based structure for mining operations based on the provided parameters.

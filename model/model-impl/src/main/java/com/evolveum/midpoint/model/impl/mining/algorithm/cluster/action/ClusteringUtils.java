@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.DataP
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.AttributeMatch;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Utility class for performing clustering operations in the context of role analysis.
@@ -244,18 +246,48 @@ public class ClusteringUtils {
                         if (rule.isMultiValue()) {
                             Collection<Item<?, ?>> items = userTypeObject.getAllItems(itemPath.getItemPath());
                             for (Item<?, ?> item : items) {
-                                Object oid = item.find(ItemPath.create("oid"));
-                                if (oid != null) {
-                                    extensionProperties.addProperty(rule, oid.toString());
+                                if (item == null) {
+                                    LOGGER.error("Item is null");
+                                    continue;
+                                }
+                                ItemDefinition<?> definition = item.getDefinition();
+                                if (definition.isSingleValue()) {
+                                    Object realValue = item.getRealValue();
+                                    if (realValue instanceof Referencable) {
+                                        Object oid = item.find(ItemPath.create("oid"));
+                                        extensionProperties.addProperty(rule, oid.toString());
+                                    } else if (isPolyStringOrString(definition) && realValue != null) {
+                                        if (realValue instanceof PrismPropertyValueImpl && ((PrismPropertyValueImpl<?>) realValue).getRealValue() != null) {
+                                            extensionProperties.addProperty(rule, ((PrismPropertyValueImpl<?>) realValue).getRealValue().toString());
+                                        } else {
+                                            extensionProperties.addProperty(rule, realValue.toString());
+                                        }
+                                    } else {
+                                        LOGGER.error("Cloud not find correct item definition");
+                                    }
+                                } else {
+                                    LOGGER.error("Cloud not find correct item definition");
                                 }
                             }
                         } else {
                             Item<PrismValue, ItemDefinition<?>> item = userTypeObject.findItem(itemPath.getItemPath());
-                            if (item != null) {
+                            if (item != null && item.getDefinition().isSingleValue()) {
                                 Object realValue = item.getValue();
-                                if (realValue != null) {
-                                    extensionProperties.addProperty(rule, realValue.toString());
+                                ItemDefinition<?> definition = item.getDefinition();
+                                if (realValue instanceof Referencable) {
+                                    Object oid = item.find(ItemPath.create("oid"));
+                                    extensionProperties.addProperty(rule, oid.toString());
+                                } else if (isPolyStringOrString(definition) && realValue != null) {
+                                    if (realValue instanceof PrismPropertyValueImpl && ((PrismPropertyValueImpl<?>) realValue).getRealValue() != null) {
+                                        extensionProperties.addProperty(rule, ((PrismPropertyValueImpl<?>) realValue).getRealValue().toString());
+                                    } else {
+                                        extensionProperties.addProperty(rule, realValue.toString());
+                                    }
+                                } else {
+                                    LOGGER.error("Cloud not find correct item definition");
                                 }
+                            } else {
+                                LOGGER.error("Cloud not find correct item definition");
                             }
                         }
                     }
@@ -267,6 +299,12 @@ public class ClusteringUtils {
             }
         }
         return dataPoints;
+    }
+
+    private static boolean isPolyStringOrString(ItemDefinition<?> def) {
+        return def.getTypeName().getLocalPart().equals(PolyStringType.COMPLEX_TYPE.getLocalPart())
+                || def.getTypeName().getLocalPart().equals("string")
+                || def.getTypeName().getLocalPart().equals("PolyString");
     }
 
     public static List<DataPoint> prepareDataPointsRoleModerRules(@NotNull ListMultimap<List<String>, String> chunkMap,

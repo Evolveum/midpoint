@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -52,6 +53,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.generator.RoleAnalysisDataGeneratorUtils.*;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -140,6 +143,74 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         if (form != null) {
             form.setDefaultButton(rebuildButton);
         }
+
+        AjaxCompositedIconSubmitButton generate = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
+                iconBuilder.build(),
+                ((PageBase) getPage()).createStringResource("Generate")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                PageBase page = (PageBase) getPage();
+                RepositoryService repositoryService = page.getRepositoryService();
+                generateTD(repositoryService, page);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        generate.titleAsLabel(true);
+        generate.setOutputMarkupId(true);
+        generate.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+        repeatingView.add(generate);
+
+        AjaxCompositedIconSubmitButton remake = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
+                iconBuilder.build(),
+                ((PageBase) getPage()).createStringResource("Remake")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                PageBase page = (PageBase) getPage();
+                RepositoryService repositoryService = page.getRepositoryService();
+
+                remakeBusinessRoles(repositoryService, page, page.getRoleAnalysisService());
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        remake.titleAsLabel(true);
+        remake.setOutputMarkupId(true);
+        remake.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+        repeatingView.add(remake);
+
+        AjaxCompositedIconSubmitButton unassign = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
+                iconBuilder.build(),
+                ((PageBase) getPage()).createStringResource("Unassign")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                PageBase page = (PageBase) getPage();
+                RepositoryService repositoryService = page.getRepositoryService();
+
+                unnassignAll(repositoryService, page, page.getRoleAnalysisService());
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        unassign.titleAsLabel(true);
+        unassign.setOutputMarkupId(true);
+        unassign.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+        repeatingView.add(unassign);
     }
 
     public void clusteringPerform(@NotNull AjaxRequestTarget target) {
@@ -250,9 +321,19 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         if (processMode == null) {
             return super.getPanelConfigurations();
         }
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
+
+            if (containerPanelConfigurationType.getIdentifier().equals("matchingOptions")) {
+                if (!analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
+                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                    continue;
+                }
+            }
+
             if (containerPanelConfigurationType.getIdentifier().equals("sessionOptions")) {
                 List<VirtualContainersSpecificationType> container = containerPanelConfigurationType.getContainer();
 

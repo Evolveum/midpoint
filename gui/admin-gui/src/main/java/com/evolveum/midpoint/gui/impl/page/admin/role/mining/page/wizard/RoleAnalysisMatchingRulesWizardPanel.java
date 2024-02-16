@@ -14,7 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPan
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAnalysisSessionOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisMatchingRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 public class RoleAnalysisMatchingRulesWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
@@ -27,9 +27,14 @@ public class RoleAnalysisMatchingRulesWizardPanel extends AbstractFormWizardStep
     }
 
     @Override
-    protected IModel<? extends PrismContainerWrapper<AbstractAnalysisSessionOptionType>> getContainerFormModel() {
+    protected IModel<? extends PrismContainerWrapper<RoleAnalysisMatchingRuleType>> getContainerFormModel() {
         return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
                 ItemPath.create(RoleAnalysisSessionType.F_MATCHING_RULE));
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
     }
 
     @Override

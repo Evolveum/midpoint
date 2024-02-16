@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -287,7 +288,7 @@ public interface RoleAnalysisService {
      * @param result The operation result.
      * @return The resolved process mode.
      */
-    RoleAnalysisProcessModeType resolveClusterProcessMode(
+    RoleAnalysisOptionType resolveClusterOptionType(
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull Task task,
             @NotNull OperationResult result);
@@ -350,6 +351,7 @@ public interface RoleAnalysisService {
      * @param processMode The process mode.
      * @param result The operation result.
      * @param task The task associated with this operation.
+     * @param option
      * @return A MiningOperationChunk containing user and role chunks for further processing.
      */
     @NotNull MiningOperationChunk prepareExpandedMiningStructure(
@@ -357,7 +359,8 @@ public interface RoleAnalysisService {
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
-            @NotNull Task task);
+            @NotNull Task task,
+            @Nullable DisplayValueOption option);
 
     /**
      * Retrieves a RoleType PrismObject from a cache or, if not present,
@@ -546,5 +549,23 @@ public interface RoleAnalysisService {
             @NotNull List<T> modifyList,
             @NotNull Task task,
             @NotNull OperationResult parentResult);
+
+    /**
+     * Imports a RoleAnalysisOutlierType object into the system.
+     *
+     * @param outlier The outlier for importing.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
+    void importOutlier(
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    void resolveOutliers(
+            @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull String sessionOid);
 
 }

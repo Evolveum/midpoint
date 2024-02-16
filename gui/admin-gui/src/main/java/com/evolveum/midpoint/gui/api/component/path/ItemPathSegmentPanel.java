@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.api.component.path;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
@@ -25,6 +26,8 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 
@@ -111,9 +114,66 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
             }
         } else {
             Collection<ItemDefinition<?>> definitions = getSchemaDefinitionMap().get(getModelObject().getObjectType());
-            collectItems(definitions, input, toSelect);
+            if (isRoleAnalysis() || isRoleAnalysisSimple()) {
+                collectSipmleDefinition(definitions, input, toSelect);
+            } else {
+                collectItems(definitions, input, toSelect);
+            }
         }
         return toSelect;
+    }
+
+    protected boolean isRoleAnalysis() {
+        return false;
+    }
+
+    protected boolean isRoleAnalysisSimple() {
+        return false;
+    }
+
+    private void collectSipmleDefinition(Collection<? extends ItemDefinition> definitions, String input, Map<String, ItemDefinition<?>> toSelect) {
+        if (definitions == null) {
+            return;
+        }
+
+        for (ItemDefinition<?> def : definitions) {
+            if (isEligibleItemDefinition(def)) {
+                putDefinition(def, input, toSelect);
+            } else if(!isRoleAnalysisSimple()) {
+                if (def instanceof PrismContainerDefinition<?>) {
+                    List<? extends ItemDefinition<?>> innerDefinitions = ((PrismContainerDefinition<?>) def).getDefinitions();
+                    for (ItemDefinition<?> innerDef : innerDefinitions) {
+                        if (isEligibleItemDefinition(innerDef)) {
+                            putDefinition(def, input, toSelect);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isPolyStringOrString(ItemDefinition<?> def) {
+        return def.getTypeName().getLocalPart().equals(PolyStringType.COMPLEX_TYPE.getLocalPart())
+                || def.getTypeName().getLocalPart().equals("string")
+                ||def.getTypeName().getLocalPart().equals("PolyString");
+    }
+
+    private boolean isReference(ItemDefinition<?> def) {
+        return def.getTypeName().getLocalPart().equals(ObjectReferenceType.COMPLEX_TYPE.getLocalPart());
+    }
+
+    public void putDefinition(ItemDefinition<?> def, String input, Map<String, ItemDefinition<?>> toSelect) {
+        if (StringUtils.isBlank(input)) {
+            toSelect.put(def.getItemName().getLocalPart(), def);
+        } else {
+            if (def.getItemName().getLocalPart().startsWith(input)) {
+                toSelect.put(def.getItemName().getLocalPart(), def);
+            }
+        }
+    }
+
+    private boolean isEligibleItemDefinition(ItemDefinition<?> def) {
+        return def.isSingleValue() && (isPolyStringOrString(def) || isReference(def));
     }
 
     private void collectItems(Collection<? extends ItemDefinition> definitions, String input, Map<String, ItemDefinition<?>> toSelect) {

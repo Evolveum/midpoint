@@ -2,6 +2,7 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
@@ -23,8 +24,8 @@ public abstract class Clusterer<T extends Clusterable> {
         return this.measure.compute(p1.getPoint(), p2.getPoint());
     }
 
-    protected double rulesDistance(ExtensionProperties p1, ExtensionProperties p2) {
-        return this.measure.compute(p1, p2);
+    protected double rulesDistance(ExtensionProperties p1, ExtensionProperties p2, Set<ClusterExplanation> explanation) {
+        return this.measure.compute(p1, p2, explanation);
     }
 
 }

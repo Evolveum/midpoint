@@ -29,6 +29,11 @@ public class AttributeMatch implements Serializable {
         this.isMultiValue = rule.getMatchRule().isIsMultiValue();
         this.similarity = rule.getMatchRule().getMatchSimilarity();
         this.weight = rule.getWeight();
+
+        if (rule.getMatchRule().getMatchSimilarity() != null) {
+            Double matchSimilarity = rule.getMatchRule().getMatchSimilarity();
+            this.similarity = matchSimilarity * 0.01;
+        }
     }
 
     public static List<AttributeMatch> generateMatchingRulesList(List<RoleAnalysisMatchingRuleType> matchingRule) {

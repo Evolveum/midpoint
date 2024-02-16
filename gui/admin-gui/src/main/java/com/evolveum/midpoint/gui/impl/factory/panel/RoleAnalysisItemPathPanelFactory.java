@@ -57,8 +57,13 @@ public class RoleAnalysisItemPathPanelFactory extends ItemPathPanelFactory imple
             }
 
             @Override
-            protected boolean isNamespaceVisible() {
+            protected boolean isRoleAnalysis() {
                 return true;
+            }
+
+            @Override
+            protected boolean isNamespaceVisible() {
+                return false;
             }
 
             @Override

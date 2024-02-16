@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
@@ -81,28 +82,49 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
         }
 
     }
+
     @Override
-    public double compute(ExtensionProperties valueA, ExtensionProperties valueB) {
+    public double compute(ExtensionProperties valueA, ExtensionProperties valueB, Set<ClusterExplanation> explanation) {
 
         double weightSum = 0;
 
+        ClusterExplanation clusterExplanation = new ClusterExplanation();
+
+        Set<AttributeMatchExplanation> attributeMatchExplanations = new HashSet<>();
         for (AttributeMatch attributeMatch : attributesMatch) {
 
             boolean multiValue = attributeMatch.isMultiValue();
             if (!multiValue) {
-                weightSum += computeSingleValue(valueA, valueB, attributeMatch);
+                double weight = computeSingleValue(valueA, valueB, attributeMatch);
+                if (weight > 0) {
+                    AttributeMatchExplanation attributeMatchExplanation = new AttributeMatchExplanation(
+                            attributeMatch.getKey().toString(),
+                            valueA.getSingleValueForKey(attributeMatch));
+                    attributeMatchExplanations.add(attributeMatchExplanation);
+                    weightSum += weight;
+                }
             } else {
-                weightSum += computeMultiValue(valueA, valueB, attributeMatch);
-            }
-
-            if(weightSum >= 1.0){
-                return 0;
+                double weight = computeMultiValue(valueA, valueB, attributeMatch);
+                if (weight > 0) {
+                    AttributeMatchExplanation attributeMatchExplanation = new AttributeMatchExplanation(
+                            attributeMatch.getKey().toString(),
+                            "multiValue");
+                    attributeMatchExplanations.add(attributeMatchExplanation);
+                    weightSum += weight;
+                }
             }
         }
+
+        if (weightSum >= 1.0) {
+            clusterExplanation.setAttributeExplanation(attributeMatchExplanations);
+            explanation.add(clusterExplanation);
+            return 0;
+        }
+
         return 1;
     }
 
-    private double calculateConfidence(double weightSum){
+    private double calculateConfidence(double weightSum) {
         return weightSum / attributesMatch.size();
     }
 

@@ -17,9 +17,12 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
+
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Nullable;
@@ -125,7 +128,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             roleAnalysisSortMode = RoleAnalysisSortMode.FREQUENCY;
         }
 
-        loadMiningTableData();
+        loadMiningTableData(null);
 
         WebMarkupContainer webMarkupContainer = new WebMarkupContainer(ID_MAIN_PANEL);
         webMarkupContainer.setOutputMarkupId(true);
@@ -203,7 +206,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         }
     }
 
-    private void loadMiningTableData() {
+    private void loadMiningTableData(DisplayValueOption displayValueOption) {
         Task task = ((PageBase) getPage()).createSimpleTask(OP_PREPARE_OBJECTS);
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
@@ -221,7 +224,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
         } else {
             miningOperationChunk = roleAnalysisService.prepareExpandedMiningStructure(cluster, true,
-                    processMode, result, task);
+                    processMode, result, task, displayValueOption);
         }
 
         RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
@@ -271,7 +274,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     }
 
     //TODO - check reset
-    private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus) {
+    private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus, DisplayValueOption displayValueOption) {
         RoleAnalysisDetectionOptionType detectionOption = getObjectDetailsModels().getObjectType().getDetectionOption();
         if (detectionOption == null || detectionOption.getFrequencyRange() == null) {
             return;
@@ -289,6 +292,11 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             for (MiningUserTypeChunk miningUserTypeChunk : simpleMiningUserTypeChunks) {
                 miningUserTypeChunk.setStatus(RoleAnalysisOperationMode.EXCLUDE);
             }
+        }
+
+
+        if (displayValueOption != null) {
+            loadMiningTableData(displayValueOption);
         }
 
         if (isRoleMode) {
@@ -326,8 +334,8 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             }
 
             @Override
-            public void resetTable(AjaxRequestTarget target) {
-                updateMiningTable(target, false);
+            public void resetTable(AjaxRequestTarget target, @Nullable DisplayValueOption displayValueOption) {
+                updateMiningTable(target, false, displayValueOption);
             }
 
             @Override
@@ -339,8 +347,8 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             protected void onPerform(AjaxRequestTarget ajaxRequestTarget) {
                 roleAnalysisSortMode = getMiningUserBasedTable().getRoleAnalysisSortMode();
                 compress = !compress;
-                loadMiningTableData();
-                updateMiningTable(ajaxRequestTarget, false);
+                loadMiningTableData(null);
+                updateMiningTable(ajaxRequestTarget, false, null);
             }
 
             @Override
@@ -395,8 +403,8 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             }
 
             @Override
-            public void resetTable(AjaxRequestTarget target) {
-                updateMiningTable(target, false);
+            public void resetTable(AjaxRequestTarget target, DisplayValueOption displayValueOption) {
+                updateMiningTable(target, false, displayValueOption);
             }
 
             @Override
@@ -410,8 +418,8 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             protected void onPerform(AjaxRequestTarget ajaxRequestTarget) {
                 roleAnalysisSortMode = getMiningRoleBasedTable().getRoleAnalysisSortMode();
                 compress = !compress;
-                loadMiningTableData();
-                updateMiningTable(ajaxRequestTarget, false);
+                loadMiningTableData(null);
+                updateMiningTable(ajaxRequestTarget, false, null);
                 ajaxRequestTarget.add(this);
             }
 
@@ -480,6 +488,22 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     protected RoleAnalysisUserBasedTable getMiningUserBasedTable() {
         return (RoleAnalysisUserBasedTable) get(((PageBase) getPage()).createComponentPath(ID_MAIN_PANEL, ID_DATATABLE));
+    }
+
+    private DisplayValueOption getDisplayValueRoleTableConfigurations() {
+        LoadableDetachableModel<DisplayValueOption> displayModel = getMiningRoleBasedTable().getDisplayValueOptionModel();
+        if(displayModel != null) {
+            return displayModel.getObject();
+        }
+        return null;
+    }
+
+    private DisplayValueOption getDisplayValueUserTableConfigurations() {
+        LoadableDetachableModel<DisplayValueOption> displayModel = getMiningUserBasedTable().getDisplayValueOptionModel();
+        if(displayModel != null) {
+            return displayModel.getObject();
+        }
+        return null;
     }
 
     public PageBase getPageBase() {

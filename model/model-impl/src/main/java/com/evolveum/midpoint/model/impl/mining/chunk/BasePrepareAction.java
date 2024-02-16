@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -26,6 +27,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 public abstract class BasePrepareAction implements MiningStructure {
 
@@ -43,6 +46,7 @@ public abstract class BasePrepareAction implements MiningStructure {
      * @param handler The progress increment handler.
      * @param task The task associated with this operation.
      * @param result The operation result.
+     * @param option
      * @return The MiningOperationChunk containing the prepared structure.
      */
     @NotNull
@@ -53,14 +57,15 @@ public abstract class BasePrepareAction implements MiningStructure {
             @NotNull RoleAnalysisProcessModeType mode,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @Nullable DisplayValueOption option) {
 
         this.handler = handler;
         this.task = task;
         this.result = result;
 
         if (fullProcess) {
-            return resolveFullChunkStructures(roleAnalysisService, cluster, mode);
+            return resolveFullChunkStructures(roleAnalysisService, cluster, mode, option);
         } else {
             return resolvePartialChunkStructures(roleAnalysisService, cluster, mode);
         }
@@ -85,13 +90,14 @@ public abstract class BasePrepareAction implements MiningStructure {
     private MiningOperationChunk resolveFullChunkStructures(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @NotNull RoleAnalysisProcessModeType mode) {
+            @NotNull RoleAnalysisProcessModeType mode,
+            @Nullable DisplayValueOption option) {
 
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            return prepareUserBasedStructure(roleAnalysisService, cluster, handler, task, result);
+            return prepareUserBasedStructure(roleAnalysisService, cluster, handler, task, result, option);
 
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return prepareRoleBasedStructure(roleAnalysisService, cluster, handler, task, result);
+            return prepareRoleBasedStructure(roleAnalysisService, cluster, handler, task, result, option);
         }
         return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>());
     }

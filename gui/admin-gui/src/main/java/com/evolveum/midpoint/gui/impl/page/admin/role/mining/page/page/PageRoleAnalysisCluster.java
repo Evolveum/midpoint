@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import java.io.Serial;
+import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -16,6 +17,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -39,11 +41,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -189,6 +187,38 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
     @Override
     protected IModel<String> createPageTitleModel() {
         return createStringResource("PageMiningOperation.title");
+    }
+
+    @Override
+    public IModel<List<ContainerPanelConfigurationType>> getPanelConfigurations() {
+
+        IModel<List<ContainerPanelConfigurationType>> panelConfigurations = super.getPanelConfigurations();
+        @NotNull RoleAnalysisClusterType cluster = getObjectDetailsModels()
+                .getObjectWrapper()
+                .getObject()
+                .asObjectable();
+
+        RoleAnalysisService roleAnalysisService = getRoleAnalysisService();
+        PageBase pageBase = (PageBase) getPage();
+        Task task = pageBase.createSimpleTask("Resolving cluster option type");
+
+        RoleAnalysisOptionType roleAnalysisOptionType = roleAnalysisService
+                .resolveClusterOptionType(cluster.asPrismObject(), task, task.getResult());
+
+        RoleAnalysisCategoryType analysisCategory = roleAnalysisOptionType.getAnalysisCategory();
+        if (analysisCategory == null) {
+            return super.getPanelConfigurations();
+        }
+
+        List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
+        for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
+            if (containerPanelConfigurationType.getIdentifier().equals("outlierPanel")) {
+                if (!analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                }
+            }
+        }
+        return panelConfigurations;
     }
 
 }

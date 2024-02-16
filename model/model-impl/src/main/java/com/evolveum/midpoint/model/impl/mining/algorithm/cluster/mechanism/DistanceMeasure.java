@@ -28,5 +28,5 @@ public interface DistanceMeasure extends Serializable {
      */
     double compute(Set<String> valueA, Set<String> valueB);
 
-    double compute(ExtensionProperties valueA, ExtensionProperties valueB);
+    double compute(ExtensionProperties valueA, ExtensionProperties valueB, Set<ClusterExplanation> explanation);
 }

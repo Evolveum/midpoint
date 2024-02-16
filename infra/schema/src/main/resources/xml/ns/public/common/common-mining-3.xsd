@@ -33,6 +33,68 @@
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
+    <xsd:complexType name="RoleAnalysisOutlierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains information about outliers and their analysis.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:object/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AssignmentHolderType">
+                <xsd:sequence>
+
+                    <xsd:element name="createTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When this object was created.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisOutlierType.createTimestamp</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="targetObjectRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The object that is the target of the outlier analysis.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisOutlierType.targetObject</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="targetClusterRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The cluster that owns outlier.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisOutlierType.targetSession</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="result" type="tns:RoleAnalysisOutlierDescriptionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Additional information about the properties that make from object an outlier.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisOutlier" type="tns:RoleAnalysisOutlierType" substitutionGroup="tns:object"/>
+
 
     <xsd:complexType name="RoleAnalysisClusterType">
         <xsd:annotation>
@@ -154,19 +216,6 @@
                                     cases). The number of operations to be kept here is configurable.
                                 </p>
                             </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="outlier" type="c:RoleAnalysisOutliersType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Contains information about outliers and their analysis.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisOutliersType.outlier</a:displayName>
-                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -1265,57 +1314,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="RoleAnalysisOutliersType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Contains information about outliers regarding cluster objects.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="outlier" type="c:RoleAnalysisOutlierResultType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Object that is identified as an outlier during the analysis.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-    <xsd:element name="roleAnalysisOutliersType" type="tns:RoleAnalysisOutliersType"/>
-
-    <xsd:complexType name="RoleAnalysisOutlierResultType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Contains information about the result of role analysis.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="object" type="c:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Object that is identified as an outlier during the analysis.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="outliers" type="tns:RoleAnalysisOutlierDescriptionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Additional information about the properties that make from object an outlier.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-    <xsd:element name="roleAnalysisOutlierResultType" type="tns:RoleAnalysisOutlierResultType"/>
-
     <xsd:complexType name="RoleAnalysisOutlierDescriptionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1326,6 +1324,22 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+
+            <xsd:element name="session" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Session to which the outlier belongs.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="cluster" type="c:ObjectReferenceType" minOccurs="0" >
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Cluster to which the outlier belongs.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="object" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
