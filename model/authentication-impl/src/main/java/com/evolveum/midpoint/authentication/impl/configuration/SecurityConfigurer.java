@@ -82,6 +82,9 @@ public class SecurityConfigurer {
     @Autowired
     private ApplicationContext context;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
     private ContentNegotiationStrategy contentNegotiationStrategy = new HeaderContentNegotiationStrategy();
 
@@ -99,7 +102,7 @@ public class SecurityConfigurer {
     public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer,
             SecurityContextManager securityContextManager,
             TaskManager taskManager) {
-        return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager);
+        return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, applicationContext);
     }
 
     @Bean

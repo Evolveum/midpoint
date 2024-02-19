@@ -18,10 +18,14 @@ import com.evolveum.midpoint.authentication.impl.util.EndPointsUrlMapping;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.security.api.*;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
@@ -47,6 +51,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerExecutionChain;
+import org.springframework.web.servlet.HandlerMapping;
+
 public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, SecurityContextManager, AccessDecisionManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointGuiAuthorizationEvaluator.class);
@@ -56,12 +64,18 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     private final SecurityEnforcer securityEnforcer;
     private final SecurityContextManager securityContextManager;
     private final TaskManager taskManager;
+    private final ApplicationContext applicationContext;
 
-    public MidPointGuiAuthorizationEvaluator(SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager, TaskManager taskManager) {
+    private List<HandlerMapping> matchingBeans = List.of();
+
+    public MidPointGuiAuthorizationEvaluator(
+            SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager, TaskManager taskManager, ApplicationContext applicationContext) {
         super();
         this.securityEnforcer = securityEnforcer;
         this.securityContextManager = securityContextManager;
         this.taskManager = taskManager;
+        this.applicationContext = applicationContext;
+
     }
 
     @Override
@@ -195,6 +209,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
         List<String> requiredActions = new ArrayList<>();
 
+        HandlerMethod method = getRestHandler(filterInvocation.getRequest());
+
         for (EndPointsUrlMapping urlMapping : EndPointsUrlMapping.values()) {
             addSecurityConfig(filterInvocation, requiredActions, urlMapping.getUrl(), urlMapping.getAction());
         }
@@ -217,6 +233,25 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         Task task = taskManager.createTaskInstance(MidPointGuiAuthorizationEvaluator.class.getName() + ".decide");
 
         decideInternal(principal, requiredActions, authentication, object, task);
+    }
+
+    private HandlerMethod getRestHandler(HttpServletRequest request) {
+        if (matchingBeans.isEmpty()) {
+            matchingBeans = new ArrayList(BeanFactoryUtils.beansOfTypeIncludingAncestors(
+                    applicationContext, HandlerMapping.class, true, false).values());
+        }
+
+        for (HandlerMapping matchingBean : matchingBeans) {
+            try {
+                HandlerExecutionChain handler = matchingBean.getHandler(request);
+                if (handler != null && handler.getHandler() instanceof HandlerMethod method) {
+                    return method;
+                }
+            } catch (Exception e) {
+                // ignore exception
+            }
+        }
+        return null;
     }
 
     protected MidPointPrincipal getPrincipalFromAuthentication(
