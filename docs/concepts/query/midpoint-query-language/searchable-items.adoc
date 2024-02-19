@@ -1,14 +1,13 @@
-= Searchable Elements in midPoint
-:page-nav-title: Searchable elements
+= Searchable Items in midPoint
+:page-nav-title: Searchable items
 :page-display-order: 400
 
 
-This document provides list of searchable elements (items) in midPoint that can be used while querying data with _MidPoint Query Language_.
+This document provides list of searchable items (elements) in midPoint that can be used while querying data with _MidPoint Query Language_.
 
 It also provides easily searchable translation table between displayName that users can see in GUI and the item name that is being used in queries.
 
-NOTE: Column Display Name displays actual English translation of the element. It can be even modified in your implementation.
-NOTE: The document is not comprehensive at this moment.
+NOTE: Column Display Name displays actual English translation of the element. Different language versions have different names. It can be even customized in your implementation.
 
 == Searchable items
 
@@ -16,13 +15,15 @@ Each object type has different set of searchable items.
 Display name contains element identification in GUI.
 Item name contains name of the element according the schema.
 
+Some items recently added (e.g. personalNumber) are searchable in the native repository only. Please use Native repository.
+
 NOTE: For preparation of queries use names in the Item name column.
 
 
 [#_abstractroletype]
-== AbstractRoleType
+=== AbstractRoleType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -36,7 +37,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | displayName | Display Name | t:PolyStringType |  | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_focustype[FocusType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identifier | Identifier | xsd:string |  | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_focustype[FocusType] | 
@@ -64,9 +65,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_abstractworkitemoutputtype]
-== AbstractWorkItemOutputType
+=== AbstractWorkItemOutputType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -74,9 +75,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_accesscertificationcampaigntype]
-== AccessCertificationCampaignType
+=== AccessCertificationCampaignType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -108,9 +109,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_accesscertificationcasetype]
-== AccessCertificationCaseType
+=== AccessCertificationCaseType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -131,9 +132,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_accesscertificationdefinitiontype]
-== AccessCertificationDefinitionType
+=== AccessCertificationDefinitionType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -160,9 +161,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_accesscertificationworkitemtype]
-== AccessCertificationWorkItemType
+=== AccessCertificationWorkItemType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -178,29 +179,29 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_activationtype]
-== ActivationType
+=== ActivationType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
-| administrativeStatus | Administrative status | xref:#_activationstatustype[tns:ActivationStatusType] |  | 
+| administrativeStatus | Administrative status | [tns:ActivationStatusType] |  | 
 | archiveTimestamp |  | xsd:dateTime |  | 
 | disableReason |  | xsd:anyURI |  | 
 | disableTimestamp |  | xsd:dateTime |  | 
-| effectiveStatus | Effective status | xref:#_activationstatustype[tns:ActivationStatusType] |  | 
+| effectiveStatus | Effective status | [tns:ActivationStatusType] |  | 
 | enableTimestamp |  | xsd:dateTime |  | 
-| lockoutStatus | Lock-out Status | xref:#_lockoutstatustype[tns:LockoutStatusType] |  | 
+| lockoutStatus | Lock-out Status | [tns:LockoutStatusType] |  | 
 | validFrom | Valid from | xsd:dateTime |  | 
 | validTo | Valid to | xsd:dateTime |  | 
 | validityChangeTimestamp |  | xsd:dateTime |  | 
-| validityStatus | Validity Status | xref:#_timeintervalstatustype[tns:TimeIntervalStatusType] |  | 
+| validityStatus | Validity Status | [tns:TimeIntervalStatusType] |  | 
 |===
 
 [#_activityaffectedobjectstype]
-== ActivityAffectedObjectsType
+=== ActivityAffectedObjectsType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -213,9 +214,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_administrativeoperationalstatetype]
-== AdministrativeOperationalStateType
+=== AdministrativeOperationalStateType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -223,9 +224,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_archetypetype]
-== ArchetypeType
+=== ArchetypeType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -239,7 +240,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | displayName | Display Name | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identifier | Identifier | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
@@ -267,9 +268,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_assignmentholdertype]
-== AssignmentHolderType
+=== AssignmentHolderType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -277,7 +278,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] |  | 
 | delegatedRef |  | c:ObjectReferenceType |  | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_objecttype[ObjectType] | 
@@ -292,15 +293,15 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_assignmenttype]
-== AssignmentType
+=== AssignmentType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | activation |  | xref:#_activationtype[tns:ActivationType] |  | 
 | construction | Construction | xref:#_constructiontype[tns:ConstructionType] |  | 
-| extension |  | xref:#_extensiontype[tns:ExtensionType] |  | 
+| extension |  | [tns:ExtensionType] |  | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle state | xsd:string |  | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] |  | 
@@ -313,9 +314,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_auditeventrecordtype]
-== AuditEventRecordType
+=== AuditEventRecordType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -349,9 +350,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_autoassignspecificationtype]
-== AutoassignSpecificationType
+=== AutoassignSpecificationType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -359,9 +360,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_basicobjectsettype]
-== BasicObjectSetType
+=== BasicObjectSetType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -370,9 +371,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_basicresourceobjectsettype]
-== BasicResourceObjectSetType
+=== BasicResourceObjectSetType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -383,9 +384,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_casetype]
-== CaseType
+=== CaseType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -415,9 +416,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_caseworkitemtype]
-== CaseWorkItemType
+=== CaseWorkItemType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -434,9 +435,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_connectorhosttype]
-== ConnectorHostType
+=== ConnectorHostType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -461,9 +462,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_connectortype]
-== ConnectorType
+=== ConnectorType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -494,9 +495,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_constructiontype]
-== ConstructionType
+=== ConstructionType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -504,9 +505,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_containerable]
-== Containerable
+=== Containerable
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -514,9 +515,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_credentialstype]
-== CredentialsType
+=== CredentialsType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -524,9 +525,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_dashboardtype]
-== DashboardType
+=== DashboardType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -549,9 +550,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_focusidentitiestype]
-== FocusIdentitiesType
+=== FocusIdentitiesType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -560,9 +561,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_focusidentitysourcetype]
-== FocusIdentitySourceType
+=== FocusIdentitySourceType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -570,9 +571,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_focusidentitytype]
-== FocusIdentityType
+=== FocusIdentityType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -581,9 +582,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_focustype]
-== FocusType
+=== FocusType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -595,7 +596,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string |  | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] |  | 
 | jpegPhoto | Jpeg photo | xsd:base64Binary |  | 
@@ -619,9 +620,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_formtype]
-== FormType
+=== FormType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -644,9 +645,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_functionlibrarytype]
-== FunctionLibraryType
+=== FunctionLibraryType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -654,7 +655,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -669,9 +670,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_genericobjecttype]
-== GenericObjectType
+=== GenericObjectType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -683,7 +684,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | delegatedRef |  | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_focustype[FocusType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_focustype[FocusType] | 
 | jpegPhoto | Jpeg photo | xsd:base64Binary | xref:#_focustype[FocusType] | 
@@ -707,9 +708,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_lookuptablerowtype]
-== LookupTableRowType
+=== LookupTableRowType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -721,9 +722,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_lookuptabletype]
-== LookupTableType
+=== LookupTableType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -731,7 +732,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -747,9 +748,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_marktype]
-== MarkType
+=== MarkType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -757,7 +758,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -772,9 +773,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_messagetemplatetype]
-== MessageTemplateType
+=== MessageTemplateType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -797,9 +798,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_metadatatype]
-== MetadataType
+=== MetadataType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -814,9 +815,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_nodetype]
-== NodeType
+=== NodeType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -841,9 +842,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_objectcollectiontype]
-== ObjectCollectionType
+=== ObjectCollectionType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -851,7 +852,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -866,9 +867,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_objectdeltaoperationtype]
-== ObjectDeltaOperationType
+=== ObjectDeltaOperationType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -877,13 +878,13 @@ NOTE: For preparation of queries use names in the Item name column.
 | resourceName |  | t:PolyStringType |  | 
 | resourceOid |  | xsd:string |  | 
 | shadowIntent |  | xsd:string |  | 
-| shadowKind |  | xref:#_shadowkindtype[tns:ShadowKindType] |  | 
+| shadowKind |  | [tns:ShadowKindType] |  | 
 |===
 
 [#_objectreferencetype]
-== ObjectReferenceType
+=== ObjectReferenceType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -891,9 +892,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_objecttemplatetype]
-== ObjectTemplateType
+=== ObjectTemplateType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -901,7 +902,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | includeRef | Include | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -917,14 +918,14 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_objecttype]
-== ObjectType
+=== ObjectType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] |  | 
+| extension | Extension | [tns:ExtensionType] |  | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string |  | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] |  | 
@@ -938,24 +939,24 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_operationexecutiontype]
-== OperationExecutionType
+=== OperationExecutionType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | id |  |  |  | 
 | initiatorRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
-| recordType |  | xref:#_operationexecutionrecordtypetype[tns:OperationExecutionRecordTypeType] |  | 
-| status |  | xref:#_operationresultstatustype[tns:OperationResultStatusType] |  | 
+| recordType |  | [tns:OperationExecutionRecordTypeType] |  | 
+| status |  | [tns:OperationResultStatusType] |  | 
 | taskRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
 | timestamp |  | xsd:dateTime |  | 
 |===
 
 [#_operationalstatetype]
-== OperationalStateType
+=== OperationalStateType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -963,9 +964,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_orgtype]
-== OrgType
+=== OrgType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -980,7 +981,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | displayOrder | Display Order | xsd:int |  | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identifier | Identifier | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
@@ -1009,19 +1010,19 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_passwordtype]
-== PasswordType
+=== PasswordType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
-| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_abstractcredentialtype[AbstractCredentialType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | [AbstractCredentialType] | 
 |===
 
 [#_reportdatatype]
-== ReportDataType
+=== ReportDataType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1029,7 +1030,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -1045,9 +1046,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_reporttype]
-== ReportType
+=== ReportType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1055,7 +1056,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -1070,9 +1071,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_resourcebusinessconfigurationtype]
-== ResourceBusinessConfigurationType
+=== ResourceBusinessConfigurationType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1081,9 +1082,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_resourcetype]
-== ResourceType
+=== ResourceType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1113,9 +1114,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_roleanalysisclustertype]
-== RoleAnalysisClusterType
+=== RoleAnalysisClusterType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1139,9 +1140,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_roleanalysissessiontype]
-== RoleAnalysisSessionType
+=== RoleAnalysisSessionType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1164,9 +1165,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_roletype]
-== RoleType
+=== RoleType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1180,7 +1181,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | displayName | Display Name | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identifier | Identifier | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
@@ -1208,9 +1209,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_scheduletype]
-== ScheduleType
+=== ScheduleType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1218,9 +1219,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_securitypolicytype]
-== SecurityPolicyType
+=== SecurityPolicyType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1243,9 +1244,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_sequencetype]
-== SequenceType
+=== SequenceType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1253,7 +1254,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -1268,9 +1269,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_servicetype]
-== ServiceType
+=== ServiceType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1285,7 +1286,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | displayOrder | Display Order | xsd:int |  | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identifier | Identifier | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
@@ -1313,9 +1314,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_shadowcorrelationstatetype]
-== ShadowCorrelationStateType
+=== ShadowCorrelationStateType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1327,9 +1328,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_shadowtype]
-== ShadowType
+=== ShadowType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1362,9 +1363,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_simulationdefinitiontype]
-== SimulationDefinitionType
+=== SimulationDefinitionType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1372,9 +1373,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_simulationresultprocessedobjecttype]
-== SimulationResultProcessedObjectType
+=== SimulationResultProcessedObjectType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1389,9 +1390,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_simulationresulttype]
-== SimulationResultType
+=== SimulationResultType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1419,9 +1420,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_superresourcedeclarationtype]
-== SuperResourceDeclarationType
+=== SuperResourceDeclarationType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1429,9 +1430,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_systemconfigurationtype]
-== SystemConfigurationType
+=== SystemConfigurationType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1439,7 +1440,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -1454,9 +1455,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_taskaffectedobjectstype]
-== TaskAffectedObjectsType
+=== TaskAffectedObjectsType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1464,9 +1465,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_taskautoscalingtype]
-== TaskAutoScalingType
+=== TaskAutoScalingType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1474,9 +1475,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_tasktype]
-== TaskType
+=== TaskType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1519,9 +1520,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_triggertype]
-== TriggerType
+=== TriggerType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1531,9 +1532,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_usertype]
-== UserType
+=== UserType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1547,7 +1548,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_focustype[FocusType] | 
 | employeeNumber | Employee Number | xsd:string |  | Deprecated since 4.8
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | familyName | Family name | t:PolyStringType |  | 
 | fullName | Full name | t:PolyStringType |  | 
 | givenName | Given name | t:PolyStringType |  | 
@@ -1579,9 +1580,9 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 
 [#_valuepolicytype]
-== ValuePolicyType
+=== ValuePolicyType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1589,7 +1590,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
