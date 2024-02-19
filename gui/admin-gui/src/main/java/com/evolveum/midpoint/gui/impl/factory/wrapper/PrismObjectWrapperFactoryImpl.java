@@ -246,7 +246,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         duplicatedBean
                 .name(copyOf)
                 .description(copyOf +
-                        (originalObject.getDescription() == null ? null : (System.lineSeparator() + originalObject.getDescription())));
+                        (originalObject.getDescription() == null ? "" : (System.lineSeparator() + originalObject.getDescription())));
         return duplicatedBean;
     }
 }
