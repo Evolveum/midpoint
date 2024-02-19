@@ -35,7 +35,8 @@ public class SecretsProviderManager {
             Map.ofEntries(
                     Map.entry(DockerSecretsProviderType.class, DockerSecretsProvider.class),
                     Map.entry(PropertiesSecretsProviderType.class, PropertiesSecretsProvider.class),
-                    Map.entry(EnvironmentVariablesSecretsProviderType.class, EnvironmentVariablesSecretsProvider.class)
+                    Map.entry(EnvironmentVariablesSecretsProviderType.class, EnvironmentVariablesSecretsProvider.class),
+                    Map.entry(FileSecretsProviderType.class, FileSecretsProvider.class)
             );
 
     public synchronized void configure(SecretsResolver consumer, SecretsProvidersType configuration) {
@@ -49,9 +50,9 @@ public class SecretsProviderManager {
         LOGGER.debug("Existing providers: {}", existingProviders.keySet());
 
         List<SecretsProviderType> configurations = new ArrayList<>();
-        configurations.add(configuration.getEnvironmentVariablesSecretsProvider());
         configurations.add(configuration.getDockerSecretsProvider());
-        configurations.addAll(configuration.getKubernetesSecretsProvider());
+        configurations.addAll(configuration.getEnvironmentVariablesSecretsProvider());
+        configurations.addAll(configuration.getFileSecretsProvider());
         configurations.addAll(configuration.getPropertiesSecretsProvider());
         configurations.addAll(configuration.getCustomSecretsProvider());
 

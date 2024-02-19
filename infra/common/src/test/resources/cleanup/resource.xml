@@ -186,10 +186,17 @@
                     </source>
                 </outbound>
             </attribute>
+            <focus>
+                <type>UserType</type>
+            </focus>
         </objectType>
     </c:schemaHandling>
 
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <cachingMetadata>
+            <retrievalTimestamp>2016-01-05T17:49:22.504+01:00</retrievalTimestamp>
+            <serialNumber>ad58de483086a60c-a0cbfa56429029a8</serialNumber>
+        </cachingMetadata>
         <configured>
             <cap:activation>
                 <cap:status>

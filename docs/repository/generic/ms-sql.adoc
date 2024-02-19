@@ -105,7 +105,7 @@ Resolution:
 However, If you have DB wrongly set - missing the ALLOW_SNAPSHOT_ISOLATION option, you will not get usual "SQLServerException: Snapshot isolation transaction failed" but rather confusing error that m_global_metadata table is missing.
 So you just run "ALTER DATABASE "midpoint" SET ALLOW_SNAPSHOT_ISOLATION ON;" to fix it.
 
-Jira:
+Issue:
 
 bug:MID-5880[]
 

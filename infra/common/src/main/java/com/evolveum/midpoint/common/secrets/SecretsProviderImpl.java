@@ -109,15 +109,15 @@ public abstract class SecretsProviderImpl<T extends SecretsProviderType> impleme
      */
     protected abstract <ST> ST resolveSecret(@NotNull String key, @NotNull Class<ST> type) throws EncryptionException;
 
-    protected <ST> ST mapValue(String value, Class<ST> type) {
+    protected <ST> ST mapValue(byte[] value, Class<ST> type) {
         if (value == null) {
             return null;
         }
 
         if (type == String.class) {
-            return (ST) value;
+            return (ST) new String(value);
         } else if (type == ByteBuffer.class) {
-            return (ST) ByteBuffer.wrap(value.getBytes());
+            return (ST) ByteBuffer.wrap(value);
         }
 
         throw new IllegalStateException("Unsupported type " + type);

@@ -149,6 +149,12 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
     }
 
     @Override
+    protected void postProcessResultForWizard(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
+        super.postProcessResultForWizard(result, executedDeltas, target);
+        postProcessResult(result, executedDeltas, target);
+    }
+
+    @Override
     public void refresh(AjaxRequestTarget target, boolean soft) {
         if (isEditObject()) {
             ((TaskSummaryPanel) getSummaryPanel()).getTaskInfoModel().reset();

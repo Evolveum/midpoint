@@ -1006,7 +1006,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
     }
 
-    // See MID-6323 in Jira
+    // See MID-6323
 
     private boolean checkNoneFilterBeforeAutz(ObjectQuery query) {
         if (ObjectQueryUtil.isNoneQuery(query)) {

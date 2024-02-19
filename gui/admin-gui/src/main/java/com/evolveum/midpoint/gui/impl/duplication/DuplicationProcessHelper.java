@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.gui.impl.duplication;
 
+import com.evolveum.midpoint.common.cleanup.CleanupActionProcessor;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -94,7 +95,7 @@ public class DuplicationProcessHelper {
                                 pageBase.getRegistry().findContainerableDuplicateResolver(
                                         container.getDefinition(), resolveParentContainer(getRowModel()));
                         if (resolver == null) {
-                            duplicatedContainer = duplicateContainerDefault(container);
+                            duplicatedContainer = duplicateContainerValueDefault(container);
                         } else {
                             C duplicatedBean = resolver.duplicateObject(bean);
                             if (duplicatedBean == null) {
@@ -125,20 +126,24 @@ public class DuplicationProcessHelper {
      * Duplicate object that can be reused.
      */
     public static <O extends ObjectType> PrismObject<O> duplicateObjectDefault(PrismObject<O> object) {
-        PrismObject<O> duplication = object.cloneComplex(CloneStrategy.REUSE);
-        duplication.setOid(null);
-        return duplication;
+        PrismObject<O> duplicate = object.cloneComplex(CloneStrategy.REUSE);
+        CleanupActionProcessor cleanupProcessor = new CleanupActionProcessor();
+        cleanupProcessor.process(duplicate);
+        duplicate.setOid(null);
+        return duplicate;
     }
 
     /**
      * Duplicate container value that can be reused.
      */
-    public static <C extends Containerable> PrismContainerValue<C> duplicateContainerDefault(PrismContainerValue<C> container) {
+    public static <C extends Containerable> PrismContainerValue<C> duplicateContainerValueDefault(PrismContainerValue<C> container) {
         PrismContainerValue<C> duplicate = PrismValueCollectionsUtil.cloneCollectionComplex(
                         CloneStrategy.REUSE,
                         Collections.singletonList(container))
                 .iterator().next();
         duplicate.setParent(container.getParent());
+        CleanupActionProcessor cleanupProcessor = new CleanupActionProcessor();
+        cleanupProcessor.process(duplicate);
         return duplicate;
     }
 

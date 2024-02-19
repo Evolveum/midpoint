@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.duplication.ContainerableDuplicateResolver;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
@@ -16,23 +15,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.MappingDirection;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
 /**
  * @author lskublik
@@ -55,7 +42,7 @@ public class ResourceObjectTypeWrapperFactory extends PrismContainerWrapperFacto
     public ResourceObjectTypeDefinitionType duplicateObject(ResourceObjectTypeDefinitionType originalBean) {
         PrismContainerValue<ResourceObjectTypeDefinitionType> originalObject = originalBean.asPrismContainerValue();
         PrismContainerValue<ResourceObjectTypeDefinitionType> duplicate =
-                DuplicationProcessHelper.duplicateContainerDefault(originalObject);
+                DuplicationProcessHelper.duplicateContainerValueDefault(originalObject);
         @NotNull ResourceObjectTypeDefinitionType duplicatedBean = duplicate.asContainerable();
 
         String name;
