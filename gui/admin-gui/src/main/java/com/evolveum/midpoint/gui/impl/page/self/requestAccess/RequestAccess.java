@@ -774,6 +774,8 @@ public class RequestAccess implements Serializable {
 
                 ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
                 options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
+                boolean executeImmediately = isDefaultExecuteAfterAllApprovals(page);
+                options.executeImmediatelyAfterApproval(executeImmediately);
                 request.setExecutionOptions(options.toModelExecutionOptionsType());
 
                 PrismObject<UserType> user = WebModelServiceUtils.loadObject(poiRef, page);
@@ -968,6 +970,16 @@ public class RequestAccess implements Serializable {
         }
 
         return relation != null ? relation : new RelationSelectionType();
+    }
+
+    private Boolean isDefaultExecuteAfterAllApprovals(Page page) {
+        SystemConfigurationType config = MidPointApplication.get().getSystemConfigurationIfAvailable();
+        if (config == null || config.getRoleManagement() == null) {
+            return null;
+        }
+
+        RoleManagementConfigurationType roleManagement = config.getRoleManagement();
+        return roleManagement.isDefaultExecuteAfterAllApprovals();
     }
 
     public AccessRequestType getAccessRequestConfiguration(Page page) {
