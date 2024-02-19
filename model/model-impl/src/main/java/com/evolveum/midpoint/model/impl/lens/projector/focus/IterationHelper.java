@@ -18,6 +18,8 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -89,6 +91,11 @@ class IterationHelper<AH extends AssignmentHolderType> {
      * Message about re-iteration reason.
      */
     private String reIterationReason;
+
+    /**
+     * message shown to the end users using GUI.
+     */
+    private SingleLocalizableMessage humanReadableReason;
 
     /**
      * Initial element state (before iteration).
@@ -240,6 +247,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
             LOGGER.trace("Current focus does not satisfy constraints. Conflicting object: {}; iteration={}, maxIterations={}",
                     checker.getConflictingObject(), iteration, maxIterations);
             reIterationReason = checker.getMessages();
+            humanReadableReason = checker.getLocalizableMessage();
             return false;
         }
     }
@@ -279,7 +287,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
     void incrementIterationCounter() throws ObjectAlreadyExistsException {
         iteration++;
         iterationToken = null;
-        LensUtil.checkMaxIterations(iteration, maxIterations, reIterationReason, focusContext.getHumanReadableName());
+        LensUtil.checkMaxIterations(iteration, maxIterations, reIterationReason, humanReadableReason, focusContext.getHumanReadableName());
     }
 
     boolean didResetOnRenameOccur() {

@@ -31,11 +31,6 @@ public abstract class PageAbstractRole<AR extends AbstractRoleType, ARDM extends
     public PageAbstractRole(PrismObject<AR> focus) {
         super(focus);
     }
-
-    public PageAbstractRole(PrismObject<AR> focus, List<BusinessRoleDto> patternDeltas) {
-        super(focus, patternDeltas);
-    }
-
     public void showConstructionWizard(AjaxRequestTarget target) {
         showWizard(target, null, ConstructionWizardPanel.class);
     }

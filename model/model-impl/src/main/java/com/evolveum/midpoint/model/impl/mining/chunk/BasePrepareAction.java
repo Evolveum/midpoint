@@ -114,7 +114,12 @@ public abstract class BasePrepareAction implements MiningStructure {
             String membersOid = member.getOid();
             PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, membersOid, task, result);
             if (role != null) {
-                membersOidSet.add(membersOid);
+                RoleType roleObject = role.asObjectable();
+                String lifecycleState = roleObject.getLifecycleState();
+
+                if (lifecycleState == null || lifecycleState.equals("active")) {
+                    membersOidSet.add(membersOid);
+                }
             }
         }
 
@@ -161,7 +166,7 @@ public abstract class BasePrepareAction implements MiningStructure {
             key.retainAll(membersOidSet);
 
             int rolesSize = roles.size();
-            String chunkName = "Group (" + rolesSize + " Roles)";
+            String chunkName = "'" + rolesSize + "' Roles";
             if (rolesSize == 1) {
                 PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(
                         roleExistCache, roles.get(0), task, result);
@@ -197,7 +202,7 @@ public abstract class BasePrepareAction implements MiningStructure {
             int size = key.size();
             double frequency = Math.min(size / (double) mapSize, 1);
             int userSize = users.size();
-            String chunkName = "Group (" + userSize + " Users)";
+            String chunkName = "'" + userSize + "' Users";
             if (userSize == 1) {
                 PrismObject<UserType> user = roleAnalysisService.cacheUserTypeObject(
                         userExistCache, users.get(0), task, result);
@@ -238,8 +243,13 @@ public abstract class BasePrepareAction implements MiningStructure {
                 PrismObject<RoleType> role = roleAnalysisService
                         .cacheRoleTypeObject(roleExistCache, roleId, task, result);
                 if (role == null) {continue;}
-                existingRolesAssignment.add(roleId);
-                roleMap.putAll(roleId, Collections.singletonList(membersOid));
+                RoleType roleObject = role.asObjectable();
+                String lifecycleState = roleObject.getLifecycleState();
+
+                if (lifecycleState == null || lifecycleState.equals("active")) {
+                    existingRolesAssignment.add(roleId);
+                    roleMap.putAll(roleId, Collections.singletonList(membersOid));
+                }
             }
 
             Collections.sort(existingRolesAssignment);
@@ -275,7 +285,13 @@ public abstract class BasePrepareAction implements MiningStructure {
             for (String roleId : rolesOid) {
                 PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, roleId, task, result);
                 if (role == null) {continue;}
-                roleMap.putAll(roleId, Collections.singletonList(oid));
+
+                RoleType roleObject = role.asObjectable();
+                String lifecycleState = roleObject.getLifecycleState();
+
+                if (lifecycleState == null || lifecycleState.equals("active")) {
+                    roleMap.putAll(roleId, Collections.singletonList(oid));
+                }
             }
 
         }

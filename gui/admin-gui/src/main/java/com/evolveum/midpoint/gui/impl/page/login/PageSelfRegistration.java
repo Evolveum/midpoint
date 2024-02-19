@@ -139,6 +139,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 });
         initInputProperties(feedback, firstName);
         staticRegistrationForm.add(firstName);
+        firstName.getBaseFormComponent().add(
+                AttributeAppender.append("aria-label", createStringResource("UserType.givenName")));
 
         TextPanel<String> lastName = new TextPanel<>(ID_LAST_NAME,
                 new PropertyModel<>(getUserModel(), UserType.F_FAMILY_NAME.getLocalPart() + ".orig") {
@@ -153,11 +155,15 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 });
         initInputProperties(feedback, lastName);
         staticRegistrationForm.add(lastName);
+        lastName.getBaseFormComponent().add(
+                AttributeAppender.append("aria-label", createStringResource("UserType.familyName")));
 
         TextPanel<String> email = new TextPanel<>(ID_EMAIL,
                 new PropertyModel<>(getUserModel(), UserType.F_EMAIL_ADDRESS.getLocalPart()));
         initInputProperties(feedback, email);
         staticRegistrationForm.add(email);
+        email.getBaseFormComponent().add(
+                AttributeAppender.append("aria-label", createStringResource("UserType.emailAddress")));
 
         createPasswordPanel(staticRegistrationForm);
         return staticRegistrationForm;
@@ -174,6 +180,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
         PasswordPanel password = new PasswordPropertyPanel(ID_PASSWORD,
                 new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true, null);
         password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        password.getBaseFormComponent().add(
+                AttributeAppender.append("aria-label", createStringResource("CredentialsType.password")));
         password.getBaseFormComponent().setRequired(true);
         staticRegistrationForm.add(password);
 
@@ -221,16 +229,18 @@ public class PageSelfRegistration extends PageAbstractFlow {
         saveUser(result);
         result.computeStatus();
 
-        if (result.getStatus() == OperationResultStatus.SUCCESS) {
+        if (result.getStatus() == OperationResultStatus.SUCCESS || result.getStatus() == OperationResultStatus.HANDLED_ERROR) {
             getSession()
                     .success(createStringResource("PageSelfRegistration.registration.success").getString());
-
-            String sequenceIdentifier = getSelfRegistrationConfiguration().getAdditionalAuthentication();
-            if (SecurityUtils.sequenceExists(getSelfRegistrationConfiguration().getAuthenticationPolicy(), sequenceIdentifier)) {
-                target.add(PageSelfRegistration.this);
-            }
-            LOGGER.trace("Registration for user {} was successfull.", getUserModel().getObject());
-            isSubmitted = true;
+            afterUserRegistration(target);
+        } else if (result.getStatus() == OperationResultStatus.IN_PROGRESS) {
+            getSession()
+                    .info(createStringResource("PageSelfRegistration.registration.inprogress").getString());
+            afterUserRegistration(target);
+        } else if (result.getStatus() == OperationResultStatus.WARNING) {
+            getSession()
+                    .warn(createStringResource("PageSelfRegistration.registration.success").getString());
+            afterUserRegistration(target);
         } else {
             String message;
             if (result.getUserFriendlyMessage() != null) {
@@ -246,10 +256,18 @@ public class PageSelfRegistration extends PageAbstractFlow {
             target.add(getFeedbackPanel());
             LOGGER.error("Failed to register user {}. Reason {}", getUserModel().getObject(), result.getMessage());
             return;
-
         }
         target.add(getFeedbackPanel());
         target.add(PageSelfRegistration.this);
+    }
+
+    private void afterUserRegistration(AjaxRequestTarget target) {
+        String sequenceIdentifier = getSelfRegistrationConfiguration().getAdditionalAuthentication();
+        if (SecurityUtils.sequenceExists(getSelfRegistrationConfiguration().getAuthenticationPolicy(), sequenceIdentifier)) {
+            target.add(PageSelfRegistration.this);
+        }
+        LOGGER.trace("Registration for user {} was successfull.", getUserModel().getObject());
+        isSubmitted = true;
     }
 
     @Override
@@ -288,7 +306,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         }
     }
 
-    protected ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws CommonException {
         LOGGER.trace("Preparing user ADD delta (new user registration)");
         UserType userType = prepareUserToSave(task, result);
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userType.asPrismObject());
@@ -325,7 +343,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
             try {
                 userToSave = getDynamicFormPanel().getObject().asObjectable().clone();
-            } catch (SchemaException e) {
+            } catch (CommonException e) {
                 LoggingUtils.logException(LOGGER, "Failed to construct delta " + e.getMessage(), e);
                 throw new RestartResponseException(this);
             }

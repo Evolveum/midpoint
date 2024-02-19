@@ -175,6 +175,47 @@ export default class MidPointTheme {
                 }
             });
         });
+
+        jQuery(function ($) {
+            $(document).on("click", ".showPasswordButton", function (e, t) {
+                $(this).showPassword();
+            });
+        });
+
+        jQuery(function ($) {
+            $(document).on("keydown", ".showPasswordButton", function (e, t) {
+                if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
+                        e.key == "Enter" || e.keyCode == 13) {
+                    $(this).showPassword();
+                  }
+            });
+        });
+
+        (function ($) {
+            $.fn.showPassword = function () {
+                var parent = $(this).closest(".password-parent");
+                var input = parent.find("input");
+
+                if (input.attr('type') === "password") {
+                    input.attr('type', 'text');
+                    $(this).addClass("fa-eye-slash");
+                    $(this).removeClass("fa-eye");
+                } else {
+                    input.attr('type', 'password');
+                    $(this).removeClass("fa-eye-slash");
+                    $(this).addClass("fa-eye");
+                }
+            }
+        })(jQuery);
+
+        jQuery(function ($) {
+                    $(document).on("keydown", ".clickable-by-enter", function (e, t) {
+                        if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
+                                e.key == "Enter" || e.keyCode == 13) {
+                            $(this).click();
+                          }
+                    });
+                });
     }
 
 breakLongerTextInTableCell(cellId) {
@@ -505,19 +546,6 @@ breakLongerTextInTableCell(cellId) {
         }
     }
 
-    showPassword(iconElement) {
-        var parent = iconElement.closest(".password-parent");
-        var input = parent.querySelector("input");
-
-        if (input.type === "password") {
-            input.type = "text";
-            iconElement.className = 'fa fa-eye-slash';
-        } else {
-            input.type = "password";
-            iconElement.className = 'fa fa-eye';
-        }
-    }
-
     updatePageUrlParameter(paramName, paramValue) {
         var queryParams = new URLSearchParams(window.location.search);
         queryParams.set(paramName, paramValue);
@@ -620,9 +648,9 @@ breakLongerTextInTableCell(cellId) {
 
         function zoomIn(rectBefore, x, y) {
             console.log('Zooming in');
-            scale += 0.03;
+            scale += 0.01;
 
-            let prevScale = scale - 0.1;
+            let prevScale = scale - 0.01;
             let scaleFactor = scale / prevScale;
 
             let deltaX = (x / 100) * rectBefore.width * (scaleFactor - 1);
@@ -633,7 +661,7 @@ breakLongerTextInTableCell(cellId) {
 
         function zoomOut(rectBefore) {
             console.log('Zooming out');
-            scale -= 0.03;
+            scale -= 0.01;
             scale = Math.max(0.1, scale);
 
             setTransform(0, 0, scale, rectBefore, 0, 0, 1);

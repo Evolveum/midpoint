@@ -11,6 +11,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionStateCache;
+
+import com.evolveum.midpoint.task.api.TaskUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
@@ -43,17 +47,23 @@ public class NodeAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl
     private RepositoryService repositoryService;
     @Autowired private TaskManager taskManager;
     @Autowired private Protector protector;
+    @Autowired private SubscriptionStateCache subscriptionStateCache;
 
     private static final Trace LOGGER = TraceManager.getTrace(NodeAuthenticationEvaluatorImpl.class);
 
     private static final String OPERATION_SEARCH_NODE = NodeAuthenticationEvaluatorImpl.class.getName() + ".searchNode";
 
     @Override
-    public NodeAuthenticationTokenImpl authenticate(ConnectionEnvironment connEnv, NodeAuthenticationContext authnCtx) throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException, CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {
+    public NodeAuthenticationTokenImpl authenticate(ConnectionEnvironment connEnv, NodeAuthenticationContext authnCtx)
+            throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
+            CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {
         String remoteName = authnCtx.getRemoteName();
         String remoteAddress = authnCtx.getUsername();
-        LOGGER.debug("Checking if {} ({}) is a known node", remoteName, remoteAddress);
         OperationResult result = new OperationResult(OPERATION_SEARCH_NODE);
+
+        checkSubscription(result);
+
+        LOGGER.debug("Checking if {} ({}) is a known node", remoteName, remoteAddress);
 
         try {
             List<PrismObject<NodeType>> allNodes = repositoryService.searchObjects(NodeType.class, null, null, result);
@@ -88,6 +98,15 @@ public class NodeAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl
         }
         auditAuthenticationFailure(remoteName != null ? remoteName : remoteAddress, connEnv, "Failed to authenticate node.");
         throw new AuthenticationServiceException("web.security.flexAuth.cluster.auth.null");
+    }
+
+    /** Intra-cluster communication is a subscriber-only feature when running in production. Let's check that here. */
+    private void checkSubscription(OperationResult result) {
+        var subscriptionState = subscriptionStateCache.getSubscriptionState(result);
+        if (!subscriptionState.isClusteringAvailable()) {
+            TaskUtil.logClusteringWithoutSubscriptionError();
+            throw new AuthenticationServiceException("web.security.flexAuth.cluster.auth.missingSubscription");
+        }
     }
 
     private PrismObject<NodeType> determineCurrentNode(List<PrismObject<NodeType>> matchingNodes, String credentials) {

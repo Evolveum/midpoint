@@ -54,7 +54,6 @@ while the path expressions use the dollar sign (`$`) to prefix the variables:
 $givenName
 ----
 
-
 == Accessing Object Items
 
 Some variables used in the expressions are simple (scalar) values.
@@ -88,7 +87,6 @@ The item path has a natural way how to reference the items inside a variable:
 ----
 $focus/activation/administrativeStatus
 ----
-
 
 == Mapping Variables vs Sources
 
@@ -273,7 +271,6 @@ In addition to these variables there are other special purpose variables.
 These are documented on a separate pages that document the mechanism.
 E.g. the variables specific to assignment processing are described in the xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page.
 
-
 == Alternative Variable Names and Missing Variables
 
 Although midPoint has xref:/midpoint/architecture/[solid architectural background] it is not a software where every little detail was defined by a big design upfront.
@@ -289,7 +286,7 @@ Please, if you can try to avoid the use of the alternative names.
 
 Due to midPoint history all the variables that are supposed to be universally available to all expressions may not be actually available in some cases.
 If you expect a variable to be available, and it is not, then you have probably found a bug.
-Please xref:/midpoint/reference/diag/creating-a-bug-report/[report the bug].
+Please xref:/support/bug-tracking-system/creating-a-bug-report/[report the bug].
 We will fix that.
 
 == See Also

@@ -26,6 +26,7 @@ import org.springframework.security.core.Authentication;
 import static com.evolveum.midpoint.task.quartzimpl.run.GroupLimitsChecker.*;
 import static com.evolveum.midpoint.task.quartzimpl.run.StopJobException.Severity.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * Executes a Quartz job i.e. midPoint task.
@@ -92,7 +93,6 @@ public class JobExecutor implements InterruptableJob {
 
         fetchTheTask(oid, result);
 
-        checkTaskSanity(result);
         checkTaskReady();
         fixTaskExecutionInformation(result);
         checkLocalSchedulerRunning(result);
@@ -150,15 +150,6 @@ public class JobExecutor implements InterruptableJob {
             // this is only a safety net; because we've waited for children just after executing a handler
             waitForTransientChildrenAndCloseThem(result);
         }
-    }
-
-    private void checkTaskSanity(OperationResult result) throws StopJobException {
-        if (task.getTaskIdentifier() == null) {
-            result.recordFatalError("Task without identifier cannot be executed");
-            suspendFlawedTaskRecordingResult(result);
-            throw new StopJobException(ERROR, "Task without identifier cannot be executed: %s", null, task);
-        }
-        // Consider checking e.g. ownerRef.oid here
     }
 
     private void executeHandler(TaskHandler handler, OperationResult result) throws StopJobException {
@@ -275,7 +266,7 @@ public class JobExecutor implements InterruptableJob {
 
     private void checkLocalSchedulerRunning(OperationResult result) throws StopJobException {
         // if task manager is stopping or stopped, stop this task immediately
-        // this can occur in rare situations, see https://jira.evolveum.com/browse/MID-1167
+        // this can occur in rare situations, see https://support.evolveum.com/wp/1167
         if (beans.localScheduler.isRunningChecked()) {
             return;
         }
@@ -301,6 +292,11 @@ public class JobExecutor implements InterruptableJob {
     private void fetchTheTask(String oid, OperationResult result) throws StopJobException {
         try {
             TaskQuartzImpl taskWithResult = beans.taskRetriever.getTaskWithResult(oid, result);
+
+            if (taskWithResult.getTaskIdentifier() == null) {
+                taskWithResult = generateTaskIdentifier(taskWithResult, result);
+            }
+
             ParentAndRoot parentAndRoot = taskWithResult.getParentAndRoot(result);
             task = beans.taskInstantiator.toRunningTaskInstance(taskWithResult, parentAndRoot.root, parentAndRoot.parent);
         } catch (ObjectNotFoundException e) {
@@ -312,6 +308,27 @@ public class JobExecutor implements InterruptableJob {
                     + "Please correct the problem or resynchronize midPoint repository with Quartz job store. "
                     + "Now exiting the execution routine.", t, oid);
         }
+    }
+
+    private static TaskQuartzImpl generateTaskIdentifier(TaskQuartzImpl task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        String taskOid = task.getOid();
+        String newIdentifier = beans.lightweightIdentifierGenerator.generate().toString();
+
+        beans.repositoryService.modifyObject(
+                TaskType.class,
+                taskOid,
+                beans.prismContext.deltaFor(TaskType.class)
+                        .item(TaskType.F_TASK_IDENTIFIER)
+                        .replace(newIdentifier)
+                        .asItemDeltas(),
+                result);
+
+        LOGGER.info("Generated identifier {} for task {}", newIdentifier, task);
+
+        var reloadedTask = beans.taskRetriever.getTaskWithResult(taskOid, result);
+        stateNonNull(reloadedTask.getTaskIdentifier(), "Still no identifier in %s", reloadedTask);
+        return reloadedTask;
     }
 
     /**
@@ -377,20 +394,15 @@ public class JobExecutor implements InterruptableJob {
             LOGGER.error("No scheduling state in {}. Setting execution state to SUSPENDED.", task);
             return TaskExecutionStateType.SUSPENDED;
         }
-        switch (task.getSchedulingState()) {
-            case SUSPENDED:
-                return TaskExecutionStateType.SUSPENDED;
-            case CLOSED:
-                return TaskExecutionStateType.CLOSED;
-            case WAITING:
-                // The current execution state should be OK. It is because the switch to WAITING was done internally
-                // by the task handler, and was accompanied by the change in the execution state.
-                return null;
-            case READY: // Not much probable, but can occur in theory.
-                return TaskExecutionStateType.RUNNABLE;
-            default:
-                throw new AssertionError(task.getSchedulingState());
-        }
+        return switch (task.getSchedulingState()) {
+            case SUSPENDED -> TaskExecutionStateType.SUSPENDED;
+            case CLOSED -> TaskExecutionStateType.CLOSED;
+            case READY -> TaskExecutionStateType.RUNNABLE; // Not much probable, but can occur in theory.
+
+            // The current execution state should be OK. It is because the switch to WAITING was done internally
+            // by the task handler, and was accompanied by the change in the execution state.
+            case WAITING -> null;
+        };
     }
 
     private void checkGroupLimits(OperationResult result) throws StopJobException {

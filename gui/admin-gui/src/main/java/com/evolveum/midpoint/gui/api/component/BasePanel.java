@@ -10,6 +10,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.task.api.Task;
@@ -191,5 +192,9 @@ public class BasePanel<T> extends Panel {
     @Override
     public MidPointAuthWebSession getSession() {
         return (MidPointAuthWebSession) super.getSession();
+    }
+
+    public SubscriptionState getSubscriptionState() {
+        return MidPointApplication.get().getSubscriptionState();
     }
 }

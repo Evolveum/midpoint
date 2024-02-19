@@ -71,16 +71,6 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
     }
 
     @Override
-    protected void initLayout() {
-        if (runWizard) {
-            DetailsFragment detailsFragment = createDetailsFragment();
-            add(detailsFragment);
-            return;
-        }
-        super.initLayout();
-    }
-
-    @Override
     public Class<TaskType> getType() {
         return TaskType.class;
     }
@@ -96,28 +86,17 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
     }
 
     @Override
-    protected DetailsFragment createDetailsFragment() {
-        if (!runWizard) {
-            return super.createDetailsFragment();
-        }
-
-        return createTaskWizardFragment();
+    protected boolean canShowWizard() {
+        return runWizard;
     }
 
-    private DetailsFragment createTaskWizardFragment() {
+    @Override
+    protected DetailsFragment createWizardFragment() {
         return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageTask.this) {
             @Override
             protected void initFragmentLayout() {
                 TaskWizardPanel wizardPanel = new TaskWizardPanel(ID_TEMPLATE, createObjectWizardPanelHelper());
                 add(wizardPanel);
-//                try {
-//                    Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
-//                    AbstractWizardPanel wizard = constructor.newInstance(ID_TEMPLATE, createObjectWizardPanelHelper());
-//                    add(wizard);
-//                } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-//                    LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()
-//                            + " with parameters type: String, WizardPanelHelper");
-//                }
             }
         };
 
@@ -167,6 +146,12 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
             result.setBackgroundTaskOid(taskOid);
         }
         super.postProcessResult(result, executedDeltas, target);
+    }
+
+    @Override
+    protected void postProcessResultForWizard(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
+        super.postProcessResultForWizard(result, executedDeltas, target);
+        postProcessResult(result, executedDeltas, target);
     }
 
     @Override

@@ -70,7 +70,13 @@ public class ExpandedMiningStructure extends BasePrepareAction {
             PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, memberOid, task, result);
 
             if (role != null) {
-                membersOidSet.add(memberOid);
+                RoleType roleObject = role.asObjectable();
+                String lifecycleState = roleObject.getLifecycleState();
+
+                if (lifecycleState == null || lifecycleState.equals("active")) {
+                    membersOidSet.add(memberOid);
+
+                }
             }
         }
 
@@ -172,8 +178,14 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 if (role == null) {
                     continue;
                 }
-                existingRolesAssignment.add(roleId);
-                roleChunk.putAll(roleId, Collections.singletonList(user.getOid()));
+
+                RoleType roleObject = role.asObjectable();
+                String lifecycleState = roleObject.getLifecycleState();
+
+                if (lifecycleState == null || lifecycleState.equals("active")) {
+                    existingRolesAssignment.add(roleId);
+                    roleChunk.putAll(roleId, Collections.singletonList(user.getOid()));
+                }
 
             }
 

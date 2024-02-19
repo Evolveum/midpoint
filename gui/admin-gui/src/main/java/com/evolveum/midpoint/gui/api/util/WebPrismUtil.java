@@ -236,6 +236,12 @@ public class WebPrismUtil {
         }
     }
 
+    public static <C extends Containerable> boolean isEmptyContainer(PrismContainer<C> container) {
+        PrismContainer<C> clone = container.clone();
+        cleanupEmptyContainers(clone);
+        return clone.isEmpty();
+    }
+
     //TODO quick hack ... use for it wrappers
     public static <C extends Containerable> boolean isUseAsEmptyValue(PrismContainerValue<C> valueAfter) {
         return valueAfter != null && isUseAsEmptyValue(valueAfter.getRealClass());

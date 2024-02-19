@@ -22,7 +22,7 @@ public class CompositeCorrelationExplanation extends CorrelationExplanation {
 
     public CompositeCorrelationExplanation(
             @NotNull CorrelatorConfiguration correlatorConfiguration,
-            double confidence,
+            @NotNull Confidence confidence,
             @NotNull List<ChildCorrelationExplanationRecord> childRecords) {
         super(correlatorConfiguration, confidence);
         this.childRecords = childRecords;
@@ -34,7 +34,7 @@ public class CompositeCorrelationExplanation extends CorrelationExplanation {
         if (childRecords.isEmpty()) {
             return new LocalizableMessageBuilder()
                     .key("CorrelationExplanation.Composite.noChildren")
-                    .args(getDisplayableName(), getConfidenceScaledTo100())
+                    .args(getDisplayableName(), getConfidenceAsPercent())
                     .build();
         }
 
@@ -47,7 +47,7 @@ public class CompositeCorrelationExplanation extends CorrelationExplanation {
             if (!childRecord.ignoredBecause.isEmpty()) {
                 continue;
             }
-            if (childRecord.explanation.confidence == 0) {
+            if (childRecord.explanation.confidence.getValue() == 0) {
                 continue;
             }
             componentsBuilder.addMessage(
@@ -55,7 +55,7 @@ public class CompositeCorrelationExplanation extends CorrelationExplanation {
                             .key("CorrelationExplanation.Composite.child")
                             .arg(childRecord.explanation.toLocalizableMessage())
                             .arg(String.format(Locale.US, "%.2f", childRecord.weight)) // TODO i18n
-                            .arg(Math.round(childRecord.confidenceIncrement * 100))
+                            .arg(Math.round(childRecord.confidenceIncrement * 100) + "%")
                             .build());
         }
 
@@ -63,7 +63,7 @@ public class CompositeCorrelationExplanation extends CorrelationExplanation {
         topBuilder.addMessage(
                 componentsBuilder.build());
         topBuilder.addMessage(
-                LocalizableMessageBuilder.buildFallbackMessage(" => " + getConfidenceScaledTo100()));
+                LocalizableMessageBuilder.buildFallbackMessage(" => " + getConfidenceAsPercent()));
         return topBuilder.build();
     }
 
@@ -88,7 +88,7 @@ public class CompositeCorrelationExplanation extends CorrelationExplanation {
             this.explanation = explanation;
             this.weight = weight;
             this.confidenceIncrement = confidenceIncrement;
-            this.ignoredBecause = ignoredBecause;
+            this.ignoredBecause = Set.copyOf(ignoredBecause); // to be serializable
         }
 
         @Override

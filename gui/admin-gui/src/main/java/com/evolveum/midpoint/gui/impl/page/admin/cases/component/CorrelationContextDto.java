@@ -9,11 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
+
+import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
@@ -37,18 +41,8 @@ class CorrelationContextDto implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationContextDto.class);
 
-    static final String F_OPTION_HEADERS = "optionHeaders";
     static final String F_CORRELATION_OPTIONS = "correlationOptions";
-    static final String F_CORRELATION_PROPERTIES = "correlationProperties";
-
-    // TODO move into properties
-    private static final String TEXT_BEING_CORRELATED = "Object being correlated";
-    private static final String TEXT_CANDIDATE = "Correlation candidate %d";
-
-    /**
-     * Headers for individual options.
-     */
-    private final List<String> optionHeaders = new ArrayList<>();
+    static final String F_CORRELATION_PROPERTIES_DEFINITIONS = "correlationPropertiesDefinitions";
 
     /**
      * All correlation options. Correspond to columns in the correlation options table.
@@ -63,7 +57,7 @@ class CorrelationContextDto implements Serializable {
      *
      * Correspond to rows in the correlation options table.
      */
-    private final List<CorrelationCaseDescription.CorrelationProperty> correlationProperties = new ArrayList<>();
+    private final List<CorrelationPropertyDefinition> correlationPropertiesDefinitions = new ArrayList<>();
 
     CorrelationContextDto(CaseType aCase, PageBase pageBase, Task task, OperationResult result) throws CommonException {
         load(aCase, pageBase, task, result);
@@ -72,10 +66,16 @@ class CorrelationContextDto implements Serializable {
     private void load(CaseType aCase, PageBase pageBase, Task task, OperationResult result) throws CommonException {
         ResourceObjectOwnerOptionsType ownerOptions = CorrelationCaseUtil.getOwnerOptions(aCase);
         if (ownerOptions != null) {
+            // TODO Reconsider the necessity of this (note that everything is in candidate descriptions provided later,
+            //  so we probably do not need the resolved candidates)
             resolvePotentialOwners(ownerOptions, pageBase, task, result);
         }
         CorrelationCaseDescription<?> correlationCaseDescription =
-                pageBase.getCorrelationService().describeCorrelationCase(aCase, null, task, result);
+                pageBase.getCorrelationService().describeCorrelationCase(
+                        aCase,
+                        new CorrelationService.CorrelationCaseDescriptionOptions().explain(true),
+                        task,
+                        result);
         createCorrelationOptions(aCase, correlationCaseDescription);
         createCorrelationPropertiesDefinitions(aCase, pageBase, task, result);
     }
@@ -102,6 +102,8 @@ class CorrelationContextDto implements Serializable {
 
     private PrismObject<?> loadObject(String oid, PageBase pageBase, Task task, OperationResult result) {
         try {
+            // We do not need the identities container here, as the secondary values are obtained from
+            // the correlation case description.
             return pageBase.getModelService()
                     .getObject(FocusType.class, oid, null, task, result);
         } catch (Exception e) {
@@ -118,50 +120,56 @@ class CorrelationContextDto implements Serializable {
                         .collect(Collectors.toMap(CandidateDescription::getOid, c -> c));
 
         CaseCorrelationContextType context = aCase.getCorrelationContext();
-        int suggestionNumber = 1;
         for (ResourceObjectOwnerOptionType potentialOwner : CorrelationCaseUtil.getOwnerOptionsList(aCase)) {
             OwnerOptionIdentifier identifier = OwnerOptionIdentifier.of(potentialOwner);
+            String optionIdentifierRaw = potentialOwner.getIdentifier(); // the same as identifier.getStringValue()
+            assert optionIdentifierRaw != null;
             if (identifier.isNewOwner()) {
-                optionHeaders.add(0, TEXT_BEING_CORRELATED);
-                correlationOptions.add(0,
-                        new CorrelationOptionDto(potentialOwner, context.getPreFocusRef()));
-            } else {
-                optionHeaders.add(String.format(TEXT_CANDIDATE, suggestionNumber));
-                CandidateDescription<?> candidate = candidates.get(identifier.getExistingOwnerId());
                 correlationOptions.add(
-                        new CorrelationOptionDto(potentialOwner, candidate));
-                suggestionNumber++;
+                        new CorrelationOptionDto.NewOwner(context.getPreFocusRef(), optionIdentifierRaw));
+            } else {
+                CandidateDescription<?> candidateDescription = candidates.get(identifier.getExistingOwnerId());
+                ObjectReferenceType candidateOwnerRef = potentialOwner.getCandidateOwnerRef(); // also in candidateDescription
+                if (candidateDescription != null && candidateOwnerRef != null) {
+                    correlationOptions.add(
+                            new CorrelationOptionDto.Candidate(candidateDescription, candidateOwnerRef, optionIdentifierRaw));
+                } else {
+                    LOGGER.warn("No candidate or potentialOwner content for {}? In:\n{}\n{}",
+                            identifier.getExistingOwnerId(),
+                            DebugUtil.debugDump(candidates, 1), potentialOwner.debugDump(1));
+                }
             }
         }
+
+        correlationOptions.sort(
+                Comparator.comparing(
+                        opt -> opt.getCandidateConfidenceValue(),
+                        Comparator.nullsFirst(Comparator.reverseOrder()))); // "new owner" <=> null confidence
     }
 
     private void createCorrelationPropertiesDefinitions(CaseType aCase, PageBase pageBase, Task task, OperationResult result)
             throws CommonException {
-        correlationProperties.clear();
-        correlationProperties.addAll(
+        correlationPropertiesDefinitions.clear();
+        correlationPropertiesDefinitions.addAll(
                 pageBase.getCorrelationService()
                         .describeCorrelationCase(aCase, null, task, result)
-                        .getCorrelationProperties()
-                        .values());
+                        .getCorrelationPropertiesDefinitionsList());
     }
 
-    @Nullable CorrelationOptionDto getNewOwnerOption() {
-        if (correlationOptions.isEmpty()) {
-            return null;
-        }
-        CorrelationOptionDto first = correlationOptions.get(0);
-        return first.isNewOwner() ? first : null;
-    }
-
+    /** Accessed via {@link #F_CORRELATION_OPTIONS}. */
+    @SuppressWarnings("unused")
     public List<CorrelationOptionDto> getCorrelationOptions() {
         return correlationOptions;
     }
 
-    public List<String> getOptionHeaders() {
-        return optionHeaders;
+    /** Accessed via {@link #F_CORRELATION_PROPERTIES_DEFINITIONS}. */
+    @SuppressWarnings("unused")
+    public List<CorrelationPropertyDefinition> getCorrelationPropertiesDefinitions() {
+        return correlationPropertiesDefinitions;
     }
 
-    public List<CorrelationCaseDescription.CorrelationProperty> getCorrelationProperties() {
-        return correlationProperties;
+    boolean hasConfidences() {
+        return correlationOptions.stream().anyMatch(
+                option -> option.getCandidateConfidenceString() != null);
     }
 }

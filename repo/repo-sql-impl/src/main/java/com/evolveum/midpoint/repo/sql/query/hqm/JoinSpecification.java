@@ -12,19 +12,34 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 
+import org.jetbrains.annotations.Nullable;
+
 public class JoinSpecification {
+
+    /**
+     * If specified, we want to create "explicit root joins" (kind of SQL-style), in order to tell Hibernate
+     * what type of entity we want to join. This is needed for e.g. `archetypeRef/@/name` queries. See MID-9472.
+     * See https://docs.jboss.org/hibernate/orm/6.4/querylanguage/html_single/Hibernate_Query_Language.html#root-join.
+     */
+    @Nullable private final String explicitJoinedType;
 
     private final String alias;
     private final String path;
     private final Condition condition;
 
-    public JoinSpecification(String alias, String path, Condition condition) {
+    public JoinSpecification(
+            @Nullable String explicitJoinedType, String alias, String path, Condition condition) {
         Objects.requireNonNull(alias);
         Objects.requireNonNull(path);
 
+        this.explicitJoinedType = explicitJoinedType;
         this.alias = alias;
         this.path = path;
         this.condition = condition;
+    }
+
+    public @Nullable String getExplicitJoinedType() {
+        return explicitJoinedType;
     }
 
     public String getAlias() {
@@ -54,10 +69,20 @@ public class JoinSpecification {
 
     private void dumpToHql(StringBuilder sb) {
         sb.append("left join ");
-        sb.append(path).append(" ").append(alias);
-        if (condition != null) {
-            sb.append(" with ");
-            condition.dumpToHql(sb, -1);
+        if (explicitJoinedType != null) {
+            sb.append(explicitJoinedType).append(" ").append(alias);
+            sb.append(" on ").append(path).append(" = ").append(alias);
+            if (condition != null) {
+                sb.append(" and (");
+                condition.dumpToHql(sb, -1);
+                sb.append(")");
+            }
+        } else {
+            sb.append(path).append(" ").append(alias);
+            if (condition != null) {
+                sb.append(" with ");
+                condition.dumpToHql(sb, -1);
+            }
         }
     }
 }

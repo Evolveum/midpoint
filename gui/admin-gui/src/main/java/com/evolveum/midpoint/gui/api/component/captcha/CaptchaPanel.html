@@ -11,14 +11,13 @@
     <wicket:panel>
             <p class="d-flex flex-wrap align-items-end gap-2">
                 <img wicket:id="image" />
-                <a wicket:id="changeLink">
+                <a wicket:id="changeLink" wicket:message="aria-label:CaptchaPanel.changeLinkTitle">
                     <wicket:container wicket:id="changeLinkLabel" />
                 </a>
             </p>
-            <p>
-                <wicket:container wicket:id="textDescriptionLabel" />
-                <br />
-                <input wicket:id="text" type="text" class="form-control form-control-sm" />
+            <p class="d-flex flex-column">
+                <label class="mr-auto" wicket:id="textDescriptionLabel" id="textDescriptionLabelId"/>
+                <input wicket:id="text" type="text" class="form-control form-control-sm" aria-labelledby="textDescriptionLabelId"/>
             </p>
 
             <div wicket:id="feedback"></div>

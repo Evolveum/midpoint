@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.task.quartzimpl;
 
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -66,6 +68,7 @@ public class TaskBeans {
     @Autowired public NodeRegistrar nodeRegistrar;
     @Autowired public UpAndDown upAndDown;
     @Autowired public LightweightTaskManager lightweightTaskManager;
+    @Autowired public LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired public TaskSynchronizer taskSynchronizer;
     @Autowired public ClusterStatusInformationRetriever clusterStatusInformationRetriever;
     //endregion

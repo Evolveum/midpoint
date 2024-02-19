@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -17,6 +19,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 /**
  * Finds a focus object for given resource object.
@@ -63,7 +68,7 @@ public interface Correlator {
      *
      * @return The confidence value of the match.
      */
-    double checkCandidateOwner(
+    @NotNull Confidence checkCandidateOwner(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
@@ -102,4 +107,18 @@ public interface Correlator {
             ExpressionEvaluationException, ConfigurationException {
         // Nothing to do by default.
     }
+
+    /**
+     * Returns the correlation properties this correlator uses to do the correlation.
+     * These are then e.g. displayed in the correlation case resolution window.
+     *
+     * May not be completely supported by all correlators.
+     *
+     * If the optional focus definition is present, the {@link CorrelationPropertyDefinition} objects returned are
+     * more precise: the paths are qualified (if possible), and the respective item definitions are set (again, if possible).
+     */
+    @NotNull Collection<CorrelationPropertyDefinition> getCorrelationPropertiesDefinitions(
+            @Nullable PrismObjectDefinition<? extends FocusType> focusDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws ConfigurationException, SchemaException;
 }

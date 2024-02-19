@@ -44,8 +44,7 @@ public class MatchingUtil {
         List<PrismProperty<?>> properties = new ArrayList<>();
         //noinspection unchecked
         object.asPrismObject().accept(visitable -> {
-            if (visitable instanceof PrismProperty<?>) {
-                PrismProperty<?> property = (PrismProperty<?>) visitable;
+            if (visitable instanceof PrismProperty<?> property) {
                 if (property.size() > 1) {
                     LOGGER.trace("getSingleValuedProperties: Ignoring property because of multiple values: {}", property);
                 } else {

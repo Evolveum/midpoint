@@ -1,6 +1,5 @@
 = Smart Correlation
 :page-toc: top
-:page-since: "4.6"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
@@ -11,23 +10,18 @@ The "smart correlation" is a mechanism to correlate identity data to existing fo
 Typical use is e.g. the _resource objects correlation_ during the synchronization process, where (newly discovered) accounts on a resource are synchronized to midPoint.
 Another use will be the correlation during manual or automated registration of new users, including self-registration.
 
-In midPoint 4.4 and before, the only way of correlation was the use of correlation filters, with strictly binary output: either a matching object was found, or there was no match.
-
-In midPoint 4.5, we introduced manual correlation for situations where there is a candidate match (or more candidate matches) that need to be resolved by the human operator.
-It worked with the external ID Match API service.
-
-The goal for midPoint 4.6 and beyond is to provide a configurable correlation mechanism that can provide approximate matching.
-For short, it is called _smart correlation_.
+The goal for _smart correlation_ is to provide a configurable correlation mechanism that can provide approximate matching.
+Then the match can be resolved automatically based on passing defined threshold on level of confidence or it can be resolved manually by a human operator.
 
 == Configuration
 
-In 4.6, the correlation mechanism is based on _correlation rules_, technically called _correlators_.
+The smart correlation mechanism is based on _correlation rules_, technically called _correlators_.
 For example, a rule can state that "if the family name, date of birth, and the national-wide ID all match, then the identity is the same".
 Another rule can state that "if (only) the national-wide ID matches, then the identity is the same with the confidence level of 0.7" (whatever the number means).
 
 NOTE: In the future, we plan to provide _AI-assisted correlation_ that will suggest correlation candidates also according to human resolution of disputed correlation situations in the history.
 At that time, the correlation rules will be not the only - or even not the primary - source for correlation suggestions.
-But, in 4.6, they are the only driver of the correlation algorithm.
+But, currently they are the only driver of the correlation algorithm.
 
 === Correlation Rule Types
 
@@ -37,15 +31,15 @@ There are the following types of correlation rules:
 [%header]
 [%autowidth]
 |===
-| Type | Meaning | Available since
-| `items` | Smart xref:/midpoint/reference/correlation/items-correlator/[item-based] correlation rule. The suggested one. | 4.6
-| `filter` | Legacy filter-based correlation rule. | 1.7
-| `expression` | Experimental rule, based on an evaluation of a custom expression. | 4.5
-| `idmatch` | Rule that uses an external link:https://spaces.at.internet2.edu/display/cifer/SOR-Registry+Strawman+ID+Match+API[ID Match] service. Please see xref:/midpoint/projects/idmatch/implementation/implementation/[this document] for more information. | 4.5
+| Type | Meaning
+| `items` | Smart xref:/midpoint/reference/correlation/items-correlator/[item-based] correlation rule. The suggested one.
+| `filter` | Legacy filter-based correlation rule.
+| `expression` | Experimental rule, based on an evaluation of a custom expression.
+| `idmatch` | Rule that uses an external link:https://spaces.at.internet2.edu/display/cifer/SOR-Registry+Strawman+ID+Match+API[ID Match] service. Please see xref:/midpoint/projects/idmatch/implementation/implementation/[this document] for more information.
 |===
 
 NOTE: Precisely speaking, there is also a `composite` rule that provides an aggregation of the results of its children.
-However, in 4.6 it is supported only as a top-level rule, i.e., it is present automatically - without the possibility (nor need) to specify it explicitly.
+However, currently it is supported only as a top-level rule, i.e., it is present automatically - without the possibility (nor need) to specify it explicitly.
 
 === Correlation Configuration Placement
 
@@ -91,15 +85,16 @@ The following is the most basic example: an attribute is mapped to a focus prope
 <1> Means that the `icfs:name` attribute is mapped to the `name` focus property.
 <2> Means that the account is correlated to the focus objects by searching for the corresponding value of `name` property.
 
-Notes:
 
-. The correlation takes place _before_ the regular inbound mappings are evaluated.
-That is why - starting with 4.5 - there is a special inbound mapping evaluation mode:
+If multiple attributes are marked as `correlator`, any of them matching if enough for overall match.
+Technically they are evaluated separately; see xref:/midpoint/reference/correlation/rule-composition/[rule composition] for details.
+If there is a need of evaluation of two attributes together (meaning that they have to match both), it is necessary to use the explicit xref:/midpoint/reference/correlation/items-correlator/[`items` correlator].
+
+NOTE: The correlation takes place _before_ the regular inbound mappings are evaluated.
+That is why there is a special inbound mapping evaluation mode:
 xref:/midpoint/projects/idmatch/implementation/correlation-time-mappings/[correlation-time evaluation].
 Even though it is turned off by default, the attribute-level `correlator` element automatically turns it on for the selected inbound mapping.
 
-. If multiple attributes are marked as `correlator`, they are evaluated separately.
-If there is a need of evaluation of two attributes together (meaning that they have to match both), it is necessary to use the explicit xref:/midpoint/reference/correlation/items-correlator/[`items` correlator].
 
 ==== Example 2: Resource Object Type Bound Definition
 
@@ -192,6 +187,42 @@ An example:
     ...
 </archetype>
 ----
+
+
+==== Example 4: Correlation for outbound resources
+
+Smart correlation relies on inbound mapping converting resource's attribute to a property of midPoint object.
+Such approach is perfect for inbound resources because it simplifies the configuration.
+Nevertheless, there are use cases with strictly outbound resource with existing accounts that need to be correlater.
+In such cases having an inbound mapping is not desired.
+
+For this situation midPoint supports the option to configure mapping for evaluation only for correlation and not for "standard" processing (by clockwork).
+
+.Listing 4. use inbound mapping only for correlation
+[source,xml]
+----
+<schemaHandling>
+    <objectType>
+        ...
+        <attribute>
+            <ref>icfs:name</ref>
+            <correlator/>
+            <inbound>
+                <target>
+                    <path>name</path>
+                </target>
+                <use>correlation</use> <!--1-->
+            </inbound>
+            <outbound> <!--2-->
+                ...
+            </outbound>
+        </attribute>
+        ...
+    </objectType>
+</schemaHandling>
+----
+<1> Means that the inbound mapping will be used only for correlation and otherwise won't be processed
+<2> Represents the outbound mapping as usual
 
 == Advanced Concepts
 

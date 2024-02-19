@@ -57,19 +57,20 @@ public class RelatedObjectClause extends SelectorClause {
             traceNotApplicable(ctx, "has no related object");
             return false;
         }
+        // The related object is always known "in full", as it is fetched from the repository via objectResolver.
         boolean matches =
                 selector.matches(
                         relatedObject.getValue(),
-                        ctx.next(DelegatorSelection.NO_DELEGATOR, "rel", "related object"));
+                        ctx.next(DelegatorSelection.NO_DELEGATOR, "rel", "related object", true));
         traceApplicability(ctx, matches, "related object (%s) matches: %s", relatedObject, matches);
         return matches;
     }
 
     private PrismObject<? extends ObjectType> getRelatedObject(ObjectType object, @NotNull SelectorProcessingContext ctx) {
-        if (object instanceof CaseType) {
-            return ctx.resolveReference(((CaseType) object).getObjectRef(), object, "related object");
-        } else if (object instanceof TaskType) {
-            return ctx.resolveReference(((TaskType) object).getObjectRef(), object, "related object");
+        if (object instanceof CaseType aCase) {
+            return ctx.resolveReference(aCase.getObjectRef(), object, "related object");
+        } else if (object instanceof TaskType task) {
+            return ctx.resolveReference(task.getObjectRef(), object, "related object");
         } else {
             return null;
         }

@@ -90,12 +90,7 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
             @Override
             public boolean isVisible() {
                 return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_PREVIEW_CHANGES_URL)
-                        && !getModelObject().isReadOnly();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return isSavePreviewButtonEnabled();
+                        && !getModelObject().isReadOnly() && isSaveButtonVisible();
             }
         });
         preview.titleAsLabel(true);

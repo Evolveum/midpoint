@@ -8,7 +8,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
+import com.evolveum.midpoint.prism.PrismObject;
+
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -70,24 +78,36 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
         WebMarkupContainer delegations = new WebMarkupContainer(ID_MODIFICATION_TARGET_CONTAINER);
         delegations.setOutputMarkupId(true);
         add(delegations);
+
         List<AssignmentType> inducement;
         try {
             inducement = getObjectDetailsModels().getObjectWrapper().getObjectApplyDelta().asObjectable().getInducement();
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             throw new RuntimeException(e);
         }
+
+        Set<RoleType> candidateRoles = new HashSet<>();
+        for (AssignmentType assignmentType : inducement) {
+            if (assignmentType.getTargetRef() == null) {
+                continue;
+            }
+            PrismObject<RoleType> role = assignmentType.getTargetRef().asReferenceValue().getObject();
+            if (role != null) {
+                candidateRoles.add(role.asObjectable());
+            }
+
+        }
+
         BusinessRoleApplicationDto deltas = getObjectDetailsModels().getPatternDeltas();
-        deltas.updateValue(inducement);
+        deltas.setCandidateRoles(candidateRoles, (PageBase) getPage());
 
         List<BusinessRoleDto> patternDeltas = deltas.getBusinessRoleDtos();
         for (BusinessRoleDto value : patternDeltas) {
-            value.updateValue(inducement, (PageBase) getPage());
+            value.updateValue(new ArrayList<>(candidateRoles), (PageBase) getPage());
         }
 
         RoleMiningProvider<BusinessRoleDto> provider = getAndUpdateProvider(patternDeltas);
-
         BoxedTablePanel<BusinessRoleDto> table = generateTable(provider);
-
         delegations.add(table);
     }
 
@@ -118,7 +138,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 //TODO add possibility to assign other candidate.
-                AjaxIconButton ajaxButton = new AjaxIconButton(id, Model.of(" fe fe-assignment"), createStringResource("idk")) {
+                AjaxIconButton ajaxButton = new AjaxIconButton(id, Model.of(" fe fe-assignment"),
+                        createStringResource("RoleAnalysis.modificationTargetPanel.assign")) {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
@@ -129,10 +150,11 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
                             public void performAddOperation(AjaxRequestTarget ajaxRequestTarget, IModel<SelectableBean<UserType>> iModel) {
                                 BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
 
+                                Set<RoleType> candidateRoles = patternDeltas.getCandidateRoles();
                                 UserType user = iModel.getObject().getValue();
 
                                 BusinessRoleDto newValue = new BusinessRoleDto(
-                                        user.asPrismObject(), patternDeltas.getBusinessRole(), getPageBase());
+                                        user.asPrismObject(), patternDeltas.getBusinessRole(), candidateRoles, getPageBase());
                                 getObjectDetailsModels().getPatternDeltas().getBusinessRoleDtos().add(newValue);
                                 newValue.setInclude(true);
 

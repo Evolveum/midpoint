@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -95,7 +96,7 @@ public class PartialConfigurationStepPanel extends AbstractFormWizardStepPanel {
 
         try {
             ProvisioningObjectsUtil.partialConfigurationTest(getDetailsModel().getObjectWrapper().getObjectApplyDelta(), getPageBase(), task, result);
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             result.recordFatalError("Couldn't apply delta for resource", e);
         }
 

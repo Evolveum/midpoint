@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql.query.definition;
 
+import com.evolveum.midpoint.repo.sql.query.hqm.JoinSpecification;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Visitable;
@@ -23,15 +24,25 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition>
     private final String jpaName;                                     // beware - null for "same entity" transitions (metadata, construction, ...)
     private final CollectionSpecification collectionSpecification;    // null if single valued
     private final boolean embedded;
+
+    /** When joining, should we mention the target type explicitly? See {@link JoinSpecification#explicitJoinedType}. */
+    private final boolean explicitTargetTypeRequired;
+
     @NotNull private D targetDefinition;
 
     public JpaLinkDefinition(@NotNull ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification,
             boolean embedded, @NotNull D targetDefinition) {
+        this(itemPath, jpaName, collectionSpecification, embedded, targetDefinition, false);
+
+    }
+    public JpaLinkDefinition(@NotNull ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification,
+            boolean embedded, @NotNull D targetDefinition, boolean explicitTargetTypeRequired) {
         this.itemPath = itemPath;
         this.jpaName = jpaName;
         this.collectionSpecification = collectionSpecification;
         this.embedded = embedded;
         this.targetDefinition = targetDefinition;
+        this.explicitTargetTypeRequired = explicitTargetTypeRequired;
     }
 
     @NotNull
@@ -134,6 +145,14 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition>
         if (targetDefinition instanceof JpaEntityPointerDefinition) {
             // typing hack but we don't mind
             targetDefinition = (D) ((JpaEntityPointerDefinition) targetDefinition).getResolvedEntityDefinition();
+        }
+    }
+
+    public String getExplicitJoinedType() {
+        if (explicitTargetTypeRequired) {
+            return getTargetDefinition().getJpaClassName();
+        } else {
+            return null;
         }
     }
 }

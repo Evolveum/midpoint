@@ -40,7 +40,7 @@
                             <SCM-Revision>${git.describe}</SCM-Revision>
                             <Organization>Evolveum</Organization>
                             <Organization-URL>https://www.evolveum.com</Organization-URL>
-                            <Bugtracking-System>https://jira.evolveum.com</Bugtracking-System>
+                            <Bugtracking-System>https://support.evolveum.com</Bugtracking-System>
                             <License>Apache License v2.0</License>
                             <License-URL>https://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
                             <Bundle-Name>Dummy Connector</Bundle-Name>

@@ -8,28 +8,19 @@
 package com.evolveum.midpoint.model.api.correlation;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
@@ -40,9 +31,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  *
  * Contains the object being correlated (currently called {@link #preFocus}) and the correlation candidates ({@link #candidates}).
  *
- * The correlation data are represented as a set of {@link #correlationProperties}, whose values on the source are to be fetched
- * directly from {@link #preFocus}, but the valued for candidates are processed into the form of
- * {@link CorrelationPropertyValuesDescription}:
+ * The correlation data are represented as a set of {@link #correlationPropertiesDefinitions},
+ * whose values on the source are to be fetched directly from {@link #preFocus}, but the valued for
+ * candidates are processed into the form of {@link CorrelationPropertyValuesDescription}:
  *
  *  - sorted out into "primary" and "secondary" values (corresponding to the main identity and alternative ones),
  *  - and providing a {@link Match} value that shows the degree of match between the particular candidate and the pre-focus
@@ -55,7 +46,7 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
     /** Object being correlated, a.k.a. the source object. TODO find better name for this field */
     @NotNull private final F preFocus;
 
-    @NotNull private final PathKeyedMap<CorrelationProperty> correlationProperties = new PathKeyedMap<>();
+    @NotNull private final PathKeyedMap<CorrelationPropertyDefinition> correlationPropertiesDefinitions = new PathKeyedMap<>();
 
     @NotNull private final List<CandidateDescription<F>> candidates = new ArrayList<>();
 
@@ -67,22 +58,35 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
         return preFocus;
     }
 
-    public @NotNull PathKeyedMap<CorrelationProperty> getCorrelationProperties() {
-        return correlationProperties;
+    public @NotNull PathKeyedMap<CorrelationPropertyDefinition> getCorrelationPropertiesDefinitions() {
+        return correlationPropertiesDefinitions;
+    }
+
+    /** The list is sorted according to display order (and display name, in case of ambiguity). */
+    public @NotNull List<CorrelationPropertyDefinition> getCorrelationPropertiesDefinitionsList() {
+        var list = new ArrayList<>(correlationPropertiesDefinitions.values());
+        list.sort(
+                Comparator.comparing(CorrelationPropertyDefinition::getDisplayOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(CorrelationPropertyDefinition::getDisplayName));
+        return list;
     }
 
     public @NotNull List<CandidateDescription<F>> getCandidates() {
         return candidates;
     }
 
-    public void addCorrelationProperty(CorrelationProperty property) {
-        correlationProperties.put(property.getItemPath(), property);
+    public boolean hasCorrelationProperty(@NotNull ItemPath path) {
+        return correlationPropertiesDefinitions.containsKey(path);
+    }
+
+    public void addCorrelationPropertyDefinition(CorrelationPropertyDefinition property) {
+        correlationPropertiesDefinitions.put(property.getItemPath(), property);
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-                "correlationProperties: " + correlationProperties.size() +
+                "correlationProperties: " + correlationPropertiesDefinitions.size() +
                 "candidates: " + candidates.size() +
                 '}';
     }
@@ -91,7 +95,7 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "preFocus", preFocus, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "correlationProperties", correlationProperties, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "correlationPropertiesDefinitions", correlationPropertiesDefinitions, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "candidates", candidates, indent + 1);
         return sb.toString();
     }
@@ -107,21 +111,23 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
 
         private final double confidence;
 
-        @NotNull private final PathKeyedMap<CorrelationPropertyValuesDescription> properties;
+        /** Values of individual correlation properties, sorted to primary/secondary, and with the match level. */
+        @NotNull private final PathKeyedMap<CorrelationPropertyValuesDescription> propertiesValuesMap;
 
         /**
-         * (Optional) explanation of the correlation process for this candidate. May be missing if not requested or not available.
+         * (Optional) explanation of the correlation process for this candidate.
+         * May be missing if not requested or not available.
          */
         @Nullable private final CorrelationExplanation explanation;
 
         public CandidateDescription(
                 @NotNull F object,
                 double confidence,
-                @NotNull PathKeyedMap<CorrelationPropertyValuesDescription> properties,
+                @NotNull PathKeyedMap<CorrelationPropertyValuesDescription> propertiesValuesMap,
                 @Nullable CorrelationExplanation explanation) {
             this.object = object;
             this.confidence = confidence;
-            this.properties = properties;
+            this.propertiesValuesMap = propertiesValuesMap;
             this.explanation = explanation;
         }
 
@@ -137,8 +143,13 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
             return confidence;
         }
 
-        public @NotNull PathKeyedMap<CorrelationPropertyValuesDescription> getProperties() {
-            return properties;
+        public @Nullable CorrelationPropertyValuesDescription getPropertyValuesDescription(
+                @NotNull CorrelationPropertyDefinition propertyDef) {
+            return getPropertyValuesDescription(propertyDef.getItemPath());
+        }
+
+        public @Nullable CorrelationPropertyValuesDescription getPropertyValuesDescription(@NotNull ItemPath propertyPath) {
+            return propertiesValuesMap.get(propertyPath);
         }
 
         public @Nullable CorrelationExplanation getExplanation() {
@@ -150,7 +161,7 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
             return getClass().getSimpleName() + "{" +
                     "candidate=" + object +
                     ", confidence=" + confidence +
-                    ", properties: " + properties.size() +
+                    ", properties: " + propertiesValuesMap.size() +
                     ", explanation: " + explanation +
                     '}';
         }
@@ -160,95 +171,15 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
             StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
             DebugUtil.debugDumpWithLabelLn(sb, "object", object, indent + 1);
             DebugUtil.debugDumpWithLabelLn(sb, "confidence", confidence, indent + 1);
-            DebugUtil.debugDumpWithLabelLn(sb, "properties", properties.values(), indent + 1);
+            DebugUtil.debugDumpWithLabelLn(sb, "values of properties", propertiesValuesMap.values(), indent + 1);
             DebugUtil.debugDumpWithLabel(sb, "explanation", explanation, indent + 1);
-            return sb.toString();
-        }
-    }
-
-    /**
-     * Contains information about a correlation property that is to be (e.g.) displayed in the correlation case view.
-     *
-     * TEMPORARY
-     */
-    public static class CorrelationProperty implements Serializable, DebugDumpable {
-
-        public static final String F_DISPLAY_NAME = "displayName";
-
-        /** The "technical" name. */
-        @NotNull private final String name;
-
-        /** Path within the focus object. */
-        @NotNull private final ItemPath itemPath;
-
-        /** Definition in the focus object. */
-        @Nullable private final ItemDefinition<?> definition;
-
-        private CorrelationProperty(
-                @NotNull String name,
-                @NotNull ItemPath itemPath,
-                @Nullable ItemDefinition<?> definition) {
-            this.name = name;
-            this.itemPath = itemPath;
-            this.definition = definition;
-        }
-
-        public static CorrelationProperty createSimple(
-                @NotNull ItemPath path,
-                @Nullable PrismPropertyDefinition<?> definition) {
-            ItemName lastName =
-                    MiscUtil.requireNonNull(path.lastName(), () -> new IllegalArgumentException("Path has no last name: " + path));
-            return new CorrelationProperty(lastName.getLocalPart(), path, definition);
-        }
-
-        public @NotNull ItemPath getItemPath() {
-            return itemPath;
-        }
-
-        public @NotNull ItemPath getSecondaryPath() {
-            return SchemaConstants.PATH_FOCUS_IDENTITY.append(FocusIdentityType.F_DATA, itemPath);
-        }
-
-        public @Nullable ItemDefinition<?> getDefinition() {
-            return definition;
-        }
-
-        public @NotNull String getDisplayName() {
-            if (definition != null) {
-                if (definition.getDisplayName() != null) {
-                    return definition.getDisplayName();
-                } else {
-                    return definition.getItemName().getLocalPart();
-                }
-            } else {
-                return name;
-            }
-        }
-
-        public @NotNull String getName() {
-            return name;
-        }
-
-        @Override
-        public String toString() {
-            return getClass().getSimpleName() + "{" +
-                    "itemPath=" + itemPath +
-                    '}';
-        }
-
-        @Override
-        public String debugDump(int indent) {
-            StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-            DebugUtil.debugDumpWithLabelLn(sb, "name", name, indent + 1);
-            DebugUtil.debugDumpWithLabelLn(sb, "itemPath", String.valueOf(itemPath), indent + 1);
-            DebugUtil.debugDumpWithLabel(sb, "definition", String.valueOf(definition), indent + 1);
             return sb.toString();
         }
     }
 
     public static class CorrelationPropertyValuesDescription implements Serializable {
 
-        @NotNull private final CorrelationProperty correlationProperty;
+        @NotNull private final CorrelationPropertyDefinition propertyDefinition;
 
         // TODO clarify
         @NotNull private final Set<PrismValue> primaryValues;
@@ -259,18 +190,14 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
         @NotNull private final Match match;
 
         public CorrelationPropertyValuesDescription(
-                @NotNull CorrelationProperty correlationProperty,
+                @NotNull CorrelationPropertyDefinition propertyDefinition,
                 @NotNull Set<PrismValue> primaryValues,
                 @NotNull Set<PrismValue> secondaryValues,
                 @NotNull Match match) {
-            this.correlationProperty = correlationProperty;
-            this.primaryValues = primaryValues;
-            this.secondaryValues = secondaryValues;
+            this.propertyDefinition = propertyDefinition;
+            this.primaryValues = Set.copyOf(primaryValues); // to be serializable
+            this.secondaryValues = Set.copyOf(secondaryValues); // to be serializable
             this.match = match;
-        }
-
-        public @NotNull CorrelationProperty getCorrelationProperty() {
-            return correlationProperty;
         }
 
         public @NotNull Set<PrismValue> getPrimaryValues() {
@@ -287,7 +214,7 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
 
         @Override
         public String toString() {
-            return correlationProperty.getItemPath()
+            return propertyDefinition.getItemPath()
                     + ": primary=" + dump(primaryValues)
                     + ", secondary=" + dump(secondaryValues)
                     + ", match=" + match;
@@ -295,9 +222,16 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
 
         private List<String> dump(Collection<PrismValue> values) {
             return values.stream()
-                    .map(PrismValue::getRealValue)
+                    .map(prismValue -> {
+                        try {
+                            return prismValue.getRealValue();
+                        } catch (Exception e) {
+                            // getRealValue may throw an exception in rare cases (for containers, maybe)
+                            return prismValue.toString();
+                        }
+                    })
                     .map(String::valueOf)
-                    .collect(Collectors.toList());
+                    .toList();
         }
     }
 

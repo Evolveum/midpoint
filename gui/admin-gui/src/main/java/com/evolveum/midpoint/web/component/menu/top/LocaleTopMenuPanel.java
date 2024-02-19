@@ -7,13 +7,13 @@
 
 package com.evolveum.midpoint.web.component.menu.top;
 
+import com.evolveum.midpoint.common.AvailableLocale;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
-
-import com.evolveum.midpoint.web.security.LocaleDescriptor;
 
 /**
  * @author lazyman
@@ -40,7 +40,7 @@ public class LocaleTopMenuPanel extends LocalePanel {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void changeLocale(AjaxRequestTarget target, LocaleDescriptor descriptor) {
+            protected void changeLocale(AjaxRequestTarget target, AvailableLocale.LocaleDescriptor descriptor) {
                 LocaleTopMenuPanel.this.changeLocale(target, descriptor);
             }
         };

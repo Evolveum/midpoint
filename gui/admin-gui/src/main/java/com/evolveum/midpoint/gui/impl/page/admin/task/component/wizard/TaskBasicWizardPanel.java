@@ -32,15 +32,14 @@ public class TaskBasicWizardPanel extends AbstractFormWizardStepPanel<TaskDetail
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
-            if (wrapper.getItemName().equals(TaskType.F_DIAGNOSTIC_INFORMATION)
-                    || wrapper.getItemName().equals(TaskType.F_EFFECTIVE_MARK_REF)
-                    || wrapper.getItemName().equals(TaskType.F_HANDLER_URI)
-                    || wrapper.getItemName().equals(TaskType.F_LIFECYCLE_STATE)
-                    || wrapper.getItemName().equals(TaskType.F_INDESTRUCTIBLE)
-                    || wrapper.getItemName().equals(TaskType.F_RECURRENCE)){
-                return ItemVisibility.HIDDEN;
+            if (wrapper.getItemName().equals(TaskType.F_NAME)
+                    || wrapper.getItemName().equals(TaskType.F_DESCRIPTION)
+                    || wrapper.getItemName().equals(TaskType.F_DOCUMENTATION)
+                    || wrapper.getItemName().equals(TaskType.F_OWNER_REF)
+                    || wrapper.getItemName().equals(TaskType.F_CATEGORY)){
+                return ItemVisibility.AUTO;
             }
-            return ItemVisibility.AUTO;
+            return ItemVisibility.HIDDEN;
         };
     }
 

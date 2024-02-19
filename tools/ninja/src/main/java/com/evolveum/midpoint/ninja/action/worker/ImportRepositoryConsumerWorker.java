@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
+
 import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
@@ -56,6 +58,15 @@ public class ImportRepositoryConsumerWorker extends BaseWorker<ImportOptions, Ob
                     }
 
                     RepositoryService repository = context.getRepository();
+                    Class<? extends ObjectType> type = prismObject.getCompileTimeClass();
+                    if (!repository.supports(type)) {
+                        context.getLog().warn("Repository doesn't support import operation for objects of type '{}' ({}, {})",
+                                type.getSimpleName(), prismObject.getName(), prismObject.getOid());
+
+                        operation.incrementSkipped();
+                        continue;
+                    }
+
                     repository.addObject(prismObject, opts, new OperationResult("Import object"));
 
                     operation.incrementTotal();

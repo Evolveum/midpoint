@@ -395,7 +395,7 @@ and both upgrade scripts are run for the same schema:
 +
 [source,sql]
 ----
--- MID-7484, always add some relevant comment or a related Jira issue
+-- MID-7484, always add some relevant comment or a related issue key
 -- We add the new enum value in separate change, because it must be committed before it is used.
 call apply_change(2, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MESSAGE_TEMPLATE' AFTER 'LOOKUP_TABLE';

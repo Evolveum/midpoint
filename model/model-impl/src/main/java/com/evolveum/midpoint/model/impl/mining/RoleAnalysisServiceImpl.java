@@ -7,21 +7,29 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
+import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
+
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getCurrentXMLGregorianCalendar;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.loadIntersections;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -33,6 +41,8 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.mining.chunk.CompressedMiningStructure;
@@ -49,6 +59,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -68,7 +79,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     @Autowired ModelService modelService;
     @Autowired RepositoryService repositoryService;
-    @Autowired ModelInteractionService modelInteractionService;
 
     @Override
     public @Nullable PrismObject<UserType> getUserTypeObject(
@@ -546,7 +556,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     @Override
     public @NotNull PrismObject<RoleType> generateBusinessRole(
-            @NotNull List<AssignmentType> assignmentTypes,
+            @NotNull Set<AssignmentType> assignmentTypes,
             @NotNull PolyStringType name) {
         PrismObject<RoleType> roleTypePrismObject = null;
         try {
@@ -560,8 +570,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
         RoleType role = roleTypePrismObject.asObjectable();
         role.setName(name);
-        role.getInducement().addAll(assignmentTypes);
 
+        if (!assignmentTypes.isEmpty()) {
+            role.getInducement().addAll(assignmentTypes);
+        }
         role.getAssignment().add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value(),
                 ObjectTypes.ARCHETYPE));
 
@@ -658,328 +670,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull Task task) {
         return new ExpandedMiningStructure().executeOperation(this, cluster, fullProcess,
                 processMode, result, task);
-    }
-
-    @Override
-    public ObjectReferenceType extractTaskRef(
-            List<OperationExecutionType> operationExecutions) {
-
-        if (operationExecutions == null || operationExecutions.isEmpty()) {
-            return null;
-        }
-
-        OperationExecutionType operationExecution = operationExecutions.get(0);
-
-        if (operationExecution == null || operationExecution.getTaskRef() == null) {
-            return null;
-        }
-
-        ObjectReferenceType taskRef = operationExecution.getTaskRef();
-
-        if (taskRef != null && taskRef.getOid() != null) {
-            return taskRef;
-        }
-
-        return null;
-    }
-
-    @Override
-    public void executeClusteringTask(
-            @NotNull PrismObject<RoleAnalysisSessionType> session,
-            @Nullable String taskOid,
-            @Nullable PolyStringType taskName,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        try {
-
-            ObjectReferenceType objectReferenceType = new ObjectReferenceType()
-                    .oid(session.getOid())
-                    .type(RoleAnalysisSessionType.COMPLEX_TYPE);
-
-            RoleAnalysisClusteringWorkDefinitionType rdw = new RoleAnalysisClusteringWorkDefinitionType();
-            rdw.setSessionRef(objectReferenceType);
-
-            ActivityDefinitionType activity = new ActivityDefinitionType()
-                    .work(new WorkDefinitionsType()
-                            .roleAnalysisClustering(rdw));
-
-            TaskType taskObject = new TaskType();
-
-            taskObject.setName(Objects.requireNonNullElseGet(
-                    taskName, () -> PolyStringType.fromOrig("Session clustering  (" + session + ")")));
-
-            if (taskOid != null) {
-                taskObject.setOid(taskOid);
-            } else {
-                taskOid = UUID.randomUUID().toString();
-                taskObject.setOid(taskOid);
-            }
-
-            taskObject.setOid(taskOid);
-            modelInteractionService.submit(
-                    activity,
-                    ActivitySubmissionOptions.create()
-                            .withTaskTemplate(taskObject)
-                            .withArchetypes(
-                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
-                    task, result);
-
-            setOpStatus(session, taskOid, OperationResultStatusType.IN_PROGRESS, null, result, task);
-
-        } catch (CommonException e) {
-            LOGGER.error("Couldn't execute clustering task for session {}", session, e);
-        }
-    }
-
-    @Override
-    public void executeDetectionTask(
-            @NotNull PrismObject<RoleAnalysisClusterType> cluster,
-            @Nullable String taskOid,
-            @Nullable PolyStringType taskName,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        try {
-
-            ObjectReferenceType objectReferenceType = new ObjectReferenceType()
-                    .type(RoleAnalysisClusterType.COMPLEX_TYPE)
-                    .oid(cluster.getOid());
-
-            RoleAnalysisPatternDetectionWorkDefinitionType rdw = new RoleAnalysisPatternDetectionWorkDefinitionType();
-            rdw.setClusterRef(objectReferenceType);
-
-            ActivityDefinitionType activity = new ActivityDefinitionType()
-                    .work(new WorkDefinitionsType()
-                            .roleAnalysisPatternDetection(rdw));
-
-            TaskType taskObject = new TaskType();
-
-            taskObject.setName(Objects.requireNonNullElseGet(
-                    taskName, () -> PolyStringType.fromOrig("Pattern detection  (" + cluster + ")")));
-
-            if (taskOid != null) {
-                taskObject.setOid(taskOid);
-            } else {
-                taskOid = UUID.randomUUID().toString();
-                taskObject.setOid(taskOid);
-            }
-
-            modelInteractionService.submit(
-                    activity,
-                    ActivitySubmissionOptions.create()
-                            .withTaskTemplate(taskObject)
-                            .withArchetypes(
-                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
-                    task, result);
-
-        } catch (CommonException e) {
-            LOGGER.error("Couldn't execute Cluster Detection Task {}", cluster, e);
-            result.recordPartialError(e);
-        } finally {
-            result.recordSuccessIfUnknown();
-        }
-    }
-
-    @Override
-    public void executeMigrationTask(
-            @NotNull PrismObject<RoleAnalysisClusterType> cluster,
-            @NotNull ActivityDefinitionType activityDefinition,
-            @NotNull PrismObject<RoleType> roleObject,
-            @Nullable String taskOid,
-            @Nullable PolyStringType taskName,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        try {
-
-            TaskType taskObject = new TaskType();
-
-            taskObject.setName(Objects.requireNonNullElseGet(
-                    taskName, () -> PolyStringType.fromOrig("Migration role (" + roleObject.getName().toString() + ")")));
-
-            if (taskOid != null) {
-                taskObject.setOid(taskOid);
-            } else {
-                taskOid = UUID.randomUUID().toString();
-                taskObject.setOid(taskOid);
-            }
-
-            modelInteractionService.submit(
-                    activityDefinition,
-                    ActivitySubmissionOptions.create()
-                            .withTaskTemplate(taskObject)
-                            .withArchetypes(
-                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
-                    task, result);
-
-            setOpStatus(
-                    cluster,
-                    taskOid,
-                    OperationResultStatusType.IN_PROGRESS, null
-                    , result, task);
-
-        } catch (CommonException e) {
-            LOGGER.error("Failed to execute role {} migration activity: ", roleObject.getOid(), e);
-        }
-    }
-
-    public @NotNull String recomputeAndResolveClusterOpStatus(
-            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
-            @NotNull OperationResult result,
-            @NotNull Task task) {
-        RoleAnalysisClusterType cluster = clusterPrismObject.asObjectable();
-        List<OperationExecutionType> operationExecution = cluster.getOperationExecution();
-
-        if (operationExecution == null || operationExecution.isEmpty()) {
-            return "enable";
-        }
-
-        OperationExecutionType operationExecutionType = operationExecution.get(0);
-        if (operationExecutionType == null) {
-            return "enable";
-        }
-
-        ObjectReferenceType taskRef = operationExecutionType.getTaskRef();
-        OperationResultStatusType status = operationExecutionType.getStatus();
-        String stateString = operationExecutionType.getMessage();
-        PrismObject<TaskType> object = null;
-
-        boolean taskExist = true;
-
-        if (taskRef != null && taskRef.getOid() != null) {
-            try {
-                object = repositoryService.getObject(TaskType.class, taskRef.getOid(), null, result);
-            } catch (ObjectNotFoundException | SchemaException e) {
-                LOGGER.warn("Error retrieving TaskType object for oid: {}", taskRef.getOid(), e);
-                taskExist = false;
-            }
-
-            if (!taskExist) {
-                if (stateString != null && !stateString.isEmpty()) {
-                    return stateString;
-                } else {
-                    return "enable";
-                }
-            }
-
-            TaskType taskObject = object.asObjectable();
-            OperationResultStatusType resultStatus = taskObject.getResultStatus();
-
-            stateString = updateClusterStateMessage(stateString, taskObject);
-
-            if (resultStatus != null) {
-                setOpStatus(clusterPrismObject, object.getOid(), resultStatus, stateString, result, task);
-
-                if (!status.equals(resultStatus) && resultStatus.equals(OperationResultStatusType.SUCCESS)) {
-                    updateClusterPatterns(clusterPrismObject.getOid(), task, result);
-                }
-            }
-
-        }
-
-        return stateString == null || stateString.isEmpty() ? "enable" : stateString;
-    }
-
-    private String updateClusterStateMessage(String stateString, TaskType taskObject) {
-        String expectedTotalString = "0";
-        String actual = "0";
-        TaskExecutionStateType executionState = taskObject.getExecutionState();
-
-        TaskActivityStateType activityState = taskObject.getActivityState();
-        if (activityState != null
-                && activityState.getActivity() != null
-                && activityState.getActivity().getProgress() != null) {
-            Integer expectedTotal = activityState.getActivity().getProgress().getExpectedTotal();
-            if (expectedTotal != null) {
-                expectedTotalString = expectedTotal.toString();
-            }
-        }
-
-        if (taskObject.getProgress() != null) {
-            actual = taskObject.getProgress().toString();
-            if (executionState != null) {
-                stateString = "(" + actual + "/" + expectedTotalString + ") " + executionState.value();
-            } else {
-                stateString = "(" + actual + "/" + expectedTotalString + ")";
-            }
-        }
-
-        return stateString;
-    }
-
-    public @NotNull String recomputeAndResolveSessionOpStatus(
-            @NotNull PrismObject<RoleAnalysisSessionType> sessionPrismObject,
-            @NotNull OperationResult result,
-            @NotNull Task task) {
-        RoleAnalysisSessionType session = sessionPrismObject.asObjectable();
-        List<OperationExecutionType> operationExecution = session.getOperationExecution();
-
-        if (operationExecution == null || operationExecution.isEmpty()) {
-            return "enable";
-        }
-
-        OperationExecutionType operationExecutionType = operationExecution.get(0);
-        if (operationExecutionType == null) {
-            return "enable";
-        }
-
-        ObjectReferenceType taskRef = operationExecutionType.getTaskRef();
-
-        String stateString = operationExecutionType.getMessage();
-        PrismObject<TaskType> object = null;
-
-        boolean taskExist = true;
-
-        if (taskRef != null
-                && taskRef.getOid() != null) {
-            try {
-                object = repositoryService.getObject(TaskType.class, taskRef.getOid(), null, result);
-            } catch (ObjectNotFoundException | SchemaException e) {
-                LOGGER.warn("Error retrieving TaskType object for oid: {}", taskRef.getOid(), e);
-                taskExist = false;
-            }
-
-            if (!taskExist) {
-                if (stateString != null && !stateString.isEmpty()) {
-                    return stateString;
-                } else {
-                    return "enable";
-                }
-            }
-
-            TaskType taskType = object.asObjectable();
-            OperationResultStatusType resultStatus = taskType.getResultStatus();
-            TaskExecutionStateType executionState = taskType.getExecutionState();
-            stateString = updateSessionStateMessage(taskType, executionState, stateString);
-
-            if (resultStatus != null) {
-                setOpStatus(
-                        sessionPrismObject,
-                        object.getOid(),
-                        resultStatus,
-                        stateString,
-                        result,
-                        task);
-
-            }
-
-        }
-
-        return stateString == null ? "enable" : stateString;
-
-    }
-
-    private String updateSessionStateMessage(
-            @NotNull TaskType taskType,
-            TaskExecutionStateType executionState,
-            String stateString) {
-        if (taskType.getProgress() != null) {
-            String actual = taskType.getProgress().toString();
-            if (executionState != null) {
-                stateString = "(" + actual + "/" + 7 + ") " + executionState.value();
-            } else {
-                stateString = "(" + actual + "/" + 7 + ")";
-            }
-        }
-        return stateString;
     }
 
     @Override
@@ -1090,7 +780,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             clusterPropertiesOid.addAll(userExistCache.keySet());
 
             reductionMetric = removeRedundantPatterns(
-                    detectedPattern, clusterPropertiesOid, clusterMembersOid, map, resolvedPattern, task, result);
+                    this,
+                    detectedPattern,
+                    clusterPropertiesOid,
+                    clusterMembersOid,
+                    map,
+                    resolvedPattern,
+                    task,
+                    result);
 
         } else if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
             for (String userOid : clusterMembersOid) {
@@ -1119,8 +816,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             ListMultimap<String, String> map = extractUserTypeMembers(userExistCache,
                     null, resolvedPatternOid, task, result);
 
-            reductionMetric = removeRedundantPatterns(detectedPattern, clusterMembersOid, clusterPropertiesOid, map,
-                    resolvedPattern, task, result);
+            reductionMetric = removeRedundantPatterns(this,
+                    detectedPattern,
+                    clusterMembersOid,
+                    clusterPropertiesOid,
+                    map,
+                    resolvedPattern,
+                    task,
+                    result);
 
         }
 
@@ -1150,134 +853,577 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @Override
-    public <T extends AssignmentHolderType & Objectable> void setOpStatus(
-            @NotNull PrismObject<T> object,
-            @NotNull String taskOid,
-            OperationResultStatusType operationResultStatusType,
-            String message,
-            @NotNull OperationResult result,
-            @NotNull Task task) {
-        OperationExecutionType operationExecutionType = new OperationExecutionType();
-        operationExecutionType.setStatus(operationResultStatusType);
-        operationExecutionType.setTaskRef(
-                new ObjectReferenceType()
-                        .oid(taskOid)
-                        .type(TaskType.COMPLEX_TYPE));
-        if (message != null) {
-            operationExecutionType.setMessage(message);
+    public void executeClusteringTask(
+            @NotNull ModelInteractionService modelInteractionService, @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @Nullable String taskOid,
+            @Nullable PolyStringType taskName,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        String state = recomputeAndResolveSessionOpStatus(session, result, task);
+
+        if (!RoleAnalysisObjectState.isStable(state)) {
+            result.recordWarning("Couldn't start clustering. Some process is already in progress.");
+            LOGGER.warn("Couldn't start clustering. Some process is already in progress.: " + session.getOid());
+            return;
         }
-        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
         try {
-            modifications.add(PrismContext.get().deltaFor(AssignmentHolderType.class)
-                    .item(AssignmentHolderType.F_OPERATION_EXECUTION).replace(operationExecutionType.clone())
-                    .asItemDelta());
+            ObjectReferenceType objectReferenceType = new ObjectReferenceType()
+                    .oid(session.getOid())
+                    .type(RoleAnalysisSessionType.COMPLEX_TYPE);
 
-            repositoryService.modifyObject(AssignmentHolderType.class, object.getOid(), modifications, result);
+            RoleAnalysisClusteringWorkDefinitionType rdw = new RoleAnalysisClusteringWorkDefinitionType();
+            rdw.setSessionRef(objectReferenceType);
 
-        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
-            LOGGER.error("Couldn't set operation execution status for object {}", object.getOid(), e);
+            ActivityDefinitionType activity = new ActivityDefinitionType()
+                    .work(new WorkDefinitionsType()
+                            .roleAnalysisClustering(rdw));
+
+            TaskType taskObject = new TaskType();
+
+            taskObject.setName(Objects.requireNonNullElseGet(
+                    taskName, () -> PolyStringType.fromOrig("Session clustering  (" + session + ")")));
+
+            if (taskOid != null) {
+                taskObject.setOid(taskOid);
+            } else {
+                taskOid = UUID.randomUUID().toString();
+                taskObject.setOid(taskOid);
+            }
+
+            taskObject.setOid(taskOid);
+            modelInteractionService.submit(
+                    activity,
+                    ActivitySubmissionOptions.create()
+                            .withTaskTemplate(taskObject)
+                            .withArchetypes(
+                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
+                    task, result);
+
+            MidPointPrincipal user = AuthUtil.getPrincipalUser();
+            FocusType focus = user.getFocus();
+            submitSessionOperationStatus(modelService,
+                    session,
+                    taskOid,
+                    focus, LOGGER, task, result
+            );
+
+        } catch (CommonException e) {
+            LOGGER.error("Couldn't execute clustering task for session {}", session, e);
         }
     }
 
     @Override
-    public <T extends AssignmentHolderType & Objectable> OperationResultStatusType getOperationExecutionStatus(
-            @NotNull PrismObject<T> object,
+    public void executeDetectionTask(
+            @NotNull ModelInteractionService modelInteractionService, @NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            @Nullable String taskOid,
+            @Nullable PolyStringType taskName,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        PrismObject<? extends AssignmentHolderType> updatedObject = getObject(
-                object.asObjectable().getClass(), object.getOid(), task, result);
+        String state = recomputeAndResolveClusterOpStatus(cluster, result, task);
 
-        if (updatedObject == null) {
-            return null;
+        if (!RoleAnalysisObjectState.isStable(state)) {
+            result.recordWarning("Couldn't start detection. Some process is already in progress.");
+            LOGGER.warn("Couldn't start detection. Some process is already in progress.: " + cluster.getOid());
+            return;
         }
 
-        List<OperationExecutionType> operationExecution = updatedObject.asObjectable().getOperationExecution();
-        if (operationExecution == null || operationExecution.isEmpty()) {
-            return null;
-        }
+        try {
+            ObjectReferenceType objectReferenceType = new ObjectReferenceType()
+                    .type(RoleAnalysisClusterType.COMPLEX_TYPE)
+                    .oid(cluster.getOid());
 
-        OperationExecutionType operationExecutionType = operationExecution.get(0);
-        if (operationExecutionType == null) {
-            return null;
+            RoleAnalysisPatternDetectionWorkDefinitionType rdw = new RoleAnalysisPatternDetectionWorkDefinitionType();
+            rdw.setClusterRef(objectReferenceType);
+
+            ActivityDefinitionType activity = new ActivityDefinitionType()
+                    .work(new WorkDefinitionsType()
+                            .roleAnalysisPatternDetection(rdw));
+
+            TaskType taskObject = new TaskType();
+
+            taskObject.setName(Objects.requireNonNullElseGet(
+                    taskName, () -> PolyStringType.fromOrig("Pattern detection  (" + cluster + ")")));
+
+            if (taskOid != null) {
+                taskObject.setOid(taskOid);
+            } else {
+                taskOid = UUID.randomUUID().toString();
+                taskObject.setOid(taskOid);
+            }
+
+            modelInteractionService.submit(
+                    activity,
+                    ActivitySubmissionOptions.create()
+                            .withTaskTemplate(taskObject)
+                            .withArchetypes(
+                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
+                    task, result);
+
+            MidPointPrincipal user = AuthUtil.getPrincipalUser();
+            FocusType focus = user.getFocus();
+
+            submitClusterOperationStatus(modelService,
+                    cluster,
+                    taskOid,
+                    RoleAnalysisOperation.DETECTION,
+                    focus,
+                    LOGGER,
+                    task,
+                    result
+            );
+
+        } catch (CommonException e) {
+            LOGGER.error("Couldn't execute Cluster Detection Task {}", cluster, e);
+            result.recordPartialError(e);
+        } finally {
+            result.recordSuccessIfUnknown();
         }
-        return operationExecutionType.getStatus();
     }
 
-    private Double removeRedundantPatterns(
-            @NotNull Collection<RoleAnalysisDetectionPatternType> detectedPattern,
-            Set<String> clusterUsersOidSet,
-            Set<String> clusterRolesOidSet,
-            ListMultimap<String, String> map,
-            List<ObjectReferenceType> resolvedPattern,
+    @Override
+    public void executeMigrationTask(
+            @NotNull ModelInteractionService modelInteractionService, @NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            @NotNull ActivityDefinitionType activityDefinition,
+            @NotNull PrismObject<RoleType> roleObject,
+            @Nullable String taskOid,
+            @Nullable PolyStringType taskName,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        double updatedReductionMetric = 0.0;
 
-        Iterator<RoleAnalysisDetectionPatternType> patternIterator = detectedPattern.iterator();
-        while (patternIterator.hasNext()) {
-            RoleAnalysisDetectionPatternType singlePattern = patternIterator.next();
+        String state = recomputeAndResolveClusterOpStatus(cluster, result, task);
 
-            List<ObjectReferenceType> userOccupancy = singlePattern.getUserOccupancy();
-            List<ObjectReferenceType> rolesOccupancy = singlePattern.getRolesOccupancy();
+        if (!RoleAnalysisObjectState.isStable(state)) {
+            result.recordWarning("Couldn't start migration. Some process is already in progress.");
+            LOGGER.warn("Couldn't start migration. Some process is already in progress.: " + cluster.getOid());
+            return;
+        }
 
-            Set<String> usersInPattern = userOccupancy.stream()
-                    .map(ObjectReferenceType::getOid)
-                    .collect(Collectors.toSet());
+        try {
 
-            Set<String> rolesInPattern = rolesOccupancy.stream()
-                    .map(ObjectReferenceType::getOid)
-                    .collect(Collectors.toSet());
+            TaskType taskObject = new TaskType();
 
-            boolean isPatternRedundant = false;
-            if (resolvedPattern != null) {
-                for (ObjectReferenceType objectReferenceType : resolvedPattern) {
-                    String oid = objectReferenceType.getOid();
-                    PrismObject<RoleType> migratedRole = getRoleTypeObject(oid, task, result);
-                    if (migratedRole == null) {
-                        continue;
-                    }
+            taskObject.setName(Objects.requireNonNullElseGet(
+                    taskName, () -> PolyStringType.fromOrig("Migration role (" + roleObject.getName().toString() + ")")));
 
-                    List<AssignmentType> inducement = migratedRole.asObjectable().getInducement();
-                    Set<String> inducementsOid = inducement.stream()
-                            .map(assignmentType -> assignmentType.getTargetRef().getOid())
-                            .collect(Collectors.toSet());
+            if (taskOid != null) {
+                taskObject.setOid(taskOid);
+            } else {
+                taskOid = UUID.randomUUID().toString();
+                taskObject.setOid(taskOid);
+            }
 
-                    if (map.containsKey(oid)) {
-                        Set<String> users = new HashSet<>(map.get(oid));
+            modelInteractionService.submit(
+                    activityDefinition,
+                    ActivitySubmissionOptions.create()
+                            .withTaskTemplate(taskObject)
+                            .withArchetypes(
+                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
+                    task, result);
 
-                        if (users.containsAll(usersInPattern)
-                                && inducementsOid.containsAll(rolesInPattern)) {
-                            patternIterator.remove();
-                            isPatternRedundant = true;
-                            break;
-                        } else {
-                            Double clusterMetric = singlePattern.getClusterMetric();
-                            if (clusterMetric == null) {
-                                clusterMetric = 0.0;
-                            }
-                            updatedReductionMetric = Math.max(updatedReductionMetric, clusterMetric);
-                        }
+            MidPointPrincipal user = AuthUtil.getPrincipalUser();
+            FocusType focus = user.getFocus();
 
-                    }
+            submitClusterOperationStatus(modelService,
+                    cluster,
+                    taskOid,
+                    RoleAnalysisOperation.MIGRATION, focus, LOGGER, task, result
+            );
+
+            try {
+                ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleType.class)
+                        .item(RoleType.F_LIFECYCLE_STATE).replace("active")
+                        .asObjectDelta(roleObject.getOid());
+
+                Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+
+                modelService.executeChanges(deltas, null, task, result);
+
+            } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException |
+                    ExpressionEvaluationException |
+                    CommunicationException | ConfigurationException | PolicyViolationException |
+                    SecurityViolationException e) {
+                LOGGER.error("Couldn't update lifecycle state of object RoleType {}", cluster.getOid(), e);
+            }
+
+        } catch (CommonException e) {
+            LOGGER.error("Failed to execute role {} migration activity: ", roleObject.getOid(), e);
+        }
+    }
+
+    public @NotNull String recomputeAndResolveClusterOpStatus(
+            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
+            @NotNull OperationResult result,
+            @NotNull Task task) {
+
+        PrismObject<RoleAnalysisClusterType> clusterPrism = getClusterTypeObject(clusterPrismObject.getOid(), task, result);
+
+        if (clusterPrism == null) {
+            return RoleAnalysisObjectState.STABLE.getDisplayString();
+        }
+
+        RoleAnalysisClusterType cluster = clusterPrism.asObjectable();
+        List<RoleAnalysisOperationStatus> operationStatus = cluster.getOperationStatus();
+
+        if (operationStatus == null || operationStatus.isEmpty()) {
+            return RoleAnalysisObjectState.STABLE.getDisplayString();
+        }
+        String stateString = RoleAnalysisObjectState.STABLE.getDisplayString();
+
+        boolean requestUpdatePattern = false;
+        boolean requestUpdateOp = false;
+
+        Collection<PrismContainerValue<?>> collection = new ArrayList<>();
+        for (RoleAnalysisOperationStatus roleAnalysisOperationStatus : operationStatus) {
+            RoleAnalysisOperationStatus newStatus = updateRoleAnalysisOperationStatus(
+                    repositoryService, roleAnalysisOperationStatus, false, LOGGER, result
+            );
+
+            if (newStatus != null) {
+                collection.add(newStatus.clone().asPrismContainerValue());
+                requestUpdateOp = true;
+                OperationResultStatusType progresStatus = newStatus.getStatus();
+                if (progresStatus != null && progresStatus.equals(OperationResultStatusType.IN_PROGRESS)) {
+                    stateString = RoleAnalysisObjectState.PROCESSING.getDisplayString();
+                } else if (progresStatus != null && progresStatus.equals(OperationResultStatusType.SUCCESS)) {
+                    requestUpdatePattern = true;
+                }
+
+            } else {
+                collection.add(roleAnalysisOperationStatus.clone().asPrismContainerValue());
+                OperationResultStatusType progresStatus = roleAnalysisOperationStatus.getStatus();
+                if (progresStatus != null && progresStatus.equals(OperationResultStatusType.IN_PROGRESS)) {
+                    stateString = RoleAnalysisObjectState.PROCESSING.getDisplayString();
                 }
             }
 
-            if (!isPatternRedundant) {
+            if (requestUpdateOp) {
+                try {
+                    ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                            .item(RoleAnalysisClusterType.F_OPERATION_STATUS).replace(collection)
+                            .asObjectDelta(clusterPrismObject.getOid());
 
-                if (!clusterUsersOidSet.containsAll(usersInPattern)
-                        || !clusterRolesOidSet.containsAll(rolesInPattern)) {
-                    patternIterator.remove();
+                    Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+
+                    modelService.executeChanges(deltas, null, task, result);
+
+                } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException |
+                        ExpressionEvaluationException |
+                        CommunicationException | ConfigurationException | PolicyViolationException |
+                        SecurityViolationException e) {
+                    LOGGER.error("Couldn't modify RoleAnalysisClusterType {}", cluster.getOid(), e);
+                }
+            }
+
+            if (requestUpdatePattern) {
+                updateClusterPatterns(cluster.getOid(), task, result);
+            }
+
+        }
+
+        return stateString;
+    }
+
+    public @NotNull String recomputeAndResolveSessionOpStatus(
+            @NotNull PrismObject<RoleAnalysisSessionType> sessionPrismObject,
+            @NotNull OperationResult result,
+            @NotNull Task task) {
+
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(sessionPrismObject.getOid(), task, result);
+        if (sessionTypeObject == null) {
+            return RoleAnalysisObjectState.STABLE.getDisplayString();
+        }
+
+        RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
+
+        RoleAnalysisOperationStatus operationStatus = session.getOperationStatus();
+        if (operationStatus == null) {
+            return RoleAnalysisObjectState.STABLE.getDisplayString();
+        }
+
+        RoleAnalysisOperationStatus newStatus = updateRoleAnalysisOperationStatus(repositoryService, operationStatus, true, LOGGER, result);
+
+        if (newStatus != null) {
+
+            try {
+                ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
+                        .item(RoleAnalysisSessionType.F_OPERATION_STATUS).replace(newStatus.clone())
+                        .asObjectDelta(session.getOid());
+
+                Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+
+                modelService.executeChanges(deltas, null, task, result);
+
+            } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException |
+                    ExpressionEvaluationException |
+                    CommunicationException | ConfigurationException | PolicyViolationException |
+                    SecurityViolationException e) {
+                LOGGER.error("Couldn't modify RoleAnalysisSessionType {}", session.getOid(), e);
+            }
+
+            return newStatus.getMessage();
+
+        }
+
+        return operationStatus.getMessage();
+
+    }
+
+    public @NotNull String recomputeAndResolveClusterCandidateRoleOpStatus(
+            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
+            @NotNull RoleAnalysisCandidateRoleType candidateRole,
+            @NotNull OperationResult result, Task task) {
+        RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
+
+        if (operationStatus == null) {
+            return RoleAnalysisObjectState.STABLE.getDisplayString();
+        }
+
+        ObjectReferenceType taskRef = operationStatus.getTaskRef();
+        String stateString = operationStatus.getMessage();
+        RoleAnalysisOperation operationChannel = operationStatus.getOperationChannel();
+        PrismObject<TaskType> object = null;
+
+        boolean taskExist = true;
+
+        if (taskRef != null && taskRef.getOid() != null) {
+            try {
+                object = repositoryService.getObject(TaskType.class, taskRef.getOid(), null, result);
+            } catch (ObjectNotFoundException | SchemaException e) {
+                LOGGER.warn("Error retrieving TaskType object for oid: {}", taskRef.getOid(), e);
+                taskExist = false;
+            }
+
+            if (!taskExist) {
+                if (stateString != null && !stateString.isEmpty()) {
+                    return stateString;
                 } else {
-                    Double clusterMetric = singlePattern.getClusterMetric();
-                    if (clusterMetric == null) {
-                        clusterMetric = 0.0;
+                    return RoleAnalysisObjectState.STABLE.getDisplayString();
+                }
+            }
+
+            TaskType taskObject = object.asObjectable();
+            OperationResultStatusType resultStatus = taskObject.getResultStatus();
+
+            stateString = updateClusterStateMessage(taskObject);
+
+            if (resultStatus != null) {
+                setCandidateRoleOpStatus(clusterPrismObject, candidateRole, object.getOid(),
+                        resultStatus, stateString, result, task, operationChannel, null);
+            }
+
+        }
+
+        return stateString == null || stateString.isEmpty() ? RoleAnalysisObjectState.STABLE.getDisplayString() : stateString;
+    }
+
+    public void setCandidateRoleOpStatus(
+            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrism,
+            @NotNull RoleAnalysisCandidateRoleType candidateRoleContainer,
+            @NotNull String taskOid,
+            @Nullable OperationResultStatusType operationResultStatusType,
+            @Nullable String message,
+            @NotNull OperationResult result,
+            @NotNull Task task,
+            @NotNull RoleAnalysisOperation operationType,
+            @Nullable FocusType focus) {
+
+        XMLGregorianCalendar createTimestamp = null;
+        RoleAnalysisOperationStatus opsOld = candidateRoleContainer.getOperationStatus();
+        if (opsOld != null
+                && opsOld.getStatus() != null
+                && opsOld.getMessage() != null
+                && opsOld.getTaskRef() != null) {
+            String oldTaskOid = opsOld.getTaskRef().getOid();
+            OperationResultStatusType oldStatus = opsOld.getStatus();
+            String oldMessage = opsOld.getMessage();
+            createTimestamp = opsOld.getCreateTimestamp();
+
+            if (oldTaskOid.equals(taskOid)
+                    && oldStatus.equals(operationResultStatusType)
+                    && oldMessage.equals(message)) {
+                return;
+            }
+        }
+
+        @NotNull RoleAnalysisOperationStatus operationStatus = buildOpExecution(
+                taskOid, operationResultStatusType, message, operationType, createTimestamp, focus);
+        try {
+            ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_CANDIDATE_ROLES.append(
+                            candidateRoleContainer.getId(), RoleAnalysisCandidateRoleType.F_OPERATION_STATUS))
+                    .replace(operationStatus.clone())
+                    .asObjectDelta(clusterPrism.getOid());
+
+            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+
+            modelService.executeChanges(deltas, null, task, result);
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't modify RoleAnalysisClusterType {}", clusterPrism.getOid(), e);
+        }
+    }
+
+    @Override
+    public void addCandidateRole(
+            @NotNull String clusterRefOid,
+            @NotNull RoleAnalysisCandidateRoleType candidateRole,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        try {
+            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+            modifications.add(PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_CANDIDATE_ROLES).add(candidateRole.clone())
+                    .asItemDelta());
+
+            repositoryService.modifyObject(RoleAnalysisClusterType.class, clusterRefOid, modifications, result);
+        } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+            LOGGER.error("Couldn't update detection pattern {}", clusterRefOid, e);
+        }
+
+    }
+
+    public void deleteSingleCandidateRole(
+            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrism,
+            @NotNull RoleAnalysisCandidateRoleType candidateRoleBean,
+            @NotNull OperationResult result, Task task) {
+
+        try {
+            var candidateRoleToDelete = new RoleAnalysisCandidateRoleType().id(candidateRoleBean.getId());
+            ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_CANDIDATE_ROLES)
+                    .delete(candidateRoleToDelete)
+                    .asObjectDelta(clusterPrism.getOid());
+
+            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+
+            modelService.executeChanges(deltas, null, task, result);
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't delete candidate role container {}", clusterPrism.getOid(), e);
+        }
+    }
+
+    public void executeChangesOnCandidateRole(@NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            @NotNull RoleAnalysisCandidateRoleType roleAnalysisCandidateRoleType,
+            @NotNull Set<PrismObject<UserType>> members,
+            @NotNull Set<AssignmentType> inducements,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectReferenceType candidateRoleRef = roleAnalysisCandidateRoleType.getCandidateRoleRef();
+
+        PrismObject<RoleType> roleTypeObject = getRoleTypeObject(candidateRoleRef.getOid(), task, result);
+        if (roleTypeObject == null) {
+            LOGGER.error("Couldn't get candidate role object{}", candidateRoleRef.getOid());
+            return;
+        }
+
+        Set<String> inducementsOid = inducements.stream().map(AssignmentType::getTargetRef)
+                .filter(Objects::nonNull)
+                .map(AbstractReferencable::getOid)
+                .collect(Collectors.toSet());
+
+        Collection<PrismReferenceValue> memberscCollection = new ArrayList<>();
+        for (PrismObject<UserType> member : members) {
+            ObjectReferenceType objectReferenceType = new ObjectReferenceType()
+                    .oid(member.getOid())
+                    .type(UserType.COMPLEX_TYPE);
+            memberscCollection.add(objectReferenceType.asReferenceValue());
+        }
+
+        RoleType role = roleTypeObject.asObjectable();
+        List<AssignmentType> inducement = role.getInducement();
+        Set<String> unassignedRoles = new HashSet<>();
+        for (AssignmentType assignmentType : inducement) {
+            ObjectReferenceType targetRef = assignmentType.getTargetRef();
+            if (targetRef != null) {
+                QName type = targetRef.getType();
+                if (type != null && type.equals(RoleType.COMPLEX_TYPE)) {
+
+                    String oid = targetRef.getOid();
+                    if (!inducementsOid.contains(oid)) {
+                        unassignedRoles.add(oid);
+                    } else {
+                        inducementsOid.remove(oid);
                     }
-                    updatedReductionMetric = Math.max(updatedReductionMetric, clusterMetric);
+
                 }
             }
         }
-        return updatedReductionMetric;
+
+        try {
+            String candidateRoleOid = roleTypeObject.getOid();
+
+            for (String inducementForAdd : inducementsOid) {
+                ObjectDelta<RoleType> roleD = PrismContext.get().deltaFor(RoleType.class)
+                        .item(RoleType.F_INDUCEMENT)
+                        .add(createAssignmentTo(inducementForAdd, ObjectTypes.ROLE, PrismContext.get()))
+                        .asObjectDelta(candidateRoleOid);
+                Collection<ObjectDelta<? extends ObjectType>> deltas2 = MiscSchemaUtil.createCollection(roleD);
+                modelService.executeChanges(deltas2, null, task, result);
+
+            }
+
+            for (String unassignedRole : unassignedRoles) {
+                ObjectDelta<RoleType> roleD = PrismContext.get().deltaFor(RoleType.class)
+                        .item(RoleType.F_INDUCEMENT)
+                        .delete(createAssignmentTo(unassignedRole, ObjectTypes.ROLE, PrismContext.get()))
+                        .asObjectDelta(candidateRoleOid);
+                Collection<ObjectDelta<? extends ObjectType>> deltas2 = MiscSchemaUtil.createCollection(roleD);
+                modelService.executeChanges(deltas2, null, task, result);
+            }
+
+            Long id = roleAnalysisCandidateRoleType.getId();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+            ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_CANDIDATE_ROLES.append(id), RoleAnalysisCandidateRoleType.F_CANDIDATE_MEMBERS)
+                    .replace(memberscCollection)
+                    .asObjectDelta(cluster.getOid());
+
+            deltas.add(delta);
+            modelService.executeChanges(deltas, null, task, result);
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't modify candidate role container {}", cluster.getOid(), e);
+        }
+    }
+
+    public <T extends ObjectType> void loadSearchObjectIterative(
+            @NotNull ModelService modelService, @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull List<T> modifyList,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) {
+        try {
+            Set<String> existingOidSet = modifyList.stream()
+                    .map(ObjectType::getOid)
+                    .collect(Collectors.toSet());
+
+            ResultHandler<RoleType> resultHandler = (role, lResult) -> {
+                try {
+                    if(!existingOidSet.contains(role.getOid())) {
+                        modifyList.add((T) role.asObjectable());
+                    }
+                } catch (Exception e) {
+                    String errorMessage = "Cannot resolve role: " + toShortString(role.asObjectable())
+                            + ": " + e.getMessage();
+                    throw new SystemException(errorMessage, e);
+                }
+
+                return true;
+            };
+
+            modelService.searchObjectsIterative(RoleType.class, query, resultHandler, null,
+                    task, parentResult);
+
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't search and load object iterative {}", type, e);
+        }
     }
 }

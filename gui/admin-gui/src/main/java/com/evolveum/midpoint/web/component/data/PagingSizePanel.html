@@ -8,7 +8,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <span class="text-nowrap mr-2"><wicket:message key="PagingSizePanel.label"/></span>
-    <select wicket:id="size" class="form-control"/>
+    <span id="sizeLabel" class="text-nowrap mr-2"><wicket:message key="PagingSizePanel.label"/></span>
+    <select wicket:id="size" class="form-control" aria-labelledby="sizeLabel"/>
 </wicket:panel>
 </html>

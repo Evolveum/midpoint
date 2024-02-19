@@ -7,12 +7,15 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class SystemConfigurationTypeUtil {
 
@@ -52,23 +55,69 @@ public class SystemConfigurationTypeUtil {
         }
     }
 
-    // TODO check the method name
-    public static String getPublicHttpUrlPattern(SystemConfigurationType sysconfig, String host) {
+    public static MailConfigurationType getLegacyMailTransportConfiguration(SystemConfigurationType systemConfiguration) {
+        if (systemConfiguration == null) {
+            return null;
+        }
+        NotificationConfigurationType notificationConfiguration = systemConfiguration.getNotificationConfiguration();
+        if (notificationConfiguration == null) {
+            return null;
+        }
+        return notificationConfiguration.getMail();
+    }
+
+    public static @NotNull List<SmsConfigurationType> getLegacySmsTransportConfigurations(SystemConfigurationType systemConfiguration) {
+        if (systemConfiguration == null) {
+            return List.of();
+        }
+        NotificationConfigurationType notificationConfiguration = systemConfiguration.getNotificationConfiguration();
+        if (notificationConfiguration == null) {
+            return List.of();
+        }
+        return notificationConfiguration.getSms();
+    }
+
+    public static LoggingConfigurationType getLogging(SystemConfigurationType systemConfiguration) {
+        return systemConfiguration != null ? systemConfiguration.getLogging() : null;
+    }
+
+    public static String getPublicHttpUrlPattern(SystemConfigurationType sysconfig) {
         if (sysconfig == null) {
             return null;
-        } else if (sysconfig.getInfrastructure() != null && sysconfig.getInfrastructure().getPublicHttpUrlPattern() != null) {
-            String publicHttpUrlPattern = sysconfig.getInfrastructure().getPublicHttpUrlPattern();
-            if (publicHttpUrlPattern.contains("$host")) {
-                String defaultHostname = getDefaultHostname(sysconfig);
-                if (defaultHostname != null) {
-                    publicHttpUrlPattern = publicHttpUrlPattern.replace("$host", defaultHostname);
-                } else if (StringUtils.isNotBlank(host)) {
-                    publicHttpUrlPattern = publicHttpUrlPattern.replace("$host", host);
-                }
-            }
-            return publicHttpUrlPattern;
-        } else {
+        }
+        InfrastructureConfigurationType infrastructure = sysconfig.getInfrastructure();
+        if (infrastructure == null) {
             return null;
+        }
+        return infrastructure.getPublicHttpUrlPattern();
+    }
+
+    public static @NotNull List<String> getRemoteHostAddressHeader(SystemConfigurationType sysconfig) {
+        if (sysconfig == null) {
+            return List.of();
+        }
+        InfrastructureConfigurationType infrastructure = sysconfig.getInfrastructure();
+        if (infrastructure == null) {
+            return List.of();
+        }
+        return infrastructure.getRemoteHostAddressHeader();
+    }
+
+    // TODO check the method name
+    public static String getPublicHttpUrlPattern(SystemConfigurationType sysconfig, String host) {
+        var pattern = getPublicHttpUrlPattern(sysconfig);
+        final String hostMacro = "$host";
+
+        if (pattern == null || !pattern.contains(hostMacro)) {
+            return pattern;
+        }
+        String defaultHostname = getDefaultHostname(sysconfig);
+        if (defaultHostname != null) {
+            return pattern.replace(hostMacro, defaultHostname);
+        } else if (StringUtils.isNotBlank(host)) {
+            return pattern.replace(hostMacro, host);
+        } else {
+            return pattern;
         }
     }
 
@@ -86,5 +135,17 @@ public class SystemConfigurationTypeUtil {
             return defaultValue;
         }
         return Boolean.TRUE.equals(accessesMetadataEnabled);
+    }
+
+    public static String getSubscriptionId(SystemConfigurationType systemConfiguration) {
+        if (systemConfiguration == null) {
+            return null;
+        }
+
+        DeploymentInformationType deploymentInformation = systemConfiguration.getDeploymentInformation();
+        if (deploymentInformation == null) {
+            return null;
+        }
+        return deploymentInformation.getSubscriptionIdentifier();
     }
 }

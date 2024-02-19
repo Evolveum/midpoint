@@ -506,6 +506,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="selectionTotalValueToSelectionSize">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value is determined as "selectionTotalValue / selectionSize".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SELECTION_TOTAL_VALUE_TO_SELECTION_SIZE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="selectionSizeToDomainSize">
                 <xsd:annotation>
                     <xsd:documentation>

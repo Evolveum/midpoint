@@ -66,7 +66,7 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
         pageBase = getPageBase();
     }
 
-    private List<QName> getSupportedRelations() {
+    protected List<QName> getSupportedRelations() {
         AbstractRoleSearchItemWrapper memberSearchItem = getMemberSearchItem();
         return memberSearchItem != null ? memberSearchItem.getSupportedRelations() : new ArrayList<>();
 //        return search.getSupportedRelations();

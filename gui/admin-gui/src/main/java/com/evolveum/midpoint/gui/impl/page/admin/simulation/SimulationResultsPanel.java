@@ -341,4 +341,9 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
             return start != null ? WebComponentUtil.getLongDateTimeFormattedValue(start, getPageBase()) : null;
         });
     }
+
+    @Override
+    protected boolean isDuplicationSupported() {
+        return false;
+    }
 }

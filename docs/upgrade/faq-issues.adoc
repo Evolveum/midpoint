@@ -1,11 +1,30 @@
 = FAQ, issues during upgrade
+:toc:
 
 This document is a collection of frequently asked questions and answers about the upgrade process.
-It is intended to help you to solve problems that may occur during the upgrade process.
+It is intended to help you to solve problems that may occur during or after the upgrade process.
+It contains also information about important changes in midPoint configuration and usage.
 
 == Upgrade from 4.4 LTS to 4.8 LTS
 
 NOTE: Always upgrade to the latest midPoint 4.4-based release before attempting to upgrade to 4.8 LTS. At the time of writing this document, the latest 4.4-based release is https://docs.evolveum.com/midpoint/release/4.4.6/[midPoint 4.4.6].
+
+=== [Read this first please] First Steps Methodology
+
+Evolveum has created xref:/midpoint/methodology/first-steps/[First Steps Methodology] to guide your midPoint deployment.
+Even if you are upgrading from midPoint 4.4 LTS and not installing from scratch, some of the information may be valuable for you as the methodology explains the new midPoint deployment approach leveraging xref:/midpoint/reference/admin-gui/simulations/[simulations] and other midPoint 4.8 features.
+
+=== midPoint attempts to start the old (4.4-based) midPoint version instead of the new one when using Systemd or service startup scripts
+
+*Make sure you have updated your Systemd service unit file / service startup script for midPoint.*
+
+midPoint 4.4 uses `midpoint.war` while new midPoint 4.8 uses `midpoint.jar` file!
+
+If you have followed xref:/midpoint/reference/deployment/ninja/upgrade-with-ninja/[Upgrade with Ninja] page, after the application is upgraded, the `lib/` directory contains both (old) `midpoint.war` and (new) `midpoint.jar`.
+
+Please check and fix your Systemd service unit file or service startup file for `midPoint.war` references and replace them with `midpoint.jar`.
+
+See also xref:/midpoint/install/systemd/[Running midPoint with systemd].
 
 [#_resource_schema_change]
 === Do I need to update my 4.4-based resources after upgrade to 4.8 LTS?
@@ -30,8 +49,10 @@ We recommend to upgrade your resource definitions to use the new mechanism, espe
 
 === Do I need to update my 4.4-based synchronization situations and reactions in resources after upgrade to 4.8 LTS?
 
-The synchronization situations and reactions are now much more human-readable.
+There are two relevant improvements related to synchronization situations in 4.8 LTS:
 
+. The synchronization situations and reactions are now much more human-readable.
++
 [cols="h,1"]
 |===
 
@@ -68,7 +89,7 @@ a|
 
 |===
 
-The new recommendation for `deleted` situation is *synchronize* (instead of *unlink* used in midPoint 4.4 LTS).
+. The new recommended action for `deleted` situation is *synchronize* (instead of *unlink* used in midPoint 4.4 LTS).
 
 See also answer for  xref:#_resource_schema_change[Do I need to update my 4.4-based resources after upgrade to 4.8 LTS?].
 

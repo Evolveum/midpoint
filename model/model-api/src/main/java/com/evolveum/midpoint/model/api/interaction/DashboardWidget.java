@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.api.interaction;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.common.AvailableLocale;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -78,7 +79,7 @@ public class DashboardWidget {
             // we can safely ignore this one, we only wanted locale if principal object is available
         }
 
-        return locale != null ? locale : Locale.getDefault();
+        return locale != null ? locale : AvailableLocale.getDefaultLocale();
     }
 
     @Override

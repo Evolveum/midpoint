@@ -43,7 +43,7 @@ import static com.evolveum.midpoint.prism.path.ItemPath.*;
  * An alternative approach is represented by {@link PrismEntityOpConstraints} and its implementations:
  *
  * . This (older) class is used e.g. in {@link ObjectSecurityConstraints} implementation, returned e.g. by
- * {@link SecurityEnforcer#compileSecurityConstraints(PrismObject, SecurityEnforcer.Options, Task, OperationResult)} method.
+ * {@link SecurityEnforcer#compileSecurityConstraints(PrismObject, boolean, SecurityEnforcer.Options, Task, OperationResult)} method.
  *
  * . The newer class ({@link PrismEntityOpConstraints}) is used e.g. as a return value of narrow-focused
  * {@link SecurityEnforcer#compileOperationConstraints(MidPointPrincipal, PrismObjectValue, AuthorizationPhaseType, String[],

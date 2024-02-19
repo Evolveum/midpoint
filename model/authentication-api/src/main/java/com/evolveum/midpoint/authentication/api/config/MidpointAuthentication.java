@@ -722,4 +722,19 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     public void setAlreadyCompiledGui(boolean alreadyCompiledGui) {
         this.alreadyCompiledGui = alreadyCompiledGui;
     }
+
+    /**
+     * Restart this authentication, so next request start from one module in authentication sequence.
+     */
+    public void restart() {
+        getAuthentications().clear();
+        getAuthorities().clear();
+        principal = null;
+        credential = null;
+        alreadyAudited = false;
+        overLockoutMaxAttempts = false;
+        alreadyCompiledGui = false;
+        archetypeSelected = false;
+        archetypeOid = null;
+    }
 }

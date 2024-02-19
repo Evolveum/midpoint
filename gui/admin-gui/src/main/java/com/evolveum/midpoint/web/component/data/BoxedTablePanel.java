@@ -136,7 +136,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         headersTop.setOutputMarkupId(true);
         table.addTopToolbar(headersTop);
 
-        add(createHeader(ID_HEADER));
+        Component header = createHeader(ID_HEADER);
+        header.setOutputMarkupId(true);
+        add(header);
+        add(AttributeAppender.append("aria-labelledby", header.getMarkupId()));
         WebMarkupContainer footer = createFooter(ID_FOOTER);
         footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || provider.size() > pageSize));
         add(footer);

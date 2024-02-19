@@ -84,33 +84,26 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private boolean isShowedByWizard;
 
     public AbstractPageObjectDetails() {
-        this(null, null, null);
+        this(null, null);
     }
 
     public AbstractPageObjectDetails(PageParameters pageParameters) {
-        this(pageParameters, null, null);
+        this(pageParameters, null);
     }
 
     public AbstractPageObjectDetails(PrismObject<O> object) {
-        this(null, object, null);
+        this(null, object);
     }
 
-    private AbstractPageObjectDetails(PageParameters params, PrismObject<O> object, List<BusinessRoleDto> patternDeltas) {
+    protected AbstractPageObjectDetails(PageParameters params, PrismObject<O> object) {
         super(params);
-        isAdd = (params == null || params.isEmpty()) && object == null;
+        isAdd = (params == null || params.isEmpty()) && (object == null || object.getOid() == null);
         objectDetailsModels = createObjectDetailsModels(object);
 
-//        if (patternDeltas != null && !patternDeltas.isEmpty()) {
-//            objectDetailsModels.addPatternDeltas(patternDeltas);
-//        }
     }
 
     protected void postProcessModel(ODM objectDetailsModels) {
 
-    }
-
-    public AbstractPageObjectDetails(PrismObject<O> object, List<BusinessRoleDto> patternDeltas) {
-        this(null, object, patternDeltas);
     }
 
     @Override
@@ -304,6 +297,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 deltas = getObjectDetailsModels().collectDeltas(result);
             }
             checkValidationErrors(target, objectDetailsModels.getValidationErrors());
+
         } catch (Throwable ex) {
             result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);

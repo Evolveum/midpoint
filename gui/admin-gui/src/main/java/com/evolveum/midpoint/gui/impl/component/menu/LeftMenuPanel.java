@@ -86,8 +86,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession.PARAM_IS_WIZARD;
-
 public class LeftMenuPanel extends BasePanel<Void> {
 
     private static final String ID_MENU = "menu";
@@ -403,8 +401,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 PageRoleAnalysis.class), 1);
         roleMenu.addMenuItem(new MenuItem("PageRoleAnalysisSession.menu.title",
                 GuiStyleConstants.CLASS_PLUS_CIRCLE,
-                PageRoleAnalysisSession.class,
-                new PageParameters().add(PARAM_IS_WIZARD, true)));
+                PageRoleAnalysisSession.class));
 
         return roleMenu;
     }
@@ -535,7 +532,12 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {
-        SideBarMenuItem item = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled);
+        SideBarMenuItem item = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled) {
+            @Override
+            public boolean isVisible() {
+                return true;
+            }
+        };
         item.addMainMenuItem(createArchetypesItems());
         item.addMainMenuItem(createMessageTemplatesItems());
         item.addMainMenuItem(createObjectsCollectionItems());
@@ -778,9 +780,15 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private void createSystemConfigurationMenu(SideBarMenuItem item) {
-        MainMenuItem system = createMainMenuItem("PageAdmin.menu.top.configuration.basic",
+        MainMenuItem system = new MainMenuItem(
+                "PageAdmin.menu.top.configuration.basic",
                 GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON,
-                com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
+                com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class) {
+            @Override
+            public boolean isVisible() {
+                return true;
+            }
+        };
         PageBase page = getPageBase();
         if (page != null && PageBaseSystemConfiguration.class.isAssignableFrom(page.getClass())) {
 

@@ -148,7 +148,7 @@ public class InitialDataImport extends DataImport {
                     "Couldn't get object with oid '" + object.getOid() + "' from model", ex);
         }
 
-        preImportUpdate(object);
+        preImportUpdate(object, task, mainResult);
 
         ObjectDelta<? extends ObjectType> delta = DeltaFactory.Object.createAddDelta(object);
         try {

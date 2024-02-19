@@ -81,9 +81,10 @@ public class RoleAnalysisAlgorithmUtils {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
+        handler.enterNewStep("Prepare Outliers");
+        handler.setOperationCountToProcess(dataPoints.size());
+
         if (!dataPoints.isEmpty()) {
-            handler.enterNewStep("Prepare Outliers");
-            handler.setOperationCountToProcess(dataPoints.size());
             PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(roleAnalysisService
                     , dataPoints, complexType, session.getProcessMode(), sessionTypeObjectCount, handler,
                     task, result);
@@ -128,9 +129,12 @@ public class RoleAnalysisAlgorithmUtils {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
+        handler.enterNewStep("Skip pattern detection step");
+
+        handler.enterNewStep("Prepare Outliers");
+        handler.setOperationCountToProcess(dataPoints.size());
+
         if (!dataPoints.isEmpty()) {
-            handler.enterNewStep("Prepare Outliers");
-            handler.setOperationCountToProcess(dataPoints.size());
             PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(roleAnalysisService, dataPoints,
                     processedObjectComplexType, session.getProcessMode(), sessionTypeObjectCount, handler,
                     task, result);
@@ -372,9 +376,16 @@ public class RoleAnalysisAlgorithmUtils {
         AnalysisClusterStatisticType roleAnalysisClusterStatisticType = createClusterStatisticType(clusterStatistic,
                 processMode);
 
-        return generateClusterObject(roleAnalysisService, clusterStatistic, null, roleAnalysisClusterStatisticType,
-                false, task, result
+        PrismObject<RoleAnalysisClusterType> clusterObject = generateClusterObject(roleAnalysisService,
+                clusterStatistic,
+                null,
+                roleAnalysisClusterStatisticType,
+                false,
+                task,
+                result
         );
+        clusterObject.asObjectable().setCategory(RoleAnalysisClusterCategory.OUTLIERS);
+        return clusterObject;
     }
 
     private @NotNull PrismObject<RoleAnalysisClusterType> generateClusterObject(
@@ -391,19 +402,20 @@ public class RoleAnalysisAlgorithmUtils {
 
         Set<ObjectReferenceType> members = clusterStatistic.getMembersRef();
 
-        RoleAnalysisClusterType clusterType = clusterTypePrismObject.asObjectable();
-        clusterType.setOid(String.valueOf(UUID.randomUUID()));
+        RoleAnalysisClusterType cluster = clusterTypePrismObject.asObjectable();
+        cluster.setOid(String.valueOf(UUID.randomUUID()));
+        cluster.setCategory(RoleAnalysisClusterCategory.INLIERS);
 
-        clusterType.getMember().addAll(members);
-        clusterType.setName(clusterStatistic.getName());
+        cluster.getMember().addAll(members);
+        cluster.setName(clusterStatistic.getName());
         double maxReduction = 0;
         if (session != null && detectPattern) {
             RoleAnalysisProcessModeType mode = session.getProcessMode();
             DefaultPatternResolver defaultPatternResolver = new DefaultPatternResolver(roleAnalysisService, mode);
 
             List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList = defaultPatternResolver
-                    .loadPattern(session, clusterStatistic, clusterType, result, task);
-            clusterType.getDetectedPattern().addAll(roleAnalysisClusterDetectionTypeList);
+                    .loadPattern(session, clusterStatistic, cluster, result, task);
+            cluster.getDetectedPattern().addAll(roleAnalysisClusterDetectionTypeList);
 
             for (RoleAnalysisDetectionPatternType detectionPatternType : roleAnalysisClusterDetectionTypeList) {
                 maxReduction = Math.max(maxReduction, detectionPatternType.getClusterMetric());
@@ -412,7 +424,7 @@ public class RoleAnalysisAlgorithmUtils {
 
         roleAnalysisClusterStatisticType.setDetectedReductionMetric(maxReduction);
 
-        clusterType.setClusterStatistics(roleAnalysisClusterStatisticType);
+        cluster.setClusterStatistics(roleAnalysisClusterStatisticType);
 
         return clusterTypePrismObject;
     }

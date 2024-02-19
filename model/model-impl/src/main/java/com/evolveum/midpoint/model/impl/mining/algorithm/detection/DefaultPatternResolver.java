@@ -143,7 +143,7 @@ public class DefaultPatternResolver {
      * @return A list of the top detected patterns.
      */
     public static List<DetectedPattern> loadTopPatterns(@NotNull List<DetectedPattern> detectedPatterns) {
-        detectedPatterns.sort(Comparator.comparing(DetectedPattern::getClusterMetric).reversed());
+        detectedPatterns.sort(Comparator.comparing(DetectedPattern::getMetric).reversed());
 
         List<DetectedPattern> topPatterns = new ArrayList<>();
 

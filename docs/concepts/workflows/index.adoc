@@ -1,0 +1,159 @@
+= Workflows
+:page-nav-title: 'Workflows'
+:page-toc: top
+
+The IGA terminology is not well-defined, unfortunately.
+Workflows are not an exception.
+Different people have different views on the functionality that workflows are supposed to deliver.
+This page will explain midPoint unique approach to workflow, delivering the features in demand using policy based approach.
+
+== Types of workflows
+In general, workflow is streamlined set of actions, possibly accompanied by human interaction during the process.
+Let's separate them in a categories based on complexity.
+
+=== 1. Predefined set of action, which can be fully automated
+
+IGA offers many actions that can be executed for an object.
+You might set attributes, change lifecycle state, assign roles and so on.
+Sometimes you want to pack several actions into a single business, possibly with some conditions and branching, and execute it as a whole.
+
+.Process for making an employee from external user
+[example]
+====
+* Employee role will be added and all roles for externists will be removed.
+* New corporate email address will be generated and stored in email attribute.
+* User will be switched to active lifecycle state.
+====
+
+Apparent benefits of such defined workflow is that is always executed in a consistent manner.
+Operators might easily execute all actions manually but that give unnecesary space for human error.
+
+Another benefit might be to execute the workflow for several users at the same time, which might be used by IGA administrators for their routine configuration tasks.
+
+=== 2. Triggered actions
+
+Having manually triggered workflows are fine, but IGA is mostly about automation.
+In a lot of cases you want to define additional action that should trigger on certain occasion.
+
+.Handling an employee who is leaving the company
+[exmaple]
+====
+* When an employee role is removed from user, remove also all roles marked as sensitive.
+* If the employee had any license assigned, send a notification to his manager.
+====
+
+CAUTION: Triggered actions sound like a perfect solution for whole IGA automation, but they should be used with caution.
+IGA is mostly about consistency and maintaining predictable state.
+Getting back to the previous example, it's better to define a policy preventing non-employees to have sensitive roles.
+Such policy is easier to maintain and introduces some reliable invariants to your environment that are very beneficial for maintaining long term order in the data.
+
+Main benefit of triggered actions is naturally extending actions that are already happening to achieve your business use-cases.
+
+
+=== 3. Approvals
+
+Human element in workflows are typically the approvals.
+Some actions can be automatically denied, but in real environment it might be practically impossible to automate complex decision processes.
+Therefore, some actions might require approval before they can be executed.
+
+.Requesting a role
+[exmaple]
+====
+* User request a role.
+* User's manager makes a decision and approves or denies the request.
+* If the role was sensitive, the security officer has to approve after the manger approves.
+====
+
+=== 4. Form based actions
+
+Sometimes you need to prepare an easy way for other users to interact with the IGA.
+One of the options, that often comes into mind is creating a custom form where users fills in all data, and then it is automatically processed.
+
+.Creating a new user record
+[exmaple]
+====
+* The form requires: given name, family name and employee type.
+* After submitting, the user record is created and roles are assigned based on the employee type.
+* For internal employees and email address is generated.
+* For external employees validity is set to 6 months.
+====
+
+This scenario might be more complex in practice than initially perceived.
+In our example, it would be better if the form would offer input field for validity when you select external employee type.
+Therefore, this simple scenario would in practice typically need way more interactivity and would be closer to the complex workflows.
+
+=== 5. Complex workflows
+
+The last items covers anything that you can imagine.
+Capturing inputs from user to start the workflow, passing it to another user for the next steps in the workflow, whis might be as simple as approval but also something more complex.
+Then the workflow might branch based on the current progress or start executing some actions and continue with another actions or another human guided step.
+Basically any complex scenario combining humans and machine actions.
+
+In practise this is implemented by workflows engines that are able to define complex workflows and typically can execute them over multiple systems either executing actions in them or reading the data required for futher processing.
+Workflows engines are very potent tools for implementing company-wide processes.
+
+'''
+
+== MidPoint approach
+
+Even though there was a time when people were expecting wide ranges of workflow engine capabilities from IdM and IGA solution, this demand was removed by deploying standalone workflows engines.
+MidPoint can be integrated with such engine using their native capabilities or with xref:/midpoint/reference/concepts/workflows/external-workflow-integration/[exteral workflow integration] support.
+
+Nevertheless, midPoint offers its own unique approach to workflows that enables you handling most scenarios with efficiency.
+It uses several features that can be easily combined.
+
+=== Scripting tasks and bulk actions
+
+Addressing the first requirement for predefined actions, midPoint offers the option to define custom actions that can be executed on demand.
+It's based on xref:/midpoint/reference/misc/bulk/[Bulk Actions], that can be encapsulated in xref:/midpoint/reference/misc/bulk/scripting-tasks/[Scripting Tasks].
+It gives you easy way to create custom actions using predefined options, or you can prepare a script that can contain complex logic.
+
+The tasks can be integrated as custom actions to midPoint GUI make it easier for non-technical users to execute them.
+See xref:/midpoint/reference/admin-gui/admin-gui-config/#custom-actions-for-object-lists[Custom actions in GUI] for details.
+
+
+=== Policy rules
+
+xref:/midpoint/reference/roles-policies/policy-rules/[Policy rules] allows you to define policies that can be checked or enforced.
+Policies also might have conditions when they are triggered.
+That allow you to defined policy that will enforce certain actions and be triggered on custom conditions.
+Thanks to this, midPoint can cover the second type of workflows (triggered actions).
+
+The difference between policies and traditional workflow engines is the policy will trigger anytime the defined trigger occurs.
+Well-defined policies will help you maintain consistency in the IGA system.
+For example, if you define a policy reaction on employee leaving the company the policy will trigger regardless if the event is propageted from HR system or if it is a manually triggered action.
+Instead of designing complex workflows and carefully considering all possible interactions, midPoint's policy rules gives you tool, that behaves consistently in all situations.
+
+=== Approvals (policy-based)
+
+As we covered in workflow type number 3., the typical human interaction element are xref:/midpoint/reference/cases/approval/policy-based-approvals/[approvals] during the workflow execution.
+MidPoint is using aforementioned policy rules to start the approval process.
+That gives you enormous flexibility in defining what should be approved.
+
+Furthermore, it also maintains consistency.
+Policy rules by default doesn't differentiate how the event started.
+If you need something to be approved before execution, you can relay on policy rules, regardless if the event was triggered by action in GUI, synchronization process, another workflow or something else.
+
+As usual, midPoint gives you huge flexibility in defining all required details, like how the approvals will be selected or if multistage approvals are needed.
+See xref:/midpoint/reference/cases/approval/policy-based-approvals/[approvals documentation] for details.
+
+
+=== Integration with external workflows engines
+
+The last two types of workflows are covering form based actions and workflow engines.
+MidPoint is following the design rule of focusing on single purpose and master it rather than being universal bloated tool for everything.
+For that reasons it doesn't implement complex workflows engine functionality that would anyway require integration with other systems and applications beyond standard IGA integration that midPoint offers.
+But midPoint offers an option to be xref:/midpoint/reference/concepts/workflows/external-workflow-integration/[integrated with external workflows engines].
+
+For the same reasons midPoint currently don't offer form based custom actions described above.
+We are considering them very close to the full workflow engines capabilities.
+So if you estimate you will need just a few simple forms, you will most likely soon need more options and the best approach might be to consider full workflow engine system from the beginning.
+
+
+=== Combining all options
+
+The best results are typically achieved by combining more features together.
+MidPoint strength is in maintaining consistency regardless how complicated configuration you will define.
+With that in mind you can combine all described options as you like, including the external workflow engine integration.
+That will give you enough flexibility to achieve any workflow that you might need.
+For most use cases except the very complex ones, the native capabilities of midPoint should be sufficient.

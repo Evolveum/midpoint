@@ -46,7 +46,21 @@
                                     <td>
                                         <wicket:message key="PageAbout.builtAt"/>
                                     </td>
-                                    <td><span wicket:id="buildTimestamp"/></td>
+                                    <td>
+                                        <span wicket:id="buildTimestamp"/>
+                                        <br/>
+                                        <span wicket:id="officialBuild">
+                                            <i class="fa-regular fa-circle-check color-green"></i>
+                                            <wicket:message key="PageAbout.officialBuild"/>
+                                        </span>
+                                        <span wicket:id="unofficialBuild">
+                                            <i class="fa fa-exclamation-circle color-yellow"></i>
+                                            <wicket:message key="PageAbout.unofficialBuild"/>
+                                        </span>
+                                        <span wicket:id="overlay">
+                                            <wicket:message key="PageAbout.overlay"/>
+                                        </span>
+                                    </td>
                                 </tr>
                             </table>
                         </div>

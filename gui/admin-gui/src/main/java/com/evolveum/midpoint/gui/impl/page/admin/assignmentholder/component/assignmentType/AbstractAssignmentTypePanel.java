@@ -691,4 +691,8 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         };
     }
 
+    @Override
+    protected boolean isDuplicationSupported() {
+        return false;
+    }
 }

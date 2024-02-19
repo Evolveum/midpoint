@@ -29,6 +29,8 @@ public class CaptchaPanel extends BasePanel<Void> {
 
     private static final String CAPTCHA_TEXT_ID = "text";
     private static final String CAPTCHA_IMAGE_ID = "image";
+    private static final String CHANGE_LINK_LABEL_ID= "changeLinkLabel";
+    private static final String TEXT_DESCRIPTION_LABEL_ID= "textDescriptionLabel";
     /**
      * The text provided by the user.
      */
@@ -63,11 +65,11 @@ public class CaptchaPanel extends BasePanel<Void> {
                 target.add(captchaImage);
             }
         };
-        changeCaptchaLink.add(new Label("changeLinkLabel",
+        changeCaptchaLink.add(new Label(CHANGE_LINK_LABEL_ID,
                 pageBase.createStringResource("CaptchaPanel.changeLinkLabel")));
         add(changeCaptchaLink);
 
-        add(new Label("textDescriptionLabel",
+        add(new Label(TEXT_DESCRIPTION_LABEL_ID,
                 pageBase.createStringResource("CaptchaPanel.textDescriptionLabel")));
 
         add(new RequiredTextField<String>(CAPTCHA_TEXT_ID, Model.of()) {

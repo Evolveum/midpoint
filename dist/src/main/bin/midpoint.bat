@@ -30,6 +30,11 @@ if not exist "%BIN_DIR%midpoint.bat" (
 )
 
 set ORIG_JAVA_OPTS=%JAVA_OPTS%
+
+if NOT "%MP_SET_midpoint_administrator_initialPassword%" == "" (
+  set JAVA_OPTS=%JAVA_OPTS% -Dmidpoint.administrator.initialPassword="%MP_SET_midpoint_administrator_initialPassword%"
+)
+
 set JAVA_OPTS=-Xms2048M -Xmx4096M -Dpython.cachedir="%MIDPOINT_HOME%\tmp" -Djavax.net.ssl.trustStore="%MIDPOINT_HOME%\keystore.jceks" -Djavax.net.ssl.trustStoreType=jceks %JAVA_OPTS%
 
 if not exist "%BIN_DIR%setenv.bat" goto :noSetEnv

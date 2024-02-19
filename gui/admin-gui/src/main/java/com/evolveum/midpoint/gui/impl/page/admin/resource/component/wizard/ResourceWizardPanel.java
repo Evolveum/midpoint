@@ -43,7 +43,6 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
             protected void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
                 ResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
             }
-
         };
         basicWizard.setOutputMarkupId(true);
         return basicWizard;

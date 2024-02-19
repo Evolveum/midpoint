@@ -8,9 +8,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.role;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsTaskCreator;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -103,71 +109,89 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         return new RoleSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
-    protected DetailsFragment createDetailsFragment() {
-
-        Class<? extends AbstractWizardPanel> wizardClass = null;
-
-        if (canShowWizard(SystemObjectsType.ARCHETYPE_APPLICATION_ROLE)) {
-            wizardClass = ApplicationRoleWizardPanel.class;
-        }
-
-        if (canShowWizard(SystemObjectsType.ARCHETYPE_BUSINESS_ROLE)) {
-            wizardClass = BusinessRoleWizardPanel.class;
-        }
-
-        if (wizardClass != null) {
-            setShowedByWizard(true);
-            PrismObject<RoleType> obj = getObjectDetailsModels().getObjectWrapper().getObject();
-            try {
-                obj.findOrCreateProperty(ResourceType.F_LIFECYCLE_STATE).setRealValue(SchemaConstants.LIFECYCLE_DRAFT);
-            } catch (SchemaException ex) {
-                getFeedbackMessages().error(PageRole.this, ex.getUserFriendlyMessage());
-            }
-            return createRoleWizardFragment(wizardClass);
-        }
-
-        return super.createDetailsFragment();
-    }
-
     protected boolean canShowWizard(SystemObjectsType archetype) {
-        return !isHistoryPage() && !isEditObject() && WebComponentUtil.hasArchetypeAssignment(
+        return !isHistoryPage() && (!isEditObject()) && WebComponentUtil.hasArchetypeAssignment(
                 getObjectDetailsModels().getObjectType(),
                 archetype.value());
     }
 
     @Override
+    protected boolean canShowWizard() {
+        return !isHistoryPage() && !isEditObject()
+                && (WebComponentUtil.hasArchetypeAssignment(
+                getObjectDetailsModels().getObjectType(),
+                SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value())
+                || WebComponentUtil.hasArchetypeAssignment(
+                getObjectDetailsModels().getObjectType(),
+                SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value()));
+    }
+
+    @Override
     protected void exitFromWizard() {
         if (existPatternDeltas()) {
-            navigateToRoleAnalysisCluster();
+            navigateToClusterOperationPanel();
             return;
         }
         super.exitFromWizard();
     }
 
-    private void navigateToRoleAnalysisCluster() {
+    private void navigateToClusterOperationPanel() {
+        if (!existPatternDeltas()) {
+            return;
+        }
         PageParameters parameters = new PageParameters();
-        String clusterOid = getObjectDetailsModels().getPatternDeltas().getCluster().getOid();
-        parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+        BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
+        PrismObject<RoleAnalysisClusterType> cluster = patternDeltas.getCluster();
+        if (cluster == null) {
+            return;
+        }
+        parameters.add(OnePageParameterEncoder.PARAMETER, cluster.getOid());
         parameters.add("panelId", "clusterDetails");
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                 .getObjectDetailsPage(RoleAnalysisClusterType.class);
         navigateToNext(detailsPageClass, parameters);
     }
 
-    private DetailsFragment createRoleWizardFragment(Class<? extends AbstractWizardPanel> clazz) {
+    @Override
+    protected DetailsFragment createWizardFragment() {
+
+        Class<? extends AbstractWizardPanel> wizardClass = getWizardPanelClass();
+
+        PrismObject<RoleType> obj = getObjectDetailsModels().getObjectWrapper().getObject();
+        try {
+            obj.findOrCreateProperty(ResourceType.F_LIFECYCLE_STATE).setRealValue(SchemaConstants.LIFECYCLE_DRAFT);
+        } catch (SchemaException ex) {
+            getFeedbackMessages().error(PageRole.this, ex.getUserFriendlyMessage());
+        }
+
         return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageRole.this) {
             @Override
             protected void initFragmentLayout() {
                 try {
-                    Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
+                    Constructor<? extends AbstractWizardPanel> constructor = wizardClass.getConstructor(String.class, WizardPanelHelper.class);
                     AbstractWizardPanel wizard = constructor.newInstance(ID_TEMPLATE, createObjectWizardPanelHelper());
                     add(wizard);
                 } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()
+                    LOGGER.error("Couldn't create panel by constructor for class " + wizardClass.getSimpleName()
                             + " with parameters type: String, WizardPanelHelper");
                 }
             }
         };
+    }
+
+    private Class<? extends AbstractWizardPanel> getWizardPanelClass() {
+        if (WebComponentUtil.hasArchetypeAssignment(
+                getObjectDetailsModels().getObjectType(),
+                SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value())) {
+            return ApplicationRoleWizardPanel.class;
+        }
+
+        if (WebComponentUtil.hasArchetypeAssignment(
+                getObjectDetailsModels().getObjectType(),
+                SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value())) {
+            return BusinessRoleWizardPanel.class;
+        }
+        return null;
     }
 
     @Override
@@ -180,36 +204,115 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
             OperationResult result,
             Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
             AjaxRequestTarget target) {
-        businessRoleMigrationPerform(result, executedDeltas);
-
-        super.postProcessResultForWizard(result, executedDeltas, target);
-    }
-
-    private void businessRoleMigrationPerform(
-            OperationResult result,
-            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
 
         if (result.isFatalError()) {
             return;
         }
 
-        if (!existPatternDeltas()) {
-            return;
+        if (existPatternDeltas()) {
+            List<ObjectType> userMembersOid = new ArrayList<>();
+
+            List<BusinessRoleDto> businessRoleDtos = getPatternDeltas().getBusinessRoleDtos();
+
+            for (BusinessRoleDto businessRoleDto : businessRoleDtos) {
+                PrismObject<UserType> prismObjectUser = businessRoleDto.getPrismObjectUser();
+                if (prismObjectUser != null) {
+                    userMembersOid.add(prismObjectUser.asObjectable());
+                }
+            }
+            String roleOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
+            Task task = createSimpleTask("load role after save");
+            PrismObject<RoleType> object = WebModelServiceUtils.loadObject(
+                    getType(),
+                    roleOid,
+                    getOperationOptions(),
+                    (PageBase) getPage(),
+                    task,
+                    task.getResult());
+            if (object != null) {
+                getObjectDetailsModels().reset();
+                getObjectDetailsModels().reloadPrismObjectModel(object);
+            }
+
+            if (object != null) {
+                var pageBase = (PageBase) getPage();
+                var taskCreator = new MemberOperationsTaskCreator.Assign(
+                        object.asObjectable(),
+                        UserType.COMPLEX_TYPE,
+                        createInOidQuery(userMembersOid),
+                        pageBase,
+                        RelationTypes.MEMBER.getRelation());
+
+                pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
+                        .withOpResultOptions(OpResult.Options.create()
+                                .withHideTaskLinks(false))
+                        .withCustomFeedbackPanel(getFeedbackPanel())
+                        .run(taskCreator::createAndSubmitTask);
+
+            }
+
+            businessRoleMigrationPerform(result, executedDeltas, target);
         }
+
+        result.computeStatus();
+        showResult(result);
+        super.postProcessResultForWizard(result, executedDeltas, target);
+    }
+
+    protected ObjectQuery createInOidQuery(List<ObjectType> selectedObjectsList) {
+        List<String> oids = new ArrayList<>();
+        for (Object selectable : selectedObjectsList) {
+            oids.add(((ObjectType) selectable).getOid());
+        }
+
+        return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory().createInOid(oids));
+    }
+
+    private void businessRoleMigrationPerform(
+            OperationResult result,
+            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
+
+        RoleAnalysisService roleAnalysisService = getRoleAnalysisService();
 
         Task task = createSimpleTask(OP_PERFORM_MIGRATION);
 
         String roleOid = ObjectDeltaOperation.findAddDeltaOidRequired(executedDeltas, RoleType.class);
 
         BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
-        RoleAnalysisService roleAnalysisService = getRoleAnalysisService();
 
         PrismObject<RoleType> roleObject = roleAnalysisService
                 .getRoleTypeObject(roleOid, task, result);
+
         if (roleObject != null) {
+            if (!patternDeltas.isCandidate()) {
+
+                List<BusinessRoleDto> businessRoleDtos = patternDeltas.getBusinessRoleDtos();
+
+                Set<ObjectReferenceType> candidateMembers = new HashSet<>();
+
+                for (BusinessRoleDto businessRoleDto : businessRoleDtos) {
+                    PrismObject<UserType> prismObjectUser = businessRoleDto.getPrismObjectUser();
+                    if (prismObjectUser != null) {
+                        candidateMembers.add(new ObjectReferenceType()
+                                .oid(prismObjectUser.getOid())
+                                .type(UserType.COMPLEX_TYPE).clone());
+                    }
+                }
+
+                RoleAnalysisCandidateRoleType candidateRole = new RoleAnalysisCandidateRoleType();
+                candidateRole.getCandidateMembers().addAll(candidateMembers);
+                candidateRole.setAnalysisMetric(0.0);
+                candidateRole.setCandidateRoleRef(new ObjectReferenceType()
+                        .oid(roleOid)
+                        .type(RoleType.COMPLEX_TYPE).clone());
+
+                roleAnalysisService.addCandidateRole(
+                        patternDeltas.getCluster().getOid(), candidateRole, task, result);
+                return;
+            }
+
             roleAnalysisService.clusterObjectMigrationRecompute(
                     patternDeltas.getCluster().getOid(), roleOid, task, result);
-
 
             String taskOid = UUID.randomUUID().toString();
 
@@ -220,16 +323,25 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
                 LOGGER.error("Couldn't create activity for role migration: " + roleOid);
             }
             if (activity != null) {
-                roleAnalysisService.executeMigrationTask(
+                roleAnalysisService.executeMigrationTask(getModelInteractionService(),
                         patternDeltas.getCluster(), activity, roleObject, taskOid, null, task, result);
+                if (result.isWarning()) {
+                    warn(result.getMessage());
+                    target.add(((PageBase) getPage()).getFeedbackPanel());
+                }
             }
 
         }
     }
 
     private boolean existPatternDeltas() {
-        BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
+        BusinessRoleApplicationDto patternDeltas = getPatternDeltas();
         return patternDeltas != null && !patternDeltas.getBusinessRoleDtos().isEmpty();
+    }
+
+    private BusinessRoleApplicationDto getPatternDeltas() {
+        BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
+        return patternDeltas;
     }
 
     private ActivityDefinitionType createActivity(List<BusinessRoleDto> patternDeltas, String roleOid) throws SchemaException {

@@ -12,6 +12,8 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 import org.apache.commons.lang3.Validate;
@@ -28,6 +30,8 @@ import java.util.stream.Collectors;
  * The ones that refer only to `TaskType` objects are located in the schema module, e.g. in {@link TaskTypeUtil} class.
  */
 public class TaskUtil {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TaskUtil.class);
 
     public static List<String> tasksToOids(List<? extends Task> tasks) {
         return tasks.stream().map(Task::getOid).collect(Collectors.toList());
@@ -95,5 +99,10 @@ public class TaskUtil {
     private static boolean hasChildren(Task task, List<? extends Task> allTasks) {
         return allTasks.stream()
                 .anyMatch(t -> task.getTaskIdentifier().equals(t.getParent()));
+    }
+
+    public static void logClusteringWithoutSubscriptionError() {
+        LOGGER.error("*** Clustering is not supported in the production mode without a subscription. "
+                + "Please contact Evolveum for more information. ***");
     }
 }

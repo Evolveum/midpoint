@@ -73,10 +73,10 @@ public class TestDelayedEnable extends AbstractStoryTest {
     private static final String ACCOUNT_GUYBRUSH_USERNAME = "guybrush";
     private static final String ACCOUNT_GUYBRUSH_FULLNAME = "Guybrush Threepwood";
 
-    XMLGregorianCalendar hrCreateTsStart;
-    XMLGregorianCalendar hrCreateTsEnd;
-    XMLGregorianCalendar hrModifyTsStart;
-    XMLGregorianCalendar hrModifyTsEnd;
+    private XMLGregorianCalendar hrCreateTsStart;
+    private XMLGregorianCalendar hrCreateTsEnd;
+    private XMLGregorianCalendar hrModifyTsStart;
+    private XMLGregorianCalendar hrModifyTsEnd;
 
     private String userGuybrushOid;
 
@@ -816,7 +816,7 @@ public class TestDelayedEnable extends AbstractStoryTest {
     }
 
     @Test
-    public void test238GuybrushrunTriggersAgain() throws Exception {
+    public void test238GuybrushRunTriggersAgain() throws Exception {
         clockForward("PT1H");
 
         // WHEN

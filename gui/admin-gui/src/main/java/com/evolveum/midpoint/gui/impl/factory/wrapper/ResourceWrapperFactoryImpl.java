@@ -38,14 +38,8 @@ public class ResourceWrapperFactoryImpl extends PrismObjectWrapperFactoryImpl<Re
     }
 
     @Override
-    @PostConstruct
-    public void register() {
-        getRegistry().addToRegistry(this);
-    }
-
-    @Override
     public int getOrder() {
-        return 99;
+        return 97;
     }
 
     @Override

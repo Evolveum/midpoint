@@ -7,8 +7,11 @@
 package com.evolveum.midpoint.gui.impl.component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -109,7 +112,19 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return "MainObjectListPanel.newObject";
     }
 
-    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+    /**
+     * Basic method for creating new value for multivalue container.
+     */
+    protected final void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+        newItemPerformed(null, target, relationSepc);
+    }
+
+    /**
+     * This method create new value wrapper for multivalue container wrapper,
+     * but in new wrapper use prism value in parameter 'value'.
+     * This method is usefully for duplication.
+     */
+    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
 
     }
 
@@ -266,5 +281,23 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     @Override
     public List<C> getSelectedRealObjects() {
         return getSelectedObjects().stream().map(o -> o.getRealValue()).collect(Collectors.toList());
+    }
+
+    @Override
+    protected void addBasicActions(List<InlineMenuItem> menuItems) {
+        if (!isDuplicationSupported()) {
+            return;
+        }
+        DuplicationProcessHelper.addDuplicationActionForContainer(
+                menuItems,
+                (value, target) -> newItemPerformed((PrismContainerValue<C>) value, target, null),
+                getPageBase());
+    }
+
+    /**
+     * Define whether duplication action for item of table will be added to item menu.
+     */
+    protected boolean isDuplicationSupported() {
+        return isCreateNewObjectVisible();
     }
 }

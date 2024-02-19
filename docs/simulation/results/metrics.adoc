@@ -70,7 +70,7 @@ When searching for an object with given built-in metric set to 1, the query on t
 
 == Event Mark-based Metrics
 
-Each xref:../../mark/event-marks.adoc[event mark] present in the configuration is considered to be a simulation metric.
+Each xref:../../concepts/mark/event-marks.adoc[event mark] present in the configuration is considered to be a simulation metric.
 Values of such metric are either 1 (mark is present) or 0 (mark is not present).
 
 There is a set of default event marks present among midPoint initial objects.
@@ -243,8 +243,7 @@ An example of the filter-based predicate that is used to specify the domain of a
 <domain>
     <filter>
         <q:equal>
-            <q:path>type</q:path>
-            <q:value>c:UserType</q:value>
+            <q:text>type = "c:UserType"</q:text>
         </q:equal>
     </filter>
 </domain>
@@ -329,6 +328,9 @@ And the aggregation functions are:
 
 | `selectionTotalValueToDomainSize`
 | `selectionTotalValue` / `domainSize`
+
+| `selectionTotalValueToSelectionSize`
+| `selectionTotalValue` / `selectionSize`
 
 | `selectionSizeToDomainSize`
 | `selectionSize` / `domainSize`
@@ -437,3 +439,36 @@ We can restrict the selection (or domain) of the original metric to cover only s
 ----
 <1> The `after` item represents the object state after the operation.
 (Note that if the `department` attribute itself is modified to a value other than "Security services", this change is not seen by this simple filter.)
+
+Let's explore how to configure the system to determine whether any changes have occurred to
+a specific attribute such as `employeeNumber`.
+
+.Listing 7. Computation of attribute modifications for specific item path
+[source,xml]
+----
+<metric>
+    <identifier>attribute-modifications-employee-number</identifier>
+    <computation>
+        <domain>
+            <expression>
+                <script>
+                    <code>processedObject.isShadow()</code>
+                </script>
+            </expression>
+        </domain>
+        <valueExpression>
+            <script>
+                <code>
+                    import com.evolveum.midpoint.prism.path.ItemPath;
+                    def itemPath = ItemPath.create('attributes','employeeNumber');<!--1-->
+
+                    return processedObject.getItemModificationsCount(itemPath);<!--2-->
+                </code>
+            </script>
+        </valueExpression>
+    </computation>
+</metric>
+----
+<1> Define the item path for 'employeeNumber'. The item path must exactly match the configuration.
+<2> Compute the count of modifications for the specified item path.
+To include sub-item modifications, use `getItemModificationsCount(itemPath, true)`.

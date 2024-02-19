@@ -159,4 +159,9 @@ class EnforcerDecisionOperation extends EnforcerOperation {
                     new PhasedDecisionOperationNote(this, phase, message, arguments));
         }
     }
+
+    @Override
+    public boolean isFullInformationAvailable() {
+        return params.isFullInformationAvailable();
+    }
 }
