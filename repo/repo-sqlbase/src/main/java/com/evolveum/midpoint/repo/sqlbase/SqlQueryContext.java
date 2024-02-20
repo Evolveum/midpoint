@@ -11,6 +11,8 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.TunnelException;
+
 import com.querydsl.core.QueryMetadata;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
@@ -549,6 +551,11 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             } else {
                 throw e;
             }
+        } catch (TunnelException e) {
+            if (e.getCause() instanceof SchemaException schemaEx) {
+                throw schemaEx;
+            }
+            throw e;
         }
     }
 

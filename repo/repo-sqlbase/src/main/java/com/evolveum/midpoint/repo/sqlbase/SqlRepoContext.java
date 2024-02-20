@@ -165,7 +165,7 @@ public class SqlRepoContext {
 
             }
             try (var tracker = SqlBaseOperationTracker.parseXnode2Prism(schemaType.getSimpleName())) {
-                value = prismContext.parserFor(xnodeValue).fastAddOperations().parseRealValue(schemaType);
+                value = prismContext.parserFor(xnodeValue).context(parsingContext).fastAddOperations().parseRealValue(schemaType);
             }
             return new RepositoryObjectParseResult<>(parsingContext, value);
         } catch (RuntimeException e) {

@@ -82,8 +82,16 @@ public abstract class QContainerWithFullObjectMapping<S extends Containerable, Q
 
     @Override
     public PrismValue toSchemaObjectEmbedded(Tuple tuple, Q alias) throws SchemaException {
+        byte[] fullObject = tuple.get(alias.fullObject);
+        // Sometimes tuple is whole row and alias.fullObject does not work in that case
+        if (fullObject == null) {
+            var row = tuple.get(alias);
+            if (row != null) {
+                fullObject = row.fullObject;
+            }
+        }
         return parseSchemaObject(
-                tuple.get(alias.fullObject),
+                fullObject,
                 getItemPath() + " for " + tuple.get(alias.ownerOid),
                 schemaType()).asPrismContainerValue();
     }

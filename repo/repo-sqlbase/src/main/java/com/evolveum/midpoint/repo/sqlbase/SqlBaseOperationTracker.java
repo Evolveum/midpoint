@@ -25,7 +25,6 @@ public abstract class SqlBaseOperationTracker implements AutoCloseable {
 
 
 
-    private static Factory impl = new OpResultBased();
 
 
     private static final Tracker NOOP_TRACKER = () -> {};
@@ -40,6 +39,8 @@ public abstract class SqlBaseOperationTracker implements AutoCloseable {
 
         }
     };
+
+    private static Factory impl = (or) -> NOOP;
 
     public static SqlBaseOperationTracker get() {
         var maybe = CURRENT_TRACKER.get();

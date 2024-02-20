@@ -15,6 +15,8 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
 
+import com.evolveum.midpoint.util.exception.TunnelException;
+
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
@@ -187,7 +189,7 @@ public class QOperationExecutionMapping<OR extends MObject>
                         opexContainer.add(embedded);
                         return embedded.getRealValue();
                     } catch (SchemaException e) {
-                        throw new SystemException(e);
+                        throw new TunnelException(e);
                     }
                 }
 
