@@ -1,0 +1,89 @@
+= Shadows Type REST Endpoint
+:page-nav-title: Shadows
+:page-display-order: 800
+:page-toc: top
+
+== Description
+
+Here we are describing the Shadows object type in relation to midPoints REST API. The
+Shadows objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+shadows/
+----
+
+== Operations And Examples
+
+The Shadow web endpoint provides us with information regarding resource shadows.
+Resource shadow objects are usually created and modified automatically by midPoint, most
+often the use cases will resolve around fetching and reading the shadow object data.
+
+// === Create Shadow Object
+
+
+// - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Shadow Object
+
+Get operation for fetching a single specific object.
+
+.Get Shadow with REST
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Shadow Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+// include::../operations/examples/raw/search-all-shadows.adoc[]
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+// === Modify Shadow Objects
+//
+// include::../operations/examples/raw/modify-attr.adoc[]
+//
+// - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Shadow Objects
+
+Object deletion.
+//
+// include::../operations/examples/raw/delete-shadow.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Shadow Object Specific Operations
+
+A set of operations specific for the Shadow REST objects.
+
+- xref:/midpoint/reference/interfaces/rest/operations/shadow-op-rest/[Shadow specific Operations]
+
+// === Generate and Validate operations for Shadow Objects
+//
+// Operations to generate or validate values, here we have an example of a simple password generate use-case.
+//
+//
+// - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Shadows object.
+Metadata is usually a part of the output, yet it was removed for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, http]
+----
+TODO
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

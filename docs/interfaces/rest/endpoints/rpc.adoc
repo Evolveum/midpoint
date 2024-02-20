@@ -1,0 +1,54 @@
+= RPC REST Endpoint
+:page-nav-title: RPC
+:page-display-order: 2800
+:page-toc: top
+
+== Description
+
+Here we are describing the RPC (Remote Procedure Call) endpoint in relation to midPoints REST API.
+
+.Endpoint
+[source, http]
+----
+rpc/
+----
+== Operations And Examples
+
+The Remote Procedure Call endpoint gives you the possibility to execute commands and scripts of various
+nature on midPoint.
+
+=== Execute Script
+
+include::../operations/examples/raw/execute-script-rpc.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/script-execute-op-rest.adoc[Script Execute Operation]
+
+=== Generate and Validate Value
+
+include::../operations/examples/raw/validate-value-rpc.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-op-rest.adoc[Generate and Validate value Operation]
+
+
+
+== Common Use-case Examples
+
+1.
+
+
+== JSON Example
+
+-- TODO
+
+.Show JSON Example
+[%collapsible]
+====
+[source, http]
+----
+TODO
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
