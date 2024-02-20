@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * Notes:
  *
- * . {@link AuthorizationConstants#AUTZ_REST_ALL_URL} is a special action that covers REST actions.
+ * . {@link AuthorizationConstants#AUTZ_REST_ALL_URL} is a special action that covers all REST actions.
  * . {@link AuthorizationConstants#AUTZ_REST_PROXY_URL} is *not* a REST action URL.
  */
 public enum RestAuthorizationAction implements DisplayableValue<String> {
