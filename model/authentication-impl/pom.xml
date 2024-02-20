@@ -87,6 +87,10 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
         <!--  Spring Security CAS was removed in spring 6.0.x -->
         <!--
         <dependency>

@@ -15,5 +15,11 @@
         <password>
             <value>r3stL1m1t3d</value>
         </password>
+        <securityQuestions>
+            <questionAnswer>
+                <questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</questionIdentifier>
+                <questionAnswer>r3stL1m1t3d</questionAnswer>
+            </questionAnswer>
+        </securityQuestions>
     </credentials>
 </user>

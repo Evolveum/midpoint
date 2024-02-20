@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.authorization.evaluator;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.evolveum.midpoint.authentication.impl.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderImpl;
@@ -66,16 +63,18 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     private final TaskManager taskManager;
     private final ApplicationContext applicationContext;
 
-    private List<HandlerMapping> matchingBeans = List.of();
+    /** Used to retrieve REST handler methods' information. Lazily evaluated. */
+    private List<HandlerMapping> handlerMappingBeans = List.of();
 
     public MidPointGuiAuthorizationEvaluator(
-            SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager, TaskManager taskManager, ApplicationContext applicationContext) {
-        super();
+            SecurityEnforcer securityEnforcer,
+            SecurityContextManager securityContextManager,
+            TaskManager taskManager,
+            ApplicationContext applicationContext) {
         this.securityEnforcer = securityEnforcer;
         this.securityContextManager = securityContextManager;
         this.taskManager = taskManager;
         this.applicationContext = applicationContext;
-
     }
 
     @Override
@@ -207,9 +206,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             return;
         }
 
-        List<String> requiredActions = new ArrayList<>();
-
-        HandlerMethod method = getRestHandler(filterInvocation.getRequest());
+        Set<String> requiredActions = new HashSet<>();
 
         for (EndPointsUrlMapping urlMapping : EndPointsUrlMapping.values()) {
             addSecurityConfig(filterInvocation, requiredActions, urlMapping.getUrl(), urlMapping.getAction());
@@ -218,6 +215,11 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         Map<String, AuthorizationActionValue[]> actions = DescriptorLoaderImpl.getActions();
         for (Map.Entry<String, AuthorizationActionValue[]> entry : actions.entrySet()) {
             addSecurityConfig(filterInvocation, requiredActions, entry.getKey(), entry.getValue());
+        }
+
+        HandlerMethod restHandlerMethod = getRestHandlerMethod(filterInvocation.getRequest());
+        if (restHandlerMethod != null) {
+            addSecurityConfig(requiredActions, restHandlerMethod);
         }
 
         if (requiredActions.isEmpty()) {
@@ -235,15 +237,16 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         decideInternal(principal, requiredActions, authentication, object, task);
     }
 
-    private HandlerMethod getRestHandler(HttpServletRequest request) {
-        if (matchingBeans.isEmpty()) {
-            matchingBeans = new ArrayList(BeanFactoryUtils.beansOfTypeIncludingAncestors(
-                    applicationContext, HandlerMapping.class, true, false).values());
+    private HandlerMethod getRestHandlerMethod(HttpServletRequest request) {
+        if (handlerMappingBeans.isEmpty()) {
+            handlerMappingBeans = new ArrayList<>(
+                    BeanFactoryUtils.beansOfTypeIncludingAncestors(
+                            applicationContext, HandlerMapping.class, true, false).values());
         }
 
-        for (HandlerMapping matchingBean : matchingBeans) {
+        for (HandlerMapping handlerMapping : handlerMappingBeans) {
             try {
-                HandlerExecutionChain handler = matchingBean.getHandler(request);
+                HandlerExecutionChain handler = handlerMapping.getHandler(request);
                 if (handler != null && handler.getHandler() instanceof HandlerMethod method) {
                     return method;
                 }
@@ -273,7 +276,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
                 MidPointPrincipal.class.getName() + " but it was " + (principalObject == null ? null : principalObject.getClass()));
     }
 
-    protected void decideInternal(MidPointPrincipal principal, List<String> requiredActions, Authentication authentication, Object object, Task task) {
+    protected void decideInternal(
+            MidPointPrincipal principal, Set<String> requiredActions, Authentication authentication, Object object, Task task) {
 
         AccessDecision decision;
         try {
@@ -322,8 +326,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         return false;
     }
 
-    private void addSecurityConfig(FilterInvocation filterInvocation, List<String> requiredActions,
-            String url, DisplayableValue<String>[] actions) {
+    private void addSecurityConfig(
+            FilterInvocation filterInvocation, Set<String> requiredActions, String url, DisplayableValue<String>[] actions) {
 
         AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
         if (!matcher.matches(filterInvocation.getRequest()) || actions == null) {
@@ -332,13 +336,19 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
         for (DisplayableValue<String> action : actions) {
             String actionUri = action.getValue();
-            if (StringUtils.isBlank(actionUri)) {
-                continue;
-            }
-
-            if (!requiredActions.contains(actionUri)) {
+            if (!StringUtils.isBlank(actionUri)) {
                 requiredActions.add(actionUri);
             }
+        }
+    }
+
+    /** Adds a required action specific to given REST handler method. */
+    private void addSecurityConfig(Set<String> requiredActions, HandlerMethod restHandlerMethod) {
+        var annotation = restHandlerMethod.getMethodAnnotation(RestHandlerMethod.class);
+        if (annotation != null) {
+            requiredActions.add(annotation.authorization().getUri());
+        } else {
+            // No additional info. We do the authorization in a traditional way (`rest-3#all` or cluster authentication).
         }
     }
 

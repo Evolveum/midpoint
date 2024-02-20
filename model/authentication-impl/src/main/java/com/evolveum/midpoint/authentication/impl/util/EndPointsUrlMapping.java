@@ -11,10 +11,7 @@ import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
 
 import com.evolveum.midpoint.authentication.impl.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.security.api.RestMethod;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.security.api.RestAuthorizationAction;
 
 /**
  * @author lazyman
@@ -175,9 +172,19 @@ public enum EndPointsUrlMapping {
     ACTUATOR_METRICS("/actuator/metrics/**",
             new AuthorizationActionValue(AUTZ_ACTUATOR_METRICS_URL,
                     "ActuatorEndpoint.authActuator.metrics.label", "ActuatorEndpoint.authActuator.metrics.description")),
-    REST("/ws/**", createRestAuthorizationActionValues()),
-    REST2("/rest/**", createRestAuthorizationActionValues()),
-    REST3("/api/**", createRestAuthorizationActionValues()),
+    /**
+     * This is the authorization that provides access to all the methods. However, it is possible to authorize selected
+     * REST actions individually; see {@link RestAuthorizationAction} enum.
+     */
+    REST("/ws/**",
+            new AuthorizationActionValue(AUTZ_REST_ALL_URL,
+                    "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")),
+    REST2("/rest/**",
+            new AuthorizationActionValue(AUTZ_REST_ALL_URL,
+                    "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")),
+    REST3("/api/**",
+            new AuthorizationActionValue(AUTZ_REST_ALL_URL,
+                    "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")),
 
     INSPECTOR("/inspector/**",
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
@@ -191,26 +198,6 @@ public enum EndPointsUrlMapping {
     WICKET_PAGE("/wicket/**",
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "WicketDebugInfo.authUri.guiAll.label", "WicketDebugInfo.authUri.guiAll.description"));
-
-    /**
-     * Besides rest-3#all, we also treat any action URI specific to a REST method as sufficient
-     * to allow access to the REST interface. Detailed authorization is then done in the implementation
-     * of individual REST methods.
-     */
-    private static AuthorizationActionValue[] createRestAuthorizationActionValues() {
-        List<AuthorizationActionValue> actions = new ArrayList<>();
-        actions.add(
-                new AuthorizationActionValue(AUTZ_REST_ALL_URL,
-                        "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description"));
-        for (var restMethod : RestMethod.values()) {
-            actions.add(
-                    new AuthorizationActionValue(
-                            restMethod.getActionUri(),
-                            restMethod.getLabel(),
-                            restMethod.getDescription()));
-        }
-        return actions.toArray(new AuthorizationActionValue[0]);
-    }
 
     private final String url;
 

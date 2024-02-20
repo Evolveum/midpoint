@@ -6,19 +6,9 @@
  */
 package com.evolveum.midpoint.rest.impl;
 
-import static com.evolveum.midpoint.security.api.AuthorizationConstants.AUTZ_REST_ALL_URL;
-
 import static org.springframework.http.ResponseEntity.status;
 
 import java.net.URI;
-import java.util.Set;
-
-import com.evolveum.midpoint.schema.AccessDecision;
-import com.evolveum.midpoint.security.api.RestMethod;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
-
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
@@ -71,7 +61,6 @@ public class AbstractRestController {
     @Autowired protected TaskManager taskManager;
     @Autowired protected PrismContext prismContext;
     @Autowired private SystemObjectCache systemObjectCache;
-    @Autowired private SecurityEnforcer securityEnforcer;
 
     protected Task initRequest() {
         // No need to audit login. it was already audited during authentication
@@ -241,9 +230,7 @@ public class AbstractRestController {
 
         record.setChannel(SchemaConstants.CHANNEL_REST_URI);
         record.setTimestamp(System.currentTimeMillis());
-        // To be discussed: should we record SUCCESS here (as the logout is successful), or the real result of the operation?
-        record.setOutcome(result.getStatus());
-        record.setMessage(result.getMessage());
+        record.setOutcome(OperationResultStatus.SUCCESS);
         if (authentication instanceof MidpointAuthentication) {
             record.setSessionIdentifier(((MidpointAuthentication) authentication).getSessionId());
         }
@@ -281,14 +268,5 @@ public class AbstractRestController {
         }
 
         throw new NullPointerException("Base controller URL could not be determined.");
-    }
-
-    /** Makes sure that the current principal is authorized to call the specified REST method. */
-    protected void authorize(RestMethod method, Task task, OperationResult result) throws CommonException {
-        MidPointPrincipal principal = securityEnforcer.getMidPointPrincipal();
-        String methodUri = method.getActionUri();
-        if (securityEnforcer.decideAccess(principal, Set.of(methodUri, AUTZ_REST_ALL_URL), task, result) != AccessDecision.ALLOW) {
-            securityEnforcer.failAuthorization(methodUri, null, AuthorizationParameters.EMPTY, result);
-        }
     }
 }

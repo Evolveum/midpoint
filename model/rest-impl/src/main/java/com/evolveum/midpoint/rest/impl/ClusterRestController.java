@@ -14,7 +14,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.security.api.RestMethod;
+import com.evolveum.midpoint.security.api.RestAuthorizationAction;
+
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -57,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  *
  * So the usual form of authentication will be CLUSTER (a.k.a. node authentication).
  * This is also the reason why these do not need to be protected by special REST authorization action URIs.
- * (See {@link RestMethod}.)
+ * (See {@link RestAuthorizationAction}.)
  *
  * However, for diagnostic purposes we might allow also administrator access sometimes in the future.
  */
