@@ -440,6 +440,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
             @Override
             public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
+                item.add(AttributeAppender.append("class", "align-middle"));
                 item.add(new Label(id, () -> {
                     ShoppingCartItem cartItem = model.getObject();
 
