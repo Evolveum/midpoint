@@ -208,9 +208,9 @@ public class QShadowMapping
         var retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
         boolean isRaw = GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options));
         if (isRaw || SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ATTRIBUTES, retrieveOptions)) {
-            return new Path[] { entity.oid, entity.fullObject, entity.attributes };
+            return new Path[] { entity.oid, entity.objectType, entity.fullObject, entity.attributes };
         }
-        return new Path[] { entity.oid, entity.fullObject };
+        return new Path[] { entity.oid, entity.objectType, entity.fullObject };
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })

@@ -12,14 +12,16 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 public interface QSeparatelySerializedItem<Q extends FlexibleRelationalPathBase<R>, R> {
-    Predicate allOwnedBy(Q q, List<UUID> oidList);
+    Predicate allOwnedBy(Q q, Collection<UUID> oidList);
     ItemPath getItemPath();
 
     Q createAlias();
@@ -31,4 +33,6 @@ public interface QSeparatelySerializedItem<Q extends FlexibleRelationalPathBase<
     Class<? extends Item<? extends PrismValue,?>> getPrismItemType();
     String tableName();
     Path<?>[] fullObjectExpressions(Q base);
+
+    OrderSpecifier<?> orderSpecifier(Q q);
 }

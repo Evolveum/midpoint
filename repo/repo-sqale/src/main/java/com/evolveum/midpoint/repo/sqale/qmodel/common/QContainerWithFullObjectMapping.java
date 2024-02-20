@@ -15,6 +15,7 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,7 +62,7 @@ public abstract class QContainerWithFullObjectMapping<S extends Containerable, Q
     protected abstract S toSchemaObjectLegacy(R row) throws SchemaException;
 
     @Override
-    public Predicate allOwnedBy(Q q, List<UUID> oidList) {
+    public Predicate allOwnedBy(Q q, Collection<UUID> oidList) {
         return q.ownerOid.in(oidList);
     }
 

@@ -17,12 +17,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -113,7 +116,7 @@ public class QObjectReferenceFullObjectMapping<OS extends ObjectType, OQ extends
     }
 
     @Override
-    public Predicate allOwnedBy(QObjectReferenceWithMeta<OR> q, List<UUID> oidList) {
+    public Predicate allOwnedBy(QObjectReferenceWithMeta<OR> q, Collection<UUID> oidList) {
         return q.ownerOid.in(oidList);
     }
 
@@ -160,5 +163,10 @@ public class QObjectReferenceFullObjectMapping<OS extends ObjectType, OQ extends
     protected void applyToOwner(ObjectType owner, ObjectReferenceType candidate) throws SchemaException {
         var ref = owner.asPrismObject().findOrCreateReference(getItemPath());
         ref.add(candidate.asReferenceValue());
+    }
+
+    @Override
+    public OrderSpecifier<?> orderSpecifier(QObjectReferenceWithMeta<OR> orqObjectReferenceWithMeta) {
+        return new OrderSpecifier<>(Order.ASC, orqObjectReferenceWithMeta.ownerOid);
     }
 }

@@ -31,9 +31,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.util.exception.SystemException;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
@@ -169,7 +167,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         // TODO: there is currently no support for index-only extensions (from entity.ext).
         //  See how QShadowMapping.loadIndexOnly() is used, and probably compose the result of this call
         //  using super... call in the subclasses. (joining arrays? providing mutable list?)
-        return new Path[] { entity.oid, entity.fullObject };
+        return new Path[] { entity.oid, entity.objectType, entity.fullObject };
     }
 
     @Override
@@ -435,14 +433,15 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             return SelectorOptions.hasToFetchPathNotRetrievedByDefault(getPath(), options);
         }
 
-        public Multimap<UUID, Tuple> fetchChildren(List<UUID> oidList, JdbcSession jdbcSession) throws SchemaException {
-            Multimap<UUID, Tuple> ret = HashMultimap.create();
+        public Multimap<UUID, Tuple> fetchChildren(Collection<UUID> oidList, JdbcSession jdbcSession) throws SchemaException {
+            Multimap<UUID, Tuple> ret = MultimapBuilder.hashKeys().arrayListValues().build();
 
             var q = mapping.createAlias();
             var query = jdbcSession.newQuery()
                     .from(q)
                     .select(mapping.fullObjectExpressions(q)) // no complications here, we load it whole
-                    .where(mapping.allOwnedBy(q, oidList));
+                    .where(mapping.allOwnedBy(q, oidList))
+                    .orderBy(mapping.orderSpecifier(q));
             for (var row : query.fetch()) {
                 // All assignments should have full object present / legacy assignments should be kept
                 if (mapping.hasFullObject(row,q)) {
@@ -453,6 +452,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         }
 
         public void applyToSchemaObject(S target, Collection<Tuple> values) throws SchemaException {
+            if (values.isEmpty()) {
+                // Do not create empty items
+                return;
+            }
             var container = target.asPrismObject().findOrCreateItem(getPath(), (Class) mapping.getPrismItemType());
             var alias = mapping.createAlias();
             container.setIncomplete(false);
@@ -472,24 +475,47 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     public ResultListRowTransformer<S, Q, R> createRowTransformer(SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         // here we should load external objects
 
+        Map<MObjectType, Set<FullObjectItemMapping>> itemsToFetch = new HashMap<>();
+        Multimap<FullObjectItemMapping, UUID> oidsToFetch = HashMultimap.create();
+
         Map<FullObjectItemMapping, Multimap<UUID, PrismValue>> mappingToData = new HashMap<>();
-        if (storeSplitted) {
-            for (var mapping : separatellySerializedItems.values()) {
-                if (mapping.isIncluded(options)) {
-                    mappingToData.put(mapping, ImmutableMultimap.of());
-                }
-            }
-        }
         return new ResultListRowTransformer<S, Q, R>() {
 
             @Override
             public void beforeTransformation(List<Tuple> tuples, Q entityPath) throws SchemaException {
-                // get uuids?
-                var oidList = tuples.stream().map(t -> t.get(entityPath.oid)).collect(Collectors.toList());
+                for (var tuple : tuples) {
+                    var objectType = tuple.get(entityPath.objectType);
+                    var fetchItems = itemsToFetch.get(objectType);
+
+                    // If we did not resolved list of items to already fetch based on object type, we resolve it now.
+                    if (fetchItems == null) {
+                        var objMapping = (QObjectMapping) sqlQueryContext.repositoryContext().getMappingByQueryType((Class) objectType.getQueryType());
+
+                        if (objMapping.storeSplitted) {
+                            fetchItems = new HashSet<>();
+                            for (var rawMapping : objMapping.separatellySerializedItems.values()) {
+                                @SuppressWarnings("unchecked")
+                                var mapping = (FullObjectItemMapping) rawMapping;
+                                if (mapping.isIncluded(options)) {
+                                    mappingToData.put(mapping, ImmutableMultimap.of());
+                                    fetchItems.add(mapping);
+                                }
+                            }
+                        } else {
+                            fetchItems = Collections.emptySet();
+                        }
+                    }
+
+                    // For each item to fetch we maintain seperate entry in map
+                    for (var item : fetchItems) {
+                        oidsToFetch.put(item, tuple.get(entityPath.oid));
+                    }
+                }
+
                 for (var mapping : mappingToData.entrySet()) {
                     var result = SqlBaseOperationTracker.fetchChildren(mapping.getKey().mapping.tableName());
                     try {
-                        mapping.setValue(mapping.getKey().fetchChildren(oidList, jdbcSession));
+                        mapping.setValue(mapping.getKey().fetchChildren(oidsToFetch.get(mapping.getKey()), jdbcSession));
                     } finally {
                         result.close();
                     }

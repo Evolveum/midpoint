@@ -15,6 +15,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -129,5 +131,10 @@ public class QFocusIdentityMapping<OR extends MFocus>
         PrismContainerValue<FocusIdentityType> pcv = identityContainer.findValue(updateContext.row().cid);
         byte[] fullObject = createFullObject(pcv.asContainerable());
         updateContext.set(updateContext.entityPath().fullObject, fullObject);
+    }
+
+    @Override
+    public OrderSpecifier<?> orderSpecifier(QFocusIdentity<OR> orqFocusIdentity) {
+        return new OrderSpecifier<>(Order.ASC, orqFocusIdentity.cid);
     }
 }

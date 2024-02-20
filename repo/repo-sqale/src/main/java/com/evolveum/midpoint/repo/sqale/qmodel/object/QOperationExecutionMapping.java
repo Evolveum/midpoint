@@ -18,6 +18,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMa
 import com.evolveum.midpoint.util.exception.TunnelException;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -203,8 +205,15 @@ public class QOperationExecutionMapping<OR extends MObject>
         };
     }
 
+
+
     @Override
     public ItemPath getItemPath() {
         return ObjectType.F_OPERATION_EXECUTION;
+    }
+
+    @Override
+    public OrderSpecifier<?> orderSpecifier(QOperationExecution<OR> orqOperationExecution) {
+        return new OrderSpecifier<>(Order.ASC, orqOperationExecution.cid);
     }
 }
