@@ -705,11 +705,10 @@ There are the following complex filters:
 
 And, Or and Not filters are quite self-explanatory.
 
-// TODO examples
 
 ==== Type filter
 
-Type filter with parameters `type` and optional `filter` accepts iff the object is of type `type` and `filter` passes on the object.
+Type filter with parameters `type` and optional `filter` accepts if the object is of type `type` and `filter` passes on the object.
 
 For example, imagine that the original query asked for an ObjectType.
 Then it is possible to set up Type filter with type=UserType, filter=(name equals "xyz") to find only users with the name of "xyz":
@@ -730,7 +729,7 @@ Then it is possible to set up Type filter with type=UserType, filter=(name equal
 
 ==== Exists filter
 
-Exists filter with parameters `item` and optional `filter` accepts iff there exists a value
+Exists filter with parameters `item` and optional `filter` accepts if there is a value
 in the specified `item` and the value matches the provided `filter`.
 Exists inner filter works for container items and reference targets; reference targets are supported only in the repository.
 
@@ -1331,11 +1330,11 @@ This filter is supported only for the xref:/midpoint/reference/repository/native
 |===
 | Subelement | Description
 
-| `type` | type of the referencing object/container (the object pointing to the searched object), mandatory
+| `@type` | type of the referencing object/container (the object pointing to the searched object), mandatory
 
-| `path` | item path from the referencing object to the searched object, mandatory
+| `@path` | item path from the referencing object to the searched object, mandatory
 
-| `relation` | Optional filter for relation of the reference pointing to the searched object.
+| `@relation` | Optional filter for relation of the reference pointing to the searched object.
 If not stated, any relation matches (equivalent of `q:any`).
 
 | `filter` | Optional nested filter applied to the referencing object (not the objects we search for).

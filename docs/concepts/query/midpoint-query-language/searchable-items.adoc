@@ -1,5 +1,5 @@
 = Searchable Items in midPoint
-:page-nav-title: Searchable elements
+:page-nav-title: Searchable items
 :page-display-order: 400
 
 
@@ -7,8 +7,7 @@ This document provides list of searchable items (elements) in midPoint that can 
 
 It also provides easily searchable translation table between displayName that users can see in GUI and the item name that is being used in queries.
 
-NOTE: Column Display Name displays actual English translation of the element. It can be even modified in your implementation.
-NOTE: The document is not comprehensive at this moment.
+NOTE: Column Display Name displays actual English translation of the element. Different language versions have different names. It can be even customized in your implementation.
 
 == Searchable items
 
@@ -16,12 +15,15 @@ Each object type has different set of searchable items.
 Display name contains element identification in GUI.
 Item name contains name of the element according the schema.
 
-NOTE: Use names in the Item name column for preparation of queries in midPoint Query Language
+Some items recently added (e.g. personalNumber) are searchable in the native repository only. Please use Native repository.
+
+NOTE: For preparation of queries use names in the Item name column.
 
 
-== AbstractRoleType
+[#_abstractroletype]
+=== AbstractRoleType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -35,7 +37,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | displayName | Display Name | t:PolyStringType |  | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_focustype[FocusType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identifier | Identifier | xsd:string |  | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_focustype[FocusType] | 
@@ -62,18 +64,20 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== AbstractWorkItemOutputType
+[#_abstractworkitemoutputtype]
+=== AbstractWorkItemOutputType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | outcome |  |  |  | 
 |===
 
-== AccessCertificationCampaignType
+[#_accesscertificationcampaigntype]
+=== AccessCertificationCampaignType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -104,9 +108,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== AccessCertificationCaseType
+[#_accesscertificationcasetype]
+=== AccessCertificationCaseType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -126,9 +131,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | workItem |  |  |  | 
 |===
 
-== AccessCertificationDefinitionType
+[#_accesscertificationdefinitiontype]
+=== AccessCertificationDefinitionType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -154,9 +160,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== AccessCertificationWorkItemType
+[#_accesscertificationworkitemtype]
+=== AccessCertificationWorkItemType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -171,28 +178,30 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | stageNumber |  |  |  | 
 |===
 
-== ActivationType
+[#_activationtype]
+=== ActivationType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
-| administrativeStatus | Administrative status | xref:#_activationstatustype[tns:ActivationStatusType] |  | 
+| administrativeStatus | Administrative status | [tns:ActivationStatusType] |  | 
 | archiveTimestamp |  | xsd:dateTime |  | 
 | disableReason |  | xsd:anyURI |  | 
 | disableTimestamp |  | xsd:dateTime |  | 
-| effectiveStatus | Effective status | xref:#_activationstatustype[tns:ActivationStatusType] |  | 
+| effectiveStatus | Effective status | [tns:ActivationStatusType] |  | 
 | enableTimestamp |  | xsd:dateTime |  | 
-| lockoutStatus | Lock-out Status | xref:#_lockoutstatustype[tns:LockoutStatusType] |  | 
+| lockoutStatus | Lock-out Status | [tns:LockoutStatusType] |  | 
 | validFrom | Valid from | xsd:dateTime |  | 
 | validTo | Valid to | xsd:dateTime |  | 
 | validityChangeTimestamp |  | xsd:dateTime |  | 
-| validityStatus | Validity Status | xref:#_timeintervalstatustype[tns:TimeIntervalStatusType] |  | 
+| validityStatus | Validity Status | [tns:TimeIntervalStatusType] |  | 
 |===
 
-== ActivityAffectedObjectsType
+[#_activityaffectedobjectstype]
+=== ActivityAffectedObjectsType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -204,18 +213,20 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | resourceObjects |  |  |  | 
 |===
 
-== AdministrativeOperationalStateType
+[#_administrativeoperationalstatetype]
+=== AdministrativeOperationalStateType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | administrativeAvailabilityStatus |  |  |  | 
 |===
 
-== ArchetypeType
+[#_archetypetype]
+=== ArchetypeType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -229,7 +240,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | displayName | Display Name | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identifier | Identifier | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
@@ -256,9 +267,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== AssignmentHolderType
+[#_assignmentholdertype]
+=== AssignmentHolderType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -266,7 +278,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] |  | 
 | delegatedRef |  | c:ObjectReferenceType |  | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_objecttype[ObjectType] | 
@@ -280,15 +292,16 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_objecttype[ObjectType] | 
 |===
 
-== AssignmentType
+[#_assignmenttype]
+=== AssignmentType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | activation |  | xref:#_activationtype[tns:ActivationType] |  | 
 | construction | Construction | xref:#_constructiontype[tns:ConstructionType] |  | 
-| extension |  | xref:#_extensiontype[tns:ExtensionType] |  | 
+| extension |  | [tns:ExtensionType] |  | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle state | xsd:string |  | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] |  | 
@@ -300,9 +313,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | tenantRef | Tenant reference | c:ObjectReferenceType |  | 
 |===
 
-== AuditEventRecordType
+[#_auditeventrecordtype]
+=== AuditEventRecordType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -335,18 +349,20 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | timestamp |  |  |  | 
 |===
 
-== AutoassignSpecificationType
+[#_autoassignspecificationtype]
+=== AutoassignSpecificationType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | enabled | AutoassignSpecificationType.enabled | xsd:boolean |  | 
 |===
 
-== BasicObjectSetType
+[#_basicobjectsettype]
+=== BasicObjectSetType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -354,9 +370,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | type |  |  |  | 
 |===
 
-== BasicResourceObjectSetType
+[#_basicresourceobjectsettype]
+=== BasicResourceObjectSetType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -366,9 +383,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | resourceRef |  |  |  | 
 |===
 
-== CaseType
+[#_casetype]
+=== CaseType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -397,9 +415,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | workItem |  |  |  | 
 |===
 
-== CaseWorkItemType
+[#_caseworkitemtype]
+=== CaseWorkItemType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -415,9 +434,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | stageNumber |  |  |  | 
 |===
 
-== ConnectorHostType
+[#_connectorhosttype]
+=== ConnectorHostType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -441,9 +461,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== ConnectorType
+[#_connectortype]
+=== ConnectorType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -473,36 +494,40 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== ConstructionType
+[#_constructiontype]
+=== ConstructionType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | resourceRef |  | c:ObjectReferenceType |  | 
 |===
 
-== Containerable
+[#_containerable]
+=== Containerable
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | id |  |  |  | 
 |===
 
-== CredentialsType
+[#_credentialstype]
+=== CredentialsType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | password | Password | xref:#_passwordtype[tns:PasswordType] |  | 
 |===
 
-== DashboardType
+[#_dashboardtype]
+=== DashboardType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -524,9 +549,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== FocusIdentitiesType
+[#_focusidentitiestype]
+=== FocusIdentitiesType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -534,18 +560,20 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | normalizedData |  |  |  | 
 |===
 
-== FocusIdentitySourceType
+[#_focusidentitysourcetype]
+=== FocusIdentitySourceType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | resourceRef |  |  |  | 
 |===
 
-== FocusIdentityType
+[#_focusidentitytype]
+=== FocusIdentityType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -553,9 +581,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | source |  |  |  | 
 |===
 
-== FocusType
+[#_focustype]
+=== FocusType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -567,7 +596,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string |  | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] |  | 
 | jpegPhoto | Jpeg photo | xsd:base64Binary |  | 
@@ -590,9 +619,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== FormType
+[#_formtype]
+=== FormType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -614,9 +644,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== FunctionLibraryType
+[#_functionlibrarytype]
+=== FunctionLibraryType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -624,7 +655,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -638,9 +669,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== GenericObjectType
+[#_genericobjecttype]
+=== GenericObjectType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -652,7 +684,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | delegatedRef |  | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_focustype[FocusType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_focustype[FocusType] | 
 | jpegPhoto | Jpeg photo | xsd:base64Binary | xref:#_focustype[FocusType] | 
@@ -675,9 +707,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== LookupTableRowType
+[#_lookuptablerowtype]
+=== LookupTableRowType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -688,9 +721,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | value |  | xsd:string |  | 
 |===
 
-== LookupTableType
+[#_lookuptabletype]
+=== LookupTableType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -698,7 +732,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -713,9 +747,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== MarkType
+[#_marktype]
+=== MarkType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -723,7 +758,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -737,9 +772,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== MessageTemplateType
+[#_messagetemplatetype]
+=== MessageTemplateType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -761,9 +797,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== MetadataType
+[#_metadatatype]
+=== MetadataType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -777,9 +814,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | modifyTimestamp | Modified at | xsd:dateTime |  | 
 |===
 
-== NodeType
+[#_nodetype]
+=== NodeType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -803,9 +841,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== ObjectCollectionType
+[#_objectcollectiontype]
+=== ObjectCollectionType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -813,7 +852,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -827,9 +866,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== ObjectDeltaOperationType
+[#_objectdeltaoperationtype]
+=== ObjectDeltaOperationType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -838,21 +878,23 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | resourceName |  | t:PolyStringType |  | 
 | resourceOid |  | xsd:string |  | 
 | shadowIntent |  | xsd:string |  | 
-| shadowKind |  | xref:#_shadowkindtype[tns:ShadowKindType] |  | 
+| shadowKind |  | [tns:ShadowKindType] |  | 
 |===
 
-== ObjectReferenceType
+[#_objectreferencetype]
+=== ObjectReferenceType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 |  |  |  |  | 
 |===
 
-== ObjectTemplateType
+[#_objecttemplatetype]
+=== ObjectTemplateType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -860,7 +902,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | includeRef | Include | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -875,14 +917,15 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== ObjectType
+[#_objecttype]
+=== ObjectType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] |  | 
+| extension | Extension | [tns:ExtensionType] |  | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string |  | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] |  | 
@@ -895,32 +938,35 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] |  | 
 |===
 
-== OperationExecutionType
+[#_operationexecutiontype]
+=== OperationExecutionType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | id |  |  |  | 
 | initiatorRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
-| recordType |  | xref:#_operationexecutionrecordtypetype[tns:OperationExecutionRecordTypeType] |  | 
-| status |  | xref:#_operationresultstatustype[tns:OperationResultStatusType] |  | 
+| recordType |  | [tns:OperationExecutionRecordTypeType] |  | 
+| status |  | [tns:OperationResultStatusType] |  | 
 | taskRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] |  | 
 | timestamp |  | xsd:dateTime |  | 
 |===
 
-== OperationalStateType
+[#_operationalstatetype]
+=== OperationalStateType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | lastAvailabilityStatus |  |  |  | 
 |===
 
-== OrgType
+[#_orgtype]
+=== OrgType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -935,7 +981,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | displayOrder | Display Order | xsd:int |  | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identifier | Identifier | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
@@ -963,18 +1009,20 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== PasswordType
+[#_passwordtype]
+=== PasswordType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
-| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_abstractcredentialtype[AbstractCredentialType] | 
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | [AbstractCredentialType] | 
 |===
 
-== ReportDataType
+[#_reportdatatype]
+=== ReportDataType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -982,7 +1030,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -997,9 +1045,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== ReportType
+[#_reporttype]
+=== ReportType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1007,7 +1056,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -1021,9 +1070,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== ResourceBusinessConfigurationType
+[#_resourcebusinessconfigurationtype]
+=== ResourceBusinessConfigurationType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1031,9 +1081,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | approverRef |  |  |  | 
 |===
 
-== ResourceType
+[#_resourcetype]
+=== ResourceType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1062,9 +1113,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== RoleAnalysisClusterType
+[#_roleanalysisclustertype]
+=== RoleAnalysisClusterType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1087,9 +1139,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== RoleAnalysisSessionType
+[#_roleanalysissessiontype]
+=== RoleAnalysisSessionType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1111,9 +1164,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== RoleType
+[#_roletype]
+=== RoleType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1127,7 +1181,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | displayName | Display Name | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identifier | Identifier | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
@@ -1154,18 +1208,20 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== ScheduleType
+[#_scheduletype]
+=== ScheduleType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | recurrence |  |  |  | 
 |===
 
-== SecurityPolicyType
+[#_securitypolicytype]
+=== SecurityPolicyType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1187,9 +1243,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== SequenceType
+[#_sequencetype]
+=== SequenceType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1197,7 +1254,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -1211,9 +1268,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== ServiceType
+[#_servicetype]
+=== ServiceType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1228,7 +1286,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | displayOrder | Display Order | xsd:int |  | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | identifier | Identifier | xsd:string | xref:#_abstractroletype[AbstractRoleType] | 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] | 
@@ -1255,9 +1313,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== ShadowCorrelationStateType
+[#_shadowcorrelationstatetype]
+=== ShadowCorrelationStateType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1268,9 +1327,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | situation |  |  |  | 
 |===
 
-== ShadowType
+[#_shadowtype]
+=== ShadowType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1302,18 +1362,20 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== SimulationDefinitionType
+[#_simulationdefinitiontype]
+=== SimulationDefinitionType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | useOwnPartitionForProcessedObjects |  |  |  | 
 |===
 
-== SimulationResultProcessedObjectType
+[#_simulationresultprocessedobjecttype]
+=== SimulationResultProcessedObjectType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1327,9 +1389,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | type |  |  |  | 
 |===
 
-== SimulationResultType
+[#_simulationresulttype]
+=== SimulationResultType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1356,18 +1419,20 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  |  |  | 
 |===
 
-== SuperResourceDeclarationType
+[#_superresourcedeclarationtype]
+=== SuperResourceDeclarationType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | resourceRef |  |  |  | 
 |===
 
-== SystemConfigurationType
+[#_systemconfigurationtype]
+=== SystemConfigurationType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1375,7 +1440,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
@@ -1389,27 +1454,30 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== TaskAffectedObjectsType
+[#_taskaffectedobjectstype]
+=== TaskAffectedObjectsType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | activity |  |  |  | 
 |===
 
-== TaskAutoScalingType
+[#_taskautoscalingtype]
+=== TaskAutoScalingType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | mode |  |  |  | 
 |===
 
-== TaskType
+[#_tasktype]
+=== TaskType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1451,9 +1519,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | waitingReason |  |  |  | 
 |===
 
-== TriggerType
+[#_triggertype]
+=== TriggerType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1462,9 +1531,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | timestamp |  | xsd:dateTime |  | 
 |===
 
-== UserType
+[#_usertype]
+=== UserType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1478,7 +1548,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | emailAddress | Email | xsd:string | xref:#_focustype[FocusType] | 
 | employeeNumber | Employee Number | xsd:string |  | Deprecated since 4.8
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | familyName | Family name | t:PolyStringType |  | 
 | fullName | Full name | t:PolyStringType |  | 
 | givenName | Given name | t:PolyStringType |  | 
@@ -1509,9 +1579,10 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 |===
 
-== ValuePolicyType
+[#_valuepolicytype]
+=== ValuePolicyType
 
-[options="header", cols="10,10,15,30,15" width=85%]
+[options="header", cols="10,10,18,30,12" width=85%]
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
@@ -1519,7 +1590,7 @@ NOTE: Use names in the Item name column for preparation of queries in midPoint Q
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
-| extension | Extension | xref:#_extensiontype[tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
+| extension | Extension | [tns:ExtensionType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | id |  |  |  | 
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | 
