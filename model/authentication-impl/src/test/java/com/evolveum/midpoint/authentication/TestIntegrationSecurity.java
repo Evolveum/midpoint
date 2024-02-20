@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -67,6 +68,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
     private static final String USER_JACK_USERNAME = "jack";
 
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
+    @Autowired private ApplicationContext applicationContext;
 
     private MidPointGuiAuthorizationEvaluator midPointGuiAuthorizationEvaluator;
     protected PrismObject<UserType> userAdministrator;
@@ -84,7 +86,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
         repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
 
         midPointGuiAuthorizationEvaluator = new MidPointGuiAuthorizationEvaluator(
-                securityEnforcer, securityContextManager, taskManager);
+                securityEnforcer, securityContextManager, taskManager, applicationContext);
         initializeDescriptorLoader();
 
         repoAddObjectFromFile(ROLE_UI_ALLOW_ALL_FILE, initResult);

@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.rest.impl;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -15,6 +14,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.security.api.RestAuthorizationAction;
+
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -51,11 +52,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * REST service used for inter-cluster communication.
- * <p>
+ *
  * These methods are NOT to be called generally by clients.
  * They are to be called internally by midPoint running on other cluster nodes.
- * <p>
+ *
  * So the usual form of authentication will be CLUSTER (a.k.a. node authentication).
+ * This is also the reason why these do not need to be protected by special REST authorization action URIs.
+ * (See {@link RestAuthorizationAction}.)
+ *
  * However, for diagnostic purposes we might allow also administrator access sometimes in the future.
  */
 @RestController
@@ -262,7 +266,7 @@ public class ClusterRestController extends AbstractRestController {
             }
             result.computeStatus();
         } catch (Throwable t) {
-            response = handleException(null, t); // we don't return the operation result
+            response = handleException(t); // we don't return the operation result
         }
         finishRequest(task, result);
         return response;
@@ -288,7 +292,7 @@ public class ClusterRestController extends AbstractRestController {
             }
             result.computeStatus();
         } catch (Throwable t) {
-            response = handleException(null, t); // we don't return the operation result
+            response = handleException(t); // we don't return the operation result
         }
         finishRequest(task, result);
         return response;
@@ -307,7 +311,7 @@ public class ClusterRestController extends AbstractRestController {
             response = ResponseEntity.ok(taskType);
             result.computeStatus();
         } catch (Throwable t) {
-            response = handleException(null, t); // we don't return the operation result
+            response = handleException(t); // we don't return the operation result
         }
         finishRequest(task, result);
         return response;
