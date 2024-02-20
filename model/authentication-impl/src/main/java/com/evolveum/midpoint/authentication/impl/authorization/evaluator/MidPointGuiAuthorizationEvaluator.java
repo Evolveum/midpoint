@@ -49,6 +49,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.springframework.web.util.ServletRequestPathUtils;
+
 import javax.servlet.http.HttpServletRequest;
 
 public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, SecurityContextManager, AccessDecisionManager {
@@ -239,6 +241,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
                     BeanFactoryUtils.beansOfTypeIncludingAncestors(
                             applicationContext, HandlerMapping.class, true, false).values());
         }
+
+        ServletRequestPathUtils.parseAndCache(request);
 
         for (HandlerMapping handlerMapping : handlerMappingBeans) {
             try {

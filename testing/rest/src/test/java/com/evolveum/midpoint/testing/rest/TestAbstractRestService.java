@@ -17,6 +17,9 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.AssertJUnit;
@@ -1657,8 +1660,11 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 403);
 
         displayDumpable("Audit", getDummyAuditService());
-        getDummyAuditService().assertRecords(1);
-        getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+        getDummyAuditService().assertRecords(2);
+        AuditEventRecord firstRecord = getDummyAuditService().getRecords().get(1);
+        assertEquals("Wrong type of first audit record: " + firstRecord.getEventType(), AuditEventType.CREATE_SESSION, firstRecord.getEventType());
+        assertEquals("Wrong outcome of first audit record: " + firstRecord.getOutcome(), OperationResultStatus.FATAL_ERROR, firstRecord.getOutcome());
+        assertEquals("Wrong channel in first audit record", SchemaConstants.CHANNEL_REST_URI, firstRecord.getChannel());
     }
 
     /* User has both REST and model autz for "get object" operation. So this succeeds. */
