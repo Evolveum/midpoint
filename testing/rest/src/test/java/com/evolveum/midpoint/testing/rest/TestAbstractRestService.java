@@ -1136,7 +1136,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertEquals("Wrong # of extractedResults", 2, extractedResults.size());
 
         ItemProcessingResult<OperationSpecificData> first = extractedResults.get(0);
-        assertEquals("Wrong OID in first result", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", first.oid);
+        assertEquals("Wrong OID in first result", "142f4a38-01d8-4864-8cb4-ea42a02b724e", first.oid);
         assertEquals("Wrong status in first result", OperationResultStatusType.FATAL_ERROR, first.status);
 
         ItemProcessingResult<OperationSpecificData> second = extractedResults.get(1);
