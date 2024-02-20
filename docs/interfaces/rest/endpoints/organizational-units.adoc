@@ -69,6 +69,10 @@ include::../operations/examples/raw/modify-id-generate.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
 
+== Common Use-case Examples
+
+1.
+
 == JSON Example
 
 Example output of information regarding a specific object. Some data vas omitted to simplify the example.
@@ -76,7 +80,7 @@ Example output of information regarding a specific object. Some data vas omitted
 .Show JSON Example
 [%collapsible]
 ====
-[source, http]
+[source, json]
 ----
 {
   "org" : {

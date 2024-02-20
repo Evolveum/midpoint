@@ -7,19 +7,10 @@
 :page-wiki-metadata-modify-date: 2021-02-16T10:07:40.669+01:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :page-toc: top
-:page-keywords: [ 'rest', 'restful', 'api', 'web', 'service', 'interface', 'ui', 'operations' ]
-
-
-//TODO ask about the version
-
-// *Version:* 4.4 +
-// *Status:* Public +
-// *Stability:* [.green]#STABLE#, only backward-compatible changes expected +
-// *Platform:* RESTful interface +
-// *Dependencies:* xref:/midpoint/reference/schema/[Data Model], Common schema, Query schema +
-// *Responsible person:* Katarina Bolemant
+:page-keywords: [ 'rest', 'interface', 'rest api', 'restful']
+:search-alias: "rest"
 
 == Description
 
