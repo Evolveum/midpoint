@@ -314,7 +314,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
-    @RestHandlerMethod(authorization = POST_OBJECT)
+    @RestHandlerMethod(authorization = ADD_OBJECT)
     @PostMapping("/{type}")
     public <T extends ObjectType> ResponseEntity<?> addObject(
             @PathVariable("type") String type,
@@ -400,7 +400,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
-    @RestHandlerMethod(authorization = PUT_OBJECT)
+    @RestHandlerMethod(authorization = ADD_OBJECT)
     @PutMapping("/{type}/{id}")
     public <T extends ObjectType> ResponseEntity<?> addObject(
             @PathVariable("type") String type,
