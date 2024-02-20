@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -54,8 +55,8 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
     private final SecurityContextManager securityContextManager;
 
     public MidpointHttpAuthorizationEvaluator(SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager,
-            TaskManager taskManager, ModelService model) {
-        super(securityEnforcer, securityContextManager, taskManager);
+            TaskManager taskManager, ModelService model, ApplicationContext applicationContext) {
+        super(securityEnforcer, securityContextManager, taskManager, applicationContext);
         this.model = model;
         this.taskManager = taskManager;
         this.securityContextManager = securityContextManager;

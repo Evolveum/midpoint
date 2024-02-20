@@ -75,10 +75,14 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
     // other
     public static final File USER_JACK_FILE = new File(BASE_REPO_DIR, "user-jack.xml");
     public static final String USER_JACK_OID = "229487cb-59b6-490b-879d-7a6d925dd08c";
+    public static final File USER_REST_LIMITED_FILE = new File(BASE_REPO_DIR, "user-rest-limited.xml");
+    public static final String USER_REST_LIMITED_NAME = "rest-limited";
+    public static final String USER_REST_LIMITED_PASSWORD = "r3stL1m1t3d";
 
     public static final File ROLE_SUPERUSER_FILE = new File(BASE_REPO_DIR, "role-superuser.xml");
     public static final File ROLE_ENDUSER_FILE = new File(BASE_REPO_DIR, "role-enduser.xml");
     public static final File ROLE_REST_FILE = new File(BASE_REPO_DIR, "role-rest.xml");
+    public static final File ROLE_REST_LIMITED_FILE = new File(BASE_REPO_DIR, "role-rest-limited.xml");
     public static final File ROLE_READER_FILE = new File(BASE_REPO_DIR, "role-reader.xml");
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(BASE_REPO_DIR, "system-configuration.xml");
@@ -122,6 +126,7 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
         PrismObject<RoleType> endRole = parseObject(ROLE_ENDUSER_FILE);
         addObject(endRole, executeOptions().overwrite(), initTask, result);
         addObject(ROLE_REST_FILE, initTask, result);
+        addObject(ROLE_REST_LIMITED_FILE, initTask, result);
         addObject(ROLE_READER_FILE, initTask, result);
         PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
         addObject(adminUser, executeOptions().overwrite(), initTask, result);
@@ -129,6 +134,7 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
         addObject(USER_CYCLOPS_FILE, initTask, result);
         addObject(USER_SOMEBODY_FILE, initTask, result);
         addObject(USER_JACK_FILE, initTask, result);
+        addObject(USER_REST_LIMITED_FILE, initTask, result);
         addObject(VALUE_POLICY_GENERAL, initTask, result);
         addObject(VALUE_POLICY_NUMERIC, initTask, result);
         addObject(VALUE_POLICY_SIMPLE, initTask, result);

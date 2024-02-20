@@ -8,10 +8,16 @@ package com.evolveum.midpoint.model.api;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.RestAuthorizationAction;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+/**
+ * Represents a model-level action (method) that can be authorized.
+ *
+ * @see RestAuthorizationAction
+ */
 public enum ModelAuthorizationAction implements DisplayableValue<String> {
 
     READ("read", "Read", "READ_HELP"),

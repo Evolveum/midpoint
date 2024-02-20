@@ -6,10 +6,15 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationTrustResolverImpl;
@@ -18,12 +23,6 @@ import com.evolveum.midpoint.web.security.MidpointHttpAuthorizationEvaluator;
 import com.evolveum.midpoint.web.security.filter.HttpBasicAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.authentication.RememberMeServices;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-
 
 /**
  * @author skublik
@@ -43,6 +42,9 @@ public class HttpBasicModuleWebSecurityConfig<C extends ModuleWebSecurityConfigu
     @Autowired
     private TaskManager taskManager;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     public HttpBasicModuleWebSecurityConfig(C configuration) {
         super(configuration);
     }
@@ -59,7 +61,8 @@ public class HttpBasicModuleWebSecurityConfig<C extends ModuleWebSecurityConfigu
         if (rememberMeServices != null) {
             filter.setRememberMeServices(rememberMeServices);
         }
-        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, model));
+        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(
+                securityEnforcer, securityContextManager, taskManager, model, applicationContext));
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
         http.formLogin().disable()
                 .csrf().disable();

@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.web.security;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 
@@ -17,6 +14,8 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
@@ -25,6 +24,9 @@ import org.springframework.security.authentication.InsufficientAuthenticationExc
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerExecutionChain;
+import org.springframework.web.servlet.HandlerMapping;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -47,6 +49,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.servlet.http.HttpServletRequest;
+
 public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, SecurityContextManager, AccessDecisionManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointGuiAuthorizationEvaluator.class);
@@ -56,12 +60,20 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     private final SecurityEnforcer securityEnforcer;
     private final SecurityContextManager securityContextManager;
     private final TaskManager taskManager;
+    private final ApplicationContext applicationContext;
 
-    public MidPointGuiAuthorizationEvaluator(SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager, TaskManager taskManager) {
-        super();
+    /** Used to retrieve REST handler methods' information. Lazily evaluated. */
+    private List<HandlerMapping> handlerMappingBeans = List.of();
+
+    public MidPointGuiAuthorizationEvaluator(
+            SecurityEnforcer securityEnforcer,
+            SecurityContextManager securityContextManager,
+            TaskManager taskManager,
+            ApplicationContext applicationContext) {
         this.securityEnforcer = securityEnforcer;
         this.securityContextManager = securityContextManager;
         this.taskManager = taskManager;
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -190,7 +202,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             return;
         }
 
-        List<String> requiredActions = new ArrayList<>();
+        Set<String> requiredActions = new HashSet<>();
 
         for (PageUrlMapping urlMapping : PageUrlMapping.values()) {
             addSecurityConfig(filterInvocation, requiredActions, urlMapping.getUrl(), urlMapping.getAction());
@@ -199,6 +211,11 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         Map<String, DisplayableValue<String>[]> actions = DescriptorLoader.getActions();
         for (Map.Entry<String, DisplayableValue<String>[]> entry : actions.entrySet()) {
             addSecurityConfig(filterInvocation, requiredActions, entry.getKey(), entry.getValue());
+        }
+
+        HandlerMethod restHandlerMethod = getRestHandlerMethod(filterInvocation.getRequest());
+        if (restHandlerMethod != null) {
+            addSecurityConfig(requiredActions, restHandlerMethod);
         }
 
         if (requiredActions.isEmpty()) {
@@ -214,6 +231,26 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         Task task = taskManager.createTaskInstance(MidPointGuiAuthorizationEvaluator.class.getName() + ".decide");
 
         decideInternal(principal, requiredActions, authentication, object, task);
+    }
+
+    private HandlerMethod getRestHandlerMethod(HttpServletRequest request) {
+        if (handlerMappingBeans.isEmpty()) {
+            handlerMappingBeans = new ArrayList<>(
+                    BeanFactoryUtils.beansOfTypeIncludingAncestors(
+                            applicationContext, HandlerMapping.class, true, false).values());
+        }
+
+        for (HandlerMapping handlerMapping : handlerMappingBeans) {
+            try {
+                HandlerExecutionChain handler = handlerMapping.getHandler(request);
+                if (handler != null && handler.getHandler() instanceof HandlerMethod) {
+                    return (HandlerMethod) handler.getHandler();
+                }
+            } catch (Exception e) {
+                // ignore exception
+            }
+        }
+        return null;
     }
 
     protected MidPointPrincipal getPrincipalFromAuthentication(Authentication authentication, Object object, Object configAttributes) {
@@ -233,7 +270,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         return (MidPointPrincipal) principalObject;
     }
 
-    protected void decideInternal(MidPointPrincipal principal, List<String> requiredActions, Authentication authentication, Object object, Task task) {
+    protected void decideInternal(
+            MidPointPrincipal principal, Set<String> requiredActions, Authentication authentication, Object object, Task task) {
 
         AccessDecision decision;
         try {
@@ -282,8 +320,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         return false;
     }
 
-    private void addSecurityConfig(FilterInvocation filterInvocation, List<String> requiredActions,
-            String url, DisplayableValue<String>[] actions) {
+    private void addSecurityConfig(
+            FilterInvocation filterInvocation, Set<String> requiredActions, String url, DisplayableValue<String>[] actions) {
 
         AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
         if (!matcher.matches(filterInvocation.getRequest()) || actions == null) {
@@ -292,18 +330,24 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
         for (DisplayableValue<String> action : actions) {
             String actionUri = action.getValue();
-            if (StringUtils.isBlank(actionUri)) {
-                continue;
-            }
-
-            if (!requiredActions.contains(actionUri)) {
+            if (!StringUtils.isBlank(actionUri)) {
                 requiredActions.add(actionUri);
             }
         }
     }
 
+    /** Adds a required action specific to given REST handler method. */
+    private void addSecurityConfig(Set<String> requiredActions, HandlerMethod restHandlerMethod) {
+        var annotation = restHandlerMethod.getMethodAnnotation(RestHandlerMethod.class);
+        if (annotation != null) {
+            requiredActions.add(annotation.authorization().getUri());
+        } else {
+            // No additional info. We do the authorization in a traditional way (`rest-3#all` or cluster authentication).
+        }
+    }
+
     @Override
-    public AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, Task task,
+    public AccessDecision decideAccess(MidPointPrincipal principal, Collection<String> requiredActions, Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
@@ -311,7 +355,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public <O extends ObjectType, T extends ObjectType> AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, AuthorizationParameters<O, T> params, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType, T extends ObjectType> AccessDecision decideAccess(MidPointPrincipal principal, Collection<String> requiredActions, AuthorizationParameters<O, T> params, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         return securityEnforcer.decideAccess(principal, requiredActions, params, task, result);
     }
 

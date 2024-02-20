@@ -15,12 +15,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
@@ -74,6 +73,9 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
 
     public BasicWebSecurityConfig() {
@@ -90,7 +92,7 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer,
             SecurityContextManager securityContextManager,
             TaskManager taskManager) {
-        return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager);
+        return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, applicationContext);
     }
 
     @Bean

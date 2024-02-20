@@ -6,32 +6,17 @@
  */
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.StateOfModule;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import java.util.Collection;
+
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.TaskManager;
 
 /**
  * @author skublik
@@ -40,8 +25,8 @@ import java.util.List;
 public class MidpointAllowAllAuthorizationEvaluator extends MidPointGuiAuthorizationEvaluator {
 
     public MidpointAllowAllAuthorizationEvaluator(SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager,
-                                                  TaskManager taskManager) {
-        super(securityEnforcer, securityContextManager, taskManager);
+                                                  TaskManager taskManager, ApplicationContext applicationContext) {
+        super(securityEnforcer, securityContextManager, taskManager, applicationContext);
     }
 
     @Override

@@ -11,6 +11,7 @@ import static org.springframework.http.ResponseEntity.status;
 import java.net.URI;
 import javax.servlet.http.HttpServletRequest;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -125,17 +126,26 @@ public class AbstractRestController {
         return builder.body(result);
     }
 
+    /** Records the exception into the operation result (if it's empty!), logs it and creates the response. */
     protected ResponseEntity<?> handleException(OperationResult result, Throwable t) {
         LoggingUtils.logUnexpectedException(logger, "Got exception while servicing REST request: {}", t,
                 result != null ? result.getOperation() : "(null)");
         return handleExceptionNoLog(result, t);
     }
 
-    protected ResponseEntity<?> handleExceptionNoLog(OperationResult result, Throwable t) {
-        if (result.isEmpty()) {
-            result.recordFatalError("Unknown exception occurred", t);
-        } else {
-            result.computeStatus();
+    /** The version without operation result handling. */
+    protected ResponseEntity<?> handleException(Throwable t) {
+        LoggingUtils.logUnexpectedException(logger, "Got exception while servicing REST request", t);
+        return handleExceptionNoLog(null, t);
+    }
+
+    protected ResponseEntity<?> handleExceptionNoLog(@Nullable OperationResult result, Throwable t) {
+        if (result != null) {
+            if (result.isEmpty()) {
+                result.recordFatalError("Unknown exception occurred", t);
+            } else {
+                result.computeStatus();
+            }
         }
 
         return createErrorResponseBuilder(result, t);

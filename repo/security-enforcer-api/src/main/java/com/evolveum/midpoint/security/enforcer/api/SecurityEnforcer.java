@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.security.enforcer.api;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -45,7 +46,7 @@ public interface SecurityEnforcer {
      * However, it supports authorization hierarchies. Therefore the ordering of elements in
      * required actions is important.
      */
-    AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    AccessDecision decideAccess(MidPointPrincipal principal, Collection<String> requiredActions, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
      * Checks if the currently logged-in user is authorized for any of the specified actions.
@@ -72,7 +73,10 @@ public interface SecurityEnforcer {
      * However, it supports authorization hierarchies. Therefore the ordering of elements in
      * required actions is important.
      */
-    <O extends ObjectType, T extends ObjectType> AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, AuthorizationParameters<O,T> params, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    <O extends ObjectType, T extends ObjectType> AccessDecision decideAccess(
+            MidPointPrincipal principal, Collection<String> requiredActions, AuthorizationParameters<O,T> params, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException;
 
 
         /**

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHa
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -38,6 +39,9 @@ public class HttpClusterModuleWebSecurityConfig<C extends ModuleWebSecurityConfi
     @Autowired
     private TaskManager taskManager;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     public HttpClusterModuleWebSecurityConfig(C configuration) {
         super(configuration);
     }
@@ -54,7 +58,8 @@ public class HttpClusterModuleWebSecurityConfig<C extends ModuleWebSecurityConfi
         if (rememberMeServices != null) {
             filter.setRememberMeServices(rememberMeServices);
         }
-        http.authorizeRequests().accessDecisionManager(new MidpointAllowAllAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager));
+        http.authorizeRequests().accessDecisionManager(new MidpointAllowAllAuthorizationEvaluator(
+                securityEnforcer, securityContextManager, taskManager, applicationContext));
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
         http.formLogin().disable()
                 .csrf().disable();

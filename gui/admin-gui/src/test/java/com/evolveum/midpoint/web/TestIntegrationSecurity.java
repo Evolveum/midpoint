@@ -13,6 +13,7 @@ import java.io.File;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -56,6 +57,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
     private static final TestResource ROLE_AUTHORIZATION_2 = new TestResource(TEST_DIR, "role-authorization-2.xml", "96b02d58-5147-4f5a-852c-0f415230ce2c");
 
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
+    @Autowired private ApplicationContext applicationContext;
 
     private MidPointGuiAuthorizationEvaluator midPointGuiAuthorizationEvaluator;
 
@@ -64,7 +66,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         super.initSystem(initTask, initResult);
 
         midPointGuiAuthorizationEvaluator = new MidPointGuiAuthorizationEvaluator(
-                securityEnforcer, securityContextManager, taskManager);
+                securityEnforcer, securityContextManager, taskManager, applicationContext);
 
         repoAddObjectFromFile(ROLE_UI_ALLOW_ALL_FILE, initResult);
         repoAddObjectFromFile(ROLE_UI_DENY_ALL_FILE, initResult);

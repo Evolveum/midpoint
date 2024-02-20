@@ -6,10 +6,15 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationTrustResolverImpl;
@@ -19,11 +24,6 @@ import com.evolveum.midpoint.web.security.MidpointHttpAuthorizationEvaluator;
 import com.evolveum.midpoint.web.security.filter.HttpSecurityQuestionsAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.authentication.RememberMeServices;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 /**
  * @author skublik
@@ -43,6 +43,9 @@ public class HttpSecurityQuestionsModuleWebSecurityConfig<C extends ModuleWebSec
     @Autowired
     private TaskManager taskManager;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     public HttpSecurityQuestionsModuleWebSecurityConfig(C configuration) {
         super(configuration);
     }
@@ -54,7 +57,8 @@ public class HttpSecurityQuestionsModuleWebSecurityConfig<C extends ModuleWebSec
         HttpAuthenticationEntryPoint entryPoint = getObjectPostProcessor().postProcess(new HttpSecurityQuestionsAuthenticationEntryPoint());
         http.antMatcher(SecurityUtils.stripEndingSlashes(getPrefix()) + "/**");
 
-        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, model));
+        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(
+                securityEnforcer, securityContextManager, taskManager, model, applicationContext));
 
         HttpSecurityQuestionsAuthenticationFilter filter = getObjectPostProcessor().postProcess(new HttpSecurityQuestionsAuthenticationFilter(authenticationManager(), entryPoint));
         RememberMeServices rememberMeServices = http.getSharedObject(RememberMeServices.class);

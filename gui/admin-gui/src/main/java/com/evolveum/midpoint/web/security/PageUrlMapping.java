@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfig
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.application.AuthorizationActionValue;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.security.api.RestAuthorizationAction;
 
 /**
  * @author lazyman
@@ -200,6 +201,10 @@ public enum PageUrlMapping {
     ACTUATOR_METRICS("/actuator/metrics/**",
             new AuthorizationActionValue(AUTZ_ACTUATOR_METRICS_URL,
                     "ActuatorEndpoint.authActuator.metrics.label", "ActuatorEndpoint.authActuator.metrics.description")),
+    /**
+     * This is the authorization that provides access to all the methods. However, it is possible to authorize selected
+     * REST actions individually; see {@link RestAuthorizationAction} enum.
+     */
     REST("/ws/**",
             new AuthorizationActionValue(AUTZ_REST_ALL_URL,
                     "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")),
