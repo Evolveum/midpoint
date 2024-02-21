@@ -774,8 +774,8 @@ public class RequestAccess implements Serializable {
 
                 ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
                 options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
-                boolean executeImmediately = isDefaultExecuteAfterAllApprovals(page);
-                options.executeImmediatelyAfterApproval(executeImmediately);
+                boolean executeAfterApprovals = isDefaultExecuteAfterAllApprovals(page);
+                options.executeImmediatelyAfterApproval(!executeAfterApprovals);
                 request.setExecutionOptions(options.toModelExecutionOptionsType());
 
                 PrismObject<UserType> user = WebModelServiceUtils.loadObject(poiRef, page);
@@ -824,6 +824,8 @@ public class RequestAccess implements Serializable {
 
             ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
             options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
+            boolean executeAfterApprovals = isDefaultExecuteAfterAllApprovals(page);
+            options.executeImmediatelyAfterApproval(!executeAfterApprovals);
             page.getModelService().executeChanges(Collections.singletonList(delta), options, task, result);
 
             result.recordSuccess();
