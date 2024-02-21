@@ -105,7 +105,7 @@ a| * 200 OK, owner of the shadow returned in the response body
 a| * 200 OK, result of the import operation in the body
 
 
-| xref:/midpoint/reference/interfaces/rest/operations/shadow-op-rest.adoc[Search]
+| xref:/midpoint/reference/interfaces/rest/operations/search-op-rest.adoc[Search]
 | POST
 | /\{type}/search
 | link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
