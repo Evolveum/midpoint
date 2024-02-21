@@ -17,13 +17,13 @@ INFO:: The usage of HTTP PATCH is preferred, the meaning is clearer thant the ca
 .Modify operation using HTTP POST
 [source, http]
 ----
-POST http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}
+POST http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}
 ----
 
 .Modify operation using HTTP PATCH
 [source, http]
 ----
-PATCH http://localhost:8080/midpoint/ws/rest/{web_resource_type}/
+PATCH http://localhost:8080/midpoint/ws/rest/{endpoint}/
 ----
 
 
@@ -37,7 +37,7 @@ Regarding authorization type, the "Basic" Authorization header should be used.
 Authorization: Basic {Base64EncodedCredentials}
 ----
 
-In case of the modify operation you need to specify the provided content type of the
+To specify the provided content type, please use the "Content-Type" header
 payload in the body:
 
 .Content type header example, other media types are supported as well
