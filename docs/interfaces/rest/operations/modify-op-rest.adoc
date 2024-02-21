@@ -47,7 +47,7 @@ payload in the body:
 ----
 
 You might need to specify the accepted type of content in case
-you are interested in a format different from xml (default)
+you are interested in a format different from xml (default):
 
 .Accept type header example, other media types are supported as well
 [source, http]
@@ -73,6 +73,10 @@ include::../../rest/operations/raw/options-usage-meo.adoc[]
 include::../../rest/concepts/raw/outcome.adoc[]
 
 == Examples
+
+include::../../rest/operations/examples/raw/modify-attr-user.adoc[]
+include::../../rest/operations/examples/raw/modify-attr.adoc[]
+
 
 == See Also
 
