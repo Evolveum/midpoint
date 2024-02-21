@@ -64,6 +64,11 @@ No additional option parameters supported for these types of requests.
 
 include::../../rest/concepts/raw/outcome.adoc[]
 
+== Access Authorization
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#findShadowOwner+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#importShadow+`
+
 == Examples
 
 include::../../rest/operations/examples/raw/get-shadow-owner.adoc[]
@@ -75,3 +80,4 @@ include::../../rest/operations/examples/raw/import-shadow.adoc[]
 - xref:/midpoint/reference/interfaces/rest/endpoints/shadows.adoc[Shadow Objects Endpoint]
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 - xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

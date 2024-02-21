@@ -68,6 +68,10 @@ include::../../rest/concepts/raw/outcome.adoc[]
 - *240 Handled error*, OperationResult is returned in the body
 - *250 Partial error*, OperationResult is returned in the body
 
+== Access Authorization
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#executeScript+`
+
 == Examples
 
 include::../../rest/operations/examples/raw/execute-script-rpc.adoc[]
@@ -76,3 +80,4 @@ include::../../rest/operations/examples/raw/execute-script-rpc.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 - xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]
