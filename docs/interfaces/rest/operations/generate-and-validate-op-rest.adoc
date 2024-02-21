@@ -67,8 +67,8 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
-- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#rpcGenerateValue`
-- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#rpcValidateValue`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#rpcGenerateValue+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#rpcValidateValue+`
 
 == Examples
 

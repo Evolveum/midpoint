@@ -17,8 +17,8 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
-- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#resetCredential`
-- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getValuePolicy`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#resetCredential+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getValuePolicy+`
 
 == Examples
 

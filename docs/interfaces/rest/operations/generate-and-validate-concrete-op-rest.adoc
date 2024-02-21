@@ -72,8 +72,8 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
-- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#generateValue`
-- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#validateValue`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#generateValue+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#validateValue+`
 
 == Examples
 

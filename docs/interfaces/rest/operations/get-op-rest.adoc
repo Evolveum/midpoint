@@ -213,8 +213,8 @@ for your use case*.
 
 == Access Authorization
 
-- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getObject`
-- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getSelf`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getObject+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getSelf+`
 
 == Examples
 

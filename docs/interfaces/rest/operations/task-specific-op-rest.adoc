@@ -17,9 +17,9 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
-- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#suspendTask`
-- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#resumeTask`
-- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#runTask`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#suspendTask+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#resumeTask+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#runTask+`
 
 == Examples
 

@@ -70,7 +70,7 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
-- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#searchObjects`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#searchObjects+`
 
 == Examples
 
