@@ -147,7 +147,7 @@ It is supposed to give some idea about nature of the module to system administra
 But it is not supposed to be used as a user-friendly label for the module.
 The name is also used in the url, so it should not contain special characters.
 
-*`name` attribute is deprecated, use `identifier` instead*.
+*`name` attribute is supported up to midPoint 4.6. From midPoint 4.7 on, please use `identifier` instead*.
 | true
 | _String_
 |
@@ -158,6 +158,8 @@ Short identifier.
 It is supposed to give some idea about nature of the module to system administrator.
 But it is not supposed to be used as a user-friendly label for the module.
 The name is also used in the url, so it should not contain special characters.
+
+*`identifier` attribute is supported since midPoint 4.7. For midPoint 4.6 and older, please use `name` instead*.
 | true
 | _String_
 |
