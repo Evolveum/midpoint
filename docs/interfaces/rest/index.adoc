@@ -47,6 +47,7 @@ GET http://localhost:8080/midpoint/ws/rest/self?options=raw
 .Request to read own profile data (raw) full example using CURL
 xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/#_ex_get_own_profile_information_json_raw[Request to read own profile data]
 
+=== REST Endpoints
 Naturally by having a feature rich interface there is no "one size fits them all" way to invoke the operations, so the url will
 be different in specific use cases. The most common ones you can see
 at xref:/midpoint/reference/interfaces/rest/#_common_use_cases[this] section of the documentation.
@@ -65,7 +66,7 @@ you with *different kinds of operations*, based on the type of object endpoint y
 .The *full collection of Object Endpoints* can be found here:
 xref:/midpoint/reference/interfaces/rest/endpoints/[Endpoints]
 
-.Request Content Type
+=== Request Content Types
 There are multiple possibilities regarding the content type of the request body and also
 regarding the type of data which will be returned to the client.
 
