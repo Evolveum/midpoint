@@ -20,16 +20,10 @@ The Shadow web endpoint provides us with information regarding resource shadows.
 Resource shadow objects are usually created and modified automatically by midPoint, most
 often the use cases will resolve around fetching and reading the shadow object data.
 
-// === Create Shadow Object
-
-
-// - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
-
 === Get Shadow Object
 
-Get operation for fetching a single specific object.
-
-.Get Shadow with REST
+Get operation for fetching a single specific object. In this case a concrete shadow
+objects.
 
 - xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
 
@@ -37,23 +31,18 @@ Get operation for fetching a single specific object.
 
 Search operation usable for fetching the full list of objects or a list based on filter.
 
-// include::../operations/examples/raw/search-all-shadows.adoc[]
-
-include::../operations/examples/raw/search-all.adoc[]
-
 - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
 
-// === Modify Shadow Objects
-//
-// include::../operations/examples/raw/modify-attr.adoc[]
-//
-// - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+=== Modify Shadow Objects
+
+Modifications of shadow objects are usually done by midPoint itself yet there is a possibility
+to change them via the REST interface.
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
 
 === Delete Shadow Objects
 
-Object deletion.
-//
-// include::../operations/examples/raw/delete-shadow.adoc[]
+Shadow object deletion.
 
 - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
 
@@ -63,12 +52,9 @@ A set of operations specific for the Shadow REST objects.
 
 - xref:/midpoint/reference/interfaces/rest/operations/shadow-op-rest/[Shadow specific Operations]
 
-// === Generate and Validate operations for Shadow Objects
-//
-// Operations to generate or validate values, here we have an example of a simple password generate use-case.
-//
-//
-// - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+=== Generate and Validate operations for Shadow Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
 
 == JSON Example
 
@@ -78,9 +64,44 @@ Metadata is usually a part of the output, yet it was removed for the purpose of 
 .Show JSON Example
 [%collapsible]
 ====
-[source, http]
+[source, json]
 ----
-TODO
+{
+  "shadow" : {
+    "oid" : "062ac29f-f296-4824-aeab-9a0feb9e8bd3",
+    "version" : "",
+    "name" : "Jack",
+    "description" : "",
+    "metadata" : {},
+    "operationExecution" : {},
+    "resourceRef" : {
+      "oid" : "ef2bc95b-76e0-59e2-86d6-9999cccccccc",
+      "relation" : "org:default",
+      "type" : "c:ResourceType"
+    },
+    "synchronizationSituation" : "linked",
+    "synchronizationTimestamp" : "",
+    "fullSynchronizationTimestamp" : "",
+    "synchronizationSituationDescription" : {},
+    "objectClass" : "ri:AccountObjectClass",
+    "primaryIdentifierValue" : "Jack",
+    "kind" : "account",
+    "intent" : "default",
+    "iteration" : 0,
+    "iterationToken" : "",
+    "attributes" : {
+      "@ns" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3",
+      "username" : {
+        "@type" : "xsd:string",
+        "@value" : "Jack"
+      }
+    },
+    "activation" : {
+      "enableTimestamp" : ""
+    },
+    "credentials" : {}
+  }
+}
 ----
 ====
 

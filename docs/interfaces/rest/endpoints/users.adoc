@@ -30,8 +30,6 @@ include::../operations/examples/raw/create-user-jack.adoc[]
 
 Get operation for fetching a single specific object.
 
-.Get Default Administrator User with REST
-
 include::../operations/examples/raw/get-user-administrator.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
