@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
@@ -429,11 +430,17 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
                     return null;
                 }
 
-                String icon = IconAndStylesUtil.createDefaultBlackIcon(ref.getType());
+                PrismObject object = WebModelServiceUtils.loadObject(ref, getPageBase());
+                if (object == null) {
+                    String icon = IconAndStylesUtil.createDefaultColoredIcon(ref.getType());
 
-                return new DisplayType()
-                        .icon(new IconType()
-                                .cssClass(icon));
+                    return new DisplayType()
+                            .icon(new IconType()
+                                    .cssClass(icon));
+                }
+
+                OperationResult result = new OperationResult("getIcon");
+                return GuiDisplayTypeUtil.getDisplayTypeForObject(object, result, getPageBase());
             }
         });
         columns.add(new AbstractColumn<>(createStringResource("ShoppingCartPanel.accessName")) {
