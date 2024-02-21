@@ -136,8 +136,8 @@ a| * 202 Accepted
 | -
 a| * 202 Accepted
 
-//TODO
-| Notify change
+
+| xref:/midpoint/reference/interfaces/rest/operations/notify-op-rest.adoc[Notify change]
 | POST
 | /notifyChange
 | No
