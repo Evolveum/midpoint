@@ -68,6 +68,10 @@ include::../../rest/operations/raw/operation-prop-search.adoc[]
 
 include::../../rest/concepts/raw/outcome.adoc[]
 
+== Access Authorization
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#searchObjects+`
+
 == Examples
 
 include::../../rest/operations/examples/raw/search-all-users.adoc[]
@@ -80,3 +84,4 @@ include::../../rest/operations/examples/raw/search-all.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 - xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

@@ -76,6 +76,10 @@ link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/ht
 
 include::../../rest/concepts/raw/outcome.adoc[]
 
+== Access Authorization
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#addObject+`
+
 == Examples
 
 1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-object/[Create object]
@@ -83,3 +87,4 @@ include::../../rest/concepts/raw/outcome.adoc[]
 == See Also
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 - xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]
