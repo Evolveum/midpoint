@@ -12,18 +12,18 @@ Modification of objects based on payload data in the body of the REST request.
 Use either the HTTP POST or PATCH method with your request, both usages are equivalent,
 this is based on the possibility that not all clients are capable of using non-standard HTTP verbs.
 
-INFO:: The usage of HTTP PATCH is preferred, the meaning is clearer thant the case of HTTP POST in the context of Modify.
+INFO:: The usage of HTTP PATCH is preferred, the meaning is clearer than the case of HTTP POST in the context of Modify.
 
 .Modify operation using HTTP POST
 [source, http]
 ----
-POST http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}
+POST http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}
 ----
 
 .Modify operation using HTTP PATCH
 [source, http]
 ----
-PATCH http://localhost:8080/midpoint/ws/rest/{web_resource_type}/
+PATCH http://localhost:8080/midpoint/ws/rest/{endpoint}/
 ----
 
 
@@ -37,7 +37,7 @@ Regarding authorization type, the "Basic" Authorization header should be used.
 Authorization: Basic {Base64EncodedCredentials}
 ----
 
-In case of the modify operation you need to specify the provided content type of the
+To specify the provided content type, please use the "Content-Type" header
 payload in the body:
 
 .Content type header example, other media types are supported as well
@@ -72,6 +72,10 @@ include::../../rest/operations/raw/options-usage-meo.adoc[]
 
 include::../../rest/concepts/raw/outcome.adoc[]
 
+== Access Authorization
+
+- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#modifyObject`
+
 == Examples
 
 include::../../rest/operations/examples/raw/modify-attr-user.adoc[]
@@ -82,3 +86,4 @@ include::../../rest/operations/examples/raw/modify-attr.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 - xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

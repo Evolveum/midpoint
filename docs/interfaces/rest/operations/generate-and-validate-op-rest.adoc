@@ -65,6 +65,11 @@ There are no supported operation options for this type of operation.
 
 include::../../rest/concepts/raw/outcome.adoc[]
 
+== Access Authorization
+
+- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#rpcGenerateValue`
+- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#rpcValidateValue`
+
 == Examples
 
 include::../../rest/operations/examples/raw/validate-value-rpc.adoc[]
@@ -73,3 +78,4 @@ include::../../rest/operations/examples/raw/validate-value-rpc.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 - xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

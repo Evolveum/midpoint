@@ -13,19 +13,19 @@ value and also the endpoint part of the URI of the object.
 
 For the request use the HTTP POST for the request.
 
-The client has to provide the type of the web resource used in the request "{web_resource_type}"
+The client has to provide the type of the web resource used in the request "{endpoint}"
 and the oid of the specific object for which we execute the operation "{oid}".
 
 .Generate operation
 [source, http]
 ----
-POST http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}/generate
+POST http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}/generate
 ----
 
 .Validate operation
 [source, http]
 ----
-POST http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}/validate
+POST http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}/validate
 ----
 
 === Headers
@@ -70,6 +70,11 @@ There are no supported operation options for this type of operation.
 
 include::../../rest/concepts/raw/outcome.adoc[]
 
+== Access Authorization
+
+- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#generateValue`
+- `http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#validateValue`
+
 == Examples
 
 include::../../rest/operations/examples/raw/role-id-generate.adoc[]
@@ -80,3 +85,4 @@ include::../../rest/operations/examples/raw/modify-id-generate.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 - xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]
