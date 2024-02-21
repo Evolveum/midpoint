@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.security.enforcer.api;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -122,7 +123,7 @@ public interface SecurityEnforcer {
      */
     default <O extends ObjectType, T extends ObjectType> @NotNull AccessDecision decideAccess(
             @Nullable MidPointPrincipal principal,
-            @NotNull List<String> operationUrls,
+            @NotNull Collection<String> operationUrls,
             @NotNull AuthorizationParameters<O,T> params,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -142,12 +143,12 @@ public interface SecurityEnforcer {
     }
 
     /**
-     * Simplified version of {@link #decideAccess(MidPointPrincipal, List, AuthorizationParameters, Task, OperationResult)}.
+     * Simplified version of {@link #decideAccess(MidPointPrincipal, Collection, AuthorizationParameters, Task, OperationResult)}.
      * It is practically applicable only for simple (non-parametric) cases such as access to GUI pages.
      */
     default @NotNull AccessDecision decideAccess(
             @Nullable MidPointPrincipal principal,
-            @NotNull List<String> operationUrls,
+            @NotNull Collection<String> operationUrls,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,

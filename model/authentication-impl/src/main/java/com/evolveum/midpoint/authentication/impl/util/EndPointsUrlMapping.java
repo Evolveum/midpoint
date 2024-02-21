@@ -9,10 +9,9 @@ package com.evolveum.midpoint.authentication.impl.util;
 
 import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
 
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.impl.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.RestAuthorizationAction;
 
 /**
  * @author lazyman
@@ -173,6 +172,10 @@ public enum EndPointsUrlMapping {
     ACTUATOR_METRICS("/actuator/metrics/**",
             new AuthorizationActionValue(AUTZ_ACTUATOR_METRICS_URL,
                     "ActuatorEndpoint.authActuator.metrics.label", "ActuatorEndpoint.authActuator.metrics.description")),
+    /**
+     * This is the authorization that provides access to all the methods. However, it is possible to authorize selected
+     * REST actions individually; see {@link RestAuthorizationAction} enum.
+     */
     REST("/ws/**",
             new AuthorizationActionValue(AUTZ_REST_ALL_URL,
                     "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")),
@@ -182,7 +185,6 @@ public enum EndPointsUrlMapping {
     REST3("/api/**",
             new AuthorizationActionValue(AUTZ_REST_ALL_URL,
                     "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")),
-
 
     INSPECTOR("/inspector/**",
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
@@ -196,7 +198,6 @@ public enum EndPointsUrlMapping {
     WICKET_PAGE("/wicket/**",
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "WicketDebugInfo.authUri.guiAll.label", "WicketDebugInfo.authUri.guiAll.description"));
-
 
     private final String url;
 
