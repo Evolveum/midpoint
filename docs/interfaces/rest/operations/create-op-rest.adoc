@@ -16,7 +16,7 @@ Using the PUT method, the client has to provide a complete object, including the
 .Create operation using HTTP PUT
 [source, http]
 ----
-PUT http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}
+PUT http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}
 ----
 
 If you use the POST method to create new web resources,
@@ -25,7 +25,7 @@ you can do this without the need to know the complete URI (i.e. without the oid 
 .Create operation using HTTP POST
 [source, http]
 ----
-POST http://localhost:8080/midpoint/ws/rest/{web_resource_type}/
+POST http://localhost:8080/midpoint/ws/rest/{endpoint}/
 ----
 
 === Headers
