@@ -31,9 +31,16 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
     public PrismContainerPanel(String id, IModel<PCW> model, ItemPanelSettings settings) {
         super(id, model, settings);
 
-        if(getModelObject() != null){
-            getModelObject().setExpanded(true);
+        if(getModelObject() != null) {
+            getModelObject().setExpanded(isExpanded());
         }
+    }
+
+    public boolean isExpanded() {
+        if (getModelObject() != null) {
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -56,13 +63,13 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
         valueContainer.add(AttributeAppender.append(
                 "aria-label",
                 () -> {
-                    if (getModelObject().isMultiValue()) {
-                        if(getHeader() == null){
+                    if (getModelObject() != null && getModelObject().isMultiValue()) {
+                        if (getHeader() == null) {
                             return getParentPage().createStringResource(
                                     "PrismContainerPanel.container");
                         }
                         return getParentPage().createStringResource(
-                                "PrismContainerPanel.container", getHeader().createLabelModel().getObject())
+                                        "PrismContainerPanel.container", getHeader().createLabelModel().getObject())
                                 .getString();
                     }
                     return null;
@@ -74,7 +81,7 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
     }
 
     private PrismContainerHeaderPanel getHeader() {
-        return (PrismContainerHeaderPanel)get(ID_HEADER);
+        return (PrismContainerHeaderPanel) get(ID_HEADER);
     }
 
     @Override

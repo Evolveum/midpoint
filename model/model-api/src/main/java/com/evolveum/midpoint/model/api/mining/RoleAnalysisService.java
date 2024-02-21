@@ -6,15 +6,14 @@
  */
 package com.evolveum.midpoint.model.api.mining;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -180,7 +179,7 @@ public interface RoleAnalysisService {
      * @param task The task associated with this operation.
      * @param result The operation result.
      */
-    void replaceDetectionPattern(
+    void anylseAttributesAndReplaceDetectionPattern(
             @NotNull String clusterOid,
             @NotNull List<DetectedPattern> detectedPatterns,
             @NotNull Task task,
@@ -567,5 +566,32 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull String sessionOid);
+
+    List<AttributeAnalysisStructure> attributeAnalysis(
+            @NotNull Set<String> objectOid,
+            @NotNull RoleAnalysisProcessModeType mode,
+            @NotNull List<ItemPath> itemPathSet,
+            Double membershipDensity,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    List<AttributeAnalysisStructure> userTypeAttributeAnalysis(
+            @NotNull Set<PrismObject<UserType>> prismUsers,
+            @NotNull List<ItemPath> itemPathSet,
+            Double membershipDensity);
+
+    List<AttributeAnalysisStructure> roleTypeAttributeAnalysis(
+            @NotNull Set<PrismObject<RoleType>> prismRoles,
+            @NotNull List<ItemPath> itemPathSet,
+            Double membershipDensity);
+
+    void processAttributeAnalysis(
+            @NotNull List<RoleAnalysisDetectionPatternType> detectedPatterns,
+            @NotNull Map<String, PrismObject<UserType>> userExistCache,
+            @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
+            @NotNull List<ItemPath> userValuePaths,
+            @NotNull List<ItemPath> roleValuePaths,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 
 }

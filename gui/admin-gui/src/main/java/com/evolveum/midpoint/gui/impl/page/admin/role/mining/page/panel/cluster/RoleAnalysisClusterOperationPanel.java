@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
+import static com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributePathResolver.resolveProcessModePath;
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformPattern;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
@@ -17,7 +18,12 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPanel;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -63,6 +69,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     private static final String ID_MAIN_PANEL = "main";
     private static final String ID_DATATABLE = "datatable_extra";
+    private static final String ID_CHART_PANEL = "chartPanel";
 
     private static final String DOT_CLASS = RoleAnalysisClusterOperationPanel.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
@@ -112,10 +119,13 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             loadDetectedPattern(cluster);
         }
 
+        RoleAnalysisProcessModeType mode = null;
         if (getParent != null) {
             RoleAnalysisSessionType session = getParent.asObjectable();
             RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-            isRoleMode = analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE);
+            mode = analysisOption.getProcessMode();
+            isRoleMode = mode.equals(RoleAnalysisProcessModeType.ROLE);
+
         }
 
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
@@ -134,6 +144,28 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         webMarkupContainer.setOutputMarkupId(true);
 
         loadMiningTable(webMarkupContainer, analysePattern);
+
+        Double membershipDensity = clusterStatistics.getMembershipDensity();
+        List<AttributeAnalysisStructure> attributeAnalysisStructures;
+        List<ObjectReferenceType> member = cluster.getMember();
+        Set<String> objectOid = new HashSet<>();
+        member.forEach(object -> objectOid.add(object.getOid()));
+
+        assert mode != null;
+        List<ItemPath> itemPaths = resolveProcessModePath(mode);
+
+        attributeAnalysisStructures = roleAnalysisService.attributeAnalysis(
+                objectOid,
+                mode,
+                itemPaths,
+                membershipDensity,
+                task,
+                result);
+
+        RoleAnalysisAttributeChartPanel roleAnalysisChartPanel = new RoleAnalysisAttributeChartPanel(ID_CHART_PANEL, attributeAnalysisStructures);
+        roleAnalysisChartPanel.setOutputMarkupId(true);
+        webMarkupContainer.add(roleAnalysisChartPanel);
+
         add(webMarkupContainer);
 
     }
@@ -293,7 +325,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 miningUserTypeChunk.setStatus(RoleAnalysisOperationMode.EXCLUDE);
             }
         }
-
 
         if (displayValueOption != null) {
             loadMiningTableData(displayValueOption);
@@ -492,7 +523,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     private DisplayValueOption getDisplayValueRoleTableConfigurations() {
         LoadableDetachableModel<DisplayValueOption> displayModel = getMiningRoleBasedTable().getDisplayValueOptionModel();
-        if(displayModel != null) {
+        if (displayModel != null) {
             return displayModel.getObject();
         }
         return null;
@@ -500,7 +531,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     private DisplayValueOption getDisplayValueUserTableConfigurations() {
         LoadableDetachableModel<DisplayValueOption> displayModel = getMiningUserBasedTable().getDisplayValueOptionModel();
-        if(displayModel != null) {
+        if (displayModel != null) {
             return displayModel.getObject();
         }
         return null;

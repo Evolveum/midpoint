@@ -41,7 +41,7 @@ public class DetectedPatternPopupPanel extends BasePanel<String> implements Popu
                     protected List<DetectedPattern> load() {
                         return detectedPatterns;
                     }
-                }, cluster);
+                }, cluster,true);
 
         components.setOutputMarkupId(true);
         add(components);
@@ -53,7 +53,7 @@ public class DetectedPatternPopupPanel extends BasePanel<String> implements Popu
 
     @Override
     public int getWidth() {
-        return 60;
+        return 80;
     }
 
     @Override

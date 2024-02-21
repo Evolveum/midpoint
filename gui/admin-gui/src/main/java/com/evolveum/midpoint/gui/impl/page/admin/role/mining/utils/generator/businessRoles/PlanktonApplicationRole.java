@@ -2,6 +2,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.generator.bu
 
 import java.util.*;
 
+// TODO - this class is used for generating rm dataset. Do not forgot remove it.
+
 public enum PlanktonApplicationRole {
     WEB_EDITOR("45566a80-c2a8-402f-835e-741ed38fb121"),
     WEB_ANALYTICS("a80ac1d7-2d9a-49e1-8932-9a7b735baa04"),

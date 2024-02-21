@@ -63,6 +63,8 @@ public class ExtractPatternUtils {
             DetectedPattern detectedPattern = prepareDetectedPattern(roles,
                     users, id);
 
+            detectedPattern.setRoleAttributeAnalysisResult(roleAnalysisClusterDetectionType.getRoleAttributeAnalysisResult());
+            detectedPattern.setUserAttributeAnalysisResult(roleAnalysisClusterDetectionType.getUserAttributeAnalysisResult());
             mergedIntersection.add(detectedPattern);
 
         }

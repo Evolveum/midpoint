@@ -4,6 +4,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 
 import java.util.Random;
 
+// TODO - this class is used for generating rm dataset. Do not forgot remove it.
+
 public enum LocationBusinessRole {
     LONDON("f087236c-1fad-4113-b3d5-f4c9226c06e6", "London"),
     PARIS("dd9222c5-b0e8-4cee-988e-108a0f62570a", "Paris"),

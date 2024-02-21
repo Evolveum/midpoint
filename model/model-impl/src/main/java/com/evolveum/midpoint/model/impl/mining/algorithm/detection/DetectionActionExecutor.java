@@ -109,7 +109,7 @@ public class DetectionActionExecutor extends BaseAction {
 
         if (detectedPatterns != null && !detectedPatterns.isEmpty()) {
             detectedPatterns = loadTopPatterns(detectedPatterns);
-            roleAnalysisService.replaceDetectionPattern(clusterOid,
+            roleAnalysisService.anylseAttributesAndReplaceDetectionPattern(clusterOid,
                     detectedPatterns, task, result
             );
         }

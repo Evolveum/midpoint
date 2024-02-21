@@ -39,6 +39,8 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+// TODO - this class is used for generating rm dataset. Do not forgot remove it.
+
 public class RoleAnalysisDataGeneratorUtils {
 
     public static void unnassignAll(@NotNull RepositoryService repositoryService,

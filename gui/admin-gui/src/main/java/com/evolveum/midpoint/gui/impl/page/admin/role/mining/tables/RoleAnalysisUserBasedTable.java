@@ -16,16 +16,6 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
 import java.io.Serial;
 import java.util.*;
 
-import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
-import com.evolveum.midpoint.common.mining.utils.values.*;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
-import com.evolveum.midpoint.gui.impl.component.icon.*;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experimental.RoleAnalysisPathTableSelector;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -43,23 +33,35 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experimental.RoleAnalysisPathTableSelector;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -72,11 +74,10 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanelAction;
 import com.evolveum.midpoint.web.component.data.column.LinkIconPanelStatus;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.Nullable;
 
 public class RoleAnalysisUserBasedTable extends Panel {
 
@@ -113,6 +114,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
     public LoadableDetachableModel<DisplayValueOption> getDisplayValueOptionModel() {
         return displayValueOptionModel;
     }
+
     public RoleAnalysisUserBasedTable(String id,
             MiningOperationChunk miningOperationChunk,
             List<DetectedPattern> detectedPattern,

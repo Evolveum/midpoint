@@ -14,6 +14,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.wicket.chartjs.*;
 
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The RoleAnalysisAggregateChartModel class is a LoadableModel that generates aggregate
@@ -34,8 +35,8 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
     }
 
     private ChartConfiguration createChartConfiguration() {
-        BarChartConfiguration chart = new BarChartConfiguration();
 
+        BarChartConfiguration chart = new BarChartConfiguration();
         ChartData chartData = createDataset();
         chart.setData(chartData);
         chart.setOptions(createChartOptions());
@@ -67,10 +68,13 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
         return chartData;
     }
 
-    private ChartOptions createChartOptions() {
-        ChartOptions options = new ChartOptions();
+    private @NotNull RoleAnalysisChartOptions createChartOptions() {
+        RoleAnalysisChartOptions options = new RoleAnalysisChartOptions();
         options.setLegend(createLegendOptions());
         options.setIndexAxis(IndexAxis.AXIS_X.getValue());
+        if (roleAnalysisModels.getObject().size() < 10) {
+            options.setBarPercentage(0.2);
+        }
         return options;
     }
 

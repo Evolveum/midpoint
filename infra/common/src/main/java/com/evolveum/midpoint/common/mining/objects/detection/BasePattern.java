@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.common.mining.objects.detection;
 
-import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
-
 import java.io.Serializable;
 import java.util.Set;
+
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
 
 public abstract class BasePattern implements Serializable {
 
@@ -21,6 +22,10 @@ public abstract class BasePattern implements Serializable {
     protected Long id;
     protected String identifier;
     protected String associatedColor;
+
+    RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult;
+    RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult;
+
 
     public BasePattern(Set<String> roles,
             Set<String> users,
@@ -110,6 +115,22 @@ public abstract class BasePattern implements Serializable {
 
     public void setAssociatedColor(String associatedColor) {
         this.associatedColor = associatedColor;
+    }
+
+    public RoleAnalysisAttributeAnalysisResult getRoleAttributeAnalysisResult() {
+        return roleAttributeAnalysisResult;
+    }
+
+    public void setRoleAttributeAnalysisResult(RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult) {
+        this.roleAttributeAnalysisResult = roleAttributeAnalysisResult;
+    }
+
+    public RoleAnalysisAttributeAnalysisResult getUserAttributeAnalysisResult() {
+        return userAttributeAnalysisResult;
+    }
+
+    public void setUserAttributeAnalysisResult(RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult) {
+        this.userAttributeAnalysisResult = userAttributeAnalysisResult;
     }
 
 }

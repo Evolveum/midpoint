@@ -70,7 +70,7 @@ public class DetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisCl
                     protected List<DetectedPattern> load() {
                         return transformDefaultPattern(getObjectDetailsModels().getObjectType());
                     }
-                }, getObjectDetailsModels().getObjectType()) {
+                }, getObjectDetailsModels(), false) {
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
                 PageParameters parameters = new PageParameters();

@@ -2,6 +2,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.generator.bu
 
 import java.util.Random;
 
+// TODO - this class is used for generating rm dataset. Do not forgot remove it.
+
 public enum JobBusinessRole {
     ASSISTANT("47a627c4-fd0f-42e3-a2d0-3ef0cba09ac1"),
     SUPERVISOR("ccc98c8d-0313-4961-9957-929aa0336620"),

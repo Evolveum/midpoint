@@ -17,6 +17,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisAttributeChartPopupPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -72,13 +75,73 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
     private static final String ID_DATATABLE = "datatable";
-    boolean isOperationEnable;
+    boolean isPopup;
     private static final String DOT_CLASS = RoleAnalysisDetectedPatternTable.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
     OperationResult result = new OperationResult(OP_PREPARE_OBJECTS);
 
-    public RoleAnalysisDetectedPatternTable(String id, LoadableDetachableModel<List<DetectedPattern>> detectedPatternList, RoleAnalysisClusterType cluster) {
+    //TODO brutal ugly just for fast solution (clusterModel)
+    LoadableDetachableModel<ObjectDetailsModels<RoleAnalysisClusterType>> clusterModel;
+
+    public RoleAnalysisDetectedPatternTable(
+            String id,
+            LoadableDetachableModel<List<DetectedPattern>> detectedPatternList,
+            ObjectDetailsModels<RoleAnalysisClusterType> cluster, boolean isPopup) {
         super(id);
+        this.isPopup = isPopup;
+
+        clusterModel = new LoadableDetachableModel<>() {
+            @Override
+            protected ObjectDetailsModels<RoleAnalysisClusterType> load() {
+                return cluster;
+            }
+        };
+
+        RoleMiningProvider<DetectedPattern> provider = new RoleMiningProvider<>(
+                this, new ListModel<>(detectedPatternList.getObject()) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void setObject(List<DetectedPattern> object) {
+                super.setObject(object);
+            }
+
+        }, true);
+
+        provider.setSort(DetectedPattern.F_METRIC, SortOrder.DESCENDING);
+
+        BoxedTablePanel<DetectedPattern> table = new BoxedTablePanel<>(
+                ID_DATATABLE, provider, initColumns(cluster.getObjectType())) {
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                AjaxIconButton refreshIcon = new AjaxIconButton(id, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
+                        createStringResource("MainObjectListPanel.refresh")) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onRefresh(target);
+                    }
+                };
+                refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                return refreshIcon;
+            }
+        };
+        table.setOutputMarkupId(true);
+        table.getDataTable().setItemsPerPage(10);
+        table.enableSavePageSize();
+
+        add(table);
+    }
+
+    public RoleAnalysisDetectedPatternTable(
+            String id,
+            LoadableDetachableModel<List<DetectedPattern>> detectedPatternList,
+            RoleAnalysisClusterType cluster, boolean isPopup) {
+        super(id);
+        this.isPopup = isPopup;
 
         RoleMiningProvider<DetectedPattern> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(detectedPatternList.getObject()) {
@@ -213,7 +276,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                     objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
                     objectButton.add(AttributeAppender.append("style", "width:150px"));
 
-                    if (isOperationEnable) {
+                    if (isPopup) {
                         objectButton.setEnabled(false);
                     }
 
@@ -279,7 +342,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                     objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
                     objectButton.add(AttributeAppender.append("style", "width:150px"));
 
-                    if (isOperationEnable) {
+                    if (isPopup) {
                         objectButton.setEnabled(false);
                     }
 
@@ -398,6 +461,67 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
             @Override
             public Component getHeader(String componentId) {
                 return new Label(componentId, getHeaderTitle("display"));
+            }
+
+        });
+
+        columns.add(new AbstractColumn<>(createStringResource("chart")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
+
+                if (rowModel.getObject() != null && rowModel.getObject().getRoleAttributeAnalysisResult() != null
+                        && rowModel.getObject().getUserAttributeAnalysisResult() != null) {
+                    RoleAnalysisAttributeAnalysisResult roleAnalysisResult = rowModel.getObject().getRoleAttributeAnalysisResult();
+                    RoleAnalysisAttributeAnalysisResult userAnalysisResult = rowModel.getObject().getUserAttributeAnalysisResult();
+                    DetectedPattern detectedPattern = rowModel.getObject();
+                    CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
+                            .setBasicIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
+
+                    AjaxCompositedIconButton objectButton = new AjaxCompositedIconButton(componentId, iconBuilder.build(),
+                            Model.of(createStringResource("RoleMining.button.title.chart").getString())) {
+
+                        @Serial private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+
+                            RoleAnalysisAttributeChartPopupPanel detailsPanel = new RoleAnalysisAttributeChartPopupPanel(
+                                    ((PageBase) getPage()).getMainPopupBodyId(),
+                                    Model.of("Analyzed members details panel"),
+                                    roleAnalysisResult, userAnalysisResult, clusterModel, detectedPattern) {
+                                @Override
+                                public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                    super.onClose(ajaxRequestTarget);
+                                }
+                            };
+                            ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                        }
+
+                    };
+                    objectButton.titleAsLabel(true);
+                    objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                    objectButton.add(AttributeAppender.append("style", "width:150px"));
+                    item.add(objectButton);
+                    if (isPopup) {
+                        objectButton.setEnabled(false);
+                    }
+                } else {
+                    item.add(new EmptyPanel(componentId));
+                }
+
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(
+                        componentId, createStringResource("RoleMining.cluster.table.column.header.attribute.statistics"));
             }
 
         });
