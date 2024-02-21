@@ -27,6 +27,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,6 +39,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.servlet.ServletRequest;
 import java.io.File;
 import java.util.*;
 
@@ -313,7 +317,9 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
     }
 
     private FilterInvocation createFilterInvocation(String requestPath) {
-        return new FilterInvocation(requestPath, "http");
+        MockHttpServletRequest request = new MockHttpServletRequest("http", "");
+        request.setServletPath(requestPath);
+        return new FilterInvocation(request, new MockHttpServletResponse(), new MockFilterChain());
     }
 
     private Collection<ConfigAttribute> createAuthConfigAttributes() {
