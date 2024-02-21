@@ -200,10 +200,11 @@ for production use! Authorization configuration should be more *fine-grained* an
 for your use case*.
 ====
 
-// TODO reference to authorization configuration
-
 == Examples
-//TODO examples
+
+include::../operations/examples/raw/get-user-administrator.adoc[]
+
+.Additional examples
 1. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get user based on his unique identificator]
 2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get own profile information]
 

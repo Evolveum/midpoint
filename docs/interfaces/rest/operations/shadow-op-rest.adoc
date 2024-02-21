@@ -5,19 +5,73 @@
 
 == Description
 
+A set of operations related specifically to the Shadow object type of midPoint.
+
 == Request
+
+There are multiple possible requests which are specific for the Shadow object type related
+operations.
+
+The first operation would be the fetch of the Shadow object (e.g. representing an account) owner
+. For this operation you will have to use the HTTP GET method in your request.
+The resulting uri could look something like this:
+
+.Get shadow owner operation
+[source, http]
+----
+GET http://localhost:8080/midpoint/ws/rest/shadows/{oid}/owner
+----
+
+Another operation is the import of a Shadow object (e.g. again representing an account), thus
+either linking them to an existing object in midPoint or creating a midPoint object as a result of this operation.
+
+.Import shadow object
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/shadows/{oid}/import
+----
+
 
 === Headers
 
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example, replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+In case of the operations you need to specify the accepted type of content in case
+you are interested in a format different from xml (default)
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
 === Body
 
+No additional data needed in the request body.
+
 === Options
+
+No additional option parameters supported for these types of requests.
 
 include::../../rest/concepts/raw/outcome.adoc[]
 
 == Examples
 
+include::../../rest/operations/examples/raw/get-shadow-owner.adoc[]
+
+include::../../rest/operations/examples/raw/import-shadow.adoc[]
+
 == See Also
 
+- xref:/midpoint/reference/interfaces/rest/endpoints/shadows.adoc[Shadow Objects Endpoint]
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 - xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

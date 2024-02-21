@@ -5,7 +5,7 @@
 
 //TODO more descriptive content
 
-== Supported operations
+== Supported Operations
 
 The base URL of REST API is link:http://localhost:8080/midpoint/ws/rest[http://localhost:8080/midpoint/ws/rest] (alternatively to */ws/rest* paths */api/model* and */rest/model* are also supported).
 
@@ -13,7 +13,7 @@ The base URL of REST API is link:http://localhost:8080/midpoint/ws/rest[http://l
 
 
 * Supply the \{type} with the specific type of object you want to add (or modify, delete, [.line-through]#search#, etc).
-Supported types are listed xref:/midpoint/reference/interfaces/rest/resource-types/[here]
+Supported types are listed xref:/midpoint/reference/interfaces/rest/endpoints/[here]
 
 * Supply the \{oid} with the specific oid of your object.
 

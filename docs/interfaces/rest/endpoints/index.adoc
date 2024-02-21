@@ -16,116 +16,116 @@ the complete *list of supported operations*.
 | Object Type (class) | REST type (endpoint)
 
 | ConnectorType
-| xref:/midpoint/reference/interfaces/rest/resource-types/connectors/[connectors]
+| xref:/midpoint/reference/interfaces/rest/endpoints/connectors/[connectors]
 
 
 | ConnectorHostType
-| xref:/midpoint/reference/interfaces/rest/resource-types/connector-hosts/[connectorHosts]
+| xref:/midpoint/reference/interfaces/rest/endpoints/connector-hosts/[connectorHosts]
 
 
 | GenericObjectType
-| xref:/midpoint/reference/interfaces/rest/resource-types/generic-objects/[genericObjects]
+| xref:/midpoint/reference/interfaces/rest/endpoints/generic-objects/[genericObjects]
 
 
 | ResourceType
-| xref:/midpoint/reference/interfaces/rest/resource-types/resources/[resources]
+| xref:/midpoint/reference/interfaces/rest/endpoints/resources/[resources]
 
 
 | UserType
-| xref:/midpoint/reference/interfaces/rest/resource-types/users/[users]
+| xref:/midpoint/reference/interfaces/rest/endpoints/users/[users]
 
 
 | ObjectTemplateType
-| xref:/midpoint/reference/interfaces/rest/resource-types/object-templates/[objectTemplates]
+| xref:/midpoint/reference/interfaces/rest/endpoints/object-templates/[objectTemplates]
 
 
 | SystemConfigurationType
-| xref:/midpoint/reference/interfaces/rest/resource-types/system-configurations/[systemConfigurations]
+| xref:/midpoint/reference/interfaces/rest/endpoints/system-configurations/[systemConfigurations]
 
 
 | TaskType
-| xref:/midpoint/reference/interfaces/rest/resource-types/tasks/[tasks]
+| xref:/midpoint/reference/interfaces/rest/endpoints/tasks/[tasks]
 
 
 | ShadowType
-| xref:/midpoint/reference/interfaces/rest/resource-types/shadows/[shadows]
+| xref:/midpoint/reference/interfaces/rest/endpoints/shadows/[shadows]
 
 
 | RoleType
-| xref:/midpoint/reference/interfaces/rest/resource-types/roles/[roles]
+| xref:/midpoint/reference/interfaces/rest/endpoints/roles/[roles]
 
 
 | ValuePolicyType
-| xref:/midpoint/reference/interfaces/rest/resource-types/value-policies/[valuePolicies]
+| xref:/midpoint/reference/interfaces/rest/endpoints/value-policies/[valuePolicies]
 
 
 | NodeType
-| xref:/midpoint/reference/interfaces/rest/resource-types/nodes/[nodes]
+| xref:/midpoint/reference/interfaces/rest/endpoints/nodes/[nodes]
 
 
 | FormType
-| xref:/midpoint/reference/interfaces/rest/resource-types/forms/[forms]
+| xref:/midpoint/reference/interfaces/rest/endpoints/forms/[forms]
 
 
 | OrgType
-| xref:/midpoint/reference/interfaces/rest/resource-types/organizational-units/[orgs]
+| xref:/midpoint/reference/interfaces/rest/endpoints/organizational-units/[orgs]
 
 
 | ReportType
-| xref:/midpoint/reference/interfaces/rest/resource-types/reports/[reports]
+| xref:/midpoint/reference/interfaces/rest/endpoints/reports/[reports]
 
 
 | ReportDataType
-| xref:/midpoint/reference/interfaces/rest/resource-types/report-data/[reportData]
+| xref:/midpoint/reference/interfaces/rest/endpoints/report-data/[reportData]
 
 
 | SecurityPolicyType
-| xref:/midpoint/reference/interfaces/rest/resource-types/security-policies/[securityPolicies]
+| xref:/midpoint/reference/interfaces/rest/endpoints/security-policies/[securityPolicies]
 
 
 | LookupTableType
-| xref:/midpoint/reference/interfaces/rest/resource-types/lookup-tables/[lookupTables]
+| xref:/midpoint/reference/interfaces/rest/endpoints/lookup-tables/[lookupTables]
 
 
 | AccessCertificationDefinitionType
-| xref:/midpoint/reference/interfaces/rest/resource-types/access-certification-definition-type/[accessCertificationDefinitions]
+| xref:/midpoint/reference/interfaces/rest/endpoints/access-certification-definition-type/[accessCertificationDefinitions]
 
 
 | AccessCertificationCampaignType
-| xref:/midpoint/reference/interfaces/rest/resource-types/access-certification-campaign-type/[accessCertificationCampaigns]
+| xref:/midpoint/reference/interfaces/rest/endpoints/access-certification-campaign-type/[accessCertificationCampaigns]
 
 
 | SequenceType
-| xref:/midpoint/reference/interfaces/rest/resource-types/sequences/[sequences]
+| xref:/midpoint/reference/interfaces/rest/endpoints/sequences/[sequences]
 
 
 | ServiceType
-| xref:/midpoint/reference/interfaces/rest/resource-types/services/[services]
+| xref:/midpoint/reference/interfaces/rest/endpoints/services/[services]
 
 
 | CaseType
-| xref:/midpoint/reference/interfaces/rest/resource-types/cases/[cases]
+| xref:/midpoint/reference/interfaces/rest/endpoints/cases/[cases]
 
 
 | FunctionLibraryType
-| xref:/midpoint/reference/interfaces/rest/resource-types/functions/[functionLibraries]
+| xref:/midpoint/reference/interfaces/rest/endpoints/functions/[functionLibraries]
 
 
 | ObjectCollectionType
-| xref:/midpoint/reference/interfaces/rest/resource-types/object-collections/[objectCollections]
+| xref:/midpoint/reference/interfaces/rest/endpoints/object-collections/[objectCollections]
 
 
 | ArchetypeType
-| xref:/midpoint/reference/interfaces/rest/resource-types/archetypes/[archetypes]
+| xref:/midpoint/reference/interfaces/rest/endpoints/archetypes/[archetypes]
 
 
 | DashboardType
-| xref:/midpoint/reference/interfaces/rest/resource-types/dashboards/[dashboards]
+| xref:/midpoint/reference/interfaces/rest/endpoints/dashboards/[dashboards]
 
 | * Remote Procedure Call
-| xref:/midpoint/reference/interfaces/rest/resource-types/rpc/[rpc]
+| xref:/midpoint/reference/interfaces/rest/endpoints/rpc/[rpc]
 
-| * xref:/midpoint/reference/interfaces/rest/resource-types/misc/[Misc]
+| * xref:/midpoint/reference/interfaces/rest/endpoints/misc/[Misc]
 | notifyChange and self
 
 |===

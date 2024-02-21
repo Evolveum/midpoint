@@ -21,13 +21,32 @@ DELETE http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}
 
 === Headers
 
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+
 === Body
 
+No additional data needed in the request body.
+
 === Options
+
+No additional option parameters supported for these types of requests.
 
 include::../../rest/concepts/raw/outcome.adoc[]
 
 == Examples
+
+include::../../rest/operations/examples/raw/delete-user.adoc[]
+
+include::../../rest/operations/examples/raw/delete-role.adoc[]
+
+include::../../rest/operations/examples/raw/delete-resource.adoc[]
 
 == See Also
 

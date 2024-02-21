@@ -38,18 +38,17 @@ Regarding authorization type, the "Basic" Authorization header should be used.
 Authorization: Basic {Base64EncodedCredentials}
 ----
 
-In case of the get operation you need to specify the provided content type of the
+In case of the create operation you need to specify the provided content type of the
 payload in the body:
 
 .Content type header example, other media types are supported as well
 [source, http]
 ----
-"Content-Type: application/xml"
+"Content-Type: application/json"
 ----
 
 .For supported media types please refer to the following section of the documentation
 xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
-
 
 === Body
 
