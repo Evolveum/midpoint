@@ -1136,7 +1136,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertEquals("Wrong # of extractedResults", 2, extractedResults.size());
 
         ItemProcessingResult<OperationSpecificData> first = extractedResults.get(0);
-        assertEquals("Wrong OID in first result", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", first.oid);
+        assertEquals("Wrong OID in first result", "142f4a38-01d8-4864-8cb4-ea42a02b724e", first.oid);
         assertEquals("Wrong status in first result", OperationResultStatusType.FATAL_ERROR, first.status);
 
         ItemProcessingResult<OperationSpecificData> second = extractedResults.get(1);
@@ -1643,13 +1643,45 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
     }
 
+    /* User has both ADD and READ model autz, but only REST getObject. So this fails. */
+    @Test
+    public void test690RestMethodNotAuthorized() {
+        WebClient client = prepareClient(USER_REST_LIMITED_NAME, USER_REST_LIMITED_PASSWORD);
+        client.path("/users");
+
+        when();
+        Response response = client.post(getRepoFile(USER_DARTHADDER_FILE));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 403);
+
+        displayDumpable("Audit", getDummyAuditService());
+        getDummyAuditService().assertRecords(1);
+        getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+    }
+
+    /* User has both REST and model autz for "get object" operation. So this succeeds. */
+    @Test
+    public void test695RestMethodAuthorized() {
+        WebClient client = prepareClient(USER_REST_LIMITED_NAME, USER_REST_LIMITED_PASSWORD);
+        client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+
+        when();
+        Response response = client.get();
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+    }
+
     private WebClient prepareClient() {
         return prepareClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
     }
 
     private void displayResponse(Response response) {
-        logger.info("response : {} ", response.getStatus());
-        logger.info("response : {} ", response.getStatusInfo().getReasonPhrase());
+        displayValue("response status", response.getStatus());
+        displayValue("response reason phrase", response.getStatusInfo().getReasonPhrase());
     }
 
     protected <O extends ObjectType> PrismObject<O> getObjectRepo(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {

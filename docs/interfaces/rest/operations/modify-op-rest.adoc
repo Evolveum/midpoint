@@ -1,21 +1,82 @@
-= Search Operation
+= Modify Operation
 :page-nav-title: Search
 :page-display-order: 500
 :page-toc: top
 
 == Description
 
+Modification of objects based on payload data in the body of the REST request.
+
 == Request
+
+Use either the HTTP POST or PATCH method with your request, both usages are equivalent,
+this is based on the possibility that not all clients are capable of using non-standard HTTP verbs.
+
+INFO:: The usage of HTTP PATCH is preferred, the meaning is clearer thant the case of HTTP POST in the context of Modify.
+
+.Modify operation using HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}
+----
+
+.Modify operation using HTTP PATCH
+[source, http]
+----
+PATCH http://localhost:8080/midpoint/ws/rest/{web_resource_type}/
+----
+
 
 === Headers
 
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+In case of the modify operation you need to specify the provided content type of the
+payload in the body:
+
+.Content type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default):
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
 === Body
+The body should contain a payload consisting of a ObjectModificationType type of object containing
+an object delta. Please have a look on the *examples* on this page for a sample of the object in the body.
 
 === Options
+
+Options are supported for this kind of operation. The options are a special kind of
+parameters with which we enhance a request. The specific type of options which can be used
+with this operation is link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+
+include::../../rest/operations/raw/options-usage-meo.adoc[]
 
 include::../../rest/concepts/raw/outcome.adoc[]
 
 == Examples
+
+include::../../rest/operations/examples/raw/modify-attr-user.adoc[]
+include::../../rest/operations/examples/raw/modify-attr.adoc[]
+
 
 == See Also
 

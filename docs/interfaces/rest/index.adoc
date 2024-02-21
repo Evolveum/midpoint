@@ -7,19 +7,10 @@
 :page-wiki-metadata-modify-date: 2021-02-16T10:07:40.669+01:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :page-toc: top
-:page-keywords: [ 'rest', 'restful', 'api', 'web', 'service', 'interface', 'ui', 'operations' ]
-
-
-//TODO ask about the version
-
-// *Version:* 4.4 +
-// *Status:* Public +
-// *Stability:* [.green]#STABLE#, only backward-compatible changes expected +
-// *Platform:* RESTful interface +
-// *Dependencies:* xref:/midpoint/reference/schema/[Data Model], Common schema, Query schema +
-// *Responsible person:* Katarina Bolemant
+:page-keywords: [ 'rest', 'interface', 'rest api', 'restful']
+:search-alias: "rest"
 
 == Description
 
@@ -33,7 +24,7 @@ There are many possibilities which we provide in regard to the endpoints you can
 that we have a dedicated page for them.
 
 .To display a *list of REST endpoints* please have a look at:
-xref:/midpoint/reference/interfaces/rest/resource-types/[REST Endpoints]
+xref:/midpoint/reference/interfaces/rest/endpoints/[REST Endpoints]
 
 .For a *more technical description* of our REST api please have a look here:
 xref:/midpoint/reference/interfaces/rest/concepts/[Concepts]
@@ -56,23 +47,166 @@ GET http://localhost:8080/midpoint/ws/rest/self?options=raw
 .Request to read own profile data (raw) full example using CURL
 xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/#_ex_get_own_profile_information_json_raw[Request to read own profile data]
 
+=== REST Endpoints
 Naturally by having a feature rich interface there is no "one size fits them all" way to invoke the operations, so the url will
 be different in specific use cases. The most common ones you can see
 at xref:/midpoint/reference/interfaces/rest/#_common_use_cases[this] section of the documentation.
 
-The REST interface provides you with a long list of *web resource types* which you can access. The interface also provides
-you with *different kinds of operations*, based on the type of resource you choose.
+The REST interface provides you with a long list of *Endpoints* which you can access. The interface also provides
+you with *different kinds of operations*, based on the type of object endpoint you choose.
 
-.*Commonly Used Web Resource Types:*
-- xref:/midpoint/reference/interfaces/rest/resource-types/users/[users]
-- xref:/midpoint/reference/interfaces/rest/resource-types/roles/[roles]
-- xref:/midpoint/reference/interfaces/rest/resource-types/organizational-units/[orgs]
-- xref:/midpoint/reference/interfaces/rest/resource-types/resources/[resources]
-- xref:/midpoint/reference/interfaces/rest/resource-types/rpc/[rpc]
+.*Commonly Used Object Endpoints:*
+- xref:/midpoint/reference/interfaces/rest/endpoints/users/[users]
+- xref:/midpoint/reference/interfaces/rest/endpoints/roles/[roles]
+- xref:/midpoint/reference/interfaces/rest/endpoints/organizational-units/[orgs]
+- xref:/midpoint/reference/interfaces/rest/endpoints/resources/[resources]
+- xref:/midpoint/reference/interfaces/rest/endpoints/rpc/[rpc]
 
 
-.The *full collection of web resource types* can be found here:
-xref:/midpoint/reference/interfaces/rest/resource-types/[Web Resource Types]
+.The *full collection of Object Endpoints* can be found here:
+xref:/midpoint/reference/interfaces/rest/endpoints/[Endpoints]
+
+=== Request Content Types
+There are multiple possibilities regarding the content type of the request body and also
+regarding the type of data which will be returned to the client.
+
+The content type can be specified inside the URI of the request. This is done via the
+addition of a *request header*.
+
+.Content-Type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default)
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+By using the above request in the following example:
+
+include::../rest/operations/examples/raw/get-user-self-xml.adoc[]
+
+TIP:: Note the *"Accept: application/xml"* Header usage.
+
+You could have multiple different types of output format:
+
+[source,xml]
+----
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+oid="00000000-0000-0000-0000-000000000002">
+    <name>administrator</name>
+    <description>Description parameter modified via REST</description>
+    <metadata/>
+    <operationExecution/>
+    <operationExecution/>
+    <indestructible>true</indestructible>
+    <assignment/>
+    <assignment/>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000300" relation="org:default" type="c:ArchetypeType"/>
+    <roleMembershipRef/>
+    <roleMembershipRef/>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+        <effectiveStatus>enabled</effectiveStatus>
+        <enableTimestamp></enableTimestamp>
+        <lockoutStatus>normal</lockoutStatus>
+    </activation>
+    <credentials/>
+    <behavior/>
+    <fullName>midPoint Administrator</fullName>
+    <givenName>midPoint</givenName>
+    <familyName>Administrator</familyName>
+</user>
+
+----
+
+[source,json]
+----
+{
+  "user" : {
+    "oid" : "00000000-0000-0000-0000-000000000002",
+    "version" : "",
+    "name" : "administrator",
+    "description" : "Description parameter modified via REST",
+    "metadata" : {},
+    "operationExecution" : [ {}, {} ],
+    "indestructible" : true,
+    "assignment" : [ {}, {} ],
+    "iteration" : 0,
+    "iterationToken" : "",
+    "archetypeRef" : {
+      "oid" : "00000000-0000-0000-0000-000000000300",
+      "relation" : "org:default",
+      "type" : "c:ArchetypeType"
+    },
+    "roleMembershipRef" : [ {}, {}],
+    "activation" : {
+      "administrativeStatus" : "enabled",
+      "effectiveStatus" : "enabled",
+      "enableTimestamp" : "",
+      "lockoutStatus" : "normal"
+    },
+    "credentials" : {},
+    "behavior" : {},
+    "fullName" : "midPoint Administrator",
+    "givenName" : "midPoint",
+    "familyName" : "Administrator"
+  }
+}
+----
+
+[source,yaml]
+----
+---
+user:
+  oid: "00000000-0000-0000-0000-000000000002"
+  version: ""
+  name: "administrator"
+  description: "Description parameter modified via REST"
+  metadata:
+  operationExecution:
+  - :
+  - :
+  indestructible: true
+  assignment:
+  - :
+  - :
+  iteration: 0
+  iterationToken: ""
+  archetypeRef:
+    oid: "00000000-0000-0000-0000-000000000300"
+    relation: "org:default"
+    type: "c:ArchetypeType"
+  roleMembershipRef:
+  - :
+  - :
+  activation:
+    administrativeStatus: "enabled"
+    effectiveStatus: "enabled"
+    enableTimestamp: "2024-01-09T14:44:06.815+01:00"
+    lockoutStatus: "normal"
+  credentials:
+  behavior:
+  fullName: "midPoint Administrator"
+  givenName: "midPoint"
+  familyName: "Administrator"
+----
+
 
 == MidPoint Client
 
@@ -90,133 +224,6 @@ xref:/midpoint/reference/interfaces/midpoint-client-java/[MidPoint Client Librar
 2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get User with the REST API]
 3. Create User with the REST API
 4. Assign User Account with the REST API
-
-
-
-// TODO refactoring this to specific example chapters
-// == Usage samples
-//
-// [TIP]
-// ====
-// If you are using file as a source for the data in the REST call with *curl*, please, don't forget to use '*@*' before the path to your file.
-//
-// Sometimes the newlines are not correctly handled during the transfer.
-// (See bug:MID-5229[].) If that occurs, please use `--data-binary`  instead of `-d`.
-// ====
-//
-// The source files used here for the samples can be found at our git link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/rest[repository].
-//
-// === Create new Resource (OpenDJ)
-//
-// [source,bash]
-// ----
-// curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/resources -d @pathToMidpointGit\samples\rest\opendj-resource-sync.xml -v
-// ----
-//
-// === Create or Update object
-//
-// [source,bash]
-// ----
-// curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X PUT http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2 -d @pathToMidpointGit\samples\rest\opendj-resource-sync.xml -v
-//
-// ----
-//
-// === Get object
-//
-// [source,bash]
-// ----
-// curl --user administrator:5ecr3t -X GET http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
-// ----
-//
-// .Get Object in JSON format
-// [source,bash]
-// ----
-// curl --user administrator:5ecr3t -H "Accept: application/json" -X GET https://demo.evolveum.com:443/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
-// ----
-//
-// === Test Resource (OpenDJ)
-//
-// [source,bash]
-// ----
-// curl --user administrator:5ecr3t -X POST http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2/test
-// ----
-//
-// === Import accounts from resource (Account object class from OpenDJ)
-//
-// [source,bash]
-// ----
-// curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2/import/AccountObjectClass
-// ----
-//
-// === Find owner of shadow
-//
-// [source,bash]
-// ----
-// curl --user administrator:5ecr3t -X GET http://localhost:8080/midpoint/ws/rest/shadows/d0133de0-0d7b-4a36-9d9d-98640216804a/owner
-//
-// ----
-//
-// (Note: d0133de0-0d7b-4a36-9d9d-98640216804a is expected to be the OID of a shadow.
-// If you would like to really execute this command, replace it by a concrete OID from your repository.)
-//
-// === Modify object (assign account)
-//
-// Modifies the user "administrator":
-//
-// [source,bash]
-// ----
-// curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X PATCH http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002 -d @pathToMidpointGit\samples\rest\modification-assign-account.xml
-//
-// ----
-//
-// === Searching
-//
-// Search all accounts:
-//
-// [source,bash]
-// ----
-// curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/shadows/search -d @pathToMidpointGit\samples\rest\query-all-accounts.xml
-// ----
-//
-// Search all users:
-//
-// [source,bash]
-// ----
-// curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/users/search -d @pathToMidpointGit\samples\rest\query-all-users.xml
-// ----
-//
-// === Notify change
-//
-// [source,bash]
-// ----
-// curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/notifyChange -d @pathToMidpointGit\samples\rest\notify-change-modify-password.xml -v
-// ----
-//
-// == History
-//
-// [%autowidth]
-// |===
-// | Version | Date | Description | Change Author
-//
-// | 3.3
-// | December 2015
-// | Declared as stable version
-// | Radovan Semancik
-//
-//
-// |
-// | 2013-2015
-// | untracked improvements
-// | Katarina Valalikova
-//
-//
-// |
-// | April 2013
-// | Initial version
-// | Katarina Valalikova
-//
-//
-// |===
 
 == See Also
 
