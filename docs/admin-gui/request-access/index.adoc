@@ -38,7 +38,7 @@ Search result items can be also modified using expression defined in `autocomple
 Minimum number of characters needed to start autocomplete can be configured using `group/autocompleteMinChars`.
 Default value is 2.
 
-In following example filter template will create substring search `givenName like '%King *<VALUE>*%'`.
+In following example filter template will create substring search `givenName like '%King *<VALUE_FROM_AUTOCOMPLETE_TEXT>*%'`.
 Results will be displayed in format `<USER_NAME> (<USER_OID>)`
 
 [source, xml]
@@ -51,17 +51,19 @@ Results will be displayed in format `<USER_NAME> (<USER_OID>)`
     <collection>
         <collectionRef oid="1324096e-3b16-4097-86b2-47c43b1d2ad5" type="ArchetypeType"/>
     </collection>
-    <searchFilterTemplate>
-        <q:text>
-            givenName contains `"King " + input`
-        </q:text>
-    </searchFilterTemplate>
-    <displayExpression>
-        <script>
-            <code>return basic.stringify(object.name) + " (" + object.oid + ")"</code>
-        </script>
-    </displayExpression>
-    <autocompleteMinChars>1</autocompleteMinChars>
+    <autocompleteConfiguration>
+        <searchFilterTemplate>
+            <q:text xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                givenName contains `"King " + input`
+            </q:text>
+        </searchFilterTemplate>
+        <displayExpression>
+            <script>
+                <code>return basic.stringify(object.name) + " (" + object.oid + ")"</code>
+            </script>
+        </displayExpression>
+        <autocompleteMinChars>1</autocompleteMinChars>
+    </autocompleteConfiguration>
 </group>
 ----
 
