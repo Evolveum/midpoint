@@ -1,6 +1,8 @@
 :page-visibility: hidden
 
 .Execute password reset for user
+Please see note:
+
 [NOTE]
 ====
 This example also needs a configuration change in the system global security policy. You have to enable

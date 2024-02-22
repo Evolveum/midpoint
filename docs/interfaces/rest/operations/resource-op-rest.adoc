@@ -6,7 +6,6 @@
 == Description
 A set of operations which are specific for objects of the "Resource" type residing on the "resources" endpoint.
 
-
 == Request
 
 For the request you should use the HTTP POST method. The URI of the request itself depends on the type of operation.
