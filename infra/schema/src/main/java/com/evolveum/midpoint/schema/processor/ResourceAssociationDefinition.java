@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -23,10 +24,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.AbstractFreezable;
-import com.evolveum.midpoint.prism.Freezable;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -54,6 +51,15 @@ public class ResourceAssociationDefinition extends AbstractFreezable
         return associationTarget;
     }
 
+    public String getResourceOid() {
+        return associationTarget.getResourceOid();
+    }
+
+    public QName getObjectClassName() {
+        // All association target types must share the same object class name, so it's OK to select any of them.
+        return associationTarget.getObjectClassName();
+    }
+
     void setAssociationTarget(ResourceObjectTypeDefinition associationTarget) {
         checkMutable();
         this.associationTarget = associationTarget;
@@ -76,6 +82,10 @@ public class ResourceAssociationDefinition extends AbstractFreezable
 
     public @NotNull Collection<String> getIntents() {
         return definitionBean.getIntent();
+    }
+
+    public boolean hasMultipleIntents() {
+        return getIntents().size() > 1;
     }
 
     /** We rely on the assumptions about multiple intents described for {@link ResourceObjectAssociationType#getIntent()}. */
