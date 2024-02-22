@@ -11,7 +11,6 @@ The base URL of REST API is link:http://localhost:8080/midpoint/ws/rest[http://l
 
 * Use the base URL + path from the table below to request concrete operation.
 
-
 * Supply the \{type} with the specific type of object you want to add (or modify, delete, [.line-through]#search#, etc).
 Supported types are listed xref:/midpoint/reference/interfaces/rest/endpoints/[here]
 
@@ -21,6 +20,8 @@ Supported types are listed xref:/midpoint/reference/interfaces/rest/endpoints/[h
 *Supported options* column shows supported options for different operations.
 To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api/model/users*?options=raw*
 
+* The data in the body should be written in one of the  xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[supported *Media Types*]
+
 [%autowidth]
 |===
 | Operation name | Operation type | Path | Supported options | Data | Response
@@ -29,7 +30,7 @@ To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api
 | POST
 | /\{type}
 | link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
-| Object to create in the XML form
+| Object to create
 a| * 201 Created, Location set to point to the newly created object
 * 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
 * 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
@@ -39,7 +40,7 @@ a| * 201 Created, Location set to point to the newly created object
 | PUT
 | /\{type}/\{oid}
 | link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
-| Object to create in the XML form
+| Object to create
 a| * 201 Created, Location set to point to the newly created object
 * 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
 * 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
