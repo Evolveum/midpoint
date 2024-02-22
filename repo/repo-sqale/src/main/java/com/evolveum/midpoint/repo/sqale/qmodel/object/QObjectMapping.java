@@ -95,7 +95,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     }
 
 
-    private boolean storeSplitted = true;
+    private boolean storeSplitted = false;
 
 
     protected QObjectMapping(
