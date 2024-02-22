@@ -82,7 +82,7 @@ public class UnlockTriggerHandler implements SingleTriggerHandler {
             // This also causes the change to be audited.
             modelService.executeChanges(
                     List.of(
-                            prismContext.deltaFor(FocusType.class)
+                            prismContext.deltaFor(focus.getClass())
                                     .item(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)
                                     .replace(LockoutStatusType.NORMAL)
                                     .asObjectDelta(focus.getOid())),
