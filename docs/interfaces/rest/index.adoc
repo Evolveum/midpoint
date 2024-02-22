@@ -66,7 +66,17 @@ you with *different kinds of operations*, based on the type of object endpoint y
 .The *full collection of Object Endpoints* can be found here:
 xref:/midpoint/reference/interfaces/rest/endpoints/[Endpoints]
 
-=== Request Content Types
+=== Content Type
+
+Please have a look at the following example of a search request (we used curl as a REST client):
+
+include::../rest/operations/examples/raw/search-all-users.adoc[]
+
+By changing the content headers in the request you are capable of using
+different formats in the request body. Please see *below* for the
+"request" and "return" content.
+
+==== Request Content Types
 There are multiple possibilities regarding the content type of the request body and also
 regarding the type of data which will be returned to the client.
 
@@ -79,8 +89,29 @@ addition of a *request header*.
 "Content-Type: application/json"
 ----
 
+[source,xml]
+----
+<q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <!-- empty query = return all records -->
+</q:query>
+----
+
+[source,json]
+----
+{
+  "query" : ""
+}
+----
+
+[source,yaml]
+----
+query: "\n    \n"
+----
+
+==== Accept ("return") Content Types
+
 You might need to specify the accepted type of content in case
-you are interested in a format different from xml (default)
+you are interested in a format different from xml (default). This can be done via the "Accept" header
 
 .Accept type header example, other media types are supported as well
 [source, http]
@@ -88,123 +119,153 @@ you are interested in a format different from xml (default)
 "Accept: application/json"
 ----
 
-By using the above request in the following example:
-
-include::../rest/operations/examples/raw/get-user-self-xml.adoc[]
-
 TIP:: Note the *"Accept: application/xml"* Header usage.
 
 You could have multiple different types of output format:
 
 [source,xml]
 ----
-<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-oid="00000000-0000-0000-0000-000000000002">
-    <name>administrator</name>
-    <description>Description parameter modified via REST</description>
-    <metadata/>
-    <operationExecution/>
-    <operationExecution/>
-    <indestructible>true</indestructible>
-    <assignment/>
-    <assignment/>
-    <iteration>0</iteration>
-    <iterationToken/>
-    <archetypeRef oid="00000000-0000-0000-0000-000000000300" relation="org:default" type="c:ArchetypeType"/>
-    <roleMembershipRef/>
-    <roleMembershipRef/>
-    <activation>
-        <administrativeStatus>enabled</administrativeStatus>
-        <effectiveStatus>enabled</effectiveStatus>
-        <enableTimestamp></enableTimestamp>
-        <lockoutStatus>normal</lockoutStatus>
-    </activation>
-    <credentials/>
-    <behavior/>
-    <fullName>midPoint Administrator</fullName>
-    <givenName>midPoint</givenName>
-    <familyName>Administrator</familyName>
-</user>
+<t:object xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+ xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+ xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+ xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:type="apti:ObjectListType">
+    <apti:object oid="a9885c61-c442-42d8-af34-8182a8653e3c" version="" xsi:type="c:UserType">
+        <name>Jack</name>
+        <metadata/>
+        <operationExecution/>
+        <assignment/>
+        <iteration>0</iteration>
+        <iterationToken/>
+        <roleMembershipRef/>
+        <linkRef oid="062ac29f-f296-4824-aeab-9a0feb9e8bd3" relation="org:default" type="c:ShadowType"/>
+        <activation/>
+        <emailAddress>jacko@evolveum.com</emailAddress>
+        <credentials/>
+        <givenName>Jack</givenName>
+        <familyName>Sparrow</familyName>
+    </apti:object>
+    <apti:object oid="00000000-0000-0000-0000-000000000002" version="" xsi:type="c:UserType">
+        <name>administrator</name>
+        <description>Description parameter modified via REST</description>
+        <metadata/>
+        <operationExecution/>
+        <indestructible>true</indestructible>
+        <assignment/>
+        <iteration>0</iteration>
+        <iterationToken/>
+        <archetypeRef oid="00000000-0000-0000-0000-000000000300" relation="org:default" type="c:ArchetypeType"/>
+        <roleMembershipRef/>
+        <activation/>
+        <credentials/>
+        <behavior/>
+        <fullName>midPoint Administrator</fullName>
+        <givenName>midPoint</givenName>
+        <familyName>Administrator</familyName>
+    </apti:object>
+</t:object>
 
 ----
 
 [source,json]
 ----
 {
-  "user" : {
-    "oid" : "00000000-0000-0000-0000-000000000002",
-    "version" : "",
-    "name" : "administrator",
-    "description" : "Description parameter modified via REST",
-    "metadata" : {},
-    "operationExecution" : [ {}, {} ],
-    "indestructible" : true,
-    "assignment" : [ {}, {} ],
-    "iteration" : 0,
-    "iterationToken" : "",
-    "archetypeRef" : {
-      "oid" : "00000000-0000-0000-0000-000000000300",
-      "relation" : "org:default",
-      "type" : "c:ArchetypeType"
-    },
-    "roleMembershipRef" : [ {}, {}],
-    "activation" : {
-      "administrativeStatus" : "enabled",
-      "effectiveStatus" : "enabled",
-      "enableTimestamp" : "",
-      "lockoutStatus" : "normal"
-    },
-    "credentials" : {},
-    "behavior" : {},
-    "fullName" : "midPoint Administrator",
-    "givenName" : "midPoint",
-    "familyName" : "Administrator"
-  }
+	"@ns": "http://prism.evolveum.com/xml/ns/public/types-3",
+	"object": {
+		"@type": "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#ObjectListType",
+		"object": [
+			{
+				"@type": "c:UserType",
+				"oid": "a9885c61-c442-42d8-af34-8182a8653e3c",
+				"version": "",
+				"name": "Jack",
+				"metadata": {},
+				"operationExecution": [],
+				"assignment": [],
+				"iteration": 0,
+				"iterationToken": "",
+				"roleMembershipRef": [],
+				"linkRef": {},
+				"activation": {},
+				"emailAddress": "jacko@evolveum.com",
+				"credentials": {},
+				"givenName": "Jack",
+				"familyName": "Sparrow"
+			},
+			{
+				"@type": "c:UserType",
+				"oid": "00000000-0000-0000-0000-000000000002",
+				"version": "",
+				"name": "administrator",
+				"description": "Description parameter modified via REST",
+				"metadata": {},
+				"operationExecution": [],
+				"indestructible": true,
+				"assignment": [],
+				"iteration": 0,
+				"iterationToken": "",
+				"archetypeRef": {},
+				"roleMembershipRef": [],
+				"activation": {},
+				"credentials": {},
+				"behavior": {},
+				"fullName": "midPoint Administrator",
+				"givenName": "midPoint",
+				"familyName": "Administrator"
+			}
+		]
+	}
 }
 ----
 
 [source,yaml]
 ----
 ---
-user:
-  oid: "00000000-0000-0000-0000-000000000002"
-  version: ""
-  name: "administrator"
-  description: "Description parameter modified via REST"
-  metadata:
-  operationExecution:
-  - :
-  - :
-  indestructible: true
-  assignment:
-  - :
-  - :
-  iteration: 0
-  iterationToken: ""
-  archetypeRef:
-    oid: "00000000-0000-0000-0000-000000000300"
-    relation: "org:default"
-    type: "c:ArchetypeType"
-  roleMembershipRef:
-  - :
-  - :
-  activation:
-    administrativeStatus: "enabled"
-    effectiveStatus: "enabled"
-    enableTimestamp: "2024-01-09T14:44:06.815+01:00"
-    lockoutStatus: "normal"
-  credentials:
-  behavior:
-  fullName: "midPoint Administrator"
-  givenName: "midPoint"
-  familyName: "Administrator"
+'@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
+object: !<http://midpoint.evolveum.com/xml/ns/public/common/api-types-3/ObjectListType>
+  object:
+  - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/UserType>
+    oid: "a9885c61-c442-42d8-af34-8182a8653e3c"
+    version: ""
+    name: "Jack"
+    metadata:
+    operationExecution:
+    assignment:
+    iteration: 0
+    iterationToken: ""
+    roleMembershipRef:
+    linkRef:
+      oid: "062ac29f-f296-4824-aeab-9a0feb9e8bd3"
+      relation: "org:default"
+      type: "c:ShadowType"
+    activation:
+    emailAddress: "jacko@evolveum.com"
+    credentials:
+    givenName: "Jack"
+    familyName: "Sparrow"
+  - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/UserType>
+    oid: "00000000-0000-0000-0000-000000000002"
+    version: ""
+    name: "administrator"
+    description: "Description parameter modified via REST"
+    metadata:
+    operationExecution:
+    indestructible: true
+    assignment:
+    iteration: 0
+    iterationToken: ""
+    archetypeRef:
+      oid: "00000000-0000-0000-0000-000000000300"
+      relation: "org:default"
+      type: "c:ArchetypeType"
+    roleMembershipRef:
+    activation:
+    credentials:
+    behavior:
+    fullName: "midPoint Administrator"
+    givenName: "midPoint"
+    familyName: "Administrator"
 ----
 
 
