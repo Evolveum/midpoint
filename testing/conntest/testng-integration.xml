@@ -21,7 +21,8 @@
             <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapAd2019"/>
             <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapAd2019Strange"/>
 
-            <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapAd2016"/>
+            <!-- AD 2016 is unsupported -->
+            <!--<class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapAd2016"/>-->
             <!-- Not testing "strange" configuration on 2016 to keep test runtime down. -->
 
             <!-- Tests that need some love. Those are failing now, but they are worth saving.
