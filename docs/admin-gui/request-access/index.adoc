@@ -27,12 +27,16 @@ There are two type of tiles:
 * Group - defined by collection or query filter. Group allow to select one or more users via autocomplete text field or by clicking *Select manually* button.
 
 Autocomplete search withing group is done using `user/name` property with `norm` poly-string matcher by default.
+Autocomplete configuration can be customized using `group/autocompleteConfiguration` configuration option.
 
-Concrete search behaviour can be customized using `group/searchFilterTemplate` where filter with expression can be used.
-Search result labels can be also configured using expression defined in `group/userDisplayName`.
+Concrete search behaviour can be customized using `autocompleteConfiguration/searchFilterTemplate` where filter with expression can be used.
+Filter expression should contain `input` variable which will be replaced by user input.
+Such filter will be joined with group defined filter/collection using `and` operator.
+
+Search result items can be also modified using expression defined in `autocompleteConfiguration/displayExpression`.
+
 Minimum number of characters needed to start autocomplete can be configured using `group/autocompleteMinChars`.
-
-Search behaviour configuration was moved to `autoCompleteConfiguration` configuration option.
+Default value is 2.
 
 In following example filter template will create substring search `givenName like '%King *<VALUE>*%'`.
 Results will be displayed in format `<USER_NAME> (<USER_OID>)`
@@ -57,7 +61,7 @@ Results will be displayed in format `<USER_NAME> (<USER_OID>)`
             <code>return basic.stringify(object.name) + " (" + object.oid + ")"</code>
         </script>
     </userDisplayName>
-    <autocompleteMinChars>2</autocompleteMinChars>
+    <autocompleteMinChars>1</autocompleteMinChars>
 </group>
 ----
 
@@ -90,6 +94,8 @@ Default set of relations is:
 Set of relations, their label and icon can be configured, see xref:../../concepts/relation/index.adoc[Relations] and xref:./configuration.adoc[Configuration].
 
 If there's only one relation to be selected, then this step is not visible (and skipped).
+
+List of available relations is based authorizations and first user that was added in `Person of interest` step.
 
 [NOTE]
 ====
@@ -140,7 +146,7 @@ Roles of teammate option can be disabled via configuration.
 
 Search for teammate will by default create filter using `user/name` property with `norm` poly-string matcher by default.
 
-Search behaviour can be customized using `autoCompleteConfiguration` configuration option.
+Search behaviour can be customized using `autoCompleteConfiguration` configuration option, similar to auto-complete in <<Person of interest>> step.
 
 .Roles of teammate
 image::step-3-roles-of-teammate.png[Roles of teammate,100%]
@@ -154,6 +160,10 @@ Last step in request access wizard is checkout.
 In this step user can finalize whole request, review and solve conflicts if necessary.
 If configuration allows comment for this request can be added also with custom validity period for requested items.
 This can be done either globally for whole cart or for each item separately.
+
+If there are items in the cart that has to be approved and items that don't need approval process, then submit behavior can be configured using `systemConfiguration/roleManagement/defaultExecuteAfterAllApprovals` configuration option.
+This boolean flag defines whether all changes are applied after all approvals or items can be assigned immediately if they don't need approval process.
+This flag is global and can't be overridden via `adminGuiConfiguration/accessRequest` configuration.
 
 === Conflict solver
 
