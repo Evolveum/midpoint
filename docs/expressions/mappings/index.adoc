@@ -898,7 +898,7 @@ Can be used to disable a mapping or during xref:/midpoint/reference/simulation/[
 
 Default value is `active`.
 
-Check xref:/midpoint/reference/support-4.8/concepts/object-lifecycle/[] for details.
+Check xrefv:/midpoint/reference/support-4.8/concepts/object-lifecycle/[] for details.
 
 === Exclusive
 

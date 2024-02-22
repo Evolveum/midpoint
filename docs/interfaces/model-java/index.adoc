@@ -126,7 +126,7 @@ Update to adapt to midPoint 3.0 changes.
 
 | 0.1
 | September 2011
-| Initial version derived from xref:/midpoint/reference/before-4.8/legacy/soap/[IDM Model Web Service Interface]
+| Initial version derived from xrefv:/midpoint/reference/before-4.8/legacy/soap/[IDM Model Web Service Interface]
 | Radovan Semancik
 
 
