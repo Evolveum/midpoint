@@ -14,20 +14,57 @@ Case objects are a part of the REST API web resources.
 cases/
 ----
 
-== Applicable Operations
+== Operations And Examples
 
-The Case web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
+The Cases endpoint is a part of the Create-Read-Update-Delete (CRUD) endpoints
 present in midPoint. This is apparent in the operations which are available for this type of object.
 
--- TODO
+=== Create Case Objects
+// todo ?
+include::../operations/examples/raw/create-case-assign-employee.adoc[]
 
-// - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
 
+=== Get Case Objects
+
+Get operation for fetching a single specific object.
+
+.Get Case object with REST
+
+include::../operations/examples/raw/get-case-employee.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Case Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all-cases.adoc[]
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Case Objects
+
+include::../operations/examples/raw/modify-attr-case-assign-employee.adoc[]
+
+include::../operations/examples/raw/modify-attr.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Role Objects
+
+include::../operations/examples/raw/delete-case.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Case Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== Common Use-case Examples
+1.
 
 == JSON Example
 
