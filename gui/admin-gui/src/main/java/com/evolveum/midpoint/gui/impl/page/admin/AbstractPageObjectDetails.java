@@ -11,9 +11,12 @@ import java.util.Collection;
 import java.util.List;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
+import com.evolveum.midpoint.web.page.error.PageError404;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -441,13 +444,22 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
+        String panelId = WebComponentUtil.getPanelIdentifierFromParams(getPageParameters());
 
-        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject(),
-                WebComponentUtil.getPanelIdentifierFromParams(getPageParameters()));
+        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject(), panelId);
 
-        if (defaultConfiguration != null) {
+        if (defaultConfiguration != null && WebComponentUtil.getElementVisibility(defaultConfiguration.getVisibility())) {
             return defaultConfiguration;
         }
+
+        if (panelId != null) {
+            //wrong panel id or hidden panel
+            getSession().error(
+                    createStringResource(
+                            "AbstractPageObjectDetails.panelNotFound", panelId, getPageTitleModel().getObject()).getString());
+            throw new RestartResponseException(PageError404.class);
+        }
+
         return getPanelConfigurations().getObject()
                 .stream()
                 .filter(config -> isApplicableForOperation(config) && WebComponentUtil.getElementVisibility(config.getVisibility()))
