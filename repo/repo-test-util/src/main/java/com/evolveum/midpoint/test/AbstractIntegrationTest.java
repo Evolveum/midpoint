@@ -2009,7 +2009,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 if (actualValue == null) {
                     return false;
                 }
-                if (!actualValue.isEncrypted()) {
+                if (!actualValue.isEncrypted() && !actualValue.isExternal()) {
                     return false;
                 }
                 String actualClearPassword = protector.decryptString(actualValue);
@@ -2103,7 +2103,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (ps == null) {
             return null;
         }
-        if (ps.isEncrypted()) {
+        if (ps.isEncrypted() || ps.isExternal()) {
             return "[E:" + protector.decryptString(ps) + "]";
         }
         if (ps.isHashed()) {
