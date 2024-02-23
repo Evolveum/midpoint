@@ -1,0 +1,11 @@
+= Count
+
+Count command counts objects in midPoint repository.
+It can count all objects or objects filtered by type (`-t, --type`) and filter (`-f, --filter`).
+Result is printed to `SYSOUT` separately for each object type and total count.
+
+.Example of counting all objects in the repository
+[source,bash]
+----
+./bin/ninja.sh count
+----

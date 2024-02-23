@@ -1,0 +1,18 @@
+= Help
+
+Help command prints help for specific command or all commands.
+When printing help for all commands, it will print general option and lists all commands.
+
+.Example of printing help for all commands
+[source,bash]
+----
+./bin/ninja.sh help
+----
+
+When printing help for specific command, it will also print usage and all options for that command.
+
+.Example of printing help for specific command
+[source,bash]
+----
+./bin/ninja.sh help export
+----
