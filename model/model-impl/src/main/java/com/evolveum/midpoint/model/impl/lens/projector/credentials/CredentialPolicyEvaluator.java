@@ -566,7 +566,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         try {
             switch (storageType) {
                 case ENCRYPTION:
-                    if (ps.isEncrypted()) {
+                    if (ps.isEncrypted() || ps.isExternal()) {
                         break;
                     }
                     if (ps.isHashed()) {

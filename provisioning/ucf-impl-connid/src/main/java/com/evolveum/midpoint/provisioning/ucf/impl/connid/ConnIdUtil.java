@@ -609,7 +609,7 @@ public class ConnIdUtil {
         if (ps == null || ps.isHashed()) {
             return null;
         }
-        if (!ps.isEncrypted()) {
+        if (!ps.isEncrypted() && !ps.isExternal()) {
             if (ps.getClearValue() == null) {
                 return null;
             }
@@ -659,7 +659,7 @@ public class ConnIdUtil {
         if (ps == null) {
             return null;
         }
-        if (!ps.isEncrypted()) {
+        if (!ps.isEncrypted() && !ps.isExternal()) {
             if (ps.getClearValue() == null) {
                 return null;
             }

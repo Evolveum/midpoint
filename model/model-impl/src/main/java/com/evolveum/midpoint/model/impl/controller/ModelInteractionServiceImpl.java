@@ -1508,7 +1508,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             return null;
         }
         try {
-            if (protectedString.isEncrypted()) {
+            if (protectedString.isEncrypted() || protectedString.isExternal()) {
 
                 return protector.decryptString(protectedString);
 

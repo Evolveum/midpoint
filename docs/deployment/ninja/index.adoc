@@ -31,7 +31,7 @@ Another great example is "administrator" user lockout.
 Users of this tool need to be aware that using repository layer, access is not validated using
 authorisations, model component is not used during processing and changes are not audited.
 It allows you to obtain or modify data in an otherwise unusable midPoint.
-Ninja also plan to support some other operations like listing keys from keystore, enforcing objects
+Ninja also supports some other operations like listing keys from keystore, enforcing objects
 reencryption with new key, DB schema validation, password reset or user unlock.
 
 Ninja can be started using standard `java -jar` or via bundled shell/bat script.
@@ -43,19 +43,19 @@ option `-m` using `MIDPOINT_HOME` environment variable, defaulting to the `<midp
 
 Connection options:
 
-* using `midpoint.home`
+* using `${midpoint.home}`
 * using REST service (not yet implemented)
 
 === midpoint.home connection
 
-This type of connection initialises repository layer of midPoint and operates on top of the database as a new midPoint node.
-For all commands that communicate with DB layer `midpoint.home` must be specified using `-m <path>` option.
+This type of connection initialises repository layer of midPoint and operates on top of the database.
+For all commands that communicate with DB layer `${midpoint.home}` must be specified using `-m <path>` option.
 Ninja will try to read database connection information from `config.xml`.
 This will not work when there's only datasource definition in `config.xml` (no JDBC url/username/password).
 In such chase one have to specify URL (`-U`), username (`-u`) and password (`-p` or `-P`).
 These options can also be used to override JDBC URL, username and password specified in `config.xml`.
 
-With bash, you can provide `MIDPOINT_HOME` for the `ninja.sh` command with this shortcut:
+With bash, you can provide environment variable `MIDPOINT_HOME` for the `ninja.sh` command with this shortcut:
 
 [source,bash]
 ----
@@ -67,7 +67,7 @@ MIDPOINT_HOME=/var/other-mp-home <midpoint>/bin/ninja.sh [general options] [comm
 Only JDBC driver that is bundled is for PostgreSQL database.
 This means that for other databases, you must provide JDBC driver yourself.
 Most of the time JDBC driver is already present in `<midpoint>/lib` directory.
-However, it will not be picked up automatically and you must point Ninja to it explicitly.
+However, it will not be picked up automatically, and you must point ninja to it explicitly.
 Example when using `java -jar`:
 
 [source,bash]
@@ -86,89 +86,137 @@ If the bundled scripts are used, you can specify the path to the driver with `-j
 
 Ninja currently supports these operations:
 
-* count
-* delete
+* <<Count>>
+* <<Delete>>
 * download-distribution (midPoint 4.4.6, 4.7.2, 4.8 or later)
-* export
+* <<Export>>
 * export-audit (midPoint 4.4.1 or later)
 * export-mining (midPoint 4.4.4 or later)
-* help (midPoint 4.8 or later)
-* import
+* <<Help>>
+* <<Import>>
 * import-audit (midPoint 4.4.1 or later)
 * info
-* keys
+* <<Keys>>
 * pre-upgrade-check (midPoint 4.4.6, 4.7.2, 4.8 or later)
 * run-sql (midPoint 4.4.6, 4.7.2, 4.8 or later)
 * trace (midPoint 4.4.6, 4.7.2, 4.8 or later)
 * upgrade-distribution (midPoint 4.4.6, 4.7.2, 4.8 or later)
 * upgrade-installation (midPoint 4.4.6, 4.7.2, 4.8 or later)
 * upgrade-objects (midPoint 4.4.6, 4.7.2, 4.8 or later)
-* verify (midPoint 3.9 or later)
+* Verify (midPoint 3.9 or later)
 
-=== Import
+=== Count
 
-Import command allow users to import objects from `SYSOUT` or file (either plain XML or compressed ZIP, which may contain multiple files).
-One can define `oid`, multiple types or filter to filter imported objects.
-Example of import from XML file using 4 threads with raw and overwrite option using explicit `midpoint.home` folder path:
+Count command counts objects in midPoint repository.
+It can count all objects or objects filtered by type (`-t, --type`) and filter (`-f, --filter`).
+Result is printed to `SYSOUT` separately for each object type and total count.
 
-.Example
+.Example of counting all objects in the repository
 [source,bash]
 ----
-java -jar ninja.jar -m ~/Desktop/midpoint/var import -O -i midpoint/samples/objects/user-ceresnickova.xml -l 4 -r
+./bin/ninja.sh count
 ----
+
+=== Delete
+
+Delete command deletes objects from midPoint repository.
+Objects which should be deleted can be filtered in several ways:
+
+* by oid (`--oid`)
+* type (`-t, --type`) and filter (`-f, --filter`)
+
+Additionally, there is option to confirm each delete operation (`-a`, `--ask`).
 
 === Export
 
-Export command allows users to export objects to SYSOUT or file (either plain XML or compressed ZIP).
-One can define oid, multiple types or filter to filter exported objects.
-Export objects to compressed zip file using 4 threads:
+Export command allows users to export objects.
+Object can be exported to `SYSOUT` or to file (`-o`, `--output`) and compressed using ZIP if needed (`-z`, `--zip`).
+Export also support multi-threading (`-l`, `--multi-thread`).
+Use `-O`, `--overwrite` switch if you wish to overwrite an existing output file.
+Objects exported from midPoint can be filtered in several ways:
 
-.Example
+* by oid (`--oid`)
+* by type (`-t, --type`) and filter (`-f, --filter`)
+
+[WARNING]
+When exporting shadow objects from midPoint `-r (--raw)` option must be used to export data correctly.
+Raw option will add schema for shadow attributes (to be used in import later on).
+Behavior without raw option will export shadow attribute without schema because of backward compatibility.
+
+.Example of export to compressed zip file using 4 threads:
 [source,bash]
 ----
-java -jar ninja.jar -m ~/Desktop/midpoint/var export -O export.zip -z -l 4
+./bin/ninja.sh export -O export.zip -z -l 4
 ----
 
-Use -O switch if you wish to overwrite an existing output file.
+=== Help
+
+Help command prints help for specific command or all commands.
+When printing help for all commands, it will print general option and lists all commands.
+
+.Example of printing help for all commands
+[source,bash]
+----
+./bin/ninja.sh help
+----
+
+When printing help for specific command, it will also print usage and all options for that command.
+
+.Example of printing help for specific command
+[source,bash]
+----
+./bin/ninja.sh help export
+----
+
+=== Import
+
+Import command allow users to import objects to midPoint.
+Objects can be read from `SYSOUT` or file (`-i`, `--input`) and uncompressed using ZIP if needed (`-z`, `--zip`).
+Import also support multi-threading (`-l`, `--multi-thread`).
+Use `-O`, `--overwrite` switch if you wish to overwrite existing objects in midPoint.
+Object read from input (file or sysout) can be filtered in several ways:
+
+* by oid (`--oid`)
+* by type (`-t, --type`) and filter (`-f, --filter`)
+
+.Example of import from XML file using 4 threads with raw and overwrite option
+[source,bash]
+----
+./bin/ninja.sh import -O -i midpoint/samples/objects/user-ceresnickova.xml -l 4 -r
+----
 
 === Verify
 
-[TIP]
-.MidPoint 3.9 and later
-====
-This feature is available only in midPoint 3.9 and later.
-
-====
-
 Command that verifies objects in midPoint repository.
-It displays warnings about objects to SYSOUT or file.
+It displays warnings about objects to `SYSOUT` or file.
 Similarly to export, one can define oid, multiple types or filter to filter verified objects.
 Simple usage to verify all objects in the repository for all warnings:
 
-.Example: verify all objects in repository for all warnings
+.Example which verifies all objects in repository, checks all warnings
 [source,bash]
 ----
-ninja.sh verify
+./bin/ninja.sh verify
 ----
 
-There is a -w switch that can be used to select specific warnings to display.
+There is a `-w` switch that can be used to select specific warnings to display.
 Currently, it only supports values deprecated and plannedRemoval.
 Following command will show warnings about planned removal of items used by all objects in the repository:
 
-.Example: verify all objects in repository for planned removal of items
+.Example which verifies all objects in repository, checks only planned removal of items
 [source,bash]
 ----
-ninja.sh verify --verification-category planned_removal
+./bin/ninja.sh verify --verification-category planned_removal
 ----
 
 === Keys
 
-List keys in with aliases from keystore located in `midpoint.home`.
+Command that lists keys from keystore defined in `${midpoint.home}/config.xml` using `keystore/keyStorePath`.
+Password for keys can be filled in using `-k <PASSWORD>` or `-K` to ask for password interactively.
 
-.Example
+.List keys in with aliases from keystore located in `${midpoint.home}`
 [source,bash]
 ----
-java -jar ninja.jar -m /opt/midpoint-home keys -K
+./bin/ninja.sh keys -K
 ----
 
 === Audit export/import
