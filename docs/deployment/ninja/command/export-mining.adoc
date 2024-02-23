@@ -1,0 +1,49 @@
+= Export mining
+
+[NOTE]
+Role mining export is an anonymized export of relationships between roles, users, and
+organizations. The goal of the export is to obtain a map of relations between objects, which could
+be helpful in the development of new features such as "Role mining".
+For detailed information regarding role mining export, please refer to the
+xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data].
+
+.Example: role mining export to a `zipped` file, `overwriting` any existing file. `SEQUENTIAL` name mode and `ADVANCED` security by default. For exporting in JSON format, rename the exported file extension to `-o role-mining-export.json`.
+[source,bash]
+----
+ninja.sh export-mining -o role-mining-export.xml.zip -z -O
+----
+
+----
+java -jar ninja.jar -m <midpoint.home> export-mining -o role-mining-export.xml.zip -z -O
+
+----
+
+.Example: role mining export using `ENCRYPTED` name mode and  `STANDARD` security.
+[source,bash]
+----
+ninja.sh export-mining -o role-mining-export.xml.zip -z -O -nm ENCRYPTED -s STANDARD
+----
+
+.Example: role mining export using an `Axiom filter` for roles.
+[source,bash]
+----
+ninja.sh export-mining -o role-mining-export.xml -fr '% name != "Superuser"'
+----
+
+.Example: role mining export using `ORIGINAL` name mode, identifiers Application and Business role `prefixes/suffixes` and specific `archetypes oids`.
+[source,bash]
+----
+ninja.sh export-mining -o role-mining-export.xml  -nm ORIGINAL -arp "APP_ROLE_, AR-" -ars "_Apr" -brp "BUS_ROLE_" -brs "_BR" --business-role-archetype-oid "e9c4654e-c146-4b5f-8336-2065c65060df" --application-role-archetype-oid "52b8361a-c955-4132-97a4-77ff3820beeb"
+----
+
+.Example: role mining export with `disable organization` structure export.
+[source,bash]
+----
+ninja.sh export-mining -o role-mining-export.xml --disable-org
+----
+
+.Example: role mining import.
+[source,bash]
+----
+java -jar ninja.jar -m <midpoint.home> import -O -i <path_to_imported_file> -l 4 -r
+----

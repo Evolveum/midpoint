@@ -26,11 +26,11 @@ For concrete examples of upgrade scenarios, please see <<Upgrade procedure examp
 . *Preparation phase*
 .. Read release notes for the new midPoint version / for all intermediate midPoint versions between your current and the new midPoint version (this is especially important for LTS to LTS upgrade)
 .. <<Upgrade tasks to use activities>>
-.. <<Pre-upgrade check>>
+.. xref:./index.adoc[Pre-upgrade check]
 .. <<Verification & upgrade objects>>
 //.. Review verification results
 //.. Run upgrade objects (based on verification results)
-.. <<Download distribution>>
+.. xref:./index.adoc[Download distribution]
 . *Upgrade phase*
 .. Stop midPoint
 .. <<Upgrade DB schema>>
@@ -622,32 +622,6 @@ MidPoint Studio plugin with Intellij Idea will be able to help with migration of
 
 More information about task migration can be found in xref:/midpoint/reference/tasks/activities/migration/[Migration of Tasks from 4.0/4.3 to 4.4] section of midPoint documentation.
 
-=== Pre-upgrade check
-
-Pre-upgrade check is a simple check that verifies that current midPoint version matches version of distribution that is going to be upgraded.
-There are two items being checked:
-
-* database schema version
-* midPoint cluster nodes version
-
-==== Database schema version check
-
-This check verifies that database schema version matches supported version.
-Database schema version is stored in `m_global_metadata` table and separate version is stored for midPoint repository and audit.
-Schema version check can be skipped if necessary using option `--skip-database-version-check`.
-
-==== Nodes version check
-
-This check verifies that all nodes in midPoint cluster have the same version and that version is eligible for upgrade.
-Nodes version check can be skipped if necessary using option `--skip-nodes-version-check`.
-
-.Example of how to do pre-upgrade check
-[source,bash]
-----
-./bin/ninja.sh pre-upgrade-check \
-  --skip-nodes-version-check
-----
-
 === Verification & upgrade objects
 
 Verification is a process that reads objects from midPoint repository and checks whether they are compatible with new version of midPoint.
@@ -705,36 +679,7 @@ Objects can be upgraded by using CSV report from verify:
 
 
 
-=== Download distribution
 
-Download distribution is simple step that helps you download specific version of distribution of midPoint.
-Midpoint distribution is downloaded from https://download.evolveum.com/midpoint/[download.evolveum.com].
-
-By default, next version of midPoint is downloaded based on current version.
-E.g. for feature release 4.7.1, next version is 4.8 and for LTS upgrade from 4.4.6 ninja will download 4.8 as well.
-
-Version which should be downloaded can be specified using `--distribution-version` option.
-Use `latest` to specify latest build to be downloaded (at the time of writing it's `4.8-SNAPSHOT`).
-
-User can also provide custom build downloaded or built separately (e.g. using maven overlay) using switch `--distribution-archive <PATH_TO_ZIP>`.
-This switch is useful mainly in compound command `upgrade-distribution` where user can use distribution located on filesystem without need to download it.
-
-.Example of how to download distribution (default next version based on the current midPoint)
-[source,bash]
-----
-./bin/ninja.sh download-distribution \
-  --temp-dir $SCRIPT_DIR/.upgrade \
-  --distribution-directory $SCRIPT_DIR/.upgrade/new-distribution
-----
-
-.Example on how to download specific version of distribution (latest snapshot)
-[source,bash]
-----
-./bin/ninja.sh download-distribution \
-  --temp-dir ./tmp \
-  --distribution-version latest \
-  --distribution-directory ./tmp/latest-distribution
-----
 
 === Upgrade DB schema
 
