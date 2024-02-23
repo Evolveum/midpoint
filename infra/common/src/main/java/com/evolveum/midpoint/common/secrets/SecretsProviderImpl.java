@@ -18,9 +18,13 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecretsProviderType;
 
 public abstract class SecretsProviderImpl<T extends SecretsProviderType> implements SecretsProvider<T> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SecretsProviderImpl.class);
 
     private static final String[] EMPTY_DEPENDENCIES = new String[0];
 
@@ -80,7 +84,11 @@ public abstract class SecretsProviderImpl<T extends SecretsProviderType> impleme
 
         CacheValue<?> value = cache.get(key);
         if (value != null) {
-            if (Clock.get().currentTimeMillis() <= ttl) {
+            LOGGER.trace("Cache hit for key {}", key);
+
+            if (Clock.get().currentTimeMillis() - value.ttl <= ttl) {
+                LOGGER.trace("Cache entry for key {} is still valid, using cached value", key);
+
                 if (value.value == null) {
                     return null;
                 }
@@ -92,12 +100,20 @@ public abstract class SecretsProviderImpl<T extends SecretsProviderType> impleme
                 }
                 return (ST) value.value();
             } else {
+                LOGGER.trace("Cache entry for key {} expired", key);
+
                 cache.remove(key);
             }
+        } else {
+            LOGGER.trace("Cache miss for key {}", key);
         }
 
         ST secret = resolveSecret(key, type);
-        cache.put(key, new CacheValue<>(secret, System.currentTimeMillis() + ttl));
+
+        if (ttl > 0) {
+            LOGGER.trace("Caching secret for key {}", key);
+            cache.put(key, new CacheValue<>(secret, Clock.get().currentTimeMillis() + ttl));
+        }
 
         return secret;
     }
