@@ -599,7 +599,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private PrismObject<O> loadPrismObject() {
         Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
         OperationResult result = task.getResult();
-        PrismObject<O> prismObject;
+        PrismObject<O> prismObject = null;
         try {
             if (!isEditObject()) {
                 prismObject = getPrismContext().createObject(getType());
@@ -608,12 +608,19 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 prismObject = WebModelServiceUtils.loadObject(getType(), focusOid, getOperationOptions(), false, this, task, result);
                 LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, prismObject);
             }
+        } catch (RestartResponseException e) {
+            //ignore restart exception
         } catch (Exception ex) {
             result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
             throw redirectBackViaRestartResponseException();
         }
         result.computeStatusIfUnknown();
+        if (prismObject == null && result.isFatalError()) {
+            getSession().getFeedbackMessages().clear();
+            getSession().error(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"));
+            throw new RestartResponseException(PageError404.class);
+        }
         showResult(result, false);
         return prismObject;
     }
