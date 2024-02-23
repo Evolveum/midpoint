@@ -139,6 +139,8 @@ include::command/upgrade-installation.adoc[]
 
 include::command/upgrade-objects.adoc[]
 
+include::command/verify.adoc[]
+
 :leveloffset: 0
 
 == Other scenarios
