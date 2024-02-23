@@ -1,10 +1,25 @@
 = Request access
 :page-toc: top
-:page-since: "4.6"
 
-Request access functionality is a complete rewrite and redesign of midPoint xref:../role-request/index.adoc[role requesting UI].
+Many traditional Role-Based Access Control (RBAC) theories seem to be based on assumption that there is some kind of all-knowing authority that knows which user should have which role.
+This approach works in some kind of organizations, but in reality such organizations are very rare.
+In practice the knowledge about roles and role policies is not centralized.
+It is rather distributed among many people in the organization: application owners have part of the knowledge, line managers have more bits of knowledge, other parts are maintained by security officers and other specialists.
+It is almost impossible to analyze this knowledge and specify it in a form of an algorithm that a machine can execute.
+In addition to that, such policy is constantly changing.
+Implementing this a fully-automated system is almost always infeasible.
 
-New UI takes form of proper wizard with up to four steps:
+Therefore, most identity management and governance systems come with an alternative approach: user are requesting role assignment.
+The request is then routed through an xref:/midpoint/reference/cases/approval/[approval process]. If the request is approved, then the requested roles are assigned.
+
+However, this approach requires _end users_ to take part in the interaction.
+End users are usually not experts on RBAC and they do not have comprehensive knowledge about role design and structures used in the organization.
+Therefore, midPoint has a simplified view of xref:/midpoint/reference/admin-gui/role-catalog/[role catalog] that is suitable for end users.
+The role catalog is used to present the roles in a similar way as an e-shop presents the products.
+The roles are sorted into categories and sub-categories.
+The user may browse the role catalog and select the roles.
+
+User interface takes form of proper wizard with up to four steps:
 
 * Person of interest
 * Relation
