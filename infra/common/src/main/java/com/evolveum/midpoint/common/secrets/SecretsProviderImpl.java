@@ -86,7 +86,7 @@ public abstract class SecretsProviderImpl<T extends SecretsProviderType> impleme
         if (value != null) {
             LOGGER.trace("Cache hit for key {}", key);
 
-            if (Clock.get().currentTimeMillis() <= ttl) {
+            if (Clock.get().currentTimeMillis() - value.ttl <= ttl) {
                 LOGGER.trace("Cache entry for key {} is still valid, using cached value", key);
 
                 if (value.value == null) {
@@ -112,7 +112,7 @@ public abstract class SecretsProviderImpl<T extends SecretsProviderType> impleme
 
         if (ttl > 0) {
             LOGGER.trace("Caching secret for key {}", key);
-            cache.put(key, new CacheValue<>(secret, System.currentTimeMillis() + ttl));
+            cache.put(key, new CacheValue<>(secret, Clock.get().currentTimeMillis() + ttl));
         }
 
         return secret;
