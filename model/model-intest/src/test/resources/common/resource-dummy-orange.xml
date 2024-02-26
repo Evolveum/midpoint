@@ -45,7 +45,10 @@
             <icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
             <icfi:tolerateDuplicateValues>false</icfi:tolerateDuplicateValues>
             <icfi:uselessGuardedString>
-                <clearValue>whatever</clearValue>
+                <t:externalData>
+                    <t:provider>properties-provider</t:provider>
+                    <t:key>resource-dummy-orange</t:key>
+                </t:externalData>
             </icfi:uselessGuardedString>
             <icfi:uselessString>
                 <expression>

@@ -33,7 +33,8 @@ public class EnvironmentVariablesSecretsProvider extends SecretsProviderImpl<Env
         }
 
         String value = System.getenv(finalKey);
+        byte[] data = value != null ? value.getBytes() : null;
 
-        return mapValue(value.getBytes(), type);
+        return mapValue(data, type);
     }
 }
