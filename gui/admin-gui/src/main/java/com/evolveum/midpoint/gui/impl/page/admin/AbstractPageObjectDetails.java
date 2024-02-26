@@ -20,11 +20,13 @@ import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -467,7 +469,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private PrismObject<O> loadPrismObject() {
         Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
         OperationResult result = task.getResult();
-        PrismObject<O> prismObject;
+        PrismObject<O> prismObject = null;
         if (!isEditObject()) {
             try {
                 prismObject = getPrismContext().createObject(getType());
@@ -477,10 +479,22 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 throw redirectBackViaRestartResponseException();
             }
         } else {
-            String focusOid = getObjectOidParameter();
-            prismObject = WebModelServiceUtils.loadObject(getType(), focusOid, getOperationOptions(), false, this, task, result);
-            LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, prismObject);
+            try {
+                String focusOid = getObjectOidParameter();
+                prismObject = WebModelServiceUtils.loadObject(getType(), focusOid, getOperationOptions(), false, this, task, result);
+                LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, prismObject);
+            } catch (RestartResponseException e) {
+                //ignore restart exception
+            }
         }
+
+        result.computeStatusIfUnknown();
+        if (prismObject == null && result.isFatalError()) {
+            getSession().getFeedbackMessages().clear();
+            getSession().error(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"));
+            throw new RestartResponseException(PageError404.class);
+        }
+
         result.recordSuccess();
 
         showResult(result, false);
