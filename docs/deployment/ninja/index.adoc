@@ -143,75 +143,20 @@ include::command/verify.adoc[]
 
 :leveloffset: 0
 
-== Other scenarios
+== FAQ
 
-=== Administrator unlock
+=== Can I use ninja from midPoint 4.8.* distribution with deployment running midPoint 4.4.*?
 
-Ninja does not provide unlock or password reset operations explicitly.
-Normally administrator can do this via GUI.
-It may happen that administrator locks out itself from the system, in which case we recommend to reinitialize the object:
+No, ninja 4.8 internally uses repository (DB) implementation from midPoint 4.8
+MidPoint 4.4.* has differences in DB schema compared to midPoint 4.8.
+Technically it is possible to run ninja 4.4.7 against midPoint 4.4.2 for example since DB schema didn't change between these versions.
+However, this is not recommended and not supported.
 
-.Administrator object refresh from the initial object
-[source,bash]
-----
-ninja.sh import --input <midpoint>/doc/config/initial-objects/050-user-administrator.xml --overwrite
-----
+=== Why raw (`-r`, `--raw`) option is needed when exporting objects?
 
-Now, this is rather a drastic measure - let's modify the existing user instead.
-First we need to export it.
-
-[NOTE]
-If you want to use Ninja for midPoint running with H2 database (which is sensible only for testing), the application must be stopped first.
-Other databases have dedicated servers and Ninja can be used while midPoint is running.
-
-.Exporting administrator user by OID
-[source,bash]
-----
-ninja.sh export --oid 00000000-0000-0000-0000-000000000002 --output admin.xml
-----
-
-Alternatively, you can use type option and filter to specify name
-(don't forget the `--overwrite` option, if the file already exists):
-
-.Exporting user by name
-[source,bash]
-----
-ninja.sh export --type user --filter '% name = "administrator"' --output admin.xml
-----
-
-Now is the time to carefully edit the object XML.
-If a single object is in the XML (which is our case), you can remove the `<objects>` wrapper element.
-This may actually help with code completion if xref:/midpoint/tools/studio/[midPoint Studio] is used.
-
-Typical fixes to shape up the uncooperative user object are:
-
-* Remove `administrativeStatus` and `effectiveStatus` elements from the top-level `activation`
-element (be sure not to modify `activation` under `assignments` inadvertently).
-This should fix any problems with disabled user.
-* If you forgot the password, change the whole content of the `credentials/password/value` element
-to this snippet (must be inside the `value` element):
-+
-[source,xml]
-----
-<t:clearValue>asdf1234</t:clearValue>
-----
-
-After the fixes, it's time to push the object back into the repository.
-Import process can handle both plain object or objects inside `<object>` container.
-Use the following command:
-
-.Importing the fixed user object
-[source,bash]
-----
-./bin/ninja.sh import --input admin.xml --overwrite
-----
-
-Now you should enjoy easy administrator login.
-Of course, this works for any user object, but using the GUI with working administrator is the way to go.
-
-[IMPORTANT]
-If you changed the password in this way, don't forget to change it immediately to something more solid.
-This will also properly encrypt it in the object representation, as expected.
+Raw option will tell ninja to export objects together with their definitions if needed.
+These definitions are used to import objects back to midPoint.
+For more information see <<Export>>.
 
 == Full help
 
