@@ -1,75 +1,17 @@
-= Report Type REST Endpoint
-:page-nav-title: Report
-:page-display-order: 2600
-:page-toc: top
-
-== Description
-
-Here we are describing the Report object type in relation to midPoints REST API. The
-Report objects are a part of the REST API web resources.
-
-.Endpoint
-[source, http]
+:page-visibility: hidden
+[source,bash]
 ----
-reports/
+# Authenticating with the credentials "administrator" and password "y0uR_P455woR*d" on a localhost instance running on port 8080
+curl --user administrator:y0uR_P455woR*d -H "Accept: application/json" -X GET http://localhost:8080/midpoint/ws/rest/reports/4de173d5-4dff-4e4f-bfb8-47f951f26637?options=raw -v
 ----
 
-== Operations And Examples
+The response is an HTTP 200 code in case of success with a response body containing the queried item.
 
-The Reports endpoint operations and examples.
-
-=== Create Report Object
-
-include::../operations/examples/raw/create-report.adoc[]
-
-- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
-
-=== Get Reports Type Objects
-
-Get operation for fetching a single specific object.
-
-.Get Report Type object with REST
-
-include::../operations/examples/raw/get-reports.adoc[]
-
-- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
-
-=== Search for Report Type Objects
-
-Search operation usable for fetching the full list of objects or a list based on filter.
-
-include::../operations/examples/raw/search-all-reports.adoc[]
-
-include::../operations/examples/raw/search-all.adoc[]
-
-- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
-
-=== Modify report Type Objects
-
-include::../operations/examples/raw/modify-attr-reports.adoc[]
-
-- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
-
-=== Delete Reports Type Objects
-
-include::../operations/examples/raw/delete-reports.adoc[]
-
-- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
-
-=== Generate and Validate Operations for Reports Type Objects
-
-Operations to generate or validate values.
-
-- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
-
-== JSON Example
-
-Example output of information regarding a specific Report object. Some parts of the example
-might have been removed or simplified for the purpose of the example.
-
-.Show JSON Example
+.Example Output of *"Get Resource object"* example
 [%collapsible]
 ====
+The example is *simplified*, some properties were removed to keep the example output "short". This example *does
+not* contain all possible properties of this object type.
 [source, json]
 ----
 {
@@ -218,7 +160,3 @@ might have been removed or simplified for the purpose of the example.
 }
 ----
 ====
-
-== See Also
-- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
-- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

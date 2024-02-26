@@ -3,8 +3,6 @@
 :page-display-order: 100
 :page-toc: top
 
-//TODO more descriptive content
-
 == Supported Operations
 
 The base URL of REST API is link:http://localhost:8080/midpoint/ws/rest[http://localhost:8080/midpoint/ws/rest] (alternatively to */ws/rest* paths */api/model* and */rest/model* are also supported).
