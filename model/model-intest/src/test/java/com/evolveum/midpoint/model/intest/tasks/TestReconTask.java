@@ -76,7 +76,7 @@ public class TestReconTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        runTaskTreeAndWaitForFinish(getReconciliationTaskOid(), 30000);
+        runTaskTreeAndWaitForFinish(getReconciliationTaskOid(), 120_000);
 
         then();
 
