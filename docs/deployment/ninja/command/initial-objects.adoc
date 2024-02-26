@@ -1,0 +1,6 @@
+= Initial objects
+
+[NOTE]
+Experimental feature.
+
+#TODO#

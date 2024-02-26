@@ -1,0 +1,22 @@
+= Verify
+
+Command that verifies objects in midPoint repository.
+It displays warnings about objects to `SYSOUT` or file.
+Similarly to export, one can define oid, multiple types or filter to filter verified objects.
+Simple usage to verify all objects in the repository for all warnings:
+
+.Example which verifies all objects in repository, checks all warnings
+[source,bash]
+----
+./bin/ninja.sh verify
+----
+
+There is a `-w` switch that can be used to select specific warnings to display.
+Currently, it only supports values deprecated and plannedRemoval.
+Following command will show warnings about planned removal of items used by all objects in the repository:
+
+.Example which verifies all objects in repository, checks only planned removal of items
+[source,bash]
+----
+./bin/ninja.sh verify --verification-category planned_removal
+----

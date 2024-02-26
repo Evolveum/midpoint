@@ -8,9 +8,9 @@
 package com.evolveum.midpoint.common.secrets;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -22,6 +22,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerSecretsProviderType;
 
+/**
+ * Secrets provider that reads secrets from files.
+ * Each secret is stored as separate file where secret name is file name and secret value is file content.
+ * Parent directory for secrets has to be defined in configuration.
+ */
 public abstract class ContainerSecretsProvider<T extends ContainerSecretsProviderType> extends SecretsProviderImpl<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerSecretsProvider.class);
@@ -39,9 +44,6 @@ public abstract class ContainerSecretsProvider<T extends ContainerSecretsProvide
         super.initialize();
 
         parentDirectory = getParentDirectory();
-        if (parentDirectory == null) {
-            throw new IllegalStateException("No parent directory defined for secrets provider " + getIdentifier());
-        }
 
         T config = getConfiguration();
         charset = config.getCharset() != null ? Charset.forName(config.getCharset()) : StandardCharsets.UTF_8;
@@ -61,8 +63,8 @@ public abstract class ContainerSecretsProvider<T extends ContainerSecretsProvide
 
         ST value = null;
         if (valueFile.exists() && valueFile.isFile() && valueFile.canRead()) {
-            try (InputStream is = new FileInputStream(valueFile)) {
-                byte[] content = IOUtils.toByteArray(is);
+            try (Reader reader = new FileReader(valueFile)) {
+                byte[] content = IOUtils.toByteArray(reader, charset);
 
                 value = mapValue(content, type);
             } catch (IOException ex) {
