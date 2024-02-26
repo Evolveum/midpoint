@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
@@ -28,6 +29,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertiesSecretsPro
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecretsProvidersType;
 
 public class SecretProviderManagerTest {
+
+    @BeforeClass
+    public void beforeClass() {
+        // clock initialized, its being used in
+        new Clock().init();
+    }
 
     @Test
     public void test100TestProvidersInitialization() throws Exception {
