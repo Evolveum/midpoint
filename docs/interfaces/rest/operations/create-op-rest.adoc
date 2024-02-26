@@ -82,7 +82,7 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Examples
 
-1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-object/[Create object]
+include::../operations/examples/raw/create-user-jack.adoc[]
 
 == See Also
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
