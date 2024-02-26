@@ -2,5 +2,5 @@
 
 Following page describes common use cases for ninja.
 
-* xref:./administrator-unlock.adoc
-* xref:./upgrade-with-ninja.adoc
+* xref:./administrator-unlock.adoc[]
+* xref:./upgrade-with-ninja.adoc[]
