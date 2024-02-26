@@ -1,74 +1,17 @@
-= Access Certification Campaign Type REST Endpoint
-:page-nav-title: Access Certification Campaign
-:page-display-order: 900
-:page-toc: top
-
-== Description
-
-Here we are describing the Access Certification Campaign object type in relation to midPoints REST API. The
-Access Certification Campaign objects are a part of the REST API web resources.
-
-.Endpoint
-[source, http]
+:page-visibility: hidden
+[source,bash]
 ----
-accessCertificationCampaigns/
+# Authenticating with the credentials "administrator" and password "y0uR_P455woR*d" on a localhost instance running on port 8080
+curl --user administrator:y0uR_P455woR*d -H "Accept: application/json" -X GET http://localhost:8080/midpoint/ws/rest/accessCertificationCampaigns/3a0fb4a2-ffbd-4e72-bbff-47327df054c4?options=raw -v
 ----
 
-== Operations And Examples
+The response is an HTTP 200 code in case of success with a response body containing the queried item.
 
-The Access Certification Campaign Type endpoint operations and examples.
-// === Create Access Certification Campaign Type Object
-//
-// include::../operations/examples/raw/create-acc.adoc[]
-//
-// - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
-
-=== Get Access Certification Campaign Type Objects
-
-Get operation for fetching a single specific object.
-
-.Get Access Certification Campaign Type object with REST
-
-include::../operations/examples/raw/get-acc.adoc[]
-
-- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
-
-=== Search for Access Certification Campaign Type Objects
-
-Search operation usable for fetching the full list of objects or a list based on filter.
-
-include::../operations/examples/raw/search-all-acc.adoc[]
-
-include::../operations/examples/raw/search-all.adoc[]
-
-- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
-
-=== Modify Access Certification Campaign Type Objects
-
-include::../operations/examples/raw/modify-attr-acc.adoc[]
-
-- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
-
-=== Delete Access Certification Campaign Type Objects
-
-include::../operations/examples/raw/delete-acc.adoc[]
-
-- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
-
-=== Generate and Validate Operations for Access Certification Campaign Type Objects
-
-Operations to generate or validate values.
-
-- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
-
-== JSON Example
-
-Example output of information regarding a specific Access Certification Campaign object. Metadata
-is usually a part of the output, yet it was removed for the purpose of the example.
-
-.Show JSON Example
+.Example Output of *"Get Access Certification Campaign Type object"* example
 [%collapsible]
 ====
+The example is *simplified*, some properties were removed to keep the example output "short". This example *does
+not* contain all possible properties of this object type.
 [source, json]
 ----
 {
@@ -158,7 +101,3 @@ is usually a part of the output, yet it was removed for the purpose of the examp
 }
 ----
 ====
-
-== See Also
-- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
-- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

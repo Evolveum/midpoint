@@ -14,20 +14,39 @@ Access Certification Definition objects are a part of the REST API web resources
 accessCertificationDefinitions/
 ----
 
-== Applicable Operations
+== Operations And Examples
 
-The Access Certification Definition web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
-present in midPoint. This is apparent in the operations which are available for this type of object.
+The Access Certification Definition Type endpoint operations and examples.
 
--- TODO
+=== Create Access Certification Definition Type Object
 
-// - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest.adoc/[Generate and
-// Validate Operations]
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Access Certification Definition Type Objects
+
+Get operation for fetching a single specific object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Access Certification Definition Type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== ModifyAccess Certification Definition Type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Access Certification Definition Type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Access Certification Definition Type Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
 
 == JSON Example
 
@@ -37,9 +56,82 @@ is usually a part of the output, yet it was removed for the purpose of the examp
 .Show JSON Example
 [%collapsible]
 ====
-[source, http]
+[source, json]
 ----
-
+{
+	"accessCertificationDefinition": {
+		"oid": "8f37ee15-9945-4872-8b90-8cb75f304b41",
+		"version": "2",
+		"name": "User's assignemnts according to the manager",
+		"description": "Certifies all users' assignments. Everything is certified by the administrator.",
+		"operationExecution": {},
+		"iteration": 0,
+		"iterationToken": "",
+		"handlerUri": "http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment",
+		"scopeDefinition": {
+			"@type": "c:AccessCertificationAssignmentReviewScopeType",
+			"objectType": "#UserType",
+			"searchFilter": {
+				"org": {
+					"@ns": "http://prism.evolveum.com/xml/ns/public/query-3",
+					"path": "parentOrgRef",
+					"orgRef": {
+						"oid": "7d1e7065-455c-48d5-a469-1734fd255739",
+						"scope": "SUBTREE"
+					}
+				}
+			},
+			"itemSelectionExpression": {
+				"script": [
+					{}
+				]
+			},
+			"includeRoles": true,
+			"includeOrgs": true,
+			"includeResources": false
+		},
+		"remediationDefinition": {
+			"style": "automated"
+		},
+		"stageDefinition": {
+			"@id": 1,
+			"number": 1,
+			"name": "Manager's review",
+			"description": "In this stage, the manager has to review all the assignments of users belonging to his org unit.",
+			"duration": "P14D",
+			"notifyBeforeDeadline": [
+				"PT48H",
+				"PT12H"
+			],
+			"notifyOnlyWhenNoDecision": true,
+			"reviewerSpecification": {
+				"useObjectManager": {
+					"allowSelf": false
+				}
+			},
+			"timedActions": {
+				"@id": 2,
+				"time": {
+					"value": [
+						"P7D"
+					]
+				},
+				"actions": {
+					"escalate": {
+						"approverRef": {
+							"oid": "00000000-0000-0000-0000-000000000002",
+							"relation": "org:default",
+							"type": "c:UserType"
+						},
+						"delegationMethod": "addAssignees",
+						"escalationLevelName": "Level1"
+					}
+				}
+			}
+		},
+		"lastCampaignIdUsed": 1
+	}
+}
 ----
 ====
 
