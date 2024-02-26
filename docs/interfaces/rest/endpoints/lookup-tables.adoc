@@ -14,19 +14,42 @@ Lookup Table objects are a part of the REST API web resources.
 lookupTables/
 ----
 
-== Applicable Operations
 
-The Lookup Table web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
-present in midPoint. This is apparent in the operations which are available for this type of object.
+== Operations And Examples
 
--- TODO
+The Lookup Table type endpoint operations and examples.
 
-// - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+=== Create Lookup Table type Object
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Lookup Table type Objects
+
+Get operation for fetching a single specific object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Lookup Table type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Lookup Table type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Lookup Table type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Lookup Table Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
 
 == JSON Example
 
@@ -36,9 +59,22 @@ part of the output, yet it was removed for the purpose of the example.
 .Show JSON Example
 [%collapsible]
 ====
-[source, http]
+[source, json]
 ----
-
+{
+	"lookupTable": {
+		"oid": "00000000-0000-0000-0000-000000000230",
+		"version": "1",
+		"name": "Lifecycle States",
+		"metadata": {},
+		"operationExecution": {},
+		"iteration": 0,
+		"iterationToken": "",
+		"row": {
+			"@incomplete": true
+		}
+	}
+}
 ----
 ====
 

@@ -89,6 +89,7 @@ addition of a *request header*.
 "Content-Type: application/json"
 ----
 
+.*Content examples*
 [source,xml]
 ----
 <q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -108,7 +109,7 @@ addition of a *request header*.
 query: "\n    \n"
 ----
 
-==== Accept ("return") Content Types
+==== Reply ("Accept") Content Types
 
 You might need to specify the accepted type of content in case
 you are interested in a format different from xml (default). This can be done via the "Accept" header
@@ -123,6 +124,7 @@ TIP:: Note the *"Accept: application/xml"* Header usage.
 
 You could have multiple different types of output format:
 
+.*Reply content type examples*
 [source,xml]
 ----
 <t:object xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
