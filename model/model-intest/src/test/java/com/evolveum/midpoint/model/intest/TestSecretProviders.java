@@ -106,4 +106,6 @@ public class TestSecretProviders extends AbstractInitializedModelIntegrationTest
 
         return ps;
     }
+
+    // TODO test cacheable secrets provider delegate
 }

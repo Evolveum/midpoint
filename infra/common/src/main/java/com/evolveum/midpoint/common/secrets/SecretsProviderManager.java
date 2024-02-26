@@ -119,8 +119,25 @@ public class SecretsProviderManager {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private <C extends SecretsProviderType> SecretsProvider<?> createProvider(C configuration) {
+        if (configuration == null) {
+            return null;
+        }
+
+        SecretsProvider<?> provider = createProviderImpl(configuration);
+        if (provider == null) {
+            return null;
+        }
+
+        if (configuration.getCache() == null) {
+            return provider;
+        }
+
+        return new CacheableSecretsProviderDelegate<>(provider, configuration.getCache());
+    }
+
+    @SuppressWarnings("unchecked")
+    private <C extends SecretsProviderType> SecretsProvider<?> createProviderImpl(C configuration) {
         if (configuration == null) {
             return null;
         }
