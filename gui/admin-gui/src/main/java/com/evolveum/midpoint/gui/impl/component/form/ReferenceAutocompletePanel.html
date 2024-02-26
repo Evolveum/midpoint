@@ -11,13 +11,16 @@
 
           <div wicket:id="textWrapper">
             <div class="input-group input-group-sm">
-                <input type="text" class="form-control form-control-sm" wicket:id="text" disabled style="cursor: not-allowed; background: #eeeeee;"/>
+                <div wicket:id="text" class="flex-grow-1"/>
                 <span class="input-group-append">
-                    <button wicket:id="edit" class="btn btn-primary" type="button">
-                        <i class="fa fa-arrow-pointer mr-2"/>
-                        <wicket:message key="VerticalFormPrismValueObjectSelectorPanel.choose" />
+                    <button wicket:id="edit" class="btn btn-default" type="button">
+                        <span>
+                            <i class="fa-fw fa-solid fa-arrow-pointer"></i>
+                            <span wicket:id="buttonLabel"></span>
+                        </span>
                     </button>
                 </span>
+
             </div>
             <div>
                 <span wicket:id="feedback" />

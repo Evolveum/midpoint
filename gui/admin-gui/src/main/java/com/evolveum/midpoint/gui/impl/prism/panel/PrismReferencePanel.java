@@ -51,26 +51,29 @@ public class PrismReferencePanel<R extends Referencable>
 
         ListView<PrismReferenceValueWrapperImpl<R>> listOfValues = getValuesContainer();
         listOfValues.visitChildren(ListItem.class, (IVisitor<ListItem, Void>) (item, visit) -> {
-            PrismReferenceValuePanel valuePanel = (PrismReferenceValuePanel) item.get(ID_VALUE);
-            Component inputPanel = valuePanel == null ? null : valuePanel.getValuePanel();
-            if (inputPanel instanceof ValueChoosePanel) {
-                ((ValueChoosePanel)inputPanel).getBaseFormComponent()
-                        .add(AttributeAppender.append(
-                                "aria-label",
-                                getParentPage().createStringResource(
-                                        "PrismReferencePanel.readOnlyText", getHeader().createLabelModel().getObject())));
-                ((ValueChoosePanel)inputPanel).getEditButton()
-                        .add(AttributeAppender.append(
-                                "aria-label",
-                                getParentPage().createStringResource(
-                                        "PrismReferencePanel.editButtonTitle", getHeader().createLabelModel().getObject())));
-            } else if (valuePanel != null) {
-                valuePanel.visitChildren(
-                        FormComponent.class,
-                        (IVisitor<FormComponent, Void>) (component, visitInput) -> component.add(
-                                AttributeAppender.append(
-                                        "aria-labelledby",
-                                        getHeader().getLabelComponent().getMarkupId())));
+            Component valuePanel = item.get(ID_VALUE);
+            if (valuePanel instanceof PrismReferenceValuePanel) {
+                PrismReferenceValuePanel refValuePanel = (PrismReferenceValuePanel) item.get(ID_VALUE);
+                Component inputPanel = refValuePanel == null ? null : refValuePanel.getValuePanel();
+                if (inputPanel instanceof ValueChoosePanel) {
+                    ((ValueChoosePanel) inputPanel).getBaseFormComponent()
+                            .add(AttributeAppender.append(
+                                    "aria-label",
+                                    getParentPage().createStringResource(
+                                            "PrismReferencePanel.readOnlyText", getHeader().createLabelModel().getObject())));
+                    ((ValueChoosePanel) inputPanel).getEditButton()
+                            .add(AttributeAppender.append(
+                                    "aria-label",
+                                    getParentPage().createStringResource(
+                                            "PrismReferencePanel.editButtonTitle", getHeader().createLabelModel().getObject())));
+                } else if (refValuePanel != null) {
+                    refValuePanel.visitChildren(
+                            FormComponent.class,
+                            (IVisitor<FormComponent, Void>) (component, visitInput) -> component.add(
+                                    AttributeAppender.append(
+                                            "aria-labelledby",
+                                            getHeader().getLabelComponent().getMarkupId())));
+                }
             }
         });
     }

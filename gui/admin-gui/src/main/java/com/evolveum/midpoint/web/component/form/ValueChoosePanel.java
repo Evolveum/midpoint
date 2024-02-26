@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -72,18 +73,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
         textWrapper.setOutputMarkupId(true);
 
-        IModel<String> textModel = createTextModel();
-        TextField<String> text = new TextField<>(ID_TEXT, textModel);
-        text.add(new AjaxFormComponentUpdatingBehavior("blur") {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
-            }
-        });
-        text.add(AttributeAppender.append("title", textModel));
-        text.setRequired(isRequired());
-        text.setEnabled(true);
+        Component text = createTextPanel(ID_TEXT);
         textWrapper.add(text);
 
         FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
@@ -112,6 +102,22 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         add(textWrapper);
 
         initButtons();
+    }
+
+    protected Component createTextPanel(String id) {
+        IModel<String> textModel = createTextModel();
+        TextField<String> text = new TextField<>(id, textModel);
+        text.add(new AjaxFormComponentUpdatingBehavior("blur") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+            }
+        });
+        text.add(AttributeAppender.append("title", textModel));
+        text.setRequired(isRequired());
+        text.setEnabled(true);
+        return text;
     }
 
     protected boolean isEditButtonEnabled() {
@@ -223,8 +229,16 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         return ObjectTypeListUtil.createObjectTypeList();
     }
 
+    protected <O extends ObjectType> Class<O> getDefaultType() {
+        List<QName> supportedTypes = getSupportedTypes();
+        if (CollectionUtils.isEmpty(supportedTypes)) {
+            supportedTypes = ObjectTypeListUtil.createObjectTypeList();
+        }
+        return getDefaultType(supportedTypes);
+    }
+
     protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes) {
-        return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.iterator().next());
+        return (Class<O>) WebComponentUtil.qnameToClass(supportedTypes.iterator().next());
     }
 
     /*
@@ -268,7 +282,11 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
     }
 
     public FormComponent<String> getBaseFormComponent() {
-        return (FormComponent<String>) getTextWrapperComponent().get(ID_TEXT);
+        return (FormComponent<String>) getBaseComponent();
+    }
+
+    protected final Component getBaseComponent() {
+        return getTextWrapperComponent().get(ID_TEXT);
     }
 
     public AjaxLink getEditButton() {

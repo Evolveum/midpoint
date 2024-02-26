@@ -272,7 +272,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             newValue.setId(origParentValue.getId());
             Class<?> typeClass = newValue.getComplexTypeDefinition().getTypeClass();
             if (typeClass == null) {
-                typeClass = WebComponentUtil.qnameToClass(PrismContext.get(), newValue.getComplexTypeDefinition().getTypeName());
+                typeClass = WebComponentUtil.qnameToClass(newValue.getComplexTypeDefinition().getTypeName());
             }
             Class<?> key = getClassKeyForMergedClass(typeClass);
             if (key != null) {

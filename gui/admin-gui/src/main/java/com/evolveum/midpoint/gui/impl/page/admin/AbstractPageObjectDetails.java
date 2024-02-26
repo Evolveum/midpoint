@@ -10,11 +10,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
+import com.evolveum.midpoint.util.exception.CommonException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -279,7 +282,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return saveOrPreviewPerformed(target, result, previewOnly, null);
     }
 
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
+    public final Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
 
         PrismObjectWrapper<O> objectWrapper = getModelWrapperObject();
         LOGGER.debug("Saving object {}", objectWrapper);
@@ -289,6 +292,31 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
 
         ExecuteChangeOptionsDto options = getExecuteChangesOptionsDto();
+
+        Collection<ExecutedDeltaPostProcessor> preconditionDeltas;
+        try {
+            preconditionDeltas = getObjectDetailsModels().collectPreconditionDeltas(result);
+        } catch (CommonException ex) {
+            result.recordHandledError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);
+            showResult(result);
+            target.add(getFeedbackPanel());
+            return null;
+        }
+
+        if (!previewOnly && !preconditionDeltas.isEmpty()) {
+            for (ExecutedDeltaPostProcessor preconditionDelta : preconditionDeltas) {
+                OperationResult subResult = result.createSubresult("executePreconditionDeltas");
+                Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(
+                        preconditionDelta.getObjectDeltas(), previewOnly, options, task, subResult, target);
+                if (subResult.isFatalError()) {
+                    afterSavePerformed(subResult, executedDeltas, target);
+                    return null;
+                }
+                preconditionDelta.processExecutedDelta(executedDeltas, AbstractPageObjectDetails.this);
+            }
+        }
+
         Collection<ObjectDelta<? extends ObjectType>> deltas;
         try {
             if (isShowedByWizard()) {
@@ -306,18 +334,28 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             return null;
         }
 
+        if (previewOnly) {
+            for (ExecutedDeltaPostProcessor preconditionDelta : preconditionDeltas) {
+                deltas.addAll(preconditionDelta.getObjectDeltas());
+            }
+        }
+
         LOGGER.trace("returning from saveOrPreviewPerformed");
 
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly,
                 options, task, result, target);
 
+        afterSavePerformed(result, executedDeltas, target);
+
+        return executedDeltas;
+    }
+
+    private void afterSavePerformed(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
         if (!isShowedByWizard()) {
             postProcessResult(result, executedDeltas, target);
         } else {
             postProcessResultForWizard(result, executedDeltas, target);
         }
-
-        return executedDeltas;
     }
 
     protected void postProcessResultForWizard(

@@ -14,10 +14,16 @@ import java.util.Map;
 import java.util.Optional;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +40,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -820,5 +825,18 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public void setValidated(boolean validated) {
         this.validated = validated;
+    }
+
+    @Override
+    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(OperationResult result) throws CommonException {
+        Collection<ExecutedDeltaPostProcessor> processors = new ArrayList<>();
+        for (VW value : getValues()) {
+            Collection<ExecutedDeltaPostProcessor> processor = value.getPreconditionDeltas(result);
+            if (processor == null || processor.isEmpty()) {
+                continue;
+            }
+            processors.addAll(processor);
+        }
+        return processors;
     }
 }

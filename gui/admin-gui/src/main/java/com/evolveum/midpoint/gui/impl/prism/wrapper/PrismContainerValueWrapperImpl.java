@@ -16,13 +16,17 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemWrapperComparator;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -740,5 +744,18 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
             deltas.addAll(delta);
         }
         return deltas;
+    }
+
+    @Override
+    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(OperationResult result) throws CommonException {
+        Collection<ExecutedDeltaPostProcessor> processors = new ArrayList<>();
+        for (ItemWrapper<?, ?> itemWrapper : getItems()) {
+            Collection<ExecutedDeltaPostProcessor> processor = itemWrapper.getPreconditionDeltas(result);
+            if (processor == null || processor.isEmpty()) {
+                continue;
+            }
+            processors.addAll(processor);
+        }
+        return processors;
     }
 }

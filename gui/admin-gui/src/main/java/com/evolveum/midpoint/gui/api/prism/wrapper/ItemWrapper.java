@@ -12,10 +12,14 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -96,4 +100,5 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
     boolean isValidated();
 
     void setValidated(boolean validated);
+    Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(OperationResult result) throws CommonException;
 }

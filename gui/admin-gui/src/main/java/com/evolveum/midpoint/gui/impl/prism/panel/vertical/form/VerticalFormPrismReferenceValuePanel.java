@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.form.ReferenceAutocompletePanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -42,8 +44,7 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
 
     @Override
     protected Component createDefaultPanel(String id) {
-        VerticalFormPrismValueObjectSelectorPanel<R> panel
-                = new VerticalFormPrismValueObjectSelectorPanel<R>(id, new ItemRealValueModel<>(getModel())) {
+        return new ReferenceAutocompletePanel<>(id, new ItemRealValueModel<>(getModel())) {
 
             private static final long serialVersionUID = 1L;
 
@@ -74,6 +75,11 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
             }
 
             @Override
+            protected boolean isButtonLabelVisible() {
+                return true;
+            }
+
+            @Override
             public List<QName> getSupportedTypes() {
                 List<QName> targetTypeList = getParentWrapper().getTargetTypes();
                 if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
@@ -92,16 +98,14 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
             }
 
         };
-
-        return panel;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
         Component valuePanel = getValuePanel();
-        if (valuePanel instanceof VerticalFormPrismReferenceValuePanel) {
-            FormComponent baseFormComponent = ((VerticalFormPrismValueObjectSelectorPanel) valuePanel).getBaseFormComponent();
+        if (valuePanel instanceof ReferenceAutocompletePanel<?>) {
+            FormComponent baseFormComponent = ((ReferenceAutocompletePanel) valuePanel).getBaseFormComponent();
             baseFormComponent.add(AttributeAppender.append("class", () -> {
                 if (baseFormComponent.hasErrorMessage()) {
                     return "is-invalid";
