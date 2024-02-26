@@ -22,6 +22,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerSecretsProviderType;
 
+/**
+ * Secrets provider that reads secrets from files.
+ * Each secret is stored as separate file where secret name is file name and secret value is file content.
+ * Parent directory for secrets has to be defined in configuration.
+ */
 public abstract class ContainerSecretsProvider<T extends ContainerSecretsProviderType> extends SecretsProviderImpl<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerSecretsProvider.class);

@@ -15,8 +15,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileSecretsProviderType;
 
 /**
- * Secrets provider that reads secrets from files.
- * Each secret is stored as separate file where secret name is file name and secret value is file content.
+ * @see ContainerSecretsProvider
  */
 public class FileSecretsProvider extends ContainerSecretsProvider<FileSecretsProviderType> {
 

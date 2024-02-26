@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.common.secrets;
 
+import com.evolveum.midpoint.prism.crypto.SecretsProvider;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,6 +16,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentVariablesSecretsProviderType;
 
+/**
+ * Custom implementation of {@link SecretsProvider} that reads secrets from environment variables.
+ *
+ * Note: This implementation doesn't read secrets from system properties (e.g. -Dkey=value parameters).
+ */
 public class EnvironmentVariablesSecretsProvider extends SecretsProviderImpl<EnvironmentVariablesSecretsProviderType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(EnvironmentVariablesSecretsProvider.class);
