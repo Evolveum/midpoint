@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -34,11 +35,11 @@ public class UcfLiveSyncChange extends UcfChange {
             int localSequenceNumber,
             @NotNull Object primaryIdentifierRealValue,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
-            ResourceObjectDefinition objectDefinition,
-            ObjectDelta<ShadowType> objectDelta,
-            PrismObject<ShadowType> resourceObject,
+            @Nullable ResourceObjectDefinition objectDefinition,
+            @Nullable ObjectDelta<ShadowType> objectDelta,
+            @Nullable UcfResourceObject resourceObject,
             @NotNull UcfSyncToken token,
-            UcfErrorState errorState) {
+            @NotNull UcfErrorState errorState) {
         super(localSequenceNumber, primaryIdentifierRealValue, objectDefinition, identifiers,
                 objectDelta, resourceObject, errorState);
         this.token = token;
@@ -61,8 +62,7 @@ public class UcfLiveSyncChange extends UcfChange {
 
     @Override
     protected void checkObjectClassDefinitionPresence() {
-        if (errorState.isSuccess()) {
-            stateCheck(isDelete() || resourceObjectDefinition != null, "No object class definition for non-delete LS change");
-        }
+        stateCheck(isDelete() || resourceObjectDefinition != null,
+                "No object class definition for non-delete LS change");
     }
 }

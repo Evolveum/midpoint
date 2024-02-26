@@ -3361,7 +3361,7 @@ public final class WebComponentUtil {
         return null;
     }
 
-    public static <I extends Item> PrismObject<LookupTableType> findLookupTable(ItemDefinition<I> definition, PageBase page) {
+    public static <I extends Item<?, ?>> PrismObject<LookupTableType> findLookupTable(ItemDefinition<I> definition, PageBase page) {
         PrismReferenceValue valueEnumerationRef = definition.getValueEnumerationRef();
         return findLookupTable(valueEnumerationRef, page);
     }

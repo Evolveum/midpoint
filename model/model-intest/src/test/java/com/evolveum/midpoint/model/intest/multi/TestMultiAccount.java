@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 /**
  * Test multiple accounts with the same resource+kind+intent.
@@ -188,7 +189,6 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         account.setEnabled(true);
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_PAUL_ATREIDES_FULL_NAME);
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ACCOUNT_PAUL_ATREIDES_ID);
-//        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, TITLE_DUKE);
         getDummyResource(RESOURCE_DUMMY_MULTI_GREEN_NAME).addAccount(account);
 
         // Preconditions
@@ -922,7 +922,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
     private void importMultiGreenAccounts(Task task, OperationResult result) throws Exception {
         getDummyResourceController(RESOURCE_DUMMY_MULTI_GREEN_NAME);
-        modelService.importFromResource(RESOURCE_DUMMY_MULTI_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_MULTI_GREEN_OID, RI_ACCOUNT_OBJECT_CLASS, task, result);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
         waitForTaskFinish(task, 40000);
@@ -930,7 +930,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
     private void importCleverHrAccounts(Task task, OperationResult result) throws Exception {
         getDummyResourceController(RESOURCE_DUMMY_CLEVER_HR_NAME);
-        modelService.importFromResource(RESOURCE_DUMMY_CLEVER_HR_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_CLEVER_HR_OID, RI_ACCOUNT_OBJECT_CLASS, task, result);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
         waitForTaskFinish(task, 40000);

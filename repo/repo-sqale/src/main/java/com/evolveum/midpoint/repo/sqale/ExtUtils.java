@@ -90,7 +90,7 @@ public class ExtUtils {
     }
 
     /** Creates definition from {@link MExtItem}. */
-    public static ItemDefinition<?> createDefinition(QName name, MExtItem itemInfo, boolean indexOnly) {
+    public static @NotNull ItemDefinition<?> createDefinition(QName name, MExtItem itemInfo, boolean indexOnly) {
         QName typeName = ExtUtils.getSupportedTypeName(itemInfo.valueType);
         final MutableItemDefinition<?> def;
         if (ObjectReferenceType.COMPLEX_TYPE.equals(typeName)) {

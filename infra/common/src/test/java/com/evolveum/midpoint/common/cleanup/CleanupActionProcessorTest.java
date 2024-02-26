@@ -40,7 +40,7 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
         SchemaDebugUtil.initialize(); // Make sure the pretty printer is activated
     }

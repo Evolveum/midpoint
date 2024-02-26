@@ -507,12 +507,12 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 .containsExactlyInAnyOrder("root", "daemon", "extra");
 
         and("association ri:group is updated");
-        Collection<ResourceAssociationDefinition> associationDefinitions = accountDef.getAssociationDefinitions();
+        Collection<ShadowAssociationDefinition> associationDefinitions = accountDef.getAssociationDefinitions();
         displayCollection("associations", associationDefinitions);
         assertThat(associationDefinitions).as("association definitions").hasSize(2);
 
         QName groupQName = new QName(NS_RI, "group");
-        ResourceAssociationDefinition groupDef = accountDef.findAssociationDefinitionRequired(groupQName, () -> "");
+        ShadowAssociationDefinition groupDef = accountDef.findAssociationDefinitionRequired(groupQName, () -> "");
         assertThat(groupDef.requiresExplicitReferentialIntegrity())
                 .as("requiresExplicitReferentialIntegrity flag")
                 .isFalse();
@@ -695,7 +695,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
     /** Hacked: gets the value of (assuming) single property value filter in the pattern. */
     private String getFilterValue(ResourceObjectPattern pattern) {
         //noinspection unchecked
-        return Objects.requireNonNull(((PropertyValueFilter<String>) pattern.getObjectFilter()).getValues())
+        return Objects.requireNonNull(((PropertyValueFilter<String>) pattern.getFilter()).getValues())
                 .get(0).getRealValue();
     }
 }

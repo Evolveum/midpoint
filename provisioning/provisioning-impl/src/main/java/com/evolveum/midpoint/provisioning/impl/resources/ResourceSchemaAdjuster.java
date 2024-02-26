@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 
 import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.processor.RawResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -84,12 +85,13 @@ class ResourceSchemaAdjuster {
      * TODO Is it OK that we update the attribute in all the object classes?
      */
     private void setAttributeIgnored(QName attributeName) {
-        for (ResourceObjectClassDefinition objectClassDefinition : rawResourceSchema.getObjectClassDefinitions()) {
-            ResourceAttributeDefinition<?> attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
+        for (ResourceObjectClassDefinition rawClassDef : rawResourceSchema.getObjectClassDefinitions()) {
+            ResourceAttributeDefinition<?> attributeDefinition = rawClassDef.findAttributeDefinition(attributeName);
             if (attributeDefinition != null) {
-                objectClassDefinition.toMutable().replaceDefinition(
-                        attributeDefinition.getItemName(),
-                        attributeDefinition.spawnModifyingRaw(def -> def.setProcessing(ItemProcessing.IGNORE)));
+                // The class definition is mutable, but the attribute definition is not. Therefore the cloning and replacing.
+                var attrDefCloned = ((RawResourceAttributeDefinition<?>) attributeDefinition).clone();
+                attrDefCloned.setProcessing(ItemProcessing.IGNORE);
+                rawClassDef.toMutable().replaceDefinition(attrDefCloned);
             } else {
                 // TODO is the following description OK even if we consider multiple object classes?
                 //  For example, the attribute may be present in inetOrgPerson but may be missing in
@@ -104,7 +106,7 @@ class ResourceSchemaAdjuster {
                 // of the object.
                 LOGGER.debug("Simulated activation attribute {} for objectclass {} in {}  does not exist in "
                         + "the resource schema. This may work well, but it is not clean. Connector exposing "
-                        + "such schema should be fixed.", attributeName, objectClassDefinition.getTypeName(), resource);
+                        + "such schema should be fixed.", attributeName, rawClassDef.getTypeName(), resource);
             }
         }
     }

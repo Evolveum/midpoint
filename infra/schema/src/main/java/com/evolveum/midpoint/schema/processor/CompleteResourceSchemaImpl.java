@@ -15,13 +15,23 @@ public class CompleteResourceSchemaImpl extends ResourceSchemaImpl implements Co
 
     @NotNull private final BasicResourceInformation basicResourceInformation;
 
-    CompleteResourceSchemaImpl(@NotNull BasicResourceInformation basicResourceInformation) {
+    /** TODO */
+    private final boolean caseIgnoreAttributeNames;
+
+    CompleteResourceSchemaImpl(
+            @NotNull BasicResourceInformation basicResourceInformation,
+            boolean caseIgnoreAttributeNames) {
         this.basicResourceInformation = basicResourceInformation;
+        this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
     }
 
-    private CompleteResourceSchemaImpl(@NotNull LayerType layer, @NotNull BasicResourceInformation basicResourceInformation) {
+    private CompleteResourceSchemaImpl(
+            @NotNull LayerType layer,
+            @NotNull BasicResourceInformation basicResourceInformation,
+            boolean caseIgnoreAttributeNames) {
         super(layer);
         this.basicResourceInformation = basicResourceInformation;
+        this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
     }
 
     @Override
@@ -30,12 +40,23 @@ public class CompleteResourceSchemaImpl extends ResourceSchemaImpl implements Co
     }
 
     @Override
+    public boolean isCaseIgnoreAttributeNames() {
+        return caseIgnoreAttributeNames;
+    }
+
+    @Override
     @NotNull CompleteResourceSchemaImpl createEmptyClone(@NotNull LayerType layer) {
-        return new CompleteResourceSchemaImpl(layer, basicResourceInformation);
+        return new CompleteResourceSchemaImpl(layer, basicResourceInformation, caseIgnoreAttributeNames);
     }
 
     @Override
     public String toString() {
-        return super.toString() + " @" + basicResourceInformation;
+        var sb = new StringBuilder();
+        sb.append(super.toString());
+        sb.append(" @").append(basicResourceInformation);
+        if (caseIgnoreAttributeNames) {
+            sb.append(" (case-ignore attribute names)");
+        }
+        return sb.toString();
     }
 }

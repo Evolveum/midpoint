@@ -81,10 +81,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        // We need to switch off the encryption checks. Some values cannot be encrypted as we do
-        // not have a definition here
-        InternalsConfig.encryptionChecks = false;
-
         super.initSystem(initTask, initResult);
 
         syncServiceMock.setSupportActivation(false);
@@ -227,10 +223,10 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         assertNotNull("Delta is missing", lastChange.getObjectDelta());
         assertNotNull("Current shadow is not present", lastChange.getShadowedResourceObject());
 
-        PrismObject<ShadowType> accountRepo = findAccountShadowByUsername("banderson", resource, result);
-        assertNotNull("Shadow was not created in the repository", accountRepo);
-        display("Repository shadow", accountRepo);
-        checkRepoAccountShadow(accountRepo);
+        var repoShadow = findAccountShadowByUsername("banderson", resource, result);
+        assertNotNull("Shadow was not created in the repository", repoShadow);
+        display("Repository shadow", repoShadow);
+        checkRepoAccountShadow(repoShadow);
         assertNoUnacknowledgedMessages();
     }
 
@@ -509,15 +505,14 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     private ShadowAsserter<Void> getAndersonFull(boolean dead, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
-        PrismObject<ShadowType> shadowRepo = findAccountShadowByUsername("banderson", resource, result);
-        assertNotNull("No Anderson shadow in repo", shadowRepo);
+        var repoShadow = findAccountShadowByUsername("banderson", resource, result);
+        assertNotNull("No Anderson shadow in repo", repoShadow);
         Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .noFetch()
                 .retrieve()
                 .build();
         try {
-            PrismObject<ShadowType> shadow = provisioningService
-                    .getObject(ShadowType.class, shadowRepo.getOid(), options, task, result);
+            var shadow = provisioningService.getObject(ShadowType.class, repoShadow.getOid(), options, task, result);
             if (dead) {
                 fail("Shadow should be gone now but it is not: " + shadow.debugDump());
             }

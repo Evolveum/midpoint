@@ -6,14 +6,21 @@
  */
 package com.evolveum.midpoint.model.intest.manual;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -274,5 +281,13 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
         // TODO: assert the case
 
         assertSteadyResources();
+    }
+
+    @Override
+    Collection<? extends QName> getCachedAttributes() throws SchemaException, ConfigurationException {
+        return Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .findDefinitionForObjectClassRequired(RI_ACCOUNT_OBJECT_CLASS)
+                .getAllIdentifiersNames();
     }
 }

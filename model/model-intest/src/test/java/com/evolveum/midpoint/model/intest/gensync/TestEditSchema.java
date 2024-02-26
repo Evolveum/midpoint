@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.intest.gensync;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.toRiQName;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1098,9 +1099,9 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertEquals("Wrong shadow fullname attribute displayName", "Full Name", attrFullNameDef.getDisplayName());
         assertTrue("additionalName not readable", attrFullNameDef.canRead());
 
-        PrismContainerDefinition<Containerable> identifiersDef = editDef.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION,
-                ShadowAssociationType.F_IDENTIFIERS));
-        String message = "Wrong type for " + ShadowAssociationType.F_IDENTIFIERS
+        PrismContainerDefinition<Containerable> identifiersDef = editDef.findContainerDefinition(
+                ItemPath.create(ShadowType.F_ASSOCIATIONS, toRiQName("group"), ShadowAssociationValueType.F_IDENTIFIERS));
+        String message = "Wrong type for " + ShadowAssociationValueType.F_IDENTIFIERS
                 + ", expected ResourceAttributeContainerDefinition but was "
                 + (identifiersDef == null ? null : identifiersDef.getClass().getName())
                 + "; ";
@@ -1286,7 +1287,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.assertSuccess(result);
 
         var def = modelInteractionService.getEditObjectDefinition(user, null, task, result);
-        user.applyDefinition(def, true);
+        user.applyDefinition(def);
         assertPropertyValues(user, UserType.F_NAME, (propDef, name) -> {
             assertNotNull("No definition for name in user", propDef);
             assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());
@@ -1355,7 +1356,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         for (final PrismObject<UserType> user : users) {
             var def = modelInteractionService.getEditObjectDefinition(user, null, task, result);
-            user.applyDefinition(def, true);
+            user.applyDefinition(def);
             assertProperty(user, UserType.F_NAME, (Validator<PrismPropertyDefinition<PolyString>>) (propDef, name) -> {
                 assertNotNull("No definition for name in user", propDef);
                 assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());
@@ -1423,7 +1424,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 .setRealValue(true);
 
         PrismObjectDefinition<TaskType> editDef = getEditObjectDefinition(reconTask);
-        reconTask.applyDefinition(editDef, true);
+        reconTask.applyDefinition(editDef);
 
         when();
         addObject(reconTask, task, result);
@@ -1463,7 +1464,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         and("edit object definition is applied to it");
         PrismObjectDefinition<UserType> editDef =
                 modelInteractionService.getEditObjectDefinition(user, AuthorizationPhaseType.REQUEST, task, result);
-        user.applyDefinition(editDef, true);
+        user.applyDefinition(editDef);
 
         then("we can ask for its subtype");
         assertThat(user.asObjectable().getSubtype())

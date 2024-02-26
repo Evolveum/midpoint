@@ -698,17 +698,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     //endregion
 
     //region Maintenance and auxiliary methods
-    /**
-     * There is no longer explicit "recompute" action. The validity of computed parts (current/summary delta,
-     * adjusted current object, new object) is continuously monitored, and these parts are (re)computed
-     * as necessary. So here we may have to call {@link #getObjectNew()} to trigger the recomputation, if needed.
-     *
-     * We might even remove this method altogether.
-     */
-    public void recompute() throws SchemaException {
-        getObjectNew();
-    }
-
     public void normalize() {
         state.normalize();
     }

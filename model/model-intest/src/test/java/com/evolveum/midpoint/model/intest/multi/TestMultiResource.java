@@ -1444,7 +1444,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         String accountOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_BLUE_OID);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
 
         // Check account
@@ -1480,7 +1480,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         String accountOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_OID);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check account

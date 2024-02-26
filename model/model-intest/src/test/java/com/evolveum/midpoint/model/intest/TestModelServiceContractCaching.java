@@ -14,6 +14,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -21,12 +22,10 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -52,10 +51,10 @@ public class TestModelServiceContractCaching extends TestModelServiceContract {
     }
 
     @Override
-    protected void assertShadowRepo(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
+    protected void assertShadowRepo(RawRepoShadow shadow, String oid, String username, ResourceType resourceType,
             QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
         super.assertShadowRepo(shadow, oid, username, resourceType, objectClass, nameMatchingRule);
-        CachingMetadataType cachingMetadata = shadow.asObjectable().getCachingMetadata();
+        CachingMetadataType cachingMetadata = shadow.getBean().getCachingMetadata();
         assertNotNull("Missing caching metadata in repo shadow"+shadow, cachingMetadata);
     }
 

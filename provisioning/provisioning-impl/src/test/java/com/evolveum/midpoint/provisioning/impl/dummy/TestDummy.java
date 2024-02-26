@@ -6,10 +6,9 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil.getDefaultAccountObjectClass;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.*;
 import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 
@@ -32,7 +31,10 @@ import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
-import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.*;
+
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
@@ -56,14 +58,11 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -133,53 +132,48 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test101AddAccountWithoutName() throws Exception {
-        // GIVEN
-        Task syncTask = getTestTask();
-        OperationResult result = syncTask.getResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        ShadowType account = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
+        given("object to add");
 
-        display("Adding shadow", account.asPrismObject());
+        ShadowType accountToAdd = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
+        display("Object to add", accountToAdd);
 
-        // WHEN
-        when("add");
-        String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, syncTask, result);
+        when("adding resource object");
+        var addedObjectOid =
+                provisioningService.addObject(accountToAdd.asPrismObject(), null, null, task, result);
 
-        // THEN
-        then("add");
-        result.computeStatus();
-        display("add object result", result);
-        TestUtil.assertSuccess("addObject has failed (result)", result);
+        then("result is SUCCESS");
+        assertSuccessVerbose(result);
+
+        and("OID matches provided one");
         assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
 
-        ShadowType accountType = getShadowRepo(ACCOUNT_MORGAN_OID).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Account name was not generated (repository)", ACCOUNT_MORGAN_NAME, accountType.getName());
-        morganIcfUid = getIcfUid(accountType);
+        and("shadow name was provided");
+        morganIcfUid = assertRepoShadowNew(ACCOUNT_MORGAN_OID)
+                .assertName(ACCOUNT_MORGAN_NAME)
+                .getIndexedPrimaryIdentifierValueRequired();
 
+        and("SUCCESS notification was sent");
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        // WHEN
-        when("get");
-        PrismObject<ShadowType> provisioningAccount = provisioningService.getObject(ShadowType.class,
-                ACCOUNT_MORGAN_OID, null, syncTask, result);
+        when("fetching the resource object");
+        var accountFetched = provisioningService.getShadow(ACCOUNT_MORGAN_OID, null, task, result);
 
-        // THEN
-        then("get");
-        display("account from provisioning", provisioningAccount);
-        ShadowType provisioningAccountType = provisioningAccount.asObjectable();
-        PrismAsserts.assertEqualsPolyString("Account name was not generated (provisioning)", transformNameFromResource(ACCOUNT_MORGAN_NAME),
-                provisioningAccountType.getName());
-        // MID-4754
-        assertAttribute(provisioningAccount,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME,
-                XmlTypeConverter.createXMLGregorianCalendar(ZonedDateTime.parse(ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP)));
+        then("object fetched is correct");
+        ShadowAsserter.forAbstractShadow(accountFetched)
+                .display()
+                .assertName(transformNameToResource(ACCOUNT_MORGAN_NAME))
+                .assertOrigValues( // MID-4754
+                        DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME,
+                        XmlTypeConverter.createXMLGregorianCalendar(ZonedDateTime.parse(ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP)))
+                .attributes()
+                        .assertNoAttribute(ICFS_PASSWORD);
 
-        assertNull("The _PASSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-                provisioningAccountType, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-
-        // Check if the account was created in the dummy resource
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_MORGAN_NAME), getIcfUid(provisioningAccountType));
+        and("the account is correct on the dummy resource");
+        DummyAccount dummyAccount = getDummyAccountAssert(transformNameToResource(ACCOUNT_MORGAN_NAME), morganIcfUid);
         displayDumpable("Dummy account", dummyAccount);
         assertNotNull("No dummy account", dummyAccount);
         assertEquals("Fullname is wrong", "Captain Morgan", dummyAccount.getAttributeValue("fullname"));
@@ -190,24 +184,21 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNotNull("No enlistTimestamp in dummy account", enlistTimestamp);
         assertEqualTime("Wrong enlistTimestamp in dummy account", ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP, enlistTimestamp);
 
-        // Check if the shadow is in the repo
-        PrismObject<ShadowType> shadowFromRepo = getShadowRepo(addedObjectOid);
-        assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        displayValue("Repository shadow", shadowFromRepo.debugDump());
+        and("the shadow is still in repo"); // why it should not be?
+        var repoShadow = getShadowRepo(addedObjectOid);
+        display("Repository shadow", repoShadow);
 
-        checkRepoAccountShadow(shadowFromRepo);
+        checkRepoAccountShadow(repoShadow);
 
         PrismSerializer<String> serializer = prismContext.xmlSerializer().options(SerializationOptions.createSerializeForExport());
 
-        serializer.serialize(provisioningAccount);
-        serializer.serialize(shadowFromRepo);
-
-        //prismContext.xnodeSerializer().serialize(item)
+        serializer.serialize(accountFetched.getPrismObject());
+        serializer.serialize(repoShadow.getPrismObject());
 
         // MID-4397
-        assertRepoShadowCredentials(shadowFromRepo, ACCOUNT_MORGAN_PASSWORD);
+        assertRepoShadowCredentials(repoShadow, ACCOUNT_MORGAN_PASSWORD);
 
-        checkUniqueness(account.asPrismObject());
+        checkUniqueness(accountFetched);
 
         assertSteadyResource();
     }
@@ -224,27 +215,23 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test107AGetModifiedAccountFromCacheMax() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount accountWill = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Nice Pirate");
         accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
         accountWill.setEnabled(true);
 
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(GetOperationOptions.createMaxStaleness());
+        var options = SelectorOptions.createCollection(GetOperationOptions.createMaxStaleness());
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
         when();
 
         try {
             provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
-
             assertNotReached();
         } catch (ConfigurationException e) {
             then();
@@ -252,14 +239,16 @@ public class TestDummy extends AbstractBasicDummyTest {
             assertFailure(result);
         }
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
-        checkRepoAccountShadowWillBasic(shadowRepo, null, startTs, null);
+        var repoShadow = assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate")
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L)
+                .getRawRepoShadow();
 
-        assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
-        assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
-        assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
-        assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
-        assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
+        checkRepoAccountShadowWillBasic(repoShadow, null, startTs, false, null);
+
+        assertRepoShadowCacheActivation(repoShadow, ActivationStatusType.DISABLED);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -276,35 +265,29 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test107BGetModifiedAccountFromCacheHighStaleness() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount accountWill = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
         accountWill.setEnabled(true);
 
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(GetOperationOptions.createStaleness(1000000L));
+        var options = SelectorOptions.createCollection(GetOperationOptions.createStaleness(1000000L));
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
         when();
 
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, options, task, result);
 
-        // THEN
         then();
-        result.computeStatus();
-        display("getObject result", result);
-        TestUtil.assertSuccess(result);
+        assertSuccessVerbose(result);
 
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
-        checkRepoAccountShadowWillBasic(shadowRepo, null, startTs, null);
+        var repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
+        checkRepoAccountShadowWillBasic(repoShadow, null, startTs, false, null);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
@@ -326,52 +309,48 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test108GetAccountLowStaleness() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(GetOperationOptions.createStaleness(1L));
+        var options = SelectorOptions.createCollection(GetOperationOptions.createStaleness(1L));
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
         when();
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, options, task, result);
 
-        // THEN
         then();
-        result.computeStatus();
-        display("getObject result", result);
-        TestUtil.assertSuccess(result);
+        assertSuccessVerbose(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
-        display("Retrieved account shadow", shadow);
-
-        assertNotNull("No dummy account", shadow);
+        ShadowAsserter.forAbstractShadow(shadow)
+                .display()
+                .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate")
+                .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor")
+                .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
+                .assertNormValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
+                .assertOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L)
+                .assertAttributes(7);
 
         checkAccountShadow(shadow, result, true);
-        assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
-        assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
-        assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
-        assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
-        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
-        assertEquals("Unexpected number of attributes", 7, attributes.size());
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
-        checkRepoAccountShadowWillBasic(shadowRepo, startTs, endTs, null);
+        var repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAccountAttributes())
+                .display()
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate")
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor")
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
+                .assertCachedNormValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love")
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L);
 
-        assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
-        assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
-        assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
-        assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+        checkRepoAccountShadowWillBasic(repoShadow, startTs, endTs, false, null);
 
         checkUniqueness(shadow);
 
-        assertCachingMetadata(shadow, false, startTs, endTs);
+        assertCachingMetadata(shadow.getBean(), false, startTs, endTs);
 
         assertSteadyResource();
     }
@@ -382,12 +361,11 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test109ModifiedAccountCleanup() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount accountWill = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         // Modify this back so won't break subsequent tests
         accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
         accountWill.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
@@ -395,90 +373,81 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        when();
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
-        display("Retrieved account shadow", shadow);
-
-        assertNotNull("No dummy account", shadow);
-
         checkAccountWill(shadow, result, startTs, endTs);
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+
+        var shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
         checkRepoAccountShadowWill(shadowRepo, startTs, endTs);
 
         checkUniqueness(shadow);
 
-        assertCachingMetadata(shadow, false, startTs, endTs);
+        assertCachingMetadata(shadow.getBean(), false, startTs, endTs);
 
         assertSteadyResource();
     }
 
     @Test
     public void test110SearchIterative() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
 
-        // Make sure there is an account on resource that the provisioning has
-        // never seen before, so there is no shadow
-        // for it yet.
+        // Make sure there is an account on resource that the provisioning has never seen before,
+        // so there is no shadow for it yet.
         DummyAccount newAccount = new DummyAccount("meathook");
         newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Meathook");
         newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
         newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "hook");
-        newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 666);
+        newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 666L);
         newAccount.setEnabled(true);
         newAccount.setPassword("parrotMonster");
         dummyResource.addAccount(newAccount);
 
-        ObjectQuery query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS);
+        ObjectQuery query = createAllAccountsQuery();
 
-        final XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-        final Holder<Boolean> seenMeathookHolder = new Holder<>(false);
-        final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
+        List<AbstractShadow> foundObjects = new ArrayList<>();
         ResultHandler<ShadowType> handler = (object, parentResult) -> {
-            foundObjects.add(object);
-            display("Found", object);
+
+            assertTrue(object.canRepresent(ShadowType.class));
+            var shadow = AbstractShadow.of(object);
+
+            foundObjects.add(shadow);
+            displayDumpable("Found", shadow);
 
             XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
-            assertTrue(object.canRepresent(ShadowType.class));
             try {
-                checkAccountShadow(object, parentResult, true);
+                checkAccountShadow(shadow, parentResult, true);
             } catch (ConfigurationException | SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
             }
 
-            assertCachingMetadata(object, false, startTs, endTs);
+            assertCachingMetadata(shadow.getBean(), false, startTs, endTs);
 
-            if (object.asObjectable().getName().getOrig().equals("meathook")) {
+            if (shadow.getName().getOrig().equals("meathook")) {
                 meathookAccountOid = object.getOid();
-                seenMeathookHolder.setValue(true);
-                try {
-                    Integer loot = ShadowUtil.getAttributeValue(object, dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
-                    assertNotNull(loot);
-                    assertEquals("Wrong meathook's loot", 666, (int) loot);
-                } catch (SchemaException e) {
-                    throw new SystemException(e.getMessage(), e);
-                }
+                Long loot = shadow.getAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME);
+                assertNotNull(loot);
+                assertEquals("Wrong meathook's loot", 666L, (long) loot);
             }
 
             return true;
         };
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        // WHEN
+        when();
         provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
 
-        // THEN
-
+        then();
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         assertSuccess(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
@@ -487,16 +456,16 @@ public class TestDummy extends AbstractBasicDummyTest {
         checkUniqueness(foundObjects);
         assertProtected(foundObjects, 1);
 
-        PrismObject<ShadowType> shadowWillRepo = getShadowRepo(ACCOUNT_WILL_OID);
-        assertRepoShadowCachedAttributeValue(shadowWillRepo,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
-        checkRepoAccountShadowWill(shadowWillRepo, startTs, endTs);
+        var willRepoShadow = assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman")
+                .getRawRepoShadow();
+        checkRepoAccountShadowWill(willRepoShadow, startTs, endTs);
 
-        PrismObject<ShadowType> shadowMeathook = getShadowRepo(meathookAccountOid);
-        display("Meathook shadow", shadowMeathook);
-        assertRepoShadowCachedAttributeValue(shadowMeathook,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "hook");
-        assertRepoCachingMetadata(shadowMeathook, startTs, endTs);
+        var meathookRepoShadow = assertRepoShadowNew(meathookAccountOid)
+                .display()
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "hook")
+                .getRawRepoShadow();
+        assertRepoCachingMetadata(meathookRepoShadow.getPrismObject(), startTs, endTs);
 
         // And again ...
 
@@ -505,11 +474,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         XMLGregorianCalendar startTs2 = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
+        when("searching again");
         provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
 
-        // THEN
-
+        then();
         XMLGregorianCalendar endTs2 = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
@@ -519,56 +487,56 @@ public class TestDummy extends AbstractBasicDummyTest {
         checkUniqueness(foundObjects);
         assertProtected(foundObjects, 1);
 
-        PrismObject<ShadowType> shadowWillRepo2 = getShadowRepo(ACCOUNT_WILL_OID);
+        var shadowWillRepo2 = getShadowRepo(ACCOUNT_WILL_OID);
         checkRepoAccountShadowWill(shadowWillRepo2, startTs2, endTs2);
 
-        PrismObject<ShadowType> shadowMeathook2 = getShadowRepo(meathookAccountOid);
-        assertRepoShadowCachedAttributeValue(shadowMeathook2,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "hook");
-        assertRepoCachingMetadata(shadowMeathook2, startTs2, endTs2);
+        var shadowMeathook2 = assertRepoShadowNew(meathookAccountOid)
+                .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "hook")
+                .getRawRepoShadow();
+        assertRepoCachingMetadata(shadowMeathook2.getPrismObject(), startTs2, endTs2);
 
         assertSteadyResource();
     }
 
+    @NotNull
+    private static ObjectQuery createAllAccountsQuery() {
+        return createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS);
+    }
+
     @Test
     public void test111SearchIterativeNoFetch() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
 
-        ObjectQuery query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS);
+        ObjectQuery query = createAllAccountsQuery();
 
-        final XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-        final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
-        ResultHandler<ShadowType> handler = (shadow, parentResult) -> {
+        List<AbstractShadow> foundObjects = new ArrayList<>();
+        ObjectHandler<AbstractShadow> handler = (shadow, parentResult) -> {
             foundObjects.add(shadow);
 
-            assertTrue(shadow.canRepresent(ShadowType.class));
             try {
                 checkCachedAccountShadow(shadow, parentResult, false, null, startTs);
             } catch (ConfigurationException | SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
             }
 
-            assertRepoCachingMetadata(shadow, null, startTs);
+            assertRepoCachingMetadata(shadow.getPrismObject(), null, startTs);
 
-            if (shadow.asObjectable().getName().getOrig().equals("meathook")) {
-                assertRepoShadowCachedAttributeValue(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
+            if (shadow.getName().getOrig().equals("meathook")) {
+                assertOptionalAttrValue(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
             }
 
             return true;
         };
 
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        // WHEN
-        provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, task, result);
+        when();
+        provisioningService.searchShadowsIterative(query, GetOperationOptions.createNoFetchCollection(), handler, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -590,21 +558,20 @@ public class TestDummy extends AbstractBasicDummyTest {
         Task task = getTestTask();
         OperationResult result = createOperationResult();
 
-        ObjectQuery query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS);
+        ObjectQuery query = createAllAccountsQuery();
 
-        final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
+        List<AbstractShadow> foundObjects = new ArrayList<>();
         ResultHandler<ShadowType> handler = (shadow, parentResult) -> {
-            foundObjects.add(shadow);
             assertTrue(shadow.canRepresent(ShadowType.class));
+            foundObjects.add(AbstractShadow.of(shadow));
             return true;
         };
-
-        Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRawCollection();
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         when();
-        provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, task, result);
+        provisioningService.searchObjectsIterative(
+                ShadowType.class, query, GetOperationOptions.createRawCollection(), handler, task, result);
 
         then();
         assertSuccess(result);
@@ -622,29 +589,26 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test112SearchIterativeKindIntent() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         ObjectQuery query = createResourceAndKindIntent(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, "default");
         displayDumpable("query", query);
 
-        List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
+        List<AbstractShadow> foundObjects = new ArrayList<>();
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        // WHEN
+        when();
         provisioningService.searchObjectsIterative(ShadowType.class, query, null,
                 (object, parentResult) -> {
-                    foundObjects.add(object);
+                    foundObjects.add(AbstractShadow.of(object));
                     return true;
                 },
                 task, result);
 
-        // THEN
-        result.computeStatus();
-        display("searchObjectsIterative result", result);
-        TestUtil.assertSuccess(result);
+        then();
+        assertSuccessVerbose(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
         display("Found shadows", foundObjects);
@@ -657,27 +621,26 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    protected <T extends ShadowType> void assertProtected(List<PrismObject<T>> shadows, int expectedNumberOfProtectedShadows) {
+    protected void assertProtected(List<? extends AbstractShadow> shadows, int expectedNumberOfProtectedShadows) {
         int actual = countProtected(shadows);
         assertEquals("Unexpected number of protected shadows", expectedNumberOfProtectedShadows, actual);
     }
 
-    private <T extends ShadowType> int countProtected(List<PrismObject<T>> shadows) {
+    private int countProtected(List<? extends AbstractShadow> shadows) {
         return (int) shadows.stream()
-                .filter(shadow -> Boolean.TRUE.equals(shadow.asObjectable().isProtectedObject()))
+                .filter(shadow -> Boolean.TRUE.equals(shadow.getBean().isProtectedObject()))
                 .count();
     }
 
     @Test
     public void test113SearchAllShadowsInRepository() throws Exception {
-        // GIVEN
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean, prismContext);
+        ObjectQuery query = createAllShadowsQuery(resourceBean);
         displayDumpable("All shadows query", query);
 
         when();
-        List<PrismObject<ShadowType>> allShadows = repositoryService.searchObjects(ShadowType.class,
-                query, null, result);
+        List<PrismObject<ShadowType>> allShadows =
+                repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         then();
         assertSuccess(result);
@@ -696,13 +659,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         given();
         Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
-                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
+        ObjectQuery query = createAllShadowsQuery(resourceBean, RI_ACCOUNT_OBJECT_CLASS);
         displayDumpable("All shadows query", query);
 
         when();
-        List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-                query, null, task, result);
+        var allShadows = provisioningService.searchShadows(query, null, task, result);
 
         then();
         assertSuccess(result);
@@ -723,8 +684,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         given();
         Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
-                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
+        ObjectQuery query = createAllShadowsQuery(resourceBean, RI_ACCOUNT_OBJECT_CLASS);
         displayDumpable("All shadows query", query);
 
         when();
@@ -751,8 +711,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = createOperationResult();
 
         when();
-        List<PrismObject<ResourceType>> allResources = provisioningService.searchObjects(ResourceType.class,
-                null, null, task, result);
+        List<PrismObject<ResourceType>> allResources =
+                provisioningService.searchObjects(ResourceType.class, null, null, task, result);
 
         then();
         assertSuccess(result);
@@ -795,18 +755,15 @@ public class TestDummy extends AbstractBasicDummyTest {
         given();
         Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
-                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
+        ObjectQuery query = createAllShadowsQuery(resourceBean, RI_ACCOUNT_OBJECT_CLASS);
         displayDumpable("All shadows query", query);
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(GetOperationOptions.createStaleness(1000000L));
+        var options = SelectorOptions.createCollection(GetOperationOptions.createStaleness(1000000L));
 
         when();
-        List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-                query, options, task, result);
+        var allShadows = provisioningService.searchShadows(query, options, task, result);
 
         then();
         assertSuccess(result);
@@ -839,18 +796,15 @@ public class TestDummy extends AbstractBasicDummyTest {
         given();
         Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
-                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
+        ObjectQuery query = createAllShadowsQuery(resourceBean, RI_ACCOUNT_OBJECT_CLASS);
         displayDumpable("All shadows query", query);
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(GetOperationOptions.createMaxStaleness());
+        var options = SelectorOptions.createCollection(GetOperationOptions.createMaxStaleness());
 
         when();
-        List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-                query, options, task, result);
+        var allShadows = provisioningService.searchShadows(query, options, task, result);
 
         then();
         assertFailure(result);
@@ -860,9 +814,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertFalse("No shadows found", allShadows.isEmpty());
         assertEquals("Wrong number of results", 4, allShadows.size());
 
-        for (PrismObject<ShadowType> shadow : allShadows) {
+        for (var shadow : allShadows) {
             display("Found shadow (error expected)", shadow);
-            OperationResultType fetchResult = shadow.asObjectable().getFetchResult();
+            OperationResultType fetchResult = shadow.getBean().getFetchResult();
             assertNotNull("No fetch result status in " + shadow, fetchResult);
             assertEquals("Wrong fetch result status in " + shadow, OperationResultStatusType.FATAL_ERROR, fetchResult.getStatus());
         }
@@ -880,23 +834,23 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Will Turner");
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(
+                ShadowType.class, ACCOUNT_WILL_OID,
+                dummyResourceCtl.getAttributeFullnamePath(), "Pirate Will Turner");
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
-        // WHEN
         when();
-        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+        provisioningService.modifyObject(
+                ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
         delta.checkConsistence();
         //noinspection unchecked
-        assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+        assertDummyAccount(getWillNameOnResource(), willIcfUid)
                 .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
 
         syncServiceMock.assertSingleNotifySuccessOnly();
@@ -915,18 +869,17 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
-        // WHEN
         when();
-        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+        provisioningService.modifyObject(
+                ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
         delta.checkConsistence();
         // check if attribute was changed
-        assertDummyAccountAttributeValues(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid,
+        assertDummyAccountAttributeValues(getWillNameOnResource(), willIcfUid,
                 DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 
         syncServiceMock.assertSingleNotifySuccessOnly();
@@ -945,18 +898,17 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
-        // WHEN
         when();
-        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+        provisioningService.modifyObject(
+                ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
         delta.checkConsistence();
         // check if attribute was changed
-        assertDummyAccountAttributeValues(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid,
+        assertDummyAccountAttributeValues(getWillNameOnResource(), willIcfUid,
                 DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate", "Captain");
 
         syncServiceMock.assertSingleNotifySuccessOnly();
@@ -975,18 +927,16 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
         delta.checkConsistence();
         // check if attribute was changed
-        assertDummyAccountAttributeValues(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid,
+        assertDummyAccountAttributeValues(getWillNameOnResource(), willIcfUid,
                 DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 
         syncServiceMock.assertSingleNotifySuccessOnly();
@@ -1009,18 +959,18 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
-        // WHEN
         when();
-        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+        provisioningService.modifyObject(
+                ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
         delta.checkConsistence();
         // check if attribute was changed
-        assertDummyAccountAttributeValues(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid,
+        assertDummyAccountAttributeValues(
+                getWillNameOnResource(), willIcfUid,
                 DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 
         syncServiceMock.assertSingleNotifySuccessOnly();
@@ -1051,23 +1001,22 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = createAccountPasswordDelta(ACCOUNT_WILL_OID, ACCOUNT_WILL_PASSWORD_123, null);
         displayDumpable("ObjectDelta", delta);
 
-        // WHEN
         when();
-        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+        provisioningService.modifyObject(
+                ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
-        assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+        assertDummyAccount(getWillNameOnResource(), willIcfUid)
                 .assertPassword(ACCOUNT_WILL_PASSWORD_123)
                 .assertLastModifier(null);
 
         accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD_123;
 
         // Check if the shadow is in the repo
-        PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
+        var repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
         assertNotNull("Shadow was not created in the repository", repoShadow);
         display("Repository shadow", repoShadow);
 
@@ -1098,13 +1047,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        // WHEN (match)
-        when();
-        ItemComparisonResult comparisonResult = provisioningService.compare(ShadowType.class, shadowOid, SchemaConstants.PATH_PASSWORD_VALUE,
-                expectedPassword, task, result);
+        when("match");
+        ItemComparisonResult comparisonResult =
+                provisioningService.compare(
+                        ShadowType.class, shadowOid, SchemaConstants.PATH_PASSWORD_VALUE, expectedPassword, task, result);
 
-        // THEN (match)
-        then();
+        then("match");
         assertSuccess(result);
 
         displayValue("Comparison result (" + label + ")", comparisonResult);
@@ -1122,17 +1070,17 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        DummyAccount willDummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount willDummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         willDummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, null);
 
         when();
-        PrismObject<ShadowType> accountWill = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        var accountWill = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
         then();
         assertSuccess(result);
 
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountWill);
-        ResourceAttribute<Object> titleAttribute = attributesContainer.findAttribute(new QName(MidPointConstants.NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
+        ResourceAttribute<Object> titleAttribute = attributesContainer.findAttribute(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_QNAME);
         assertNull("Title attribute sneaked in", titleAttribute);
 
         accountWill.checkConsistence();
@@ -1161,19 +1109,18 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSuccess("addObject has failed (result)", result);
         assertEquals(ACCOUNT_NEW_SCRIPT_OID, addedObjectOid);
 
-        ShadowType repoShadow = getShadowRepo(ACCOUNT_NEW_SCRIPT_OID).asObjectable();
-        assertShadowName(repoShadow, "william");
+        williamIcfUid = assertRepoShadowNew(ACCOUNT_NEW_SCRIPT_OID)
+                .assertName("william")
+                .getIndexedPrimaryIdentifierValueRequired();
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        ShadowType provisioningShadow = provisioningService.getObject(ShadowType.class,
-                ACCOUNT_NEW_SCRIPT_OID, null, task, result).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Wrong name", transformNameFromResource("william"), provisioningShadow.getName());
-        williamIcfUid = getIcfUid(repoShadow);
+        assertProvisioningShadowNew(ACCOUNT_NEW_SCRIPT_OID)
+                .assertName(transformNameToResource("william"));
 
         // Check if the account was created in the dummy resource
 
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource("william"), williamIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(transformNameToResource("william"), williamIcfUid);
         assertNotNull("No dummy account", dummyAccount);
         assertEquals("Fullname is wrong", "William Turner", dummyAccount.getAttributeValue("fullname"));
         assertTrue("The account is not enabled", dummyAccount.isEnabled());
@@ -1184,7 +1131,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ProvisioningScriptSpec afterScript = new ProvisioningScriptSpec("Hello World");
         afterScript.addArgSingle("which", "this");
         afterScript.addArgSingle("when", "now");
-        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
+        assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
 
         assertSteadyResource();
     }
@@ -1207,7 +1154,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         when();
-        provisioningService.modifyObject(ShadowType.class, ACCOUNT_NEW_SCRIPT_OID, delta.getModifications(),
+        provisioningService.modifyObject(
+                ShadowType.class, ACCOUNT_NEW_SCRIPT_OID, delta.getModifications(),
                 scripts, null, task, result);
 
         then();
@@ -1225,7 +1173,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ProvisioningScriptSpec beforeScript = new ProvisioningScriptSpec("Where am I?");
         ProvisioningScriptSpec afterScript = new ProvisioningScriptSpec("Still here");
         afterScript.addArgMulti("status", "dead", "alive");
-        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
+        assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
 
         assertSteadyResource();
     }
@@ -1251,7 +1199,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         when();
-        provisioningService.modifyObject(ShadowType.class, ACCOUNT_NEW_SCRIPT_OID, delta.getModifications(),
+        provisioningService.modifyObject(
+                ShadowType.class, ACCOUNT_NEW_SCRIPT_OID, delta.getModifications(),
                 scripts, null, task, result);
 
         then();
@@ -1266,7 +1215,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertTrue("The account is not enabled", dummyAccount.isEnabled());
         assertEquals("Wrong password", "3lizab3th123", dummyAccount.getPassword());
 
-        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory());
+        assertScripts(dummyResource.getScriptHistory());
 
         assertSteadyResource();
     }
@@ -1283,8 +1232,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayValue("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         when();
-        provisioningService.deleteObject(ShadowType.class, ACCOUNT_NEW_SCRIPT_OID, null, scriptsType,
-                task, result);
+        provisioningService.deleteObject(
+                ShadowType.class, ACCOUNT_NEW_SCRIPT_OID, null, scriptsType, task, result);
 
         then();
         assertSuccess("modifyObject has failed (result)", result);
@@ -1298,7 +1247,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ProvisioningScriptSpec beforeScript = new ProvisioningScriptSpec("Goodbye World");
         beforeScript.addArgMulti("what", "cruel");
         ProvisioningScriptSpec afterScript = new ProvisioningScriptSpec("R.I.P.");
-        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
+        assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
 
         assertSteadyResource();
     }
@@ -1324,7 +1273,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         ProvisioningScriptSpec expectedScript = new ProvisioningScriptSpec("Where to go now?");
         expectedScript.addArgMulti("direction", "left", "right");
-        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), expectedScript);
+        assertScripts(dummyResource.getScriptHistory(), expectedScript);
 
         assertSteadyResource();
     }
@@ -1341,7 +1290,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         display("Retrieved account shadow", accountType);
 
-        DummyAccount dummyAccountBefore = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccountBefore = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertTrue(dummyAccountBefore.isEnabled());
 
         syncServiceMock.reset();
@@ -1361,8 +1310,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         delta.checkConsistence();
         // check if activation was changed
-        DummyAccount dummyAccountAfter = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-        assertFalse("Dummy account " + transformNameFromResource(ACCOUNT_WILL_USERNAME) + " is enabled, expected disabled", dummyAccountAfter.isEnabled());
+        DummyAccount dummyAccountAfter = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
+        assertFalse("Dummy account " + getWillNameOnResource() + " is enabled, expected disabled", dummyAccountAfter.isEnabled());
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
@@ -1375,7 +1324,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, getDefaultAccountObjectClass(resourceBean));
+        ObjectQuery query = createAllAccountsQuery();
         filterAnd(query.getFilter(),
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.DISABLED)
@@ -1384,7 +1333,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         when();
-        SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+        SearchResultList<PrismObject<ShadowType>> resultList =
+                provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
         then();
         result.computeStatus();
@@ -1410,7 +1360,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNotNull(accountType);
         display("Retrieved account shadow", accountType);
 
-        DummyAccount dummyAccountBefore = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccountBefore = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertFalse("Account is not disabled", dummyAccountBefore.isEnabled());
 
         syncServiceMock.reset();
@@ -1432,8 +1382,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         delta.checkConsistence();
         // check if activation was changed
-        DummyAccount dummyAccountAfter = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-        assertNull("Wrong dummy account " + transformNameFromResource(ACCOUNT_WILL_USERNAME) + " enabled flag",
+        DummyAccount dummyAccountAfter = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
+        assertNull("Wrong dummy account " + getWillNameOnResource() + " enabled flag",
                 dummyAccountAfter.isEnabled());
 
         syncServiceMock.assertSingleNotifySuccessOnly();
@@ -1452,7 +1402,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNotNull(accountType);
         display("Retrieved account shadow", accountType);
 
-        DummyAccount dummyAccountBefore = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccountBefore = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertNull("Wrong dummy account enabled flag", dummyAccountBefore.isEnabled());
 
         syncServiceMock.reset();
@@ -1472,8 +1422,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         delta.checkConsistence();
         // check if activation was changed
-        DummyAccount dummyAccountAfter = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-        assertTrue("Dummy account " + transformNameFromResource(ACCOUNT_WILL_USERNAME) + " is disabled, expected enabled", dummyAccountAfter.isEnabled());
+        DummyAccount dummyAccountAfter = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
+        assertTrue("Dummy account " + getWillNameOnResource() + " is disabled, expected enabled", dummyAccountAfter.isEnabled());
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
@@ -1486,7 +1436,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, getDefaultAccountObjectClass(resourceBean));
+        ObjectQuery query = createAllAccountsQuery();
         filterAnd(query.getFilter(),
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.DISABLED)
@@ -1518,7 +1468,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         display("Retrieved account shadow", accountType);
 
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertTrue(dummyAccount.isEnabled());
 
         syncServiceMock.reset();
@@ -1537,9 +1487,9 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         delta.checkConsistence();
         // check if activation was changed
-        dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-        assertEquals("Wrong account validFrom in account " + transformNameFromResource(ACCOUNT_WILL_USERNAME), new Date(VALID_FROM_MILLIS), dummyAccount.getValidFrom());
-        assertTrue("Dummy account " + transformNameFromResource(ACCOUNT_WILL_USERNAME) + " is disabled, expected enabled", dummyAccount.isEnabled());
+        dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
+        assertEquals("Wrong account validFrom in account " + getWillNameOnResource(), new Date(VALID_FROM_MILLIS), dummyAccount.getValidFrom());
+        assertTrue("Dummy account " + getWillNameOnResource() + " is disabled, expected enabled", dummyAccount.isEnabled());
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
@@ -1558,7 +1508,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         display("Retrieved account shadow", accountType);
 
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertTrue(dummyAccount.isEnabled());
 
         syncServiceMock.reset();
@@ -1573,16 +1523,14 @@ public class TestDummy extends AbstractBasicDummyTest {
                 delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
         then();
-        result.computeStatus();
-        display("modifyObject result", result);
-        TestUtil.assertSuccess(result);
+        assertSuccessVerbose(result);
 
         delta.checkConsistence();
         // check if activation was changed
-        dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-        assertEquals("Wrong account validFrom in account " + transformNameFromResource(ACCOUNT_WILL_USERNAME), new Date(VALID_FROM_MILLIS), dummyAccount.getValidFrom());
-        assertEquals("Wrong account validTo in account " + transformNameFromResource(ACCOUNT_WILL_USERNAME), new Date(VALID_TO_MILLIS), dummyAccount.getValidTo());
-        assertTrue("Dummy account " + transformNameFromResource(ACCOUNT_WILL_USERNAME) + " is disabled, expected enabled", dummyAccount.isEnabled());
+        dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
+        assertEquals("Wrong account validFrom in account " + getWillNameOnResource(), new Date(VALID_FROM_MILLIS), dummyAccount.getValidFrom());
+        assertEquals("Wrong account validTo in account " + getWillNameOnResource(), new Date(VALID_TO_MILLIS), dummyAccount.getValidTo());
+        assertTrue("Dummy account " + getWillNameOnResource() + " is disabled, expected enabled", dummyAccount.isEnabled());
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
@@ -1591,7 +1539,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test158DeleteValidToValidFrom() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1601,15 +1548,13 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         display("Retrieved account shadow", accountType);
 
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertTrue(dummyAccount.isEnabled());
 
         syncServiceMock.reset();
 
-//        long millis = VALID_TO_MILLIS;
-
-        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
-                ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteProperty(
+                ShadowType.class, ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
                 XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
         PrismObjectDefinition<ShadowType> def = accountType.asPrismObject().getDefinition();
         PropertyDelta<XMLGregorianCalendar> validFromDelta = prismContext.deltaFactory().property().createModificationDeleteProperty(
@@ -1619,23 +1564,19 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.addModification(validFromDelta);
         delta.checkConsistence();
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(),
                 delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
         then();
-        result.computeStatus();
-        display("modifyObject result", result);
-        TestUtil.assertSuccess(result);
+        assertSuccessVerbose(result);
 
         delta.checkConsistence();
         // check if activation was changed
-        dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-        assertNull("Unexpected account validTo in account " + transformNameFromResource(ACCOUNT_WILL_USERNAME) + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
-        assertNull("Unexpected account validFrom in account " + transformNameFromResource(ACCOUNT_WILL_USERNAME) + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
-        assertTrue("Dummy account " + transformNameFromResource(ACCOUNT_WILL_USERNAME) + " is disabled, expected enabled", dummyAccount.isEnabled());
+        dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
+        assertNull("Unexpected account validTo in account " + getWillNameOnResource() + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
+        assertNull("Unexpected account validFrom in account " + getWillNameOnResource() + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
+        assertTrue("Dummy account " + getWillNameOnResource() + " is disabled, expected enabled", dummyAccount.isEnabled());
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
@@ -1643,22 +1584,18 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     @Test
-    public void test159GetLockedoutAccount() throws Exception {
-        // GIVEN
+    public void test159GetLockedOutAccount() throws Exception {
         Task task = getTestTask();
         OperationResult result = createOperationResult();
 
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         dummyAccount.setLockout(true);
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
         when();
-        PrismObject<ShadowType> shadow =
-                provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         display("getObject result", result);
@@ -1671,10 +1608,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNotNull("No dummy account", shadow);
 
         if (supportsActivation()) {
-            PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
-                    LockoutStatusType.LOCKED);
+            PrismAsserts.assertPropertyValue(
+                    shadow.getPrismObject(), SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, LockoutStatusType.LOCKED);
         } else {
-            PrismAsserts.assertNoItem(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
+            PrismAsserts.assertNoItem(shadow.getPrismObject(), SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
         }
 
         checkAccountWill(shadow, result, startTs, endTs);
@@ -1686,11 +1623,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test160SearchLockedAccounts() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, getDefaultAccountObjectClass(resourceBean));
+        ObjectQuery query = createAllAccountsQuery();
         filterAnd(query.getFilter(),
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
@@ -1698,11 +1634,11 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         syncServiceMock.reset();
 
-        // WHEN
+        when();
         SearchResultList<PrismObject<ShadowType>> resultList =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
@@ -1717,7 +1653,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test162UnlockAccount() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1726,7 +1661,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNotNull(accountType);
         display("Retrieved account shadow", accountType);
 
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertTrue("Account is not locked", dummyAccount.isLockout());
 
         syncServiceMock.reset();
@@ -1737,12 +1672,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         display("modifyObject result", result);
@@ -1750,8 +1683,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         delta.checkConsistence();
         // check if activation was changed
-        dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-        assertFalse("Dummy account " + transformNameFromResource(ACCOUNT_WILL_USERNAME) + " is locked, expected unlocked", dummyAccount.isLockout());
+        dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
+        assertFalse("Dummy account " + getWillNameOnResource() + " is locked, expected unlocked", dummyAccount.isLockout());
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
@@ -1760,17 +1693,15 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test163GetAccount() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
-        PrismObject<ShadowType> shadow =
-                provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        when();
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         display("getObject result", result);
         TestUtil.assertSuccess(result);
@@ -1782,13 +1713,13 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNotNull("No dummy account", shadow);
 
         if (supportsActivation()) {
-            PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-                    ActivationStatusType.ENABLED);
-            PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
-                    LockoutStatusType.NORMAL);
+            PrismAsserts.assertPropertyValue(
+                    shadow.getPrismObject(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+            PrismAsserts.assertPropertyValue(
+                    shadow.getPrismObject(), SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, LockoutStatusType.NORMAL);
         } else {
-            PrismAsserts.assertNoItem(shadow, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-            PrismAsserts.assertNoItem(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
+            PrismAsserts.assertNoItem(shadow.getPrismObject(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+            PrismAsserts.assertNoItem(shadow.getPrismObject(), SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
         }
 
         checkAccountWill(shadow, result, startTs, endTs);
@@ -1800,11 +1731,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test163SearchLockedAccounts() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, getDefaultAccountObjectClass(resourceBean));
+        ObjectQuery query = createAllAccountsQuery();
         filterAnd(query.getFilter(),
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
@@ -1812,11 +1742,11 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         syncServiceMock.reset();
 
-        // WHEN
+        when();
         SearchResultList<PrismObject<ShadowType>> resultList =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
@@ -1829,7 +1759,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test170SearchNull() throws Exception {
         testSearchIterative(null, null, true, true, false,
-                "meathook", "daemon", transformNameFromResource("morgan"), transformNameFromResource("Will"));
+                "meathook", "daemon", transformNameToResource("morgan"), transformNameToResource("Will"));
     }
 
     @Test
@@ -1863,7 +1793,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         testSearchIterativeSingleAttrFilter(
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", null, true,
-                transformNameFromResource("morgan"), "carla");
+                transformNameToResource("morgan"), "carla");
     }
 
     @Test
@@ -1871,7 +1801,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyResource.setDisableNameHintChecks(true);
         testSearchIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_UID, willIcfUid, null, true,
-                transformNameFromResource("Will"));
+                getWillNameOnResource());
         dummyResource.setDisableNameHintChecks(false);
     }
 
@@ -1879,14 +1809,14 @@ public class TestDummy extends AbstractBasicDummyTest {
     public void test176SearchUidExactNoFetch() throws Exception {
         testSearchIterativeSingleAttrFilter(SchemaConstants.ICFS_UID, willIcfUid,
                 GetOperationOptions.createNoFetch(), false,
-                transformNameFromResource("Will"));
+                getWillNameOnResource());
     }
 
     @Test
     public void test177SearchIcfNameRepoized() throws Exception {
         testSearchIterativeSingleAttrFilter(
-                SchemaConstants.ICFS_NAME, getWillRepoIcfName(), null, true,
-                transformNameFromResource(ACCOUNT_WILL_USERNAME));
+                SchemaConstants.ICFS_NAME, ACCOUNT_WILL_USERNAME, null, true,
+                getWillNameOnResource());
     }
 
     @Test
@@ -1945,7 +1875,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     protected String[] getSortedUsernames18x() {
-        return new String[] { transformNameFromResource("Will"), "carla", "daemon", "meathook", transformNameFromResource("morgan") };
+        return new String[] { getWillNameOnResource(), "carla", "daemon", "meathook", transformNameToResource("morgan") };
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -1959,31 +1889,33 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test194SearchIcfNameRepoizedNoFetch() throws Exception {
-        testSearchIterativeSingleAttrFilter(SchemaConstants.ICFS_NAME, getWillRepoIcfName(),
+        testSearchIterativeSingleAttrFilter(SchemaConstants.ICFS_NAME, ACCOUNT_WILL_USERNAME,
                 GetOperationOptions.createNoFetch(), false,
-                transformNameFromResource(ACCOUNT_WILL_USERNAME));
+                getWillNameOnResource());
     }
 
     @Test
     public void test195SearchIcfNameExact() throws Exception {
         testSearchIterativeSingleAttrFilter(
-                SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME), null, true,
-                transformNameFromResource(ACCOUNT_WILL_USERNAME));
+                SchemaConstants.ICFS_NAME, getWillNameOnResource(), null, true,
+                getWillNameOnResource());
     }
 
     @Test
     public void test196SearchIcfNameExactNoFetch() throws Exception {
-        testSearchIterativeSingleAttrFilter(SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME),
+        testSearchIterativeSingleAttrFilter(
+                SchemaConstants.ICFS_NAME, getWillNameOnResource(),
                 GetOperationOptions.createNoFetch(), false,
-                transformNameFromResource(ACCOUNT_WILL_USERNAME));
+                getWillNameOnResource());
     }
 
     @Test
-    public void test197SearchIcfNameAndUidExactNoFetch() throws Exception {
-        testSearchIterativeAlternativeAttrFilter(SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME),
+    public void test197SearchIcfNameAndUidExactFromRepo() throws Exception {
+        testSearchIterativeAlternativeAttrFilter(
+                SchemaConstants.ICFS_NAME, getWillNameOnResource(),
                 SchemaConstants.ICFS_UID, willIcfUid,
                 GetOperationOptions.createNoFetch(), false,
-                transformNameFromResource(ACCOUNT_WILL_USERNAME));
+                getWillNameOnResource());
     }
 
     @Test
@@ -2012,8 +1944,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         when();
         try {
-            provisioningService.searchObjectsIterative(ShadowType.class, query,
-                    null, handler, task, result);
+            provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
 
             AssertJUnit.fail("unexpected success");
 
@@ -2063,7 +1994,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME))
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(RI_ACCOUNT_OBJECT_CLASS)
                 .and().itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq("Sea Monkey")
                 .and().item(ShadowType.F_DEAD).eq(true)
                 .build();
@@ -2090,18 +2021,27 @@ public class TestDummy extends AbstractBasicDummyTest {
         testSearchIterative(filter, rootOptions, fullShadow, true, false, expectedAccountNames);
     }
 
+    /** TODO why using repo here? */
     @SuppressWarnings("SameParameterValue")
-    private <T> void testSearchIterativeAlternativeAttrFilter(QName attr1QName, T attr1Val,
-            QName attr2QName, T attr2Val,
+    private <T1, T2> void testSearchIterativeAlternativeAttrFilter(
+            QName attr1QName, T1 attr1Val,
+            QName attr2QName, T2 attr2Val,
             GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
-        ResourceSchema resourceSchema = requireNonNull(ResourceSchemaFactory.getRawSchema(resource));
-        ResourceObjectClassDefinition objectClassDef =
-                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
-        ResourceAttributeDefinition<?> attr1Def = objectClassDef.findAttributeDefinitionRequired(attr1QName);
-        ResourceAttributeDefinition<?> attr2Def = objectClassDef.findAttributeDefinitionRequired(attr2QName);
+        ResourceObjectDefinition objectDef =
+                Resource.of(resource)
+                        .getCompleteSchemaRequired()
+                        .findDefinitionForObjectClassRequired(RI_ACCOUNT_OBJECT_CLASS);
+        ResourceAttribute<T1> attr1 =
+                objectDef
+                        .<T1>findAttributeDefinitionRequired(attr1QName)
+                        .instantiateFromRealValue(attr1Val);
+        ResourceAttribute<T2> attr2 =
+                objectDef
+                        .<T2>findAttributeDefinitionRequired(attr2QName)
+                        .instantiateFromRealValue(attr2Val);
         ObjectFilter filter = prismContext.queryFor(ShadowType.class)
-                .itemWithDef(attr1Def, ShadowType.F_ATTRIBUTES, attr1Def.getItemName()).eq(attr1Val)
-                .or().itemWithDef(attr2Def, ShadowType.F_ATTRIBUTES, attr2Def.getItemName()).eq(attr2Val)
+                .filter(attr1.normalizationAwareEqFilter())
+                .or().filter(attr2.normalizationAwareEqFilter())
                 .buildFilter();
         testSearchIterative(filter, rootOptions, fullShadow, false, true, expectedAccountNames);
     }
@@ -2116,7 +2056,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         ObjectQuery query;
         if (useObjectClassFilter) {
-            query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS);
+            query = createAllAccountsQuery();
             if (attrFilter != null) {
                 AndFilter filter = (AndFilter) query.getFilter();
                 filter.getConditions().add(attrFilter);
@@ -2137,7 +2077,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             assertTrue(shadow.canRepresent(ShadowType.class));
             if (!useRepo) {
                 try {
-                    checkAccountShadow(shadow, parentResult, fullShadow);
+                    checkAccountShadow(AbstractShadow.of(shadow), parentResult, fullShadow);
                 } catch (ConfigurationException | SchemaException e) {
                     throw new SystemException(e.getMessage(), e);
                 }
@@ -2175,7 +2115,9 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         assertEquals("Wrong number of found objects (" + foundObjects + "): " + foundObjects, expectedAccountNames.length, foundObjects.size());
         if (!useRepo) {
-            checkUniqueness(foundObjects);
+            for (PrismObject<ShadowType> foundObject : foundObjects) {
+                checkUniqueness(AbstractShadow.of(foundObject));
+            }
         }
         assertSteadyResource();
 
@@ -2191,7 +2133,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         Task task = getTestTask();
         OperationResult result = createOperationResult();
 
-        ObjectQuery query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS);
+        ObjectQuery query = createAllAccountsQuery();
         if (attrFilter != null) {
             AndFilter filter = (AndFilter) query.getFilter();
             filter.getConditions().add(attrFilter);
@@ -2200,13 +2142,11 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         displayDumpable("Query", query);
 
-        final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
-        ResultHandler<ShadowType> handler = (shadow, parentResult) -> {
-            foundObjects.add(shadow);
-
-            assertTrue(shadow.canRepresent(ShadowType.class));
+        final List<AbstractShadow> foundShadows = new ArrayList<>();
+        ObjectHandler<AbstractShadow> handler = (shadow, lResult) -> {
+            foundShadows.add(shadow);
             try {
-                checkAccountShadow(shadow, parentResult, true);
+                checkAccountShadow(shadow, lResult, true);
             } catch (ConfigurationException | SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
             }
@@ -2216,25 +2156,24 @@ public class TestDummy extends AbstractBasicDummyTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
 
         when();
-        SearchResultMetadata searchMetadata =
-                provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, task, result);
+        SearchResultMetadata searchMetadata = provisioningService.searchShadowsIterative(query, options, handler, task, result);
 
         then();
         assertSuccess(result);
 
-        display("found shadows", foundObjects);
+        display("found shadows", foundShadows);
 
         int i = 0;
         for (String expectedAccountId : expectedAccountNames) {
-            PrismObject<ShadowType> foundObject = foundObjects.get(i);
-            if (!expectedAccountId.equals(foundObject.asObjectable().getName().getOrig())) {
-                fail("Account " + expectedAccountId + " was expected to be found on " + i + " position, but it was not found (found " + foundObject.asObjectable().getName().getOrig() + ")");
+            var foundShadow = foundShadows.get(i);
+            if (!expectedAccountId.equals(foundShadow.getName().getOrig())) {
+                fail("Account " + expectedAccountId + " was expected to be found on " + i + " position, but it was not found (found " + foundShadow.getName().getOrig() + ")");
             }
             i++;
         }
 
-        assertEquals("Wrong number of found objects (" + foundObjects + "): " + foundObjects, expectedAccountNames.length, foundObjects.size());
-        checkUniqueness(foundObjects);
+        assertEquals("Wrong number of found objects (" + foundShadows + "): " + foundShadows, expectedAccountNames.length, foundShadows.size());
+        checkUniqueness(foundShadows);
         assertSteadyResource();
 
         return searchMetadata;
@@ -2242,40 +2181,41 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test200AddGroup() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        PrismObject<ShadowType> group = prismContext.parseObject(GROUP_PIRATES_FILE);
-        group.checkConsistence();
+        PrismObject<ShadowType> groupToAdd = prismContext.parseObject(GROUP_PIRATES_FILE);
+        groupToAdd.checkConsistence();
 
         rememberDummyResourceGroupMembersReadCount(null);
 
-        display("Adding group", group);
+        display("Adding group", groupToAdd);
 
-        // WHEN
-        String addedObjectOid = provisioningService.addObject(group, null, null, task, result);
+        when();
+        String addedObjectOid = provisioningService.addObject(groupToAdd, null, null, task, result);
 
-        // THEN
+        then();
         assertSuccess("addObject has failed (result)", result);
         assertEquals(GROUP_PIRATES_OID, addedObjectOid);
 
-        group.checkConsistence();
+        groupToAdd.checkConsistence();
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
-        ShadowType groupRepoType = getShadowRepo(GROUP_PIRATES_OID).asObjectable();
-        display("group from repo", groupRepoType);
-        PrismAsserts.assertEqualsPolyString("Name not equal.", GROUP_PIRATES_NAME, groupRepoType.getName());
-        assertEquals("Wrong kind (repo)", ShadowKindType.ENTITLEMENT, groupRepoType.getKind());
+        piratesIcfUid = assertRepoShadowNew(GROUP_PIRATES_OID)
+                .display()
+                .assertName(GROUP_PIRATES_NAME)
+                .assertKind(ShadowKindType.ENTITLEMENT)
+                .getIndexedPrimaryIdentifierValueRequired();
 
         syncServiceMock.assertSingleNotifySuccessOnly();
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
-        PrismObject<ShadowType> groupProvisioning = provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, null, task, result);
-        display("group from provisioning", groupProvisioning);
-        checkGroupPirates(groupProvisioning, result);
-        piratesIcfUid = getIcfUid(groupRepoType);
+        var groupAfter = assertProvisioningShadowNew(GROUP_PIRATES_OID)
+                .display()
+                .getAbstractShadow();
+
+        checkGroupPirates(groupAfter, result);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
@@ -2287,31 +2227,29 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertTrue("The group is not enabled", dummyGroup.isEnabled());
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        PrismObject<ShadowType> shadowFromRepo = getShadowRepo(addedObjectOid);
-        assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        displayValue("Repository shadow", shadowFromRepo.debugDump());
+        var repoShadow = getShadowRepo(addedObjectOid);
+        assertNotNull("Shadow was not created in the repository", repoShadow);
+        displayValue("Repository shadow", repoShadow.debugDump());
 
-        checkRepoEntitlementShadow(shadowFromRepo);
+        checkRepoEntitlementShadow(repoShadow);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
-        checkUniqueness(group);
+        checkUniqueness(groupAfter);
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
     }
 
     @Test
     public void test202GetGroup() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         rememberDummyResourceGroupMembersReadCount(null);
 
-        // WHEN
-        PrismObject<ShadowType> shadow =
-                provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, null, task, result);
+        when();
+        var shadow = provisioningService.getShadow(GROUP_PIRATES_OID, null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         display("Retrieved group shadow", shadow);
@@ -2327,41 +2265,31 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    private void checkGroupPirates(PrismObject<ShadowType> shadow, OperationResult result)
+    private void checkGroupPirates(AbstractShadow shadow, OperationResult result)
             throws SchemaException, ConfigurationException {
         checkGroupShadow(shadow, result);
-        PrismAsserts.assertEqualsPolyString("Name not equal.", transformNameFromResource(GROUP_PIRATES_NAME), shadow.getName());
-        assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.asObjectable().getKind());
-        assertAttribute(shadow, DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Scurvy pirates");
-        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
-        assertEquals("Unexpected number of attributes", 3, attributes.size());
-
-        assertNull("The _PASSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-                shadow, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+        ShadowAsserter.forAbstractShadow(shadow)
+                .assertName(transformNameToResource(GROUP_PIRATES_NAME))
+                .assertKind(ShadowKindType.ENTITLEMENT)
+                .assertOrigValues(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Scurvy pirates")
+                .assertAttributes(3)
+                .assertNoPassword();
     }
 
     @Test
     public void test203GetGroupNoFetch() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
 
-        GetOperationOptions rootOptions = new GetOperationOptions();
-        rootOptions.setNoFetch(true);
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
-
         rememberDummyResourceGroupMembersReadCount(null);
 
-        // WHEN
-        PrismObject<ShadowType> shadow =
-                provisioningService.getObject(ShadowType.class, GROUP_PIRATES_OID, options, task, result);
+        when();
+        var shadow = provisioningService.getShadow(GROUP_PIRATES_OID, createNoFetchCollection(), task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         display("Retrieved group shadow", shadow);
-
-        assertNotNull("No dummy group", shadow);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
@@ -2385,11 +2313,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
-        // WHEN
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         delta.checkConsistence();
@@ -2408,36 +2336,33 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test210AddPrivilege() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        PrismObject<ShadowType> priv = prismContext.parseObject(PRIVILEGE_PILLAGE_FILE);
-        priv.checkConsistence();
+        PrismObject<ShadowType> privToAdd = prismContext.parseObject(PRIVILEGE_PILLAGE_FILE);
+        privToAdd.checkConsistence();
 
-        display("Adding priv", priv);
+        display("Adding priv", privToAdd);
 
-        // WHEN
-        String addedObjectOid = provisioningService.addObject(priv, null, null, task, result);
+        when();
+        String addedObjectOid = provisioningService.addObject(privToAdd, null, null, task, result);
 
-        // THEN
+        then();
         assertSuccess("addObject has failed (result)", result);
         assertEquals(PRIVILEGE_PILLAGE_OID, addedObjectOid);
 
-        priv.checkConsistence();
+        privToAdd.checkConsistence();
 
-        ShadowType groupRepoType = getShadowRepo(PRIVILEGE_PILLAGE_OID).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Name not equal.", PRIVILEGE_PILLAGE_NAME, groupRepoType.getName());
-        assertEquals("Wrong kind (repo)", ShadowKindType.ENTITLEMENT, groupRepoType.getKind());
+        pillageIcfUid = assertRepoShadowNew(PRIVILEGE_PILLAGE_OID)
+                .assertName(PRIVILEGE_PILLAGE_NAME)
+                .assertKind(ShadowKindType.ENTITLEMENT)
+                .getIndexedPrimaryIdentifierValueRequired();
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> privProvisioning = provisioningService.getObject(ShadowType.class,
-                PRIVILEGE_PILLAGE_OID, null, task, result);
-        display("priv from provisioning", privProvisioning);
-        checkPrivPillage(privProvisioning, result);
-        pillageIcfUid = getIcfUid(privProvisioning);
+        var privShadow = provisioningService.getShadow(PRIVILEGE_PILLAGE_OID, null, task, result);
+        checkPrivPillage(privShadow, result);
 
         // Check if the priv was created in the dummy resource
 
@@ -2446,88 +2371,77 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertEquals("Wrong privilege power", (Integer) 100, dummyPriv.getAttributeValue(DummyResourceContoller.DUMMY_PRIVILEGE_ATTRIBUTE_POWER, Integer.class));
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        PrismObject<ShadowType> shadowFromRepo = getShadowRepo(addedObjectOid);
-        assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        displayValue("Repository shadow", shadowFromRepo.debugDump());
+        var repoShadow = getShadowRepo(addedObjectOid);
+        assertNotNull("Shadow was not created in the repository", repoShadow);
+        displayValue("Repository shadow", repoShadow.debugDump());
 
-        checkRepoEntitlementShadow(shadowFromRepo);
+        checkRepoEntitlementShadow(repoShadow);
 
-        checkUniqueness(priv);
+        checkUniqueness(privShadow);
         assertSteadyResource();
     }
 
     @Test
     public void test212GetPriv() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
 
-        // WHEN
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null, task, result);
+        when();
+        var shadow = provisioningService.getShadow(PRIVILEGE_PILLAGE_OID, null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
-        display("Retrieved priv shadow", shadow);
-
-        assertNotNull("No dummy priv", shadow);
-
         checkPrivPillage(shadow, result);
-
         checkUniqueness(shadow);
-
         assertSteadyResource();
     }
 
-    private void checkPrivPillage(PrismObject<ShadowType> shadow, OperationResult result)
+    private void checkPrivPillage(AbstractShadow shadow, OperationResult result)
             throws SchemaException, ConfigurationException {
+        ShadowAsserter.forAbstractShadow(shadow)
+                .display()
+                .assertName(transformNameToResource(PRIVILEGE_PILLAGE_NAME))
+                .assertKind(ShadowKindType.ENTITLEMENT)
+                .assertAttributes(3)
+                .assertOrigValues(DummyResourceContoller.DUMMY_PRIVILEGE_ATTRIBUTE_POWER, 100)
+                .assertNoPassword();
         checkEntitlementShadow(shadow, result, OBJECTCLASS_PRIVILEGE_LOCAL_NAME, true);
-        assertShadowName(shadow, PRIVILEGE_PILLAGE_NAME);
-        assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.asObjectable().getKind());
-        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
-        assertEquals("Unexpected number of attributes", 3, attributes.size());
-        assertAttribute(shadow, DummyResourceContoller.DUMMY_PRIVILEGE_ATTRIBUTE_POWER, 100);
-
-        assertNull("The _PASSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-                shadow, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
     }
 
     @Test
     public void test214AddPrivilegeBargain() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        PrismObject<ShadowType> priv = prismContext.parseObject(PRIVILEGE_BARGAIN_FILE);
-        priv.checkConsistence();
+        PrismObject<ShadowType> shadowToAdd = prismContext.parseObject(PRIVILEGE_BARGAIN_FILE);
+        shadowToAdd.checkConsistence();
 
         rememberDummyResourceGroupMembersReadCount(null);
 
-        display("Adding priv", priv);
+        display("Adding priv", shadowToAdd);
 
-        // WHEN
-        String addedObjectOid = provisioningService.addObject(priv, null, null, task, result);
+        when();
+        String addedObjectOid = provisioningService.addObject(shadowToAdd, null, null, task, result);
 
-        // THEN
+        then();
         assertSuccess("addObject has failed (result)", result);
         assertEquals(PRIVILEGE_BARGAIN_OID, addedObjectOid);
 
-        priv.checkConsistence();
+        shadowToAdd.checkConsistence();
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
-        ShadowType groupRepoType = getShadowRepo(PRIVILEGE_BARGAIN_OID).asObjectable();
-        PrismAsserts.assertEqualsPolyString("Name not equal.", PRIVILEGE_BARGAIN_NAME, groupRepoType.getName());
-        assertEquals("Wrong kind (repo)", ShadowKindType.ENTITLEMENT, groupRepoType.getKind());
+        bargainIcfUid = assertRepoShadowNew(PRIVILEGE_BARGAIN_OID)
+                .assertName(PRIVILEGE_BARGAIN_NAME)
+                .assertKind(ShadowKindType.ENTITLEMENT)
+                .getIndexedPrimaryIdentifierValueRequired();
 
         syncServiceMock.assertSingleNotifySuccessOnly();
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
-        PrismObject<ShadowType> privProvisioningType = provisioningService.getObject(ShadowType.class,
-                PRIVILEGE_BARGAIN_OID, null, task, result);
-        display("priv from provisioning", privProvisioningType);
-        checkPrivBargain(privProvisioningType, result);
-        bargainIcfUid = getIcfUid(privProvisioningType);
+        var shadowAfter = provisioningService.getShadow(PRIVILEGE_BARGAIN_OID, null, task, result);
+        checkPrivBargain(shadowAfter, result);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
@@ -2537,27 +2451,26 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNotNull("No dummy priv " + PRIVILEGE_BARGAIN_NAME, dummyPriv);
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        PrismObject<ShadowType> shadowFromRepo = getShadowRepo(addedObjectOid);
-        assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        displayValue("Repository shadow", shadowFromRepo.debugDump());
+        var repoShadow = getShadowRepo(addedObjectOid);
+        assertNotNull("Shadow was not created in the repository", repoShadow);
+        displayValue("Repository shadow", repoShadow.debugDump());
 
-        checkRepoEntitlementShadow(shadowFromRepo);
+        checkRepoEntitlementShadow(repoShadow);
 
-        checkUniqueness(priv);
+        checkUniqueness(shadowAfter);
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
     }
 
-    private void checkPrivBargain(PrismObject<ShadowType> shadow, OperationResult result)
+    private void checkPrivBargain(AbstractShadow shadow, OperationResult result)
             throws SchemaException, ConfigurationException {
+        ShadowAsserter.forAbstractShadow(shadow)
+                .display()
+                .assertName(transformNameToResource(PRIVILEGE_BARGAIN_NAME))
+                .assertKind(ShadowKindType.ENTITLEMENT)
+                .assertAttributes(2)
+                .assertNoPassword();
         checkEntitlementShadow(shadow, result, OBJECTCLASS_PRIVILEGE_LOCAL_NAME, true);
-        assertShadowName(shadow, PRIVILEGE_BARGAIN_NAME);
-        assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.asObjectable().getKind());
-        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
-        assertEquals("Unexpected number of attributes", 2, attributes.size());
-
-        assertNull("The _PASSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-                shadow, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
     }
 
     @Test
@@ -2573,7 +2486,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         when();
-        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+        provisioningService.modifyObject(
+                ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         then();
@@ -2587,7 +2501,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         }
 
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-        assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
+        assertMember(group, getWillNameOnResource());
 
         syncServiceMock.assertSingleNotifySuccessOnly();
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -2605,10 +2519,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        // WHEN
-        PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        when();
+        var account = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
 
-        // THEN
+        then();
         display("Account", account);
         assertSuccess(result);
 
@@ -2617,7 +2531,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         // Just make sure nothing has changed
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-        assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
+        assertMember(group, getWillNameOnResource());
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
@@ -2635,19 +2549,20 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
-        // WHEN
-        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+        when();
+        provisioningService.modifyObject(
+                ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
         Set<String> accountPrivileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-        PrismAsserts.assertSets("account privileges", accountPrivileges, PRIVILEGE_PILLAGE_NAME);
+        PrismAsserts.assertSets("account privileges", accountPrivileges, transformNameToResource(PRIVILEGE_PILLAGE_NAME));
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
@@ -2660,12 +2575,12 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         // Make sure that the groups is still there and will is a member
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-        assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
+        assertMember(group, getWillNameOnResource());
 
         syncServiceMock.assertSingleNotifySuccessOnly();
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
         assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
         assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
@@ -2684,17 +2599,20 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
-        // WHEN
-        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+        when();
+        provisioningService.modifyObject(
+                ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
         Set<String> accountPrivileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-        PrismAsserts.assertSets("account privileges", accountPrivileges, PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME);
+        PrismAsserts.assertSets("account privileges", accountPrivileges,
+                transformNameToResource(PRIVILEGE_PILLAGE_NAME),
+                transformNameToResource(PRIVILEGE_BARGAIN_NAME));
 
         // Make sure that privilege object is still there
         DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
@@ -2706,7 +2624,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         // Make sure that the groups is still there and will is a member
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-        assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
+        assertMember(group, getWillNameOnResource());
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
@@ -2724,10 +2642,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        // WHEN
-        PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        when();
+        var account = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
 
-        // THEN
+        then();
         display("Account", account);
         assertSuccess(result);
 
@@ -2738,10 +2656,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
         // Just make sure nothing has changed
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
         Set<String> accountPrivileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-        PrismAsserts.assertSets("Wrong account privileges", accountPrivileges, PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME);
+        PrismAsserts.assertSets("Wrong account privileges", accountPrivileges,
+                transformNameToResource(PRIVILEGE_PILLAGE_NAME),
+                transformNameToResource(PRIVILEGE_BARGAIN_NAME));
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
@@ -2752,7 +2672,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNotNull("Privilege object (bargain) is gone!", priv2);
 
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-        assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
+        assertMember(group, getWillNameOnResource());
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
@@ -2765,22 +2685,21 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test225GetFoolishPirateWill() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyGroup groupFools = new DummyGroup("fools");
         dummyResource.addGroup(groupFools);
-        groupFools.addMember(transformNameFromResource(ACCOUNT_WILL_USERNAME));
+        groupFools.addMember(getWillNameOnResource());
 
         syncServiceMock.reset();
         rememberDummyResourceGroupMembersReadCount(null);
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 
-        // WHEN
-        PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        when();
+        var account = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
 
-        // THEN
+        then();
         display("Account", account);
         assertSuccess(result);
 
@@ -2788,7 +2707,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
-        PrismObject<ShadowType> foolsShadow = findShadowByName(new QName(RESOURCE_DUMMY_NS, OBJECTCLASS_GROUP_LOCAL_NAME), "fools", resource, result);
+        var foolsShadow = findShadowByName(RI_GROUP_OBJECT_CLASS, "fools", resource, result);
         assertNotNull("No shadow for group fools", foolsShadow);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -2801,10 +2720,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
         // Just make sure nothing has changed
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
         Set<String> accountPrivileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-        PrismAsserts.assertSets("Wrong account privileges", accountPrivileges, PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME);
+        PrismAsserts.assertSets("Wrong account privileges", accountPrivileges,
+                transformNameToResource(PRIVILEGE_PILLAGE_NAME),
+                transformNameToResource(PRIVILEGE_BARGAIN_NAME));
 
         // Make sure that privilege object is still there
         DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
@@ -2815,11 +2736,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-        assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
+        assertMember(group, getWillNameOnResource());
 
         String foolsIcfUid = getIcfUid(foolsShadow);
         groupFools = getDummyGroupAssert("fools", foolsIcfUid);
-        assertMember(groupFools, transformNameToResource(ACCOUNT_WILL_USERNAME));
+        assertMember(groupFools, getWillNameOnResource());
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
@@ -2834,21 +2755,21 @@ public class TestDummy extends AbstractBasicDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         dummyAccount.addAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, PRIVILEGE_NONSENSE_NAME);
 
         syncServiceMock.reset();
 
-        // WHEN
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        when();
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 3);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
-        PrismObject<ShadowType> foolsShadow = findShadowByName(new QName(RESOURCE_DUMMY_NS, OBJECTCLASS_GROUP_LOCAL_NAME), "fools", resource, result);
+        var foolsShadow = findShadowByName(RI_GROUP_OBJECT_CLASS, "fools", resource, result);
         assertNotNull("No shadow for group fools", foolsShadow);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -2861,11 +2782,13 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
         // Just make sure nothing has changed
-        dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
         Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
         PrismAsserts.assertSets("Wrong account privileges", accountProvileges,
-                PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME, PRIVILEGE_NONSENSE_NAME);
+                transformNameToResource(PRIVILEGE_PILLAGE_NAME),
+                transformNameToResource(PRIVILEGE_BARGAIN_NAME),
+                PRIVILEGE_NONSENSE_NAME);
 
         // Make sure that privilege object is still there
         DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
@@ -2876,11 +2799,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-        assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
+        assertMember(group, getWillNameOnResource());
 
         String foolsIcfUid = getIcfUid(foolsShadow);
         DummyGroup groupFools = getDummyGroupAssert("fools", foolsIcfUid);
-        assertMember(groupFools, transformNameToResource(ACCOUNT_WILL_USERNAME));
+        assertMember(groupFools, getWillNameOnResource());
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
@@ -3027,11 +2950,13 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNoMember(group, getWillRepoIcfName());
 
         // Make sure that account is still there and it has the privilege
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
         Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
         PrismAsserts.assertSets("Wrong account privileges", accountProvileges,
-                PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME, PRIVILEGE_NONSENSE_NAME);
+                transformNameToResource(PRIVILEGE_PILLAGE_NAME),
+                transformNameToResource(PRIVILEGE_BARGAIN_NAME),
+                PRIVILEGE_NONSENSE_NAME);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
@@ -3046,7 +2971,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
         assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
         assertEntitlementPriv(shadow, PRIVILEGE_BARGAIN_OID);
@@ -3062,14 +2987,16 @@ public class TestDummy extends AbstractBasicDummyTest {
         }
 
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-        assertMember(group, transformNameFromResource(ACCOUNT_WILL_USERNAME));
+        assertMember(group, getWillNameOnResource());
 
         // Make sure that account is still there and it has the privilege
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
         Set<String> accountPrivileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
         PrismAsserts.assertSets("Wrong account privileges", accountPrivileges,
-                PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME, PRIVILEGE_NONSENSE_NAME);
+                transformNameToResource(PRIVILEGE_PILLAGE_NAME),
+                transformNameToResource(PRIVILEGE_BARGAIN_NAME),
+                PRIVILEGE_NONSENSE_NAME);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
@@ -3084,7 +3011,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
         assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
         assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
@@ -3104,11 +3031,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
-        // WHEN
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         delta.checkConsistence();
@@ -3116,11 +3043,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNoMember(group, getWillRepoIcfName());
 
         // Make sure that account is still there and it has the privilege
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
         Set<String> accountPrivileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
         PrismAsserts.assertSets("Wrong account privileges", accountPrivileges,
-                PRIVILEGE_BARGAIN_NAME, PRIVILEGE_NONSENSE_NAME);
+                transformNameToResource(PRIVILEGE_BARGAIN_NAME), PRIVILEGE_NONSENSE_NAME);
 
         // Make sure that privilege object is still there
         DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
@@ -3128,7 +3055,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
         assertEntitlementPriv(shadow, PRIVILEGE_BARGAIN_OID);
 
@@ -3146,11 +3073,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
-        // WHEN
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         delta.checkConsistence();
@@ -3158,7 +3085,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNoMember(group, getWillRepoIcfName());
 
         // Make sure that account is still there and it has the privilege
-        DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
         Set<String> accountPrivileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
         PrismAsserts.assertSets("Wrong account privileges", accountPrivileges, PRIVILEGE_NONSENSE_NAME);
@@ -3178,27 +3105,26 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test260AddAccountLeChuck() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        PrismObject<ShadowType> accountBefore = prismContext.parseObject(ACCOUNT_LECHUCK_FILE);
-        accountBefore.checkConsistence();
+        PrismObject<ShadowType> accountToAdd = prismContext.parseObject(ACCOUNT_LECHUCK_FILE);
+        accountToAdd.checkConsistence();
 
-        display("Adding shadow", accountBefore);
+        display("Adding shadow", accountToAdd);
 
-        // WHEN
-        String addedObjectOid = provisioningService.addObject(accountBefore, null, null, task, result);
+        when();
+        String addedObjectOid = provisioningService.addObject(accountToAdd, null, null, task, result);
 
-        // THEN
+        then();
         assertSuccess("addObject has failed (result)", result);
         assertEquals(ACCOUNT_LECHUCK_OID, addedObjectOid);
 
-        accountBefore.checkConsistence();
+        accountToAdd.checkConsistence();
 
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, addedObjectOid, null, task, result);
-        leChuckIcfUid = getIcfUid(shadow);
+        var accountAfter = provisioningService.getShadow(addedObjectOid, null, task, result);
+        leChuckIcfUid = getIcfUid(accountAfter);
 
         // Check if the account was created in the dummy resource and that it has the entitlements
 
@@ -3209,46 +3135,42 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertEquals("Wrong password", "und3ad", dummyAccount.getPassword());
 
         Set<String> accountPrivileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-        PrismAsserts.assertSets("account privileges", accountPrivileges, PRIVILEGE_PILLAGE_NAME);
+        PrismAsserts.assertSets("account privileges", accountPrivileges, transformNameToResource(PRIVILEGE_PILLAGE_NAME));
 
         // Make sure that privilege object is still there
         DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
         assertNotNull("Privilege object is gone!", priv);
 
-        DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-        assertMember(group, transformNameFromResource(ACCOUNT_LECHUCK_NAME));
+        String lechuckNameOnResource = transformNameToResource(ACCOUNT_LECHUCK_NAME);
+        String lechuckUidOnResource = isIcfNameUidSame() ? lechuckNameOnResource : dummyAccount.getId();
 
-        PrismObject<ShadowType> repoAccount = getShadowRepo(ACCOUNT_LECHUCK_OID);
-        assertShadowName(repoAccount, ACCOUNT_LECHUCK_NAME);
-        assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, repoAccount.asObjectable().getKind());
-        assertAttribute(repoAccount, SchemaConstants.ICFS_NAME, ACCOUNT_LECHUCK_NAME);
-        if (isIcfNameUidSame()) {
-            assertAttribute(repoAccount, SchemaConstants.ICFS_UID, ACCOUNT_LECHUCK_NAME);
-        } else {
-            assertAttribute(repoAccount, SchemaConstants.ICFS_UID, dummyAccount.getId());
-        }
+        DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
+        assertMember(group, lechuckNameOnResource);
+
+        assertRepoShadowNew(ACCOUNT_LECHUCK_OID)
+                .assertName(lechuckNameOnResource)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertCachedOrigValues(SchemaConstants.ICFS_NAME, lechuckNameOnResource)
+                .assertCachedOrigValues(SchemaConstants.ICFS_UID, lechuckUidOnResource);
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> provisioningAccount = provisioningService.getObject(ShadowType.class,
-                ACCOUNT_LECHUCK_OID, null, task, result);
-        display("account from provisioning", provisioningAccount);
-        assertShadowName(provisioningAccount, ACCOUNT_LECHUCK_NAME);
-        assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, provisioningAccount.asObjectable().getKind());
-        assertAttribute(provisioningAccount, SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_LECHUCK_NAME));
-        if (isIcfNameUidSame()) {
-            assertAttribute(provisioningAccount, SchemaConstants.ICFS_UID, transformNameFromResource(ACCOUNT_LECHUCK_NAME));
-        } else {
-            assertAttribute(provisioningAccount, SchemaConstants.ICFS_UID, dummyAccount.getId());
-        }
+        // actually this should be the same as "accountAfter"
+        var accountAfter2 = assertProvisioningShadowNew(ACCOUNT_LECHUCK_OID)
+                .display()
+                .assertName(lechuckNameOnResource)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertOrigValues(SchemaConstants.ICFS_NAME, lechuckNameOnResource)
+                .assertOrigValues(SchemaConstants.ICFS_UID, lechuckUidOnResource)
+                .attributes()
+                .assertNoAttribute(ICFS_PASSWORD)
+                .end()
+                .getAbstractShadow();
 
-        assertEntitlementGroup(provisioningAccount, GROUP_PIRATES_OID);
-        assertEntitlementPriv(provisioningAccount, PRIVILEGE_PILLAGE_OID);
+        assertEntitlementGroup(accountAfter2, GROUP_PIRATES_OID);
+        assertEntitlementPriv(accountAfter2, PRIVILEGE_PILLAGE_OID);
 
-        assertNull("The _PASSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-                provisioningAccount, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-
-        checkUniqueness(provisioningAccount);
+        checkUniqueness(accountAfter2);
 
         assertSteadyResource();
     }
@@ -3259,15 +3181,14 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test265DeleteAccountLeChuck() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        // WHEN
+        when();
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_LECHUCK_OID, null, null, task, result);
 
-        // THEN
+        then();
         assertSuccess("addObject has failed (result)", result);
         syncServiceMock.assertSingleNotifySuccessOnly();
 
@@ -3311,10 +3232,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         syncServiceMock.reset();
 
-        // WHEN
+        when();
         provisioningService.deleteObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null, null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         syncServiceMock.assertSingleNotifySuccessOnly();
@@ -3346,10 +3267,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         syncServiceMock.reset();
 
-        // WHEN
+        when();
         provisioningService.deleteObject(ShadowType.class, GROUP_PIRATES_OID, null, null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         syncServiceMock.assertSingleNotifySuccessOnly();
@@ -3407,13 +3328,14 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertDummyAccountAttributeValues(shadowUuid, morganIcfUid,
                 DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
 
-        PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_MORGAN_OID);
+        var repoShadow = getShadowRepo(ACCOUNT_MORGAN_OID);
         assertAccountShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, ACCOUNT_CPTMORGAN_NAME, resourceBean);
 
         if (!isIcfNameUidSame()) {
             shadowUuid = (String) identifier.getRealValue();
         }
-        PrismAsserts.assertPropertyValue(repoShadow, SchemaConstants.ICFS_UID_PATH, shadowUuid);
+        var rawUidValue = repoShadow.getPrismObject().findProperty(SchemaConstants.ICFS_UID_PATH).getRealValue();
+        assertThat(IntegrationTestTools.toStringValue(rawUidValue)).isEqualTo(shadowUuid);
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
@@ -3446,7 +3368,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         delta.checkConsistence();
         // check if attribute was changed
-        DummyAccount dummyAccount = getDummyAccount(transformNameFromResource(ACCOUNT_CPTMORGAN_NAME), morganIcfUid);
+        DummyAccount dummyAccount = getDummyAccount(transformNameToResource(ACCOUNT_CPTMORGAN_NAME), morganIcfUid);
         displayDumpable("Dummy account", dummyAccount);
         ZonedDateTime enlistTimestamp = dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME, ZonedDateTime.class);
         assertEqualTime("wrong dummy enlist timestamp", ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP_MODIFIED, enlistTimestamp);
@@ -3479,15 +3401,14 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSuccess(result);
 
         // Check if the account was created in the dummy resource
-        assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+        assertDummyAccount(getWillNameOnResource(), willIcfUid)
                 .assertPassword(ACCOUNT_WILL_PASSWORD_321)
                 .assertLastModifier(getLastModifierName(ACCOUNT_WILL_USERNAME));
 
         accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD_321;
 
         // Check if the shadow is in the repo
-        PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
-        assertNotNull("Shadow was not created in the repository", repoShadow);
+        var repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
         display("Repository shadow", repoShadow);
 
         checkRepoAccountShadow(repoShadow);
@@ -3596,9 +3517,9 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     private void assertAccountWillGossip(String... values) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        displayDumpable("Account will", getDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid));
+        displayDumpable("Account will", getDummyAccount(getWillNameOnResource(), willIcfUid));
         //noinspection unchecked
-        assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+        assertDummyAccount(getWillNameOnResource(), willIcfUid)
                 .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, values);
     }
 
@@ -3608,7 +3529,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertFalse("Empty dummy resource deltas", dummyDeltas.isEmpty());
         assertEquals("Too many dummy resource deltas", 1, dummyDeltas.size());
         DummyDelta dummyDelta = dummyDeltas.get(0);
-        assertEquals("Wrong dummy resource delta object name", transformNameFromResource(ACCOUNT_WILL_USERNAME), dummyDelta.getObjectName());
+        assertEquals("Wrong dummy resource delta object name", getWillNameOnResource(), dummyDelta.getObjectName());
         assertEquals("Wrong dummy resource delta type", DummyDeltaType.MODIFY, dummyDelta.getType());
         assertEquals("Wrong dummy resource delta attribute", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, dummyDelta.getAttributeName());
         Collection<Object> valuesToConsider;
@@ -3642,14 +3563,13 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test501GetProtectedAccountShadow() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
-        PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
+        when();
+        var account = provisioningService.getShadow(ACCOUNT_DAEMON_OID, null, task, result);
 
-        assertEquals("" + account + " is not protected", Boolean.TRUE, account.asObjectable().isProtectedObject());
+        assertTrue(account + " is not protected", account.isProtectedObject());
         checkUniqueness(account);
 
         if (areMarksSupported()) {
@@ -3668,7 +3588,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test502ModifyProtectedAccountShadowAttributes() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -3677,16 +3596,14 @@ public class TestDummy extends AbstractBasicDummyTest {
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
         ResourceObjectClassDefinition defaultAccountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
-        //noinspection unchecked
-        ResourceAttributeDefinition<String> fullnameAttrDef =
-                (ResourceAttributeDefinition<String>) defaultAccountDefinition.findAttributeDefinition("fullname");
+        ResourceAttributeDefinition<String> fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
         ResourceAttribute<String> fullnameAttr = fullnameAttrDef.instantiate();
         PropertyDelta<String> fullnameDelta = fullnameAttr.createDelta(ItemPath.create(ShadowType.F_ATTRIBUTES,
                 fullnameAttrDef.getItemName()));
         fullnameDelta.setRealValuesToReplace("Good Daemon");
         modifications.add(fullnameDelta);
 
-        // WHEN
+        when();
         try {
             provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, modifications, null, null, task, result);
             AssertJUnit.fail("Expected security exception while modifying 'daemon' account");
@@ -3707,7 +3624,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test503ModifyProtectedAccountShadowProperty() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -3716,10 +3632,10 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .createModificationReplaceProperty(ShadowType.class, ACCOUNT_DAEMON_OID,
                         ShadowType.F_SYNCHRONIZATION_SITUATION, SynchronizationSituationType.DISPUTED);
 
-        // WHEN
+        when();
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, shadowDelta.getModifications(), null, null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         syncServiceMock.assertSingleNotifySuccessOnly();
@@ -3732,7 +3648,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test509DeleteProtectedAccountShadow() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -3759,8 +3674,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test510AddProtectedAccounts() throws Exception {
-        // GIVEN
-        testAddProtectedAccount("Xavier");
+                testAddProtectedAccount("Xavier");
         testAddProtectedAccount("Xenophobia");
         testAddProtectedAccount("nobody-adm");
         testAddAccount("abcadm");
@@ -3770,8 +3684,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test511AddProtectedAccountCaseIgnore() throws Exception {
-        // GIVEN
-        testAddAccount("xaxa");
+                testAddAccount("xaxa");
         testAddAccount("somebody-ADM");
     }
 
@@ -3799,7 +3712,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         PrismObject<ShadowType> shadow = createAccountShadow(username);
 
-        // WHEN
+        when();
         try {
             provisioningService.addObject(shadow, null, null, task, result);
             AssertJUnit.fail("Expected security exception while adding '" + username + "' account");
@@ -3820,7 +3733,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         PrismObject<ShadowType> shadow = createAccountShadow(username);
 
-        // WHEN
+        when();
         provisioningService.addObject(shadow, null, null, getTestTask(), result);
 
         assertSuccess(result);
@@ -3838,12 +3751,12 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test520MigrationPrimaryIdentifierValueRefresh() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         PrismObject<ShadowType> shadowBefore = PrismTestUtil.parseObject(ACCOUNT_RELIC_FILE);
+        convertAttributesToRepoFormat(shadowBefore); // TODO
         repositoryService.addObject(shadowBefore, null, result);
 
         when();
@@ -3855,7 +3768,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         assertRepoShadow(ACCOUNT_RELIC_OID)
                 .assertName(ACCOUNT_RELIC_USERNAME)
-                .assertPrimaryIdentifierValue(ACCOUNT_RELIC_USERNAME);
+                .assertIndexedPrimaryIdentifierValue(ACCOUNT_RELIC_USERNAME);
 
         assertSteadyResource();
     }
@@ -3868,14 +3781,13 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test600AddAccountAlreadyExist() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         dummyResourceCtl.addAccount(ACCOUNT_MURRAY_USERNAME, ACCOUNT_MURRAY_USERNAME);
 
-        PrismObject<ShadowType> account = createShadowNameOnly(resource, ACCOUNT_MURRAY_USERNAME);
+        PrismObject<ShadowType> account = createShadowNameOnly(resource, ACCOUNT_MURRAY_USERNAME).getPrismObject();
         account.checkConsistence();
 
         display("Adding shadow", account);
@@ -3895,12 +3807,13 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.assertNotifyChange();
 
         // Even though the operation failed a shadow should be created for the conflicting object
-        PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getMurrayRepoIcfName(), resource, result);
-        assertNotNull("Shadow for conflicting object was not created in the repository", accountRepo);
-        display("Repository shadow", accountRepo);
-        checkRepoAccountShadow(accountRepo);
+        var repoShadow = findAccountShadowByUsername(getMurrayRepoIcfName(), resource, result);
+        assertNotNull("Shadow for conflicting object was not created in the repository", repoShadow);
+        display("Repository shadow", repoShadow);
+        checkRepoAccountShadow(repoShadow);
 
-        assertEquals("Wrong ICF NAME in murray (repo) shadow", getMurrayRepoIcfName(), getIcfName(accountRepo));
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAccountAttributes())
+                .assertName(getMurrayRepoIcfName());
 
         assertSteadyResource();
     }
@@ -3938,12 +3851,11 @@ public class TestDummy extends AbstractBasicDummyTest {
     private @NotNull ResourceOperationCoordinates getDefaultAccountObjectClassCoordinates() {
         return ResourceOperationCoordinates.ofObjectClass(
                 RESOURCE_DUMMY_OID,
-                getDefaultAccountObjectClass(resourceBean));
+                RI_ACCOUNT_OBJECT_CLASS);
     }
 
     @Test
     public void test801LiveSyncAddBlackbeard() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -3951,7 +3863,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyResource.setSyncStyle(DummySyncStyle.DUMB);
         DummyAccount newAccount = new DummyAccount(BLACKBEARD_USERNAME);
         newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Edward Teach");
-        newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666);
+        newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
         newAccount.setEnabled(true);
         newAccount.setPassword("shiverMEtimbers");
         dummyResource.addAccount(newAccount);
@@ -3986,10 +3898,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertAttribute(currentShadow,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Edward Teach");
         assertAttribute(currentShadow,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666);
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
         assertEquals("Unexpected number of attributes", 4, attributes.size());
 
-        PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);
+        var accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);
         assertNotNull("Shadow was not created in the repository", accountRepo);
         display("Repository shadow", accountRepo);
         checkRepoAccountShadow(accountRepo);
@@ -4001,7 +3913,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test802LiveSyncModifyBlackbeard() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -4039,10 +3950,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertAttribute(currentShadow,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Blackbeard");
         assertAttribute(currentShadow,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666);
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
         assertEquals("Unexpected number of attributes", 4, attributes.size());
 
-        PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);
+        var accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);
         assertNotNull("Shadow was not created in the repository", accountRepo);
         display("Repository shadow", accountRepo);
         checkRepoAccountShadow(accountRepo);
@@ -4054,52 +3965,52 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test810LiveSyncAddDrakeDumbObjectClass() throws Exception {
-        testLiveSyncAddDrake(DummySyncStyle.DUMB, getDefaultAccountObjectClass(resourceBean));
+        testLiveSyncAddDrake(DummySyncStyle.DUMB, RI_ACCOUNT_OBJECT_CLASS);
     }
 
     @Test
     public void test812LiveSyncModifyDrakeDumbObjectClass() throws Exception {
-        testLiveSyncModifyDrake(DummySyncStyle.DUMB, getDefaultAccountObjectClass(resourceBean));
+        testLiveSyncModifyDrake(DummySyncStyle.DUMB, RI_ACCOUNT_OBJECT_CLASS);
     }
 
     @Test
     public void test815LiveSyncAddCorsairsDumbObjectClass() throws Exception {
-        testLiveSyncAddCorsairs(DummySyncStyle.DUMB, getDefaultAccountObjectClass(resourceBean), false);
+        testLiveSyncAddCorsairs(DummySyncStyle.DUMB, RI_ACCOUNT_OBJECT_CLASS, false);
     }
 
     @Test
     public void test817LiveSyncDeleteCorsairsDumbObjectClass() throws Exception {
-        testLiveSyncDeleteCorsairs(DummySyncStyle.DUMB, getDefaultAccountObjectClass(resourceBean), false);
+        testLiveSyncDeleteCorsairs(DummySyncStyle.DUMB, RI_ACCOUNT_OBJECT_CLASS, false);
     }
 
     @Test
     public void test819LiveSyncDeleteDrakeDumbObjectClass() throws Exception {
-        testLiveSyncDeleteDrake(DummySyncStyle.DUMB, getDefaultAccountObjectClass(resourceBean));
+        testLiveSyncDeleteDrake(DummySyncStyle.DUMB, RI_ACCOUNT_OBJECT_CLASS);
     }
 
     @Test
     public void test820LiveSyncAddDrakeSmartObjectClass() throws Exception {
-        testLiveSyncAddDrake(DummySyncStyle.SMART, getDefaultAccountObjectClass(resourceBean));
+        testLiveSyncAddDrake(DummySyncStyle.SMART, RI_ACCOUNT_OBJECT_CLASS);
     }
 
     @Test
     public void test822LiveSyncModifyDrakeSmartObjectClass() throws Exception {
-        testLiveSyncModifyDrake(DummySyncStyle.SMART, getDefaultAccountObjectClass(resourceBean));
+        testLiveSyncModifyDrake(DummySyncStyle.SMART, RI_ACCOUNT_OBJECT_CLASS);
     }
 
     @Test
     public void test825LiveSyncAddCorsairsSmartObjectClass() throws Exception {
-        testLiveSyncAddCorsairs(DummySyncStyle.SMART, getDefaultAccountObjectClass(resourceBean), false);
+        testLiveSyncAddCorsairs(DummySyncStyle.SMART, RI_ACCOUNT_OBJECT_CLASS, false);
     }
 
     @Test
     public void test827LiveSyncDeleteCorsairsSmartObjectClass() throws Exception {
-        testLiveSyncDeleteCorsairs(DummySyncStyle.SMART, getDefaultAccountObjectClass(resourceBean), false);
+        testLiveSyncDeleteCorsairs(DummySyncStyle.SMART, RI_ACCOUNT_OBJECT_CLASS, false);
     }
 
     @Test
     public void test829LiveSyncDeleteDrakeSmartObjectClass() throws Exception {
-        testLiveSyncDeleteDrake(DummySyncStyle.SMART, getDefaultAccountObjectClass(resourceBean));
+        testLiveSyncDeleteDrake(DummySyncStyle.SMART, RI_ACCOUNT_OBJECT_CLASS);
     }
 
     @Test
@@ -4153,7 +4064,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     private void testLiveSyncAddDrake(DummySyncStyle syncStyle, QName objectClass) throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -4205,10 +4115,10 @@ public class TestDummy extends AbstractBasicDummyTest {
                 fullnameAttribute.getRealValue());
 
         drakeAccountOid = currentShadowType.getOid();
-        PrismObject<ShadowType> repoShadow = getShadowRepo(drakeAccountOid);
+        PrismObject<ShadowType> repoShadow = getShadowRepoLegacy(drakeAccountOid);
         display("Drake repo shadow", repoShadow);
 
-        PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getDrakeRepoIcfName(), resource, result);
+        var accountRepo = findAccountShadowByUsername(getDrakeRepoIcfName(), resource, result);
         assertNotNull("Shadow was not created in the repository", accountRepo);
         display("Repository shadow", accountRepo);
         checkRepoAccountShadow(accountRepo);
@@ -4219,7 +4129,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     private void testLiveSyncModifyDrake(DummySyncStyle syncStyle, QName objectClass) throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -4259,7 +4168,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Drake");
         assertEquals("Unexpected number of attributes", 3, attributes.size());
 
-        PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getDrakeRepoIcfName(), resource, result);
+        var accountRepo = findAccountShadowByUsername(getDrakeRepoIcfName(), resource, result);
         assertNotNull("Shadow was not created in the repository", accountRepo);
         display("Repository shadow", accountRepo);
         checkRepoAccountShadow(accountRepo);
@@ -4271,7 +4180,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     private void testLiveSyncAddCorsairs(
             DummySyncStyle syncStyle, QName objectClass, boolean expectReaction) throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -4307,25 +4215,24 @@ public class TestDummy extends AbstractBasicDummyTest {
                 assertTrue("Delta is not add: " + objectDelta, objectDelta.isAdd());
             }
 
-            ShadowType currentShadowType = lastChange.getShadowedResourceObject().asObjectable();
+            ShadowType currentShadowFromChange = lastChange.getShadowedResourceObject().asObjectable();
             assertNotNull("Current shadow missing", lastChange.getShadowedResourceObject());
-            PrismAsserts.assertClass("current shadow", ShadowType.class, currentShadowType);
+            PrismAsserts.assertClass("current shadow", ShadowType.class, currentShadowFromChange);
 
             ResourceAttributeContainer attributesContainer = ShadowUtil
-                    .getAttributesContainer(currentShadowType);
+                    .getAttributesContainer(currentShadowFromChange);
             assertNotNull("No attributes container in current shadow", attributesContainer);
             Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
             assertFalse("Attributes container is empty", attributes.isEmpty());
             assertEquals("Unexpected number of attributes", 2, attributes.size());
 
-            corsairsShadowOid = currentShadowType.getOid();
-            PrismObject<ShadowType> repoShadow = getShadowRepo(corsairsShadowOid);
-            display("Corsairs repo shadow", repoShadow);
+            corsairsShadowOid = currentShadowFromChange.getOid();
+            var repoShadowByOid = getShadowRepo(corsairsShadowOid);
+            displayDumpable("Corsairs repo shadow", repoShadowByOid);
+            ProvisioningTestUtil.checkRepoShadow(repoShadowByOid, ShadowKindType.ENTITLEMENT);
 
-            PrismObject<ShadowType> accountRepo = findShadowByName(new QName(RESOURCE_DUMMY_NS, SchemaConstants.GROUP_OBJECT_CLASS_LOCAL_NAME), GROUP_CORSAIRS_NAME, resource, result);
-            assertNotNull("Shadow was not created in the repository", accountRepo);
-            display("Repository shadow", accountRepo);
-            ProvisioningTestUtil.checkRepoShadow(repoShadow, ShadowKindType.ENTITLEMENT);
+            var repoShadowByName = findShadowByName(RI_GROUP_OBJECT_CLASS, GROUP_CORSAIRS_NAME, resource, result);
+            assertNotNull("Shadow was not created in the repository", repoShadowByName);
 
         } else {
             syncServiceMock.assertNoNotifyChange();
@@ -4338,7 +4245,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     private void testLiveSyncDeleteCorsairs(
             DummySyncStyle syncStyle, QName objectClass, boolean expectReaction) throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -4395,9 +4301,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    private void testLiveSyncDeleteDrake(
-            DummySyncStyle syncStyle, QName objectClass) throws Exception {
-        // GIVEN
+    private void testLiveSyncDeleteDrake(DummySyncStyle syncStyle, QName objectClass) throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -4447,7 +4351,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test890LiveSyncModifyProtectedAccount() throws Exception {
-        // GIVEN
         Task syncTask = getTestTask();
         OperationResult result = syncTask.getResult();
 
@@ -4632,10 +4535,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         // @formatter:on
 
         and("the association has correct definition");
-        List<ShadowAssociationType> associationBeans = accountAfter.asObjectable().getAssociation();
-        assertThat(associationBeans).as("association beans").hasSize(1);
+        var associationValues = ShadowAssociationsCollection.ofShadow(accountAfter.asObjectable()).getAllValues();
+        assertThat(associationValues).as("associations").hasSize(1);
         PrismContainerDefinition<?> identifiersDefinition =
-                associationBeans.get(0).getIdentifiers().asPrismContainerValue().getParent().getDefinition();
+                associationValues.iterator().next().value().getIdentifiers().asPrismContainerValue().getParent().getDefinition();
         assertThat(identifiersDefinition)
                 .as("definition of identifiers")
                 .isInstanceOf(ResourceAttributeContainerDefinition.class);
@@ -4652,48 +4555,43 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @SuppressWarnings("SameParameterValue")
     protected void checkCachedAccountShadow(
-            PrismObject<ShadowType> shadowType,
+            AbstractShadow shadow,
             OperationResult parentResult,
             boolean fullShadow,
             XMLGregorianCalendar startTs,
             XMLGregorianCalendar endTs) throws SchemaException, ConfigurationException {
-        checkAccountShadow(shadowType, parentResult, fullShadow);
+        checkAccountShadow(shadow, parentResult, fullShadow);
     }
 
-    private void checkGroupShadow(PrismObject<ShadowType> shadow, OperationResult parentResult)
+    private void checkGroupShadow(AbstractShadow shadow, OperationResult parentResult)
             throws SchemaException, ConfigurationException {
         checkEntitlementShadow(shadow, parentResult, SchemaConstants.GROUP_OBJECT_CLASS_LOCAL_NAME, true);
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void checkGroupShadow(PrismObject<ShadowType> shadow, OperationResult parentResult, boolean fullShadow)
+    private void checkGroupShadow(AbstractShadow shadow, OperationResult parentResult, boolean fullShadow)
             throws SchemaException, ConfigurationException {
         checkEntitlementShadow(shadow, parentResult, SchemaConstants.GROUP_OBJECT_CLASS_LOCAL_NAME, fullShadow);
     }
 
     private void checkEntitlementShadow(
-            PrismObject<ShadowType> shadow, OperationResult parentResult, String objectClassLocalName, boolean fullShadow)
+            AbstractShadow shadow, OperationResult result, String objectClassLocalName, boolean fullShadow)
             throws SchemaException, ConfigurationException {
-        ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
-        ShadowUtil.checkConsistence(shadow, parentResult.getOperation());
+        shadow.checkConsistenceComplex(result.getOperation());
         IntegrationTestTools.checkEntitlementShadow(
-                shadow.asObjectable(),
+                shadow,
                 resourceBean,
                 repositoryService,
-                checker,
+                createShadowChecker(fullShadow),
                 objectClassLocalName,
-                getUidMatchingRule(),
-                prismContext,
-                parentResult);
+                result);
     }
 
-    @SuppressWarnings("ConstantConditions")
     private void checkAllShadows() throws SchemaException, ConfigurationException {
-        ObjectChecker<ShadowType> checker = null;
-        IntegrationTestTools.checkAllShadows(resourceBean, repositoryService, checker, prismContext);
+        IntegrationTestTools.checkAllShadows(resourceBean, repositoryService, null);
     }
 
-    protected void checkRepoEntitlementShadow(PrismObject<ShadowType> repoShadow) {
+    protected void checkRepoEntitlementShadow(RawRepoShadow repoShadow) {
         ProvisioningTestUtil.checkRepoEntitlementShadow(repoShadow);
     }
 
@@ -4718,5 +4616,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
         assertEquals("Wrong value of ICF name attribute in old  shadow", repoName,
                 icfsNameAttribute.getRealValue());
+    }
+
+    /** TODO reconcile with {@link #assertRepoShadow(String)} */
+    RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull String oid)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        return assertRepoShadow(oid, getCachedAccountAttributes());
     }
 }

@@ -308,7 +308,6 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         if (objectNew != null) {
             return objectNew;
         }
-        focusContext.recompute();
         PrismObject<F> objectNewAfter = focusContext.getObjectNew();
         if (objectNewAfter != null) {
             return objectNewAfter;

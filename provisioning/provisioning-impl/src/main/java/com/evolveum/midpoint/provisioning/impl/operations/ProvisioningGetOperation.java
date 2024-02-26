@@ -71,7 +71,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
             return (T) (isRawMode() ? getResourceRaw(result) : getResourceNonRaw(result));
         } else if (ShadowType.class.isAssignableFrom(type)) {
             //noinspection unchecked
-            return (T) getShadow(result);
+            return (T) (isRawMode() ? getShadowRaw(result) : getShadowNonRaw(result));
         } else {
             return operationsHelper.getRepoObject(type, oid, options, result);
         }
@@ -84,12 +84,12 @@ public class ProvisioningGetOperation<T extends ObjectType> {
         return resource;
     }
 
-    private void tryApplyingDefinition(ResourceType resource, @NotNull OperationResult result) {
+    private void tryApplyingDefinition(ObjectType object, @NotNull OperationResult result) {
         try {
-            beans.provisioningService.applyDefinition(resource.asPrismObject(), task, result);
+            beans.provisioningService.applyDefinition(object.asPrismObject(), task, result);
         } catch (CommonException ex) {
             ProvisioningUtil.recordWarningNotRethrowing(
-                    LOGGER, result, "Problem when applying definitions to " + resource + " fetched in raw mode", ex);
+                    LOGGER, result, "Problem when applying definitions to " + object + " fetched in raw mode", ex);
             // Intentionally not propagating the (sometimes expected) exception.
             // Runtime exceptions are propagated, though. This could be reconsidered in the future.
         }
@@ -105,11 +105,20 @@ public class ProvisioningGetOperation<T extends ObjectType> {
         }
     }
 
-    private @NotNull ShadowType getShadow(@NotNull OperationResult result)
+    private @NotNull ShadowType getShadowRaw(@NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        ShadowType shadow = operationsHelper.getRepoObject(ShadowType.class, oid, options, result);
+        tryApplyingDefinition(shadow, result);
+        return shadow;
+    }
+
+    private @NotNull ShadowType getShadowNonRaw(@NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException {
         try {
-            return beans.shadowsFacade.getShadow(oid, null, null, options, context, task, result);
+            return beans.shadowsFacade
+                    .getShadow(oid, null, null, options, context, task, result)
+                    .getBean();
         } catch (MaintenanceException e) {
             throw new AssertionError(
                     "Unexpected MaintenanceException. The called method should have returned cached shadow instead.", e);

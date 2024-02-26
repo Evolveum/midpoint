@@ -30,13 +30,13 @@ public class StringMatcher extends Matcher<String> {
     @Override
     public Condition match(
             HibernateQuery hibernateQuery, ItemRestrictionOperation operation,
-            String propertyName, String value, String matcher)
+            String propertyName, boolean extension, String value, String matchingRule)
             throws QueryException {
 
         boolean ignoreCase;
-        if (Strings.isNullOrEmpty(matcher) || DEFAULT.equals(matcher)) {
+        if (Strings.isNullOrEmpty(matchingRule) || DEFAULT.equals(matchingRule)) {
             ignoreCase = false;
-        } else if (IGNORE_CASE.equalsIgnoreCase(matcher)) {
+        } else if (IGNORE_CASE.equalsIgnoreCase(matchingRule)) {
             ignoreCase = true;
         } else {
             // TODO temporary code (switch to exception in 3.6)
@@ -45,9 +45,9 @@ public class StringMatcher extends Matcher<String> {
                     "Unknown matcher '{}'. The only supported explicit matcher for string "
                             + "values is '{}'. Ignoring for now, but may cause an exception in "
                             + "future midPoint versions. Property name: '{}', value: '{}'",
-                    matcher, IGNORE_CASE, propertyName, value);
+                    matchingRule, IGNORE_CASE, propertyName, value);
         }
 
-        return basicMatch(hibernateQuery, operation, propertyName, value, ignoreCase);
+        return basicMatch(hibernateQuery, operation, toActualHqlName(propertyName, extension), value, ignoreCase);
     }
 }

@@ -14,7 +14,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -269,14 +268,13 @@ class ColumnDataConverter<C> {
             }
         }
 
-        if (value instanceof PrismContainerValue<?>) {
-            PrismContainerValue<?> pcv = ((PrismContainerValue<?>) value);
+        if (value instanceof PrismContainerValue<?> pcv) {
             if (pcv.getCompileTimeClass() != null) {
                 Object realValue = pcv.getRealValue();
-                if (realValue instanceof AssignmentType) {
-                    return prettyPrintValue((AssignmentType) realValue);
-                } else if (realValue instanceof ShadowAssociationType) {
-                    return prettyPrintValue((ShadowAssociationType) realValue);
+                if (realValue instanceof AssignmentType assignmentValue) {
+                    return prettyPrintValue(assignmentValue);
+                } else if (realValue instanceof ShadowAssociationValueType associationValue) {
+                    return prettyPrintValue(associationValue);
                 }
             }
         }
@@ -327,9 +325,9 @@ class ColumnDataConverter<C> {
         return String.join(" ", segments);
     }
 
-    private String prettyPrintValue(@NotNull ShadowAssociationType association) {
+    private String prettyPrintValue(@NotNull ShadowAssociationValueType associationValue) {
         List<String> segments = new ArrayList<>();
-        ObjectReferenceType shadowRef = association.getShadowRef();
+        ObjectReferenceType shadowRef = associationValue.getShadowRef();
         if (shadowRef != null) {
             String name = getObjectNameFromRef(shadowRef);
             if (StringUtils.isNotEmpty(name)) {
@@ -337,7 +335,7 @@ class ColumnDataConverter<C> {
             }
         }
         if (segments.isEmpty()) {
-            ShadowIdentifiersType identifiers = association.getIdentifiers();
+            ShadowIdentifiersType identifiers = associationValue.getIdentifiers();
             if (identifiers != null) {
                 // Give all values. At this point we have no object definition, so we cannot distinguish between primary
                 // and secondary identifiers, anyway.
@@ -348,11 +346,6 @@ class ColumnDataConverter<C> {
                 }
             }
         }
-        // Adding the association name only after the shadow name was determined, so that we could check for segments.isEmpty()
-        // in the code above.
-        QName name = association.getName(); // should be always non-null
-        segments.add(0, name != null ? name.getLocalPart() + ":" : "?:");
-
         return String.join(" ", segments);
     }
 

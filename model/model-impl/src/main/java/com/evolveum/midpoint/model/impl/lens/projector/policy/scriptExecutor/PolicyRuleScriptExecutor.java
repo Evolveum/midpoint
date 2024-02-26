@@ -71,7 +71,6 @@ public class PolicyRuleScriptExecutor {
     public void execute(@NotNull LensContext<?> context, Task task, OperationResult parentResult)
             throws SchemaException {
         if (context.hasFocusContext()) {
-            context.recomputeFocus(); // Maybe not needed but we want to be sure (when computing linked objects)
             List<EvaluatedPolicyRuleImpl> rules = collectRelevantPolicyRules(context);
             if (!rules.isEmpty()) {
                 executeScriptsFromCollectedRules(rules, context, task, parentResult);

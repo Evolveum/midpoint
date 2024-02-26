@@ -796,8 +796,8 @@ public class TestVillage extends AbstractStoryTest {
 
         display("groupShadows", groupShadows);
         assertEquals("Wrong number of shadows found", 1, groupShadows.size());
-        PrismObject<ShadowType> groupShadow = groupShadows.get(0);
-        List<ShadowAssociationType> associations = groupShadow.asObjectable().getAssociation();
+//        PrismObject<ShadowType> groupShadow = groupShadows.get(0);
+//        List<ShadowAssociationType> associations = groupShadow.asObjectable().getAssociation();
         // MID-3430, MID-3429
 //        assertEquals("Wrong number of associations in "+groupShadow, 1, associations.size());
     }

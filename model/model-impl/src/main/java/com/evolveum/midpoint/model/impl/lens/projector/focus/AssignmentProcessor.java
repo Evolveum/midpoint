@@ -390,7 +390,6 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
             LOGGER.trace("Computed focus deltas: {}", focusDeltas);
             focusContext.swallowToSecondaryDelta(focusDeltas);
-            focusContext.recompute();
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
             throw t;

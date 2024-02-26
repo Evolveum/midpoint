@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sql.query.matcher;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
@@ -26,10 +27,14 @@ public abstract class Matcher<T> {
 
     public abstract Condition match(
             HibernateQuery hibernateQuery, ItemRestrictionOperation operation,
-            String propertyPath, T value, String matcher)
+            String propertyPath, boolean extension, T value, String matchingRule)
             throws QueryException;
 
-    protected Condition basicMatch(
+    String toActualHqlName(String propertyName, boolean extension) {
+        return extension ? propertyName + "." + RAnyValue.F_VALUE : propertyName;
+    }
+
+    Condition basicMatch(
             HibernateQuery hibernateQuery, ItemRestrictionOperation operation,
             String propertyPath, Object value, boolean ignoreCase) throws QueryException {
         Objects.requireNonNull(hibernateQuery, "hibernateQuery");

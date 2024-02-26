@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.w3c.dom.Element;
 
@@ -29,7 +30,7 @@ public class ResourceSchemaFactory {
     private static final String USER_DATA_KEY_RAW_SCHEMA = ResourceSchema.class.getName() + ".rawSchema";
     private static final String USER_DATA_KEY_COMPLETE_SCHEMA = ResourceSchema.class.getName() + ".completeSchema";
 
-    public static CompleteResourceSchema getCompleteSchema(@NotNull ResourceType resource)
+    public static @Nullable CompleteResourceSchema getCompleteSchema(@NotNull ResourceType resource)
             throws SchemaException, ConfigurationException {
         return getCompleteSchema(resource.asPrismObject());
     }
@@ -184,7 +185,11 @@ public class ResourceSchemaFactory {
      */
     @VisibleForTesting
     public static CompleteResourceSchema parseCompleteSchema(ResourceType resource) throws SchemaException, ConfigurationException {
-        var rawResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        return parseCompleteSchema(resource, ResourceSchemaFactory.getRawSchema(resource));
+    }
+
+    public static CompleteResourceSchema parseCompleteSchema(ResourceType resource, ResourceSchema rawResourceSchema)
+            throws SchemaException, ConfigurationException {
         if (rawResourceSchema != null) {
             return new RefinedResourceSchemaParser(resource, rawResourceSchema)
                     .parse();

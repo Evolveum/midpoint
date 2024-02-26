@@ -82,7 +82,7 @@ class DelineationProcessor {
             baseContextShadow = resourceObjectReferenceResolver.resolveUsingRawClass(
                     ctx, baseContextRef, "base context specification in " + objectDef, result);
         } catch (RuntimeException e) {
-            throw new SystemException("Cannot resolve base context for "+ objectDef +", specified as "+ baseContextRef, e);
+            throw new SystemException("Cannot resolve base context for " + objectDef + ", specified as " + baseContextRef, e);
         }
         if (baseContextShadow == null) {
             throw new ObjectNotFoundException(

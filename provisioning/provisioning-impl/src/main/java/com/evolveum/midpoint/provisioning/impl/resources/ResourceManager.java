@@ -369,9 +369,9 @@ public class ResourceManager {
             ExpressionEvaluationException {
         ResourceType resource = getCompletedResource(resourceOid, null, task, result);
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, ScriptCapabilityType.class);
-        ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
-        ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on " + resource);
         try {
+            ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
+            ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on " + resource);
             UcfExecutionContext ucfCtx = new UcfExecutionContext(lightweightIdentifierGenerator, resource, task);
             ucfCtx.checkExecutionFullyPersistent();
             return connectorInstance.executeScript(scriptOperation, ucfCtx, result);

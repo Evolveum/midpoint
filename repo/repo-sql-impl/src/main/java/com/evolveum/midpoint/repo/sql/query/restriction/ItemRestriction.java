@@ -37,9 +37,9 @@ public abstract class ItemRestriction<T extends ObjectFilter> extends Restrictio
      * Contains also information on previous steps, useful to enable looking upwards via ".." operator.
      * Filled-in within interpret() method.
      */
-    protected HqlDataInstance<?> hqlDataInstance;
+    HqlDataInstance<?> hqlDataInstance;
 
-    public ItemRestriction(InterpretationContext context, T filter, @NotNull ItemPath itemPath,
+    ItemRestriction(InterpretationContext context, T filter, @NotNull ItemPath itemPath,
             ItemDefinition<?> itemDefinition, JpaEntityDefinition baseEntityDefinition, Restriction<?> parent) {
         super(context, filter, baseEntityDefinition, parent);
         this.itemPath = Objects.requireNonNull(itemPath);
@@ -50,11 +50,11 @@ public abstract class ItemRestriction<T extends ObjectFilter> extends Restrictio
         return itemPath;
     }
 
-    public HqlDataInstance<?> getHqlDataInstance() {
+    HqlDataInstance<?> getHqlDataInstance() {
         return hqlDataInstance;
     }
 
-    public void setHqlDataInstance(HqlDataInstance<?> hqlDataInstance) {
+    void setHqlDataInstance(HqlDataInstance<?> hqlDataInstance) {
         Objects.requireNonNull(hqlDataInstance);
         this.hqlDataInstance = hqlDataInstance;
     }

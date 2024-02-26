@@ -95,7 +95,8 @@
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>ri:username</ref>
-                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <!-- Temporarily disabled (MID-2119); actually, the related tests have no matching rule here either. -->
+                <!--<matchingRule>mr:stringIgnoreCase</matchingRule>-->
                 <outbound>
                     <strength>strong</strength>
                     <source>

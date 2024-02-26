@@ -171,6 +171,7 @@ public class ResourceOperationDescription implements ProvisioningEvent, DebugDum
         if (objectDelta == null) {
             sb.append(" null");
         } else {
+            sb.append("\n");
             sb.append(objectDelta.debugDump(indent+2));
         }
 

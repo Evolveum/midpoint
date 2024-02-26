@@ -1,25 +1,31 @@
+/*
+ * Copyright (C) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
 package com.evolveum.midpoint.schema.processor.deleg;
 
-import javax.xml.namespace.QName;
+import java.util.List;
+
+import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
+import com.evolveum.midpoint.schema.processor.RawResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.DeepCloneOperation;
 import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.schema.processor.PropertyLimitations;
-import com.evolveum.midpoint.schema.processor.RawResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import javax.xml.namespace.QName;
 
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-public interface AttributeDefinitionDelegator<T> extends PropertyDefinitionDelegator<T>, ResourceAttributeDefinition<T> {
+public interface ResourceAttributeDefinitionDelegator<T>
+        extends PropertyDefinitionDelegator<T>, ResourceAttributeDefinition<T> {
 
     @Override
     ResourceAttributeDefinition<T> delegate();
@@ -245,5 +251,15 @@ public interface AttributeDefinitionDelegator<T> extends PropertyDefinitionDeleg
     @NotNull
     default LayerType getCurrentLayer() {
         return delegate().getCurrentLayer();
+    }
+
+    @Override
+    @NotNull default Class<T> getTypeClass() {
+        return delegate().getTypeClass();
+    }
+
+    @Override
+    default boolean hasRefinements() {
+        return delegate().hasRefinements();
     }
 }

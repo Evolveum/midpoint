@@ -274,7 +274,7 @@ abstract class BaseVisualizer implements Visualizer {
                                 ShadowType.F_KIND,
                                 ShadowType.F_INTENT,
                                 ShadowType.F_ATTRIBUTES,
-                                ShadowType.F_ASSOCIATION,
+                                ShadowType.F_ASSOCIATIONS,
                                 ShadowType.F_ACTIVATION,
                                 ShadowType.F_CREDENTIALS
                         ));

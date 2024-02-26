@@ -1063,7 +1063,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException, ConfigurationException {
-        assertShadowCommon(shadow, null, dn, resourceType, getAccountObjectClass(), ciMatchingRule, false);
+        assertShadowCommon(shadow, null, dn, resourceType, getAccountObjectClass(), ciMatchingRule);
     }
 
     protected void assertGroupShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException, ConfigurationException {

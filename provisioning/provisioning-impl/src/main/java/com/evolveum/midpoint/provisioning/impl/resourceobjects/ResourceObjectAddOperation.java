@@ -8,18 +8,14 @@
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -32,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 import static com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter.*;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * Responsibilities:
@@ -45,13 +42,17 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectAddOperation.class);
 
-    @NotNull private final ShadowType shadow;
+    /** This is the object we obtained with the goal of adding to the resource. */
+    @NotNull private final ResourceObject originalObject;
 
     /**
-     * We will modify the shadow sometimes (e.g. for simulated capabilities or entitlements).
+     * {@link #originalObject} converted to the raw definition - to avoid pushing artificial {@link PolyString} instances
+     * (created because of attribute normalization) to the resource.
+     *
+     * Moreover, we will modify the object sometimes (e.g. for simulated capabilities or entitlements).
      * But we do not want the changes to propagate back to the calling code. Hence the clone.
      */
-    @NotNull private final ShadowType shadowClone;
+    @NotNull private final ResourceObject workingObject;
 
     private final boolean skipExplicitUniquenessCheck;
 
@@ -60,37 +61,37 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
 
     private ResourceObjectAddOperation(
             @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType shadow,
+            @NotNull ResourceObject object,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions,
             boolean skipExplicitUniquenessCheck) {
         super(ctx, scripts, connOptions);
-        this.shadow = shadow;
-        this.shadowClone = shadow.clone();
+        this.originalObject = object;
+        this.workingObject = object.clone();
         this.skipExplicitUniquenessCheck = skipExplicitUniquenessCheck;
     }
 
-    public static AsynchronousOperationReturnValue<ShadowType> execute(
+    public static ResourceObjectAddReturnValue execute(
             @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType shadow,
+            @NotNull ResourceObject object,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions,
             boolean skipExplicitUniquenessCheck,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-        return new ResourceObjectAddOperation(ctx, shadow, scripts, connOptions, skipExplicitUniquenessCheck)
+        return new ResourceObjectAddOperation(ctx, object, scripts, connOptions, skipExplicitUniquenessCheck)
                 .doExecute(result);
     }
 
-    private AsynchronousOperationReturnValue<ShadowType> doExecute(OperationResult result)
+    private ResourceObjectAddReturnValue doExecute(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-        LOGGER.trace("Adding resource object {}", shadow);
+        LOGGER.trace("Adding resource object {}", workingObject);
 
         ctx.checkExecutionFullyPersistent();
-        ctx.checkProtectedObjectAddition(shadow, result);
+        ctx.checkProtectedObjectAddition(workingObject, result);
         ctx.checkForCapability(CreateCapabilityType.class);
 
         if (!skipExplicitUniquenessCheck) {
@@ -100,21 +101,21 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
         executeProvisioningScripts(ProvisioningOperationTypeType.ADD, BeforeAfterType.BEFORE, result);
 
         ConnectorInstance connector = ctx.getConnector(CreateCapabilityType.class, result);
-        AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> connectorAsyncOpRet;
+        UcfAddReturnValue ucfAddReturnValue;
         try {
-            LOGGER.debug("PROVISIONING ADD operation on resource {}\n ADD object:\n{}\n",
-                    ctx.getResource(), shadowClone.debugDumpLazily());
+            LOGGER.debug("PROVISIONING ADD operation on resource {}\nADD object:\n{}\n",
+                    ctx.getResource(), workingObject.debugDumpLazily(1));
 
-            entitlementConverter.transformToSubjectOpsOnAdd(shadowClone);
-            activationConverter.transformOnAdd(shadowClone, result);
+            entitlementConverter.transformToSubjectOpsOnAdd(workingObject);
+            activationConverter.transformOnAdd(workingObject, result);
 
-            connectorAsyncOpRet = connector.addObject(shadowClone.asPrismObject(), ctx.getUcfExecutionContext(), result);
-            Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = connectorAsyncOpRet.getReturnValue();
+            ucfAddReturnValue = connector.addObject(workingObject.getPrismObject(), ctx.getUcfExecutionContext(), result);
+            Collection<ResourceAttribute<?>> knownCreatedObjectAttributes = ucfAddReturnValue.getKnownCreatedObjectAttributes();
 
             LOGGER.debug("PROVISIONING ADD successful, returned attributes:\n{}",
-                    SchemaDebugUtil.prettyPrintLazily(resourceAttributesAfterAdd));
+                    SchemaDebugUtil.prettyPrintLazily(knownCreatedObjectAttributes));
 
-            applyAfterOperationAttributes(resourceAttributesAfterAdd);
+            storeIntoOriginalObject(knownCreatedObjectAttributes);
         } catch (CommunicationException ex) {
             throw communicationException(ctx, connector, ex);
         } catch (GenericFrameworkException ex) {
@@ -122,23 +123,22 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
         } catch (ObjectAlreadyExistsException ex) {
             throw objectAlreadyExistsException("", ctx, connector, ex);
         } finally {
-            b.shadowAuditHelper.auditEvent(AuditEventType.ADD_OBJECT, shadow, ctx, result);
+            b.shadowAuditHelper.auditEvent(AuditEventType.ADD_OBJECT, originalObject.getBean(), ctx, result);
         }
 
+        // TODO should we execute the entitlement operations using the working or original object?
+        //  Working object would be fine if we could be sure it contains all the generated attributes.
+        //  (If they are needed for group membership operations.)
         executeEntitlementObjectsOperations(
-                entitlementConverter.transformToObjectOpsOnAdd(shadowClone, result),
+                entitlementConverter.transformToObjectOpsOnAdd(workingObject, result),
                 result);
-
-        LOGGER.trace("Added resource object {}", shadowClone);
 
         executeProvisioningScripts(ProvisioningOperationTypeType.ADD, BeforeAfterType.AFTER, result);
 
         computeResultStatus(result);
 
-        // This should NOT be the cloned shadow: we need the original in order to retry the operation.
-        AsynchronousOperationReturnValue<ShadowType> asyncOpRet = AsynchronousOperationReturnValue.wrap(shadow, result);
-        asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());
-        return asyncOpRet;
+        // This should NOT be the working object: we need the original in order to retry the operation.
+        return ResourceObjectAddReturnValue.of(originalObject, result, ucfAddReturnValue.getOperationType());
     }
 
     /**
@@ -149,7 +149,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
     private void checkForAddConflictsForMultiConnectors(OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        LOGGER.trace("Checking for add conflicts for {}", ShadowUtil.shortDumpShadowLazily(shadowClone));
+        LOGGER.trace("Checking for add conflicts for {}", workingObject.shortDumpLazily());
         UcfResourceObject existingObject;
         ConnectorInstance readConnector = null;
         try {
@@ -161,9 +161,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
                 // that we normally do not need or want.
                 return;
             }
-            ResourceObjectIdentification<?> identification =
-                    ResourceObjectIdentification.fromIncompleteShadow(ctx.getObjectDefinitionRequired(), shadowClone);
-
+            ResourceObjectIdentification<?> identification = workingObject.getIdentification();
             if (identification instanceof ResourceObjectIdentification.WithPrimary primaryIdentification) {
                 existingObject = readConnector.fetchObject(
                         primaryIdentification, null, ctx.getUcfExecutionContext(), result);
@@ -182,16 +180,16 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
             throw genericConnectorException(ctx, readConnector, ex);
         }
         if (existingObject == null) {
-            LOGGER.trace("No add conflicts for {}", shadowClone);
+            LOGGER.trace("No add conflicts for {}", workingObject);
         } else {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Detected add conflict for {}, conflicting shadow: {}",
-                        ShadowUtil.shortDumpShadow(shadowClone), existingObject.shortDump());
+                        workingObject.shortDump(), existingObject.shortDump());
             }
             LOGGER.trace("Conflicting shadow:\n{}", existingObject.debugDumpLazily(1));
             throw new ObjectAlreadyExistsException(
                     String.format("Object %s already exists in the snapshot of %s as %s",
-                            ShadowUtil.shortDumpShadow(shadowClone),
+                            workingObject.shortDump(),
                             ctx.getResource(),
                             existingObject.shortDump()));
         }
@@ -204,20 +202,18 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
      * We must apply these on the original shadow, not the cloned one!
      * They need to be propagated outside ADD operation.
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private void applyAfterOperationAttributes(Collection<ResourceAttribute<?>> resourceAttributesAfterAdd) throws SchemaException {
-        if (resourceAttributesAfterAdd == null) {
-            return;
-        }
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-        for (ResourceAttribute attributeAfter : resourceAttributesAfterAdd) {
-            ResourceAttribute attributeBefore = attributesContainer.findAttribute(attributeAfter.getElementName());
-            if (attributeBefore != null) {
-                attributesContainer.remove(attributeBefore);
-            }
-            if (!attributesContainer.contains(attributeAfter)) {
-                attributesContainer.add(attributeAfter.clone());
-            }
+    private void storeIntoOriginalObject(Collection<ResourceAttribute<?>> knownCreatedObjectAttributes)
+            throws SchemaException {
+        ResourceAttributeContainer targetAttrContainer = originalObject.getAttributesContainer();
+        for (ResourceAttribute<?> addedAttribute : emptyIfNull(knownCreatedObjectAttributes)) {
+
+            targetAttrContainer.removeProperty(addedAttribute.getElementName());
+
+            // must be cloned because the method above does not unset the parent in the PrismValue being removed (should be fixed)
+            ResourceAttribute<?> clone = addedAttribute.clone();
+            clone.applyDefinitionFrom(originalObject.getObjectDefinition());
+
+            targetAttrContainer.add(clone);
         }
     }
 

@@ -58,7 +58,7 @@ public record ResourceObjectDiscriminator(
     }
 
     private @NotNull Object getPrimaryIdentifierRealValue() {
-        return identifiers.getPrimaryIdentifier().getRealValue();
+        return identifiers.getPrimaryIdentifier().getOrigValue();
     }
 
     @Override

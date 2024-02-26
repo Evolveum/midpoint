@@ -78,7 +78,6 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
         if (nextRecompute != null) {
             nextRecompute.createTrigger(focusContext);
         }
-        focusContext.recompute();
         focusContext.setItemDefinitionsMap(evaluation.getItemDefinitionsMap());
     }
 }

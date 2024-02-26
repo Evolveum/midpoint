@@ -274,7 +274,6 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         if (projectionContext.isAdd() && !projectionContext.isCompleted()) {
             LOGGER.trace("No need to try to load old object, there is none");
             projectionContext.setExists(false);
-            projectionContext.recompute();
             projectionObject = asObjectable(projectionContext.getObjectNew());
             return false;
         }
@@ -344,7 +343,6 @@ class ProjectionUpdateOperation<F extends ObjectType> {
             }
         }
         projectionContext.setFresh(true);
-        projectionContext.recompute();
         return false;
     }
 

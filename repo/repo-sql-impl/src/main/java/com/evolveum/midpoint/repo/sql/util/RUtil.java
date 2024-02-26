@@ -284,8 +284,8 @@ public final class RUtil {
             }
         }
 
-        throw new IllegalArgumentException("Unknown value '" + object + "' of type '" + object.getClass()
-                + "', can't translate to '" + type + "'.");
+        throw new IllegalArgumentException(
+                "Unknown value '%s' of type '%s', can't translate to '%s'.".formatted(object, object.getClass(), type));
     }
 
     /*

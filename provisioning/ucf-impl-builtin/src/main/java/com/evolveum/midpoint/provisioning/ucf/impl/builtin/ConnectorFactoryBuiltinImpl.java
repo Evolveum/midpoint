@@ -265,8 +265,8 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
                     false);
         }
         if (connectorInstance instanceof AbstractManagedConnectorInstance) {
-            setupAbstractConnectorInstance((AbstractManagedConnectorInstance)connectorInstance, instanceName, connectorType,
-                    MidPointConstants.NS_RI, struct);
+            setupAbstractConnectorInstance(
+                    (AbstractManagedConnectorInstance)connectorInstance, instanceName, connectorType, struct);
         }
         if (connectorInstance instanceof RepositoryAware) {
             ((RepositoryAware)connectorInstance).setRepositoryService(repositoryService);
@@ -292,12 +292,12 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         return connectorInstance;
     }
 
-    private void setupAbstractConnectorInstance(AbstractManagedConnectorInstance connectorInstance, String instanceName,
-            ConnectorType connectorObject, String namespace,
-            ConnectorStruct struct) {
+    private void setupAbstractConnectorInstance(
+            AbstractManagedConnectorInstance connectorInstance, String instanceName,
+            ConnectorType connectorObject, ConnectorStruct struct) {
         connectorInstance.setInstanceName(instanceName);
         connectorInstance.setConnectorObject(connectorObject);
-        connectorInstance.setResourceSchemaNamespace(namespace);
+        connectorInstance.setResourceSchemaNamespace(MidPointConstants.NS_RI);
         connectorInstance.setPrismContext(prismContext);
         connectorInstance.setConnectorConfigurationSchema(struct.connectorConfigurationSchema);
     }

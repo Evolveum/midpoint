@@ -216,6 +216,22 @@ public class ProvisioningContextFactory {
     }
 
     /**
+     * Creates the context for a given repo shadow (pointing to resource, kind, and intent).
+     *
+     * Assuming there is no pre-resolved resource.
+     */
+    public ProvisioningContext createForRepoShadow(
+            @NotNull RepoShadow shadow, @NotNull Task task)
+            throws SchemaException, ConfigurationException {
+        return new ProvisioningContext(
+                task,
+                shadow.getResourceBean(),
+                getObjectDefinition(shadow.getResourceBean(), shadow.getBean(), List.of()),
+                null, // we don't expect any searches nor other bulk actions
+                this);
+    }
+
+    /**
      * Creates the context for a given shadow (pointing to resource, kind, and intent).
      *
      * Assuming there is no pre-resolved resource.

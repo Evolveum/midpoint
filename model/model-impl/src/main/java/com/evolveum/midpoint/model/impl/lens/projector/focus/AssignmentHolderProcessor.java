@@ -233,7 +233,6 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
 
         iterationHelper.createIterationTokenDeltas();
 
-        context.recomputeFocus();
         itemLimitationsChecker.checkItemsLimitations(focusContext);
 
         medic.partialExecute(

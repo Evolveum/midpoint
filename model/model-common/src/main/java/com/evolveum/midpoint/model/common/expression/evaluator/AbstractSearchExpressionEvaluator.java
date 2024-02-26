@@ -67,7 +67,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * Expression evaluator that is based on searching for an object of `O` type meeting specified criteria (like entitlement shadow),
  * and then converting it into "processed" form (like association value).
  *
- * @param <V> "Processed" value we are looking for (e.g. {@link PrismContainerValue} of {@link ShadowAssociationType})
+ * @param <V> "Processed" value we are looking for (e.g. {@link PrismContainerValue} of {@link ShadowAssociationValueType})
  * @param <O> "Raw" object type we are searching for to get `V` (e.g. {@link ShadowType})
  * @param <D> Definition of `V`
  * @param <E> type of configuration bean

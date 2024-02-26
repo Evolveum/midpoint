@@ -245,12 +245,9 @@ public class TestMapleLeaf extends AbstractStoryTest {
         String shadowOid = ref.getOid();
         assertNotNull("Reference without oid? Something went wrong.", shadowOid);
 
-        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
-        assertNotNull("Shadow not found", shadow);
-        ShadowType shadowType = shadow.asObjectable();
-        List<ShadowAssociationType> associations = shadowType.getAssociation();
-        assertFalse(associations.isEmpty(), "Expected 2 associations, but no one exists");
-        assertEquals(associations.size(), 2, "Unexpected number of associations");
+        assertShadowAfter(getShadowModel(shadowOid))
+                .associations()
+                .assertValuesCount(2);
 
         openDJController.assertUniqueMember("cn=mapleLeafFaculty,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
         openDJController.assertUniqueMember("cn=mapleLeafFacultyLicense,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
@@ -274,12 +271,9 @@ public class TestMapleLeaf extends AbstractStoryTest {
         String shadowOid = ref.getOid();
         assertNotNull("Reference without oid? Something went wrong.", shadowOid);
 
-        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
-        assertNotNull("Shadow not found", shadow);
-        ShadowType shadowType = shadow.asObjectable();
-        List<ShadowAssociationType> associations = shadowType.getAssociation();
-        assertFalse(associations.isEmpty(), "Expected 4 associations, but no one exists");
-        assertEquals(associations.size(), 4, "Unexpected number of associations");
+        assertShadowAfter(getShadowModel(shadowOid))
+                .associations()
+                .assertValuesCount(4);
 
         openDJController.assertUniqueMember("cn=mapleLeafFaculty,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
         openDJController.assertUniqueMember("cn=mapleLeafFacultyLicense,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
@@ -304,12 +298,9 @@ public class TestMapleLeaf extends AbstractStoryTest {
         String shadowOid = ref.getOid();
         assertNotNull("Reference without oid? Something went wrong.", shadowOid);
 
-        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
-        assertNotNull("Shadow not found", shadow);
-        ShadowType shadowType = shadow.asObjectable();
-        List<ShadowAssociationType> associations = shadowType.getAssociation();
-        assertFalse(associations.isEmpty(), "Expected 2 associations, but no one exists");
-        assertEquals(associations.size(), 2, "Unexpected number of associations");
+        assertShadowAfter(getShadowModel(shadowOid))
+                .associations()
+                .assertValuesCount(2);
 
         openDJController.assertUniqueMember("cn=mapleLeafGraduate,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
         openDJController.assertUniqueMember("cn=mapleLeafGraduateLicense,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");

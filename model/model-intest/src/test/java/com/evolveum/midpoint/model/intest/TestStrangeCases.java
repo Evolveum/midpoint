@@ -326,7 +326,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         // Check account
@@ -1495,7 +1495,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         accountGuybrushOid = getSingleLinkOid(userAfter);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountGuybrushOid, null, result);
+        var accountShadow = getShadowRepo(accountGuybrushOid);
         assertDummyAccountShadowRepo(accountShadow, accountGuybrushOid, USER_GUYBRUSH_USERNAME);
 
         // Check account
@@ -1543,7 +1543,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user700")
                 .beginAssignment()
                 .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
@@ -1576,7 +1576,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .beginAssignment()
                 .targetRef(ARCHETYPE_EXTERNAL_USER.oid, ArchetypeType.COMPLEX_TYPE)
                 .<UserType>end()

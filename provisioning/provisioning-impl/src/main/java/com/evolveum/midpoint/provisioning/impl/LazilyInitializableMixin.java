@@ -13,9 +13,11 @@ import com.evolveum.midpoint.provisioning.util.InitializationState;
 import com.evolveum.midpoint.provisioning.util.InitializationState.LifecycleState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Checkable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 
@@ -23,14 +25,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Implements primitive "life cycle" of an object with deferred initialization.
+ * Implements support for entities with lazy (deferred) initialization.
  *
- * Such an object has {@link #initialize(Task, OperationResult)} method, which can be invoked right after
- * object creation but - if needed - also later, e.g. from a worker thread independent from the coordinator
+ * Such an entity has {@link #initialize(Task, OperationResult)} method, which can be invoked right after
+ * its creation but - if needed - also later, e.g. from a worker thread independent from the coordinator
  * or connector-provided thread that processed the ConnId/UCF object found in search or sync operation
- * and created the Java object.
+ * and created the Java object for the entity.
  *
- * Another feature of such item is that it has a {@link InitializationState} that:
+ * Another feature of such entity is that it has a {@link InitializationState} that:
  *
  * 1. informs about object initialization-related life cycle: created, initializing, initialized;
  * 2. informs about the error status before/after initialization: ok, error (plus exception), not applicable.
@@ -38,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
  * TODO where to put statistics related e.g. to the processing time?
  */
 @Experimental
-public interface InitializableObjectMixin extends DebugDumpable {
+public interface LazilyInitializableMixin extends DebugDumpable, Checkable {
 
     /**
      * Initializes given object.
@@ -55,7 +57,7 @@ public interface InitializableObjectMixin extends DebugDumpable {
 
         initializePrerequisite(task, result);
 
-        getLogger().trace("Item before its own initialization:\n{}", debugDumpLazily());
+        getLogger().trace("OWN INITIALIZATION STARTING. State before:\n{}", debugDumpLazily());
 
         try {
             initializationState.moveFromCreatedToInitializing();
@@ -77,23 +79,31 @@ public interface InitializableObjectMixin extends DebugDumpable {
         }
 
         initializationState.checkInitialized();
-        getLogger().trace("Item after its own initialization:\n{}", debugDumpLazily());
+        getLogger().trace("INITIALIZATION FINISHED. State after:\n{}", debugDumpLazily());
     }
 
     private void initializePrerequisite(Task task, OperationResult result) {
-        InitializableObjectMixin prerequisite = getPrerequisite();
+        LazilyInitializableMixin prerequisite = getPrerequisite();
         if (prerequisite != null) {
             prerequisite.initialize(task, result); // no-op if already initialized
         }
     }
 
     /** The object can have a prerequisite that must be initialized before it. */
-    @Nullable InitializableObjectMixin getPrerequisite();
+    default @Nullable LazilyInitializableMixin getPrerequisite() {
+        return null;
+    }
 
-    private void initializeInternal(Task task, OperationResult result)
+    /**
+     * Initializes this object. Assumes the prerequisite is already initialized (successfully or not).
+     *
+     * If needed, the whole logic can be replaced - on your risk! Do not forget to propagate errors from the prerequisite.
+     * A typical reason is when the whole initialization logic is so simple that it fits into a single method.
+     */
+    default void initializeInternal(Task task, OperationResult result)
             throws CommonException, NotApplicableException, EncryptionException {
         initializeInternalCommon(task, result);
-        InitializableObjectMixin prerequisite = getPrerequisite();
+        LazilyInitializableMixin prerequisite = getPrerequisite();
         if (prerequisite == null || prerequisite.isOk()) {
             initializeInternalForPrerequisiteOk(task, result);
         } else if (prerequisite.isError()) {
@@ -105,18 +115,25 @@ public interface InitializableObjectMixin extends DebugDumpable {
         }
     }
 
-    default void initializeInternalCommon(Task task, OperationResult result) {
+    default void initializeInternalCommon(Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, EncryptionException {
         // to be overridden in the implementations
     }
 
-    void initializeInternalForPrerequisiteOk(Task task, OperationResult result)
-            throws CommonException, NotApplicableException, EncryptionException;
+    default void initializeInternalForPrerequisiteOk(Task task, OperationResult result)
+            throws CommonException, NotApplicableException, EncryptionException {
+        // to be overridden in the implementations
+    }
 
-    void initializeInternalForPrerequisiteError(Task task, OperationResult result)
-            throws CommonException, EncryptionException;
+    default void initializeInternalForPrerequisiteError(Task task, OperationResult result)
+            throws CommonException, EncryptionException {
+        // to be overridden in the implementations
+    }
 
-    void initializeInternalForPrerequisiteNotApplicable(Task task, OperationResult result)
-            throws CommonException, EncryptionException;
+    default void initializeInternalForPrerequisiteNotApplicable(Task task, OperationResult result)
+            throws CommonException, EncryptionException {
+        // to be overridden in the implementations
+    }
 
     Trace getLogger();
 

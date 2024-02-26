@@ -30,6 +30,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * "One stop shop" for accessing various aspects of a resource (defined by {@link ResourceType} object).
@@ -65,6 +68,10 @@ public class Resource {
 
     public static Resource of(@NotNull PrismObject<ResourceType> resourceObject) {
         return new Resource(resourceObject.asObjectable());
+    }
+
+    public @NotNull ResourceType getBean() {
+        return resourceBean;
     }
 
     public @Nullable ResourceSchema getRawSchema() throws SchemaException {
@@ -128,6 +135,15 @@ public class Resource {
 
     private S_ItemEntry deltaFor(@NotNull ResourceObjectDefinition objectDefinition) throws SchemaException {
         return PrismContext.get().deltaFor(ShadowType.class, new ResourceItemDefinitionResolver(objectDefinition));
+    }
+
+    public @NotNull String getOid() {
+        return stateNonNull(resourceBean.getOid(), "no OID in %s", this);
+    }
+
+    @Override
+    public String toString() {
+        return resourceBean.toString();
     }
 
     private static class ResourceItemDefinitionResolver implements ItemDefinitionResolver {

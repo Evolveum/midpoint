@@ -113,7 +113,7 @@ public class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends
     private void evaluateAttributes() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
 
-        for (AttributeEvaluation<AH> attributeEvaluation : evaluatedConstruction.getAttributesToEvaluate(this)) {
+        for (AttributeEvaluation<AH, ?> attributeEvaluation : evaluatedConstruction.getAttributesToEvaluate(this)) {
             attributeEvaluation.evaluate();
             if (attributeEvaluation.hasEvaluatedMapping()) {
                 evaluatedConstruction.addAttributeMapping(attributeEvaluation.getEvaluatedMapping());
@@ -134,7 +134,7 @@ public class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends
         }
     }
 
-    void loadFullShadowIfNeeded(ItemEvaluation<?, ?, ?, ?> itemEvaluation)
+    void loadFullShadowIfNeeded(ItemEvaluation<?, ?, ?> itemEvaluation)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         String loadReason = evaluatedConstruction.getFullShadowLoadReason(itemEvaluation.getMappingBean());
@@ -143,7 +143,7 @@ public class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends
         }
     }
 
-    private void updateNextRecompute(ItemEvaluation<?, ?, ?, ?> itemEvaluation) {
+    private void updateNextRecompute(ItemEvaluation<?, ?, ?> itemEvaluation) {
         nextRecompute = NextRecompute.update(itemEvaluation.getEvaluatedMapping(), nextRecompute);
     }
 

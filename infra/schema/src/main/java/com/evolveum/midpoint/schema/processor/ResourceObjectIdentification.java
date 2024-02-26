@@ -13,7 +13,7 @@ import java.util.*;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -25,9 +25,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectIdentifiersType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectIdentityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Identification of a resource object using its primary and/or secondary identifiers.
@@ -74,6 +73,13 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         }
     }
 
+    public static @NotNull ResourceObjectIdentification<?> of(
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull Collection<? extends ResourceAttribute<?>> identifierAttributes) throws SchemaException {
+        return of(resourceObjectDefinition,
+                ResourceObjectIdentifiers.of(resourceObjectDefinition, identifierAttributes));
+    }
+
     public static @NotNull ResourceObjectIdentification.WithPrimary of(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull ResourceObjectIdentifiers.WithPrimary primaryIdentifiers) {
@@ -94,21 +100,22 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
 
     /** Gets identifiers from the association value, applying definitions if needed. */
     private static @NotNull Collection<ResourceAttribute<?>> getIdentifiersAttributes(
-            PrismContainerValue<ShadowAssociationType> associationCVal, ResourceObjectDefinition entitlementDef)
+            PrismContainerValue<ShadowAssociationValueType> associationCVal, ResourceObjectDefinition entitlementDef)
             throws SchemaException {
         PrismContainer<?> container =
                 MiscUtil.requireNonNull(
-                        associationCVal.findContainer(ShadowAssociationType.F_IDENTIFIERS),
+                        associationCVal.findContainer(ShadowAssociationValueType.F_IDENTIFIERS),
                         () -> "No identifiers in association value: " + associationCVal);
         if (container instanceof ResourceAttributeContainer resourceAttributeContainer) {
             return resourceAttributeContainer.getAttributes();
         }
+        // TODO shouldn't we have the definition applied here?
         Collection<ResourceAttribute<?>> identifierAttributes = new ArrayList<>();
         for (Item<?, ?> rawIdentifierItem : container.getValue().getItems()) {
-            //noinspection unchecked
+            // TODO use instantiateFromRealValues?
             ResourceAttribute<Object> attribute =
-                    ((ResourceAttributeDefinition<Object>)
-                            entitlementDef.findAttributeDefinitionRequired(rawIdentifierItem.getElementName()))
+                    entitlementDef
+                            .findAttributeDefinitionRequired(rawIdentifierItem.getElementName())
                             .instantiate();
             for (Object val : rawIdentifierItem.getRealValues()) {
                 attribute.addRealValue(val);
@@ -119,7 +126,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
     }
 
     /** Enriches current identification with a primary identifier. */
-    public WithPrimary withPrimary(@NotNull ResourceObjectIdentifier.Primary<?> primaryIdentifier) {
+    public WithPrimary withPrimaryAdded(@NotNull ResourceObjectIdentifier.Primary<?> primaryIdentifier) {
         return new WithPrimary(resourceObjectDefinition, identifiers.withPrimary(primaryIdentifier));
     }
 
@@ -163,7 +170,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
 
     public static @NotNull ResourceObjectIdentification<?> fromAssociationValue(
             @NotNull ResourceObjectDefinition targetObjDef,
-            @NotNull PrismContainerValue<ShadowAssociationType> associationValue)
+            @NotNull PrismContainerValue<ShadowAssociationValueType> associationValue)
             throws SchemaException {
         return fromIdentifiers(
                 targetObjDef,
@@ -304,9 +311,13 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
     @Override
     public String debugDump(int indent) {
         var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", resourceObjectDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
         return sb.toString();
+    }
+
+    public @NotNull QName getObjectClassName() {
+        return resourceObjectDefinition.getObjectClassName();
     }
 
     /** Identification that contains a primary identifier. Some methods are redeclared as returning a non-null value. */

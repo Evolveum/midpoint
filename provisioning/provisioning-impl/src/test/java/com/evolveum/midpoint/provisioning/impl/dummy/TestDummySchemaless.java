@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -98,17 +97,9 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         super();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem()
-     */
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        provisioningService.postInit(initResult);
-
-        InternalsConfig.encryptionChecks = false;
+        super.initSystem(initTask, initResult);
 
         resourceSchemaless = addResourceFromFile(RESOURCE_DUMMY_NO_SCHEMA_FILE, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
         resourceTypeSchemaless = resourceSchemaless.asObjectable();
@@ -733,8 +724,8 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         display("account from provisioning", provisioningAccountType);
         PrismAsserts.assertEqualsPolyString("Wrong name", "will", provisioningAccountType.getName());
 
-        assertNull("The _PASSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-                provisioningAccountType, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+        assertNull("The _PASSWORD_ attribute sneaked into shadow",
+                ShadowUtil.getAttributeValue(provisioningAccountType, ICFS_PASSWORD));
 
         // Check if the account was created in the dummy resource
         DummyAccount dummyAccount = dummyResourceStaticSchema.getAccountByUsername("will");
@@ -744,11 +735,10 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
 
         // Check if the shadow is in the repo
-        PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
-                addedObjectOid, null, result);
-        assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        displayValue("Repository shadow", shadowFromRepo.debugDump());
+        var repoShadow = getShadowRepo(addedObjectOid);
+        assertNotNull("Shadow was not created in the repository", repoShadow);
+        displayValue("Repository shadow", repoShadow.debugDump());
 
-        ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
+        ProvisioningTestUtil.checkRepoAccountShadow(repoShadow);
     }
 }

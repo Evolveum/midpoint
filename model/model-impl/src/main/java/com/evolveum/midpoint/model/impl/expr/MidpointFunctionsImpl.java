@@ -1900,18 +1900,18 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public ShadowType resolveEntitlement(ShadowAssociationType shadowAssociationType) {
-        if (shadowAssociationType == null) {
+    public ShadowType resolveEntitlement(ShadowAssociationValueType associationValue) {
+        if (associationValue == null) {
             LOGGER.trace("No association");
             return null;
         }
-        ObjectReferenceType shadowRef = shadowAssociationType.getShadowRef();
+        ObjectReferenceType shadowRef = associationValue.getShadowRef();
         if (shadowRef == null) {
-            LOGGER.trace("No shadowRef in association {}", shadowAssociationType);
+            LOGGER.trace("No shadowRef in association {}", associationValue);
             return null;
         }
         if (shadowRef.asReferenceValue().getObject() != null) {
-            return (ShadowType) shadowAssociationType.getShadowRef().asReferenceValue().getObject().asObjectable();
+            return (ShadowType) associationValue.getShadowRef().asReferenceValue().getObject().asObjectable();
         }
 
         LensProjectionContext projectionCtx = (LensProjectionContext) getProjectionContext();

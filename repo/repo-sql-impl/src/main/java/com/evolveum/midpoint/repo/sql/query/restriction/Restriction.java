@@ -105,13 +105,13 @@ public abstract class Restriction<T extends ObjectFilter> {
         return parent;
     }
 
-    public HqlEntityInstance getBaseHqlEntity() {
+    HqlEntityInstance getBaseHqlEntity() {
         return baseHqlEntity;
     }
 
     public abstract Condition interpret() throws QueryException;
 
-    protected boolean isNegated() {
+    boolean isNegated() {
         return filter instanceof NotFilter || (parent != null && parent.isNegated());
     }
 
@@ -119,7 +119,7 @@ public abstract class Restriction<T extends ObjectFilter> {
         return getBaseHqlEntity();
     }
 
-    protected ItemPathResolver getItemPathResolver() {
+    ItemPathResolver getItemPathResolver() {
         return getContext().getItemPathResolver();
     }
 

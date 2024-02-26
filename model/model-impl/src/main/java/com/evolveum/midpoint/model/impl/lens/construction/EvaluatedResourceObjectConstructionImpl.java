@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.config.ConstructionConfigItem;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -72,7 +73,8 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     /**
      * Mappings for the resource object associations.
      */
-    @NotNull private final Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings = new ArrayList<>();
+    @NotNull private final Collection<MappingImpl<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>>
+            associationMappings = new ArrayList<>();
 
     /**
      * Projection context for the resource object.
@@ -215,16 +217,16 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
         return null;
     }
 
-    void addAttributeMapping(MappingImpl<PrismPropertyValue<?>, PrismPropertyDefinition<?>> mapping) {
+    void addAttributeMapping(MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping) {
         attributeMappings.add(mapping);
     }
 
-    public @NotNull Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
+    public @NotNull Collection<MappingImpl<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> getAssociationMappings() {
         return associationMappings;
     }
 
     void addAssociationMapping(
-            MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mapping) {
+            MappingImpl<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition> mapping) {
         associationMappings.add(mapping);
     }
     //endregion
@@ -281,13 +283,13 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     /**
      * Collects attributes that are to be evaluated. Again, the exact mechanism is implementation-specific.
      */
-    protected abstract List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
+    abstract List<AttributeEvaluation<AH, ?>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
             throws SchemaException, ConfigurationException;
 
     /**
      * Collects associations that are to be evaluated.
      */
-    protected abstract List<AssociationEvaluation<AH>> getAssociationsToEvaluate(
+    abstract List<AssociationEvaluation<AH>> getAssociationsToEvaluate(
             ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException, ConfigurationException;
     //endregion
 

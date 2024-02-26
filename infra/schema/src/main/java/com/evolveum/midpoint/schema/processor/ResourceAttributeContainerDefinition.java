@@ -13,6 +13,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Definition;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -214,6 +218,4 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
     @Override
     @NotNull
     List<? extends ResourceAttributeDefinition<?>> getDefinitions();
-
-    @NotNull <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition();
 }

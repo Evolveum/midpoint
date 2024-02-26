@@ -12,7 +12,6 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUtil.ALL_DIMENSIONS;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -22,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
+import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -729,22 +729,18 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
      *
      * Not counting changes in ADD/DELETE deltas.
      * Assuming that there are no REPLACE modifications of associations.
+     * Assuming that there are no ADD/DELETE modifications of the whole associations container.
      */
     @SuppressWarnings("unused") // used in scripts
-    @VisibleForTesting
-    public int getAssociationValuesChanged() {
+    public int getAssociationValuesChanged() throws SchemaException {
         if (delta == null || !delta.isModify()) {
             return 0;
         }
-        return delta.getModifications().stream()
-                .filter(mod -> ShadowType.F_ASSOCIATION.equivalent(mod.getPath()))
-                .mapToInt(mod -> getChangedValues(mod))
-                .sum();
-    }
-
-    private int getChangedValues(ItemDelta<?, ?> mod) {
-        return emptyIfNull(mod.getValuesToAdd()).size()
-                + emptyIfNull(mod.getValuesToDelete()).size();
+        int sum = 0;
+        for (ItemDelta<?, ?> mod : delta.getModifications()) {
+            sum += ShadowAssociationsCollection.ofDelta(mod).getNumberOfValues();
+        }
+        return sum;
     }
 
     @Nullable MetricValue getMetricValue(@NotNull SimulationMetricReference ref) {

@@ -16,11 +16,7 @@ import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.Iterator;
 import java.util.List;
@@ -33,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AssociationSearchExpressionEvaluatorCache
         extends AbstractSearchExpressionEvaluatorCache<
-            PrismContainerValue<ShadowAssociationType>,
+            PrismContainerValue<ShadowAssociationValueType>,
             ShadowType,
             AssociationSearchQueryKey,
         AssociationSearchQueryResult> {
@@ -72,7 +68,7 @@ public class AssociationSearchExpressionEvaluatorCache
 
     @Override
     protected AssociationSearchQueryResult createQueryResult(
-            List<PrismContainerValue<ShadowAssociationType>> resultList, List<PrismObject<ShadowType>> rawResultList) {
+            List<PrismContainerValue<ShadowAssociationValueType>> resultList, List<PrismObject<ShadowType>> rawResultList) {
         return new AssociationSearchQueryResult(resultList, rawResultList);
     }
 

@@ -277,10 +277,8 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         ResourceType resourceType = accCtx.getResource();
         QName attrQName = new QName(MidPointConstants.NS_RI, attributeLocalName);
         ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName);
-        ResourceObjectDefinition refinedAccountDefinition = accCtx.getCompositeObjectDefinition();
-        //noinspection unchecked
-        ResourceAttributeDefinition<T> attrDef =
-                (ResourceAttributeDefinition<T>) refinedAccountDefinition.findAttributeDefinition(attrQName);
+        ResourceObjectDefinition refinedAccountDefinition = accCtx.getCompositeObjectDefinitionRequired();
+        ResourceAttributeDefinition<T> attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
         assertNotNull("No definition of attribute " + attrQName + " in account def " + refinedAccountDefinition, attrDef);
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountOid);
@@ -362,7 +360,6 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
             deltaModifier.accept(primaryDelta);
         }
         addFocusDeltaToContext(context, primaryDelta);
-        recompute(context);
         displayDumpable("Input context", context);
         assertFocusModificationSanity(context);
         return context;
@@ -375,9 +372,5 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
                 prismContext.queryFor(CaseWorkItemType.class).ownerId(caseOid).build(),
                 options, result);
 
-    }
-
-    protected <F extends FocusType> void recompute(LensContext<F> context) throws SchemaException {
-        context.recompute();
     }
 }

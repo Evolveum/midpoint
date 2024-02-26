@@ -10,6 +10,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
+
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,7 +20,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.util.DefinitionsUtil;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ShadowCoordinatesQualifiedObjectDelta;
@@ -78,15 +79,15 @@ class DefinitionsHelper {
         } else {
             ctx = ctxFactory.createForShadow(shadow, task, result);
         }
-        ctx.applyAttributesDefinition(delta);
+        ctx.applyCurrentDefinition(delta);
     }
 
-    public ProvisioningContext applyDefinition(ShadowType shadow, Task task, OperationResult result)
+    public void applyDefinition(ShadowType shadow, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        return ctxFactory
+        ctxFactory
                 .createForShadow(shadow, task, result)
-                .applyAttributesDefinition(shadow);
+                .applyCurrentDefinition(shadow);
     }
 
     public void applyDefinition(ObjectQuery query, Task task, OperationResult result)

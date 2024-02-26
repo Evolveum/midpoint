@@ -79,7 +79,7 @@ public class LiteralExpressionEvaluator<V extends PrismValue, D extends ItemDefi
 
     private Item<V, D> parseAndConvert(ExpressionEvaluationContext context) throws SchemaException {
         //noinspection unchecked
-        Item<V, D> item = outputDefinition.instantiate();
+        Item<V, D> item = (Item<V, D>) outputDefinition.instantiate();
         List<Object> values = StaticExpressionUtil.parseValueElements(
                 expressionEvaluatorBean, context.getContextDescription());
         Function<Object, Object> convertor = context.getAdditionalConvertor();

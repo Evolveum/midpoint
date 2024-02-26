@@ -14,6 +14,7 @@
     <name>drno</name>
     <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
     <objectClass>ri:inetOrgPerson</objectClass>
+    <exists>true</exists> <!-- pretending the existence on the resource -->
     <attributes>
         <ri:entryUUID>ffffffff-eeee-ffff-eeee-ffffffffffff</ri:entryUUID>
         <ri:dn>uid=drno,ou=People,dc=example,dc=com</ri:dn>

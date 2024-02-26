@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl.toShadowDefinition;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
@@ -27,7 +26,6 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -42,7 +40,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 
@@ -54,7 +51,6 @@ class SearchExecutor {
     private static final Trace LOGGER = TraceManager.getTrace(SearchExecutor.class);
 
     @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
-    @NotNull private final PrismObjectDefinition<ShadowType> prismObjectDefinition;
     @NotNull private final ObjectClass icfObjectClass;
     private final ObjectQuery query;
     private final Filter connIdFilter;
@@ -84,7 +80,6 @@ class SearchExecutor {
             @NotNull ConnectorInstanceConnIdImpl connectorInstance) throws SchemaException {
 
         this.resourceObjectDefinition = resourceObjectDefinition;
-        this.prismObjectDefinition = toShadowDefinition(resourceObjectDefinition);
         this.icfObjectClass = connectorInstance.objectClassToConnId(resourceObjectDefinition);
         this.query = query;
         this.connIdFilter = connectorInstance.convertFilterToIcf(query, resourceObjectDefinition);
@@ -184,15 +179,15 @@ class SearchExecutor {
                 //
                 // Limitations/assumptions: there is exactly one identifier - either secondary (and it's DN in that case)
                 // or primary which is the same as secondary (for the particular resource).
-                String identifierValue;
+                ResourceObjectIdentifier<?> identifierToUse;
                 var secIdentifiers = baseContextIdentification.getSecondaryIdentifiers();
                 if (secIdentifiers.size() == 1) {
                     // the standard case
-                    identifierValue = secIdentifiers.iterator().next().getRealValue().toString();
+                    identifierToUse = secIdentifiers.iterator().next();
                 } else if (secIdentifiers.isEmpty()) {
                     if (resourceObjectDefinition.getSecondaryIdentifiers().isEmpty()) {
                         // This object class obviously has __NAME__ and __UID__ the same. Primary identifier will work here.
-                        identifierValue = baseContextIdentification.getPrimaryIdentifier().getRealValue().toString();
+                        identifierToUse = baseContextIdentification.getPrimaryIdentifier();
                     } else {
                         throw new SchemaException(
                                 "No secondary identifier in base context identification " + baseContextIdentification);
@@ -205,7 +200,7 @@ class SearchExecutor {
                 ObjectClass baseContextIcfObjectClass = connectorInstance.objectClassToConnId(
                         baseContextIdentification.getResourceObjectDefinition());
                 optionsBuilder.setContainer(
-                        new QualifiedUid(baseContextIcfObjectClass, new Uid(identifierValue)));
+                        new QualifiedUid(baseContextIcfObjectClass, new Uid(identifierToUse.getStringOrigValue())));
             }
             SearchHierarchyScope scope = searchHierarchyConstraints.getScope();
             if (scope != null) {
@@ -272,7 +267,9 @@ class SearchExecutor {
         } else if (transformed instanceof Error) {
             throw (Error) transformed;
         } else {
-            throw new SystemException("Got unexpected exception: " + original.getClass().getName() + ": " + original.getMessage(),
+            throw new SystemException(
+                    "Got unexpected exception: %s: %s".formatted(
+                            original.getClass().getName(), original.getMessage()),
                     original);
         }
     }
@@ -353,8 +350,8 @@ class SearchExecutor {
                     }
                 }
 
-                UcfObjectFound ucfObject = connectorInstance.connIdConvertor.convertToUcfObject(
-                        connectorObject, prismObjectDefinition, false, connectorInstance.isCaseIgnoreAttributeNames(),
+                var ucfObject = connectorInstance.connIdConvertor.convertToUcfObject(
+                        connectorObject, resourceObjectDefinition, connectorInstance.getResourceSchema(),
                         connectorInstance.isLegacySchema(), errorReportingMethod, result);
 
                 return handler.handle(ucfObject, result);

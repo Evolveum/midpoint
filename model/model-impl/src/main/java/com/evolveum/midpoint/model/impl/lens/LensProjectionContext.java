@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
@@ -267,7 +268,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * - Target: ReconciliationProcessor
      */
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>,ShadowAssociationDefinition>>> squeezedAssociations;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
 
     /** Dependency-defining beans *with the defaults filled-in*. All of resource OID, kind, and intent are not null. */
@@ -458,7 +459,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return (rawDefinition) -> {
             try {
                 PrismObjectDefinition<ShadowType> shadowDefinition
-                        = ShadowUtil.applyObjectDefinition(rawDefinition, getCompositeObjectDefinition());
+                        = ShadowUtil.applyObjectDefinition(rawDefinition, getCompositeObjectDefinitionRequired());
                 shadowDefinition.freeze();
                 return shadowDefinition;
             } catch (SchemaException | ConfigurationException e) {
@@ -894,12 +895,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.squeezedAttributes = squeezedAttributes;
     }
 
-    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> getSqueezedAssociations() {
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>,ShadowAssociationDefinition>>> getSqueezedAssociations() {
         return squeezedAssociations;
     }
 
     public void setSqueezedAssociations(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations) {
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>,ShadowAssociationDefinition>>> squeezedAssociations) {
         this.squeezedAssociations = squeezedAssociations;
     }
 
@@ -962,6 +963,18 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return structuralObjectDefinition;
     }
 
+    public @NotNull ResourceObjectDefinition getStructuralObjectDefinitionRequired()
+            throws SchemaException, ConfigurationException {
+        var objectDef = getStructuralObjectDefinition();
+        if (objectDef != null) {
+            return objectDef;
+        } else {
+            LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}",
+                    key, lensContext.debugDump(1));
+            throw new IllegalStateException("Definition for " + key + " not found in the context, but it should be there");
+        }
+    }
+
     private QName getObjectClassName() {
         PrismObject<ShadowType> anyShadow = getObjectAny();
         return anyShadow != null ? anyShadow.asObjectable().getObjectClass() : null;
@@ -986,7 +999,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
         for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
             ResourceObjectDefinition auxiliaryObjectClassDef =
-                    schema.findObjectClassDefinition(auxiliaryObjectClassQName);
+                    schema.findDefinitionForObjectClass(auxiliaryObjectClassQName);
             if (auxiliaryObjectClassDef == null) {
                 throw new SchemaException("Auxiliary object class %s specified in %s does not exist".formatted(
                         auxiliaryObjectClassQName, this));
@@ -1028,7 +1041,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public ResourceAttributeDefinition<?> findAttributeDefinition(QName attrName) throws SchemaException, ConfigurationException {
-        ResourceAttributeDefinition<?> attrDef = getStructuralObjectDefinition().findAttributeDefinition(attrName);
+        ResourceAttributeDefinition<?> attrDef = getStructuralObjectDefinitionRequired().findAttributeDefinition(attrName);
         if (attrDef != null) {
             return attrDef;
         }
@@ -1164,12 +1177,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 // We need to convert modify delta to ADD
                 ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(getObjectTypeClass(),
                     ChangeType.ADD);
-                ResourceObjectDefinition objectTypeDef = getCompositeObjectDefinition();
-
-                if (objectTypeDef == null) {
-                    throw new IllegalStateException("Definition for account type " + getKey()
-                            + " not found in the context, but it should be there");
-                }
+                ResourceObjectDefinition objectTypeDef = getCompositeObjectDefinitionRequired();
                 PrismObject<ShadowType> newAccount = objectTypeDef.createBlankShadow(
                         getResourceOid(), key.getTag());
                 addDelta.setObjectToAdd(newAccount);
@@ -1208,6 +1216,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return origDelta.clone();
         } else {
             return origDelta;
+        }
+    }
+
+    public void checkConsistenceIfNeeded() {
+        if (InternalsConfig.consistencyChecks) {
+            checkConsistence("", lensContext.isFresh(), lensContext.isForce());
         }
     }
 

@@ -12,14 +12,16 @@ import java.util.Objects;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
-public class VirtualAnyContainerDefinition extends JpaAnyContainerDefinition<VirtualAnyContainerDefinition> {
+import org.jetbrains.annotations.NotNull;
+
+public class VirtualAnyContainerDefinition extends JpaAnyContainerDefinition {
 
     /**
      * ObjectType (for extension) or ShadowType (for attributes).
      */
     private final RObjectExtensionType ownerType;
 
-    public VirtualAnyContainerDefinition(RObjectExtensionType ownerType) {
+    VirtualAnyContainerDefinition(@NotNull RObjectExtensionType ownerType) {
         super(RObject.class); // RObject is artificial - don't want to make jpaClass nullable just for this single situation
         Objects.requireNonNull(ownerType, "ownerType");
         this.ownerType = ownerType;

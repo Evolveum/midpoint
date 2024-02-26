@@ -299,7 +299,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public boolean canBeDefinitionOf(PrismValue pvalue) {
+    public boolean canBeDefinitionOf(@NotNull PrismValue pvalue) {
         return metadataValueWrapper.canBeDefinitionOf(pvalue);
     }
 

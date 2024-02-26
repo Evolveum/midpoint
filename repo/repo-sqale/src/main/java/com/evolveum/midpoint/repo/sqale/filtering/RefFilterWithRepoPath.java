@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.filtering;
 
+import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -96,6 +97,11 @@ class RefFilterWithRepoPath implements RefFilter {
 
     @Override
     public void setValue(PrismReferenceValue value) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setValues(@NotNull Collection<PrismReferenceValue> values) {
         throw new UnsupportedOperationException();
     }
 

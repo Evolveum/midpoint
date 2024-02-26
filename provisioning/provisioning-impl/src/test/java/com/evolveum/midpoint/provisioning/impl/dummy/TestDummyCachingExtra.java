@@ -40,6 +40,8 @@ public class TestDummyCachingExtra extends AbstractDummyTest {
         resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
         resourceBean = resource.asObjectable();
         rememberSteadyResources();
+
+        addAccountDaemon(result);
     }
 
     @Override

@@ -93,6 +93,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME);
     public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
     public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
     public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME);
 
     public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME);
@@ -194,7 +195,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class, false, true);
         addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, String.class, false, false);
         addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, String.class, false, false);
-        DummyAttributeDefinition lootAttrDef =  addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, Integer.class, false, false);
+        DummyAttributeDefinition lootAttrDef = addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, Long.class, false, false);
         lootAttrDef.setReturnedByDefault(false);
         DummyAttributeDefinition treasureAttrDef = addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME, String.class, false, false);
         treasureAttrDef.setReturnedByDefault(false);
@@ -282,7 +283,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     public QName getAttributeLootQName() {
         assertExtendedSchema();
-        return  getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
+        return getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
     }
 
     public ItemPath getAttributeLootPath() {
@@ -495,7 +496,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     }
 
     public QName getAccountObjectClassQName() {
-        return new QName(NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+        return RI_ACCOUNT_OBJECT_CLASS;
     }
 
     public DummyObjectClass getAccountObjectClass()

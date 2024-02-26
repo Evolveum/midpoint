@@ -730,12 +730,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
             Collection<ItemDefinition<?>> definitions = definition.getDefinitions();
             for (ItemDefinition<?> attrDef : definitions) {
-                if (!(attrDef instanceof PrismPropertyDefinition)) {
+                if (!(attrDef instanceof PrismPropertyDefinition<?> propertyDef)) {
                     // log skipping or something...
                     continue;
                 }
 
-                PrismPropertyDefinition<?> propertyDef = (PrismPropertyDefinition<?>) attrDef;
                 if (propertyDef.isOperational() || propertyDef.isIgnored()) {
                     continue;
                 }

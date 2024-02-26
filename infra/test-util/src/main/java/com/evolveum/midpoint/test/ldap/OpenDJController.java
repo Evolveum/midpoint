@@ -68,6 +68,8 @@ public class OpenDJController extends AbstractResourceController {
     public static final String RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME = "dn";
     public static final ItemName RESOURCE_OPENDJ_SECONDARY_IDENTIFIER =
             new ItemName(MidPointConstants.NS_RI, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
+    public static final String RESOURCE_OPENDJ_DN_LOCAL_NAME = "dn";
+    public static final ItemName RESOURCE_OPENDJ_DN = new ItemName(MidPointConstants.NS_RI, RESOURCE_OPENDJ_DN_LOCAL_NAME);
 
     protected File serverRoot = new File(serverRootDirectoryName);
     protected File configFile = null;
