@@ -11,14 +11,21 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExec
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
+
+import com.evolveum.midpoint.util.exception.TunnelException;
+
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTaskMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -39,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionTy
  * @param <OR> type of the owner row
  */
 public class QOperationExecutionMapping<OR extends MObject>
-        extends QContainerMapping<OperationExecutionType, QOperationExecution<OR>, MOperationExecution, OR> {
+        extends QContainerWithFullObjectMapping<OperationExecutionType, QOperationExecution<OR>, MOperationExecution, OR> {
 
     public static final String DEFAULT_ALIAS_NAME = "opex";
 
@@ -105,8 +112,8 @@ public class QOperationExecutionMapping<OR extends MObject>
 
     @Override
     public MOperationExecution insert(
-            OperationExecutionType schemaObject, OR ownerRow, JdbcSession jdbcSession) {
-        MOperationExecution row = initRowObject(schemaObject, ownerRow);
+            OperationExecutionType schemaObject, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
+        MOperationExecution row = initRowObjectWithFullObject(schemaObject, ownerRow);
 
         row.status = schemaObject.getStatus();
         row.recordType = schemaObject.getRecordType();
@@ -125,7 +132,7 @@ public class QOperationExecutionMapping<OR extends MObject>
     }
 
     @Override
-    public OperationExecutionType toSchemaObject(MOperationExecution row) {
+    public OperationExecutionType toSchemaObjectLegacy(MOperationExecution row) {
         return new OperationExecutionType()
                 .status(row.status)
                 .recordType(row.recordType)
@@ -139,7 +146,7 @@ public class QOperationExecutionMapping<OR extends MObject>
     @Override
     public ResultListRowTransformer<OperationExecutionType, QOperationExecution<OR>, MOperationExecution> createRowTransformer(
             SqlQueryContext<OperationExecutionType, QOperationExecution<OR>, MOperationExecution> sqlQueryContext,
-            JdbcSession jdbcSession) {
+            JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         Map<UUID, ObjectType> owners = new HashMap<>();
         return new ResultListRowTransformer<>() {
             @Override
@@ -167,8 +174,7 @@ public class QOperationExecutionMapping<OR extends MObject>
             }
 
             @Override
-            public OperationExecutionType transform(Tuple rowTuple,
-                    QOperationExecution<OR> entityPath, Collection<SelectorOptions<GetOperationOptions>> options) {
+            public OperationExecutionType transform(Tuple rowTuple, QOperationExecution<OR> entityPath) {
                 MOperationExecution row = Objects.requireNonNull(rowTuple.get(entityPath));
                 ObjectType object = Objects.requireNonNull(owners.get(row.ownerOid),
                         () -> "Missing owner with OID " + row.ownerOid + " for OperationExecution with ID " + row.cid);
@@ -178,12 +184,36 @@ public class QOperationExecutionMapping<OR extends MObject>
                 if (opexContainer == null) {
                     throw new SystemException("Object " + object + " has no operation execution as expected from " + row);
                 }
+                // New format of value
+                if (row.fullObject != null) {
+                    try {
+                        var embedded = (PrismContainerValue<OperationExecutionType>) toSchemaObjectEmbedded(rowTuple, entityPath);
+                        opexContainer.add(embedded);
+                        return embedded.getRealValue();
+                    } catch (SchemaException e) {
+                        throw new TunnelException(e);
+                    }
+                }
+
                 PrismContainerValue<OperationExecutionType> pcv = opexContainer.findValue(row.cid);
                 if (pcv == null) {
                     throw new SystemException("Object " + object + " has no operation execution with ID " + row.cid);
+
                 }
                 return pcv.asContainerable();
             }
         };
+    }
+
+
+
+    @Override
+    public ItemPath getItemPath() {
+        return ObjectType.F_OPERATION_EXECUTION;
+    }
+
+    @Override
+    public OrderSpecifier<?> orderSpecifier(QOperationExecution<OR> orqOperationExecution) {
+        return new OrderSpecifier<>(Order.ASC, orqOperationExecution.cid);
     }
 }

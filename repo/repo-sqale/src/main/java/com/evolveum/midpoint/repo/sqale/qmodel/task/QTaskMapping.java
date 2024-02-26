@@ -110,9 +110,9 @@ public class QTaskMapping
     public @NotNull Path<?>[] selectExpressions(
             QTask entity, Collection<SelectorOptions<GetOperationOptions>> options) {
         if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_RESULT, options)) {
-            return new Path[] { entity.oid, entity.fullObject, entity.fullResult };
+            return new Path[] { entity.oid, entity.objectType, entity.fullObject, entity.fullResult };
         }
-        return new Path[] { entity.oid, entity.fullObject };
+        return new Path[] { entity.oid,entity.objectType,  entity.fullObject };
     }
 
     @Override
@@ -125,9 +125,10 @@ public class QTaskMapping
         return new MTask();
     }
 
+
     @Override
-    protected PathSet fullObjectItemsToSkip() {
-        return PathSet.of(F_RESULT);
+    protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
+        mutableSet.add(F_RESULT);
     }
 
     @Override

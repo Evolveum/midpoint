@@ -1,0 +1,9 @@
+:page-visibility: hidden
+.Delete a Resource type object
+[source,bash]
+----
+# Authenticating with the credentials "administrator" and password "y0uR_P455woR*d" on a localhost instance running on port 8080
+curl --user administrator:y0uR_P455woR*d -X DELETE http://localhost:8080/midpoint/ws/rest/accessCertificationCampaigns/3a0fb4a2-ffbd-4e72-bbff-47327df054c4 -v
+----
+
+The response is an HTTP 204 code in case of success *without* a response body.

@@ -55,7 +55,7 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
 
         // if it was replace, we don't get here, but delete+add can be used together
         if (modification.isDelete()) {
-            deleteRealValues(modification.getRealValuesToDelete());
+            deleteRealValues(modification.getValuesToDelete().stream().map(v -> v.getRealValue()).toList());
         }
         if (modification.isAdd()) {
             addRealValues(modification.getRealValuesToAdd());

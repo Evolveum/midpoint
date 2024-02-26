@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
@@ -79,14 +78,17 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
             }
 
             @Override
-            protected void onNewValue(IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel, AjaxRequestTarget target) {
+            protected void onNewValue(PrismContainerValue<ResourceObjectTypeDefinitionType> value, IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel, AjaxRequestTarget target) {
                 PageBase pageBase = getPageBase();
                 PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = containerModel.getObject();
-                PrismContainerValue<ResourceObjectTypeDefinitionType> value = container.getItem().createNewValue();
+                PrismContainerValue<ResourceObjectTypeDefinitionType> newValue = value;
+                if (newValue == null) {
+                    newValue = container.getItem().createNewValue();
+                }
                 PrismContainerValueWrapper newWrapper = null;
                 try {
                     newWrapper = WebPrismUtil.createNewValueWrapper(
-                            container, value, pageBase, getObjectDetailsModels().createWrapperContext());
+                            container, newValue, pageBase, getObjectDetailsModels().createWrapperContext());
                     container.getValues().add(newWrapper);
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't create new value for container " + container, e);

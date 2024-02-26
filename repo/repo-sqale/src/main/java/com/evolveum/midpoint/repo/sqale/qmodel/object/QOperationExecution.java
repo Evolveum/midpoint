@@ -9,10 +9,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import java.sql.Types;
 import java.time.Instant;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.DateTimePath;
-import com.querydsl.core.types.dsl.EnumPath;
-import com.querydsl.core.types.dsl.NumberPath;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObject;
+
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
@@ -24,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QOperationExecution<OR extends MObject> extends QContainer<MOperationExecution, OR> {
+public class QOperationExecution<OR extends MObject> extends QContainerWithFullObject<MOperationExecution, OR> {
 
     private static final long serialVersionUID = -6856661540710930040L;
 

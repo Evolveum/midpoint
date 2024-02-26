@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 /**
  * Common supertype for mapping items/attributes between schema (prism) classes and tables.
  * See {@link #addItemMapping(QName, ItemSqlMapper)} for details about mapping mechanism.
- * See {@link #createRowTransformer(SqlQueryContext, JdbcSession)} for more about mapping
+ * See {@link #createRowTransformer(SqlQueryContext, JdbcSession, Collection)} for more about mapping
  * related to-many detail tables.
  *
  * The main goal of this type is to map object query conditions and ORDER BY to SQL.
@@ -175,7 +175,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      * One fetcher per detail type/table is registered under the related item name.
      *
      * Used only in old-repo audit, we will let it die with that - but don't use in new stuff.
-     * Use {@link #createRowTransformer(SqlQueryContext, JdbcSession)} mechanism instead.
+     * Use {@link #createRowTransformer(SqlQueryContext, JdbcSession, Collection)} mechanism instead.
      *
      * @param itemName item name from schema type that is mapped to detail table in the repository
      * @param detailFetchMapper fetcher-mapper that handles loading of details
@@ -254,7 +254,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      * Returns collection of all registered {@link SqlDetailFetchMapper}s.
      *
      * Used only in old-repo audit, we will let it die with that - but don't use in new stuff.
-     * Use {@link #createRowTransformer(SqlQueryContext, JdbcSession)} mechanism instead.
+     * Use {@link #createRowTransformer(SqlQueryContext, JdbcSession, Collection)} mechanism instead.
      */
     @Deprecated
     public final Collection<SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers() {
@@ -332,8 +332,8 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      * This is useful for stateful transformers where the whole result can be pre-/post-processed as well.
      */
     public ResultListRowTransformer<S, Q, R> createRowTransformer(
-            SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession) {
-        return (tuple, entityPath, options) -> {
+            SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
+        return (tuple, entityPath) -> {
             try {
                 return toSchemaObject(tuple, entityPath, jdbcSession, options);
             } catch (SchemaException e) {

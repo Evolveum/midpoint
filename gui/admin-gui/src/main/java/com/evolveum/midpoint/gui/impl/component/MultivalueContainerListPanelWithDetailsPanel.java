@@ -189,10 +189,13 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     }
 
     @Override
-    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
         PrismContainerWrapper<C> container = getContainerModel().getObject();
-        PrismContainerValue<C> newObjectPolicy = container.getItem().createNewValue();
-        PrismContainerValueWrapper<C> newObjectPolicyWrapper = createNewItemContainerValueWrapper(newObjectPolicy, container, target);
+        PrismContainerValue<C> newValue = value;
+        if (newValue == null) {
+            newValue = container.getItem().createNewValue();
+        }
+        PrismContainerValueWrapper<C> newObjectPolicyWrapper = createNewItemContainerValueWrapper(newValue, container, target);
         itemDetailsPerformed(target, Arrays.asList(newObjectPolicyWrapper));
     }
 }

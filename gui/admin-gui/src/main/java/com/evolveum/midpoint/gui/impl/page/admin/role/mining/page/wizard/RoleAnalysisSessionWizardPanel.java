@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
@@ -48,7 +51,16 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
     protected void initLayout() {
         getPageBase().getFeedbackPanel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
 
-        add(createChoiceFragment(new ProcessModeChoiceStepPanel(getIdOfChoicePanel(), getHelper().getDetailsModel()) {
+        if (isStartWithChoiceTemplate()) {
+            add(createChoiceFragment(createChoicePanel()));
+        } else {
+            add(createWizardFragment(createBasicPanel()));
+        }
+
+    }
+
+    private ProcessModeChoiceStepPanel createChoicePanel() {
+        return new ProcessModeChoiceStepPanel(getIdOfChoicePanel(), getHelper().getDetailsModel()) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 RoleAnalysisSessionWizardPanel.this.onExitPerformed();
@@ -56,13 +68,15 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(),
-                        new WizardModel(createBasicSteps())));
+                showWizardFragment(target, createBasicPanel());
                 super.onSubmitPerformed(target);
             }
 
-        }));
+        };
+    }
 
+    private WizardPanel createBasicPanel() {
+        return new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps()));
     }
 
     private List<WizardStep> createBasicSteps() {
@@ -155,9 +169,6 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
     private void onExitPerformed() {
         setResponsePage(PageRoleAnalysis.class);
-    }
-
-    private void exitToPreview(AjaxRequestTarget target) {
     }
 
 }

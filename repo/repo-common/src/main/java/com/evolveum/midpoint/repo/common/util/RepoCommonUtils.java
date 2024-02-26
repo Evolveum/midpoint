@@ -41,7 +41,7 @@ public class RepoCommonUtils {
                 } else {
                     LoggingUtils.logUnexpectedException(
                             // This may be a programming problem in midPoint - or a disguised operational problem.
-                            // In the latter case, please log a JIRA issue to fix the error reporting mechanism.
+                            // In the latter case, please report an issue to fix the error reporting mechanism.
                             //
                             // TODO It is unclear what we should do with SystemException.
                             //  For the time being, we will display it in full.

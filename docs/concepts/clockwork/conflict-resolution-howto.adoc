@@ -9,7 +9,7 @@
 :page-upkeep-status: green
 
 If multiple operations are executed "at once" in parallel threads, some unexpected results might occur.
-See e.g.link:https://jira.evolveum.com/browse/MID-4112[MID-4112]: user has two assignments, both induce the same resource account.
+See e.g. bug:MID-4112[]: user has two assignments, both induce the same resource account.
 If these are deleted at the same time (each thread deleting one of them), the resource account is *not* deleted.
 The reason is that both operations see the object with one remaining assignment, and both think that the account must be kept.
 

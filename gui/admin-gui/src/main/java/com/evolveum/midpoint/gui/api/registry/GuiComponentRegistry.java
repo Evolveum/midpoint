@@ -15,9 +15,12 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactor
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.duplication.ContainerableDuplicateResolver;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.Nullable;
 
 public interface GuiComponentRegistry extends Serializable {
 
@@ -37,4 +40,20 @@ public interface GuiComponentRegistry extends Serializable {
     <O extends ObjectType> PrismObjectWrapperFactory<O> getObjectWrapperFactory(PrismObjectDefinition<O> objectDef);
 
     void addToRegistry(ItemWrapperFactory factory);
+
+    /**
+     * Method for register of resolver for duplication object or container.
+     */
+    void addToRegistry(ContainerableDuplicateResolver<?> resolver);
+
+    /**
+     * Find duplicate resolver by definition of duplicated item and its parent.
+     */
+    <C extends Containerable, P extends Containerable> ContainerableDuplicateResolver<C> findContainerableDuplicateResolver(
+            PrismContainerDefinition<C> def, @Nullable PrismContainerValue<P> parent);
+
+    /**
+     * Find duplicate resolver by definition of duplicated item.
+     */
+    <C extends Containerable> ContainerableDuplicateResolver<C> findContainerableDuplicateResolver(PrismContainerDefinition<C> def);
 }

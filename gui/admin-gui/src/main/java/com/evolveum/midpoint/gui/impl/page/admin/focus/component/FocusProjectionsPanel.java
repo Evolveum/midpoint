@@ -146,7 +146,12 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     }
 
                     @Override
-                    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
+                    protected boolean isDuplicationSupported() {
+                        return false;
+                    }
+
+                    @Override
+                    protected void newItemPerformed(PrismContainerValue<ShadowType> value, AjaxRequestTarget target, AssignmentObjectRelation relation) {
                         List<QName> supportedTypes = List.of(ResourceType.COMPLEX_TYPE);
                         PageBase pageBase = FocusProjectionsPanel.this.getPageBase();
                         ObjectBrowserPanel<ResourceType> resourceSelectionPanel = new ObjectBrowserPanel<>(

@@ -1,0 +1,7 @@
+:page-visibility: hidden
+.Search for all Organizational Units
+[source,bash]
+----
+# Authenticating with the credentials "administrator" and password "y0uR_P455woR*d" on a localhost instance running on port 8080
+curl --user administrator:y0uR_P455woR*d -H "Accept: application/json" -H "Content-Type: application/json" -X POST http://localhost:8080/midpoint/ws/rest/orgs/search --data-binary @pathToMidpointGit\samples\rest\query-all.json -v
+----

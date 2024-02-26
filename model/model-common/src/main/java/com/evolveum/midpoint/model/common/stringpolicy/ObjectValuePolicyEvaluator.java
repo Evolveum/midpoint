@@ -424,7 +424,7 @@ public class ObjectValuePolicyEvaluator {
             String clearValue = protectedString.getClearValue();
             if (clearValue != null) {
                 return clearValue;
-            } else if (protectedString.isEncrypted()) {
+            } else if (protectedString.isEncrypted() || protectedString.isExternal()) {
                 try {
                     return protector.decryptString(protectedString);
                 } catch (EncryptionException e) {

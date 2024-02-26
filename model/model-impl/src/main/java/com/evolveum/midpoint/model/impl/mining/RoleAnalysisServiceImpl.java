@@ -1400,13 +1400,30 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull Task task,
             @NotNull OperationResult parentResult) {
         try {
-            this.modelService.searchObjectsIterative(type, query, (object, result) -> {
-                modifyList.add(object.asObjectable());
+            Set<String> existingOidSet = modifyList.stream()
+                    .map(ObjectType::getOid)
+                    .collect(Collectors.toSet());
+
+            ResultHandler<RoleType> resultHandler = (role, lResult) -> {
+                try {
+                    if(!existingOidSet.contains(role.getOid())) {
+                        modifyList.add((T) role.asObjectable());
+                    }
+                } catch (Exception e) {
+                    String errorMessage = "Cannot resolve role: " + toShortString(role.asObjectable())
+                            + ": " + e.getMessage();
+                    throw new SystemException(errorMessage, e);
+                }
+
                 return true;
-            }, options, task, parentResult);
+            };
+
+            modelService.searchObjectsIterative(RoleType.class, query, resultHandler, null,
+                    task, parentResult);
+
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | SecurityViolationException e) {
-            LOGGER.error("Couldn't search  search and load object iterative {}", type, e);
+            LOGGER.error("Couldn't search and load object iterative {}", type, e);
         }
     }
 }

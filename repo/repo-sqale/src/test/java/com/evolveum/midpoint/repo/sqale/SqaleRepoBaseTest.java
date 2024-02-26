@@ -70,7 +70,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     public static final String REPO_OP_PREFIX = SqaleRepositoryService.class.getSimpleName() + '.';
     public static final String AUDIT_OP_PREFIX = SqaleAuditService.class.getSimpleName() + '.';
 
-    private static final int QUERY_BUFFER_SIZE = 1000;
+    private static final int QUERY_BUFFER_SIZE = 2000;
     public static final String SYSTEM_PROPERTY_SKIP_DB_CLEAR = "skipDbClear";
 
     private static boolean cacheTablesCleared = false;

@@ -1,0 +1,9 @@
+= Delete
+
+Delete command deletes objects from midPoint repository.
+Objects which should be deleted can be filtered in several ways:
+
+* by oid (`--oid`)
+* type (`-t, --type`) and filter (`-f, --filter`)
+
+Additionally, there is option to confirm each delete operation (`-a`, `--ask`).

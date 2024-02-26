@@ -33,7 +33,7 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
         implements AbstractAuthorizationParameters {
 
     public static final AuthorizationParameters<ObjectType,ObjectType> EMPTY =
-            new AuthorizationParameters<>(null, null, null, null);
+            new AuthorizationParameters<>(null, null, null, null, true);
 
     // ODO specifies authorization object with delta
     private final ObjectDeltaObject<O> odo;
@@ -41,12 +41,20 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
     private final QName relation;
     private final List<OrderConstraintsType> orderConstraints;
 
+    /**
+     * If false, some information (e.g. org and tenant membership) may be missing in {@link #odo}.
+     * The respective object selector clauses will be skipped in such cases.
+     */
+    private final boolean fullInformationAvailable;
+
     private AuthorizationParameters(
-            ObjectDeltaObject<O> odo, PrismObject<T> target, QName relation, List<OrderConstraintsType> orderConstraints) {
+            ObjectDeltaObject<O> odo, PrismObject<T> target, QName relation, List<OrderConstraintsType> orderConstraints,
+            boolean fullInformationAvailable) {
         this.odo = odo;
         this.target = target;
         this.relation = relation;
         this.orderConstraints = orderConstraints;
+        this.fullInformationAvailable = fullInformationAvailable;
     }
 
     /** Just a convenience method. */
@@ -113,9 +121,19 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
     }
 
     @Override
+    public boolean isFullInformationAvailable() {
+        return fullInformationAvailable;
+    }
+
+    @Override
     public String toString() {
-        return "AuthorizationParameters(odo=" + odo + ", target=" + target
-                + ", relation=" + relation + ", orderConstraints=" + orderConstraints + ")";
+        return "AuthorizationParameters("
+                + "odo=" + odo
+                + ", target=" + target
+                + ", relation=" + relation
+                + ", orderConstraints=" + orderConstraints
+                + (fullInformationAvailable ? "" : ", full information not guaranteed")
+                + ")";
     }
 
     @Override
@@ -129,6 +147,9 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
             StringBuilder sb1 = new StringBuilder("orderConstraints=");
             SchemaDebugUtil.shortDumpOrderConstraintsList(sb1, orderConstraints);
             elements.add(sb1.toString());
+        }
+        if (!fullInformationAvailable) {
+            elements.add("full information not guaranteed");
         }
         sb.append(
                 String.join(", ", elements));
@@ -156,6 +177,7 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
         private PrismObject<T> target;
         private QName relation;
         private List<OrderConstraintsType> orderConstraints;
+        private boolean fullInformationAvailable;
 
         public Builder<O,T> newObject(PrismObject<O> object) {
             if (odo != null) {
@@ -210,40 +232,48 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
             return this;
         }
 
+        public Builder<O,T> fullInformationAvailable(boolean value) {
+            this.fullInformationAvailable = value;
+            return this;
+        }
+
         public AuthorizationParameters<O,T> build() throws SchemaException {
             if (odo == null) {
                 if (oldObject == null && delta == null && newObject == null) {
-                    return new AuthorizationParameters<>(null, target, relation, orderConstraints);
+                    return new AuthorizationParameters<>(null, target, relation, orderConstraints, fullInformationAvailable);
                 } else {
                     // Non-null content, definition can be determined in ObjectDeltaObject constructor
                     ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(oldObject, delta, newObject, null);
                     odo.recomputeIfNeeded(false);
-                    return new AuthorizationParameters<>(odo, target, relation, orderConstraints);
+                    return new AuthorizationParameters<>(odo, target, relation, orderConstraints, fullInformationAvailable);
                 }
             } else {
-                return new AuthorizationParameters<>(odo, target, relation, orderConstraints);
+                return new AuthorizationParameters<>(odo, target, relation, orderConstraints, fullInformationAvailable);
             }
         }
 
+        /** Assumes full information. */
         public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObjectAdd(PrismObject<O> object) {
             // TODO: Do we need to create delta here?
             ObjectDeltaObject<O> odo = null;
             if (object != null) {
                 odo = new ObjectDeltaObject<>(null, null, object, object.getDefinition());
             }
-            return new AuthorizationParameters<>(odo, null, null, null);
+            return new AuthorizationParameters<>(odo, null, null, null, true);
         }
 
+        /** Assumes full information. */
         public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObjectDelete(PrismObject<O> object) {
             // TODO: Do we need to create delta here?
             ObjectDeltaObject<O> odo = null;
             if (object != null) {
                 odo = new ObjectDeltaObject<>(object, null, null, object.getDefinition());
             }
-            return new AuthorizationParameters<>(odo, null, null, null);
+            return new AuthorizationParameters<>(odo, null, null, null, true);
         }
 
-        public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObjectDelta(PrismObject<O> object, ObjectDelta<O> delta) throws SchemaException {
+        public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObjectDelta(
+                PrismObject<O> object, ObjectDelta<O> delta, boolean fullInformationAvailable) throws SchemaException {
             ObjectDeltaObject<O> odo;
             if (delta != null && delta.isAdd()) {
                 odo = new ObjectDeltaObject<>(null, delta, object, object.getDefinition());
@@ -251,15 +281,20 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
                 odo = new ObjectDeltaObject<>(object, delta, null, object.getDefinition());
                 odo.recomputeIfNeeded(false);
             }
-            return new AuthorizationParameters<>(odo, null, null, null);
+            return new AuthorizationParameters<>(odo, null, null, null, fullInformationAvailable);
         }
 
         public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObject(PrismObject<O> object) {
+            return buildObject(object, true);
+        }
+
+        public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObject(
+                PrismObject<O> object, boolean fullInformationAvailable) {
             ObjectDeltaObject<O> odo = null;
             if (object != null) {
                 odo = new ObjectDeltaObject<>(object, null, object, object.getDefinition());
             }
-            return new AuthorizationParameters<>(odo, null, null, null);
+            return new AuthorizationParameters<>(odo, null, null, null, fullInformationAvailable);
         }
     }
 }

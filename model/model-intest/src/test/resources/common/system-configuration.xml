@@ -681,4 +681,15 @@
             </property>
         </eventRecording>
     </audit>
+
+    <secretsProviders>
+        <properties>
+            <identifier>properties-provider</identifier>
+            <propertiesFile>./src/test/resources/common/secrets-provider.properties</propertiesFile>
+        </properties>
+        <environmentVariables>
+            <identifier>env-provider</identifier>
+            <prefix>MP_</prefix>
+        </environmentVariables>
+    </secretsProviders>
 </systemConfiguration>

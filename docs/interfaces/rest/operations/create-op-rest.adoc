@@ -16,7 +16,7 @@ Using the PUT method, the client has to provide a complete object, including the
 .Create operation using HTTP PUT
 [source, http]
 ----
-PUT http://localhost:8080/midpoint/ws/rest/{web_resource_type}/{oid}
+PUT http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}
 ----
 
 If you use the POST method to create new web resources,
@@ -25,7 +25,7 @@ you can do this without the need to know the complete URI (i.e. without the oid 
 .Create operation using HTTP POST
 [source, http]
 ----
-POST http://localhost:8080/midpoint/ws/rest/{web_resource_type}/
+POST http://localhost:8080/midpoint/ws/rest/{endpoint}/
 ----
 
 === Headers
@@ -38,18 +38,17 @@ Regarding authorization type, the "Basic" Authorization header should be used.
 Authorization: Basic {Base64EncodedCredentials}
 ----
 
-In case of the get operation you need to specify the provided content type of the
+In case of the create operation you need to specify the provided content type of the
 payload in the body:
 
 .Content type header example, other media types are supported as well
 [source, http]
 ----
-"Content-Type: application/xml"
+"Content-Type: application/json"
 ----
 
 .For supported media types please refer to the following section of the documentation
 xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
-
 
 === Body
 
@@ -77,10 +76,15 @@ link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/ht
 
 include::../../rest/concepts/raw/outcome.adoc[]
 
+== Access Authorization
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#addObject+`
+
 == Examples
 
-1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-object/[Create object]
+include::../operations/examples/raw/create-user-jack.adoc[]
 
 == See Also
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 - xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

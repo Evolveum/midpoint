@@ -3452,4 +3452,266 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="SecretsProvidersType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Secrets providers configuration container.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="docker" type="tns:DockerSecretsProviderType" minOccurs="0"/>
+            <xsd:element name="file" type="tns:FileSecretsProviderType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="environmentVariables" type="tns:EnvironmentVariablesSecretsProviderType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="properties" type="tns:PropertiesSecretsProviderType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="custom" type="tns:CustomSecretsProviderType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SecretsProviderType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Abstract definition of a secrets provider.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique identifier of this secrets provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Display name, icon and styles for secret provider.
+                        This is mostly for UI purposes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free-form description of the secrets provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="documentation" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free-form description of the secrets provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="cache" type="xsd:duration" default="PT0S" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Time-to-live when caching the secrets provided by this provider.
+                        The secrets will be refreshed after this time.
+
+                        If not specified or duration is zero then the secrets will not be cached.
+                        If duration is negative then the secrets will be cached forever.
+                        Otherwise, secrets will be cached for specified duration time.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="CustomSecretsProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Custom secrets provider implementation, that is not known at the compile time. E.g. not bundled with midPoint.
+
+                EXPERIMENTAL:
+                This provider implementation is experimental. It may be changed or removed in the future versions.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:SecretsProviderType">
+                <xsd:sequence>
+                    <xsd:element name="className" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Class name of the custom secrets provider.
+                                Class must be available on classpath.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="configuration" type="tns:CustomSecretsProviderConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the custom secrets provider.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="CustomSecretsProviderConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of the custom secrets provider, that is not known at the compile time.
+
+                EXPERIMENTAL:
+                Implementation is experimental. It may be changed or removed in the future versions.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="EnvironmentVariablesSecretsProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Environment variables secrets provider.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:SecretsProviderType">
+                <xsd:sequence>
+                    <xsd:element name="prefix" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Prefix to filter only specific environment variables.
+
+                                E.g. "MYAPP_" - provider will only be able to use environment variables that start with "MYAPP_".
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ContainerSecretsProviderType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Abstract container secrets provider.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:SecretsProviderType">
+                <xsd:sequence>
+                    <xsd:element name="charset" type="xsd:string" minOccurs="0" default="utf-8">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Charset of the files where secrets are stored.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="FileSecretsProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Secrets provider that reads secrets from files.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ContainerSecretsProviderType">
+                <xsd:sequence>
+                    <xsd:element name="parentDirectoryPath" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Path or parent directory where files with secrets are stored.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="DockerSecretsProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Docker secrets provider.
+
+                Files with secrets are by default located in "/run/secrets/*" directory
+                or in "C:\ProgramData\Docker\secrets\*" directory.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ContainerSecretsProviderType">
+                <xsd:sequence>
+                    <!-- intentionally empty -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PropertiesSecretsProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Properties secrets provider.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:SecretsProviderType">
+                <xsd:sequence>
+                    <xsd:element name="charset" type="xsd:string" minOccurs="0" default="utf-8">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Charset of the files for string secrets.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="propertiesFile" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Path to the properties file.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
 </xsd:schema>

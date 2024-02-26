@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
@@ -166,9 +168,9 @@ public class QAccessCertificationWorkItemMapping
     @Override
     public ResultListRowTransformer<AccessCertificationWorkItemType, QAccessCertificationWorkItem, MAccessCertificationWorkItem> createRowTransformer(
             SqlQueryContext<AccessCertificationWorkItemType, QAccessCertificationWorkItem, MAccessCertificationWorkItem> sqlQueryContext,
-            JdbcSession jdbcSession) {
+            JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         Map<UUID, PrismObject<AccessCertificationCampaignType>> cache = new HashMap<>();
-        return (tuple, entityPath, options) -> {
+        return (tuple, entityPath) -> {
             MAccessCertificationWorkItem row = Objects.requireNonNull(tuple.get(entityPath));
             UUID ownerOid = row.ownerOid;
             PrismObject<AccessCertificationCampaignType> owner = cache.get(ownerOid);

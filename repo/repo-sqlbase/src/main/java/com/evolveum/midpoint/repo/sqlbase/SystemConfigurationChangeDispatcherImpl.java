@@ -10,6 +10,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.evolveum.midpoint.prism.crypto.SecretsResolver;
+import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
+
+import com.evolveum.midpoint.prism.crypto.Protector;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -58,6 +63,8 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private ApplicationEventPublisher applicationEventPublisher;
+    @Autowired private SecretsProviderManager secretsProviderManager;
+    @Autowired private Protector protector;
 
     private final Collection<SystemConfigurationChangeListener> listeners = ConcurrentHashMap.newKeySet();
 
@@ -101,6 +108,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
         lastVersionApplied = currentVersion;
 
         notifyListeners(configuration);
+        applySecretsProviderConfiguration(configuration);
         applyLoggingConfiguration(configurationObject, result);
         applyRemoteHostAddressHeadersConfiguration(configuration);
         applyPolyStringNormalizerConfiguration(configuration);
@@ -241,6 +249,20 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
             repositoryService.getPerformanceMonitor().setConfiguration(statistics);
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply repository configuration", t);
+            lastVersionApplied = null;
+        }
+    }
+
+    private void applySecretsProviderConfiguration(SystemConfigurationType configuration) {
+        try {
+            if (!(protector instanceof SecretsResolver consumer)) {
+                LOGGER.warn("Protector is not a secrets provider consumer, cannot apply secrets provider configuration");
+                return;
+            }
+
+            secretsProviderManager.configure(consumer, configuration.getSecretsProviders());
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply secrets provider configuration", t);
             lastVersionApplied = null;
         }
     }

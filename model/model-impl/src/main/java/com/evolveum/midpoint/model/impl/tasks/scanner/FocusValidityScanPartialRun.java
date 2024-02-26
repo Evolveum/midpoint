@@ -18,7 +18,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -33,8 +32,6 @@ import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingR
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeValidityPolicyConstraintType;
@@ -48,8 +45,6 @@ public final class FocusValidityScanPartialRun
         <FocusType,
                 FocusValidityScanWorkDefinition,
                 FocusValidityScanActivityHandler> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(FocusValidityScanPartialRun.class);
 
     /** Determines whether we want to search for objects, assignments, or both at once. */
     @NotNull private final ScanScope scanScope;
@@ -168,23 +163,11 @@ public final class FocusValidityScanPartialRun
     public boolean processItem(@NotNull FocusType object,
             @NotNull ItemProcessingRequest<FocusType> request, RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityRunException {
-        LensContext<FocusType> lensContext = createLensContext(object, workerTask, result);
-        LOGGER.trace("Recomputing of focus {}: context:\n{}", object, lensContext.debugDumpLazily());
-        getModelBeans().clockwork.run(lensContext, workerTask, result);
-        return true;
-    }
-
-    private LensContext<FocusType> createLensContext(@NotNull FocusType focus,
-            @NotNull RunningTask workerTask, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-
         // We want the reconcile option here. There may be accounts that are in wrong activation state.
         // We will not notice that unless we go with reconcile.
         ModelExecuteOptions options = ModelExecuteOptions.create().reconcile();
-
-        return getModelBeans().contextFactory
-                .createRecomputeContext(focus.asPrismObject(), options, workerTask, result);
+        getModelBeans().modelController.executeRecompute(object.asPrismObject(), options, workerTask, result);
+        return true;
     }
 
     public enum ScanScope {

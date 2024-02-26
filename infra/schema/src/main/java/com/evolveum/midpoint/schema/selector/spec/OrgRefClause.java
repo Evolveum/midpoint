@@ -34,6 +34,11 @@ public class OrgRefClause extends SelectorClause {
                 configNonNull(orgRef.getOid(), "No OID in orgRef clause: %s", orgRef));
     }
 
+    @Override
+    public boolean requiresFullInformation() {
+        return true;
+    }
+
     public @NotNull String getOrgOid() {
         return orgOid;
     }

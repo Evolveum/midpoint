@@ -1,5 +1,5 @@
-= Create object
-:page-nav-title: Create object
+= Create User
+:page-nav-title: Create User
 :page-display-order: 500
 :page-toc: top
 

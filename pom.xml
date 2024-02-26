@@ -151,8 +151,8 @@
         <url>https://github.com/Evolveum/midpoint.git</url>
     </scm>
     <issueManagement>
-        <system>Atlassian JIRA</system>
-        <url>https://jira.evolveum.com/browse/MID</url>
+        <system>OpenProject</system>
+        <url>https://support.evolveum.com/</url>
     </issueManagement>
 
     <distributionManagement>
@@ -235,14 +235,14 @@
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <!-- END of Spring Boot dependencies overrides -->
 
-        <wicket.version>10.0.0-M1</wicket.version>
+        <wicket.version>10.0.0-M2</wicket.version>
         <wicketstuff.version>9.12.0</wicketstuff.version>
         <wicket.chartjs.version>0.3</wicket.chartjs.version>
         <!-- Groovy 4.0.11 is also default for Spring Boot 3.0.6 -->
         <groovy.version>4.0.11</groovy.version>
         <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
-        <connid.version>1.5.1.10</connid.version>
+        <connid.version>1.5.2.0</connid.version>
         <derby.version>10.16.1.1</derby.version>
         <poi.version>5.2.3</poi.version>
         <!-- Version for classgraph must the one declared in Prism -->
@@ -1701,7 +1701,7 @@
                             <SCM-Revision>${git.describe}</SCM-Revision>
                             <Organization>Evolveum</Organization>
                             <Organization-URL>https://www.evolveum.com</Organization-URL>
-                            <Bugtracking-System>https://jira.evolveum.com</Bugtracking-System>
+                            <Bugtracking-System>https://support.evolveum.com</Bugtracking-System>
                             <License>dual-licensed under the Apache License 2.0 and European Union Public License</License>
                             <License-URL>https://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
                         </manifestEntries>
@@ -1939,6 +1939,10 @@
                         <trimStackTrace>false</trimStackTrace>
                         <!-- See https://issues.apache.org/jira/browse/SUREFIRE-1588 -->
                         <useSystemClassLoader>false</useSystemClassLoader>
+                        <environmentVariables>
+                            <!-- env variable to test environment variables provider, it's not used anywhere for login/encryption -->
+                            <MP_USER_PASSWORD>qwe123</MP_USER_PASSWORD>
+                        </environmentVariables>
                         <systemPropertyVariables>
                             <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
                             <midpoint.home>target/midpoint-home</midpoint.home>

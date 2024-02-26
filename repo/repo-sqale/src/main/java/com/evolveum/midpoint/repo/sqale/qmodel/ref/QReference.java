@@ -70,7 +70,7 @@ public class QReference<R extends MReference, OR> extends FlexibleRelationalPath
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QReference(Class<R> type, String variable, String schema, String table) {
+    public QReference(Class<? extends R> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
     }
 

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributePanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -120,18 +121,17 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
 
                 columns.add(new LifecycleStateColumn<>(getContainerModel(), getPageBase()));
 
-                List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
-                columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getCssClass() {
-                        return " mp-w-md-1 ";
-                    }
-
-                });
                 return columns;
+            }
+
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                return getMultivalueContainerListPanel().getDefaultMenuActions();
+            }
+
+            @Override
+            protected String getInlineMenuCssClass() {
+                return " mp-w-md-1 ";
             }
 
             @Override
@@ -195,16 +195,16 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
             }
 
             @Override
-            protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
-                onNewValue(getContainerModel(), target);
+            protected void newItemPerformed(PrismContainerValue<ResourceObjectTypeDefinitionType> value, AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+                onNewValue(value, getContainerModel(), target);
             }
         };
         form.add(objectTypesPanel);
     }
 
     protected void onNewValue(
-            IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target) {
-        getObjectDetailsModels().getPageResource().showObjectTypeWizard(target, newWrapperModel.getObject().getPath());
+            PrismContainerValue<ResourceObjectTypeDefinitionType> value, IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target) {
+        getObjectDetailsModels().getPageResource().showObjectTypeWizard(value, target, newWrapperModel.getObject().getPath());
     }
 
     protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {

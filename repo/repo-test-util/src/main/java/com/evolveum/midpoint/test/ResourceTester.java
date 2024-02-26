@@ -9,13 +9,12 @@ package com.evolveum.midpoint.test;
 
 import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Object that is able to test the resource. It may be e.g. an instance of the model integration test.
@@ -23,7 +22,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public interface ResourceTester {
 
     OperationResult testResource(@NotNull String oid, @NotNull Task task, @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, CommunicationException;
 
     /** Used for reloading the object. Different for provisioning- and model-level tests. */
     SimpleObjectResolver getResourceReloader();
