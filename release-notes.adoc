@@ -29,10 +29,26 @@ Release {release-version} is a fifty-fifth midPoint release, code-named _Curie_.
 
 == Changes With Respect To Version 4.8.1
 
+** Fixed the issue with authorizations being checked too late during the operation processing.
+In specific situations the user-supplied code could be executed before the authorization checks took place.
+See bug:MID-9459[].
+
+** Added missing authorizations checks for some less frequently used operations.
+See xref:_behavior_changes_since_4_8_1[behavior changes since 4.8.1] and bug:MID-9460[].
+
+** Introduced fine-grained authorizations that grant access at the level of a single REST operation.
+See xrefv:/midpoint/reference/support-4.8/security/authorization/service/[].
+
 ** Fixed necessity of "namingAttr" attribute for LDAP authentication module.
-** Upgrade version of ConnId to 1.5.2.0.
+
+** Upgraded version of ConnId to 1.5.2.0.
+
+** Bugfixes in request access wizard. Starting with this version wizard honours global boolean flag `systemConfiguration/roleManagement/defaultExecuteAfterAllApprovals` to decide when to execute changes. Also, handling icons in tables/tiles was improved.
+
 ** Fixed displaying of the configured label and help for object type search item.
+
 ** Fix for hidden details panel accessible by URL
+
 ** Showing of a 404 error page instead of a 500 error page when the focus object could not be found on the details page
 
 To see full list of fixes see https://support.evolveum.com/projects/midpoint/work_packages?query_props=%7B%22t%22%3A%22priority%3Adesc%2Cid%3Aasc%22%2C%22f%22%3A%5B%7B%22n%22%3A%22customField6%22%2C%22o%22%3A%22%3D%22%2C%22v%22%3A%5B%2276%22%5D%7D%5D%7D[Evolveum Issue Tracker]
@@ -40,9 +56,9 @@ To see full list of fixes see https://support.evolveum.com/projects/midpoint/wor
 == Changes With Respect To Version 4.8
 
 * Updated default Security Policy to be stricter and compatible out of the box with default Active Directory policy
-* Administrator initial password is configurable / generated. See xref:/midpoint/reference/support-4.8/security/authentication/administrator-initial-password/[Administrator Initial Password] for details.
+* Administrator initial password is configurable / generated. See xrefv:/midpoint/reference/support-4.8/security/authentication/administrator-initial-password/[Administrator Initial Password] for details.
 * The indication of official vs. unofficial build was added to the About page.
-See xref:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status/[MidPoint JAR Signature Status] for details.
+See xrefv:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status/[MidPoint JAR Signature Status] for details.
 * We have added a new algorithm to detect which users are in the production-like environment. It would have the following impact, depending on your subscription status.
 - *active subscribers*: none
 - *subscribers who are in the renewal period*: none during the grace period of 90 days
@@ -68,7 +84,6 @@ Please contact our xref:https://evolveum.com/partners/find-a-partner/[official p
 
 * Fixed various authorization issues, fixed authorization for users certification work items.
 
-
 * Improvements and fixes in Resource Wizard - fixes in credential mapping wizard, object type issues when changing lifecycle state,
 editing outbound mappings, fixed correlation items configuration page.
 
@@ -88,6 +103,8 @@ editing outbound mappings, fixed correlation items configuration page.
 ** small fixes of errors in GUI behaviour
 ** Fixed inconsistent localization and its selection
 ** Improved messages and error reporting in self registration feature,  search functionality, correlation funtionality
+
+* Also, please have a look at changes mentioned in Changes With Respect To Version 4.8.x .
 
 To see full list of fixes see https://support.evolveum.com/projects/midpoint/work_packages?query_props=%7B%22t%22%3A%22priority%3Adesc%2Cid%3Aasc%22%2C%22f%22%3A%5B%7B%22n%22%3A%22customField6%22%2C%22o%22%3A%22%3D%22%2C%22v%22%3A%5B%2275%22%5D%7D%5D%7D[Evolveum Issue Tracker]
 
@@ -120,6 +137,8 @@ It now facilitates midPoint upgrade process significantly.
 
 * GUI was significantly improved in various areas.
 Details are described below.
+
+* Also, please have a look at changes mentioned in <<Changes With Respect To Version 4.8>> and Changes With Respect To Version 4.8.x .
 
 === Other Improvements
 
@@ -507,6 +526,10 @@ Please refer to the xref:/midpoint/reference/upgrade/upgrade-guide/[] for genera
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
+=== Upgrade From MidPoint 4.8.x
+
+Please check if there is a need to add authorizations to specific users due to xref:_behavior_changes_since_4_8_1[behavior changes since 4.8.1].
+
 === Upgrade From MidPoint 4.7.x
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
@@ -549,7 +572,7 @@ Therefore, it is *strongly recommended reading all the release notes for all the
 
 The most important changes are summarized in xref:#_changes_with_respect_to_version_4_4[Changes With Respect to Version 4.4] section.
 
-Please see also xref:/midpoint/reference/support-4.8/upgrade/faq-issues/[Frequently asked questions for upgrade].
+Please see also xrefv:/midpoint/reference/support-4.8/upgrade/faq-issues/[Frequently asked questions for upgrade].
 
 === Upgrade From Other MidPoint Versions
 
@@ -736,6 +759,26 @@ _Actions required:_
 * Inspect your configuration for deprecated items, and replace them by their suggested equivalents.
 Make sure you don't use any removed items.
 You can use `ninja` tool for this.
+
+[#_behavior_changes_since_4_8_1]
+=== Behavior Changes Since 4.8.1
+
+* The following authorizations were added into the `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3+` namespace:
+** `test`: test resource,
+** `importFromResource`: importing a single shadow or the whole object class,
+** `recompute` recomputing a user or other object (with limited support for now),
+** `notifyChange`.
+
++
+If there are users that need to execute these operations, make sure they get the appropriate authorization.
+
+* Invocation of "empty" modification operations, i.e. operations that make no change to the midPoint state, now require at least minimal authorizations.
+One of `add`, `modify`, `delete`, `recompute`, `assign`, `unassign`, `delegate`, `changeCredentials`
+(all in the `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3+` namespace) suffices to start such "empty" modification operation.
++
+The rationale behind this change is that execution of even a seemingly "empty" operation is a complex process.
+In order to minimize the possibility of interfering with it, we restricted the set of users that are able to start such an operation.
+This change should not affect standard midPoint users, as usually they should have at least one of these authorizations to carry out any meaningful work in midPoint.
 
 [#_behavior_changes_since_4_8]
 === Behavior Changes Since 4.8
