@@ -236,7 +236,7 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
 
         Callout callout = Callout.createInfoCallout(
                 ID_CREATE_NEW_CALLOUT,
-                getPageBase().createStringResource("CreateObjectForReferencePanel.note"));
+                getPageBase().createStringResource("CreateObjectForReferencePanel.note", getTypeTranslation()));
         container.add(callout);
 
         WebMarkupContainer panel;

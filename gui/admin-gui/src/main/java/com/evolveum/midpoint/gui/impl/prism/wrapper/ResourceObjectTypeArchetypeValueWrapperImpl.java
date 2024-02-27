@@ -39,7 +39,7 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
             PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> resourceObjectType =
                     getParent().getParentContainerValue(ResourceObjectTypeDefinitionType.class);
             if (resourceObjectType != null && StringUtils.isNotEmpty(resourceObjectType.getRealValue().getIntent())) {
-                name.append(" (").append(resourceObjectType.getRealValue().getIntent()).append(")");
+                name.append(" - ").append(resourceObjectType.getRealValue().getIntent());
             }
 
             if (!name.isEmpty()) {
