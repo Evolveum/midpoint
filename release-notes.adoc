@@ -47,9 +47,9 @@ See xrefv:/midpoint/reference/support-4.8/security/authorization/service/[].
 
 ** Fixed displaying of the configured label and help for object type search item.
 
-** Fix for hidden details panel accessible by URL
+** Fix for hidden details panel accessible by URL. See bug:MID-9492[].
 
-** Showing of a 404 error page instead of a 500 error page when the focus object could not be found on the details page
+** Showing of a 404 error page instead of a 500 error page when the focus object could not be found on the details page.
 
 To see full list of fixes see https://support.evolveum.com/projects/midpoint/work_packages?query_props=%7B%22t%22%3A%22priority%3Adesc%2Cid%3Aasc%22%2C%22f%22%3A%5B%7B%22n%22%3A%22customField6%22%2C%22o%22%3A%22%3D%22%2C%22v%22%3A%5B%2276%22%5D%7D%5D%7D[Evolveum Issue Tracker]
 
