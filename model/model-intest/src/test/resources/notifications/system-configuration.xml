@@ -505,4 +505,15 @@ Channel: $!event.channel</code>
             </gateway>
         </sms>
     </messageTransportConfiguration>
+    <secretsProviders>
+        <environmentVariables>
+            <identifier>env-provider</identifier>
+            <prefix>MP_</prefix>
+        </environmentVariables>
+        <properties>
+            <identifier>properties-provider</identifier>
+            <cache>PT5S</cache>
+            <propertiesFile>./src/test/resources/common/secrets-provider.properties</propertiesFile>
+        </properties>
+    </secretsProviders>
 </systemConfiguration>
