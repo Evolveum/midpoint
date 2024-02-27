@@ -185,7 +185,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         resourceDummySchemaless = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SCHEMALESS_FILENAME, RESOURCE_DUMMY_SCHEMALESS_OID, initTask, initResult);
         resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
 
-
         postInitDummyResouce();
 
         dummyResourceCtl.addAccount(ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", "Monkey Island");

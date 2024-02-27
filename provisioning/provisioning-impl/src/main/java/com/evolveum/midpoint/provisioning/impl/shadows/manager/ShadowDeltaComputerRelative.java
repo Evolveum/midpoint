@@ -85,8 +85,6 @@ class ShadowDeltaComputerRelative {
 
         RepoShadowModifications resultingRepoModifications = new RepoShadowModifications();
 
-        Collection<? extends QName> associationValueAttributes = objectDefinition.getAssociationValueAttributes();
-
         for (ItemDelta<?, ?> modification : allModifications) {
             if (ShadowType.F_ATTRIBUTES.equivalent(modification.getParentPath())) {
                 QName attrName = modification.getElementName();
@@ -103,7 +101,7 @@ class ShadowDeltaComputerRelative {
                     resultingRepoModifications.add(
                             primaryIdentifierValueModFromAttributeMod(modification));
                 }
-                if (ctx.shouldStoreAttributeInShadow(objectDefinition, attrDef, associationValueAttributes)) {
+                if (ctx.shouldStoreAttributeInShadow(objectDefinition, attrDef)) {
                     resultingRepoModifications.add(modification, attrDef);
                 }
             } else if (ShadowType.F_ACTIVATION.equivalent(modification.getParentPath())) {

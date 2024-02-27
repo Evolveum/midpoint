@@ -103,6 +103,11 @@ public abstract class AbstractMappingBuilder<
         return typedThis();
     }
 
+    public RT mapping(ConfigurationItem<MBT> mappingConfigItem) {
+        this.mappingConfigItem = mappingConfigItem;
+        return typedThis();
+    }
+
     public RT mappingKind(MappingKindType val) {
         mappingKind = val;
         return typedThis();

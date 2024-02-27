@@ -34,7 +34,6 @@ class ResourceObjectsBeans {
     // Local ones
     @Autowired ResourceObjectConverter resourceObjectConverter;
     @Autowired FakeIdentifierGenerator fakeIdentifierGenerator;
-    @Autowired DelineationProcessor delineationProcessor;
     @Autowired ResourceObjectReferenceResolver resourceObjectReferenceResolver;
 
     // From other parts of the code

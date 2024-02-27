@@ -8,6 +8,7 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceResolutionFrequencyType.*;
 
@@ -30,7 +31,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
-import com.evolveum.midpoint.provisioning.util.QueryConversionUtil;
+import com.evolveum.midpoint.schema.processor.ShadowQueryConversionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -75,6 +76,8 @@ class ResourceObjectReferenceResolver {
 
     /**
      * Resolves a {@link ResourceObjectReferenceType}. Uses raw class definition for this purpose.
+     *
+     * The context should be a wildcard one.
      */
     @Nullable ShadowType resolveUsingRawClass(
             @NotNull ProvisioningContext ctx,
@@ -83,6 +86,8 @@ class ResourceObjectReferenceResolver {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
+
+        ctx.assertWildcard();
 
         ObjectReferenceType shadowRef = resourceObjectReference.getShadowRef();
         ResourceObjectReferenceResolutionFrequencyType resolutionFrequency =
@@ -109,7 +114,7 @@ class ResourceObjectReferenceResolver {
 
         ObjectQuery refQuery =
                 ObjectQueryUtil.createQuery(
-                        QueryConversionUtil.parseFilter(
+                        ShadowQueryConversionUtil.parseFilter(
                                 resourceObjectReference.getFilter(), subCtx.getObjectDefinitionRequired()));
         // No variables. At least not now. We expect that mostly constants will be used here.
         VariablesMap variables = new VariablesMap();

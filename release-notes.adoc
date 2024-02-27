@@ -509,6 +509,9 @@ Since 4.9/4.8.1, both of these properties are updated even if the administrative
 the `disableReason` is determined anew, and the `disableTimestamp` is updated if the status and/or the reason are modified.
 See bug:MID-9220[].
 
+* Automatic caching of association binding attributes (the "value" side, i.e. `valueAttribute` in the association definition) is no longer provided.
+It is recommended to mark them as secondary identifiers.
+
 === Java and REST API Changes Since 4.8
 
 NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.

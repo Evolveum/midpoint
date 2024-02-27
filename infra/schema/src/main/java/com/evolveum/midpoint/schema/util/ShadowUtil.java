@@ -146,6 +146,17 @@ public class ShadowUtil {
         return getAssociationsContainer(shadow.asPrismObject());
     }
 
+    /** Assuming the shadow has the correct definition. */
+    public static ShadowAssociationsContainer getOrCreateAssociationsContainer(ShadowType shadow) {
+        try {
+            return (ShadowAssociationsContainer) shadow
+                    .asPrismObject()
+                    .<ShadowAssociationsType>findOrCreateContainer(ShadowType.F_ASSOCIATIONS);
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e);
+        }
+    }
+
     /** Similar to {@link #getAttributesContainer(ShadowType)}. */
     public static ShadowAssociationsContainer getAssociationsContainer(@NotNull PrismObject<ShadowType> shadow) {
         return castShadowContainer(
@@ -267,6 +278,30 @@ public class ShadowUtil {
             return polyString.getOrig();
         } else {
             return (String) realValue;
+        }
+    }
+
+    public static <T> @NotNull PrismPropertyValue<T> getSingleValueRequired(ShadowType shadow, QName attrName, Object errorCtx)
+            throws SchemaException {
+        PrismPropertyValue<T> value = getSingleValue(shadow, attrName, errorCtx);
+        if (value != null) {
+            return value;
+        } else {
+            throw new SchemaException(
+                    "Attribute %s has no value%s".formatted(attrName, errorCtx));
+        }
+    }
+
+    public static <T> @Nullable PrismPropertyValue<T> getSingleValue(ShadowType shadow, QName attrName, Object errorCtx)
+            throws SchemaException {
+        ResourceAttribute<T> attribute = getAttribute(shadow, attrName);
+        if (attribute == null || attribute.isEmpty()) {
+            return null;
+        } else if (attribute.size() > 1) {
+            throw new SchemaException(
+                    "Attribute %s has more than one value%s".formatted(attrName, errorCtx));
+        } else {
+            return attribute.getValue();
         }
     }
 

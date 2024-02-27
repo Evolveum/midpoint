@@ -67,7 +67,8 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
             @Nullable D outputDefinition,
             @NotNull Protector protector) {
         super(elementName, functionEvaluatorBean, outputDefinition, protector);
-        this.functionCallCI = FunctionExpressionEvaluatorConfigItem.of(
+        this.functionCallCI = FunctionExpressionEvaluatorConfigItem.
+                of(
                 functionEvaluatorBean,
                 ConfigurationItemOrigin.undeterminedSafe()); // TODO origin
     }

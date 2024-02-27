@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -75,9 +76,15 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
 
     /** Returns definitions for all types with given kind. (If null, returns all types.) */
     default @NotNull List<? extends ResourceObjectTypeDefinition> getObjectTypeDefinitions(@Nullable ShadowKindType kind) {
+        return getObjectTypeDefinitions(def -> def.matchesKind(kind));
+    }
+
+    /** Returns all matching object type definitions. */
+    default @NotNull List<ResourceObjectTypeDefinition> getObjectTypeDefinitions(
+            @NotNull Predicate<ResourceObjectTypeDefinition> predicate) {
         return getObjectTypeDefinitions().stream()
-                .filter(def -> def.matchesKind(kind))
-                .collect(Collectors.toList());
+                .filter(predicate)
+                .toList();
     }
 
     /** Returns definition of the given type. No hacks/guesses here. */

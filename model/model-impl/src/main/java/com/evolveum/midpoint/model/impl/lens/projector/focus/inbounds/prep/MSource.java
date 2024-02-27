@@ -14,6 +14,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 
+import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
+import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 
 import org.jetbrains.annotations.NotNull;
@@ -171,7 +173,7 @@ abstract class MSource implements DebugDumpable {
      */
     abstract @NotNull ProcessingMode getItemProcessingMode(
             String itemDescription, ItemDelta<?, ?> itemAPrioriDelta,
-            List<? extends MappingType> mappingBeans,
+            List<? extends AbstractMappingConfigItem<?>> mappings,
             boolean executionModeVisible,
             boolean ignored,
             PropertyLimitations limitations) throws SchemaException, ConfigurationException;
@@ -235,20 +237,20 @@ abstract class MSource implements DebugDumpable {
      * (currently attribute)?
      * @param correlationItemPaths What (focus) items are referenced by `items` correlators?
      */
-    @NotNull List<InboundMappingType> selectMappingBeansForEvaluationPhase(
-            @NotNull List<InboundMappingType> beans,
+    @NotNull List<InboundMappingConfigItem> selectMappingBeansForEvaluationPhase(
+            @NotNull List<InboundMappingConfigItem> mappings,
             boolean resourceItemLocalCorrelatorDefined,
             @NotNull Collection<ItemPath> correlationItemPaths) throws ConfigurationException {
         InboundMappingEvaluationPhaseType currentPhase = getCurrentEvaluationPhase();
-        List<InboundMappingType> filtered =
+        var filteredMappings =
                 new ApplicabilityEvaluator(
                         getDefaultEvaluationPhases(), resourceItemLocalCorrelatorDefined, correlationItemPaths, currentPhase)
-                        .filterApplicableMappingBeans(beans);
-        if (filtered.size() < beans.size()) {
+                        .filterApplicableMappings(mappings);
+        if (filteredMappings.size() < mappings.size()) {
             LOGGER.trace("{} out of {} mapping(s) for this item were filtered out because of evaluation phase '{}'",
-                    beans.size() - filtered.size(), beans.size(), currentPhase);
+                    mappings.size() - filteredMappings.size(), mappings.size(), currentPhase);
         }
-        return filtered;
+        return filteredMappings;
     }
 
     private @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultEvaluationPhases() {

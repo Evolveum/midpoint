@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.Set;
 
 public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDefinitionDelegator, ResourceObjectTypeDefinition {
 
@@ -34,6 +35,11 @@ public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDef
     @Override
     default @NotNull String getIntent() {
         return delegate().getIntent();
+    }
+
+    @Override
+    default @NotNull Set<ResourceObjectTypeIdentification> getAncestorsIds() {
+        return delegate().getAncestorsIds();
     }
 
     @Override

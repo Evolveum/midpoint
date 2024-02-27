@@ -14,11 +14,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class GlobalPolicyRuleConfigItem extends AbstractPolicyRuleConfigItem<GlobalPolicyRuleType> {
 
-    GlobalPolicyRuleConfigItem(@NotNull ConfigurationItem<GlobalPolicyRuleType> original) {
+    @SuppressWarnings("WeakerAccess") // called dynamically
+    public GlobalPolicyRuleConfigItem(@NotNull ConfigurationItem<GlobalPolicyRuleType> original) {
         super(original);
     }
 
-    public GlobalPolicyRuleConfigItem(@NotNull GlobalPolicyRuleType value, @NotNull ConfigurationItemOrigin origin) {
+    private GlobalPolicyRuleConfigItem(@NotNull GlobalPolicyRuleType value, @NotNull ConfigurationItemOrigin origin) {
         super(value, origin);
     }
 
@@ -40,5 +41,11 @@ public class GlobalPolicyRuleConfigItem extends AbstractPolicyRuleConfigItem<Glo
                 value().getCondition(),
                 MappingConfigItem.class,
                 GlobalPolicyRuleType.F_CONDITION);
+    }
+
+    @Override
+    public @NotNull String localDescription() {
+        String name = value().getName();
+        return "global policy rule " + (name != null ? "'%s'".formatted(name) : "(without name)");
     }
 }

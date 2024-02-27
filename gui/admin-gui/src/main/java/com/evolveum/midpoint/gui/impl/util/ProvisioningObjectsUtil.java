@@ -43,11 +43,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.focus.component.FocusProjection
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -303,28 +300,20 @@ public class ProvisioningObjectsUtil {
         Collection<ShadowAssociationDefinition> shadowAssociationDefinitions = oc.getAssociationDefinitions();
 
         for (ShadowAssociationDefinition shadowAssociationDefinition : shadowAssociationDefinitions) {
-            if (association != null && !shadowAssociationDefinition.getName().equivalent(association)) {
+            if (association != null && !shadowAssociationDefinition.getItemName().equivalent(association)) {
                 continue;
             }
-            ObjectFilter filter = createAssociationShadowRefFilter(shadowAssociationDefinition, prismContext, oc.getResourceOid());
+            ObjectFilter filter = shadowAssociationDefinition.createTargetObjectsFilter();
             query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
         }
         return query.getFilter();
     }
 
+    /** Creates a filter that provides all shadows eligible as the target value for this association. */
     public static ObjectFilter createAssociationShadowRefFilter(
             ShadowAssociationDefinition shadowAssociationDefinition,
             PrismContext prismContext, String resourceOid) {
-        S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
-        List<ObjectFilter> orFilterClauses = new ArrayList<>();
-        shadowAssociationDefinition.getIntents()
-                .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
-        OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
-
-        AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(shadowAssociationDefinition.getKind()).and()
-                .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE).buildFilter();
-        filter.addCondition(intentFilter);
-        return filter;
+        return shadowAssociationDefinition.createTargetObjectsFilter();
     }
 
     public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?> itemWrapper,
@@ -631,17 +620,11 @@ public class ProvisioningObjectsUtil {
     }
 
     public static String getAssociationDisplayName(ShadowAssociationDefinition assocDef) {
-        if (assocDef == null) {
+        if (assocDef != null) {
+            return assocDef.getHumanReadableDescription();
+        } else {
             return "";
         }
-        StringBuilder sb = new StringBuilder();
-        if (assocDef.getDisplayName() != null) {
-            sb.append(assocDef.getDisplayName()).append(", ");
-        }
-        if (assocDef.getDefinitionBean().getRef() != null) {
-            sb.append("ref: ").append(assocDef.getDefinitionBean().getRef().getItemPath());
-        }
-        return sb.toString();
     }
 
     @Deprecated

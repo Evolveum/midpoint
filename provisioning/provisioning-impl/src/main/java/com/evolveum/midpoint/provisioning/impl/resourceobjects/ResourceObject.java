@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -161,5 +163,11 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
 
     public void setOid(String oid) {
         bean.setOid(oid);
+    }
+
+    void applyOperations(EntitlementConverter.SubjectOperations subjectOperations) throws SchemaException {
+        for (PropertyModificationOperation<?> operation : subjectOperations.getOperations()) {
+            applyDelta(operation.getPropertyDelta());
+        }
     }
 }

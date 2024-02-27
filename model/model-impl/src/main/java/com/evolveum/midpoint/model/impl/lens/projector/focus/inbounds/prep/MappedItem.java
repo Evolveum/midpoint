@@ -18,8 +18,9 @@ import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.VariableProducer;
+import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -56,7 +57,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
     private final Context context;
 
     /** [EP:M:IM] DONE These mappings must come from `source.resource`. Currently it seems so. */
-    private final Collection<? extends MappingType> mappingBeans;
+    private final Collection<? extends AbstractMappingConfigItem<?>> mappings;
     private final ItemPath implicitSourcePath;
     final String itemDescription;
     private final ItemDelta<V, D> itemAPrioriDelta;
@@ -72,7 +73,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
             MSource source,
             Target<F> target,
             Context context,
-            Collection<? extends MappingType> mappingBeans,
+            Collection<? extends AbstractMappingConfigItem<?>> mappings,
             ItemPath implicitSourcePath,
             String itemDescription,
             ItemDelta<V, D> itemAPrioriDelta,
@@ -84,7 +85,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
         this.source = source;
         this.target = target;
         this.context = context;
-        this.mappingBeans = mappingBeans;
+        this.mappings = mappings;
         this.implicitSourcePath = implicitSourcePath;
         this.itemDescription = itemDescription;
         this.itemAPrioriDelta = itemAPrioriDelta;
@@ -120,10 +121,13 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
             postProcessor.postProcess(itemAPrioriDelta, currentProjectionItem);
         }
 
-        LOGGER.trace("Creating {} inbound mapping(s) for {} in {} ({}). Relevant values are:\n"
-                        + "- a priori item delta:\n{}\n"
-                        + "- current item:\n{}",
-                mappingBeans.size(),
+        LOGGER.trace("""
+                        Creating {} inbound mapping(s) for {} in {} ({}). Relevant values are:
+                        - a priori item delta:
+                        {}
+                        - current item:
+                        {}""",
+                mappings.size(),
                 itemDescription,
                 source.getProjectionHumanReadableNameLazy(),
                 fromAbsoluteState ? "absolute mode" : "relative mode",
@@ -154,7 +158,9 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
 
         defaultSource.recompute();
 
-        for (MappingType mappingBean : mappingBeans) {
+        for (AbstractMappingConfigItem<?> mappingCI : mappings) {
+
+            AbstractMappingType mappingBean = mappingCI.value();
 
             String channel = source.getChannel();
             if (!MappingImpl.isApplicableToChannel(mappingBean, channel)) {
@@ -179,10 +185,9 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
             ItemPath targetPathOverride = source.determineTargetPathOverride(declaredTargetPath);
             LOGGER.trace("Target path override: {}", targetPathOverride);
 
-            var origin = ConfigurationItemOrigin.inResourceOrAncestor(resource);
-
+            //noinspection unchecked
             MappingBuilder<V, D> builder = beans.mappingFactory.<V, D>createMappingBuilder()
-                    .mappingBean(mappingBean, origin) // [EP:M:IM] DONE (mapping bean is from the resource, see callers)
+                    .mapping((ConfigurationItem<MappingType>) mappingCI) // [EP:M:IM] DONE (mapping bean is from the resource, see callers)
                     .mappingKind(MappingKindType.INBOUND)
                     .implicitSourcePath(implicitSourcePath)
                     .targetPathOverride(targetPathOverride)

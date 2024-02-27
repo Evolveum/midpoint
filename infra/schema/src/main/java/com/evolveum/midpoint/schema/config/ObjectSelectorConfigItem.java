@@ -14,26 +14,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
 /** TODO what about the subtypes of {@link ObjectSelectorType}? */
 public class ObjectSelectorConfigItem extends ConfigurationItem<ObjectSelectorType> {
 
-    @SuppressWarnings("unused") // called dynamically
+    @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
     public ObjectSelectorConfigItem(@NotNull ConfigurationItem<ObjectSelectorType> original) {
         super(original);
-    }
-
-    public ObjectSelectorConfigItem(@NotNull ObjectSelectorType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
-    }
-
-    public static ObjectSelectorConfigItem embedded(@NotNull ObjectSelectorType bean) {
-        return of(bean, ConfigurationItemOrigin.embedded(bean));
-    }
-
-    public static ObjectSelectorConfigItem of(@NotNull ObjectSelectorType bean, @NotNull ConfigurationItemOrigin origin) {
-        return new ObjectSelectorConfigItem(bean, origin);
-    }
-
-    public static ObjectSelectorConfigItem of(
-            @NotNull ObjectSelectorType bean,
-            @NotNull OriginProvider<? super ObjectSelectorType> originProvider) {
-        return new ObjectSelectorConfigItem(bean, originProvider.origin(bean));
     }
 }

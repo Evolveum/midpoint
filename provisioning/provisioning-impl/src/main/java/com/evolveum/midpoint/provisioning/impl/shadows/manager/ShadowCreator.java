@@ -173,16 +173,11 @@ public class ShadowCreator {
                 ShadowManagerMiscUtil.determinePrimaryIdentifierValue(resourceObjectOrShadow, shadowLifecycleState);
         repoShadowBean.setPrimaryIdentifierValue(primaryIdentifierValue != null ? primaryIdentifierValue.toString() : null);
 
-        // We keep all the attributes that act as association identifiers.
-        // We will need them when the shadow is deleted (to remove the shadow from entitlements).
-        // TODO is this behavior documented somewhere? Is it known well enough?
-        var associationValueAttributes = objectDef.getAssociationValueAttributes();
-
         var repoAttributesContainer = repoShadowBean.asPrismObject().findOrCreateContainer(ShadowType.F_ATTRIBUTES);
         for (ResourceAttribute<?> attribute : originalAttributesContainer.getAttributes()) {
             // TODO or should we use attribute.getDefinition()?
             var attrDef = objectDef.findAttributeDefinitionRequired(attribute.getElementName());
-            if (ctx.shouldStoreAttributeInShadow(objectDef, attrDef, associationValueAttributes)) {
+            if (ctx.shouldStoreAttributeInShadow(objectDef, attrDef)) {
                 var repoAttrDef = attrDef.toNormalizationAware();
                 var repoAttr = repoAttrDef.adoptRealValuesAndInstantiate(attribute.getRealValues());
                 repoAttributesContainer.add(repoAttr);

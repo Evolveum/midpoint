@@ -93,11 +93,11 @@ public class ShadowFinder {
         return getShadowBean(oid, null, result);
     }
 
-    /** A convenience method. */
+    /** A convenience method. (The context is used mainly to provide resource information.) */
     public @NotNull RepoShadow getRepoShadow(
             @NotNull ProvisioningContext ctx, @NotNull String oid, @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
-        return getRepoShadow(ctx, oid, null, result);
+        return getRepoShadow(ctx.toWildcard(), oid, null, result);
     }
 
     /** A convenience method. (The context is used mainly to provide resource information.) */
@@ -107,7 +107,7 @@ public class ShadowFinder {
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
-        return ctx.adoptRawRepoShadow(
+        return ctx.toWildcard().adoptRawRepoShadow(
                 getShadowBean(oid, options, result));
     }
 

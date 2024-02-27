@@ -7,36 +7,40 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.*;
-import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
+import static com.evolveum.midpoint.schema.config.ConfigurationItem.*;
+import static com.evolveum.midpoint.schema.config.ConfigurationItemOrigin.inResourceOrAncestor;
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.SuperReference;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.util.*;
-import java.util.function.Supplier;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-
-import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.config.*;
 import com.evolveum.midpoint.schema.merger.objdef.ResourceObjectTypeDefinitionMergeOperation;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AssociationsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
@@ -48,8 +52,10 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * 2. configured {@link SchemaHandlingType} beans in resource definition.
  *
  * This class is instantiated for each parsing operation.
+ *
+ * TODO migrate all uses of {@link SchemaException} to {@link ConfigurationException} ones
  */
-public class RefinedResourceSchemaParser {
+class RefinedResourceSchemaParser {
 
     private static final Trace LOGGER = TraceManager.getTrace(RefinedResourceSchemaParser.class);
 
@@ -57,34 +63,54 @@ public class RefinedResourceSchemaParser {
     @NotNull private final ResourceType resource;
 
     /** The `schemaHandling` from {@link #resource}, empty if missing. */
-    @NotNull private final SchemaHandlingType schemaHandling;
+    @NotNull private final SchemaHandlingConfigItem schemaHandling;
 
+    /** The extract of the resource information, to be weaved into type/class definitions. */
     @NotNull private final BasicResourceInformation basicResourceInformation;
 
     /** Raw resource schema we start with. */
     @NotNull private final ResourceSchema rawResourceSchema;
 
+    /** This is used when parsing "new" association types. */
+    @Nullable private final AssociationsCapabilityConfigItem associationsCapabilityCI;
+
     @NotNull private final String contextDescription;
 
+    /** The schema being created. */
     @NotNull private final CompleteResourceSchemaImpl completeSchema;
 
     RefinedResourceSchemaParser(@NotNull ResourceType resource, @NotNull ResourceSchema rawResourceSchema) {
         this.resource = resource;
-        this.schemaHandling = Objects.requireNonNullElseGet(resource.getSchemaHandling(), () -> new SchemaHandlingType());
+        var schemaHandlingBean = resource.getSchemaHandling();
+        this.schemaHandling =
+                schemaHandlingBean != null ?
+                        configItem(
+                                schemaHandlingBean,
+                                ConfigurationItemOrigin.inResourceOrAncestor(resource, ResourceType.F_SCHEMA_HANDLING),
+                                SchemaHandlingConfigItem.class) :
+                        configItem(
+                                new SchemaHandlingType(),
+                                ConfigurationItemOrigin.generated(), // hopefully no errors will be reported here
+                                SchemaHandlingConfigItem.class);
         this.basicResourceInformation = BasicResourceInformation.of(resource);
         this.rawResourceSchema = rawResourceSchema;
+        var associationCapabilityBean = CapabilityUtil.getCapability(resource, null, AssociationsCapabilityType.class);
+        this.associationsCapabilityCI = configItemNullable(
+                associationCapabilityBean,
+                inResourceOrAncestor(
+                        resource,
+                        ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CONFIGURED, CapabilityCollectionType.F_ASSOCIATIONS)),
+                AssociationsCapabilityConfigItem.class);
         this.contextDescription = "definition of " + resource;
         this.completeSchema = new CompleteResourceSchemaImpl(
                 basicResourceInformation,
                 ResourceTypeUtil.isCaseIgnoreAttributeNames(resource));
     }
 
-    /**
-     * Creates the refined resource schema.
-     */
-    public @NotNull CompleteResourceSchema parse() throws SchemaException, ConfigurationException {
+    /** Creates the complete resource schema. */
+    @NotNull CompleteResourceSchema parse() throws SchemaException, ConfigurationException {
 
-        checkAttributeNames();
+        schemaHandling.checkAttributeNames();
 
         createEmptyObjectClassDefinitions();
         createEmptyObjectTypeDefinitions();
@@ -92,90 +118,39 @@ public class RefinedResourceSchemaParser {
         // In theory, this could be done alongside creation of empty object type definitions.
         resolveAuxiliaryObjectClassNames();
 
-        // Associations refer to object types, so we have to parse them after empty type definitions are created.
-        parseAssociations();
-
         // We can parse attributes only after we have all the object class info parsed (including auxiliary object classes)
         parseAttributes();
 
-        // Protected objects, delineation, and so on.
+        // Protected objects and delineation. They refer to attributes.
         parseOtherFeatures();
+
+        // Associations refer to object types, attributes, and delineation, so they must come after them.
+        parseAssociationTypesDefinitions();
+        parseLegacyAssociations();
 
         completeSchema.freeze();
 
         return completeSchema;
     }
 
-    /**
-     * Checks that all attribute names (`ref` elements) are valid - before even starting to parse the schema.
-     * Otherwise, the parsing may fail at unusual places, generating confusing error messages. See also MID-8162.
-     *
-     * Note this is temporary solution until serious configuration error reporting is done.
-     */
-    private void checkAttributeNames() throws ConfigurationException {
-        for (ResourceObjectTypeDefinitionType objectClassDefBean : schemaHandling.getObjectClass()) {
-            checkAttributeNames(objectClassDefBean, () -> characterizeClass(objectClassDefBean));
-        }
-        for (ResourceObjectTypeDefinitionType objectTypeDefBean : schemaHandling.getObjectType()) {
-            checkAttributeNames(objectTypeDefBean, () -> characterizeType(objectTypeDefBean));
-        }
-    }
-
-    private String characterizeClass(ResourceObjectTypeDefinitionType objectClassDefBean) {
-        return "object class '" + getObjectClassName(objectClassDefBean) + "' definition";
-    }
-
-    private String characterizeType(ResourceObjectTypeDefinitionType objectTypeDefBean) {
-        return "object type '" + ResourceObjectTypeIdentification.of(objectTypeDefBean) + "' definition";
-    }
-
-    private void checkAttributeNames(
-            @NotNull ResourceObjectTypeDefinitionType typeDefBean,
-            @NotNull Supplier<String> descriptionSupplier)
-            throws ConfigurationException {
-        for (ResourceAttributeDefinitionType attrDefBean : typeDefBean.getAttribute()) {
-            var ref = attrDefBean.getRef();
-            if (ref == null) {
-                throw new ConfigurationException(
-                        "Missing `ref` element in attribute definition in %s in %s at %s".formatted(
-                                descriptionSupplier.get(), resource, attrDefBean.asPrismContainerValue().getPath()));
-            }
-            ItemPath path = ref.getItemPath();
-            if (path.size() != 1) {
-                throw new ConfigurationException(
-                        "Invalid `ref` element (%s) in attribute definition in %s in %s at %s".formatted(
-                                path, descriptionSupplier.get(), resource,
-                                attrDefBean.asPrismContainerValue().getPath()));
-            }
-        }
-    }
-
     private void createEmptyObjectClassDefinitions() throws ConfigurationException, SchemaException {
 
         LOGGER.trace("Creating refined object class definitions");
 
-        List<ResourceObjectTypeDefinitionType> definitionBeans = schemaHandling.getObjectClass();
-        for (ResourceObjectTypeDefinitionType definitionBean : definitionBeans) {
-            QName objectClassName =
-                    MiscUtil.requireNonNull(
-                            getObjectClassName(definitionBean),
-                            () -> new ConfigurationException(
-                                    "Object class name must not be null in " + contextDescription));
-
-            ResourceObjectClassDefinition rawObjectClassDefinition =
-                    MiscUtil.requireNonNull(
+        var classDefinitionCIs = schemaHandling.getObjectClasses();
+        for (var classDefinitionCI : classDefinitionCIs) {
+            var objectClassName = classDefinitionCI.getObjectClassName();
+            var rawObjectClassDefinition =
+                    classDefinitionCI.configNonNull(
                             rawResourceSchema.findObjectClassDefinition(objectClassName),
-                            () -> new ConfigurationException(
-                                    "Object class %s referenced by schemaHandling does not exist in %s".formatted(
-                                            objectClassName, resource)));
-
+                            "Object class %s referenced in %s does not exist on the resource".formatted(objectClassName, DESC));
             assertClassNotDefinedYet(objectClassName);
             completeSchema.add(
                     ResourceObjectClassDefinitionImpl.refined(
-                            basicResourceInformation, rawObjectClassDefinition, definitionBean));
+                            basicResourceInformation, rawObjectClassDefinition, classDefinitionCI.value()));
         }
 
-        LOGGER.trace("Created {} refined object class definitions from beans; creating remaining ones", definitionBeans.size());
+        LOGGER.trace("Created {} refined object class definitions from beans; creating remaining ones", classDefinitionCIs.size());
 
         for (ResourceObjectClassDefinition rawObjectClassDefinition : rawResourceSchema.getObjectClassDefinitions()) {
             if (completeSchema.findObjectClassDefinition(rawObjectClassDefinition.getObjectClassName()) == null) {
@@ -190,34 +165,29 @@ public class RefinedResourceSchemaParser {
     }
 
     private void assertClassNotDefinedYet(QName objectClassName) throws ConfigurationException {
-        var existing = completeSchema.findObjectClassDefinition(objectClassName);
-        if (existing != null) {
-            throw new ConfigurationException(
-                    "Multiple definitions for object class " + objectClassName + " in " + contextDescription);
-        }
+        MiscUtil.configCheck(
+                completeSchema.findObjectClassDefinition(objectClassName) == null,
+                "Multiple definitions for object class %s in %s", objectClassName, resource);
     }
 
     private void createEmptyObjectTypeDefinitions() throws SchemaException, ConfigurationException {
         LOGGER.trace("Creating empty object type definitions");
         int created = 0;
-        for (ResourceObjectTypeDefinitionType definitionBean : schemaHandling.getObjectType()) {
-            if (!isAbstract(definitionBean)) {
-                ResourceObjectTypeDefinition definition = createEmptyObjectTypeDefinition(definitionBean);
+        for (var typeDefinitionCI : schemaHandling.getObjectTypes()) {
+            if (!typeDefinitionCI.isAbstract()) {
+                ResourceObjectTypeDefinition definition = createEmptyObjectTypeDefinition(typeDefinitionCI);
                 LOGGER.trace("Created (empty) object type definition: {}", definition);
                 assertTypeNotDefinedYet(definition);
                 completeSchema.add(definition);
                 created++;
             } else {
-                LOGGER.trace("Ignoring abstract definition bean: {}", definitionBean);
+                LOGGER.trace("Ignoring abstract definition bean: {}", typeDefinitionCI);
             }
         }
         checkForMultipleDefaults();
         LOGGER.trace("Successfully created {} empty object type definitions", created);
     }
 
-    private boolean isAbstract(@NotNull ResourceObjectTypeDefinitionType definitionBean) {
-        return Boolean.TRUE.equals(definitionBean.isAbstract());
-    }
 
     private void assertTypeNotDefinedYet(ResourceObjectTypeDefinition definition) throws ConfigurationException {
         ResourceObjectTypeIdentification identification = definition.getTypeIdentification();
@@ -227,25 +197,23 @@ public class RefinedResourceSchemaParser {
         }
     }
 
-    private ResourceObjectTypeDefinition createEmptyObjectTypeDefinition(@NotNull ResourceObjectTypeDefinitionType definitionBean)
+    private ResourceObjectTypeDefinition createEmptyObjectTypeDefinition(
+            @NotNull ResourceObjectTypeDefinitionConfigItem definitionCI)
             throws SchemaException, ConfigurationException {
 
-        ResourceObjectTypeIdentification identification = ResourceObjectTypeIdentification.of(definitionBean);
+        ResourceObjectTypeIdentification identification = definitionCI.getTypeIdentification();
 
         // Object class refinement is not merged here (yet). We assume that the object class name could be woven into
         // the bean at any level. And we hope that although we do the merging in the top-bottom direction, it will cause
         // no harm if we merge the object class refinement (i.e. topmost component) at last.
-        ResourceObjectTypeDefinitionType expandedBean = expand(definitionBean);
+        ObjectTypeExpansion expansion = new ObjectTypeExpansion();
+        ResourceObjectTypeDefinitionType expandedBean = expansion.expand(definitionCI.value());
 
-        QName objectClassName = MiscUtil.configNonNull(
-                getObjectClassName(expandedBean),
-                () -> "Definition of " + identification + " does not have objectclass, in " + contextDescription);
+        // We assume that the path was not changed. Quite a hack, though.
+        var expandedCI = configItem(expandedBean, definitionCI.origin(), ResourceObjectTypeDefinitionConfigItem.class);
 
-        ResourceObjectClassDefinition objectClassDefinition =
-                MiscUtil.configNonNull(
-                        completeSchema.findObjectClassDefinition(objectClassName),
-                        () -> "Unknown object class " + objectClassName + " (referenced by " + identification
-                                + ") not present in " + contextDescription);
+        QName objectClassName = expandedCI.getObjectClassName();
+        ResourceObjectClassDefinition objectClassDefinition = getObjectClassDefinitionRequired(objectClassName, expandedCI);
 
         ResourceObjectTypeDefinitionType objectClassRefinementBean = objectClassDefinition.getDefinitionBean();
         merge(expandedBean, objectClassRefinementBean); // no-op if refinement bean is empty
@@ -253,69 +221,27 @@ public class RefinedResourceSchemaParser {
         return new ResourceObjectTypeDefinitionImpl(
                 basicResourceInformation,
                 identification,
-                completeSchema.findObjectClassDefinitionRequired(objectClassName),
+                expansion.getAncestorsIds(),
+                objectClassDefinition,
                 CloneUtil.toImmutable(expandedBean));
     }
 
-    /**
-     * Expands the definition by resolving its ancestor (if there's any), recursively if needed.
-     *
-     * TODO should we move the expansion code into a separate class?
-     */
-    private @NotNull ResourceObjectTypeDefinitionType expand(
-            @NotNull ResourceObjectTypeDefinitionType definitionBean) throws ConfigurationException, SchemaException {
-        if (definitionBean.getSuper() == null) {
-            return definitionBean;
-        } else {
-            var expanded = expand(definitionBean, Sets.newIdentityHashSet());
-            LOGGER.trace("Expanded object type definition into:\n{}", expanded.debugDumpLazily(1));
-            return expanded;
-        }
+    private @NotNull ResourceObjectClassDefinition getObjectClassDefinitionRequired(
+            @NotNull QName objectClassName, @NotNull ConfigurationItem<?> contextCI) throws ConfigurationException {
+        return contextCI.configNonNull(
+                completeSchema.findObjectClassDefinition(objectClassName),
+                "No definition found for object class '%s' referenced in %s", objectClassName, DESC);
     }
 
-    /**
-     * Expands the definition by resolving its ancestor (if there's any), recursively if needed.
-     *
-     * Does not modify existing {@link #resource} object, so it clones the beans that are being expanded.
-     *
-     * @param seen stores beans that have been seen when resolving the ancestors. Used to detect cycles.
-     */
-    private @NotNull ResourceObjectTypeDefinitionType expand(
-            @NotNull ResourceObjectTypeDefinitionType subBean,
-            @NotNull Set<ResourceObjectTypeDefinitionType> seen) throws ConfigurationException, SchemaException {
-        SuperObjectTypeReferenceType superRef = subBean.getSuper();
-        if (superRef == null) {
-            return subBean;
-        } else {
-            ResourceObjectTypeDefinitionType superBean = find(superRef);
-            if (!seen.add(superBean)) {
-                throw new ConfigurationException("A cycle in super-type hierarchy, detected at " + superBean
-                        + " in " + contextDescription);
-            }
-            ResourceObjectTypeDefinitionType expandedSuperBean = expand(superBean, seen);
-            ResourceObjectTypeDefinitionType expandedSubBean = subBean.clone();
-            merge(expandedSubBean, expandedSuperBean);
-            return expandedSubBean;
-        }
-    }
-
-    /**
-     * Resolves the reference to a super-type. Must be in the same resource.
-     */
-    private @NotNull ResourceObjectTypeDefinitionType find(@NotNull SuperObjectTypeReferenceType superRefBean)
+    private @NotNull ResourceObjectTypeDefinition getObjectTypeDefinitionRequired(
+            @NotNull ResourceObjectTypeIdentification identification, @NotNull ConfigurationItem<?> contextCI)
             throws ConfigurationException {
-        SuperReference superRef = SuperReference.of(superRefBean);
-        List<ResourceObjectTypeDefinitionType> matching = schemaHandling.getObjectType().stream()
-                .filter(superRef::matches)
-                .collect(Collectors.toList());
-        return MiscUtil.extractSingletonRequired(matching,
-                () -> new ConfigurationException("Multiple definitions matching " + superRef + " found in " + contextDescription),
-                () -> new ConfigurationException("No definition matching " + superRef + " found in " + contextDescription));
+        return contextCI.configNonNull(
+                completeSchema.getObjectTypeDefinition(identification),
+                "No definition found for object type '%s' referenced in %s", identification, DESC);
     }
 
-    /**
-     * Merges "source" (super-type) into "target" (sub-type).
-     */
+    /** Merges "source" (super-type) into "target" (sub-type). */
     private void merge(
             @NotNull ResourceObjectTypeDefinitionType target,
             @NotNull ResourceObjectTypeDefinitionType source) throws SchemaException, ConfigurationException {
@@ -343,7 +269,7 @@ public class RefinedResourceSchemaParser {
      * Fills in list of auxiliary object class definitions (in object type definitions)
      * with definitions resolved from their qualified names.
      */
-    private void resolveAuxiliaryObjectClassNames() throws SchemaException {
+    private void resolveAuxiliaryObjectClassNames() throws ConfigurationException {
         for (ResourceObjectDefinition objectDef: completeSchema.getResourceObjectDefinitions()) {
             new ResourceObjectDefinitionParser(objectDef)
                     .resolveAuxiliaryObjectClassNames();
@@ -353,14 +279,23 @@ public class RefinedResourceSchemaParser {
     /**
      * Creates definitions for associations; includes resolving their targets (given by kind + intent(s)).
      */
-    private void parseAssociations() throws SchemaException, ConfigurationException {
-        for (ResourceObjectDefinition objectDef : completeSchema.getResourceObjectDefinitions()) {
-            new ResourceObjectDefinitionParser(objectDef)
-                    .parseAssociations();
+    private void parseLegacyAssociations() throws ConfigurationException {
+        for (ResourceObjectTypeDefinition objectTypeDef : completeSchema.getObjectTypeDefinitions()) {
+            new ResourceObjectDefinitionParser(objectTypeDef)
+                    .parseLegacyAssociations();
         }
     }
 
-    private void parseAttributes() throws SchemaException {
+    /** These are associations from the {@link SchemaHandlingType#getAssociationType()} section. */
+    private void parseAssociationTypesDefinitions() throws ConfigurationException {
+        for (var assocTypeDefCI : schemaHandling.getAssociationTypes()) {
+            LOGGER.trace("Parsing association type {}", assocTypeDefCI);
+            new AssociationTypeParser(assocTypeDefCI)
+                    .parse();
+        }
+    }
+
+    private void parseAttributes() throws ConfigurationException {
         for (ResourceObjectDefinition objectDef : completeSchema.getResourceObjectDefinitions()) {
             new ResourceObjectDefinitionParser(objectDef)
                     .parseAttributes();
@@ -391,75 +326,51 @@ public class RefinedResourceSchemaParser {
         @NotNull private final AbstractResourceObjectDefinitionImpl definition;
 
         /**
-         * Definition bean from `schemaHandling` section.
+         * Definition CI from `schemaHandling` section; taken from {@link #definition}.
+         *
+         * It is merged from all the super-resources and super-types. Its CI origin and CI parent are
+         * set artificially (for now).
          */
-        @NotNull private final ResourceObjectTypeDefinitionType definitionBean;
+        @NotNull private final AbstractResourceObjectDefinitionConfigItem definitionCI;
 
         ResourceObjectDefinitionParser(@NotNull ResourceObjectDefinition definition) {
             this.definition = (AbstractResourceObjectDefinitionImpl) definition;
-            this.definitionBean = this.definition.getDefinitionBean();
+            var definitionBean = definition.getDefinitionBean();
+            if (definition instanceof ResourceObjectTypeDefinition) {
+                this.definitionCI = configItem(
+                        definitionBean,
+                        inResourceOrAncestor(
+                                resource,
+                                ResourceType.F_SCHEMA_HANDLING.append(SchemaHandlingType.F_OBJECT_TYPE)), // ignoring ID for now
+                        schemaHandling,
+                        ResourceObjectTypeDefinitionConfigItem.class);
+            } else if (definition instanceof ResourceObjectClassDefinition) {
+                this.definitionCI = configItem(
+                        definitionBean,
+                        inResourceOrAncestor(
+                                resource,
+                                ResourceType.F_SCHEMA_HANDLING.append(SchemaHandlingType.F_OBJECT_CLASS)), // ignoring ID for now
+                        schemaHandling,
+                        ResourceObjectClassDefinitionConfigItem.class);
+            } else {
+                throw new IllegalStateException("Neither object type or object class? " + definition);
+            }
         }
 
-        void resolveAuxiliaryObjectClassNames() throws SchemaException {
-            for (QName auxObjectClassName : getAuxiliaryObjectClassNames(definitionBean)) {
-                LOGGER.trace("Resolving auxiliary object class name: {} for {}", auxObjectClassName, definition);
+        void resolveAuxiliaryObjectClassNames() throws ConfigurationException {
+            for (QName auxObjectClassName : definitionCI.getAuxiliaryObjectClassNames()) {
                 definition.addAuxiliaryObjectClassDefinition(
-                        MiscUtil.requireNonNull(
-                                completeSchema.findObjectClassDefinition(auxObjectClassName),
-                                () -> "Auxiliary object class " + auxObjectClassName + " specified in " +
-                                        definition + " does not exist"));
+                        getObjectClassDefinitionRequired(auxObjectClassName, definitionCI));
             }
         }
 
-        void parseAssociations() throws SchemaException, ConfigurationException {
-            for (ResourceObjectAssociationType associationDefBean : definitionBean.getAssociation()) {
+        /** Those associations are attached right onto the object type definition. */
+        void parseLegacyAssociations() throws ConfigurationException {
+            for (var associationDefCI : definitionCI.getAssociations()) {
+                // TODO check if not already there!
                 definition.addAssociationDefinition(
-                        new ShadowAssociationDefinition(
-                                associationDefBean, resolveAssociationTarget(associationDefBean), contextDescription));
-            }
-        }
-
-        /**
-         * Returns object type definition matching given kind and one of the intents, specified in the association definition.
-         *
-         * (If no intents are provided, default type for given kind is returned.
-         * We are not very eager here - by default we mean just the flag "default for kind" being set.)
-         *
-         * The matching types must share at least the object class name. This is checked by this method.
-         * However, in practice they must share much more, as described in the description for
-         * {@link ResourceObjectAssociationType#getIntent()} (see XSD).
-         */
-        private @NotNull ResourceObjectTypeDefinition resolveAssociationTarget(ResourceObjectAssociationType associationDefBean)
-                throws SchemaException {
-            @NotNull ShadowKindType kind = ShadowAssociationDefinition.getKind(associationDefBean);
-            @NotNull Collection<String> intents = associationDefBean.getIntent();
-            Collection<ResourceObjectTypeDefinition> matching =
-                    completeSchema.getObjectTypeDefinitions().stream()
-                            .filter(def -> matches(def, associationDefBean))
-                            .collect(Collectors.toList());
-            if (matching.isEmpty()) {
-                throw new SchemaException("No object type definition for association " + associationDefBean + " in " + contextDescription);
-            } else if (ResourceSchemaUtil.areDefinitionsCompatible(matching)) {
-                return matching.iterator().next();
-            } else {
-                throw new SchemaException(
-                        "Incompatible definitions found for kind " + kind + ", intents: " + intents + ": " + matching);
-            }
-        }
-
-        /**
-         * Returns `true` if the (target) type definition matches requirements of the association definition: kind + intent(s).
-         */
-        private boolean matches(
-                @NotNull ResourceObjectTypeDefinition targetTypeDef, @NotNull ResourceObjectAssociationType associationDefBean) {
-            if (targetTypeDef.getKind() != ShadowAssociationDefinition.getKind(associationDefBean)) {
-                return false;
-            }
-            Collection<String> intents = associationDefBean.getIntent();
-            if (intents.isEmpty()) {
-                return targetTypeDef.isDefaultForKind();
-            } else {
-                return intents.contains(targetTypeDef.getIntent());
+                        new LegacyAssociationParser(associationDefCI, definition)
+                                .parse());
             }
         }
 
@@ -469,7 +380,7 @@ public class RefinedResourceSchemaParser {
          *
          * Initializes identifier names and protected objects patterns.
          */
-        private void parseAttributes() throws SchemaException {
+        private void parseAttributes() throws ConfigurationException {
 
             LOGGER.trace("Parsing attributes of {}", definition);
 
@@ -487,15 +398,16 @@ public class RefinedResourceSchemaParser {
          * There should be no attributes in the `schemaHandling` definition without connector-provided (raw schema)
          * counterparts.
          */
-        private void assertNoOtherAttributes() throws SchemaException {
-            for (ResourceAttributeDefinitionType attrDefBean : definitionBean.getAttribute()) {
-                QName attrName = ItemPathTypeUtil.asSingleNameOrFail(attrDefBean.getRef());
+        private void assertNoOtherAttributes() throws ConfigurationException {
+            for (ResourceAttributeDefinitionConfigItem attributeDefCI : definitionCI.getAttributes()) {
+                QName attrName = attributeDefCI.getAttributeName();
                 // TODO check that we really look into aux object classes
-                if (!definition.containsAttributeDefinition(attrName) && !ResourceSchemaUtil.isIgnored(attrDefBean)) {
-                    throw new SchemaException(String.format(
-                            "Definition of attribute %s not found in object class %s nor auxiliary object classes for %s "
-                                    + "as defined in %s",
-                            attrName, definition.getObjectClassName(), definition, contextDescription));
+                if (!definition.containsAttributeDefinition(attrName)
+                        && !attributeDefCI.isIgnored()) {
+                    throw attributeDefCI.configException(
+                            "Definition of attribute '%s' not found in object class '%s' "
+                                    + "nor auxiliary object classes for '%s' as defined in %s",
+                            attrName, definition.getObjectClassName(), definition, DESC);
                 }
             }
         }
@@ -505,7 +417,7 @@ public class RefinedResourceSchemaParser {
          * them with `schemaHandling` information.
          */
         private void parseAttributesFromRawObjectClass(@NotNull ResourceObjectClassDefinition rawClassDef, boolean auxiliary)
-                throws SchemaException {
+                throws ConfigurationException {
             assert rawClassDef.isRaw();
             for (ResourceAttributeDefinition<?> attrDef : rawClassDef.getAttributeDefinitions()) {
                 if (attrDef instanceof RawResourceAttributeDefinition<?> rawAttrDef) {
@@ -519,14 +431,11 @@ public class RefinedResourceSchemaParser {
         }
 
         private void parseRawAttribute(@NotNull RawResourceAttributeDefinition<?> rawAttrDef, boolean fromAuxClass)
-                throws SchemaException {
+                throws ConfigurationException {
 
             ItemName attrName = rawAttrDef.getItemName();
 
             LOGGER.trace("Parsing attribute {} (auxiliary = {})", attrName, fromAuxClass);
-
-            // TODO make this context description lazily evaluated
-            String attrContextDescription = attrName + ", in " + contextDescription;
 
             // We MUST NOT skip ignored attribute definitions here. We must include them in the schema as
             // the shadows will still have that attributes and we will need their type definition to work
@@ -536,35 +445,22 @@ public class RefinedResourceSchemaParser {
                 if (fromAuxClass) {
                     return;
                 } else {
-                    throw new SchemaException(
-                            "Duplicate definition of attribute %s in %s, in %s".formatted(
-                                    attrName, definition.getHumanReadableName(), contextDescription));
+                    throw definitionCI.configException("Duplicate definition of attribute '%s' in %s", attrName, DESC);
                 }
             }
 
-            ResourceAttributeDefinitionType attrDefBean = findAttributeDefinitionBean(attrName, attrContextDescription);
-            ResourceAttributeDefinition<?> attrDef = ResourceAttributeDefinitionImpl.create(rawAttrDef, attrDefBean);
+            ResourceAttributeDefinitionType attrDefBean = value(definitionCI.getAttributeDefinitionIfPresent(attrName));
+            ResourceAttributeDefinition<?> attrDef;
+            try {
+                attrDef = ResourceAttributeDefinitionImpl.create(rawAttrDef, attrDefBean);
+            } catch (SchemaException e) { // TODO throw the configuration exception right in the 'create' method
+                throw definitionCI.configException("Error while parsing attribute '%s' in %s: %s", attrName, DESC, e.getMessage());
+            }
             definition.add(attrDef);
 
             if (attrDef.isDisplayNameAttribute()) {
                 definition.setDisplayNameAttributeName(attrName);
             }
-        }
-
-        private ResourceAttributeDefinitionType findAttributeDefinitionBean(QName attrName, String contextDescription)
-                throws SchemaException {
-            List<ResourceAttributeDefinitionType> matchingDefBeans = new ArrayList<>();
-            for (ResourceAttributeDefinitionType attrDefBean : definitionBean.getAttribute()) {
-                if (QNameUtil.match(
-                        ItemPathTypeUtil.asSingleNameOrFail(attrDefBean.getRef()),
-                        attrName)) {
-                    matchingDefBeans.add(attrDefBean);
-                }
-            }
-            return MiscUtil.extractSingleton(
-                    matchingDefBeans,
-                    () -> new SchemaException("Duplicate definition of attribute " + attrName + " in "
-                            + definition + ", in " + contextDescription));
         }
 
         /**
@@ -605,11 +501,12 @@ public class RefinedResourceSchemaParser {
          * Converts protected objects patterns from "bean" to "compiled" form.
          */
         private void parseProtected() throws SchemaException, ConfigurationException {
-            if (definitionBean.getProtected().isEmpty()) {
+            List<ResourceObjectPatternType> protectedPatternBeans = definitionCI.value().getProtected();
+            if (protectedPatternBeans.isEmpty()) {
                 return;
             }
             var prismObjectDef = definition.toPrismObjectDefinition();
-            for (ResourceObjectPatternType protectedPatternBean : definitionBean.getProtected()) {
+            for (ResourceObjectPatternType protectedPatternBean : protectedPatternBeans) {
                 definition.addProtectedObjectPattern(
                         convertToPattern(protectedPatternBean, prismObjectDef));
             }
@@ -631,18 +528,20 @@ public class RefinedResourceSchemaParser {
 
         private void parseDelineation() throws ConfigurationException {
             QName objectClassName = definition.getObjectClassName();
-            List<QName> auxiliaryObjectClassNames = getAuxiliaryObjectClassNames(definitionBean);
+            var definitionBean = definitionCI.value(); // TODO move this processing right into the CI
+            List<QName> auxiliaryObjectClassNames = definitionCI.getAuxiliaryObjectClassNames();
             ResourceObjectTypeDelineationType delineationBean = definitionBean.getDelineation();
             if (delineationBean != null) {
-                configCheck(definitionBean.getBaseContext() == null,
-                        "Legacy base context cannot be set when delineation is configured. In %s", definition);
-                configCheck(definitionBean.getSearchHierarchyScope() == null,
-                        "Legacy search hierarchy scope cannot be set when delineation is configured. In %s", definition);
+                definitionCI.configCheck(definitionBean.getBaseContext() == null,
+                        "Legacy base context cannot be set when delineation is configured; in %s", DESC);
+                definitionCI.configCheck(definitionBean.getSearchHierarchyScope() == null,
+                        "Legacy search hierarchy scope cannot be set when delineation is configured; in %s", DESC);
                 definition.setDelineation(
                         ResourceObjectTypeDelineation.of(
                                 delineationBean,
                                 objectClassName,
-                                auxiliaryObjectClassNames));
+                                auxiliaryObjectClassNames,
+                                definition));
             } else {
                 definition.setDelineation(
                         ResourceObjectTypeDelineation.of(
@@ -650,6 +549,219 @@ public class RefinedResourceSchemaParser {
                                 definitionBean.getSearchHierarchyScope(),
                                 objectClassName,
                                 auxiliaryObjectClassNames));
+            }
+        }
+    }
+
+    /** Resolves super-type references for given object type definition bean. */
+    private class ObjectTypeExpansion {
+
+        /** Object type identifiers that have been seen when resolving the ancestors. Used also to detect cycles. */
+        private final Set<ResourceObjectTypeIdentification> ancestorsIds = new HashSet<>();
+
+        /**
+         * Expands the definition by resolving its ancestor (if there's any), recursively if needed.
+         *
+         * Does not modify existing {@link #resource} object, so it clones the beans that are being expanded.
+         */
+        private @NotNull ResourceObjectTypeDefinitionType expand(
+                @NotNull ResourceObjectTypeDefinitionType definitionBean) throws ConfigurationException, SchemaException {
+            var superRef = definitionBean.getSuper();
+            if (superRef == null) {
+                return definitionBean;
+            } else {
+                ResourceObjectTypeDefinitionType superBean = find(superRef);
+                if (!ancestorsIds.add(ResourceObjectTypeIdentification.of(superBean))) {
+                    throw new ConfigurationException(
+                            "A cycle in super-type hierarchy, detected at %s (contains: %s) in %s".formatted(
+                                    superBean, ancestorsIds, contextDescription));
+                }
+                ResourceObjectTypeDefinitionType expandedSuperBean = expand(superBean);
+                ResourceObjectTypeDefinitionType expandedSubBean = definitionBean.clone();
+                merge(expandedSubBean, expandedSuperBean);
+                return expandedSubBean;
+            }
+        }
+
+        /** Resolves the reference to a super-type. Must be in the same resource. TODO migrate to CIs. */
+        private @NotNull ResourceObjectTypeDefinitionType find(@NotNull ResourceObjectTypeIdentificationType superRefBean)
+                throws ConfigurationException {
+            SuperReference superRef = SuperReference.of(superRefBean);
+            List<ResourceObjectTypeDefinitionType> matching = schemaHandling.getObjectTypes().stream()
+                    .map(ci -> ci.value())
+                    .filter(superRef::matches)
+                    .collect(Collectors.toList());
+            return MiscUtil.extractSingletonRequired(matching,
+                    () -> new ConfigurationException("Multiple definitions matching " + superRef + " found in " + contextDescription),
+                    () -> new ConfigurationException("No definition matching " + superRef + " found in " + contextDescription));
+        }
+
+        private @NotNull Set<ResourceObjectTypeIdentification> getAncestorsIds() {
+            return ancestorsIds;
+        }
+    }
+
+    /** Parses given "4.9+ format" association type. */
+    private class AssociationTypeParser {
+
+        @NotNull private final ShadowAssociationTypeDefinitionConfigItem associationTypeDefinitionCI;
+
+        /** Currently, there must be a simulated association class, as we have no native ones. */
+        @NotNull private final SimulatedAssociationClassConfigItem simulationCI;
+
+        @NotNull private final Collection<ResourceObjectTypeDefinition> subjectTypeDefinitions;
+
+        @NotNull private final Collection<ResourceObjectTypeDefinition> objectTypeDefinitions;
+
+        AssociationTypeParser(@NotNull ShadowAssociationTypeDefinitionConfigItem associationTypeDefinitionCI)
+                throws ConfigurationException {
+            this.associationTypeDefinitionCI = associationTypeDefinitionCI;
+            // This is a temporary check.
+            MiscUtil.configNonNull(associationsCapabilityCI,
+                    "No simulated associations for %s (native associations are not implemented yet)", resource);
+            var associationClassName = associationTypeDefinitionCI.getAssociationClassName();
+            this.simulationCI =
+                    associationTypeDefinitionCI.configNonNull(
+                            associationsCapabilityCI.getAssociationClass(associationClassName),
+                            "Simulated association class '%s' not found; referenced from %s", associationClassName, DESC);
+            this.subjectTypeDefinitions = determineTypeDefinitions(
+                    associationTypeDefinitionCI.getSubjectTypeIdentifiers(),
+                    simulationCI.getSubject());
+            this.objectTypeDefinitions = determineTypeDefinitions(
+                    associationTypeDefinitionCI.getObjectTypeIdentifiers(),
+                    simulationCI.getObject());
+        }
+
+        void parse() throws ConfigurationException {
+
+            var simulationDefinition = ShadowAssociationClassSimulationDefinition.parseModern(
+                    associationTypeDefinitionCI, simulationCI, completeSchema, subjectTypeDefinitions, objectTypeDefinitions);
+
+            var typeDefinition = ShadowAssociationTypeDefinition.parseAssociationType(
+                    associationTypeDefinitionCI, simulationDefinition, subjectTypeDefinitions, objectTypeDefinitions);
+
+            // Attaching to subject types
+            for (ResourceObjectTypeDefinition subjectTypeDef : subjectTypeDefinitions) {
+                var associationDef = ShadowAssociationDefinition.parseAssociationType(
+                        typeDefinition, simulationDefinition, associationTypeDefinitionCI);
+                configCheck(!subjectTypeDef.containsAssociationDefinition(associationDef.getItemName()),
+                        "Association %s already exists in %s in %s",
+                        associationDef.getItemName(), subjectTypeDef, associationTypeDefinitionCI);
+                ((AbstractResourceObjectDefinitionImpl) subjectTypeDef)
+                        .addAssociationDefinition(associationDef);
+            }
+        }
+
+        private @NotNull Set<ResourceObjectTypeDefinition> determineTypeDefinitions(
+                @NotNull Collection<? extends ResourceObjectTypeIdentification> typeIdentifiers,
+                @NotNull SimulatedAssociationClassParticipantConfigItem simulatedParticipant)
+                throws ConfigurationException {
+
+            Set<ResourceObjectTypeDefinition> definitions = new HashSet<>();
+
+            // Explicit type enumeration takes precedence over everything else.
+            if (!typeIdentifiers.isEmpty()) {
+                for (ResourceObjectTypeIdentification typeIdentifier : typeIdentifiers) {
+                    definitions.add(
+                            getObjectTypeDefinitionRequired(typeIdentifier, associationTypeDefinitionCI));
+                }
+                return definitions;
+            }
+
+            // Second, we try to determine the types from the supported object classes - we simply take all matching types.
+            for (QName participantObjectClassName : simulatedParticipant.getObjectClassNames()) {
+                // Just to check the sanity
+                getObjectClassDefinitionRequired(participantObjectClassName, simulatedParticipant);
+                var matchingTypeDefinitions = completeSchema
+                        .getObjectTypeDefinitions(def -> QNameUtil.match(def.getObjectClassName(), participantObjectClassName));
+                configCheck(!matchingTypeDefinitions.isEmpty(),
+                        "No object type definition(s) found for object class '%s' in %s",
+                        participantObjectClassName, simulatedParticipant);
+                definitions.addAll(matchingTypeDefinitions);
+            }
+
+            if (!definitions.isEmpty()) {
+                return definitions;
+            } else {
+                // May happen if the simulated participant has no delineations.
+                throw new ConfigurationException("No object type definitions found for " + simulatedParticipant);
+            }
+        }
+    }
+
+    /** Parses given legacy ("pre-4.9") association type. */
+    private class LegacyAssociationParser {
+
+        @NotNull private final ResourceObjectAssociationConfigItem associationDefCI;
+
+        /** This one is being built. */
+        @NotNull private final ResourceObjectTypeDefinition subjectTypeDefinition;
+
+        LegacyAssociationParser(
+                @NotNull ResourceObjectAssociationConfigItem associationDefCI,
+                @NotNull AbstractResourceObjectDefinitionImpl subjectDefinition) throws ConfigurationException {
+            this.associationDefCI = associationDefCI;
+            if (!(subjectDefinition instanceof ResourceObjectTypeDefinition _subjectTypeDefinition)) {
+                throw new ConfigurationException("Associations cannot be defined on object classes: " + subjectDefinition);
+            }
+            this.subjectTypeDefinition = _subjectTypeDefinition;
+        }
+
+        @NotNull ShadowAssociationDefinition parse() throws ConfigurationException {
+
+            var objectTypeDefinitions = getObjectTypeDefinitions();
+
+            var simulationDefinition = ShadowAssociationClassSimulationDefinition.parseLegacy(
+                    associationDefCI, completeSchema, subjectTypeDefinition, objectTypeDefinitions);
+
+            var associationTypeDefinition = ShadowAssociationTypeDefinition.parseLegacy(
+                    associationDefCI, simulationDefinition, subjectTypeDefinition, objectTypeDefinitions);
+
+            return ShadowAssociationDefinition.parseLegacy(associationTypeDefinition, associationDefCI);
+        }
+
+        /**
+         * Returns object type definition matching given kind and one of the intents, specified in the association definition.
+         *
+         * (If no intents are provided, default type for given kind is returned.
+         * We are not very eager here - by default we mean just the flag "default for kind" being set.)
+         *
+         * The matching types must share at least the object class name. This is checked by this method.
+         * However, in practice they must share much more, as described in the description for
+         * {@link ResourceObjectAssociationType#getIntent()} (see XSD).
+         */
+        private @NotNull Collection<ResourceObjectTypeDefinition> getObjectTypeDefinitions()
+                throws ConfigurationException {
+
+            var kind = associationDefCI.getKind();
+            var intents = associationDefCI.getIntents();
+
+            Predicate<ResourceObjectTypeDefinition> predicate =
+                    objectDef -> {
+                        if (objectDef.getKind() != kind) {
+                            return false;
+                        }
+                        if (((Collection<String>) intents).isEmpty()) {
+                            return objectDef.isDefaultForKind();
+                        } else {
+                            return ((Collection<String>) intents).contains(objectDef.getIntent());
+                        }
+                    };
+
+            var predicateDescription = lazy(() -> "kind " + kind + ", intents " + intents);
+
+            Collection<ResourceObjectTypeDefinition> matching =
+                    completeSchema.getObjectTypeDefinitions().stream()
+                            .filter(predicate)
+                            .toList();
+            if (matching.isEmpty()) {
+                throw associationDefCI.configException(
+                        "No matching object type definition found for %s in %s", predicateDescription, DESC);
+            } else if (ResourceSchemaUtil.areDefinitionsCompatible(matching)) {
+                return matching;
+            } else {
+                throw associationDefCI.configException(
+                        "Incompatible definitions found for %s in %s: %s", predicateDescription, DESC, matching);
             }
         }
     }

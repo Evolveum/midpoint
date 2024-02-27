@@ -155,7 +155,7 @@ public class ResourceAttributeRefPanelFactory
             if (ConstructionType.F_ASSOCIATION.equivalent(attributeWrapper.getItemName())) {
                 Collection<ShadowAssociationDefinition> associationDefs = rOcd.getAssociationDefinitions();
                 return associationDefs.stream()
-                        .map(ShadowAssociationDefinition::getName)
+                        .map(ShadowAssociationDefinition::getItemName)
                         .collect(Collectors.toList());
             }
 

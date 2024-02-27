@@ -7,26 +7,25 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import static com.evolveum.midpoint.provisioning.impl.resourceobjects.EntitlementUtils.createEntitlementQuery;
-
-import javax.xml.namespace.QName;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationClassSimulationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import static com.evolveum.midpoint.provisioning.impl.resourceobjects.EntitlementUtils.*;
 
 /**
- * Reads the entitlements of a subject (resource object).
+ * Reads the entitlements of a subject (resource object): either from the values of the subject itself,
+ * or by searching for relevant objects on the resource (delegated to {@link EntitlementObjectSearch}).
  */
 class EntitlementReader {
 
@@ -38,17 +37,9 @@ class EntitlementReader {
     /** {@link ProvisioningContext} of the subject fetch/search/whatever operation. */
     @NotNull private final ProvisioningContext subjectCtx;
 
-    /** The association container being created and filled-in. */
-    @NotNull private final ShadowAssociationsContainer associationsContainer;
-
-    @NotNull private final ResourceObjectsBeans b = ResourceObjectsBeans.get();
-
     private EntitlementReader(@NotNull ResourceObject subject, @NotNull ProvisioningContext subjectCtx) {
         this.subject = subject;
         this.subjectCtx = subjectCtx;
-        this.associationsContainer = subjectCtx.getObjectDefinitionRequired()
-                .toShadowAssociationsContainerDefinition()
-                .instantiate();
     }
 
     /**
@@ -69,165 +60,110 @@ class EntitlementReader {
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        LOGGER.trace("Starting entitlements read operation");
-
+        LOGGER.trace("Starting simulated associations read operation");
         for (ShadowAssociationDefinition associationDef : subjectCtx.getAssociationDefinitions()) {
-            ShadowKindType entitlementKind = associationDef.getKind();
-            for (String entitlementIntent : associationDef.getIntents()) {
-                LOGGER.trace("Resolving association {} for kind {} and intent {}",
-                        associationDef.getName(), entitlementKind, entitlementIntent);
-                ProvisioningContext entitlementCtx = subjectCtx.spawnForKindIntent(entitlementKind, entitlementIntent);
-                switch (associationDef.getDirection()) {
-                    case SUBJECT_TO_OBJECT ->
-                            readSubjectToObject(
-                                    associationDef.getAssociationAttributeName(),
-                                    associationDef.getValueAttributeName(),
-                                    associationDef,
-                                    entitlementCtx);
-                    case OBJECT_TO_SUBJECT -> {
-                        QName shortcutAssociationAttribute = associationDef.getShortcutAssociationAttributeName();
-                        if (shortcutAssociationAttribute != null) {
-                            readSubjectToObject(
-                                    shortcutAssociationAttribute,
-                                    associationDef.getShortcutValueAttributeNameRequired(),
-                                    associationDef,
-                                    entitlementCtx);
-                        } else {
-                            readObjectToSubject(associationDef, entitlementCtx, result);
-                        }
-                    }
-                    default ->
-                            throw new AssertionError(
-                                    "Unknown entitlement direction %s in association %s in %s".formatted(
-                                            associationDef.getDirection(), associationDef, subjectCtx));
-                }
+            if (!isSimulated(associationDef)
+                    && !isVisible(associationDef, subjectCtx)
+                    && !doesMatchSubjectDelineation(associationDef, subjectCtx)) {
+                continue;
+            }
+            var simulationDefinition = Objects.requireNonNull(associationDef.getSimulationDefinition());
+            LOGGER.trace("Processing simulated association {}: {}", associationDef, simulationDefinition);
+            var primaryBinding = simulationDefinition.getPrimaryAttributeBinding();
+            var secondaryBinding = simulationDefinition.getSecondaryAttributeBinding();
+            if (simulationDefinition.isSubjectToObject()) {
+                convertSubjectAttributeToAssociation(primaryBinding, simulationDefinition);
+            } else if (secondaryBinding != null) {
+                convertSubjectAttributeToAssociation(secondaryBinding, simulationDefinition);
+            } else {
+                searchForAssociationTargetObjects(primaryBinding, simulationDefinition, result);
             }
         }
-
-        if (!associationsContainer.isEmpty()) {
-            subject.getPrismObject().add(associationsContainer);
-        }
-        LOGGER.trace("Finished entitlements read operation; the association container now has {} value(s)",
-                associationsContainer.size());
+        LOGGER.trace("Finished simulated associations read operation");
     }
 
     /**
-     * Creates a value in `associationContainer`. It simply uses values in "association" (referencing) attribute
-     * to construct identifiers pointing to the entitlement object.
+     * Creates the association values from the (subject) attribute values.
      *
-     * @param referencingAttrName The "referencing" attribute (aka association attribute), present on subject, e.g. memberOf.
-     * @param referencedAttrName The "referenced" attribute (aka value attribute) present on object, e.g. dn (Group DN).
+     * It simply uses values of the subject side attribute of the binding to construct identifiers
+     * pointing to the entitlement object.
      *
-     * @see #addAssociationValueFromIdentifier(PrismPropertyValue, ResourceAttributeDefinition, QName)
+     * For example, if
+     *
+     * - isMemberOf: "cn=wheel,ou=Groups,dc=example,dc=com"; "cn=users,ou=Groups,dc=example,dc=com"
+     * - referenced identifier is "dn" (of a group)
+     * - association name = "ri:group"
+     *
+     * then the result would be:
+     *
+     *     ri:group:
+     *       PCV: identifiers: { dn: "cn=wheel,ou=Groups,dc=example,dc=com" }
+     *       PCV: identifiers: { dn: "cn=users,ou=Groups,dc=example,dc=com" }
+     *
+     * NOTE: These values are not filtered according to the association type definition;
+     * because this is just a simulation of what would the resource do.
+     * The filtering will come in upper layers - specifically, in shadowed object construction.
      */
-    private <T> void readSubjectToObject(
-            @NotNull QName referencingAttrName,
-            @NotNull QName referencedAttrName,
-            ShadowAssociationDefinition associationDef,
-            ProvisioningContext entitlementCtx) throws SchemaException {
+    private <T> void convertSubjectAttributeToAssociation(
+            @NotNull AttributeBinding bindingToUse,
+            @NotNull ShadowAssociationClassSimulationDefinition simulationDefinition) throws SchemaException {
 
-        QName associationName = associationDef.getName();
+        // The "referencing" attribute, present on subject, e.g. isMemberOf.
+        var subjectAttrValues = subject.<T>getAttributeValues(bindingToUse.subjectSide());
+        if (subjectAttrValues.isEmpty()) {
+            return; // ending here, to avoid e.g. creating the association if there are no values
+        }
 
-        ResourceObjectDefinition subjectDef = subjectCtx.getObjectDefinitionRequired();
-        ResourceObjectDefinition entitlementDef = entitlementCtx.getObjectDefinitionRequired();
+        // The "referenced" attribute, present on object, e.g. dn (Group DN).
+        var objectAttrDef = simulationDefinition.<T>getObjectAttributeDefinition(bindingToUse);
 
-        ResourceAttributeContainer attributesContainer = subject.getAttributesContainer();
+        var association = subject
+                .getOrCreateAssociationsContainer()
+                .findOrCreateAssociation(simulationDefinition.getLocalSubjectItemName());
 
-        subjectDef.findAttributeDefinitionRequired(
-                referencingAttrName,
-                () -> " in association '" + associationName + "' in " + subjectCtx + " [association attribute]");
-
-        ResourceAttributeDefinition<T> referencedAttrDef =
-                entitlementDef.findAttributeDefinitionRequired(
-                        referencedAttrName,
-                        () -> " in association '" + associationName + "' in " + subjectCtx + " [value attribute]");
-
-        ResourceAttribute<T> referencingAttr = attributesContainer.findAttribute(referencingAttrName);
-        if (referencingAttr != null && !referencingAttr.isEmpty()) {
-            for (PrismPropertyValue<T> referencingAttrValue : referencingAttr.getValues()) {
-                // NOTE: Those values are not filtered according to kind/intent of the association target.
-                // Therefore there may be values that do not belong here (see MID-5790). But that is OK for now.
-                // We will filter those values out later when read the shadows and determine shadow OID.
-                addAssociationValueFromIdentifier(
-                        referencingAttrValue, referencedAttrDef, associationDef.getName());
-            }
-        } else {
-            // Nothing to do. No attribute to base the association on.
-            LOGGER.trace("Association attribute {} is empty, skipping association {}", referencingAttrName, associationName);
+        for (var subjectAttrValue : subjectAttrValues) {
+            var newAssociationValue =
+                    association.createNewValueWithIdentifier(
+                            objectAttrDef.instantiateFromValue(subjectAttrValue.clone()));
+            LOGGER.trace("Association attribute value resolved to association value {}", newAssociationValue);
         }
     }
 
     /**
-     * Creates values in {@link #associationsContainer}. It searches for entitlements having the "association"
-     * (referencing) attribute value - e.g. `ri:members` - containing the value in subject
-     * "value" (referenced) attribute - e.g. `ri:dn`.
+     * Resolves the simulated association by searching for the target objects.
+     *
+     * Looks for objects with the binding attribute value - e.g. `ri:members` - containing the value of the subject binding
+     * attribute - e.g. `ri:dn`.
+     *
+     * Iterates through all the delineations specified in the simulation.
+     *
+     * NOTE: Just as {@link #convertSubjectAttributeToAssociation(AttributeBinding, ShadowAssociationClassSimulationDefinition)},
+     * this method does not filter the results according object types specified in the association type definition.
      */
-    private <T> void readObjectToSubject(
-            ShadowAssociationDefinition associationDef,
-            ProvisioningContext entitlementCtx,
-            OperationResult result)
+    private void searchForAssociationTargetObjects(
+            @NotNull AttributeBinding primaryBinding,
+            @NotNull ShadowAssociationClassSimulationDefinition simulationDefinition,
+            @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        QName associationName = associationDef.getName();
-
-        ResourceObjectDefinition subjectDef = subjectCtx.getObjectDefinitionRequired();
-        ResourceObjectDefinition entitlementDef = entitlementCtx.getObjectDefinitionRequired();
-
-        ResourceAttributeContainer attributesContainer = subject.getAttributesContainer();
-
-        QName associationAuxiliaryObjectClass = associationDef.getAuxiliaryObjectClass();
-        if (associationAuxiliaryObjectClass != null && !subjectDef.hasAuxiliaryObjectClass(associationAuxiliaryObjectClass)) {
-            LOGGER.trace("Ignoring association {} because subject does not have auxiliary object class {}, it has {}",
-                    associationName, associationAuxiliaryObjectClass, subjectDef.getAuxiliaryDefinitions());
+        var searchOp = new EntitlementObjectSearch<>(subjectCtx, simulationDefinition, primaryBinding, subject.getBean());
+        if (searchOp.getSubjectAttrValue() == null) {
+            LOGGER.trace("Ignoring association {} ({}) because the subject does not have any value in attribute {} "
+                    + "(it is strange, because it should be an identifier)",
+                    simulationDefinition.getLocalSubjectItemName(), primaryBinding, primaryBinding.subjectSide());
             return;
         }
 
-        QName referencingAttrName = associationDef.getAssociationAttributeName(); // e.g. ri:members
-        QName referencedAttrName = associationDef.getValueAttributeName(); // e.g. ri:dn
-
-        ResourceAttributeDefinition<?> referencingAttrDef = entitlementDef.findAttributeDefinitionRequired(
-                referencingAttrName,
-                () -> " in association '" + associationName + "' in " + entitlementCtx + " [association attribute]");
-
-        ResourceAttribute<T> referencedAttr = attributesContainer.findAttribute(referencedAttrName);
-        if (referencedAttr == null || referencedAttr.isEmpty()) {
-            LOGGER.trace("Ignoring association {} because subject does not have any value in attribute {}",
-                    associationName, referencedAttrName);
-            return;
-        }
-        if (referencedAttr.size() > 1) {
-            throw new SchemaException(
-                    "Referenced value attribute %s has more than one value; it is the attribute defined in association '%s' in %s"
-                            .formatted(referencedAttrName, associationName, subjectCtx));
-        }
-        PrismPropertyValue<T> referencedAttrValue = referencedAttr.getValue();
-        ObjectQuery query = createEntitlementQuery(referencedAttrValue, referencingAttrDef);
-
-        executeSearchForEntitlements(query, associationName, entitlementCtx, result);
-    }
-
-    /**
-     * Executes the search for entitlements using the prepared query.
-     */
-    private void executeSearchForEntitlements(
-            ObjectQuery explicitQuery,
-            QName associationName,
-            ProvisioningContext entitlementCtx,
-            OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, SecurityViolationException {
-
-        ResourceObjectHandler handler = (objectFound, lResult) -> {
-            objectFound.initialize(entitlementCtx.getTask(), lResult);
+        searchOp.execute((objectFound, lResult) -> {
+            objectFound.initialize(subjectCtx.getTask(), lResult);
             if (objectFound.isOk()) {
                 ExistingResourceObject resourceObject = objectFound.getResourceObject();
                 try {
-                    addAssociationValueFromEntitlementObject(associationName, resourceObject);
+                    addAssociationValueFromEntitlementObject(simulationDefinition, resourceObject);
                 } catch (SchemaException e) {
-                    throw new LocalTunnelException(e);
+                    throw new EntitlementObjectSearch.LocalTunnelException(e);
                 }
-
                 LOGGER.trace("Processed entitlement-to-subject association for subject {} and entitlement (object) {}",
                         subject.getHumanReadableNameLazily(),
                         resourceObject.getHumanReadableNameLazily());
@@ -236,47 +172,8 @@ class EntitlementReader {
                 throw new SystemException(
                         "Couldn't process entitlement: " + objectFound + ": " + objectFound.getExceptionEncountered());
             }
-
             return true;
-        };
-        LOGGER.trace("Processing object-to-subject association for account {}: query {}",
-                ShadowUtil.getHumanReadableNameLazily(subject.getPrismObject()), explicitQuery);
-        try {
-            b.resourceObjectConverter.searchResourceObjects(
-                    entitlementCtx, handler, explicitQuery, false, FetchErrorReportingMethodType.EXCEPTION, result);
-        } catch (LocalTunnelException e) {
-            throw e.schemaException;
-        }
-    }
-
-    /**
-     * Creates association value from known identifier value; and adds it into the respective association
-     * in `associationContainer`.
-     *
-     *     PCV:
-     *       identifiers: { valueAttr: value }
-     *
-     * For example, if
-     *
-     * - identifier value = "cn=wheel,ou=Groups,dc=example,dc=com"
-     * - referenced identifier is "dn" (of a group)
-     * - association name = "ri:group"
-     *
-     * then the result would be:
-     *
-     *     ri:group:
-     *       PCV: identifiers: { dn: "cn=wheel,ou=Groups,dc=example,dc=com" }
-     */
-    private <T> void addAssociationValueFromIdentifier(
-            PrismPropertyValue<T> identifierValue,
-            ResourceAttributeDefinition<T> referencedIdentifierDef,
-            QName associationName) throws SchemaException {
-        var associationValue =
-                associationsContainer
-                        .findOrCreateAssociation(associationName)
-                        .createNewValueWithIdentifier(
-                                referencedIdentifierDef.instantiateFromValue(identifierValue.clone()));
-        LOGGER.trace("Association attribute value resolved to association value {}", associationValue);
+        }, result);
     }
 
     /**
@@ -294,20 +191,13 @@ class EntitlementReader {
      *       PCV: identifiers: { dn: "cn=wheel,ou=Groups,dc=example,dc=com" }
      */
     private void addAssociationValueFromEntitlementObject(
-            @NotNull QName associationName, @NotNull ExistingResourceObject entitlementObject) throws SchemaException {
+            @NotNull ShadowAssociationClassSimulationDefinition simulationDefinition,
+            @NotNull ExistingResourceObject entitlementObject) throws SchemaException {
         ResourceAttributeContainer identifiersContainer = entitlementObject.getIdentifiersAsContainer();
         // Remember the full shadow. This is used later as an optimization to create the shadow in repo
         identifiersContainer.setUserData(ResourceObjectConverter.ENTITLEMENT_OBJECT_KEY, entitlementObject);
-        associationsContainer
-                .findOrCreateAssociation(associationName)
+        subject.getOrCreateAssociationsContainer()
+                .findOrCreateAssociation(simulationDefinition.getLocalSubjectItemName())
                 .createNewValueWithIdentifiers(identifiersContainer);
-    }
-
-    static class LocalTunnelException extends RuntimeException {
-        SchemaException schemaException;
-        LocalTunnelException(SchemaException cause) {
-            super(cause);
-            this.schemaException = cause;
-        }
     }
 }

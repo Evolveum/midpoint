@@ -20,8 +20,8 @@ public class EventHandlerConfigItem
         super(original);
     }
 
-    protected EventHandlerConfigItem(@NotNull EventHandlerType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
+    private EventHandlerConfigItem(@NotNull EventHandlerType value, @NotNull ConfigurationItemOrigin origin) {
+        super(value, origin, null); // Maybe the path is enough here
     }
 
     public static EventHandlerConfigItem of(@NotNull EventHandlerType bean, @NotNull ConfigurationItemOrigin origin) {
@@ -32,5 +32,10 @@ public class EventHandlerConfigItem
             @NotNull EventHandlerType bean,
             @NotNull OriginProvider<? super EventHandlerType> originProvider) {
         return new EventHandlerConfigItem(bean, originProvider.origin(bean));
+    }
+
+    @Override
+    public @NotNull String localDescription() {
+        return "event handler"; // can we say anything more specific here?
     }
 }

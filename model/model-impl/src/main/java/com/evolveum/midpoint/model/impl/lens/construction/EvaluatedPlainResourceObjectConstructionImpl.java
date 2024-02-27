@@ -14,6 +14,8 @@ import java.util.Objects;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -94,28 +96,26 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
     }
 
     @Override
-    List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) {
+    List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
+            throws ConfigurationException {
         List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
         for (ShadowAssociationDefinition associationDefinition : objectDefinition.getAssociationDefinitions()) {
-            MappingType outboundMappingBean = associationDefinition.getOutboundMappingType();
-            if (outboundMappingBean == null) {
+            var outboundMapping = associationDefinition.getOutboundMapping();
+            if (outboundMapping == null) {
                 continue;
             }
-            if (!associationDefinition.isVisible(constructionEvaluation.task.getExecutionMode())) {
+            if (!associationDefinition.isVisible(constructionEvaluation.task)) {
                 LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "
                         + "execution mode", associationDefinition);
                 continue;
             }
 
-            // [EM:M:OM] DONE: the construction sits in the resource, so the origin is correct
-            var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
-
             associationsToEvaluate.add(
                     new AssociationEvaluation<>(
                             constructionEvaluation, associationDefinition,
-                            MappingConfigItem.of(outboundMappingBean, origin), // [EM:M:OM] DONE
+                            outboundMapping,
                             OriginType.OUTBOUND, MappingKindType.OUTBOUND));
         }
         return associationsToEvaluate;

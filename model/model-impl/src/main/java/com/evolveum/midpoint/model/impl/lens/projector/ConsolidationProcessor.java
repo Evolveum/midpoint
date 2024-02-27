@@ -367,7 +367,7 @@ public class ConsolidationProcessor {
 
         ShadowAssociationDefinition associationDef = objectDef.findAssociationDefinitionRequired(associationName);
 
-        if (!associationDef.isVisible(task.getExecutionMode())) {
+        if (!associationDef.isVisible(task)) {
             LOGGER.trace("Skipping consolidation of association {} because it is not visible in current execution mode",
                     associationDef);
             return null;

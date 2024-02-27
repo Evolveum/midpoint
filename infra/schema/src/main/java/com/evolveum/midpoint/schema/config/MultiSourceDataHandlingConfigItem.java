@@ -14,13 +14,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiSourceDataHandl
 
 public class MultiSourceDataHandlingConfigItem extends ConfigurationItem<MultiSourceDataHandlingType> {
 
+    @SuppressWarnings("unused") // called dynamically
     public MultiSourceDataHandlingConfigItem(@NotNull ConfigurationItem<MultiSourceDataHandlingType> original) {
         super(original);
     }
 
-    public MultiSourceDataHandlingConfigItem(
+    private MultiSourceDataHandlingConfigItem(
             @NotNull MultiSourceDataHandlingType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
+        super(value, origin, null); // TODO provide parent in the future
     }
 
     public static MultiSourceDataHandlingConfigItem of(

@@ -277,8 +277,8 @@ public class ObjectModificationConstraintEvaluator
     }
 
     private boolean isEntitlementChange(QName assocName, ResourceObjectDefinition objectDefinition) {
-        ShadowAssociationDefinition association = objectDefinition.findAssociationDefinition(assocName);
-        return association != null && association.getKind() == ShadowKindType.ENTITLEMENT;
+        ShadowAssociationDefinition assocDef = objectDefinition.findAssociationDefinition(assocName);
+        return assocDef != null && assocDef.isEntitlement();
     }
 
     private boolean isEntitlementChange(Collection<? extends QName> assocNames, ResourceObjectDefinition objectDefinition) {

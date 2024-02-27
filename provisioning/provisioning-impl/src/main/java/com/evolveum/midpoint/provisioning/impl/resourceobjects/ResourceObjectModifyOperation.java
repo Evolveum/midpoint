@@ -326,7 +326,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
 
                 // Directly manipulating the associations. We need to update the target objects, e.g. by adding/removing members.
                 var associationCollection = ShadowAssociationsCollection.ofDelta(subjectDelta);
-                subjectShadowAfter = entitlementConverter.transformToObjectOpsOnModify(
+                entitlementConverter.transformToObjectOpsOnModify(
                         objectsOperations, associationCollection, subjectShadowBefore, subjectShadowAfter, result);
 
             } else {
@@ -342,40 +342,38 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                 LOGGER.trace("Processing associations in old shadow for {}:\n{}",
                         itemDeltaPath, DebugUtil.debugDumpLazily(associations, 1));
 
-                // Delete + re-add association values that should ensure correct functioning in case of rename
-                // This has to be done only for associations that require explicit referential integrity.
-                // For these that do not, it is harmful, so it must be skipped.
+                // Update explicit-ref-integrity associations if the subject binding attribute (e.g. a DN) is being changed.
                 for (ShadowAssociation association : associations) {
                     ItemName associationName = association.getElementName();
                     var associationDefinition =
                             ctx.getObjectDefinitionRequired().findAssociationDefinitionRequired(
                                     associationName, () -> ctx.getExceptionDescription());
-                    if (!associationDefinition.requiresExplicitReferentialIntegrity()) {
+                    if (!EntitlementUtils.isSimulatedObjectToSubject(associationDefinition) // subject rename does not matter here
+                            || !EntitlementUtils.isVisible(associationDefinition, ctx)
+                            || !EntitlementUtils.requiresExplicitReferentialIntegrity(associationDefinition)) { // the resource takes care of this
                         continue;
                     }
-                    if (!associationDefinition.isObjectToSubject()) {
-                        continue;
-                    }
-                    QName valueAttributeName = associationDefinition.getValueAttributeName();
-                    if (!ShadowUtil.matchesAttribute(itemDeltaPath, valueAttributeName)) {
-                        continue;
+                    var simulationDefinition = associationDefinition.getSimulationDefinitionRequired();
+                    var subjectBindingAttrName = simulationDefinition.getPrimarySubjectBindingAttributeName();
+                    if (!ShadowUtil.matchesAttribute(itemDeltaPath, subjectBindingAttrName)) {
+                        continue; // this delta is not concerned with the binding attribute
                     }
                     for (var associationValue : association.getRealValues()) {
-                        if (isChangeReal(subjectShadowBefore, subjectShadowAfter, itemDeltaPath)) {
-                            LOGGER.trace("Processing association {} on association-binding attribute ({}) change",
-                                    associationName, valueAttributeName);
-                            var associationDelta = associationDefinition.createEmptyDelta();
-                            associationDelta.addValuesToDelete(associationValue.asPrismContainerValue().clone());
-                            associationDelta.addValuesToAdd(associationValue.asPrismContainerValue().clone());
-                            LOGGER.trace("Add-delete association delta for {} and {}:\n{}",
-                                    itemDeltaPath, associationName, associationDelta.debugDumpLazily(1));
-                            entitlementConverter.transformToObjectOpsOnModify(
-                                    objectsOperations, ShadowAssociationsCollection.ofDelta(associationDelta),
-                                    subjectShadowBefore, subjectShadowAfter, result);
-                        } else {
+                        if (!isChangeReal(subjectShadowBefore, subjectShadowAfter, itemDeltaPath)) {
                             LOGGER.trace("NOT processing association {} because the related attribute ({}) change is phantom",
-                                    associationName, valueAttributeName);
+                                    associationName, subjectBindingAttrName);
+                            continue;
                         }
+                        LOGGER.trace("Processing association {} on association-binding attribute ({}) change",
+                                associationName, subjectBindingAttrName);
+                        var associationDelta = associationDefinition.createEmptyDelta();
+                        associationDelta.addValuesToDelete(associationValue.asPrismContainerValue().clone());
+                        associationDelta.addValuesToAdd(associationValue.asPrismContainerValue().clone());
+                        LOGGER.trace("Add-delete association delta for {} and {}:\n{}",
+                                itemDeltaPath, associationName, associationDelta.debugDumpLazily(1));
+                        entitlementConverter.transformToObjectOpsOnModify(
+                                objectsOperations, ShadowAssociationsCollection.ofDelta(associationDelta),
+                                subjectShadowBefore, subjectShadowAfter, result);
                     }
                 }
             }
@@ -412,7 +410,11 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
         return b.matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
     }
 
-    /** Also fills-in definitions for attribute deltas, if not present. */
+    /**
+     * Converts requested deltas to UCF operations.
+     *
+     * Also fills-in definitions for attribute deltas, if not present; TODO why?
+     */
     private List<Operation> convertToUcfOperations(OperationResult result) throws SchemaException {
         List<Operation> ucfOperations = new ArrayList<>();
         boolean activationProcessed = false;
@@ -422,6 +424,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                 if (itemDelta instanceof PropertyDelta<?> propertyDelta) {
                     PropertyModificationOperation<?> attributeModification =
                             new PropertyModificationOperation<>(propertyDelta);
+                    // TODO will this work for passwords as well?
                     ResourceAttributeDefinition<?> attrDef = objectDefinition.findAttributeDefinition(itemDelta.getElementName());
                     if (attrDef != null) {
                         attributeModification.setMatchingRuleQName(attrDef.getMatchingRuleQName());
@@ -447,8 +450,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                 ShadowAssociationsCollection associationCollections = ShadowAssociationsCollection.ofDelta(itemDelta);
                 ucfOperations.addAll(
                         new EntitlementConverter(ctx)
-                                .transformToSubjectOpsOnModify(associationCollections)
-                                .getOperations());
+                                .transformToSubjectOpsOnModify(associationCollections));
             } else if (ShadowType.F_AUXILIARY_OBJECT_CLASS.equivalent(itemDelta.getPath())) {
                 if (itemDelta instanceof PropertyDelta<?> propertyDelta) {
                     ucfOperations.add(

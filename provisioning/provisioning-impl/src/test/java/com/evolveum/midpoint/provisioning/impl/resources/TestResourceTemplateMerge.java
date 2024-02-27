@@ -513,10 +513,10 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
         QName groupQName = new QName(NS_RI, "group");
         ShadowAssociationDefinition groupDef = accountDef.findAssociationDefinitionRequired(groupQName, () -> "");
-        assertThat(groupDef.requiresExplicitReferentialIntegrity())
+        assertThat(groupDef.getSimulationDefinitionRequired().requiresExplicitReferentialIntegrity())
                 .as("requiresExplicitReferentialIntegrity flag")
                 .isFalse();
-        assertThat(groupDef.getName())
+        assertThat(groupDef.getItemName())
                 .as("group name")
                 .isEqualTo(groupQName); // i.e. it's qualified
 
