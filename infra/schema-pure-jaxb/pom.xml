@@ -12,7 +12,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint.infra</groupId>
-        <version>4.7.4</version>
+        <version>4.7.5-SNAPSHOT</version>
     </parent>
 
     <artifactId>schema-pure-jaxb</artifactId>
