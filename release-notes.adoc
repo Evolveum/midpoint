@@ -9,7 +9,7 @@ visibility: hidden
 :page-toc: top
 
 Release {release-version} is a fifty-fifth midPoint release, code-named _Curie_.
-#TODO The {release-version} release brings streamlined upgrade process, role mining, security, stability and miscellaneous improvements.
+The {release-version} release brings security, stability and miscellaneous improvements.
 
 ++++
 {% include release-data.html %}
