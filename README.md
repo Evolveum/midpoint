@@ -1,4 +1,4 @@
-MidPoint 4.4.8 Tesla Update 8
+MidPoint 4.4.8 Support Branch
 -------------------------------
 
 General information:
