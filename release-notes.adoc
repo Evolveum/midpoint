@@ -32,6 +32,8 @@ Release {release-version} is a fifty-fifth midPoint release, code-named _Curie_.
 ** Fixed necessity of "namingAttr" attribute for LDAP authentication module.
 ** Upgrade version of ConnId to 1.5.2.0.
 ** Fixed displaying of the configured label and help for object type search item.
+** Fix for hidden details panel accessible by URL
+** Showing of a 404 error page instead of a 500 error page when the focus object could not be found on the details page
 
 To see full list of fixes see https://support.evolveum.com/projects/midpoint/work_packages?query_props=%7B%22t%22%3A%22priority%3Adesc%2Cid%3Aasc%22%2C%22f%22%3A%5B%7B%22n%22%3A%22customField6%22%2C%22o%22%3A%22%3D%22%2C%22v%22%3A%5B%2276%22%5D%7D%5D%7D[Evolveum Issue Tracker]
 
