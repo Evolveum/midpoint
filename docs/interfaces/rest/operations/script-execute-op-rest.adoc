@@ -2,6 +2,7 @@
 :page-nav-title: Execute Script
 :page-display-order: 700
 :page-toc: top
+:page-keywords: [ 'rest', 'script', 'rpc', 'operation' ]
 
 == Description
 

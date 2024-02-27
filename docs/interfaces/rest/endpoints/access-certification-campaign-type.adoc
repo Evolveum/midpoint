@@ -2,6 +2,7 @@
 :page-nav-title: Access Certification Campaign
 :page-display-order: 900
 :page-toc: top
+:page-keywords: [ 'rest', 'certification', 'campaign' ,'endpoint' ]
 
 == Description
 
@@ -17,11 +18,6 @@ accessCertificationCampaigns/
 == Operations And Examples
 
 The Access Certification Campaign Type endpoint operations and examples.
-// === Create Access Certification Campaign Type Object
-//
-// include::../operations/examples/raw/create-acc.adoc[]
-//
-// - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
 
 === Get Access Certification Campaign Type Objects
 

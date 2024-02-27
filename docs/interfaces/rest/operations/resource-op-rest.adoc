@@ -2,6 +2,7 @@
 :page-nav-title: Resource Specific
 :page-display-order: 600
 :page-toc: top
+:page-keywords: [ 'rest', 'resource', 'test', 'import', 'operation' ]
 
 == Description
 A set of operations which are specific for objects of the "Resource" type residing on the "resources" endpoint.

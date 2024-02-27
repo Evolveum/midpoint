@@ -2,6 +2,7 @@
 :page-nav-title: Report
 :page-display-order: 2600
 :page-toc: top
+:page-keywords: [ 'rest', 'report', 'endpoint' ]
 
 == Description
 
