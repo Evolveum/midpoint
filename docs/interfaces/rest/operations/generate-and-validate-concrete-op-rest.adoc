@@ -1,7 +1,8 @@
 = Generate and Validate Operations for Specific objects
-:page-nav-title: Generate And Validate
+:page-nav-title: Generate And Validate Concrete Objects
 :page-display-order: 200
 :page-toc: top
+:page-keywords: [ 'rest', 'generate', 'validate', 'operation' ]
 
 == Description
 

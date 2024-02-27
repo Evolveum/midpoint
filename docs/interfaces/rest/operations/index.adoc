@@ -2,6 +2,7 @@
 :page-nav-title: Operations
 :page-display-order: 100
 :page-toc: top
+:page-keywords: [ 'rest', 'operation', 'operations']
 
 == Supported Operations
 

@@ -2,6 +2,7 @@
 :page-nav-title: Connector
 :page-display-order: 1500
 :page-toc: top
+:page-keywords: [ 'rest', 'connector' ,'endpoint' ]
 
 == Description
 
@@ -13,7 +14,6 @@ Connector objects are a part of the REST API web resources.accessCertificationDe
 ----
 connectors/
 ----
-
 
 == Operations And Examples
 

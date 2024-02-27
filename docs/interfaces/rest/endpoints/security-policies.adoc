@@ -2,6 +2,7 @@
 :page-nav-title: Security Policy
 :page-display-order: 2900
 :page-toc: top
+:page-keywords: [ 'rest', 'security', 'policy', 'endpoint' ]
 
 == Description
 
@@ -14,18 +15,41 @@ Security Policy objects are a part of the REST API web resources.
 securityPolicies/
 ----
 
-== Applicable Operations
+== Operations And Examples
 
-The Security Policy web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
-present in midPoint. This is apparent in the operations which are available for this type of object.
+The Security Policy type endpoint operations and examples.
 
--- TODO
-// - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+=== Create Security Policy type Object
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Security Policy type Objects
+
+Get operation for fetching a single specific object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Security Policy type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Security Policy type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Security Policy type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Security Policy Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
 
 == JSON Example
 
@@ -35,9 +59,26 @@ example.
 .Show JSON Example
 [%collapsible]
 ====
-[source, http]
+[source, json]
 ----
-TODO
+{
+  "securityPolicy" : {
+    "oid" : "00000000-0000-0000-0000-000000000120",
+    "version" : "",
+    "name" : "Default Security Policy",
+    "metadata" : {},
+    "operationExecution" : {},
+    "iteration" : 0,
+    "iterationToken" : "",
+    "authentication" : {
+      "modules" : {},
+      "sequence" : [],
+      "ignoredLocalPath" : "/actuator/health"
+    },
+    "credentials" : {},
+    "credentialsReset" : {}
+  }
+}
 ----
 ====
 

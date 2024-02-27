@@ -2,6 +2,7 @@
 :page-nav-title: Search
 :page-display-order: 800
 :page-toc: top
+:page-keywords: [ 'rest', 'search', 'operation' ]
 
 == Description
 As the name implies, the Search operation is used to search for specific objects. This is done with a filter query. In our case

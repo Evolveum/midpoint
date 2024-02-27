@@ -2,6 +2,7 @@
 :page-nav-title: Task Specific Operations
 :page-display-order: 900
 :page-toc: top
+:page-keywords: [ 'rest', 'task', 'suspend', 'resume', 'run', 'operation' ]
 
 == Description
 A set of operations which are specific for objects of the "Task" type residing on the "tasks" endpoint.
