@@ -1,13 +1,13 @@
-midPoint 4.4.7 "Tesla" Update 7
+midPoint 4.4.8 "Tesla" Update 8
 -------------------------------
 
-Release 4.4.7 is a fifty-fourth midPoint release.
+Release 4.4.8 is a fifty-seventh midPoint release.
 It is the seventh maintenance update for 4.4.x version family code-named _Tesla_.
-The 4.4.7 release brings miscellaneous bugfixes.
+The 4.4.8 release brings miscellaneous bugfixes.
 
-Release date: 29th Jan 2024
+Release date: 27th Feb 2024
 Release type: Long-term support maintenance release
 End of support: 26th November 2024
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.4.7/
+https://docs.evolveum.com/midpoint/release/4.4.8/
