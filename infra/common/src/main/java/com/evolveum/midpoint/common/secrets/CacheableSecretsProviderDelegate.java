@@ -85,7 +85,7 @@ public class CacheableSecretsProviderDelegate<C> implements SecretsProvider<C> {
         if (value != null) {
             LOGGER.trace("Cache hit for key {}", key);
 
-            if (Clock.get().currentTimeMillis() - value.ttl <= ttl) {
+            if (value.ttl - Clock.get().currentTimeMillis() >= 0) {
                 LOGGER.trace("Cache entry for key {} is still valid, using cached value", key);
 
                 if (value.value == null) {

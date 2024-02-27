@@ -17,8 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecretsProviderType;
 
 public abstract class SecretsProviderImpl<T extends SecretsProviderType> implements SecretsProvider<T> {
 
-    private static final String[] EMPTY_DEPENDENCIES = new String[0];
-
     private final T configuration;
 
     public SecretsProviderImpl(@NotNull T configuration) {
@@ -33,11 +31,6 @@ public abstract class SecretsProviderImpl<T extends SecretsProviderType> impleme
     @Override
     public @NotNull String getIdentifier() {
         return configuration.getIdentifier();
-    }
-
-    @Override
-    public @NotNull String[] getDependencies() {
-        return EMPTY_DEPENDENCIES;
     }
 
     @Override

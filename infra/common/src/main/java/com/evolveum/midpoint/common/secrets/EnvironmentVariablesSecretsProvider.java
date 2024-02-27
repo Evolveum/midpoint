@@ -9,6 +9,7 @@ package com.evolveum.midpoint.common.secrets;
 
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +41,11 @@ public class EnvironmentVariablesSecretsProvider extends SecretsProviderImpl<Env
         }
 
         String value = System.getenv(finalKey);
+
+        if (value == null && BooleanUtils.isTrue(getConfiguration().isUseSystemProperties())) {
+            value = System.getProperty(finalKey);
+        }
+
         byte[] data = value != null ? value.getBytes() : null;
 
         return mapValue(data, type);
