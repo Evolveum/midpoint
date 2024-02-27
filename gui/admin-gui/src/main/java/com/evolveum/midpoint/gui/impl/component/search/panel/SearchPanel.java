@@ -378,7 +378,6 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
         } catch (Exception e) {
             LOGGER.error("Cannot remove filter from user admin gui configuration: {}", e.getMessage(), e);
             result.recordPartialError("Cannot remove filter from user admin gui configuration: {}", e);
-
         }
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
@@ -419,7 +418,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
                     }
                 }
             }
-        };
+        }
         return null;
     }
 
