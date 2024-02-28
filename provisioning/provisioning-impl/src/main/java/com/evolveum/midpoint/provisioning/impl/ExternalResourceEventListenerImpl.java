@@ -13,7 +13,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -95,10 +96,11 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
                 throw new SchemaException("No identifiers");
             }
 
+            ResourceObjectDefinition definition = ctx.getObjectDefinitionRequired();
             ExternalResourceObjectChange resourceObjectChange = new ExternalResourceObjectChange(
                     currentSequenceNumber.getAndIncrement(),
                     primaryIdentifierRealValue,
-                    ctx.getObjectClassDefinition(),
+                    definition,
                     identifiers,
                     getResourceObject(event, primaryIdentifierRealValue),
                     event.getObjectDelta(),
@@ -186,11 +188,15 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
     }
 
     // consider moving into ResourceEventDescription
-    private ResourceObject getResourceObject(ExternalResourceEvent eventDescription, Object primaryIdentifierValue) {
+    private UcfResourceObject getResourceObject(ExternalResourceEvent eventDescription, Object primaryIdentifierValue) {
         if (eventDescription.getResourceObject() != null) {
-            return ResourceObject.fromPrismObject(eventDescription.getResourceObject(), primaryIdentifierValue);
+            return UcfResourceObject.of(
+                    eventDescription.getResourceObject(),
+                    primaryIdentifierValue);
         } else if (ObjectDelta.isAdd(eventDescription.getObjectDelta())) {
-            return ResourceObject.fromPrismObject(eventDescription.getObjectDelta().getObjectToAdd(), primaryIdentifierValue);
+            return UcfResourceObject.of(
+                    eventDescription.getObjectDelta().getObjectToAdd(),
+                    primaryIdentifierValue);
         } else {
             return null;
         }

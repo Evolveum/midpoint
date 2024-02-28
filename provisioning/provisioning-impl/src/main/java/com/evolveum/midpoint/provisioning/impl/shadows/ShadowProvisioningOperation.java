@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -16,12 +15,12 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.OperationResultRecorder;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
 
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
@@ -61,7 +60,6 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
     private final ProvisioningContextFactory ctxFactory = ShadowsLocalBeans.get().ctxFactory;
     final ResourceObjectConverter resourceObjectConverter = ShadowsLocalBeans.get().resourceObjectConverter;
     final EntitlementsHelper entitlementsHelper = ShadowsLocalBeans.get().entitlementsHelper;
-    final ShadowCaretaker shadowCaretaker = ShadowsLocalBeans.get().shadowCaretaker;
     final ErrorHandlerLocator errorHandlerLocator = ShadowsLocalBeans.get().errorHandlerLocator;
     private final EventDispatcher eventDispatcher = ShadowsLocalBeans.get().eventDispatcher;
     final Clock clock = ShadowsLocalBeans.get().clock;
@@ -171,9 +169,9 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         ShadowType shadow;
         if (isAdd()) {
             // This is more precise. Besides, there is no repo shadow in some cases (e.g. adding protected shadow). [TODO??]
-            shadow = ((ShadowAddOperation) this).getResourceObjectAddedOrToAdd().getBean();
+            shadow = ((ShadowAddOperation) this).getShadowAddedOrToAdd().getBean();
         } else {
-            shadow = opState.getRepoShadow();
+            shadow = opState.getRepoShadow().getBean();
         }
         ResourceOperationDescription operationDescription =
                 ShadowsUtil.createResourceFailureDescription(shadow, ctx.getResource(), getRequestedDelta(), message);
@@ -205,7 +203,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         parentResult.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
     }
 
-    void sendSuccessOrInProgressNotification(ShadowType shadow, OperationResult result) {
+    void sendSuccessOrInProgressNotification(RepoShadow shadow, OperationResult result) {
         ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow, getEffectiveDelta());
         if (opState.isExecuting()) {
             eventDispatcher.notifyInProgress(operationDescription, ctx.getTask(), result);
@@ -228,17 +226,17 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
             getLogger().trace("Operation runAs requested, but resource does not have the capability. Ignoring runAs");
             return null;
         }
-        PrismObject<ShadowType> runAsShadow;
+        ShadowType runAsShadow;
         try {
-            runAsShadow = shadowFinder.getShadow(runAsAccountOid, result);
+            runAsShadow = shadowFinder.getShadowBean(runAsAccountOid, result);
         } catch (ObjectNotFoundException e) {
             throw new ConfigurationException("Requested non-existing 'runAs' shadow", e);
         }
-        ProvisioningContext runAsCtx = ctxFactory.createForShadow(runAsShadow.asObjectable(), ctx.getResource(), ctx.getTask());
-        runAsCtx.applyAttributesDefinition(runAsShadow);
+        ProvisioningContext runAsCtx = ctxFactory.createForShadow(runAsShadow, ctx.getResource(), ctx.getTask());
+        runAsCtx.applyCurrentDefinition(runAsShadow);
         ResourceObjectIdentification<?> runAsIdentification =
                 ResourceObjectIdentification.fromCompleteShadow(
-                        runAsCtx.getObjectDefinitionRequired(), runAsShadow.asObjectable());
+                        runAsCtx.getObjectDefinitionRequired(), runAsShadow);
         ConnectorOperationOptions connOptions = new ConnectorOperationOptions();
         getLogger().trace("RunAs identification: {}", runAsIdentification);
         connOptions.setRunAsIdentification(runAsIdentification);
@@ -246,7 +244,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
     }
 
     boolean checkAndRecordPendingOperationBeforeExecution(OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
         if (resourceDelta.isEmpty()) {
             return false;
         }

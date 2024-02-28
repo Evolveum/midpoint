@@ -251,9 +251,8 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         when("account group membership is changed");
         ObjectDelta<ShadowType> delta = Resource.of(RESOURCE_DUMMY_EVENT_MARKS.get())
                 .deltaFor(RI_ACCOUNT_OBJECT_CLASS)
-                .item(ShadowType.F_ASSOCIATION)
-                .add(new ShadowAssociationType()
-                        .name(ASSOCIATION_GROUP)
+                .item(ShadowType.F_ASSOCIATIONS, ASSOCIATION_GROUP)
+                .add(new ShadowAssociationValueType()
                         .shadowRef(ObjectTypeUtil.createObjectRef(wheelShadow, ORG_DEFAULT)))
                 .asObjectDelta(user.getLinkRef().get(0).getOid());
         LensContext<UserType> lensContext = runClockwork(List.of(delta), null, task, result);
@@ -287,9 +286,8 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         when("account org membership is changed");
         ObjectDelta<ShadowType> delta = Resource.of(RESOURCE_DUMMY_EVENT_MARKS.get())
                 .deltaFor(RI_ACCOUNT_OBJECT_CLASS)
-                .item(ShadowType.F_ASSOCIATION)
-                .add(new ShadowAssociationType()
-                        .name(ASSOCIATION_ORG)
+                .item(ShadowType.F_ASSOCIATIONS, ASSOCIATION_ORG)
+                .add(new ShadowAssociationValueType()
                         .shadowRef(ObjectTypeUtil.createObjectRef(topOrgShadow, ORG_DEFAULT)))
                 .asObjectDelta(user.getLinkRef().get(0).getOid());
         LensContext<UserType> lensContext = runClockwork(List.of(delta), null, task, result);

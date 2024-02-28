@@ -150,8 +150,7 @@ public class QShadowMapping
     public ShadowType toSchemaObject(@NotNull Tuple row, @NotNull QShadow entityPath,
             @NotNull JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
         ShadowType shadowType = super.toSchemaObject(row, entityPath, jdbcSession, options);
-        // FIXME: we store it because provisioning now sends it to repo, but it should be transient
-        shadowType.asPrismObject().removeContainer(ShadowType.F_ASSOCIATION);
+        shadowType.asPrismObject().removeContainer(ShadowType.F_ASSOCIATIONS); // temporary
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (GetOperationOptions.isRaw(rootOptions)) {
@@ -165,9 +164,10 @@ public class QShadowMapping
             return shadowType;
         }
 
-        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ATTRIBUTES, retrieveOptions)) {
-            addIndexOnlyAttributes(shadowType, row, entityPath);
-        }
+        // FIXME temporarily disabled
+//        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ATTRIBUTES, retrieveOptions)) {
+//            addIndexOnlyAttributes(shadowType, row, entityPath);
+//        }
         return shadowType;
     }
 
@@ -226,7 +226,7 @@ public class QShadowMapping
             ItemName itemName = attribute.getElementName();
             MExtItem itemInfo = definitions.get(itemName);
             if (itemInfo != null && attribute.getDefinition() == null) {
-                ((Item) attribute).applyDefinition(ExtUtils.createDefinition(itemName, itemInfo, false), true);
+                ((Item) attribute).applyDefinition(ExtUtils.createDefinition(itemName, itemInfo, false));
             }
         }
     }

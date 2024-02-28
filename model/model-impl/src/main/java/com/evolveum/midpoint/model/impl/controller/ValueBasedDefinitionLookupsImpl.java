@@ -1,6 +1,5 @@
 package com.evolveum.midpoint.model.impl.controller;
 
-import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableObjectDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -11,9 +10,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import com.google.common.collect.ImmutableSet;
@@ -24,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -76,13 +72,8 @@ public class ValueBasedDefinitionLookupsImpl {
                         var objectDefinition = TransformableObjectDefinition.of(fakeShadow.getDefinition());
                         objectDefinition.replaceDefinition(ShadowType.F_ATTRIBUTES,
                                 rocd.toResourceAttributeContainerDefinition());
-
-                        PrismContainerDefinition<?> assocContainer =
-                                objectDefinition.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION));
-                        TransformableContainerDefinition.require(assocContainer)
-                                .replaceDefinition(
-                                        ShadowAssociationType.F_IDENTIFIERS,
-                                        rocd.toResourceAttributeContainerDefinition(ShadowAssociationType.F_IDENTIFIERS));
+                        objectDefinition.replaceDefinition(ShadowType.F_ASSOCIATIONS,
+                                rocd.toShadowAssociationsContainerDefinition());
                         return objectDefinition.getComplexTypeDefinition();
                     }
                 } catch (Exception e) {

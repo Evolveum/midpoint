@@ -2,6 +2,7 @@
 :page-nav-title: Get Operation
 :page-display-order: 100
 :page-toc: top
+:page-keywords: [ 'rest', 'get', 'operation' ]
 
 == Description
 
@@ -171,7 +172,7 @@ This section refers specifically to *midPoint authorization* configuration,
 it represents a set of permissions which is needed for the account accessing the REST interface.
 This way midPoint know what actions on which objects is the user permitted to execute.
 For more information on midPoint authorizations please see this link.
-//TODO add link to authorizations
+
 
 [NOTE]
 ====

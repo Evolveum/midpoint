@@ -12,9 +12,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurati
 
 /**
  * @author semancik
- *
  */
-public class ConfiguredConnectorInstanceEntry {
+class ConfiguredConnectorInstanceEntry {
 
     private String connectorOid;
     private PrismContainer<ConnectorConfigurationType> configuration;

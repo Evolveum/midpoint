@@ -11,6 +11,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -115,12 +117,9 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
             panel = new TextPanel<>(id, new PropertyModel<>(getModel(), baseExpression + ".orig"), String.class);
         } else {
-            Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
-            if (type != null && type.isPrimitive()) {
-                type = ClassUtils.primitiveToWrapper(type);
-            }
-            panel = new TextPanel<>(id, new PropertyModel<>(getModel(), baseExpression),
-                    type);
+            Class<?> type = MiscUtil.resolvePrimitiveIfNecessary(
+                    XsdTypeMapper.getXsdToJavaMapping(valueType));
+            panel = new TextPanel<>(id, new PropertyModel<>(getModel(), baseExpression), type);
 
             if (ObjectType.F_NAME.equals(definition.getItemName())) {
                 panel.getBaseFormComponent().setRequired(true);

@@ -281,12 +281,16 @@ public class SearchResultList<T> extends AbstractFreezable
      */
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public SearchResultList<T> clone() {
-        SearchResultList<T> clone = new SearchResultList<>();
+        return transform(CloneUtil::clone);
+    }
+
+    public <T2> @NotNull SearchResultList<T2> transform(@NotNull Function<T, T2> transformer) {
+        SearchResultList<T2> clone = new SearchResultList<>();
         clone.metadata = this.metadata; // considered read-only object
         if (this.list != null) {
             clone.list = new ArrayList<>(this.list.size());
             for (T item : this.list) {
-                clone.list.add(CloneUtil.clone(item));
+                clone.list.add(transformer.apply(item));
             }
         }
         return clone;

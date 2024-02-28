@@ -58,6 +58,7 @@
             </attribute>
             <attribute>
                 <ref>ri:weapon</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
             </attribute>
             <attribute>
                 <ref>ri:loot</ref>

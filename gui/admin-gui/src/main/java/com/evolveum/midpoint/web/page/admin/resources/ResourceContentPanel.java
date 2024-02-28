@@ -704,7 +704,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     private Collection<SelectorOptions<GetOperationOptions>> createSearchOptions() {
         GetOperationOptionsBuilder builder = getPageBase().getOperationOptionsBuilder()
-                .item(ShadowType.F_ASSOCIATION).dontRetrieve();
+                .item(ShadowType.F_ASSOCIATIONS).dontRetrieve();
         builder = addAdditionalOptions(builder);
         return builder.build();
     }

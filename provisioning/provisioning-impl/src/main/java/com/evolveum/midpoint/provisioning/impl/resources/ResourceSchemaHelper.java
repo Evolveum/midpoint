@@ -16,7 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -152,7 +152,7 @@ class ResourceSchemaHelper {
         PrismContainer<ConnectorConfigurationType> targetConfigurationContainer =
                 targetConnectorSpec != null ? targetConnectorSpec.getConnectorConfiguration() : null;
         if (targetConfigurationContainer != null) {
-            targetConfigurationContainer.applyDefinition(configurationContainerDefinition, true);
+            targetConfigurationContainer.applyDefinition(configurationContainerDefinition);
         }
 
         if (sourceConnectorSpec.isMain()) {
@@ -521,12 +521,12 @@ class ResourceSchemaHelper {
     /**
      * TODO is this method correct?
      */
-    void updateSchemaToConnectors(ResourceType resource, ResourceSchema rawResourceSchema, OperationResult result)
+    void updateSchemaToConnectors(ResourceType resource, CompleteResourceSchema resourceSchema, OperationResult result)
             throws ConfigurationException, SchemaException, CommunicationException, ObjectNotFoundException {
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
             connectorManager
                     .getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result)
-                    .updateSchema(rawResourceSchema);
+                    .updateSchema(resourceSchema);
         }
     }
 }

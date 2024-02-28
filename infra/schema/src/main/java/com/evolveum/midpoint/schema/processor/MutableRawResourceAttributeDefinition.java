@@ -10,10 +10,12 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 
 /**
+ * Mutable interface to (some of) {@link ResourceAttributeDefinition} implementations.
  *
+ * TODO consider removing
  */
 public interface MutableRawResourceAttributeDefinition<T>
-        extends RawResourceAttributeDefinition<T>, MutablePrismPropertyDefinition<T> {
+        extends MutablePrismPropertyDefinition<T> {
 
     void setReturnedByDefault(Boolean returnedByDefault);
 

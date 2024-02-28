@@ -354,7 +354,7 @@ public class TestDummyLimited extends TestDummy {
 
     @Test
     @Override
-    public void test159GetLockedoutAccount() {
+    public void test159GetLockedOutAccount() {
         // Not relevant
     }
 
@@ -407,7 +407,7 @@ public class TestDummyLimited extends TestDummy {
     @Override
     protected String[] getSortedUsernames18x() {
         // daemon, Will, morgan, carla, meathook
-        return new String[] { "daemon", transformNameFromResource("Will"), transformNameFromResource("morgan"), "carla", "meathook" };
+        return new String[] { "daemon", getWillNameOnResource(), transformNameToResource("morgan"), "carla", "meathook" };
     }
 
     // No paging

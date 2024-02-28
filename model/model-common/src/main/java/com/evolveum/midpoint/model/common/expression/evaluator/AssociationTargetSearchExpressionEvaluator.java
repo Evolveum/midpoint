@@ -10,6 +10,12 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
@@ -39,7 +45,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -49,15 +54,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class AssociationTargetSearchExpressionEvaluator
         extends AbstractSearchExpressionEvaluator<
-                PrismContainerValue<ShadowAssociationType>,
+                PrismContainerValue<ShadowAssociationValueType>,
                 ShadowType,
-                PrismContainerDefinition<ShadowAssociationType>,
+                ShadowAssociationDefinition,
                 SearchObjectExpressionEvaluatorType> {
 
     AssociationTargetSearchExpressionEvaluator(
             QName elementName,
             SearchObjectExpressionEvaluatorType expressionEvaluatorBean,
-            PrismContainerDefinition<ShadowAssociationType> outputDefinition,
+            ShadowAssociationDefinition outputDefinition,
             Protector protector,
             ObjectResolver objectResolver,
             LocalizationService localizationService) {
@@ -87,28 +92,27 @@ public class AssociationTargetSearchExpressionEvaluator
             }
 
             @Override
-            protected PrismContainerValue<ShadowAssociationType> createResultValue(
+            protected PrismContainerValue<ShadowAssociationValueType> createResultValue(
                     String oid,
                     PrismObject<ShadowType> object,
-                    List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> newValueDeltas)
+                    List<ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> newValueDeltas)
                     throws SchemaException {
-                ShadowAssociationType association = new ShadowAssociationType()
-                        .name(context.getMappingQName())
-                        .shadowRef(oid, targetTypeQName);
 
-                association.getShadowRef().asReferenceValue().setObject(object);
+                var newAssociation = outputDefinition.instantiate();
 
-                //noinspection unchecked
-                PrismContainerValue<ShadowAssociationType> associationCVal = association.asPrismContainerValue();
+                var targetRef = ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SHADOW);
+                targetRef.asReferenceValue().setObject(object); // may be null
+                var newAssociationValue = newAssociation.createNewValueForTargetRef(targetRef);
+
                 if (newValueDeltas != null) {
-                    ItemDeltaCollectionsUtil.applyTo(newValueDeltas, associationCVal);
+                    ItemDeltaCollectionsUtil.applyTo(newValueDeltas, newAssociationValue);
                 }
-                prismContext.adopt(associationCVal, ShadowType.COMPLEX_TYPE, ShadowType.F_ASSOCIATION);
+
                 if (InternalsConfig.consistencyChecks) {
-                    associationCVal.assertDefinitions(
+                    newAssociationValue.assertDefinitions(
                             () -> "associationCVal in assignment expression in " + context.getContextDescription());
                 }
-                return associationCVal;
+                return newAssociationValue.clone(); // It needs to be parent-less when included in the output triple
             }
 
             @Override
@@ -143,7 +147,7 @@ public class AssociationTargetSearchExpressionEvaluator
                 // (nested associations). Avoiding that will make the query faster.
                 options.add(
                         SelectorOptions.create(
-                                prismContext.toUniformPath(ShadowType.F_ASSOCIATION),
+                                prismContext.toUniformPath(ShadowType.F_ASSOCIATIONS),
                                 GetOperationOptions.createDontRetrieve()));
             }
 

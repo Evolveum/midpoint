@@ -14,6 +14,8 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.util.HumanReadableDescribable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extends ItemDefinition> extends HumanReadableDescribable {
 
     QName getMappingQName();
@@ -25,7 +27,7 @@ public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extend
      */
     PrismValueDeltaSetTriple<V> getOutputTriple();
 
-    MappingStrengthType getStrength();
+    @NotNull MappingStrengthType getStrength();
 
     PrismValueDeltaSetTripleProducer<V, D> clone();
 

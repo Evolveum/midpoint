@@ -11,12 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.config.ResourceAttributeDefinitionConfigItem;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -50,10 +50,10 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
     }
 
     @Override
-    protected List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
+    List<AttributeEvaluation<AH, ?>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
             throws ConfigurationException {
 
-        List<AttributeEvaluation<AH>> attributesToEvaluate = new ArrayList<>();
+        List<AttributeEvaluation<AH, ?>> attributesToEvaluate = new ArrayList<>();
 
         // [EP:CONST] DONE
         for (ResourceAttributeDefinitionConfigItem attributeConstrDefinitionCI : getTypedConfigItemRequired().getAttributes()) {
@@ -91,7 +91,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
     }
 
     @Override
-    protected List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
+    List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
             throws ConfigurationException {
 
         List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
@@ -107,7 +107,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
                     associationDefinitionCI.configNonNull(
                             associationDefinitionCI.getOutbound(), "No outbound section in %s", DESC);
 
-            ResourceAssociationDefinition associationDef =
+            ShadowAssociationDefinition associationDef =
                     associationDefinitionCI.configNonNull(
                             construction.findAssociationDefinition(assocName),
                             "Association '%s' not found in schema for resource object type %s on %s; as defined in %s",

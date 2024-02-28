@@ -6,9 +6,16 @@
  */
 package com.evolveum.midpoint.model.intest.manual;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
+import java.util.Collection;
+
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -27,6 +34,8 @@ import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author Radovan Semancik
@@ -316,5 +325,13 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
         } else {
             shadowModelAsserter.assertCorpse();
         }
+    }
+
+    @Override
+    Collection<? extends QName> getCachedAttributes() throws SchemaException, ConfigurationException {
+        return Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .findDefinitionForObjectClassRequired(RI_ACCOUNT_OBJECT_CLASS)
+                .getAllIdentifiersNames();
     }
 }

@@ -12,6 +12,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -504,8 +507,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             T object = operationsHelper.getRepoObject(type, oid, null, result);
             LOGGER.trace("Object from repository to delete:\n{}", object.debugDumpLazily(1));
 
-            if (object instanceof ShadowType && !ProvisioningOperationOptions.isRaw(options)) {
-                return deleteShadow((ShadowType) object, options, scripts, context, task, result);
+            if (object instanceof ShadowType shadow && !ProvisioningOperationOptions.isRaw(options)) {
+                return deleteShadow(RawRepoShadow.of(shadow), options, scripts, context, task, result);
             } else if (object instanceof ResourceType) {
                 resourceManager.deleteResource(oid, result);
                 return null;
@@ -524,7 +527,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     private <T extends ObjectType> PrismObject<T> deleteShadow(
-            ShadowType shadow,
+            RawRepoShadow rawRepoShadow,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationContext context,
@@ -538,7 +541,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             //noinspection unchecked
             return (PrismObject<T>)
                     asPrismObject(
-                            shadowsFacade.deleteShadow(shadow, options, scripts, context, task, result));
+                            shadowsFacade.deleteShadow(rawRepoShadow, options, scripts, context, task, result));
 
             // TODO improve the error reporting. It is good that we want to provide some context for the error ("Couldn't delete
             //  object: ... problem: ...") but this is just too verbose in code. We need a better approach.
@@ -707,20 +710,28 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, ProvisioningOperationContext context, Task task, OperationResult parentResult)
+    public void refreshShadow(
+            @NotNull PrismObject<ShadowType> shadow,
+            ProvisioningOperationOptions options,
+            ProvisioningOperationContext context,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        Validate.notNull(shadow, "Shadow for refresh must not be null.");
         OperationResult result = parentResult.createSubresult(OP_REFRESH_SHADOW);
 
         LOGGER.debug("Refreshing shadow {}", shadow);
 
         try {
 
-            shadowsFacade.refreshShadow(shadow.asObjectable(), options, context, task, result);
+            shadowsFacade.refreshShadow(shadow.getOid(), options, context, task, result);
 
-        } catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
+        } catch (CommonException | RuntimeException | Error e) {
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(
+                    LOGGER, result,
+                    "Couldn't refresh shadow: %s: %s".formatted(
+                            e.getClass().getSimpleName(), e.getMessage()),
+                    e);
             throw e;
 
         } catch (EncryptionException e) {
@@ -729,7 +740,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         }
 
         result.computeStatus();
-        result.cleanupResult();
+        result.cleanup();
 
         LOGGER.debug("Finished refreshing shadow {}: {}", shadow, result);
     }
@@ -820,7 +831,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         try {
             stats = resourceManager.getConnectorOperationalStatus(resource, result);
         } catch (Throwable ex) {
-            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Getting operations status from connector for resource " + resourceOid + " failed: " + ex.getMessage(), ex);
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(
+                    LOGGER, result, "Getting operations status from connector for resource " + resourceOid + " failed: " + ex.getMessage(), ex);
             throw ex;
         }
 

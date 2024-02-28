@@ -1155,8 +1155,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             S_ConditionEntry filter = prismContext()
                     .queryFor(lastProcessedObject.getCompileTimeClass())
                     .item(orderByPath);
-            //noinspection rawtypes
-            Item<PrismValue, ItemDefinition<Item>> item = lastProcessedObject.findItem(orderByPath);
+            Item<PrismValue, ItemDefinition<?>> item = lastProcessedObject.findItem(orderByPath);
             if (item.size() > 1) {
                 throw new IllegalArgumentException(
                         "Multi-value property for ordering is forbidden - item: " + item);
@@ -1711,8 +1710,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             S_ConditionEntry filter = prismContext()
                     .queryFor(lastProcessedObject.getClass())
                     .item(orderByPath);
-            //noinspection rawtypes
-            Item<PrismValue, ItemDefinition<Item>> item = lastProcessedObject.asPrismContainerValue().findItem(orderByPath);
+            //noinspection unchecked
+            Item<PrismValue, ItemDefinition<?>> item = lastProcessedObject.asPrismContainerValue().findItem(orderByPath);
             // Unify somehow with
             if (item.size() > 1) {
                 throw new IllegalArgumentException(

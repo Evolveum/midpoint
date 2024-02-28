@@ -53,7 +53,7 @@ public class ReportParameterTypeUtil {
         QName typeName = PrismContext.get().getSchemaRegistry().determineTypeForClass(firstValue.getClass());
         MutablePrismPropertyDefinition<Object> paramPropDef =
                 PrismContext.get().definitionFactory().createPropertyDefinition(
-                        new QName(SchemaConstants.NS_REPORT_EXTENSION, paramName), typeName);
+                        new QName(SchemaConstants.NS_REPORT_PARAM_EXTENSION, paramName), typeName);
         paramPropDef.setDynamic(true);
         paramPropDef.setRuntimeSchema(true);
         paramPropDef.toMutable().setMaxOccurs(1);

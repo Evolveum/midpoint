@@ -686,9 +686,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
-        //noinspection unchecked
-        ResourceAttributeDefinition<String> attrDef =
-                (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<String> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -726,9 +724,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
-        //noinspection unchecked
-        ResourceAttributeDefinition<String> attrDef =
-                (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<String> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -766,9 +762,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
-        //noinspection unchecked
-        ResourceAttributeDefinition<String> attrDef =
-                (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<String> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "CAPTAIN");
         delta.addModification(attrDelta);
@@ -1330,7 +1324,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertAssignments(userAfter, 1);
 
         String shadowOid = getSingleLinkOid(userAfter);
-        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        var shadow = getAbstractShadowModel(shadowOid);
         display("Shadow (model)", shadow);
 
         Entry entry = assertLdapAccount(USER_LARGO_NAME, userAfter.asObjectable().getFullName().getOrig());
@@ -1365,7 +1359,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         showToken();
     }
 
-    protected Entry createBilboEntry() throws LdapException, IOException {
+    protected Entry createBilboEntry() throws LdapException {
         Entry entry = createAccountEntry(
                 ACCOUNT_BILBO_UID, ACCOUNT_BILBO_CN, ACCOUNT_BILBO_GIVENNAME, ACCOUNT_BILBO_SN);
         markInvisible(entry);

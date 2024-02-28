@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -14,14 +16,20 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.CheckedFunction;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -38,20 +46,57 @@ import java.util.stream.Collectors;
 @SuppressWarnings("UnusedReturnValue")
 public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
 
+    /** May or may not be present. Sometimes we want to check only incomplete shadows represented by simple {@link ShadowType}. */
+    private final AbstractShadow abstractShadow;
+
+    public ShadowAsserter(AbstractShadow abstractShadow) {
+        super(abstractShadow.getPrismObject());
+        this.abstractShadow = abstractShadow;
+    }
+
     public ShadowAsserter(PrismObject<ShadowType> shadow) {
         super(shadow);
+        abstractShadow = null;
     }
 
     public ShadowAsserter(PrismObject<ShadowType> shadow, String details) {
         super(shadow, details);
+        abstractShadow = null;
     }
 
     public ShadowAsserter(PrismObject<ShadowType> shadow, RA returnAsserter, String details) {
         super(shadow, returnAsserter, details);
+        abstractShadow = null;
+    }
+
+    public static ShadowAsserter<Void> forAbstractShadow(ShadowType bean) {
+        return new ShadowAsserter<>(AbstractShadow.of(bean));
+    }
+
+    public static ShadowAsserter<Void> forAbstractShadow(@NotNull AbstractShadow shadow) {
+        return new ShadowAsserter<>(shadow);
+    }
+
+    public static ShadowAsserter<Void> forAbstractShadow(PrismObject<ShadowType> shadow) {
+        return forAbstractShadow(shadow.asObjectable());
+    }
+
+    public static RepoShadowAsserter<Void> forRepoShadow(
+            PrismObject<ShadowType> shadow, Collection<? extends QName> cachedAttributes) {
+        return new RepoShadowAsserter<>(shadow.asObjectable(), cachedAttributes, null);
+    }
+
+    public static RepoShadowAsserter<Void> forRepoShadow(
+            ShadowType shadow, Collection<? extends QName> cachedAttributes) {
+        return new RepoShadowAsserter<>(shadow, cachedAttributes, null);
     }
 
     public static ShadowAsserter<Void> forShadow(PrismObject<ShadowType> shadow) {
         return new ShadowAsserter<>(shadow);
+    }
+
+    public static ShadowAsserter<Void> forShadow(AbstractShadow shadow) {
+        return forAbstractShadow(shadow);
     }
 
     public static ShadowAsserter<Void> forShadow(PrismObject<ShadowType> shadow, String details) {
@@ -115,6 +160,14 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    /** Let's be strict here wrt namespaces. */
+    public ShadowAsserter<RA> assertAuxiliaryObjectClasses(QName... expected) {
+        assertThat(getObjectable().getAuxiliaryObjectClass())
+                .as("auxiliary object classes")
+                .containsExactlyInAnyOrder(expected);
+        return this;
+    }
+
     public ShadowAsserter<RA> assertKind() {
         assertNotNull("No kind in " + desc(), getObject().asObjectable().getKind());
         return this;
@@ -140,8 +193,24 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
-    public ShadowAsserter<RA> assertPrimaryIdentifierValue(String expected) {
+    public ShadowAsserter<RA> assertIndexedPrimaryIdentifierValue(String expected) {
         assertEquals("Wrong primaryIdentifierValue in " + desc(), expected, getObject().asObjectable().getPrimaryIdentifierValue());
+        return this;
+    }
+
+    public ShadowAsserter<RA> assertHasIndexedPrimaryIdentifierValue() {
+        assertThat(getObjectable().getPrimaryIdentifierValue())
+                .as("primary identifier value (indexed)")
+                .isNotNull();
+        return this;
+    }
+
+    /** Only for abstract shadows (now). */
+    public ShadowAsserter<RA> assertHasPrimaryIdentifierAttribute() {
+        checkAbstractShadowPresent();
+        assertThat(abstractShadow.getPrimaryIdentifierAttribute())
+                .as("primary identifier attribute")
+                .isNotNull();
         return this;
     }
 
@@ -345,11 +414,6 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         ShadowAssociationsAsserter<RA> asserter = new ShadowAssociationsAsserter<>(this, getDetails());
         copySetupTo(asserter);
         return asserter;
-    }
-
-    public ShadowAsserter<RA> assertNoAssociations() {
-        assertNull("Unexpected associations in " + desc(), getObject().findContainer(ShadowType.F_ASSOCIATION));
-        return this;
     }
 
     public ShadowAsserter<RA> assertNoLegacyConsistency() {
@@ -595,5 +659,85 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return correlation != null ?
                 correlation.getPerformerComment() :
                 Set.of();
+    }
+
+    @SafeVarargs
+    public final <T> ShadowAsserter<RA> assertOrigValues(String attrName, T... expectedValues) {
+        return assertOrigValues(
+                new ItemName(MidPointConstants.NS_RI, attrName),
+                expectedValues);
+    }
+
+    @SafeVarargs
+    public final <T> ShadowAsserter<RA> assertOrigValues(QName attrName, T... expectedValues) {
+        return assertAttributeOrigOrNormValues(attrName, ResourceAttribute::getOrigValues, expectedValues);
+    }
+
+    public <T> T getOrigValue(QName attrName) {
+        checkAbstractShadowPresent();
+        ResourceAttribute<?> attribute = abstractShadow.findAttribute(attrName);
+        if (attribute != null) {
+            //noinspection unchecked
+            return (T) MiscUtil.extractSingleton(attribute.getOrigValues()); // TODO implement more nicely
+        } else {
+            return null;
+        }
+    }
+
+    @SafeVarargs
+    public final <T> ShadowAsserter<RA> assertNormValues(String attrName, T... expectedValues) {
+        return assertNormValues(
+                new ItemName(MidPointConstants.NS_RI, attrName),
+                expectedValues);
+    }
+
+    @SafeVarargs
+    public final <T> ShadowAsserter<RA> assertNormValues(QName attrName, T... expectedValues) {
+        return assertAttributeOrigOrNormValues(attrName, ResourceAttribute::getNormValues, expectedValues);
+    }
+
+    @SafeVarargs
+    private <T> ShadowAsserter<RA> assertAttributeOrigOrNormValues(
+            QName attrName, CheckedFunction<ResourceAttribute<?>, Collection<?>> extractor, T... expectedValues) {
+        checkAbstractShadowPresent();
+        ResourceAttribute<?> attribute = abstractShadow.findAttribute(attrName);
+        Collection<?> actualValues;
+        try {
+            actualValues = attribute != null ? extractor.apply(attribute) : List.of();
+        } catch (CommonException e) {
+            throw new AssertionError(e);
+        }
+        //noinspection unchecked
+        assertThat((Collection<T>) actualValues)
+                .as("values of " + attrName + " in " + abstractShadow)
+                .containsExactlyInAnyOrder(expectedValues);
+        return this;
+    }
+
+    /** Requires {@link #abstractShadow} to be present. */
+    public ShadowAsserter<RA> assertAttributes(int expectedNumber) {
+        assertThat(ShadowUtil.getAttributesTolerant(getObjectable()))
+                .as("attributes")
+                .hasSize(expectedNumber);
+        return this;
+    }
+
+    private void checkAbstractShadowPresent() {
+        stateCheck(abstractShadow != null, "This assertion is available only when abstractShadow is present.");
+    }
+
+    public String getIndexedPrimaryIdentifierValue() {
+        return getObjectable().getPrimaryIdentifierValue();
+    }
+
+    public String getIndexedPrimaryIdentifierValueRequired() {
+        return MiscUtil.stateNonNull(
+                getObjectable().getPrimaryIdentifierValue(),
+                () -> "No primary identifier value in " + desc());
+    }
+
+    public AbstractShadow getAbstractShadow() {
+        checkAbstractShadowPresent();
+        return abstractShadow;
     }
 }

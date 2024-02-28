@@ -1374,7 +1374,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         then("the operation should result in failure");
         display("result", result1);
         assertThatOperationResult(result1)
-                .isPartialError()
+                .isFatalError() // partial error would be OK as well
                 .hasMessageContaining("String 'jsmith1' is not a DN");
 
         and("there should be no processed objects");

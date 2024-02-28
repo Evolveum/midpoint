@@ -332,11 +332,6 @@ public class ManualResourceTest extends AbstractWfTest {
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
     }
 
-    @SafeVarargs
-    private <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
-        assertAttribute(shadow.asObjectable(), attrName, expectedValues);
-    }
-
     private void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {
         assertNoAttribute(shadow.asObjectable(), attrName);
     }

@@ -18,6 +18,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,13 +68,15 @@ public class RefinedResourceSchemaParser {
 
     @NotNull private final CompleteResourceSchemaImpl completeSchema;
 
-    public RefinedResourceSchemaParser(@NotNull ResourceType resource, @NotNull ResourceSchema rawResourceSchema) {
+    RefinedResourceSchemaParser(@NotNull ResourceType resource, @NotNull ResourceSchema rawResourceSchema) {
         this.resource = resource;
         this.schemaHandling = Objects.requireNonNullElseGet(resource.getSchemaHandling(), () -> new SchemaHandlingType());
         this.basicResourceInformation = BasicResourceInformation.of(resource);
         this.rawResourceSchema = rawResourceSchema;
         this.contextDescription = "definition of " + resource;
-        this.completeSchema = new CompleteResourceSchemaImpl(basicResourceInformation);
+        this.completeSchema = new CompleteResourceSchemaImpl(
+                basicResourceInformation,
+                ResourceTypeUtil.isCaseIgnoreAttributeNames(resource));
     }
 
     /**
@@ -349,7 +353,7 @@ public class RefinedResourceSchemaParser {
     /**
      * Creates definitions for associations; includes resolving their targets (given by kind + intent(s)).
      */
-    private void parseAssociations() throws SchemaException {
+    private void parseAssociations() throws SchemaException, ConfigurationException {
         for (ResourceObjectDefinition objectDef : completeSchema.getResourceObjectDefinitions()) {
             new ResourceObjectDefinitionParser(objectDef)
                     .parseAssociations();
@@ -407,12 +411,11 @@ public class RefinedResourceSchemaParser {
             }
         }
 
-        void parseAssociations() throws SchemaException {
+        void parseAssociations() throws SchemaException, ConfigurationException {
             for (ResourceObjectAssociationType associationDefBean : definitionBean.getAssociation()) {
-                ResourceAssociationDefinition associationDef = new ResourceAssociationDefinition(associationDefBean);
-                associationDef.setAssociationTarget(
-                        resolveAssociationTarget(associationDef));
-                definition.addAssociationDefinition(associationDef);
+                definition.addAssociationDefinition(
+                        new ShadowAssociationDefinition(
+                                associationDefBean, resolveAssociationTarget(associationDefBean), contextDescription));
             }
         }
 
@@ -426,16 +429,16 @@ public class RefinedResourceSchemaParser {
          * However, in practice they must share much more, as described in the description for
          * {@link ResourceObjectAssociationType#getIntent()} (see XSD).
          */
-        private ResourceObjectTypeDefinition resolveAssociationTarget(ResourceAssociationDefinition associationDef)
+        private @NotNull ResourceObjectTypeDefinition resolveAssociationTarget(ResourceObjectAssociationType associationDefBean)
                 throws SchemaException {
-            @NotNull ShadowKindType kind = associationDef.getKind();
-            @NotNull Collection<String> intents = associationDef.getIntents();
+            @NotNull ShadowKindType kind = ShadowAssociationDefinition.getKind(associationDefBean);
+            @NotNull Collection<String> intents = associationDefBean.getIntent();
             Collection<ResourceObjectTypeDefinition> matching =
                     completeSchema.getObjectTypeDefinitions().stream()
-                            .filter(def -> matches(def, associationDef))
+                            .filter(def -> matches(def, associationDefBean))
                             .collect(Collectors.toList());
             if (matching.isEmpty()) {
-                throw new SchemaException("No object type definition for association " + associationDef + " in " + contextDescription);
+                throw new SchemaException("No object type definition for association " + associationDefBean + " in " + contextDescription);
             } else if (ResourceSchemaUtil.areDefinitionsCompatible(matching)) {
                 return matching.iterator().next();
             } else {
@@ -448,15 +451,15 @@ public class RefinedResourceSchemaParser {
          * Returns `true` if the (target) type definition matches requirements of the association definition: kind + intent(s).
          */
         private boolean matches(
-                @NotNull ResourceObjectTypeDefinition def, @NotNull ResourceAssociationDefinition associationDef) {
-            if (associationDef.getKind() != def.getKind()) {
+                @NotNull ResourceObjectTypeDefinition targetTypeDef, @NotNull ResourceObjectAssociationType associationDefBean) {
+            if (targetTypeDef.getKind() != ShadowAssociationDefinition.getKind(associationDefBean)) {
                 return false;
             }
-            Collection<String> intents = associationDef.getIntents();
+            Collection<String> intents = associationDefBean.getIntent();
             if (intents.isEmpty()) {
-                return def.isDefaultForKind();
+                return targetTypeDef.isDefaultForKind();
             } else {
-                return intents.contains(def.getIntent());
+                return intents.contains(targetTypeDef.getIntent());
             }
         }
 
@@ -470,9 +473,9 @@ public class RefinedResourceSchemaParser {
 
             LOGGER.trace("Parsing attributes of {}", definition);
 
-            parseAttributesFromObjectClass(definition.getRawObjectClassDefinition(), false);
+            parseAttributesFromRawObjectClass(definition.getRawObjectClassDefinition(), false);
             for (ResourceObjectDefinition auxDefinition : definition.getAuxiliaryDefinitions()) {
-                parseAttributesFromObjectClass(auxDefinition.getRawObjectClassDefinition(), true);
+                parseAttributesFromRawObjectClass(auxDefinition.getRawObjectClassDefinition(), true);
             }
 
             assertNoOtherAttributes();
@@ -501,19 +504,26 @@ public class RefinedResourceSchemaParser {
          * Takes all attributes from resource object class definition, and pairs (enriches)
          * them with `schemaHandling` information.
          */
-        private void parseAttributesFromObjectClass(@NotNull ResourceObjectClassDefinition rawClassDef, boolean auxiliary)
+        private void parseAttributesFromRawObjectClass(@NotNull ResourceObjectClassDefinition rawClassDef, boolean auxiliary)
                 throws SchemaException {
-            for (ResourceAttributeDefinition<?> rawAttrDef : rawClassDef.getAttributeDefinitions()) {
-                parseAttributeFromObjectClass(rawAttrDef, auxiliary);
+            assert rawClassDef.isRaw();
+            for (ResourceAttributeDefinition<?> attrDef : rawClassDef.getAttributeDefinitions()) {
+                if (attrDef instanceof RawResourceAttributeDefinition<?> rawAttrDef) {
+                    parseRawAttribute(rawAttrDef, auxiliary);
+                } else {
+                    throw new IllegalStateException(
+                            "Non-raw attribute in raw object class? %s in %s; as defined in %s".formatted(
+                                    attrDef, rawClassDef, contextDescription));
+                }
             }
         }
 
-        private void parseAttributeFromObjectClass(
-                @NotNull ResourceAttributeDefinition<?> rawAttrDef, boolean auxiliary) throws SchemaException {
+        private void parseRawAttribute(@NotNull RawResourceAttributeDefinition<?> rawAttrDef, boolean fromAuxClass)
+                throws SchemaException {
 
             ItemName attrName = rawAttrDef.getItemName();
 
-            LOGGER.trace("Parsing attribute {} (auxiliary = {})", attrName, auxiliary);
+            LOGGER.trace("Parsing attribute {} (auxiliary = {})", attrName, fromAuxClass);
 
             // TODO make this context description lazily evaluated
             String attrContextDescription = attrName + ", in " + contextDescription;
@@ -523,11 +533,12 @@ public class RefinedResourceSchemaParser {
             // well with them. They may also be mandatory. We cannot pretend that they do not exist.
 
             if (definition.containsAttributeDefinition(attrName)) {
-                if (auxiliary) {
+                if (fromAuxClass) {
                     return;
                 } else {
-                    throw new SchemaException("Duplicate definition of attribute " + attrName + " in "
-                            + definition.getHumanReadableName() + ", in " + contextDescription);
+                    throw new SchemaException(
+                            "Duplicate definition of attribute %s in %s, in %s".formatted(
+                                    attrName, definition.getHumanReadableName(), contextDescription));
                 }
             }
 
@@ -597,10 +608,10 @@ public class RefinedResourceSchemaParser {
             if (definitionBean.getProtected().isEmpty()) {
                 return;
             }
-            PrismObjectDefinition<ShadowType> prismObjectDef = definition.computePrismObjectDefinition();
+            var prismObjectDef = definition.toPrismObjectDefinition();
             for (ResourceObjectPatternType protectedPatternBean : definitionBean.getProtected()) {
-                ResourceObjectPattern protectedPattern = convertToPattern(protectedPatternBean, prismObjectDef);
-                definition.addProtectedObjectPattern(protectedPattern);
+                definition.addProtectedObjectPattern(
+                        convertToPattern(protectedPatternBean, prismObjectDef));
             }
         }
 

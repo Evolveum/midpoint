@@ -29,7 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElement
  * @author katka
  *
  */
-public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> extends ItemDefinition<I>, Revivable, DebugDumpable, Serializable {
+public interface ItemWrapper<I extends Item<?, ?>, VW extends PrismValueWrapper>
+        extends ItemDefinition<I>, Revivable, DebugDumpable, Serializable {
 
 
     String debugDump(int indent);

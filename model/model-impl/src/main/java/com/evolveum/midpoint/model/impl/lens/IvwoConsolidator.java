@@ -15,14 +15,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -33,9 +32,6 @@ import com.evolveum.midpoint.repo.common.expression.ConsolidationValueMetadataCo
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -109,14 +105,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
     private final boolean itemDeltaExists;
 
     /**
-     * Value matcher used to compare values (for the purpose of consolidation).
+     * Comparator used to compare values.
+     * It should be forgivable enough to allow illegal values to be compared.
      */
-    private final ValueMatcher valueMatcher;
-
-    /**
-     * Comparator used to compare values. Used if valueMatcher is null or cannot be used (because item is not a property).
-     */
-    private final Comparator<V> comparator;
+    private final EqualsChecker<V> equalsChecker;
 
     /**
      * What mappings are to be considered?
@@ -209,8 +201,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         aprioriItemDelta = builder.aprioriItemDelta;
         itemDeltaExists = builder.itemDeltaExists;
 
-        valueMatcher = builder.valueMatcher;
-        comparator = builder.comparator;
+        equalsChecker = builder.equalsChecker;
 
         addUnchangedValues = builder.addUnchangedValues;
         addUnchangedValuesExceptForNormalMappings = builder.addUnchangedValuesExceptForNormalMappings;
@@ -325,8 +316,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
     private String getAutoCreationIdentifier(Collection<? extends ItemValueWithOrigin<V, D>> origins) {
         // let's ignore conflicts (name1 vs name2, named vs unnamed) for now
         for (ItemValueWithOrigin<V, D> origin : origins) {
-            if (origin.getMapping() != null && origin.getMapping().getIdentifier() != null) {
-                return origin.getMapping().getIdentifier();
+            var id = origin.getMappingIdentifier();
+            if (id != null) {
+                return id;
             }
         }
         return null;
@@ -561,8 +553,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
 
         private void deleteValueIfNeeded() throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
             if (existingItemKnown && !equivalenceClass.presentInExistingItem()) {
-                LOGGER.trace("Value {} NOT add to delta as DELETE because item {} the item does not have that value in {} (matcher: {})",
-                        equivalenceClass, itemPath, contextDescription, valueMatcher);
+                LOGGER.trace("Value {} NOT add to delta as DELETE because item {} the item does not have that value in {}",
+                        equivalenceClass, itemPath, contextDescription);
 
                 assert equivalenceClass.zeroOrigins.isEmpty();
                 // No metadata to be computed here, because no existing value and no zero nor plus origins
@@ -855,7 +847,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         } else {
             Holder<Boolean> resultHolder = new Holder<>(false);
             SimpleVisitor<I> visitor = pvwo -> {
-                if (pvwo.getMapping().getStrength() == MappingStrengthType.STRONG) {
+                if (pvwo.isMappingStrong()) {
                     resultHolder.setValue(true);
                 }
             };
@@ -865,22 +857,29 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
     }
 
     private void logStart() {
-        LOGGER.trace("Consolidating {} IVwO triple:\n{}\n  Apriori Delta (exists: {}):\n{}\n  Existing item (known: {}, isEmpty: {}):\n{}\n  Parameters:\n"
-                        + "   - valueMatcher: {}\n"
-                        + "   - comparator: {}\n"
-                        + "   - strengthSelector: {}\n"
-                        + "   - addUnchangedValues: {}\n"
-                        + "   - addUnchangedValuesExceptForNormalMappings: {}\n"
-                        + "   - itemIsExclusiveStrong: {}\n"
-                        + "   - deleteExistingValues (experimental): {}\n"
-                        + "   - skipNormalMappingAPrioriDeltaCheck (experimental): {}\n"
-                        + "   - ignoreNormalMappings: {}\n"
-                        + "   - valueMetadataComputer: {}\n"
-                        + "  Context: {}\n",
+        LOGGER.trace("""
+                        Consolidating {} IVwO triple:
+                        {}
+                          Apriori Delta (exists: {}):
+                        {}
+                          Existing item (known: {}, isEmpty: {}):
+                        {}
+                          Parameters:
+                           - equalsChecker: {}
+                           - strengthSelector: {}
+                           - addUnchangedValues: {}
+                           - addUnchangedValuesExceptForNormalMappings: {}
+                           - itemIsExclusiveStrong: {}
+                           - deleteExistingValues (experimental): {}
+                           - skipNormalMappingAPrioriDeltaCheck (experimental): {}
+                           - ignoreNormalMappings: {}
+                           - valueMetadataComputer: {}
+                          Context: {}
+                        """,
                 itemPath, ivwoTriple.debugDumpLazily(1),
                 itemDeltaExists, DebugUtil.debugDumpLazily(aprioriItemDelta, 2),
                 existingItemKnown, existingItemIsEmpty, DebugUtil.debugDumpLazily(existingItem, 2),
-                valueMatcher, comparator, strengthSelector,
+                equalsChecker, strengthSelector,
                 addUnchangedValues, addUnchangedValuesExceptForNormalMappings,
                 itemIsExclusiveStrong,
                 deleteExistingValues, skipNormalMappingAPrioriDeltaCheck,
@@ -1248,11 +1247,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
     private boolean areEquivalent(V value1, V value2) throws SchemaException {
         if (containerIdentifiersPresentAndEqual(value1, value2)) {
             return true;
-        } else if (valueMatcher != null && value1 instanceof PrismPropertyValue && value2 instanceof PrismPropertyValue) {
-            //noinspection unchecked
-            return valueMatcher.match(value1.getRealValue(), value2.getRealValue());
-        } else if (comparator != null) {
-            return comparator.compare(value1, value2) == 0;
+        } else if (equalsChecker != null) {
+            return equalsChecker.test(value1, value2);
         } else if (value1 != null) {
             return value1.equals(value2, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         } else {
@@ -1261,9 +1257,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
     }
 
     private boolean containerIdentifiersPresentAndEqual(V value1, V value2) {
-        if (value1 instanceof PrismContainerValue && value2 instanceof PrismContainerValue) {
-            Long id1 = ((PrismContainerValue) value1).getId();
-            Long id2 = ((PrismContainerValue) value2).getId();
+        if (value1 instanceof PrismContainerValue<?> pcv1 && value2 instanceof PrismContainerValue<?> pcv2) {
+            Long id1 = pcv1.getId();
+            Long id2 = pcv2.getId();
             return id1 != null && id1.equals(id2);
         } else {
             return false;

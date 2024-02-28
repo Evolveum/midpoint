@@ -27,7 +27,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -318,7 +317,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
         System.out.println("Delta before operation:\n" + addDelta.debugDump() + "\n");
         System.out.println("Assignment to subtract:\n" + assignmentValue.debugDump() + "\n");
-        boolean removed = addDelta.subtract(ItemPath.create(SchemaConstants.PATH_ASSIGNMENT), assignmentValue, false, false);
+        boolean removed = addDelta.subtract(ItemPath.create(FocusType.F_ASSIGNMENT), assignmentValue, false, false);
 
         // THEN
         System.out.println("Delta after operation:\n" + addDelta.debugDump() + "\n");
@@ -354,7 +353,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
         System.out.println("Delta before operation:\n" + delta.debugDump() + "\n");
         System.out.println("Assignment to subtract:\n" + assignmentValue.debugDump() + "\n");
-        boolean removed = delta.subtract(ItemPath.create(SchemaConstants.PATH_ASSIGNMENT), assignmentValue, true, false);
+        boolean removed = delta.subtract(ItemPath.create(FocusType.F_ASSIGNMENT), assignmentValue, true, false);
 
         // THEN
         System.out.println("Delta after operation:\n" + delta.debugDump() + "\n");

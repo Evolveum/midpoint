@@ -63,8 +63,6 @@ class ContextLoadOperation<F extends ObjectType> {
         OperationResult result = parentResult.createMinorSubresult(OPERATION_LOAD);
         createTraceIfNeeded(result);
 
-        context.recompute(); // TODO why?
-
         try {
             context.checkConsistenceIfNeeded();
 
@@ -72,8 +70,6 @@ class ContextLoadOperation<F extends ObjectType> {
 
             LensFocusContext<F> focusContext = context.getFocusContext();
             if (focusContext != null) {
-
-                context.recomputeFocus(); // TODO eliminate after done in focus loader
 
                 updatePolicies(result);
 
@@ -108,9 +104,6 @@ class ContextLoadOperation<F extends ObjectType> {
                 context.checkAbortRequested();
                 updateProjection(projectionContext, result);
             }
-
-            context.checkConsistenceIfNeeded();
-            context.recompute(); // TODO
 
             context.checkConsistenceIfNeeded();
 

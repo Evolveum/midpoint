@@ -2,6 +2,7 @@
 :page-nav-title: Role
 :page-display-order: 300
 :page-toc: top
+:page-keywords: [ 'rest', 'role', 'endpoint' ]
 
 == Role Type REST Endpoint
 

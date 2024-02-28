@@ -58,7 +58,6 @@ public class InboundProcessor implements ProjectorProcessor {
         processing.collectAndEvaluateMappings();
 
         context.checkConsistenceIfNeeded();
-        context.recomputeFocus();
         medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 
         // It's actually a bit questionable if such cross-components interactions should be treated like this

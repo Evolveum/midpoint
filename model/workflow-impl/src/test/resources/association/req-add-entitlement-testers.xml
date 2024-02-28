@@ -15,9 +15,8 @@
     <oid>TO BE DETERMINED</oid>         <!-- this is jack's dummy account shadow -->
     <itemDelta>
         <t:modificationType>add</t:modificationType>
-        <t:path>association</t:path>
-        <t:value xsi:type="c:ShadowAssociationType">
-            <c:name>ri:group</c:name>
+        <t:path>associations/ri:group</t:path>
+        <t:value xsi:type="c:ShadowAssociationValueType">
             <c:shadowRef oid="20000000-0000-0000-3333-000000000002" type="ShadowType"/>
         </t:value>
     </itemDelta>

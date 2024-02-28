@@ -22,6 +22,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestObject;
 
+import com.evolveum.midpoint.util.exception.NotHereAssertionError;
+
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -2049,32 +2051,16 @@ public class TestUnix extends AbstractStoryTest {
         return entry.getDN().toString();
     }
 
-    @SuppressWarnings("UnusedReturnValue")
-    ShadowAssociationType assertGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
-        ShadowAssociationType association = findAssociation(accountShadow, groupShadowOid);
-        if (association != null) {
-            return association;
-        }
-        AssertJUnit.fail("No association for " + groupShadowOid + " in " + accountShadow);
-        return null; // NOT REACHED
+    void assertGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
+        assertShadow(accountShadow, "after")
+                .associations()
+                .assertExistsForShadow(groupShadowOid);
     }
 
     private void assertNoGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
-        ShadowAssociationType association = findAssociation(accountShadow, groupShadowOid);
-        assertNull("Unexpected association for " + groupShadowOid + " in " + accountShadow, association);
-    }
-
-    @Nullable
-    private ShadowAssociationType findAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
-        ShadowType accountShadowType = accountShadow.asObjectable();
-        for (ShadowAssociationType association : accountShadowType.getAssociation()) {
-            assertNotNull("Association without shadowRef in " + accountShadow + ": " + association, association.getShadowRef());
-            assertNotNull("Association without shadowRef OID in " + accountShadow + ": " + association, association.getShadowRef().getOid());
-            if (association.getShadowRef().getOid().equals(groupShadowOid)) {
-                return association;
-            }
-        }
-        return null;
+        assertShadow(accountShadow, "after")
+                .associations()
+                .assertNoneForShadow(groupShadowOid);
     }
 
     @SuppressWarnings("SameParameterValue")

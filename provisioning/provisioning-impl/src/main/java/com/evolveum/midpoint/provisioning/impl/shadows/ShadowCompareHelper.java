@@ -54,7 +54,7 @@ class ShadowCompareHelper {
         }
 
         ProvisioningContext ctx = ctxFactory.createForShadow(repositoryShadow, task, result);
-        ctx.applyAttributesDefinition(repositoryShadow);
+        ctx.applyDefinitionInNewCtx(repositoryShadow);
 
         ResourceType resource = ctx.getResource();
 

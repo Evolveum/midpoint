@@ -208,14 +208,6 @@ public class ResourceAttributeContainerDefinitionImpl
     }
 
     @Override
-    public @NotNull <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition() {
-        //noinspection unchecked
-        PrismObjectDefinition<T> origShadowDef =  (PrismObjectDefinition<T>) getPrismContext().getSchemaRegistry().
-            findObjectDefinitionByCompileTimeClass(ShadowType.class);
-        return origShadowDef.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, this);
-    }
-
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         sb.append(DebugDumpable.INDENT_STRING.repeat(Math.max(0, indent)));

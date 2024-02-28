@@ -201,9 +201,15 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
      */
     default @NotNull ResourceObjectClassDefinition findObjectClassDefinitionRequired(@NotNull QName name)
             throws SchemaException {
+        return findObjectClassDefinitionRequired(name, () -> "");
+    }
+
+    default @NotNull ResourceObjectClassDefinition findObjectClassDefinitionRequired(
+            @NotNull QName name, @NotNull Supplier<String> contextSupplier)
+            throws SchemaException {
         return MiscUtil.requireNonNull(
                 findObjectClassDefinition(name),
-                () -> "Object class " + name + " not found in " + this);
+                () -> "Object class " + name + " not found in " + this + contextSupplier.get());
     }
 
     /**

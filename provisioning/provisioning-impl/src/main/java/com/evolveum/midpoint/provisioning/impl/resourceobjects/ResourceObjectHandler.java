@@ -10,6 +10,8 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -21,5 +23,6 @@ import org.jetbrains.annotations.NotNull;
 @Experimental
 public interface ResourceObjectHandler {
 
-    boolean handle(@NotNull ResourceObjectFound resourceObject, @NotNull OperationResult result);
+    boolean handle(@NotNull ResourceObjectFound resourceObject, @NotNull OperationResult result)
+            throws SchemaException;
 }

@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
 import org.testng.AssertJUnit;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
@@ -92,7 +94,7 @@ public class TestExpression extends AbstractModelCommonTest {
 
     @BeforeClass
     public void setup() throws SchemaException, SAXException, IOException, ConfigurationException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
         ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans();

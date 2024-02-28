@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.Collection;
+
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -23,7 +26,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationFromLinkExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,7 +66,7 @@ public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjec
                 new AssociationFromLinkExpressionEvaluator(
                         ELEMENT_NAME,
                         evaluatorBean,
-                        (PrismContainerDefinition<ShadowAssociationType>) outputDefinition,
+                        (ShadowAssociationDefinition) outputDefinition,
                         protector,
                         getObjectResolver());
     }

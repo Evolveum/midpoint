@@ -3464,11 +3464,11 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element ref="tns:dockerSecretsProvider" minOccurs="0"/>
-            <xsd:element ref="tns:fileSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="tns:environmentVariablesSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="tns:propertiesSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="tns:customSecretsProvider" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="docker" type="tns:DockerSecretsProviderType" minOccurs="0"/>
+            <xsd:element name="file" type="tns:FileSecretsProviderType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="environmentVariables" type="tns:EnvironmentVariablesSecretsProviderType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="properties" type="tns:PropertiesSecretsProviderType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="custom" type="tns:CustomSecretsProviderType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -3564,8 +3564,6 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:element name="customSecretsProvider" type="tns:CustomSecretsProviderType"/>
-
     <xsd:complexType name="CustomSecretsProviderConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3607,12 +3605,17 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="useSystemProperties" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If true, the provider will also use system properties as a source of secrets.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
-    <xsd:element name="environmentVariablesSecretsProvider" type="tns:EnvironmentVariablesSecretsProviderType"/>
 
     <xsd:complexType name="ContainerSecretsProviderType" abstract="true">
         <xsd:annotation>
@@ -3664,8 +3667,6 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:element name="fileSecretsProvider" type="tns:FileSecretsProviderType"/>
-
     <xsd:complexType name="DockerSecretsProviderType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3687,8 +3688,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
-    <xsd:element name="dockerSecretsProvider" type="tns:DockerSecretsProviderType"/>
 
     <xsd:complexType name="PropertiesSecretsProviderType">
         <xsd:annotation>
@@ -3722,5 +3721,4 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:element name="propertiesSecretsProvider" type="tns:PropertiesSecretsProviderType"/>
 </xsd:schema>

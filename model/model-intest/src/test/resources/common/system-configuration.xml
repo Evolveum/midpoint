@@ -683,13 +683,14 @@
     </audit>
 
     <secretsProviders>
-        <propertiesSecretsProvider>
+        <properties>
             <identifier>properties-provider</identifier>
+            <cache>PT5S</cache>
             <propertiesFile>./src/test/resources/common/secrets-provider.properties</propertiesFile>
-        </propertiesSecretsProvider>
-        <environmentVariablesSecretsProvider>
+        </properties>
+        <environmentVariables>
             <identifier>env-provider</identifier>
             <prefix>MP_</prefix>
-        </environmentVariablesSecretsProvider>
+        </environmentVariables>
     </secretsProviders>
 </systemConfiguration>

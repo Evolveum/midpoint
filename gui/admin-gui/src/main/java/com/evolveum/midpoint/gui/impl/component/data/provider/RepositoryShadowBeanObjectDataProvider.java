@@ -79,7 +79,7 @@ public class RepositoryShadowBeanObjectDataProvider extends SelectableBeanObject
     @Override
     protected GetOperationOptionsBuilder postProcessOptions(GetOperationOptionsBuilder optionsBuilder) {
         optionsBuilder = optionsBuilder
-                .item(ShadowType.F_ASSOCIATION).dontRetrieve();
+                .item(ShadowType.F_ASSOCIATIONS).dontRetrieve();
 
         if (isEmptyListOnNullQuery()) {
             return optionsBuilder

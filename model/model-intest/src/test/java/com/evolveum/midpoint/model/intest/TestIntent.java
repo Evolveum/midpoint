@@ -77,7 +77,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME);
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -135,7 +135,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
 
         // Check shadow: intent=default
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOidDefault, null, result);
+        var accountShadow = getShadowRepo(accountOidDefault);
         assertDummyAccountShadowRepo(accountShadow, accountOidDefault, ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check account: intent=default
@@ -146,7 +146,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
         // Check shadow: intent=test
-        PrismObject<ShadowType> accountShadowTest = repositoryService.getObject(ShadowType.class, accountOidTest, null, result);
+        var accountShadowTest = getShadowRepo(accountOidTest);
         assertDummyAccountShadowRepo(accountShadowTest, accountOidTest, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
         assertEnableTimestampShadow(accountShadowTest, startTime, endTime);
 
@@ -197,7 +197,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
 
         // Check shadow: intent=default
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOidDefault, null, result);
+        var accountShadow = getShadowRepo(accountOidDefault);
         assertDummyAccountShadowRepo(accountShadow, accountOidDefault, ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check account: intent=default
@@ -208,7 +208,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow", true);
 
         // Check shadow: intent=test
-        PrismObject<ShadowType> accountShadowTest = repositoryService.getObject(ShadowType.class, accountOidTest, null, result);
+        var accountShadowTest = getShadowRepo(accountOidTest);
         assertDummyAccountShadowRepo(accountShadowTest, accountOidTest, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check account: intent=test
@@ -260,7 +260,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
 
         // Check shadow: intent=test
-        PrismObject<ShadowType> accountShadowTest = repositoryService.getObject(ShadowType.class, accountOidTest, null, result);
+        var accountShadowTest = getShadowRepo(accountOidTest);
         assertDummyAccountShadowRepo(accountShadowTest, accountOidTest, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check account: intent=test

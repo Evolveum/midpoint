@@ -159,7 +159,8 @@
         <objectType>
             <kind>entitlement</kind>
             <intent>privilege</intent>
-            <default>false</default>
+            <defaultForKind>false</defaultForKind>
+            <defaultForObjectClass>true</defaultForObjectClass>
             <objectClass>ri:CustomprivilegeObjectClass</objectClass>
             <attribute>
                 <ref>icfs:uid</ref>

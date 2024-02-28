@@ -11,7 +11,11 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -128,7 +132,7 @@ public interface ResourceObjectDefinition
     /**
      * TODO define semantics (it's different for {@link CompositeObjectDefinition} and the others!
      */
-    @NotNull Collection<ResourceObjectDefinition> getAuxiliaryDefinitions();
+    @NotNull Collection<? extends ResourceObjectDefinition> getAuxiliaryDefinitions();
 
     /**
      * TODO define semantics (it's different for {@link CompositeObjectDefinition} and the others!
@@ -370,10 +374,36 @@ public interface ResourceObjectDefinition
      */
     @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException;
 
-    /**
-     * Creates a blank {@link ShadowType} object, with the attributes container having appropriate definition.
-     */
-    PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag);
+    // TODO why are all three methods below named "createBlankShadow", but only the 3rd one adds the kind/intent?
+    //  The reason is that the first two are called from the context where there should be no kind/intent present.
+    //  But that stinks. Something is broken here. We should define what "blank shadow" is. E.g., should aux OCs be there?
+
+    /** Creates a blank, empty {@link ShadowType} object. It contains only the object class name. Kind/intent are not set. */
+    default PrismObject<ShadowType> createBlankShadow() {
+        try {
+            var shadow = getPrismObjectDefinition().instantiate();
+            shadow.asObjectable().setObjectClass(getObjectClassName());
+            return shadow;
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "while instantiating shadow from " + this);
+        }
+    }
+
+    /** As {@link #createBlankShadow()} but with the specified primary identifier. */
+    default PrismObject<ShadowType> createBlankShadow(@NotNull Object primaryIdentifierValue) throws SchemaException {
+        var shadow = createBlankShadow();
+        ShadowUtil.addPrimaryIdentifierValue(shadow.asObjectable(), primaryIdentifierValue);
+        return shadow;
+    }
+
+    /** As {@link #createBlankShadow()} but having the correct resource OID, kind/intent (if applicable), and tag set.  */
+    default PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
+        PrismObject<ShadowType> shadow = createBlankShadow();
+        shadow.asObjectable()
+                .tag(tag)
+                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
+        return shadow;
+    }
 
     /**
      * Returns a prism definition for the prism object/objects carrying the resource object/objects.
@@ -383,7 +413,7 @@ public interface ResourceObjectDefinition
     /**
      * Creates {@link ResourceAttributeContainerDefinition} with this definition as a complex type definition.
      */
-    default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
+    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
         return toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES);
     }
 
@@ -391,8 +421,20 @@ public interface ResourceObjectDefinition
      * Creates {@link ResourceAttributeContainerDefinition} (with given item name) with this definition
      * as a complex type definition.
      */
-    default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
+    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
         return ObjectFactory.createResourceAttributeContainerDefinition(elementName, this);
+    }
+
+    default @NotNull ShadowAssociationsContainerDefinition toShadowAssociationsContainerDefinition() {
+        return new ShadowAssociationsContainerDefinitionImpl(ShadowType.F_ASSOCIATIONS, toAssociationsComplexTypeDefinition());
+    }
+
+    default @NotNull ComplexTypeDefinition toAssociationsComplexTypeDefinition() {
+        var ctd = new ComplexTypeDefinitionImpl(ShadowAssociationsType.COMPLEX_TYPE);
+        for (ShadowAssociationDefinition associationDefinition : getAssociationDefinitions()) {
+            ctd.add(associationDefinition);
+        }
+        return ctd;
     }
 
     /**
@@ -437,6 +479,9 @@ public interface ResourceObjectDefinition
      * TODO
      */
     String getHumanReadableName();
+
+    /** Very short identification, like the object class local name or the kind/intent pair. */
+    @NotNull String getShortIdentification();
 
     /**
      * Returns a mutable definition.
@@ -531,4 +576,18 @@ public interface ResourceObjectDefinition
                 "Object definition %s is not attached to a resource", this);
     }
     //endregion
+
+    default @NotNull PrismObjectDefinition<ShadowType> toPrismObjectDefinition() {
+        return ObjectFactory.constructObjectDefinition(
+                toResourceAttributeContainerDefinition(),
+                toShadowAssociationsContainerDefinition());
+    }
+
+    default @NotNull ResourceObjectDefinition composite(Collection<? extends ResourceObjectDefinition> auxiliaryDefinitions) {
+        if (auxiliaryDefinitions.isEmpty()) {
+            return this;
+        } else {
+            return CompositeObjectDefinition.of(this, auxiliaryDefinitions);
+        }
+    }
 }

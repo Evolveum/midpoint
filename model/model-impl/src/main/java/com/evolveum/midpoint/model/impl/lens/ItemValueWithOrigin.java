@@ -54,6 +54,18 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
         return mapping;
     }
 
+    public boolean isMappingStrong() {
+        return mapping != null && mapping.isStrong();
+    }
+
+    public boolean isMappingWeak() {
+        return mapping != null && mapping.isWeak();
+    }
+
+    public String getMappingIdentifier() {
+        return mapping != null ? mapping.getIdentifier() : null;
+    }
+
     public ResourceObjectConstruction getConstruction() {
         return construction;
     }

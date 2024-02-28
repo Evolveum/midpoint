@@ -87,7 +87,6 @@ public class ShadowConstraintsChecker<F extends FocusType> {
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        CompositeObjectDefinition projOcDef = projectionContext.getCompositeObjectDefinition();
         PrismObject<ShadowType> projectionNew = projectionContext.getObjectNew();
         if (projectionNew == null) {
             // This must be delete
@@ -125,7 +124,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
         };
 
         constraintsCheckingResult = provisioningService.checkConstraints(
-                projOcDef,
+                projectionContext.getCompositeObjectDefinitionRequired(),
                 projectionNew,
                 projectionContext.getObjectOld(),
                 projectionContext.getResource(),

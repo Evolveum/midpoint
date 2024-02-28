@@ -125,9 +125,6 @@ the complete *list of supported operations*.
 | * Remote Procedure Call
 | xref:/midpoint/reference/interfaces/rest/endpoints/rpc/[rpc]
 
-| * xref:/midpoint/reference/interfaces/rest/endpoints/misc/[Misc]
-| notifyChange and self
-
 |===
 
 === General Classification of Web Resource Types

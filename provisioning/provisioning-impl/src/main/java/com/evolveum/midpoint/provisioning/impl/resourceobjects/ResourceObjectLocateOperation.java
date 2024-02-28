@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import com.evolveum.midpoint.provisioning.ucf.api.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,10 +16,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectHandler;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Holder;
@@ -28,14 +26,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingM
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Locates the resource object by (arbitrary/first) secondary identifier, implementing this method:
  *
  * - {@link ResourceObjectConverter#locateResourceObject(
  * ProvisioningContext, ResourceObjectIdentification, boolean, OperationResult)}
- *
- * @see ResourceObjectFetchOperation
- * @see ResourceObjectSearchOperation
  */
 class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOperation {
 
@@ -46,9 +43,8 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
     private ResourceObjectLocateOperation(
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectIdentification.SecondaryOnly identification,
-            boolean fetchAssociations,
-            @Nullable FetchErrorReportingMethodType errorReportingMethod) {
-        super(ctx, fetchAssociations, errorReportingMethod);
+            boolean fetchAssociations) {
+        super(ctx, fetchAssociations, null);
         this.identification = identification;
     }
 
@@ -63,7 +59,7 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        return new ResourceObjectLocateOperation(ctx, identification, fetchAssociations, null)
+        return new ResourceObjectLocateOperation(ctx, identification, fetchAssociations)
                 .execute(result);
     }
 
@@ -71,27 +67,29 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
+        // TODO why we are using only the first secondary identifier for the search on resource?
+
         LOGGER.trace("Locating resource object by secondary identification {}", identification);
         var secondaryIdentifier = identification.getSecondaryIdentifiers().iterator().next(); // there must be at least one
 
         ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
 
         ObjectQuery query = PrismContext.get().queryFor(ShadowType.class)
-                .item(secondaryIdentifier.getSearchPath(), secondaryIdentifier.getDefinition())
-                .eq(secondaryIdentifier.getValue())
+                .filter(secondaryIdentifier.plainEqFilter())
                 .build();
-        Holder<ResourceObject> objectHolder = new Holder<>();
-        UcfObjectHandler handler = (ucfObject, lResult) -> {
+        Holder<UcfResourceObject> objectHolder = new Holder<>();
+        UcfObjectHandler handler = (ucfObjectFound, lResult) -> {
             if (!objectHolder.isEmpty()) {
                 throw new IllegalStateException(
-                        String.format("More than one object found for %s (%s)",
-                                secondaryIdentifier, ctx.getExceptionDescription()));
+                        String.format("More than one object found for %s (%s): %s and %s (probably others as well)",
+                                secondaryIdentifier, ctx.getExceptionDescription(), objectHolder.getValue(), ucfObjectFound));
             }
-            objectHolder.setValue(ResourceObject.from(ucfObject));
+            stateCheck(ucfObjectFound.getErrorState().isSuccess(), "Errored object? %s", ucfObjectFound);
+            objectHolder.setValue(ucfObjectFound);
             return true;
         };
         try {
-            // TODO constraints? scope?
+            // TODO constraints? scope? Why don't we use the standard search operation here?
             connector.search(
                     ctx.getObjectDefinitionRequired(),
                     query,
@@ -111,7 +109,12 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
                         null,
                         ctx.isAllowNotFound());
             }
-            return complete(objectHolder.getValue(), result);
+
+            var ucfResourceObject = objectHolder.getValue();
+            return complete(
+                    ExistingResourceObject.fromUcf(ucfResourceObject, ctx.getResourceRef()),
+                    result);
+
         } catch (GenericFrameworkException e) {
             throw new GenericConnectorException(
                     String.format("Generic exception in connector while searching for object (%s): %s",

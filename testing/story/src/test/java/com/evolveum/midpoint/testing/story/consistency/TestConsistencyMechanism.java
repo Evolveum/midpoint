@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.testing.story.consistency;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.toRiQName;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -524,7 +526,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .link(ACCOUNT_JACKIE_OID);
         //check if the jackie account already exists on the resource
 
-        PrismObject<ShadowType> existingJackieAccount = getShadowRepo(ACCOUNT_JACKIE_OID);
+        PrismObject<ShadowType> existingJackieAccount = getShadowRepoLegacy(ACCOUNT_JACKIE_OID);
         display("Jack's account: ", existingJackieAccount);
 
         when("Adding account on the resource to user jackie...");
@@ -734,7 +736,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     }
 
     protected void checkTest130DeadShadow(Task task, OperationResult parentResult) throws CommonException {
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_GUYBRUSH_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_GUYBRUSH_OID);
         ShadowAsserter.forShadow(shadowRepo)
                 .assertTombstone()
                 .assertDead()
@@ -791,7 +793,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     }
 
     protected void checkTest140DeadShadow(Task task, OperationResult result) throws CommonException {
-        PrismObject<ShadowType> shadowAfter = getShadowRepo(ACCOUNT_GUYBRUSH_OID);
+        PrismObject<ShadowType> shadowAfter = getShadowRepoLegacy(ACCOUNT_GUYBRUSH_OID);
         ShadowAsserter.forShadow(shadowAfter)
                 .assertTombstone()
                 .assertDead()
@@ -921,7 +923,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String dn = ShadowUtil.getAttributeValue(shadowBefore, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         openDJController.delete(dn);
 
-        PrismObject<ShadowType> repoShadowBefore = getShadowRepo(liveLinkOidBefore);
+        PrismObject<ShadowType> repoShadowBefore = getShadowRepoLegacy(liveLinkOidBefore);
         assertNotNull("Repo shadow is gone!", repoShadowBefore);
         display("Repository shadow before", repoShadowBefore);
         assertThat(repoShadowBefore.asObjectable().isDead())
@@ -1682,7 +1684,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                             .display()
                             .assertAdd();
         // @formatter:on
-        PrismObject<ShadowType> repoShadow = getShadowRepo(shadowOid);
+        PrismObject<ShadowType> repoShadow = getShadowRepoLegacy(shadowOid);
         MetadataType metadata = repoShadow.asObjectable().getMetadata();
         assertTrue("Shadow doesn't have metadata", metadata != null && metadata.getCreateTimestamp() != null);
 
@@ -2210,7 +2212,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
                 .delta()
                 .assertNoModification(attributePath(QNAME_EMPLOYEE_TYPE))
-                .assertHasModification(ShadowType.F_ASSOCIATION);
+                .assertHasModification(ShadowType.F_ASSOCIATIONS.append(toRiQName("group")));
 
         //THEN
         openDJController.assumeRunning();
@@ -2348,8 +2350,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        provisioningService.applyDefinition(accountShadow, task, result);
+        var accountShadow = getShadowRepo(accountOid);
         display("account shadow (repo)", accountShadow);
         assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
@@ -2397,8 +2398,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertEquals("old oid not used..", accOid, accountOid);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        provisioningService.applyDefinition(accountShadow, task, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertShadowRepo(accountShadow, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // Check account
@@ -2457,8 +2457,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertEquals("old oid not used..", ACCOUNT_HERMAN_OID, shadowOidAfter);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, shadowOidAfter, null, result);
-        provisioningService.applyDefinition(accountShadow, task, result);
+        var accountShadow = getShadowRepo(shadowOidAfter);
         assertShadowRepo(accountShadow, shadowOidAfter, "uid=ht,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // Check account
@@ -2521,7 +2520,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // Check shadow
         String accountOid = linkRef.getOid();
         try {
-            PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+            var accountShadow = getShadowRepo(accountOid);
             assertAccountShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
             fail("Unexpected shadow in repo. Shadow mut not exist");
         } catch (ObjectNotFoundException ex) {
@@ -2600,8 +2599,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // Check shadow
 
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        provisioningService.applyDefinition(accountShadow, task, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=users,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // Check account
@@ -3286,13 +3284,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     }
 
     @SafeVarargs
-    protected final <T> void assertAttribute(ShadowType shadowType, String attrName, T... expectedValues) {
-        assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
-    }
-
-    @SafeVarargs
     protected final <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
-        assertAttribute(resourceTypeOpenDjrepo, shadow.asObjectable(), attrName, expectedValues);
+        assertAttribute(shadow.asObjectable(), attrName, expectedValues);
     }
 
     protected boolean isReaper() {

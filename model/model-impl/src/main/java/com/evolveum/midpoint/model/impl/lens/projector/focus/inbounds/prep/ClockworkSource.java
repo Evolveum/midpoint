@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -275,21 +276,20 @@ class ClockworkSource extends MSource {
 
     @Override
     void resolveInputEntitlements(
-            ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> associationAPrioriDelta,
-            Item<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> currentAssociation) {
-        Collection<PrismContainerValue<ShadowAssociationType>> associationsToResolve = new ArrayList<>();
+            ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
+            ShadowAssociation currentAssociation) {
+        Collection<PrismContainerValue<ShadowAssociationValueType>> associationsToResolve = new ArrayList<>();
         if (currentAssociation != null) {
             associationsToResolve.addAll(currentAssociation.getValues());
         }
         if (associationAPrioriDelta != null) {
             // TODO Shouldn't we filter also these?
             associationsToResolve.addAll(
-                    ((ContainerDelta<ShadowAssociationType>) associationAPrioriDelta)
-                            .getValues(ShadowAssociationType.class));
+                    associationAPrioriDelta.getValues(ShadowAssociationValueType.class));
         }
 
-        for (PrismContainerValue<ShadowAssociationType> associationToResolve : associationsToResolve) {
-            PrismReference shadowRef = associationToResolve.findReference(ShadowAssociationType.F_SHADOW_REF);
+        for (PrismContainerValue<ShadowAssociationValueType> associationToResolve : associationsToResolve) {
+            PrismReference shadowRef = associationToResolve.findReference(ShadowAssociationValueType.F_SHADOW_REF);
             if (shadowRef != null) {
                 resolveEntitlementFromResource(shadowRef);
             }
@@ -348,7 +348,7 @@ class ClockworkSource extends MSource {
             LOGGER.trace("No value or not a PCV -> no entitlement object");
             entitlement = null;
         } else {
-            PrismReference entitlementRef = pcv.findReference(ShadowAssociationType.F_SHADOW_REF);
+            PrismReference entitlementRef = pcv.findReference(ShadowAssociationValueType.F_SHADOW_REF);
             if (entitlementRef == null) {
                 LOGGER.trace("No shadow reference found -> no entitlement object");
                 entitlement = null;

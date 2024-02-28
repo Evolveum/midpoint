@@ -12,7 +12,7 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectFound;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -33,10 +33,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Handles {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResourceObjectHandler, ObjectQuery,
- * boolean, FetchErrorReportingMethodType, OperationResult)} method call.
+ * Searches for the resource objects, implementing this method:
  *
- * @see ResourceObjectLocateOperation
+ * - {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResourceObjectHandler, ObjectQuery,
+ * boolean, FetchErrorReportingMethodType, OperationResult)}
  */
 class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOperation {
 
@@ -108,7 +108,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
                         "Security violation communicating with the connector " + connector + ": " + ex.getMessage(), ex);
             } catch (TunnelException e) {
                 Throwable cause = e.getCause();
-                String message = "Problem while communicating with the connector " + connector + ": " + cause.getMessage();
+                String message = "Problem while executing the search using connector " + connector + ": " + cause.getMessage();
                 Throwable enriched = MiscUtil.createSame(cause, message);
                 if (cause instanceof SchemaException) {
                     throw (SchemaException) enriched;
@@ -142,10 +142,12 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
         }
     }
 
-    private boolean handleObjectFound(UcfObjectFound ucfObject, OperationResult parentResult) {
-        ResourceObjectFound objectFound = new ResourceObjectFound(ucfObject, ctx, fetchAssociations);
+    private boolean handleObjectFound(UcfResourceObject ucfObject, OperationResult parentResult) {
+        ucfObject.checkConsistence();
 
-        // in order to utilize the cache right from the beginning...
+        ResourceObjectFound objectFound = ResourceObjectFound.fromUcf(ucfObject, ctx, fetchAssociations);
+
+        // In order to utilize the cache right from the beginning.
         RepositoryCache.enterLocalCaches(b.cacheConfigurationManager);
         try {
 
@@ -157,7 +159,8 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
                         .setMinor()
                         .addParam("number", objectNumber)
                         .addArbitraryObjectAsParam("primaryIdentifierValue", ucfObject.getPrimaryIdentifierValue())
-                        .addArbitraryObjectAsParam("errorState", ucfObject.getErrorState()).build();
+                        .addArbitraryObjectAsParam("errorState", ucfObject.getErrorState())
+                        .build();
                 try {
                     // Intentionally not initializing the object here. Let us be flexible and let the ultimate caller decide.
                     return resultHandler.handle(objectFound, objResult);

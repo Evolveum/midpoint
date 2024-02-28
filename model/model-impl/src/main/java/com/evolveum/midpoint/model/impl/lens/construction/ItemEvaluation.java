@@ -8,9 +8,9 @@
 package com.evolveum.midpoint.model.impl.lens.construction;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
 import jakarta.xml.bind.JAXBElement;
@@ -27,10 +27,6 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -46,44 +42,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Evaluation of an attribute or association.
  * (More specifically, evaluation of an outbound mapping for attribute/association.)
- *
- * @param <RD> Refined definition for attribute/association.
  */
-abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismValue, D extends ItemDefinition<?>, RD> {
+abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismValue, D extends ItemDefinition<?>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemEvaluation.class);
 
-    /**
-     * "Parent" object: the construction evaluation.
-     */
+    /** "Parent" object: the construction evaluation. */
     @NotNull private final ConstructionEvaluation<?, ?> constructionEvaluation;
 
-    /**
-     * "Grand-grand-parent": the construction.
-     */
+    /** "Grand-grand-parent": the construction. */
     @NotNull private final ResourceObjectConstruction<AH, ?> construction;
 
-    /**
-     * Name of the attribute or association.
-     */
-    @NotNull final ItemName itemName;
+    /** Name of the attribute or association. */
+    @NotNull private final ItemName itemName;
 
-    /**
-     * Path to the attribute or association.
-     * We know that for the association the path is imprecise: association/name.
-     * But the mapping will need to live with it.
-     */
-    @NotNull final ItemPath itemPath;
+    /** Path to the attribute or association. */
+    @NotNull private final ItemPath itemPath;
 
-    /**
-     * Refined definition of attribute/association.
-     */
-    @NotNull final RD itemRefinedDefinition;
-
-    /**
-     * Prism item definition of attribute (the same as refined one) or association (different).
-     */
-    @NotNull private final D itemPrismDefinition;
+    /** The definition of attribute/association. */
+    @NotNull final D itemDefinition;
 
     /**
      * Mapping definition including the origin.
@@ -92,27 +69,20 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
      */
     @NotNull private final MappingConfigItem mappingConfigItem;
 
-    /**
-     * Legacy mapping "origin". (Will be probably removed soon.)
-     */
+    /** Legacy mapping "origin". (Will be probably removed soon.) */
     @NotNull private final OriginType originType;
 
-    /**
-     * Mapping kind. For reporting purposes.
-     */
+    /** Mapping kind. For reporting purposes. */
     @NotNull private final MappingKindType mappingKind;
 
-    /**
-     * Evaluated mapping. The evaluation is carried out by this class.
-     */
+    /** Evaluated mapping. The evaluation is carried out by this class. */
     private MappingImpl<V, D> evaluatedMapping;
 
     ItemEvaluation(
             @NotNull ConstructionEvaluation<AH, ?> constructionEvaluation,
             @NotNull ItemName itemName,
             @NotNull ItemPath itemPath,
-            @NotNull RD itemRefinedDefinition,
-            @NotNull D itemPrismDefinition,
+            @NotNull D itemDefinition,
             @NotNull MappingConfigItem mappingConfigItem, // [EP:M:OM] DONE 2/2
             @NotNull OriginType originType,
             @NotNull MappingKindType mappingKind) {
@@ -120,8 +90,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         this.construction = constructionEvaluation.construction;
         this.itemName = itemName;
         this.itemPath = itemPath;
-        this.itemRefinedDefinition = itemRefinedDefinition;
-        this.itemPrismDefinition = itemPrismDefinition;
+        this.itemDefinition = itemDefinition;
         this.mappingConfigItem = mappingConfigItem;
         this.originType = originType;
         this.mappingKind = mappingKind;
@@ -186,7 +155,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         LensContext<AH> context = construction.lensContext;
 
         mappingBuilder = construction.initializeMappingBuilder(
-                mappingBuilder, itemPath, itemName, itemPrismDefinition,
+                mappingBuilder, itemPath, itemName, itemDefinition,
                 getAssociationTargetObjectClassDefinition(), constructionEvaluation.task);
 
         if (mappingBuilder == null) {
@@ -262,23 +231,31 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         };
     }
 
-    private Collection<V> getOriginalTargetValues() {
+    private @NotNull Collection<V> getOriginalTargetValues() {
         LensProjectionContext projCtx = constructionEvaluation.projectionContext;
         ObjectDeltaObject<ShadowType> projectionOdo = constructionEvaluation.getProjectionOdo();
 
         if (projCtx == null || projCtx.isDelete() || projCtx.isAdd() || projectionOdo == null) {
-            return Collections.emptyList();
-        } else {
-            PrismObject<ShadowType> oldObject = projectionOdo.getOldObject();
-            if (oldObject != null) {
-                return getOriginalTargetValuesFromShadow(oldObject);
-            } else {
-                return Collections.emptyList();
-            }
+            return List.of();
         }
-    }
 
-    protected abstract Collection<V> getOriginalTargetValuesFromShadow(@NotNull PrismObject<ShadowType> shadow);
+        PrismObject<ShadowType> oldObject = projectionOdo.getOldObject();
+        if (oldObject == null) {
+            return List.of();
+        }
+
+        Item<V, D> item = oldObject.findItem(itemPath);
+        if (item == null) {
+            // Either the projection is fully loaded and the attribute/association does not exist,
+            // or the projection is not loaded (contrary to the fact that loading was requested).
+            // In both cases the wisest approach is to return empty list, keeping mapping from failing,
+            // and not removing anything. In the future we may consider issuing a warning, if we don't have
+            // full shadow, and range specification is present.
+            return List.of();
+        }
+
+        return item.getValues();
+    }
 
     private Object getIteration() {
         return constructionEvaluation.projectionContext != null ?

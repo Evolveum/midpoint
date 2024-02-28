@@ -6,121 +6,83 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.assertEquals;
+
+import java.util.Collection;
+import java.util.Iterator;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.Referencable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import static org.testng.AssertJUnit.*;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.ShadowAssociationsMap;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
  */
 public class ShadowAssociationsAsserter<R> extends AbstractAsserter<ShadowAsserter<R>> {
 
-    private PrismContainer<ShadowAssociationType> associationContainer;
-    private ShadowAsserter<R> shadowAsserter;
+    private final ShadowAssociationsMap associationsMap;
+    private final ShadowAsserter<R> shadowAsserter;
 
-    public ShadowAssociationsAsserter(ShadowAsserter<R> shadowAsserter) {
-        super();
-        this.shadowAsserter = shadowAsserter;
-    }
-
-    public ShadowAssociationsAsserter(ShadowAsserter<R> shadowAsserter, String details) {
+    ShadowAssociationsAsserter(ShadowAsserter<R> shadowAsserter, String details) {
         super(details);
         this.shadowAsserter = shadowAsserter;
+        this.associationsMap = ShadowAssociationsMap.of(getShadow());
     }
 
     private PrismObject<ShadowType> getShadow() {
         return shadowAsserter.getObject();
     }
 
-    private PrismContainer<ShadowAssociationType> getAssociationContainer() {
-        if (associationContainer == null) {
-            associationContainer = getShadow().findContainer(ShadowType.F_ASSOCIATION);
-        }
-        return associationContainer;
-    }
-
-    private List<PrismContainerValue<ShadowAssociationType>> getAssociations() {
-        return getAssociationContainer().getValues();
-    }
-
     public ShadowAssociationsAsserter<R> assertSize(int expected) {
-        assertEquals("Wrong number of associations in "+desc(), expected, getAssociations().size());
+        assertEquals("Wrong number of associations in "+desc(), expected, associationsMap.size());
         return this;
     }
 
-    public ShadowAssociationsAsserter<R> assertAttributes(QName... expectedAssociations) {
-        for (QName expectedAssociation: expectedAssociations) {
-            List<ShadowAssociationType> associations = findAssociations(expectedAssociation);
-            if (associations.isEmpty()) {
-                fail("Expected association "+expectedAssociation+" in "+desc()+" but there was none. Association present: "+prettyPrintPresentAssociationNames());
-            }
-        }
-        for (PrismContainerValue<ShadowAssociationType> existingAssociation : getAssociations()) {
-            if (!QNameUtil.contains(expectedAssociations, existingAssociation.asContainerable().getName())) {
-                fail("Unexpected association "+existingAssociation.asContainerable().getName()+" in "+desc()+". Expected attributes: "+QNameUtil.prettyPrint(expectedAssociations));
-            }
-        }
+    public ShadowAssociationsAsserter<R> assertValuesCount(int expected) {
+        assertEquals("Wrong number of association values in " + desc(), expected, associationsMap.valuesCount());
+        return this;
+    }
+
+    public ShadowAssociationsAsserter<R> assertAssociations(QName... expectedAssociations) {
+        assertThat(getPresentAssociationNames())
+                .as("associations in " + desc())
+                .containsExactlyInAnyOrder(expectedAssociations);
         return this;
     }
 
     public ShadowAssociationAsserter<ShadowAssociationsAsserter<R>> association(String associationName) {
-        List<ShadowAssociationType> associations = findAssociations(associationName);
-        ShadowAssociationAsserter<ShadowAssociationsAsserter<R>> asserter = new ShadowAssociationAsserter<>(associations, this, "association "+associationName+" in "+desc());
+        ShadowAssociationAsserter<ShadowAssociationsAsserter<R>> asserter = new ShadowAssociationAsserter<>(
+                getValues(associationName), this, "association " + associationName + " in " + desc());
         copySetupTo(asserter);
         return asserter;
     }
 
-    public ShadowAssociationAsserter<ShadowAssociationsAsserter<R>> association(QName associationQName) {
-        List<ShadowAssociationType> associations = findAssociations(associationQName);
-        ShadowAssociationAsserter<ShadowAssociationsAsserter<R>> asserter = new ShadowAssociationAsserter<>(associations, this, "association "+associationQName+" in "+desc());
+    public ShadowAssociationAsserter<ShadowAssociationsAsserter<R>> association(QName associationName) {
+        ShadowAssociationAsserter<ShadowAssociationsAsserter<R>> asserter = new ShadowAssociationAsserter<>(
+                getValues(associationName), this, "association " + associationName + " in " + desc());
         copySetupTo(asserter);
         return asserter;
     }
 
-    private @NotNull List<ShadowAssociationType> findAssociations(QName assocName) {
-        List<ShadowAssociationType> assocTypes = new ArrayList<>();
-        for (PrismContainerValue<ShadowAssociationType> association : getAssociations()) {
-            ShadowAssociationType associationType = association.asContainerable();
-            if (QNameUtil.match(assocName, associationType.getName())) {
-                assocTypes.add(associationType);
-            }
-        }
-        return assocTypes;
+    private @NotNull Collection<ShadowAssociationValueType> getValues(QName assocName) {
+        return associationsMap.getValues(assocName);
     }
 
-
-    private @NotNull List<ShadowAssociationType> findAssociations(String assocName) {
-        List<ShadowAssociationType> assocTypes = new ArrayList<>();
-        for (PrismContainerValue<ShadowAssociationType> association : getAssociations()) {
-            ShadowAssociationType associationType = association.asContainerable();
-            if (assocName.equals(associationType.getName().getLocalPart())) {
-                assocTypes.add(associationType);
-            }
-        }
-        return assocTypes;
+    private @NotNull Collection<ShadowAssociationValueType> getValues(String assocName) {
+        return getValues(new QName(assocName));
     }
 
-    private List<QName> getPresentAssociationNames() {
-        List<QName> qnames = new ArrayList<>();
-        for (PrismContainerValue<ShadowAssociationType> association : getAssociations()) {
-            QName name = association.asContainerable().getName();
-            if (!qnames.contains(name)) {
-                qnames.add(name);
-            }
-        }
-        return qnames;
+    private Collection<QName> getPresentAssociationNames() {
+        return associationsMap.keySet();
     }
 
     private String prettyPrintPresentAssociationNames() {
@@ -136,16 +98,13 @@ public class ShadowAssociationsAsserter<R> extends AbstractAsserter<ShadowAssert
     }
 
     public ShadowAssociationsAsserter<R> assertAny() {
-        assertNotNull("No association container in "+desc(), getAssociationContainer());
-        List<PrismContainerValue<ShadowAssociationType>> associations = getAssociations();
-        assertNotNull("No associations in "+desc(), associations);
-        assertFalse("No associations in "+desc(), associations.isEmpty());
+        assertThat(associationsMap).as("associations in " + desc()).isNotEmpty();
         return this;
     }
 
-    public <T> ShadowAssociationsAsserter<R> assertNoAssociation(QName attrName) {
-        List<ShadowAssociationType> association = findAssociations(attrName);
-        assertTrue("Unexpected association "+attrName+" in "+desc()+": "+association, association.isEmpty());
+    public <T> ShadowAssociationsAsserter<R> assertNoAssociation(QName assocName) {
+        var association = getValues(assocName);
+        assertThat(association).as("association " + assocName + " in " + desc()).isEmpty();
         return this;
     }
 
@@ -158,4 +117,24 @@ public class ShadowAssociationsAsserter<R> extends AbstractAsserter<ShadowAssert
         return shadowAsserter;
     }
 
+    public ShadowAssociationsAsserter<R> assertExistsForShadow(@NotNull String oid) {
+        assertThat(getValuesForShadow(oid))
+                .as("associations for shadow " + oid + " in " + desc())
+                .isNotEmpty();
+        return this;
+    }
+
+    public ShadowAssociationsAsserter<R> assertNoneForShadow(@NotNull String oid) {
+        assertThat(getValuesForShadow(oid))
+                .as("associations for shadow " + oid + " in " + desc())
+                .isEmpty();
+        return this;
+    }
+
+    public Collection<ShadowAssociationValueType> getValuesForShadow(@NotNull String oid) {
+        return associationsMap.values().stream()
+                .flatMap(a -> a.getValues().stream())
+                .filter(v -> oid.equals(Referencable.getOid(v.getShadowRef())))
+                .toList();
+    }
 }

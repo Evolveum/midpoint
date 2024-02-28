@@ -9,7 +9,6 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -31,23 +30,27 @@ public interface AssociationDefinitionStore {
      * Note: these items are _not_ included in getDefinitions.
      * (BTW, ResourceAssociationDefinition is not a subtype of ItemDefinition, not even of Definition.)
      */
-    @NotNull Collection<ResourceAssociationDefinition> getAssociationDefinitions();
+    @NotNull Collection<ShadowAssociationDefinition> getAssociationDefinitions();
 
-    default Collection<ResourceAssociationDefinition> getAssociationDefinitions(ShadowKindType kind) {
+    default Collection<ShadowAssociationDefinition> getAssociationDefinitions(ShadowKindType kind) {
         return getAssociationDefinitions().stream()
                 .filter(association -> association.getKind() == kind)
                 .toList();
     }
 
-    default ResourceAssociationDefinition findAssociationDefinition(QName name) {
+    default ShadowAssociationDefinition findAssociationDefinition(QName name) {
         return getAssociationDefinitions().stream()
                 .filter(a -> QNameUtil.match(a.getName(), name))
                 .findFirst().orElse(null);
     }
 
-    default ResourceAssociationDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
+    default ShadowAssociationDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
+        return findAssociationDefinitionRequired(name, () -> "");
+    }
+
+    default ShadowAssociationDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
             throws SchemaException {
-        ResourceAssociationDefinition def = findAssociationDefinition(name);
+        ShadowAssociationDefinition def = findAssociationDefinition(name);
         if (def == null) {
             throw new SchemaException("No definition of association named '" + name + "' in " + this + contextSupplier.get());
         }
@@ -56,21 +59,21 @@ public interface AssociationDefinitionStore {
 
     default @NotNull Collection<QName> getNamesOfAssociations() {
         return getAssociationDefinitions().stream()
-                .map(ResourceAssociationDefinition::getName)
+                .map(ShadowAssociationDefinition::getName)
                 .collect(Collectors.toCollection(HashSet::new));
     }
 
     default @NotNull Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
         return getAssociationDefinitions().stream()
                 .filter(assocDef -> assocDef.getOutboundMappingType() != null)
-                .map(ResourceAssociationDefinition::getName)
+                .map(ShadowAssociationDefinition::getName)
                 .collect(Collectors.toCollection(HashSet::new));
     }
 
     default @NotNull Collection<? extends QName> getNamesOfAssociationsWithInboundExpressions() {
         return getAssociationDefinitions().stream()
                 .filter(assocDef -> CollectionUtils.isNotEmpty(assocDef.getInboundMappingBeans()))
-                .map(ResourceAssociationDefinition::getName)
+                .map(ShadowAssociationDefinition::getName)
                 .collect(Collectors.toCollection(HashSet::new));
     }
 
@@ -85,8 +88,7 @@ public interface AssociationDefinitionStore {
     default @NotNull Collection<? extends QName> getAssociationValueAttributes() {
         return getAssociationDefinitions().stream()
                 .filter(assocDef -> assocDef.isObjectToSubject())
-                .map(associationDef -> associationDef.getDefinitionBean().getValueAttribute())
-                .filter(Objects::nonNull) // just for sure
+                .map(associationDef -> associationDef.getValueAttributeName())
                 .toList();
     }
 }

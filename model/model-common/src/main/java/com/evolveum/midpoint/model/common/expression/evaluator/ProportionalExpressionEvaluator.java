@@ -89,8 +89,9 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
         }
 
         //noinspection unchecked
-        Item<V, D> output = outputDefinition.instantiate();
+        Item<V, D> output = (Item<V, D>) outputDefinition.instantiate();
         if (output instanceof PrismProperty) {
+            //noinspection unchecked
             ((PrismProperty<String>) output).addRealValue(numberMessage);
         } else {
             throw new UnsupportedOperationException(

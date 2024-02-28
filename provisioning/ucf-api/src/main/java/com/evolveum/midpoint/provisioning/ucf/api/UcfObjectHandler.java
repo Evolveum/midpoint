@@ -14,6 +14,6 @@ import com.evolveum.midpoint.schema.ObjectHandler;
  * @author Radovan Semancik
  */
 @FunctionalInterface
-public interface UcfObjectHandler extends ObjectHandler<UcfObjectFound> {
+public interface UcfObjectHandler extends ObjectHandler<UcfResourceObject> {
 
 }

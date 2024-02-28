@@ -9,6 +9,11 @@ package com.evolveum.midpoint.model.intest;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import com.evolveum.midpoint.common.Clock;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -16,10 +21,14 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.common.secrets.CacheableSecretsProviderDelegate;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.crypto.SecretsProvider;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomSecretsProviderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ExternalDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -33,11 +42,9 @@ public class TestSecretProviders extends AbstractInitializedModelIntegrationTest
 
     /**
      * Test that loads a secret from a properties file using propertiesFile secret provider.
-     *
-     * @throws Exception
      */
     @Test
-    public void test100ProtectedStringInResourceConfiguration() throws Exception {
+    public void test100ProtectedStringInResourceConfiguration() {
         DummyResource orange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME);
         assertEquals("Wrong guarded useless string", "whatever", orange.getUselessGuardedString());
     }
@@ -74,8 +81,7 @@ public class TestSecretProviders extends AbstractInitializedModelIntegrationTest
     }
 
     @Test
-    public void test120TestResolvingSecrets() throws Exception {
-
+    public void test120TestResolvingSecrets() {
         ProtectedStringType nonExistingProvider = createProtectedString("non-existing-provider", "MP_USER_PASSWORD");
         try {
             protector.decryptString(nonExistingProvider);
@@ -105,5 +111,62 @@ public class TestSecretProviders extends AbstractInitializedModelIntegrationTest
         ps.setExternalData(ed);
 
         return ps;
+    }
+
+    @Test
+    public void test130CacheableSecretsProvider() throws Exception {
+        final CustomSecretsProviderType custom = new CustomSecretsProviderType();
+        custom.setIdentifier("fake");
+        custom.setCache(XmlTypeConverter.createDuration("PT10S"));
+        custom.setClassName("com.example.FakeSecretsProvider");
+
+        final String value = "example";
+
+        final AtomicInteger counter = new AtomicInteger(0);
+
+        SecretsProvider<CustomSecretsProviderType> provider = new SecretsProvider<>() {
+
+            @Override
+            public @NotNull String getIdentifier() {
+                return custom.getIdentifier();
+            }
+
+            @Override
+            public CustomSecretsProviderType getConfiguration() {
+                return custom;
+            }
+
+            @Override
+            public String getSecretString(@NotNull String key) throws EncryptionException {
+                counter.incrementAndGet();
+
+                return value;
+            }
+        };
+
+        CacheableSecretsProviderDelegate<CustomSecretsProviderType> delegate =
+                new CacheableSecretsProviderDelegate<>(provider, custom.getCache());
+
+        final String key = "key";
+
+        // first attempt
+        AssertJUnit.assertEquals(value, delegate.getSecretString(key));
+        AssertJUnit.assertEquals(1, counter.get());
+
+        // second attempt should be cached
+        AssertJUnit.assertEquals(value, delegate.getSecretString(key));
+        AssertJUnit.assertEquals(1, counter.get());
+
+        Clock.get().overrideOffset(20000L);
+
+        // third attempt should not be cached, because the cache has expired
+        AssertJUnit.assertEquals(value, delegate.getSecretString(key));
+        AssertJUnit.assertEquals(2, counter.get());
+
+        // fourth attempt should be cached
+        AssertJUnit.assertEquals(value, delegate.getSecretString(key));
+        AssertJUnit.assertEquals(2, counter.get());
+
+        Clock.get().resetOverride();
     }
 }

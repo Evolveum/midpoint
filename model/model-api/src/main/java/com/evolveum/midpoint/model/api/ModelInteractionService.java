@@ -144,7 +144,7 @@ public interface ModelInteractionService {
      * @param object object to edit
      * @return schema with correctly set constraint parts or null
      */
-    <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(
+    <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinition(
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException;

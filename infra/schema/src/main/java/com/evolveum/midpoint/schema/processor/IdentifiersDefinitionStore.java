@@ -34,9 +34,10 @@ public interface IdentifiersDefinitionStore {
      */
     @NotNull Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers();
 
-    default @NotNull ResourceAttributeDefinition<?> getPrimaryIdentifierRequired() {
+    default <T> @NotNull ResourceAttributeDefinition<T> getPrimaryIdentifierRequired() {
         Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
-        return MiscUtil.extractSingletonRequired(
+        //noinspection unchecked
+        return (ResourceAttributeDefinition<T>) MiscUtil.extractSingletonRequired(
                 primaryIdentifiers,
                 () -> new IllegalStateException("No primary identifier in " + this),
                 () -> new IllegalStateException("Multiple primary identifiers in " + this + ": " + primaryIdentifiers));
@@ -101,8 +102,13 @@ public interface IdentifiersDefinitionStore {
     /**
      * Returns both primary and secondary identifiers.
      */
-    default Collection<? extends ResourceAttributeDefinition<?>> getAllIdentifiers() {
+    default @NotNull Collection<? extends ResourceAttributeDefinition<?>> getAllIdentifiers() {
         return MiscUtil.unionExtends(
                 getPrimaryIdentifiers(), getSecondaryIdentifiers());
+    }
+
+    default @NotNull Collection<QName> getAllIdentifiersNames() {
+        return MiscUtil.union(
+                getPrimaryIdentifiersNames(), getSecondaryIdentifiersNames());
     }
 }

@@ -6,24 +6,15 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil.getDefaultAccountObjectClass;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-
-
 import static java.util.Objects.requireNonNull;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import java.io.File;
-import java.util.*;
-import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.ArrayList;
+import java.util.Collection;
 
-
-import com.evolveum.midpoint.provisioning.api.*;
-
-import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
-
-import org.assertj.core.api.AssertProvider;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -31,26 +22,29 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.*;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-
-import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
+import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -65,73 +59,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class TestDummyShadowMarks extends AbstractBasicDummyTest {
 
     private static final File RESOURCE_DUMMY_SHADOW_MARKS_FILE = new File(TEST_DIR,"resource-dummy-shadow-marks.xml");
-    private static final String BLACKBEARD_USERNAME = "BlackBeard";
-    private static final String DRAKE_USERNAME = "Drake";
-    // Make this ugly by design. it check for some caseExact/caseIgnore cases
-    private static final String ACCOUNT_MURRAY_USERNAME = "muRRay";
-
-    static final long VALID_FROM_MILLIS = 12322342345435L;
-    static final long VALID_TO_MILLIS = 3454564324423L;
-
-    private static final String GROUP_CORSAIRS_NAME = "corsairs";
 
     private static final String MARK_PROTECTED_OID = SystemObjectsType.MARK_PROTECTED.value();
-
-    String piratesIcfUid;
-
-    protected String getMurrayRepoIcfName() {
-        return ACCOUNT_MURRAY_USERNAME;
-    }
-
-    protected String getBlackbeardRepoIcfName() {
-        return BLACKBEARD_USERNAME;
-    }
-
-    protected String getDrakeRepoIcfName() {
-        return DRAKE_USERNAME;
-    }
-
-    protected ItemComparisonResult getExpectedPasswordComparisonResultMatch() {
-        return ItemComparisonResult.NOT_APPLICABLE;
-    }
-
-    protected ItemComparisonResult getExpectedPasswordComparisonResultMismatch() {
-        return ItemComparisonResult.NOT_APPLICABLE;
-    }
-
-    // test000-test100 in the superclasses
-
-
-
-    // test102-test106 in the superclasses
 
     @Override
     protected File getResourceDummyFile() {
         return RESOURCE_DUMMY_SHADOW_MARKS_FILE;
     }
-
-
-    protected Integer getTest18xApproxNumberOfSearchResults() {
-        return 5;
-    }
-
-    protected String[] getSortedUsernames18x() {
-        return new String[] { transformNameFromResource("Will"), "carla", "daemon", "meathook", transformNameFromResource("morgan") };
-    }
-
-
-
-
-
-
-
-
-
-    // test28x in TestDummyCaseIgnore
-
-
-
-    // test4xx reserved for subclasses
 
     @Test
     public void test200MarkShadowProtected() throws Exception {
@@ -141,7 +75,7 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         // WHEN
         PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
 
-        assertNull("" + account + " is not protected", account.asObjectable().isProtectedObject());
+        assertNull(account + " is not protected", account.asObjectable().isProtectedObject());
 
         PolicyStatementType policyStat = new PolicyStatementType()
                 .markRef(SystemObjectsType.MARK_PROTECTED.value(), MarkType.COMPLEX_TYPE)
@@ -157,7 +91,7 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         var accountAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
 
         assertEquals("Provisioning: Effective mark references Protected", MARK_PROTECTED_OID, accountAfter.asObjectable().getEffectiveMarkRef().get(0).getOid());
-        assertEquals("" + accountAfter + " is not protected", Boolean.TRUE, accountAfter.asObjectable().isProtectedObject());
+        assertEquals(accountAfter + " is not protected", Boolean.TRUE, accountAfter.asObjectable().isProtectedObject());
 
         var accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, result);
         assertEquals("Repository: Effective mark references Protected", MARK_PROTECTED_OID, accountRepo.asObjectable().getEffectiveMarkRef().get(0).getOid());
@@ -172,9 +106,9 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
+        var account = provisioningService.getShadow(ACCOUNT_DAEMON_OID, null, task, result);
 
-        assertEquals("" + account + " is not protected", Boolean.TRUE, account.asObjectable().isProtectedObject());
+        assertTrue(account + " is not protected", account.isProtectedObject());
         checkUniqueness(account);
 
         assertSuccess(result);
@@ -195,9 +129,7 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
         ResourceObjectClassDefinition defaultAccountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
-        //noinspection unchecked
-        ResourceAttributeDefinition<String> fullnameAttrDef =
-                (ResourceAttributeDefinition<String>) defaultAccountDefinition.findAttributeDefinition("fullname");
+        ResourceAttributeDefinition<String> fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
         ResourceAttribute<String> fullnameAttr = fullnameAttrDef.instantiate();
         PropertyDelta<String> fullnameDelta = fullnameAttr.createDelta(ItemPath.create(ShadowType.F_ATTRIBUTES,
                 fullnameAttrDef.getItemName()));
@@ -295,6 +227,7 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         return shadow;
     }
 
+    @Test
     protected void testAddProtectedAccount(String username) throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -381,7 +314,7 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
     private @NotNull ResourceOperationCoordinates getDefaultAccountObjectClassCoordinates() {
         return ResourceOperationCoordinates.ofObjectClass(
                 RESOURCE_DUMMY_OID,
-                getDefaultAccountObjectClass(resourceBean));
+                RI_ACCOUNT_OBJECT_CLASS);
     }
 
     /**
@@ -410,7 +343,7 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> accountAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
-        assertNull("" + accountAfter + " is not protected", accountAfter.asObjectable().isProtectedObject());
+        assertNull(accountAfter + " is not protected", accountAfter.asObjectable().isProtectedObject());
 
         var accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, result);
         assertTrue("Repository: Effective marks should be empty", accountRepo.asObjectable().getEffectiveMarkRef().isEmpty());
@@ -418,81 +351,25 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
     }
 
     @Test
-        public void test401DeleteUnprotectedAccountShadow() throws Exception {
-            // GIVEN
-            Task task = getTestTask();
-            OperationResult result = task.getResult();
-            syncServiceMock.reset();
+    public void test401DeleteUnprotectedAccountShadow() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        syncServiceMock.reset();
 
 
-            when();
+        when();
 
-            provisioningService.deleteObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, null, task, result);
-            assertSuccess(result);
+        provisioningService.deleteObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, null, task, result);
+        assertSuccess(result);
 
-            syncServiceMock.assertSingleNotifySuccessOnly();
-            assertSteadyResource();
-        }
-
-
-    // test999 shutdown in the superclass
-
-    @SuppressWarnings("SameParameterValue")
-    protected void checkCachedAccountShadow(
-            PrismObject<ShadowType> shadowType,
-            OperationResult parentResult,
-            boolean fullShadow,
-            XMLGregorianCalendar startTs,
-            XMLGregorianCalendar endTs) throws SchemaException, ConfigurationException {
-        checkAccountShadow(shadowType, parentResult, fullShadow);
-    }
-
-    private void checkEntitlementShadow(
-            PrismObject<ShadowType> shadow, OperationResult parentResult, String objectClassLocalName, boolean fullShadow)
-            throws SchemaException, ConfigurationException {
-        ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
-        ShadowUtil.checkConsistence(shadow, parentResult.getOperation());
-        IntegrationTestTools.checkEntitlementShadow(
-                shadow.asObjectable(),
-                resourceBean,
-                repositoryService,
-                checker,
-                objectClassLocalName,
-                getUidMatchingRule(),
-                prismContext,
-                parentResult);
+        syncServiceMock.assertSingleNotifySuccessOnly();
+        assertSteadyResource();
     }
 
     @SuppressWarnings("ConstantConditions")
     private void checkAllShadows() throws SchemaException, ConfigurationException {
         ObjectChecker<ShadowType> checker = null;
-        IntegrationTestTools.checkAllShadows(resourceBean, repositoryService, checker, prismContext);
-    }
-
-    protected void checkRepoEntitlementShadow(PrismObject<ShadowType> repoShadow) {
-        ProvisioningTestUtil.checkRepoEntitlementShadow(repoShadow);
-    }
-
-    protected void assertSyncOldShadow(PrismObject<? extends ShadowType> oldShadow, String repoName) {
-        assertSyncOldShadow(oldShadow, repoName, 2);
-    }
-
-    void assertSyncOldShadow(PrismObject<? extends ShadowType> oldShadow, String repoName, Integer expectedNumberOfAttributes) {
-        assertNotNull("Old shadow missing", oldShadow);
-        assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-        PrismAsserts.assertClass("old shadow", ShadowType.class, oldShadow);
-        ShadowType oldShadowType = oldShadow.asObjectable();
-        ResourceAttributeContainer attributesContainer = ShadowUtil
-                .getAttributesContainer(oldShadowType);
-        assertNotNull("No attributes container in old shadow", attributesContainer);
-        Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
-        assertFalse("Attributes container is empty", attributes.isEmpty());
-        if (expectedNumberOfAttributes != null) {
-            assertEquals("Unexpected number of attributes", (int) expectedNumberOfAttributes, attributes.size());
-        }
-        ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(SchemaConstants.ICFS_NAME);
-        assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
-        assertEquals("Wrong value of ICF name attribute in old  shadow", repoName,
-                icfsNameAttribute.getRealValue());
+        IntegrationTestTools.checkAllShadows(resourceBean, repositoryService, checker);
     }
 }

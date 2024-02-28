@@ -2,6 +2,7 @@
 :page-nav-title: Connector Host
 :page-display-order: 1400
 :page-toc: top
+:page-keywords: [ 'rest', 'connector', 'host', 'endpoint' ]
 
 == Description
 

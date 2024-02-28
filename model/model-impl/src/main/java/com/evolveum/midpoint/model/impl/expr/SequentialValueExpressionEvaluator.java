@@ -112,8 +112,9 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
     @NotNull
     private Item<V, D> addValueToOutputProperty(Object value) throws SchemaException {
         //noinspection unchecked
-        Item<V, D> output = outputDefinition.instantiate();
+        Item<V, D> output = (Item<V, D>) outputDefinition.instantiate();
         if (output instanceof PrismProperty) {
+            //noinspection unchecked
             ((PrismProperty<Object>) output).addRealValue(value);
         } else {
             throw new UnsupportedOperationException("Can only provide values of property, not " + output.getClass());

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.query.PreparedQuery;
 import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
@@ -49,7 +50,7 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
@@ -182,7 +183,7 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
             assertMessageContains(e.getMessage(), "attributes/drink");
         }
         var coordinates = "resourceRef matches (oid = '10000000-0000-0000-0000-000000000004') "
-          + "and kind = 'account' and intent = 'default' )";
+                + "and kind = 'account' and intent = 'default'";
 
         var query = TypedQuery.parse(ShadowType.class, baseQuery + " and " + coordinates);
         var result = modelService.searchObjects(query, getTestTask(), createOperationResult());

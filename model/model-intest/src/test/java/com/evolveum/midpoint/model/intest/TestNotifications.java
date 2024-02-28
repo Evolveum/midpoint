@@ -181,7 +181,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -336,7 +336,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 

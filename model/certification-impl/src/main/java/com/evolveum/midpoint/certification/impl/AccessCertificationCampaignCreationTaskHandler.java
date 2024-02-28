@@ -57,15 +57,12 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
 
         OperationResult opResult = task.getResult().createSubresult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
-        TaskRunResult runResult = new TaskRunResult();
 
         String definitionOid = task.getObjectOid();
         if (definitionOid == null) {
             LOGGER.error("No definition OID specified in the task");
             opResult.recordFatalError("No definition OID specified in the task");
-            runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return runResult;
+            return TaskRunResult.permanentFatalError();
         }
 
         opResult.addContext("definitionOid", definitionOid);
@@ -78,9 +75,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
         } catch (Exception e) {
             LoggingUtils.logException(LOGGER, "Error while executing 'create campaign' task handler", e);
             opResult.recordFatalError("Error while executing 'create campaign' task handler: " + e.getMessage(), e);
-            runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return runResult;
+            return TaskRunResult.permanentFatalError();
         }
 
         Operation op = task.recordIterativeOperationStart(campaign.asPrismObject());
@@ -90,6 +85,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
 
             op.succeeded();
             opResult.computeStatus();
+            TaskRunResult runResult = new TaskRunResult();
             runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
             runResult.setOperationResultStatus(OperationResultStatus.SUCCESS);
             runResult.setProgress(task.getLegacyProgress()+1);
@@ -99,9 +95,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
             op.failed(e);
             LoggingUtils.logException(LOGGER, "Error while executing 'create campaign' task handler", e);
             opResult.recordFatalError("Error while executing 'create campaign' task handler: "+e.getMessage(), e);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
-            return runResult;
+            return TaskRunResult.permanentFatalError();
         }
     }
 }

@@ -39,7 +39,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 
@@ -1675,9 +1674,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             String resourceOid, ShadowKindType kind, String intent, boolean add) throws SchemaException {
         Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add(createAssignmentModification(resourceOid, kind, intent, add));
-        ObjectDelta<F> userDelta = prismContext.deltaFactory().object()
+        return prismContext.deltaFactory().object()
                 .createModifyDelta(focusOid, modifications, type);
-        return userDelta;
     }
 
     protected <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(
@@ -1948,6 +1946,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return getShadowModel(accountOid, null, true);
     }
 
+    // TODO better name
+    protected @NotNull AbstractShadow getAbstractShadowModel(String accountOid)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return AbstractShadow.of(getShadowModel(accountOid, null, true));
+    }
+
     protected PrismObject<ShadowType> getShadowModelNoFetch(String accountOid)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -2074,7 +2079,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ResourceObjectDefinition rOcDef = intent != null ?
                 rSchema.findObjectDefinitionRequired(kind, intent) :
                 rSchema.findDefaultDefinitionForKindRequired(kind);
-        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource, false);
+        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource, false, false);
         List<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, options, task, result);
         if (shadows.isEmpty()) {
             return null;
@@ -3125,7 +3130,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ResourceType resourceType,
             QName objectClass,
             MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, false);
+        assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
         IntegrationTestTools.assertProvisioningShadow(accountShadow, ResourceAttributeDefinition.class, objectClass);
     }
 
@@ -4555,8 +4560,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 startTime, endTime, userDisableTimestamp);
     }
 
-    protected void assertEnableTimestampShadow(PrismObject<? extends ShadowType> shadow,
-            XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+    protected void assertEnableTimestampShadow(
+            RawRepoShadow shadow, XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+        assertEnableTimestampShadow(shadow.getPrismObject(), startTime, endTime);
+    }
+
+    protected void assertEnableTimestampShadow(
+            PrismObject<? extends ShadowType> shadow, XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
         ActivationType activationType = shadow.asObjectable().getActivation();
         assertNotNull("No activation in " + shadow, activationType);
         XMLGregorianCalendar userDisableTimestamp = activationType.getEnableTimestamp();

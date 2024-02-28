@@ -63,24 +63,24 @@ public class TestDummyCaseIgnore extends TestDummy {
     }
 
     @Override
-    protected String getWillRepoIcfName() {
+    protected String getWillRepoIcfNameNorm() {
         return "will";
     }
 
-    @Override
-    protected String getMurrayRepoIcfName() {
-        return StringUtils.lowerCase(super.getMurrayRepoIcfName());
-    }
-
-    @Override
-    protected String getBlackbeardRepoIcfName() {
-        return StringUtils.lowerCase(super.getBlackbeardRepoIcfName());
-    }
-
-    @Override
-    protected String getDrakeRepoIcfName() {
-        return StringUtils.lowerCase(super.getDrakeRepoIcfName());
-    }
+//    @Override
+//    protected String getMurrayRepoIcfName() {
+//        return StringUtils.lowerCase(super.getMurrayRepoIcfName());
+//    }
+//
+//    @Override
+//    protected String getBlackbeardRepoIcfName() {
+//        return StringUtils.lowerCase(super.getBlackbeardRepoIcfName());
+//    }
+//
+//    @Override
+//    protected String getDrakeRepoIcfName() {
+//        return StringUtils.lowerCase(super.getDrakeRepoIcfName());
+//    }
 
     @Override
     protected MatchingRule<String> getUidMatchingRule() {
@@ -96,14 +96,14 @@ public class TestDummyCaseIgnore extends TestDummy {
     public void test175SearchUidCase() throws Exception {
         testSearchIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_UID, "wIlL", null, true,
-                transformNameFromResource("Will"));
+                getWillNameOnResource());
     }
 
     @Test
     public void test176SearchUidCaseNoFetch() throws Exception {
         testSearchIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_UID, "wIlL", GetOperationOptions.createNoFetch(), false,
-                transformNameFromResource("Will"));
+                getWillNameOnResource());
     }
 
     /**
@@ -138,7 +138,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
         assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
 
@@ -209,7 +209,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
         assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
 

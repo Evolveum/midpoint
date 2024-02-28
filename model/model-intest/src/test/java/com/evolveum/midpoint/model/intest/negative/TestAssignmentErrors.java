@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.negative;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_PASSWORD;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -129,7 +131,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertTrue("No fullname read", fullnameDef.canRead());
 
         assertNull("The _PASSWORD_ attribute sneaked into schema",
-                accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+                accountDef.findAttributeDefinition(ICFS_PASSWORD));
     }
 
     /**

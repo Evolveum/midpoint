@@ -2019,7 +2019,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObjectDefinition<ShadowType> rOcDef = modelInteractionService.getEditObjectDefinition(shadow, null, task, result);
-        shadow.applyDefinition(rOcDef, true);
+        shadow.applyDefinition(rOcDef);
 
         ResourceAttributeContainer resourceAttributeCOntainer = ShadowUtil.getAttributesContainer(shadow);
         ResourceObjectDefinition containerDef = resourceAttributeCOntainer.getDefinition().getComplexTypeDefinition();

@@ -200,40 +200,42 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * connector instance.
      */
     @Override
-    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String instanceName, String instanceDescription)
+    public ConnectorInstance createConnectorInstance(ConnectorType connectorBean, String instanceName, String instanceDescription)
             throws ObjectNotFoundException, SchemaException {
 
-        ConnectorInfo cinfo = getConnectorInfo(connectorType);
+        ConnectorInfo cinfo = getConnectorInfo(connectorBean);
 
         if (cinfo == null) {
-            LOGGER.error("Failed to instantiate {}", ObjectTypeUtil.toShortString(connectorType));
-            LOGGER.debug("Connector key: {}, host: {}", getConnectorKey(connectorType),
-                    ObjectTypeUtil.toShortString(connectorType));
-            LOGGER.trace("Connector object: {}", ObjectTypeUtil.dump(connectorType));
-            if (connectorType.getConnectorHostRef() != null) {
-                if (connectorType.getConnectorHostRef().asReferenceValue().getObject() == null) {
-                    LOGGER.trace("Connector host ref: {}", connectorType.getConnectorHostRef());
+            LOGGER.error("Failed to instantiate {}", ObjectTypeUtil.toShortString(connectorBean));
+            LOGGER.debug("Connector key: {}, host: {}", getConnectorKey(connectorBean),
+                    ObjectTypeUtil.toShortString(connectorBean));
+            LOGGER.trace("Connector object: {}", ObjectTypeUtil.dump(connectorBean));
+            if (connectorBean.getConnectorHostRef() != null) {
+                if (connectorBean.getConnectorHostRef().asReferenceValue().getObject() == null) {
+                    LOGGER.trace("Connector host ref: {}", connectorBean.getConnectorHostRef());
                 } else {
-                    LOGGER.trace("Connector host object:\n{}", connectorType.getConnectorHostRef().asReferenceValue().getObject().debugDump(1));
+                    LOGGER.trace("Connector host object:\n{}", connectorBean.getConnectorHostRef().asReferenceValue().getObject().debugDump(1));
                 }
             }
             // TODO Is this really ObjectNotFoundException?
             throw new ObjectNotFoundException(
                     String.format(
                             "The classes (JAR) of %s were not found by the ICF framework; bundle=%s connector type=%s, version=%s",
-                            ObjectTypeUtil.toShortString(connectorType),
-                            connectorType.getConnectorBundle(),
-                            connectorType.getConnectorType(),
-                            connectorType.getConnectorVersion()));
+                            ObjectTypeUtil.toShortString(connectorBean),
+                            connectorBean.getConnectorBundle(),
+                            connectorBean.getConnectorType(),
+                            connectorBean.getConnectorVersion()));
         }
 
-        PrismSchema connectorSchema = UcfUtil.getConnectorSchema(connectorType, prismContext);
-        if (connectorSchema == null) {
-            connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
+        PrismSchema connectorSchema;
+        var storedConnectorSchema = UcfUtil.getConnectorSchema(connectorBean, prismContext);
+        if (storedConnectorSchema != null) {
+            connectorSchema = storedConnectorSchema;
+        } else {
+            connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorBean);
         }
 
-        ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorType,
-                connectorSchema, protector, localizationService);
+        ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorBean, connectorSchema);
         connectorImpl.setDescription(instanceDescription);
         connectorImpl.setInstanceName(instanceName);
 

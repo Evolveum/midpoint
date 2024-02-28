@@ -264,15 +264,16 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     }
 
     @Test
-    public void test140AddDeleteAccountSparrow() throws Exception {
+    public void test140DeleteAccountSparrow() throws Exception {
         // GIVEN
-        OperationResult result = getTestOperationResult();
+        var task = getTestTask();
+        OperationResult result = task.getResult();
 
         try {
 
-            provisioningService.deleteObject(ShadowType.class, ACCOUNT_SPARROW_OID, null, null, taskManager.createTaskInstance(), result);
+            provisioningService.deleteObject(ShadowType.class, ACCOUNT_SPARROW_OID, null, null, task, result);
 
-            AssertJUnit.fail("addObject succeeded unexpectedly");
+            AssertJUnit.fail("deleteObject succeeded unexpectedly");
         } catch (ConfigurationException e) {
             displayExpectedException(e);
         }
@@ -583,6 +584,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
                 .assertNotDead();
     }
 
+    // the object does not really exist on resource!
     @Test
     public void test540DeleteObject() throws Exception {
         // GIVEN
@@ -630,7 +632,8 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         displayDumpable("Object change", delta);
 
         // WHEN
-        provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
+        provisioningService.modifyObject(
+                ShadowType.class, objectChange.getOid(),
                 delta.getModifications(), null, null, task, result);
 
         // THEN
