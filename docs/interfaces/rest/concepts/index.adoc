@@ -33,7 +33,7 @@ Basic concepts of the interface are described here:
 For the Supported Endpoints and Operations please have a look here:
 
 - xref:/midpoint/reference/interfaces/rest/operations[Operations]
-- xref:/midpoint/reference/interfaces/rest/concepts/endpoints/[REST Endpoints]
+- xref:/midpoint/reference/interfaces/rest/endpoints/[REST Endpoints]
 
 
 == See Also
