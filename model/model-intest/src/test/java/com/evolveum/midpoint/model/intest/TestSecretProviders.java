@@ -11,8 +11,6 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.evolveum.midpoint.common.Clock;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -21,6 +19,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.secrets.CacheableSecretsProviderDelegate;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -54,11 +53,10 @@ public class TestSecretProviders extends AbstractInitializedModelIntegrationTest
      */
     @Test
     public void test110ProtectedStringInUser() throws Exception {
-        final String ENV_PREFIX = "MP_";
-        final String ENV_VAR_NAME = "USER_PASSWORD";
+        final String ENV_VAR_NAME = "MP_USER_PASSWORD";
         final String ENV_VAR_VALUE = "qwe123";
 
-        System.setProperty(ENV_PREFIX + ENV_VAR_NAME, ENV_VAR_VALUE);
+        System.setProperty(ENV_VAR_NAME, ENV_VAR_VALUE);
 
         ProtectedStringType ps = createProtectedString("env-provider", ENV_VAR_NAME);
 
@@ -92,14 +90,15 @@ public class TestSecretProviders extends AbstractInitializedModelIntegrationTest
                     "No secrets provider with identifier non-existing-provider found", ex.getMessage());
         }
 
-        ProtectedStringType nonExistingKey = createProtectedString("env-provider", "NON_EXISTING_KEY");
+        final String nonExisting = "MP_NON_EXISTING_KEY";
+        ProtectedStringType nonExistingKey = createProtectedString("env-provider", nonExisting);
         try {
             protector.decryptString(nonExistingKey);
             AssertJUnit.fail("Expected encryption exception");
         } catch (EncryptionException ex) {
             AssertJUnit.assertEquals(
                     "Wrong message",
-                    "No secret with key NON_EXISTING_KEY found in provider env-provider", ex.getMessage());
+                    "No secret with key " + nonExisting + " found in provider env-provider", ex.getMessage());
         }
     }
 

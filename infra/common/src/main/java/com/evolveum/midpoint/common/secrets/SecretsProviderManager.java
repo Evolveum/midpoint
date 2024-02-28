@@ -125,13 +125,6 @@ public class SecretsProviderManager {
         }
 
         SecretsProvider<?> provider = createProviderImpl(configuration);
-        if (provider == null) {
-            return null;
-        }
-
-        if (configuration.getCache() == null) {
-            return provider;
-        }
 
         return new CacheableSecretsProviderDelegate<>(provider, configuration.getCache());
     }

@@ -624,7 +624,7 @@
     <secretsProviders>
         <environmentVariables>
             <identifier>env-provider</identifier>
-            <prefix>MP_</prefix>
+            <allowKeyPrefix>MP_</allowKeyPrefix>
         </environmentVariables>
         <properties>
             <identifier>properties-provider</identifier>

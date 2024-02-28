@@ -1939,10 +1939,6 @@
                         <trimStackTrace>false</trimStackTrace>
                         <!-- See https://issues.apache.org/jira/browse/SUREFIRE-1588 -->
                         <useSystemClassLoader>false</useSystemClassLoader>
-                        <environmentVariables>
-                            <!-- env variable to test environment variables provider, it's not used anywhere for login/encryption -->
-                            <MP_USER_PASSWORD>qwe123</MP_USER_PASSWORD>
-                        </environmentVariables>
                         <systemPropertyVariables>
                             <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
                             <midpoint.home>target/midpoint-home</midpoint.home>
@@ -1989,6 +1985,10 @@
                     </executions>
                     <configuration>
                         <redirectTestOutputToFile>${redirectTestOutputToFile}</redirectTestOutputToFile>
+                        <environmentVariables>
+                            <!-- env variable to test environment variables provider, it's not used anywhere for login/encryption -->
+                            <MP_USER_PASSWORD>qwe123</MP_USER_PASSWORD>
+                        </environmentVariables>
                         <systemPropertyVariables>
                             <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
                             <midpoint.home>target/midpoint-home</midpoint.home>

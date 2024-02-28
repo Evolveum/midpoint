@@ -690,7 +690,7 @@
         </properties>
         <environmentVariables>
             <identifier>env-provider</identifier>
-            <prefix>MP_</prefix>
+            <allowKeyPrefix>MP_</allowKeyPrefix>
         </environmentVariables>
     </secretsProviders>
 </systemConfiguration>
