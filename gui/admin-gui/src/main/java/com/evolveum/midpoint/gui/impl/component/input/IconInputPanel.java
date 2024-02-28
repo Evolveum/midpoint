@@ -20,6 +20,9 @@ import org.apache.wicket.model.IModel;
 import java.util.ArrayList;
 import java.util.List;
 
+/***
+ * Panel for Icon css class with insight. We need define abstract method createPanel for InputPanel.
+ */
 public abstract class IconInputPanel extends InputPanel {
 
     private final String ID_INSIGHT = "insight";
@@ -39,6 +42,9 @@ public abstract class IconInputPanel extends InputPanel {
         initLayout();
     }
 
+    /***
+     * Method for creating input panel for string field.
+     */
     protected abstract InputPanel createPanel(String idPanel);
 
     private void initLayout() {

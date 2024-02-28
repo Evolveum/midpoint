@@ -18,6 +18,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 
+/***
+ * Factory for Css class of IconType container. Factory creating basic text input panel with insight.
+ */
 @Component
 public class IconCssClassPanelFactory extends TextPanelFactory<String> implements Serializable {
 
