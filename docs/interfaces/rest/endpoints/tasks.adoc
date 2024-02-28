@@ -2,6 +2,7 @@
 :page-nav-title: Task
 :page-display-order: 600
 :page-toc: top
+:page-keywords: [ 'rest', 'task', 'endpoint' ]
 
 == Description
 
@@ -13,7 +14,6 @@ Task objects are a part of the REST API web resources.
 ----
 tasks/
 ----
-
 
 == Operations And Examples
 
@@ -79,8 +79,6 @@ include::../operations/examples/raw/task-op-resume.adoc[]
 == Common Use-case Examples
 
 1.
-
-
 
 == JSON Example
 

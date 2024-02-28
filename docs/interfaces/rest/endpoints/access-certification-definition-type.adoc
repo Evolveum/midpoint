@@ -2,7 +2,7 @@
 :page-nav-title: Access Certification Definition
 :page-display-order: 1000
 :page-toc: top
-
+:page-keywords: [ 'rest', 'certification', 'definition' ,'endpoint' ]
 
 == Description
 

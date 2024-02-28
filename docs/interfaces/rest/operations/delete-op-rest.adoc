@@ -2,6 +2,7 @@
 :page-nav-title: Delete
 :page-display-order: 400
 :page-toc: top
+:page-keywords: [ 'rest', 'delete', 'opeation' ]
 
 == Delete With Rest
 Request to delete a midPoint object.
@@ -28,7 +29,6 @@ Regarding authorization type, the "Basic" Authorization header should be used.
 ----
 Authorization: Basic {Base64EncodedCredentials}
 ----
-
 
 === Body
 

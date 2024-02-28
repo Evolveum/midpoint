@@ -2,6 +2,7 @@
 :page-nav-title: Case
 :page-display-order: 1300
 :page-toc: top
+:page-keywords: [ 'rest', 'case' ,'endpoint' ]
 
 == Description
 
@@ -17,11 +18,6 @@ cases/
 == Operations And Examples
 
 The Cases endpoint operations and examples.
-// === Create Case Objects
-// // todo ?
-// include::../operations/examples/raw/create-case-assign-employee.adoc[]
-//
-// - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
 
 === Get Case Objects
 

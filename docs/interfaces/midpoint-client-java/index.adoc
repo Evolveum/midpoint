@@ -155,7 +155,11 @@ T invokeGet(operation) {
 
 === Object References
 
-TODO: redirects (e.g. add user)
+When a new object is created, the post operation it-self gets a response with an empty body. Yet amongst
+the header information we can find the *Location* header. From this we are capable of constructing the
+reference for the newly created object.
+
+The object reference itself can be then used to fetch the object via a get operation.
 
 [source,java]
 ----
@@ -163,9 +167,6 @@ ObjectReference<UserType> newUserRef = rest.users().add(user).post();
 String newUserOid = newUserRef.getOid();
 UserType newUser = newUserRef.get();  // This may invoke remote GET operation
 ----
-
-TODO: redirects (e.g. add user)
-
 
 === Asynchronous Operations and Redirects
 

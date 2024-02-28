@@ -1,5 +1,5 @@
 = Get Users with filter query
-:page-nav-title: Get User Self
+:page-nav-title: Get User with filter query
 :page-display-order: 300
 :page-toc: top
 

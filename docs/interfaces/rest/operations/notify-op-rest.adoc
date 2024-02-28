@@ -1,13 +1,13 @@
 = Notify Change Operations
 :page-nav-title: Notify Change
-:page-display-order: 200
+:page-display-order: 550
 :page-toc: top
-
+:page-keywords: [ 'rest', 'notify', 'operation' ]
 
 == Description
 
 Notify Change operation which can be used to "notify" midPoint of some change event which
-occurred on a resource. This is usable when the actuall communication with the resource
+occurred on a resource. This is usable when the actual communication with the resource
 costs too many resources, is unsafe, slow or some other factors are against it.
 
 == Request

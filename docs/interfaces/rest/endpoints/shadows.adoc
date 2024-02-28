@@ -2,6 +2,7 @@
 :page-nav-title: Shadows
 :page-display-order: 800
 :page-toc: top
+:page-keywords: [ 'rest', 'shadow', 'endpoint' ]
 
 == Description
 

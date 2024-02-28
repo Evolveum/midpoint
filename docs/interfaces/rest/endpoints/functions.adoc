@@ -2,6 +2,7 @@
 :page-nav-title: Function Library
 :page-display-order: 1800
 :page-toc: top
+:page-keywords: [ 'rest', 'function', 'library','endpoint' ]
 
 == Description
 

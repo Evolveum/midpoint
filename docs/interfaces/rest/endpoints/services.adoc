@@ -2,6 +2,7 @@
 :page-nav-title: Service
 :page-display-order: 500
 :page-toc: top
+:page-keywords: [ 'rest', 'service', 'endpoint' ]
 
 == Description
 
@@ -15,17 +16,41 @@ of the
 services/
 ----
 
-== Applicable Operations
+== Operations And Examples
 
-The Service web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
-present in midPoint. This is apparent in the operations which are available for this type of object.
+The Service type endpoint operations and examples.
 
-// - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
-// - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+=== Create Service type Object
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Service type Objects
+
+Get operation for fetching a single specific object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Service type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Service type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Service type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Service Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
 
 
 == JSON Example
@@ -36,9 +61,21 @@ part of the output, yet it was removed for the purpose of the example.
 .Show JSON Example
 [%collapsible]
 ====
-[source, http]
+[source, json]
 ----
-TODO
+{
+  "service" : {
+    "oid" : "00000000-0000-0000-0000-000000000600",
+    "version" : "1",
+    "name" : "Internal",
+    "description" : "Origin for values provided by midPoint",
+    "metadata" : {},
+    "operationExecution" : {},
+    "iteration" : 0,
+    "iterationToken" : "",
+    "activation" : {}
+  }
+}
 ----
 ====
 

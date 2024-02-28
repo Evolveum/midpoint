@@ -2,6 +2,7 @@
 :page-nav-title: User
 :page-display-order: 200
 :page-toc: top
+:page-keywords: [ 'rest', 'user', 'endpoint' ]
 
 == User Type REST Endpoint
 
@@ -18,7 +19,6 @@ users/
 
 The User web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
 present in midPoint. This is apparent in the operations which are available for this type of object.
-
 
 === Create User Object
 
@@ -69,7 +69,7 @@ include::../operations/examples/raw/user-pwd-reset.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/user-specific-op-rest/[User specific Operations]
 
-=== Generate and Validate operations for User Objects
+=== Generate and Validate Operations for User Objects
 
 Operations to generate or validate values, here we have an example of a simple password generate use-case.
 
@@ -82,7 +82,6 @@ include::../operations/examples/raw/user-pwd-generate.adoc[]
 1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-user/[Create User]
 2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get user based on his unique identificator]
 3. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get Users Data with Direct and Indirect assignments]
-
 
 == UserType JSON Example
 

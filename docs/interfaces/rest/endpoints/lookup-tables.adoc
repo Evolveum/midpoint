@@ -2,6 +2,7 @@
 :page-nav-title: Lookup Table
 :page-display-order: 2100
 :page-toc: top
+:page-keywords: [ 'rest', 'lookup', 'endpoint' ]
 
 == Description
 
@@ -13,7 +14,6 @@ Lookup Table objects are a part of the REST API web resources.
 ----
 lookupTables/
 ----
-
 
 == Operations And Examples
 
