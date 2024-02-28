@@ -1,6 +1,6 @@
 :page-visibility: hidden
 
-.Execute password reset for user
+.Execute password reset by administrator for user
 Please see note:
 
 [NOTE]
@@ -16,7 +16,7 @@ page.
 curl --user administrator:y0uR_P455woR*d -H "Accept: application/json" -H "Content-Type: application/json" -X POST http://localhost:8080/midpoint/ws/rest/users/e297a878-89da-43fa-b67a-d0316975388a/credential --data-binary @pathToMidpointGit\samples\rest\user-pwd-reset.json
 ----
 
-.*Show* data source example for *"Execute password reset for user"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/user-pwd-reset.json[GitHub]
+.*Show* data source example for *"Execute password reset by administrator for user"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/user-pwd-reset.json[GitHub]
 [%collapsible]
 ====
 [source, json]
@@ -31,7 +31,7 @@ curl --user administrator:y0uR_P455woR*d -H "Accept: application/json" -H "Conte
 ====
 The response is an HTTP 200 code in case of success with a response body.
 
-.*Show* example output for *"Execute password reset for user"*
+.*Show* example output for *"Execute password reset by administrator for user"*
 [%collapsible]
 ====
 [source, json]

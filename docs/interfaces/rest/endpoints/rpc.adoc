@@ -30,10 +30,8 @@ include::../operations/examples/raw/validate-value-rpc.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-op-rest.adoc[Generate and Validate value Operation]
 
-
 == Common Use-case Examples
 
-1.
 == JSON Example
 
 .Show JSON Example

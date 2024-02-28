@@ -286,7 +286,7 @@ xref:/midpoint/reference/interfaces/midpoint-client-java/[MidPoint Client Librar
 1. xref:/midpoint/reference/interfaces/rest/operations/examples/search-objects-filter.adoc[List all users with their profile information.]
 2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id.adoc[Get User with the REST API]
 3. xref:/midpoint/reference/interfaces/rest/operations/examples/create-user.adoc[Create User with the REST API]
-4. xref:/midpoint/reference/interfaces/rest/operations/examples/user-pwd-reset.adoc[Password Reset]
+4. xref:/midpoint/reference/interfaces/rest/operations/examples/user-pwd-reset.adoc[Password Reset by Administrator]
 
 == See Also
 

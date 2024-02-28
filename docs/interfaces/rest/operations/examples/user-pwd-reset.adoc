@@ -1,4 +1,4 @@
-= Password Reset Issued by REST request
+= Password Reset By Administrator Issued As A REST Request
 :page-nav-title: REST Password Reset
 :page-display-order: 600
 :page-toc: top
