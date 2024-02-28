@@ -22,3 +22,8 @@ The saved filter appears in the drop-down list (for some older versions re-login
 To apply the filter, just select it from the list.
 
 image::savedFiltersList.png[]
+
+* Limitations
+Save filter functionality is implemented for the object collection view pages (e.g. All users, All roles, etc. and other configured collection views for objects in midPoint).
+It is not available for the tables which contain the list of containers (e.g. assignments, work items, etc.).
+
