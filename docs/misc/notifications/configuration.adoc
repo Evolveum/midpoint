@@ -629,7 +629,7 @@ Not available in expressionFilters.
 
 |===
 
-=== Expression variables for any events
+== Expression Variables
 
 [NOTE]
 ====
@@ -654,21 +654,14 @@ Please refer to the following documentation for the shorter notation rules:
 
 ====
 
+=== Expression Variables for Any Events
+
 |===
 |Usage in Groovy |Usage in Velocity template | Description
 
 |event.getChannel()
 |$event.getChannel()
 |Returns the channel for the event
-
-|event.getFocusPassword()
-|$event.getFocusPassword()
-|Returns focal object password if known (e.g. during password generation)
-
-|event.getPlaintextPassword()
-|event.getPlaintextPassword()
-|Returns resource object password if known (e.g. during password generation)
-
 
 |event.getId()
 |$event.getId()
@@ -716,6 +709,45 @@ TIP: You can find more possible expression variables by inspecting https://docs.
 Search *Full Javadoc* for specific version and then search for
 `com.evolveum.midpoint.notifications.api.events` to start with.
 Other variables are defined for specific event types which are defined as subinterfaces of `Event` package.
+
+=== Expression Variables Specific For Model Event
+
+|===
+|Usage in Groovy |Usage in Velocity template | Description
+
+|event.getChangeType()
+|$event.getChangeType()
+|Returns change type (ADD, MODIFY, DELETE) from the event
+
+|event.getContentAsFormattedList()
+|$event.getContentAsFormattedList()
+|Returns formatted list of changes for this event. NOTE: The content is rendered in plain text and will not use any HTML formatting.
+
+|event.getFocusPassword()
+|$event.getFocusPassword()
+|Returns focal object password if known (e.g. during password generation)
+
+|===
+
+=== Expression Variables Specific For ResourceObject Event
+
+|===
+|Usage in Groovy |Usage in Velocity template | Description
+
+|event.getChangeType()
+|$event.getChangeType()
+|Returns change type (ADD, MODIFY, DELETE) from the event
+
+|event.getContentAsFormattedList()
+|$event.getContentAsFormattedList()
+|Returns formatted list of changes for this event. NOTE: The content is rendered in plain text and will not use any HTML formatting.
+
+|event.getPlaintextPassword()
+|event.getPlaintextPassword()
+|Returns resource object password if known (e.g. during password generation)
+
+|===
+
 ////
 TODO document other expression variables
 
