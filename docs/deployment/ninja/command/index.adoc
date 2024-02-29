@@ -1,4 +1,5 @@
 = Ninja commands
+:page-nav-title: Commands
 
 Ninja currently supports these operations:
 
