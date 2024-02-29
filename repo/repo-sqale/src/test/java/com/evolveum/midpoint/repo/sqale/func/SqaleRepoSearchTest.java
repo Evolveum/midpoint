@@ -27,6 +27,7 @@ import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -2664,9 +2665,12 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test770ExcludeAssignments() throws SchemaException, ObjectNotFoundException {
-        var options = GetOperationOptionsBuilder.create().item(F_ASSIGNMENT).dontRetrieve().build();
-        var user = repositoryService.getObject(UserType.class, user1Oid, options, createOperationResult());
-        assertThat(user.asObjectable().getAssignment()).isEmpty();
+        // Test only if objects are splitted
+        if (QUserMapping.getUserMapping().additionalSelectsByDefault() > 0) {
+            var options = GetOperationOptionsBuilder.create().item(F_ASSIGNMENT).dontRetrieve().build();
+            var user = repositoryService.getObject(UserType.class, user1Oid, options, createOperationResult());
+            assertThat(user.asObjectable().getAssignment()).isEmpty();
+        }
     }
 
     // region reference search

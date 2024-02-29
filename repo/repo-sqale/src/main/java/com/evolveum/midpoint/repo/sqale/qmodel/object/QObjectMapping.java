@@ -551,8 +551,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     @VisibleForTesting
     public int additionalSelectsByDefault() {
-        return (int) separatellySerializedItems.entrySet().stream().filter(e -> e.getValue().includedByDefault).count();
-
+        if (storeSplitted) {
+            return (int) separatellySerializedItems.entrySet().stream().filter(e -> e.getValue().includedByDefault).count();
+        }
+        return 0;
     }
 
     public void setStoreSplitted(boolean storeSplitted) {

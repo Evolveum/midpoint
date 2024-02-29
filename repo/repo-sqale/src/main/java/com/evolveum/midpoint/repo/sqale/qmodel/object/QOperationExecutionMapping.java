@@ -184,8 +184,12 @@ public class QOperationExecutionMapping<OR extends MObject>
                 if (opexContainer == null) {
                     throw new SystemException("Object " + object + " has no operation execution as expected from " + row);
                 }
-                // New format of value
-                if (row.fullObject != null) {
+
+
+                PrismContainerValue<OperationExecutionType> pcv = opexContainer.findValue(row.cid);
+
+                // FIXME: This should be resolved better. Use value from parent.
+                if (row.fullObject != null && pcv == null) {
                     try {
                         var embedded = (PrismContainerValue<OperationExecutionType>) toSchemaObjectEmbedded(rowTuple, entityPath);
                         opexContainer.add(embedded);
@@ -195,7 +199,6 @@ public class QOperationExecutionMapping<OR extends MObject>
                     }
                 }
 
-                PrismContainerValue<OperationExecutionType> pcv = opexContainer.findValue(row.cid);
                 if (pcv == null) {
                     throw new SystemException("Object " + object + " has no operation execution with ID " + row.cid);
 
