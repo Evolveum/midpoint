@@ -10,13 +10,13 @@ NOTE: For version 4.4 to 4.7  see xref:/midpoint/reference/repository/native-pos
 
 To use midPoint with Native PostgreSQL repository you need to:
 
-. Get the midPoint distribution and install it as described xref:/midpoint/install/distribution/[here];
+. Get the midPoint distribution and install it as described xref:/midpoint/install/bare-installation/distribution/[here];
 you can stop after unpacking the archive and setting up `MIDPOINT_HOME` environment variable.
 . Install and set up the PostgreSQL database - this is the part covered by the bulk of this document.
 . Prepare `config.xml` to configure midPoint for the Native repository.
 Read xref:/midpoint/reference/repository/configuration/[Repository Configuration] for more information,
 including a complete example of `config.xml` for Native repository.
-. Finally, you can run midPoint; this is described in the rest of the xref:/midpoint/install/distribution/[installation document] mentioned in the first step.
+. Finally, you can run midPoint; this is described in the rest of the xref:/midpoint/install/bare-installation/distribution/[installation document] mentioned in the first step.
 
 == Database setup
 
@@ -275,7 +275,7 @@ The article references this page, but if you finished the steps above in this do
 
 With the database ready and midPoint configuration file referencing the Native repository,
 you can finally run midPoint, e.g. by running `bin/start.sh`.
-More details on running midPoint are mentioned in the xref:/midpoint/install/distribution/[installation document].
+More details on running midPoint are mentioned in the xref:/midpoint/install/bare-installation/distribution/[installation document].
 
 == Versioning and upgrading
 
