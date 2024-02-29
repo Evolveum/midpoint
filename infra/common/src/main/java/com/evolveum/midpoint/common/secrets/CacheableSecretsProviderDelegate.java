@@ -9,6 +9,7 @@ package com.evolveum.midpoint.common.secrets;
 
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.datatype.Duration;
@@ -20,7 +21,13 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecretsProviderType;
 
+/**
+ * Delegate implementation for secret providers that is able to cache the resolved secrets and check keys for allowed prefixes.
+ *
+ * @param <C>
+ */
 public class CacheableSecretsProviderDelegate<C> implements SecretsProvider<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CacheableSecretsProviderDelegate.class);
@@ -33,10 +40,10 @@ public class CacheableSecretsProviderDelegate<C> implements SecretsProvider<C> {
 
     private final long ttl;
 
-    public CacheableSecretsProviderDelegate(@NotNull SecretsProvider<C> delegate, @NotNull Duration duration) {
+    public CacheableSecretsProviderDelegate(@NotNull SecretsProvider<C> delegate, Duration duration) {
         this.delegate = delegate;
 
-        ttl = duration != null ? duration.getTimeInMillis(new Date()) : DEFAULT_TTL;
+        ttl = duration == null || duration.getSign() == -1 ? DEFAULT_TTL : duration.getTimeInMillis(new Date());
     }
 
     @Override
@@ -109,15 +116,28 @@ public class CacheableSecretsProviderDelegate<C> implements SecretsProvider<C> {
 
         ST secret = resolveSecret(key, type);
 
-        if (ttl > 0) {
-            LOGGER.trace("Caching secret for key {}", key);
-            cache.put(key, new CacheValue<>(secret, Clock.get().currentTimeMillis() + ttl));
-        }
+        LOGGER.trace("Caching secret for key {}", key);
+        cache.put(key, new CacheValue<>(secret, Clock.get().currentTimeMillis() + ttl));
 
         return secret;
     }
 
     protected <ST> ST resolveSecret(@NotNull String key, @NotNull Class<ST> type) throws EncryptionException {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Resolving secret for key {} of type {}", key, type);
+        }
+
+        C config = getConfiguration();
+        if (config instanceof SecretsProviderType secretsProvider) {
+            List<String> allowKeyPrefixes = secretsProvider.getAllowKeyPrefix();
+            boolean matched = allowKeyPrefixes.isEmpty() || allowKeyPrefixes.stream().anyMatch(prefix -> key.startsWith(prefix));
+
+            if (!matched) {
+                throw new EncryptionException(
+                        "Key " + key + " is not allowed by the configuration (allowKeyPrefix does not match the key)");
+            }
+        }
+
         if (type == String.class) {
             return (ST) delegate.getSecretString(key);
         } else if (type == ByteBuffer.class) {

@@ -143,8 +143,10 @@ public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
 
     @Override
     protected void assertSerializedObject(String serialized) {
-        if (!serialized.startsWith("<shadow") && !serialized.startsWith("<dummy") && !serialized.startsWith("<user")) {
-            fail("Wrong start of serialized value, was:\n"+serialized);
+        if (PrismContext.LANG_XML.equals(language)) {
+            if (!serialized.startsWith("<shadow") && !serialized.startsWith("<dummy") && !serialized.startsWith("<user")) {
+                fail("Wrong start of serialized value, was:\n" + serialized);
+            }
         }
     }
 }

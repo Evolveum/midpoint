@@ -23,6 +23,8 @@ These are just some examples of the supported kinds of notifications:
 
 * *User notifications* are related to midPoint user record, e.g. its creation, modification or removal.
 
+* *Focal object notifications* are related to midPoint focal objects such as Organizations, Roles or Services, e.g. its creation, modification or removal.
+
 * *Resource object notifications* are related to the objects on resources, e.g. creation, modification, or removal of accounts, groups, etc.
 
 * *Approval notifications* are generated when a work item is created or completed, or when a case is started or finished.
@@ -59,8 +61,10 @@ Custom transport can be also implemented, if needed.
 
 For instructions how to configure notifiers, filters, and transports please see the xref:configuration/[Configuration guide].
 
-// TODO 4.5+ examples with separate transport configuration element
-// TODO 4.5+ examples referencing message templates, consult midpoint/projects/idmatch/notification-redesign.adoc
+For a step by step examples with screenshots please refer to xref:/midpoint/guides/notifications-howto/[].
+
+// 29.2.2024 added separate transport configuration element
+// TODO 4.5+ examples referencing message templates, consult midpoint/projects/idmatch/notification-redesign.adoc - possibly fixed by https://docs.evolveum.com/midpoint/guides/notifications-howto/
 // Example referencing message template should also demonstrate the localized content resolution.
 
 == Some simple examples
@@ -122,12 +126,16 @@ Some examples are shown below:
    </handler>
 
     <!-- configurations suitable for testing - they redirect all notifications to log files; some more real configurations are show below -->
-    <mail>
-        <redirectToFile>mail-notifications.log</redirectToFile>
-    </mail>
-    <sms>
-        <redirectToFile>sms-notifications.log</redirectToFile>
-    </sms>
+    <messageTransportConfiguration>
+        <mail>
+            <name>mail</name>
+            <redirectToFile>mail-notifications.log</redirectToFile>
+        </mail>
+        <sms>
+            <name>sms</name>
+            <redirectToFile>sms-notifications.log</redirectToFile>
+        </sms>
+    </messageTransportConfiguration>
 </notificationConfiguration>
 ----
 
@@ -192,12 +200,16 @@ Some examples are shown below:
        </generalNotifier>
    </handler>
    <!-- configurations suitable for testing - they redirect all notifications to log files; some more real configurations are show below -->
-   <mail>
-        <redirectToFile>mail-notifications.log</redirectToFile>
-   </mail>
-   <sms>
-        <redirectToFile>sms-notifications.log</redirectToFile>
-   </sms>
+    <messageTransportConfiguration>
+        <mail>
+            <name>mail</name>
+            <redirectToFile>mail-notifications.log</redirectToFile>
+        </mail>
+        <sms>
+            <name>sms</name>
+            <redirectToFile>sms-notifications.log</redirectToFile>
+        </sms>
+    </messageTransportConfiguration>
 </notificationConfiguration>
 ----
 
@@ -380,9 +392,12 @@ The description of this example can be found on the next page - xref:general/[Ge
             <transport>mail</transport>
         </generalNotifier>
     </handler>
-    <mail>
-        <redirectToFile>/opt/midpoint/var/log/mails.log</redirectToFile>
-    </mail>
+    <messageTransportConfiguration>
+        <mail>
+            <name>mail</name>
+            <redirectToFile>/opt/midpoint/var/log/mails.log</redirectToFile>
+        </mail>
+    </messageTransportConfiguration>
 </notificationConfiguration>
 ----
 

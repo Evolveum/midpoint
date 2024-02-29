@@ -3524,6 +3524,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="allowKeyPrefix" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Allowed prefix for the secret keys resolved by this provider.
+                        If not specified, all keys are allowed.
+
+                        E.g. "MYAPP_" - provider will only be able to use environment variables that start with "MYAPP_".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -3596,15 +3606,6 @@
         <xsd:complexContent>
             <xsd:extension base="tns:SecretsProviderType">
                 <xsd:sequence>
-                    <xsd:element name="prefix" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Prefix to filter only specific environment variables.
-
-                                E.g. "MYAPP_" - provider will only be able to use environment variables that start with "MYAPP_".
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="useSystemProperties" type="xsd:boolean" minOccurs="0" default="false">
                         <xsd:annotation>
                             <xsd:documentation>
