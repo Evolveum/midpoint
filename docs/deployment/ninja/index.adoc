@@ -79,69 +79,7 @@ If the bundled scripts are used, you can specify the path to the driver with `-j
 
 == Supported operations
 
-Ninja currently supports these operations:
-
-* <<Count>>
-* <<Delete>>
-* <<Download distribution>>
-* <<Export>>
-* <<Export audit>>
-* <<Export mining>>
-* <<Help>>
-* <<Import>>
-* <<Import audit>>
-* <<Info>>
-* <<Initial objects>>
-* <<Keys>>
-* <<Pre-upgrade check>>
-* <<Run SQL>>
-* <<Trace>>
-* <<Upgrade distribution>>
-* <<Upgrade installation>>
-* <<Upgrade objects>>
-* <<Verify>>
-
-:leveloffset: +2
-
-include::command/count.adoc[]
-
-include::command/delete.adoc[]
-
-include::command/download-distribution.adoc[]
-
-include::command/export.adoc[]
-
-include::command/export-audit.adoc[]
-
-include::command/export-mining.adoc[]
-
-include::command/help.adoc[]
-
-include::command/import.adoc[]
-
-include::command/import-audit.adoc[]
-
-include::command/info.adoc[]
-
-include::command/initial-objects.adoc[]
-
-include::command/keys.adoc[]
-
-include::command/pre-upgrade-check.adoc[]
-
-include::command/run-sql.adoc[]
-
-include::command/trace.adoc[]
-
-include::command/upgrade-distribution.adoc[]
-
-include::command/upgrade-installation.adoc[]
-
-include::command/upgrade-objects.adoc[]
-
-include::command/verify.adoc[]
-
-:leveloffset: 0
+Documentation for supported commands is available xref:./command/index.adoc[here].
 
 == FAQ
 
