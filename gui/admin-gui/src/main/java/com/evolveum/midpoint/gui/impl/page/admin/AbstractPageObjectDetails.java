@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -43,7 +42,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -298,7 +296,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         Collection<ExecutedDeltaPostProcessor> preconditionDeltas;
         try {
-            preconditionDeltas = getObjectDetailsModels().collectPreconditionDeltas(result);
+            preconditionDeltas = getObjectDetailsModels().collectPreconditionDeltas(this, result);
         } catch (CommonException ex) {
             result.recordHandledError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);

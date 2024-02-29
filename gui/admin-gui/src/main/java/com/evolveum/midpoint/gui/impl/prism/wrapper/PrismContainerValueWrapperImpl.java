@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -747,10 +746,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(OperationResult result) throws CommonException {
+    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(
+            ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
         Collection<ExecutedDeltaPostProcessor> processors = new ArrayList<>();
         for (ItemWrapper<?, ?> itemWrapper : getItems()) {
-            Collection<ExecutedDeltaPostProcessor> processor = itemWrapper.getPreconditionDeltas(result);
+            Collection<ExecutedDeltaPostProcessor> processor = itemWrapper.getPreconditionDeltas(serviceLocator, result);
             if (processor == null || processor.isEmpty()) {
                 continue;
             }

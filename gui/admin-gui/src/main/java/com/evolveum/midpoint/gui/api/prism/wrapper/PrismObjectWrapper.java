@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.prism.wrapper;
 
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -33,5 +34,5 @@ public interface PrismObjectWrapper<O extends ObjectType> extends PrismContainer
 
     PrismObjectValueWrapper<O> getValue();
 
-    Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(OperationResult result) throws CommonException;
+    Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(ModelServiceLocator serviceLocator, OperationResult result) throws CommonException;
 }

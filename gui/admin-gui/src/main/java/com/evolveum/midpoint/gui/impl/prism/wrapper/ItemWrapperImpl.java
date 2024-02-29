@@ -17,8 +17,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -832,10 +830,11 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     }
 
     @Override
-    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(OperationResult result) throws CommonException {
+    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(
+            ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
         Collection<ExecutedDeltaPostProcessor> processors = new ArrayList<>();
         for (VW value : getValues()) {
-            Collection<ExecutedDeltaPostProcessor> processor = value.getPreconditionDeltas(result);
+            Collection<ExecutedDeltaPostProcessor> processor = value.getPreconditionDeltas(serviceLocator, result);
             if (processor == null || processor.isEmpty()) {
                 continue;
             }

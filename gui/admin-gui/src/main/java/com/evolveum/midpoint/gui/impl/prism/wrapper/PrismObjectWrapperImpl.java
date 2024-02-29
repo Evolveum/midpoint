@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -106,10 +107,11 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
     }
 
     @Override
-    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(OperationResult result) throws CommonException {
+    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(
+            ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
         Collection<ExecutedDeltaPostProcessor> processors = new ArrayList<>();
         for (ItemWrapper<?, ?> itemWrapper : getValue().getItems()) {
-            Collection<ExecutedDeltaPostProcessor> processor = itemWrapper.getPreconditionDeltas(result);
+            Collection<ExecutedDeltaPostProcessor> processor = itemWrapper.getPreconditionDeltas(serviceLocator, result);
             if (processor == null || processor.isEmpty()) {
                 continue;
             }

@@ -13,6 +13,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -132,7 +133,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
     protected ObjectQuery createChooseQuery() {
         ArrayList<String> oidList = new ArrayList<>();
-        ObjectQuery query = getPrismContext().queryFactory().createQuery();
+        ObjectQuery query = PrismContext.get().queryFactory().createQuery();
         // TODO we should add to filter currently displayed value
         // not to be displayed on ObjectSelectionPanel instead of saved value
 

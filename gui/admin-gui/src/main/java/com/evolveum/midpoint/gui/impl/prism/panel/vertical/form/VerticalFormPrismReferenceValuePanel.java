@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.form.CreateObjectForReferencePanel;
 import com.evolveum.midpoint.gui.impl.component.form.ReferenceAutocompletePanel;
 
 import org.apache.wicket.Component;
@@ -18,6 +19,8 @@ import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 
@@ -37,6 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extends PrismReferenceValuePanel<R> {
+
+    private final static String INVALID_FIELD_CLASS = "is-invalid";
 
     public VerticalFormPrismReferenceValuePanel(String id, IModel<PrismReferenceValueWrapperImpl<R>> model, ItemPanelSettings settings) {
         super(id, model, settings);
@@ -103,17 +108,77 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
         Component valuePanel = getValuePanel();
+
+        if (valuePanel instanceof CreateObjectForReferencePanel createObjectPanel) {
+            valuePanel = createObjectPanel.getReferencePanel();
+        }
+
         if (valuePanel instanceof ReferenceAutocompletePanel<?>) {
             FormComponent baseFormComponent = ((ReferenceAutocompletePanel) valuePanel).getBaseFormComponent();
+
+            FeedbackAlerts feedback = getFeedback();
+            if (feedback != null) {
+                feedback.setFilter(new ComponentFeedbackMessageFilter(baseFormComponent));
+            }
+
             baseFormComponent.add(AttributeAppender.append("class", () -> {
                 if (baseFormComponent.hasErrorMessage()) {
-                    return "is-invalid";
+                    return INVALID_FIELD_CLASS;
                 }
                 return "";
             }));
+            baseFormComponent.add(new AjaxFormComponentUpdatingBehavior("change") {
+
+                private boolean lastValidationWasError = false;
+
+                @Override
+                protected void onComponentTag(ComponentTag tag) {
+                    super.onComponentTag(tag);
+                    if (tag.getAttribute("class").contains(INVALID_FIELD_CLASS)) {
+                        lastValidationWasError = true;
+                    }
+                }
+
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    if (lastValidationWasError) {
+                        lastValidationWasError = false;
+                        updateFeedbackPanel(target);
+                        target.focusComponent(null);
+                    }
+                }
+
+                @Override
+                protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                    updateFeedbackPanel(target);
+                }
+            });
         }
     }
+
+//    @Override
+//    protected void onBeforeRender() {
+//        super.onBeforeRender();
+//
+//        Component valuePanel = getValuePanel();
+//        if (valuePanel instanceof CreateObjectForReferencePanel createObjectPanel) {
+//            valuePanel = createObjectPanel.getReferencePanel();
+//        }
+//
+//        if (valuePanel instanceof ReferenceAutocompletePanel<?>) {
+//            FormComponent baseFormComponent = ((ReferenceAutocompletePanel) valuePanel).getBaseFormComponent();
+//            baseFormComponent.add(AttributeAppender.append("class", () -> {
+//                if (baseFormComponent.hasErrorMessage()) {
+//                    return "is-invalid";
+//                }
+//                return "";
+//            }));
+//        }
+//    }
 
     protected boolean isRemoveButtonVisible() {
         if (getModelObject() != null && getModelObject().getOldValue() != null
@@ -128,6 +193,16 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
         Component valuePanel = getValuePanel();
         if (valuePanel instanceof InputPanel) {
             FormComponent baseFormComponent = ((InputPanel) valuePanel).getBaseFormComponent();
+            target.add(baseFormComponent);
+            return;
+        }
+
+        if (valuePanel instanceof CreateObjectForReferencePanel createObjectPanel) {
+            valuePanel = createObjectPanel.getReferencePanel();
+        }
+
+        if (valuePanel instanceof ReferenceAutocompletePanel<?>) {
+            FormComponent baseFormComponent = ((ReferenceAutocompletePanel) valuePanel).getBaseFormComponent();
             target.add(baseFormComponent);
         }
     }

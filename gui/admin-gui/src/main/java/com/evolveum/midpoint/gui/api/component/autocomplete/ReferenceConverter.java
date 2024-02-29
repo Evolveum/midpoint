@@ -66,6 +66,12 @@ public class ReferenceConverter<R extends Referencable> implements IConverter<R>
                 filter.and().type(supportedType);
             }
         }
+        ObjectQuery condition = createChooseQuery();
+        if (condition != null) {
+            filter = filter
+                    .and()
+                    .filter(condition.getFilter());
+        }
         ObjectQuery query = filter.build();
         List<PrismObject<ObjectType>> objectsList = WebModelServiceUtils.searchObjects(
                 type, query, new OperationResult("searchObjects"), pageBase);
@@ -91,6 +97,10 @@ public class ReferenceConverter<R extends Referencable> implements IConverter<R>
             }
         }
         return (R) ref;
+    }
+
+    protected ObjectQuery createChooseQuery() {
+        return null;
     }
 
     @Override

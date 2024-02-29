@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -690,7 +689,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(OperationResult result) {
+    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(ModelServiceLocator serviceLocator, OperationResult result) {
         return null;
     }
 }

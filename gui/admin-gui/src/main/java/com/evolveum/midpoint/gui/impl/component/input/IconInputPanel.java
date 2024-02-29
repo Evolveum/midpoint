@@ -25,8 +25,8 @@ import java.util.List;
  */
 public abstract class IconInputPanel extends InputPanel {
 
-    private final String ID_INSIGHT = "insight";
-    private final String ID_PANEL = "panel";
+    private static final String ID_INSIGHT = "insight";
+    private static final String ID_PANEL = "panel";
 
     private final IModel<String> valueModel;
 

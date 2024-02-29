@@ -263,9 +263,10 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return new ArrayList<>();
     }
 
-    public Collection<ExecutedDeltaPostProcessor> collectPreconditionDeltas(OperationResult result) throws CommonException {
+    public Collection<ExecutedDeltaPostProcessor> collectPreconditionDeltas(
+            ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
         PrismObjectWrapper<O> objectWrapper = getObjectWrapperModel().getObject();
-        Collection<ExecutedDeltaPostProcessor> preconditionDeltas = objectWrapper.getPreconditionDeltas(result);
+        Collection<ExecutedDeltaPostProcessor> preconditionDeltas = objectWrapper.getPreconditionDeltas(serviceLocator, result);
         return preconditionDeltas == null ? new ArrayList<>() : preconditionDeltas;
     }
 

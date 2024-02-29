@@ -9,7 +9,9 @@ package com.evolveum.midpoint.gui.impl.component.form;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -84,7 +87,6 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
 
     private IModel<State> currentState = Model.of();
     private FeedbackAlerts feedback = null;
-//    private LoadableDetachableModel<PrismObjectWrapper<? extends ObjectType>> newObjectModel;
     private final ContainerPanelConfigurationType config;
 
     public CreateObjectForReferencePanel(String id, IModel<PrismReferenceValueWrapperImpl<R>> model, ContainerPanelConfigurationType config) {
@@ -143,6 +145,9 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
                 State newState = State.values()[object];
                 currentState.setObject(newState);
                 getModelObject().setRealValue(null);
+                if (!State.CREATE_NEW.equals(newState)) {
+                    getModelObject().resetNewObjectModel();
+                }
             }
         };
         RadioGroup<Integer> radioGroup = new RadioGroup<>(ID_RADIO_GROUP, radioGroupModel);
@@ -241,10 +246,20 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
 
         WebMarkupContainer panel;
         if (State.CREATE_NEW.equals(currentState.getObject())) {
+
+            OperationResult result = new OperationResult("createNewObjectWrapper");
+            LoadableModel<PrismObjectWrapper<ObjectType>> model =
+                    getModelObject().getNewObjectModel(getContainerConfiguration(), getPageBase(), result).getObjectWrapperModel();
+            if (result.isFatalError()) {
+                getPageBase().showResult(result);
+            }
+
             panel = new VerticalFormPanel(
                     ID_CREATE_NEW_FORM,
-                    getModelObject().getNewObjectModel(getContainerConfiguration(), getPageBase()).getObjectWrapperModel(),
-                    new ItemPanelSettingsBuilder().build(),
+                    model,
+                    new ItemPanelSettingsBuilder()
+                            .mandatoryHandler(this::checkMandatory)
+                            .build(),
                     getContainerConfiguration()) {
                 @Override
                 protected boolean isHeaderVisible() {
@@ -268,6 +283,13 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
         container.addOrReplace(panel);
     }
 
+    private boolean checkMandatory(ItemWrapper<?, ?> itemWrapper) {
+        if (itemWrapper.getItemName().equals(ResourceType.F_NAME)) {
+            return true;
+        }
+        return itemWrapper.isMandatory();
+    }
+
     private Radio<Integer> addRadio(RadioGroup<Integer> radioGroup, String checkId, String labelId, int state, String labelKey) {
         Radio<Integer> radio = new Radio<>(checkId, Model.of(state), radioGroup);
         radioGroup.add(radio);
@@ -288,5 +310,9 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
 
     protected PrismReferenceWrapper<ObjectReferenceType> getParentWrapper() {
         return getModelObject().getParent();
+    }
+
+    public Component getReferencePanel() {
+        return get(createComponentPath(ID_USE_EXISTING_CONTAINER, ID_USE_EXISTING_INPUT));
     }
 }

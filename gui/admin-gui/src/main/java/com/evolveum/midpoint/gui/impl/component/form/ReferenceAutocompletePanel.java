@@ -19,9 +19,12 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 
+import com.evolveum.midpoint.web.component.input.validator.ReferenceAutocompleteValidator;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +32,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 
@@ -59,6 +63,18 @@ public class ReferenceAutocompletePanel<R extends Referencable> extends ValueCho
         label.add(new VisibleBehaviour(this::isButtonLabelVisible));
         getEditButton().add(label);
     }
+
+//    @Override
+//    protected void onBeforeRender() {
+//        super.onBeforeRender();
+//
+//        MidpointForm midpointForm = findParent(MidpointForm.class);
+//        if (midpointForm != null) {
+//            Form<?> form = Form.findForm(midpointForm);
+//            form.add(new ReferenceAutocompleteValidator((AutoCompleteTextPanel)getBaseComponent()));
+//        }
+//    }
+
     protected boolean isButtonLabelVisible() {
         return false;
     }
@@ -131,6 +147,11 @@ public class ReferenceAutocompletePanel<R extends Referencable> extends ValueCho
                     protected boolean isAllowedNotFoundObjectRef() {
                         return ReferenceAutocompletePanel.this.isAllowedNotFoundObjectRef();
                     }
+
+                    @Override
+                    protected ObjectQuery createChooseQuery() {
+                        return ReferenceAutocompletePanel.this.createChooseQuery();
+                    }
                 };
             }
 
@@ -139,6 +160,11 @@ public class ReferenceAutocompletePanel<R extends Referencable> extends ValueCho
                 return false;
             }
         };
+
+        autoComplete.getBaseFormComponent().add(new ReferenceAutocompleteValidator(autoComplete));
+
+        autoComplete.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+
         autoComplete.getBaseFormComponent().add(
                 AttributeAppender.append("class", "border-top-right-radius:0;"));
         autoComplete.getBaseFormComponent().add(

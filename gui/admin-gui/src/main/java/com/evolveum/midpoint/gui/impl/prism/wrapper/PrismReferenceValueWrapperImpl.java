@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.form.CreateObjectForReferencePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -131,48 +131,38 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
     }
 
     @Override
-    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(OperationResult result) throws CommonException {
+    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(
+            ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
         if (newObjectModel == null) {
-            return super.getPreconditionDeltas(result);
+            return super.getPreconditionDeltas(serviceLocator, result);
         }
+        processBeforeCreatingPreconditionDelta(newObjectModel, serviceLocator);
         return Collections.singletonList(new ReferenceExecutedDeltaProcessor(
                 newObjectModel.collectDeltas(result), PrismReferenceValueWrapperImpl.this));
     }
 
+    protected void processBeforeCreatingPreconditionDelta(ObjectDetailsModels<? extends ObjectType> newObjectModel, ModelServiceLocator serviceLocator) {
+    }
+
     public <O extends ObjectType> ObjectDetailsModels<O> getNewObjectModel(
-            ContainerPanelConfigurationType config, PageBase pageBase) {
+            ContainerPanelConfigurationType config, ModelServiceLocator serviceLocator, OperationResult result) {
         if (newObjectModel == null) {
 
-            newObjectModel = createNewObjectModel(config, pageBase);
+            newObjectModel = createNewObjectModel(config, serviceLocator, result);
         }
         return (ObjectDetailsModels<O>) newObjectModel;
     }
 
-    protected  <O extends ObjectType> ObjectDetailsModels<O> createNewObjectModel(ContainerPanelConfigurationType config, PageBase pageBase) {
+    private  <O extends ObjectType> ObjectDetailsModels<O> createNewObjectModel(
+            ContainerPanelConfigurationType config, ModelServiceLocator serviceLocator, OperationResult result) {
         if (newPrismObject == null) {
-            OperationResult result = new OperationResult("createNewObjectWrapper");
 
             try {
-                PrismReferenceWrapper<T> parent = getParent();
-                List<QName> types = parent.getTargetTypes();
-                if (types.size() != 1) {
-                    result.recordFatalError("Cannot create archetype wrapper for new object in reference, because couldn't one type, actual types " + types);
-                    return null;
-                }
-
-                QName type = types.get(0);
-                PrismObjectDefinition<O> def = PrismContext.get().getSchemaRegistry()
-                        .findObjectDefinitionByType(type);
-                if (def == null) {
-                    result.recordFatalError("Cannot create archetype wrapper for new object in reference, because couldn't find def for " + type);
-                    return null;
-                }
-                newPrismObject = def.instantiate();
+                newPrismObject = createNewPrismObject(result);
 
             } catch (SchemaException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot create wrapper for new object in reference \nReason: {]", e, e.getMessage());
                 result.recordFatalError("Cannot create archetype wrapper for new object in reference, because: " + e.getMessage(), e);
-                pageBase.showResult(result);
             }
         }
         LoadableDetachableModel<PrismObject<O>> prismObjectModel = new LoadableDetachableModel<>() {
@@ -181,26 +171,41 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
                 return (PrismObject<O>) newPrismObject;
             }
         };
-        return new ObjectDetailsModels<>(prismObjectModel, pageBase) {
+        return new ObjectDetailsModels<>(prismObjectModel, serviceLocator) {
             @Override
             public List<? extends ContainerPanelConfigurationType> getPanelConfigurations() {
                 return Collections.singletonList(config);
             }
-
-            @Override
-            public void detach() {
-                super.detach();
-            }
         };
     }
 
+    protected <O extends ObjectType> PrismObject<? extends ObjectType> createNewPrismObject(OperationResult result) throws SchemaException {
+        PrismReferenceWrapper<T> parent = getParent();
+        List<QName> types = parent.getTargetTypes();
+        if (types.size() != 1) {
+            result.recordFatalError("Cannot create archetype wrapper for new object in reference, because couldn't one type, actual types " + types);
+            return null;
+        }
+
+        QName type = types.get(0);
+        PrismObjectDefinition<O> def = PrismContext.get().getSchemaRegistry()
+                .findObjectDefinitionByType(type);
+        if (def == null) {
+            result.recordFatalError("Cannot create archetype wrapper for new object in reference, because couldn't find def for " + type);
+            return null;
+        }
+        return def.instantiate();
+    }
+
     public void resetNewObjectModel() {
-        newObjectModel.detach();
+        if (newObjectModel != null) {
+            newObjectModel.detach();
+        }
         newObjectModel = null;
         newPrismObject = null;
     }
 
     public boolean existNewObjectModel() {
-        return newObjectModel != null;
+        return newPrismObject != null;
     }
 }

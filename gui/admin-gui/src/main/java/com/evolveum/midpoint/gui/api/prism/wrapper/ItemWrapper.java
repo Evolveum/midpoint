@@ -15,7 +15,6 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -101,5 +100,5 @@ public interface ItemWrapper<I extends Item<?, ?>, VW extends PrismValueWrapper>
     boolean isValidated();
 
     void setValidated(boolean validated);
-    Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(OperationResult result) throws CommonException;
+    Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(ModelServiceLocator serviceLocator, OperationResult result) throws CommonException;
 }
