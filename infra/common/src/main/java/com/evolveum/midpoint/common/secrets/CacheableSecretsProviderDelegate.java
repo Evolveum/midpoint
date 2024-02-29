@@ -23,6 +23,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecretsProviderType;
 
+/**
+ * Delegate implementation for secret providers that is able to cache the resolved secrets and check keys for allowed prefixes.
+ *
+ * @param <C>
+ */
 public class CacheableSecretsProviderDelegate<C> implements SecretsProvider<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CacheableSecretsProviderDelegate.class);

@@ -15,6 +15,9 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecretsProviderType;
 
+/**
+ * Base implementation of {@link SecretsProvider} interface.
+ */
 public abstract class SecretsProviderImpl<T extends SecretsProviderType> implements SecretsProvider<T> {
 
     private final T configuration;
