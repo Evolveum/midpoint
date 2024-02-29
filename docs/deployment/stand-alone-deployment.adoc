@@ -29,7 +29,7 @@ This is distinct from xref:/midpoint/reference/deployment/midpoint-home-director
 or `midpoint.home`, which contains runtime configuration, logs, etc.
 
 Please have a look at the xref:/midpoint/quickstart/[] page for basic installation instruction for the purposes of midPoint evaluation or demo.
-See xref:/midpoint/install/distribution/[Installing MidPoint Server] page for full installation instructions.
+See xref:/midpoint/install/bare-installation/distribution/[Installing MidPoint Server] page for full installation instructions.
 
 == Run Control
 
@@ -62,7 +62,7 @@ bin/midpoint.sh stop
 ----
 
 The `midpoint.sh` script may provide more run control and diagnostics capabilities in the future.
-See also xref:/midpoint/install/midpoint-sh/[midpoint.sh page].
+See also xref:/midpoint/install/bare-installation/midpoint-sh/[midpoint.sh page].
 
 === Windows
 

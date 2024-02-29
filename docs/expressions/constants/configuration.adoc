@@ -37,7 +37,7 @@ The constants are defined in the midPoint configuration file (config.xml) in xre
 [NOTE]
 ====
 Instead of changing `config.xml` file you can set up the constants also as parameter or environment variables.
-For more information check the xref:/midpoint/install/midpoint-sh.adoc[Start script] docs page.
+For more information check the xref:/midpoint/install/bare-installation/midpoint-sh/[Start script] docs page.
 
 Example of the syntax:
 
