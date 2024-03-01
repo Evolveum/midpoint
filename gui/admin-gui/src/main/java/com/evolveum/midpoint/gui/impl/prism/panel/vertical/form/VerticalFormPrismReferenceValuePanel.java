@@ -160,26 +160,6 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
         }
     }
 
-//    @Override
-//    protected void onBeforeRender() {
-//        super.onBeforeRender();
-//
-//        Component valuePanel = getValuePanel();
-//        if (valuePanel instanceof CreateObjectForReferencePanel createObjectPanel) {
-//            valuePanel = createObjectPanel.getReferencePanel();
-//        }
-//
-//        if (valuePanel instanceof ReferenceAutocompletePanel<?>) {
-//            FormComponent baseFormComponent = ((ReferenceAutocompletePanel) valuePanel).getBaseFormComponent();
-//            baseFormComponent.add(AttributeAppender.append("class", () -> {
-//                if (baseFormComponent.hasErrorMessage()) {
-//                    return "is-invalid";
-//                }
-//                return "";
-//            }));
-//        }
-//    }
-
     protected boolean isRemoveButtonVisible() {
         if (getModelObject() != null && getModelObject().getOldValue() != null
                 && getModelObject().getOldValue().getValueMetadata().isSingleValue()) {

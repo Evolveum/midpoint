@@ -34,5 +34,8 @@ public interface PrismObjectWrapper<O extends ObjectType> extends PrismContainer
 
     PrismObjectValueWrapper<O> getValue();
 
+    /**
+     * Collect processor with deltas and consumer, that should be processed before basic deltas of showed object
+     */
     Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(ModelServiceLocator serviceLocator, OperationResult result) throws CommonException;
 }

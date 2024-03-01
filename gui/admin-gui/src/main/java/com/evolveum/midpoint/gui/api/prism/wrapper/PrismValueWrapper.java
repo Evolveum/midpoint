@@ -52,5 +52,8 @@ public interface PrismValueWrapper<T> extends Serializable, DebugDumpable {
 
     <C extends Containerable> PrismContainerValueWrapper<C> getParentContainerValue(Class<? extends C> parentClass);
 
+    /**
+     * Collect processor with deltas and consumer, that should be processed before basic deltas of showed object
+     */
     Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(ModelServiceLocator serviceLocator, OperationResult result) throws CommonException;
 }

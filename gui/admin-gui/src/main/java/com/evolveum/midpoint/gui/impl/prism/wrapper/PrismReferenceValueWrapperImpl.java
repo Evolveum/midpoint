@@ -141,9 +141,15 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
                 newObjectModel.collectDeltas(result), PrismReferenceValueWrapperImpl.this));
     }
 
+    /**
+     * Custom processing of new object for reference.
+     */
     protected void processBeforeCreatingPreconditionDelta(ObjectDetailsModels<? extends ObjectType> newObjectModel, ModelServiceLocator serviceLocator) {
     }
 
+    /**
+     * Return details model for new object that will be added to reference value.
+     */
     public <O extends ObjectType> ObjectDetailsModels<O> getNewObjectModel(
             ContainerPanelConfigurationType config, ModelServiceLocator serviceLocator, OperationResult result) {
         if (newObjectModel == null) {
@@ -179,6 +185,9 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
         };
     }
 
+    /**
+     * Create new object that will be added to reference value.
+     */
     protected <O extends ObjectType> PrismObject<? extends ObjectType> createNewPrismObject(OperationResult result) throws SchemaException {
         PrismReferenceWrapper<T> parent = getParent();
         List<QName> types = parent.getTargetTypes();
@@ -197,6 +206,9 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
         return def.instantiate();
     }
 
+    /**
+     * Clean details model for new object that should be added to reference value.
+     */
     public void resetNewObjectModel() {
         if (newObjectModel != null) {
             newObjectModel.detach();
@@ -205,6 +217,9 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
         newPrismObject = null;
     }
 
+    /**
+     * Check that exist details model for new object that will be added to reference value.
+     */
     public boolean existNewObjectModel() {
         return newPrismObject != null;
     }

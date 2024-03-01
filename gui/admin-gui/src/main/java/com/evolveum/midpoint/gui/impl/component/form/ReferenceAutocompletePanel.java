@@ -19,7 +19,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 
 import com.evolveum.midpoint.web.component.input.validator.ReferenceAutocompleteValidator;
@@ -32,7 +31,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 
@@ -46,6 +44,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Panel for selecting object by autocomplete field for name of object and button for selecting of reference.
+ */
 public class ReferenceAutocompletePanel<R extends Referencable> extends ValueChoosePanel<R> {
 
     private static final String ID_EDIT_BUTTON_LABEL = "buttonLabel";
@@ -63,17 +64,6 @@ public class ReferenceAutocompletePanel<R extends Referencable> extends ValueCho
         label.add(new VisibleBehaviour(this::isButtonLabelVisible));
         getEditButton().add(label);
     }
-
-//    @Override
-//    protected void onBeforeRender() {
-//        super.onBeforeRender();
-//
-//        MidpointForm midpointForm = findParent(MidpointForm.class);
-//        if (midpointForm != null) {
-//            Form<?> form = Form.findForm(midpointForm);
-//            form.add(new ReferenceAutocompleteValidator((AutoCompleteTextPanel)getBaseComponent()));
-//        }
-//    }
 
     protected boolean isButtonLabelVisible() {
         return false;

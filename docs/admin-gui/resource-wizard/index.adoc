@@ -158,6 +158,12 @@ Define the midPoint-specific configuration for this object type:
 * *Archetype* allows selection of archetype that will be automatically assigned for all midPoint objects created from this object type data on the resource. The same archetype will be also used as a part of correlation, i.e. enforced.
 +
 If unsure, keep Archetype empty.
++
+Panel for Archetype contains three possibilities:
+
+** _No archetype_,
+** _Use existing archetype_ - Use existing archetype means that you can choose from already created archetypes.
+** _Create new archetype_ - Create new archetype, with basic configuration. Created archetype will be added to configuration as reference.
 
 .See also the following pages for more information:
 * overview of xref:/midpoint/reference/schema/archetypes/[Archetypes]

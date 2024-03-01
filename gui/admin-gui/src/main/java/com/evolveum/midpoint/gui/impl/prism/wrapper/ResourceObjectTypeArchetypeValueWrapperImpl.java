@@ -25,6 +25,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
+/**
+ * Wrapper for ResourceType/schemaHandling/objectType/focus/archetypeRef.
+ */
 public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable> extends PrismReferenceValueWrapperImpl<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectTypeArchetypeValueWrapperImpl.class);

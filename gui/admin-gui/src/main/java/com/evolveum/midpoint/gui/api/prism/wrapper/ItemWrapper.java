@@ -100,5 +100,9 @@ public interface ItemWrapper<I extends Item<?, ?>, VW extends PrismValueWrapper>
     boolean isValidated();
 
     void setValidated(boolean validated);
+
+    /**
+     * Collect processor with deltas and consumer, that should be processed before basic deltas of showed object
+     */
     Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(ModelServiceLocator serviceLocator, OperationResult result) throws CommonException;
 }

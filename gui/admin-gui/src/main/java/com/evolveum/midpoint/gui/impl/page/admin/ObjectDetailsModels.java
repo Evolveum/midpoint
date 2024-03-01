@@ -263,6 +263,9 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return new ArrayList<>();
     }
 
+    /**
+     * Collect processor with deltas and consumer, that should be processed before basic deltas of showed object
+     */
     public Collection<ExecutedDeltaPostProcessor> collectPreconditionDeltas(
             ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
         PrismObjectWrapper<O> objectWrapper = getObjectWrapperModel().getObject();

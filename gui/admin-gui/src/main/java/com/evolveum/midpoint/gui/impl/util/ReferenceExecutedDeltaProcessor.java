@@ -19,9 +19,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
+/**
+ * Post processor for reference attributes. Create ObjectReferenceType for saved object from executed deltas.
+ */
 public class ReferenceExecutedDeltaProcessor implements Serializable, ExecutedDeltaPostProcessor {
 
     private final Collection<ObjectDelta<? extends ObjectType>> objectDeltas;

@@ -14,9 +14,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.util.Collection;
 
+/**
+ * Processor with deltas and post process after successful executing of these deltas.
+ */
 public interface ExecutedDeltaPostProcessor {
 
+    /**
+     * Return deltas for executing.
+     */
     Collection<ObjectDelta<? extends ObjectType>> getObjectDeltas();
 
+    /**
+     * Processing after successful executing of deltas
+     */
     void processExecutedDelta(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, PageBase pageBase);
 }

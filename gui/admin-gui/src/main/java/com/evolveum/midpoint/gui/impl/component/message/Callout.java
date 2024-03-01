@@ -9,8 +9,6 @@ package com.evolveum.midpoint.gui.impl.component.message;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -19,8 +17,10 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.w3c.dom.Attr;
 
+/**
+ * Callout panel with message. Possible types are info, success, warning and danger.
+ */
 public class Callout extends BasePanel<String> {
 
     private final static String ID_CARD = "card";

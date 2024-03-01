@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -34,14 +33,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
+ * Converter from Name of object (String) to ObjectReferenceType, includes supported types and custom filters
+ *
  * @author honchar
  */
 public class ReferenceConverter<R extends Referencable> implements IConverter<R> {
 
     private static final long serialVersionUID = 1L;
-    private FormComponent baseComponent;
+    private final FormComponent baseComponent;
 
-    private PageBase pageBase;
+    private final PageBase pageBase;
 
     public ReferenceConverter(FormComponent baseComponent, PageBase pageBase) {
         this.baseComponent = baseComponent;
@@ -99,6 +100,9 @@ public class ReferenceConverter<R extends Referencable> implements IConverter<R>
         return (R) ref;
     }
 
+    /**
+     * Create custom query for possible object for reference.
+     */
     protected ObjectQuery createChooseQuery() {
         return null;
     }
@@ -108,6 +112,9 @@ public class ReferenceConverter<R extends Referencable> implements IConverter<R>
         return ref != null && (ref.getTargetName() != null || ref.getObject() != null) ? WebComponentUtil.getName(ref) : "";
     }
 
+    /**
+     * Return supported types for possible object for reference.
+     */
     protected <O extends ObjectType> List<Class<O>> getSupportedObjectTypes() {
         ArrayList<Class<O>> list = new ArrayList<>();
         list.add((Class<O>) AbstractRoleType.class);

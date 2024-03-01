@@ -7,20 +7,16 @@
 package com.evolveum.midpoint.web.component.input.validator;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.impl.component.form.ReferenceAutocompletePanel;
 import com.evolveum.midpoint.prism.Referencable;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
-import org.apache.wicket.util.convert.IConverter;
-
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
 
+/**
+ * Validator for reference object. Validate if object have right type, so type from supported types
+ * and whether fulfill custom condition.
+ */
 public class ReferenceAutocompleteValidator extends NotNullValidator<Referencable> {
 
     private static final long serialVersionUID = 1L;
