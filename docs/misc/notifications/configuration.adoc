@@ -631,9 +631,8 @@ Not available in expressionFilters.
 
 == Expression Variables
 
-[NOTE]
-====
-*You can also use shorter notation:*
+`event` contains the whole event object.
+Properties of `event` object can be accessed using Java calls, but both Groovy and Velocity allow short usage form:
 
 .*Groovy*
 * `event.channel` instead of `event.getChannel()`
@@ -652,54 +651,74 @@ Please refer to the following documentation for the shorter notation rules:
 * *Groovy*: https://groovy-lang.org/objectorientation.html#properties
 * *Velocity*: https://velocity.apache.org/engine/1.7/user-guide.html#property-lookup-rules
 
-====
-
 === Expression Variables for Any Events
 
 [%autowidth]
 |===
-|Usage in Groovy |Usage in Velocity template |Description
+|Groovy (short) | Velocity (short) |Groovy (long)| Velocity (long)|Description
 
+|event.channel
+|$event.channel
 |event.getChannel()
 |$event.getChannel()
 |Returns the channel for the event
 
+|event.id
+|$event.id
 |event.getId()
 |$event.getId()
 |Returns randomly generated event ID
 
+|event.requestee
+|$event.requestee
 |event.getRequestee()
 |$event.getRequestee()
 |Returns the entity that is the object of this event or the owner of the object (e.g. account) of this event
 
+|event.requesteeName
+|$event.requesteeName
 |event.getRequesteeName()
 |$event.getRequesteeName()
 |Returns requestee's `name` property.
 
+|event.requesteeDisplayName
+|$event.requesteeDisplayName
 |event.getRequesteeDisplayName()
 |$event.getRequesteeDisplayName()
 |Returns requestee's "display name", e.g. user's `fullName` property if it exists.
 
+|event.requesteeObject
+|$event.requesteeObject
 |event.getRequesteeObject()
 |$event.getRequesteeObject()
 |Returns the entity that is the object of this event or the owner of the object (e.g. account) of this event
 
+|event.requesteeOid
+|$event.requesteeOid
 |event.getRequesteeOid()
 |$event.getRequesteeOid()
 |Returns requestee's oid.
 
+|event.requester
+|$event.requester
 |event.getRequester()
 |$event.getRequester()
 |Returns the entity that requested the operation that resulted in the event being generated.
 
+|event.statusAsText
+|$event.statusAsText
 |event.getStatusAsText()
 |$event.getStatusAsText()
 |Returns the status of the event converted to text and uppercased, e.g. `SUCCESS`
 
+|event.success
+|$event.success
 |event.isSuccess()
 |$event.isSuccess()
 |Returns true if the event resulted in success
 
+|event.failure
+|$event.failure
 |event.isFailure()
 |$event.isFailure()
 |Returns true if the event resulted in failure
@@ -711,25 +730,34 @@ Search *Full Javadoc* for specific version and then search for
 `com.evolveum.midpoint.notifications.api.events` to start with.
 Other variables are defined for specific event types which are defined as subinterfaces of `Event` package.
 
-Test: xref:/midpoint/#{ver}/midpoint-#{ver}javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[]
+// FIXME fix when macro is available, to point to specific Javadoc pages for support/master versions...
+// FIXME and possibly move this also above
+//Test: xref:/midpoint/#{ver}/midpoint-#{ver}javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[]
 
-Test 2: https://download.evolveum.com/midpoint/#{ver}/midpoint-#{ver}-javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[Event doc]
+//Test 2: https://download.evolveum.com/midpoint/#{ver}/midpoint-#{ver}-javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[Event doc]
 
-Ver: #{ver} / {{ ver }}
+// Ver: #{ver} / {{ ver }}
 
 === Expression Variables Specific For Model Event
 
+[%autowidth]
 |===
-|Usage in Groovy |Usage in Velocity template | Description
+|Groovy (short) | Velocity (short) |Groovy (long)| Velocity (long)|Description
 
+|event.changeType
+|$event.changeType
 |event.getChangeType()
 |$event.getChangeType()
 |Returns change type (ADD, MODIFY, DELETE) from the event
 
+|event.contentAsFormattedList
+|$event.contentAsFormattedList
 |event.getContentAsFormattedList()
 |$event.getContentAsFormattedList()
 |Returns formatted list of changes for this event. NOTE: The content is rendered in plain text and will not use any HTML formatting.
 
+|event.focusPassword
+|$event.focusPassword
 |event.getFocusPassword()
 |$event.getFocusPassword()
 |Returns focal object password if known (e.g. during password generation)
@@ -738,17 +766,24 @@ Ver: #{ver} / {{ ver }}
 
 === Expression Variables Specific For ResourceObject Event
 
+[%autowidth]
 |===
-|Usage in Groovy |Usage in Velocity template | Description
+|Groovy (short) | Velocity (short) |Groovy (long)| Velocity (long)|Description
 
+|event.changeType
+|$event.changeType
 |event.getChangeType()
 |$event.getChangeType()
 |Returns change type (ADD, MODIFY, DELETE) from the event
 
+|event.contentAsFormattedList
+|$event.contentAsFormattedList
 |event.getContentAsFormattedList()
 |$event.getContentAsFormattedList()
 |Returns formatted list of changes for this event. NOTE: The content is rendered in plain text and will not use any HTML formatting.
 
+|event.plaintextPassword
+|$event.plaintextPassword
 |event.getPlaintextPassword()
 |event.getPlaintextPassword()
 |Returns resource object password if known (e.g. during password generation)
