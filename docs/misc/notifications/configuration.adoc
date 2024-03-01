@@ -711,7 +711,11 @@ Search *Full Javadoc* for specific version and then search for
 `com.evolveum.midpoint.notifications.api.events` to start with.
 Other variables are defined for specific event types which are defined as subinterfaces of `Event` package.
 
-Test: xref:/midpoint/#{ver}/midpoint-#{ver}javadoc/com/evolveum/midpoint/notifications/api/events/Event.html
+Test: xref:/midpoint/#{ver}/midpoint-#{ver}javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[]
+
+Test 2: https://download.evolveum.com/midpoint/#{ver}/midpoint-#{ver}-javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[Event doc]
+
+Ver: #{ver} / {{ ver }}
 
 === Expression Variables Specific For Model Event
 
