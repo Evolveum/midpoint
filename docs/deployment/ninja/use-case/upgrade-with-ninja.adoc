@@ -190,7 +190,8 @@ TIP: [.purple]#You can also point ninja to already downloaded zip file using `--
 +
 TIP: You could use `--distribution-version{nbsp}latest` option to upgrade to an unreleased midPoint version (latest SNAPSHOT)
 
-. Check your start-up script for midPoint: if you are using systemd or a custom script referring to `midpoint.war`, you need to replace the reference with `midpoint.jar`. See also xref:/midpoint/install/systemd/[Running midPoint with systemd].
+. Check your start-up script for midPoint: if you are using systemd or a custom script referring to `midpoint.war`, you need to replace the reference with `midpoint.jar`.
+See also xref:/midpoint/install/bare-installation/systemd/[Running midPoint with systemd].
 
 . Start midPoint
 
@@ -486,7 +487,8 @@ NOTE: The initial objects that are new in midPoint 4.8 will be created upon firs
 //. TODO TODO TODO what about security policy here?!
 
 
-. Check your start-up script for midPoint: if you are using systemd or a custom script referring to `midpoint.war`, you need to replace the reference with `midpoint.jar`. See also xref:/midpoint/install/systemd/[Running midPoint with systemd].
+. Check your start-up script for midPoint: if you are using systemd or a custom script referring to `midpoint.war`, you need to replace the reference with `midpoint.jar`.
+See also xref:/midpoint/install/bare-installation/systemd/[Running midPoint with systemd].
 
 . Start midPoint
 
