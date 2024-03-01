@@ -1910,7 +1910,7 @@ The property can be set in one of the following ways:
 * Using command line argument:
 ** You can use JVM argument like `-Dmidpoint.additionalPackagesToScan=my.package`.
 If using `midpoint.sh` or `start.sh`, this can be also provided with `JAVA_OPTS` environment variable.
-The variable can also be set in `setenv.sh` file (see xref:/midpoint/install/distribution/#post-installation[this] for more).
+The variable can also be set in `setenv.sh` file (see xref:/midpoint/install/bare-installation/distribution/#post-installation[this] for more).
 
 ** You can also use application argument `--midpoint.additionalPackagesToScan=my.package`,
 which can be provided as an argument to `midpoint.sh` or `start.sh` scripts.
