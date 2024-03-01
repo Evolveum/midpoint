@@ -656,8 +656,9 @@ Please refer to the following documentation for the shorter notation rules:
 
 === Expression Variables for Any Events
 
+[%autowidth]
 |===
-|Usage in Groovy |Usage in Velocity template | Description
+|Usage in Groovy |Usage in Velocity template |Description
 
 |event.getChannel()
 |$event.getChannel()
@@ -709,6 +710,8 @@ TIP: You can find more possible expression variables by inspecting https://docs.
 Search *Full Javadoc* for specific version and then search for
 `com.evolveum.midpoint.notifications.api.events` to start with.
 Other variables are defined for specific event types which are defined as subinterfaces of `Event` package.
+
+Test: xref:/midpoint/#{ver}/midpoint-#{ver}javadoc/com/evolveum/midpoint/notifications/api/events/Event.html
 
 === Expression Variables Specific For Model Event
 
