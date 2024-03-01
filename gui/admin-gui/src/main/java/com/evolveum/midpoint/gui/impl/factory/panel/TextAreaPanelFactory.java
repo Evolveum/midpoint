@@ -32,7 +32,7 @@ public class TextAreaPanelFactory<T extends Serializable> extends AbstractInputG
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        return FocusType.F_DESCRIPTION.equals(wrapper.getItemName());
+        return FocusType.F_DESCRIPTION.equals(wrapper.getItemName()) || FocusType.F_DOCUMENTATION.equals(wrapper.getItemName());
     }
 
     @Override
@@ -40,6 +40,9 @@ public class TextAreaPanelFactory<T extends Serializable> extends AbstractInputG
         int size = 10;
         if (FocusType.F_DESCRIPTION.equals(panelCtx.getDefinitionName())) {
             size = 2;
+        }
+        if (FocusType.F_DOCUMENTATION.equals(panelCtx.getDefinitionName())) {
+            size = 3;
         }
         return new TextAreaPanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), size);
     }
