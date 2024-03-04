@@ -233,7 +233,9 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     @Override
     public TransactionIsolation getTransactionIsolation() {
         // Not set explicitly, we leave it to PG, defaults to Connection.TRANSACTION_READ_COMMITTED
-        return null;
+        // For complex use-cases such as consistent container reads, splitted objects READ_COMMITTED is insuficient,
+        // since container read is two selects (read commited does not prevent changes of data between two selects)
+        return TransactionIsolation.REPEATABLE_READ;
     }
 
     @Override
