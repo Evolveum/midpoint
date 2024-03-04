@@ -19,6 +19,8 @@ forms/
 
 The Form Type endpoint operations and examples.
 
+include::../raw/curl-env-note.adoc[]
+
 === Create Form Type Object
 
 - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]

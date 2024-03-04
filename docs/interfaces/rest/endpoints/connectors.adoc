@@ -19,6 +19,8 @@ connectors/
 
 The Connector Type endpoint operations and examples.
 
+include::../raw/curl-env-note.adoc[]
+
 === Create Connector Type Object
 
 - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]

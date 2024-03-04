@@ -19,6 +19,8 @@ reportData/
 
 The Report Data type endpoint operations and examples.
 
+include::../raw/curl-env-note.adoc[]
+
 === Get Report Data type Objects
 
 Get operation for fetching a single specific object.

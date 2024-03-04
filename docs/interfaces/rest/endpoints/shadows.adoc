@@ -21,6 +21,8 @@ The Shadow web endpoint provides us with information regarding resource shadows.
 Resource shadow objects are usually created and modified automatically by midPoint, most
 often the use cases will resolve around fetching and reading the shadow object data.
 
+include::../raw/curl-env-note.adoc[]
+
 === Get Shadow Object
 
 Get operation for fetching a single specific object. In this case a concrete shadow

@@ -20,6 +20,7 @@ roles/
 The Role web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
 present in midPoint. This is apparent in the operations which are available for this type of object.
 
+include::../raw/curl-env-note.adoc[]
 
 === Create Role Objects
 
@@ -41,9 +42,9 @@ include::../operations/examples/raw/get-role-end-user.adoc[]
 
 Search operation usable for fetching the full list of objects or a list based on filter.
 
-include::../operations/examples/raw/search-all-roles.adoc[]
+include::../operations/examples/raw/search-name-roles.adoc[]
 
-include::../operations/examples/raw/search-all.adoc[]
+include::../operations/examples/raw/search-gen-name.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
 
@@ -72,8 +73,6 @@ include::../operations/examples/raw/modify-id-generate.adoc[]
 - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
 
 == Common Use-case Examples
-
-1.
 
 == JSON Example
 

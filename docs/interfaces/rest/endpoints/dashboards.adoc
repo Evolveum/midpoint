@@ -19,6 +19,8 @@ dashboards/
 
 The Dashboard type endpoint operations and examples.
 
+include::../raw/curl-env-note.adoc[]
+
 === Create Dashboard type Object
 
 - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]

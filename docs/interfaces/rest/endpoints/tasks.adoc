@@ -20,6 +20,8 @@ tasks/
 The Tasks endpoint is a part of the Create-Read-Update-Delete (CRUD) web resources
 present in midPoint. This is apparent in the operations which are available for this type of object.
 
+include::../raw/curl-env-note.adoc[]
+
 === Create Task Objects
 
 include::../operations/examples/raw/create-task.adoc[]
@@ -40,9 +42,9 @@ include::../operations/examples/raw/get-task.adoc[]
 
 Search operation usable for fetching the full list of objects or a list based on filter.
 
-include::../operations/examples/raw/search-all-tasks.adoc[]
+include::../operations/examples/raw/search-name-tasks.adoc[]
 
-include::../operations/examples/raw/search-all.adoc[]
+include::../operations/examples/raw/search-gen-name.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
 
@@ -77,8 +79,6 @@ include::../operations/examples/raw/task-op-resume.adoc[]
 - xref:/midpoint/reference/interfaces/rest/operations/task-specific-op-rest/[Task Specific Operations]
 
 == Common Use-case Examples
-
-1.
 
 == JSON Example
 

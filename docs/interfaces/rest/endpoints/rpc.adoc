@@ -18,6 +18,8 @@ rpc/
 The Remote Procedure Call endpoint gives you the possibility to execute commands and scripts of various
 nature on midPoint.
 
+include::../raw/curl-env-note.adoc[]
+
 === Execute Script
 
 include::../operations/examples/raw/execute-script-rpc.adoc[]

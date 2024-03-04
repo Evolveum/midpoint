@@ -2,6 +2,5 @@
 .Generate identifier for Role type object
 [source,bash]
 ----
-# Authenticating with the credentials "administrator" and password "y0uR_P455woR*d" on a localhost instance running on port 8080
  curl --user administrator:y0uR_P455woR*d -H "Accept: application/json" -H "Content-Type: application/json" -X POST http://localhost:8080/midpoint/ws/rest/roles/ae660563-11e6-41e1-8920-82725cc77021/generate --data-binary @pathToMidpointGit\samples\rest\policy-items-identifier-generate.json -v
 ----

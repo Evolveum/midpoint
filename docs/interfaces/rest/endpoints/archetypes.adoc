@@ -19,6 +19,8 @@ archetypes/
 
 The Archetype Type endpoint operations and examples.
 
+include::../raw/curl-env-note.adoc[]
+
 === Create Archetype Type Object
 
 - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]

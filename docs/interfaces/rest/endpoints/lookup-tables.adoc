@@ -19,6 +19,8 @@ lookupTables/
 
 The Lookup Table type endpoint operations and examples.
 
+include::../raw/curl-env-note.adoc[]
+
 === Create Lookup Table type Object
 
 - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]

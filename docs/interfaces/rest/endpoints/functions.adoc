@@ -19,6 +19,8 @@ functionLibraries/
 
 The Function Library Type endpoint operations and examples.
 
+include::../raw/curl-env-note.adoc[]
+
 === Create Function Library Type Object
 
 - xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]

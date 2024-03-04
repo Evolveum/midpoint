@@ -75,6 +75,8 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Examples
 
+include::../raw/curl-env-note.adoc[]
+
 include::../../rest/operations/examples/raw/search-all-users.adoc[]
 include::../../rest/operations/examples/raw/search-all.adoc[]
 

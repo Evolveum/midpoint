@@ -35,7 +35,6 @@ Look for the *"targetName"* parameter in the output of the request.
 
 [source,bash]
 ----
-# Authenticating with the credentials "administrator" and password "y0uR_P455woR*d" on a localhost instance running on port 8080
 curl --user administrator:y0uR_P455woR*d -H "Accept: application/json" -X GET http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002?options=resolveNames -v
 ----
 
@@ -162,7 +161,6 @@ the order of the assignment in the assignment path (in case of induced assignmen
 
 [source,bash]
 ----
-# Authenticating with the credentials "administrator" and password "y0uR_P455woR*d" on a localhost instance running on port 8080
 curl --user administrator:y0uR_P455woR*d -H "Accept: application/json" -H "Content-Type: application/json" -X POST http://localhost:8080/midpoint/ws/rest/users/search?options=resolveNames --data-binary @pathToMidpointGit\samples\rest\query-all.json -v
 ----
 
