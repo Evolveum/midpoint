@@ -3,7 +3,11 @@
 .Execute the import operation for a Resource object in MidPoint
 [source,bash]
 ----
-curl --user administrator:y0uR_P455woR*d -H "Accept: application/json" -H "Content-Type: application/json" -X POST http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-59e2-86d6-9999cccccccc/import/AccountObjectClass -v
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-59e2-86d6-9999cccccccc/import/AccountObjectClass \
+-v
 ----
 
 

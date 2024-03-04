@@ -2,7 +2,12 @@
 .Search all Access Certification Campaign Type
 [source,bash]
 ----
-curl --user administrator:y0uR_P455woR*d -H "Accept: application/json" -H "Content-Type: application/json" -X POST http://localhost:8080/midpoint/ws/rest/accessCertificationCampaigns/search?options=resolveNames --data-binary @pathToMidpointGit\samples\rest\query-all.json -v
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/accessCertificationCampaigns/search?options=resolveNames \
+-v \
+--data-binary @./samples/rest/query-all.json
 ----
 
 .*Show* data source example for *"Search for all"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/query-all.json[GitHub]

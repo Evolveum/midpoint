@@ -4,7 +4,11 @@
 [source,bash]
 ----
 
-curl --user administrator:y0uR_P455woR*d -H "Content-Type: application/json" -X POST http://localhost:8080/midpoint/ws/rest/resources --data-binary @pathToMidpointGit\samples\rest\resource-csv.json -v
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/resources \
+-v \
+--data-binary @./samples/rest/resource-csv.json
 ----
 
 .*Show* data source example for *"Create a new Resource object in MidPoint"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/resource-csv.json[GitHub]
