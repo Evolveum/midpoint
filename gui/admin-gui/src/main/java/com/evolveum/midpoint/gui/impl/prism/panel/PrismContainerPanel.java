@@ -52,6 +52,9 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
         valueContainer.add(AttributeAppender.append(
                 "aria-label",
                 () -> {
+                    if (getModelObject() == null) {
+                        return null;
+                    }
                     if (getModelObject().isMultiValue()) {
                         return getParentPage().createStringResource(
                                 "PrismContainerPanel.container", getHeader().createLabelModel().getObject())
@@ -61,7 +64,7 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
                 }));
         valueContainer.add(AttributeAppender.append(
                 "tabindex",
-                () -> getModelObject().isMultiValue() ? "0" : null));
+                () -> getModelObject() != null && getModelObject().isMultiValue() ? "0" : null));
         return valueContainer;
     }
 
