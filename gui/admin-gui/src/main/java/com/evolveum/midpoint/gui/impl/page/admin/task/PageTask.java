@@ -10,6 +10,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.task;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
+
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -133,6 +137,13 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
                 return PageTask.this.hasUnsavedChanges(target);
             }
         };
+    }
+
+    @Override
+    protected void showResultAfterExecuteChanges(ObjectChangeExecutor changeExecutor, OperationResult result) {
+        if (changeExecutor instanceof ObjectChangesExecutorImpl) {
+            showResult(result);
+        }
     }
 
     @Override
