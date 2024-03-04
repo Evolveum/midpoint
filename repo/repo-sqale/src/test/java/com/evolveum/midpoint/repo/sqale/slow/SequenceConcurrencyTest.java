@@ -82,8 +82,7 @@ public class SequenceConcurrencyTest extends SqaleRepoBaseTest {
         concurrencyUniversal(10_000L, mts, true);
     }
 
-    // FIXME: Not sure if test if flaky - usually some values gets skipped.
-    @Test(enabled = false)
+    @Test
     public void test210TenThreadsReturning() throws Exception {
         WorkerThread[] mts = new WorkerThread[] {
                 new WorkerThread(1, 5),

@@ -153,39 +153,28 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .build();
 
         PrismObject<T> object = null;
+        long opHandle = registerOperationStart(OP_GET_OBJECT, type);
+
         try (var sqResult = SqlBaseOperationTracker.with(operationResult)) {
-            object = executeGetObject(type, oidUuid, options);
+            var finalObject = executeRetriable(OP_GET_OBJECT, oidUuid, opHandle,
+                    ()  -> (PrismObject<T>) readByOid(type, oidUuid, options).asPrismObject());
+            object = finalObject;
+            invokeConflictWatchers((w) -> w.afterGetObject(finalObject));
             return object;
         } catch (ObjectNotFoundException e) {
             throw handleObjectNotFound(e, operationResult, options);
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
+        } catch (ObjectAlreadyExistsException | RepositoryException e) {
+            throw new SystemException(e);
         } catch (Throwable t) {
             recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.close();
+            registerOperationFinish(opHandle);
             OperationLogger.logGetObject(type, oid, options, object, operationResult);
         }
-    }
-
-    private <T extends ObjectType> PrismObject<T> executeGetObject(
-            Class<T> type,
-            UUID oidUuid,
-            Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException, ObjectNotFoundException {
-        PrismObject<T> object;
-        long opHandle = registerOperationStart(OP_GET_OBJECT, type);
-        try {
-            //noinspection unchecked
-            object = (PrismObject<T>) readByOid(type, oidUuid, options).asPrismObject();
-        } finally {
-            registerOperationFinish(opHandle);
-        }
-
-        invokeConflictWatchers((w) -> w.afterGetObject(object));
-
-        return object;
     }
 
     /** Read object with internally created JDBC session/transaction. */
@@ -496,22 +485,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .addArbitraryObjectCollectionAsParam("modifications", modifications)
                 .build();
 
-        long opHandle = registerOperationStart(OP_MODIFY_OBJECT, type);
-
         try {
-            return executeRetriable(OP_MODIFY_OBJECT, oidUuid, opHandle,
-                    () -> {
-                        try {
-                            return executeModifyObject(type, oidUuid, modifications, precondition, options, operationResult);
-                        } catch (PreconditionViolationException e) {
-                            throw new TunnelException(e);
-                        }
-                    });
-        } catch (TunnelException e) {
-            if (e.getCause() instanceof PreconditionViolationException pve) {
-                throw pve;
-            }
-            throw e;
+            return executeModifyObject(type, oidUuid, modifications, precondition, options, operationResult);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -519,7 +494,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throw t;
         } finally {
             operationResult.close();
-            registerOperationFinish(opHandle);
             OperationLogger.logModify(type, oid, modifications, precondition, options, operationResult);
         }
     }
@@ -533,14 +507,30 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @Nullable RepoModifyOptions options,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, PreconditionViolationException, RepositoryException {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
-                    prepareUpdateContext(jdbcSession, type, modifications, oidUuid, options);
+        long opHandle = registerOperationStart(OP_MODIFY_OBJECT, type);
+        try {
+            return executeRetriable(OP_MODIFY_OBJECT, oidUuid, opHandle, () -> {
+                try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+                    RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
+                            prepareUpdateContext(jdbcSession, type, modifications, oidUuid, options);
 
-            ModifyObjectResult<T> rv = modifyObjectInternal(
-                    updateContext, modifications, precondition, options, parentResult);
-            jdbcSession.commit();
-            return rv;
+                    ModifyObjectResult<T> rv = modifyObjectInternal(
+                            updateContext, modifications, precondition, options, parentResult);
+                    jdbcSession.commit();
+                    return rv;
+                } catch (PreconditionViolationException e) {
+                    throw new TunnelException(e);
+                }
+            });
+        } catch (TunnelException e) {
+            if (e.getCause() instanceof PreconditionViolationException pve) {
+                throw pve;
+            }
+            throw e;
+        } catch (ObjectAlreadyExistsException e) {
+            throw new SystemException("Should not happen",e);
+        } finally {
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -967,7 +957,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .addParam(OperationResult.PARAM_OPTIONS, String.valueOf(options))
                 .build();
 
-        long opHandle = registerOperationStart(OP_SEARCH_OBJECTS, type);
+
         try (var sqaleResult = SqlBaseOperationTracker.with(operationResult)) {
             logSearchInputParameters(type, query, "Search objects");
 
@@ -975,17 +965,15 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             if (ObjectQueryUtil.isNoneQuery(finalQuery)) {
                 return new SearchResultList<>();
             }
-            return executeRetriable(OP_SEARCH_OBJECTS, null, opHandle, () -> executeSearchObjects(type, finalQuery, options, OP_SEARCH_OBJECTS));
+            return  executeSearchObjects(type, finalQuery, options, OP_SEARCH_OBJECTS);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
-        } catch (ObjectNotFoundException | ObjectAlreadyExistsException e) {
-            throw new SystemException("Should not happen", e);
         } catch (Throwable t) {
             recordFatalError(operationResult, t);
             throw t;
         } finally {
             operationResult.close();
-            registerOperationFinish(opHandle);
+
         }
     }
 
@@ -995,13 +983,20 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             Collection<SelectorOptions<GetOperationOptions>> options,
             String operationKind)
             throws RepositoryException, SchemaException {
-        SearchResultList<T> result = sqlQueryExecutor.list(
-                SqaleQueryContext.from(type, sqlRepoContext),
-                query,
-                options);
-        //noinspection unchecked
-        return result.map(
-                o -> (PrismObject<T>) o.asPrismObject());
+        long opHandle = registerOperationStart(operationKind, type);
+        try {
+            SearchResultList<T> result = executeRetriable(operationKind, null, opHandle, () -> sqlQueryExecutor.list(
+                    SqaleQueryContext.from(type, sqlRepoContext),
+                    query,
+                    options));
+            //noinspection unchecked
+            return result.map(
+                    o -> (PrismObject<T>) o.asPrismObject());
+        } catch (ObjectNotFoundException | ObjectAlreadyExistsException e) {
+            throw new SystemException("Should not happen", e);
+        } finally {
+            registerOperationFinish(opHandle);
+        }
     }
 
     @Override
@@ -2421,7 +2416,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
             try {
                 return operation.execute();
-            } catch (RuntimeException | RepositoryException e) {
+            } catch (Exception e) {
                 if (!isRetriableException(e)) {
                     throw e;
                 }
@@ -2442,7 +2437,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     private boolean isRetriableException(Exception e) {
         Throwable toCheck = e;
         while (toCheck != null) {
-            if (toCheck instanceof PSQLException && toCheck.getMessage().equals(PSQL_CONCURRENT_UPDATE_MESSAGE)) {
+            if (toCheck instanceof PSQLException && toCheck.getMessage().startsWith(PSQL_CONCURRENT_UPDATE_MESSAGE)) {
                 return true;
             }
             toCheck = toCheck.getCause();
