@@ -631,7 +631,24 @@ Not available in expressionFilters.
 
 == Expression Variables
 
-`event` contains the whole event object.
+[TIP]
+====
+Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[Javadoc for com.evolveum.midpoint.notifications.api.events.Event] to learn about *all* possible variables.
+The methods documented in Javadoc can be used in your expressions.
+
+Other variables are defined for specific event types which are defined as subinterfaces of `Event` package.
+====
+
+// FIXME fix when macro is available, to point to specific Javadoc pages for support/master versions...
+// FIXME for now, I will point to master as agreed with Igor 4.3.2024.
+//Test: xref:/midpoint/#{ver}/midpoint-#{ver}javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[]
+
+//Test 2: https://download.evolveum.com/midpoint/#{ver}/midpoint-#{ver}-javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[Event doc]
+
+// Ver: #{ver} / {{ ver }}
+
+
+In your expressions, `event` variable contains the whole event object.
 Properties of `event` object can be accessed using Java calls, but both Groovy and Velocity allow short usage form:
 
 .*Groovy*
@@ -725,20 +742,16 @@ Please refer to the following documentation for the shorter notation rules:
 
 |===
 
-TIP: You can find more possible expression variables by inspecting https://docs.evolveum.com/midpoint/devel/javadoc/[].
-Search *Full Javadoc* for specific version and then search for
-`com.evolveum.midpoint.notifications.api.events` to start with.
-Other variables are defined for specific event types which are defined as subinterfaces of `Event` package.
-
-// FIXME fix when macro is available, to point to specific Javadoc pages for support/master versions...
-// FIXME and possibly move this also above
-//Test: xref:/midpoint/#{ver}/midpoint-#{ver}javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[]
-
-//Test 2: https://download.evolveum.com/midpoint/#{ver}/midpoint-#{ver}-javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[Event doc]
-
-// Ver: #{ver} / {{ ver }}
 
 === Expression Variables Specific For Model Event
+
+[TIP]
+====
+Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/ModelEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.ModelEvent] to learn about *all* possible variables.
+The methods documented in Javadoc can be used in your expressions.
+
+All variables for `Event` can be used as well.
+====
 
 [%autowidth]
 |===
@@ -765,6 +778,14 @@ Other variables are defined for specific event types which are defined as subint
 |===
 
 === Expression Variables Specific For ResourceObject Event
+
+[TIP]
+====
+Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/ResourceObjectEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent] to learn about *all* possible variables.
+The methods documented in Javadoc can be used in your expressions.
+
+All variables for `Event` can be used as well.
+====
 
 [%autowidth]
 |===
@@ -818,6 +839,6 @@ Link any other expression documentation discussing variables?
 If the configuration doesn't do what is expected, or seemingly does nothing at all, it may
 be the right time to add some debug log messages for notifications and transport components.
 In the xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration],
-add the logers for `NOTIFICATION` and `TRANSPORT` (predefined `LoggingComponentType`-s)
+add the loggers for `NOTIFICATION` and `TRANSPORT` (predefined `LoggingComponentType`-s)
 and set them to the `DEBUG` level.
 This should provide additional information if the notification is skipped and why.
