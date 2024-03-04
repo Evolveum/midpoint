@@ -34,6 +34,7 @@ import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.postgresql.util.PSQLException;
+import org.springframework.aop.config.AopNamespaceHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.SequenceUtil;
@@ -1870,7 +1871,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .build();
         long opHandle = registerOperationStart(OP_ADVANCE_SEQUENCE, SequenceType.class);
         try {
-            return executeRetriable(opNamePrefix + OP_ADVANCE_SEQUENCE, oid, opHandle,  () -> executeAdvanceSequence(oidUuid));
+            return executeRetriable(opNamePrefix + OP_ADVANCE_SEQUENCE, oidUuid, opHandle,
+                    () -> executeAdvanceSequence(oidUuid));
         } catch (RepositoryException | RuntimeException | SchemaException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -1921,9 +1923,11 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             operationResult.recordSuccess();
             return;
         }
-
+        long opHandle = registerOperationStart(
+                OP_RETURN_UNUSED_VALUES_TO_SEQUENCE, SequenceType.class);
         try {
-            executeReturnUnusedValuesToSequence(oidUuid, unusedValues);
+            executeRetriable(opNamePrefix + OP_RETURN_UNUSED_VALUES_TO_SEQUENCE, oidUuid, opHandle,
+                    () -> executeReturnUnusedValuesToSequence(oidUuid, unusedValues));
         } catch (RepositoryException | RuntimeException | SchemaException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -1931,14 +1935,12 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throw t;
         } finally {
             operationResult.close();
+            registerOperationFinish(opHandle);
         }
     }
 
-    private void executeReturnUnusedValuesToSequence(UUID oid, Collection<Long> unusedValues)
+    private Void executeReturnUnusedValuesToSequence(UUID oid, Collection<Long> unusedValues)
             throws SchemaException, ObjectNotFoundException, RepositoryException {
-        long opHandle = registerOperationStart(
-                OP_RETURN_UNUSED_VALUES_TO_SEQUENCE, SequenceType.class);
-
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             RootUpdateContext<SequenceType, QObject<MObject>, MObject> updateContext =
                     prepareUpdateContext(jdbcSession, SequenceType.class, oid);
@@ -1968,7 +1970,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             updateContext.finishExecutionOwn();
             jdbcSession.commit();
         } finally {
-            registerOperationFinish(opHandle);
+            return null;
         }
     }
 
@@ -2394,7 +2396,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     // region Retries
 
 
-    private <R> R executeRetriable(String opName, String oid, long opHandle, RetriableOperation<R>  operation) throws ObjectNotFoundException, SchemaException, RepositoryException {
+    private <R> R executeRetriable(String opName, UUID oid, long opHandle, RetriableOperation<R>  operation) throws ObjectNotFoundException, SchemaException, RepositoryException {
         var maxAttempts = 100;
         var attempt = 1;
         while (attempt < maxAttempts) {
@@ -2456,7 +2458,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     public static final int MAIN_LOG_WARN_THRESHOLD = 8;
 
 
-    private int prepareNextRetry(String operation, String oid, int attempt, Exception ex) {
+    private int prepareNextRetry(String operation, UUID oid, int attempt, Exception ex) {
         BackoffComputer backoffComputer = new ExponentialBackoffComputer(LOCKING_MAX_RETRIES, LOCKING_DELAY_INTERVAL_BASE, LOCKING_EXP_THRESHOLD, null);
         long waitTime;
         try {
