@@ -15,11 +15,27 @@ Shadows objects are a part of the REST API web resources.
 shadows/
 ----
 
+[WARNING]
+====
+Shadow objects are a quite advanced topic.
+
+Modification and deletion operations executed for a shadow type object might end up changing objects on the remote system or other objects in midPoint.
+
+Proceed with caution.
+====
+
 == Operations And Examples
 
 The Shadow web endpoint provides us with information regarding resource shadows.
 Resource shadow objects are usually created and modified automatically by midPoint, most
 often the use cases will resolve around fetching and reading the shadow object data.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
 
 === Get Shadow Object
 
@@ -44,6 +60,12 @@ to change them via the REST interface.
 === Delete Shadow Objects
 
 Shadow object deletion.
+
+[WARNING]
+
+----
+The deletion of a shadows object might result in the removal of this object from the remote system.
+----
 
 - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
 

@@ -19,6 +19,13 @@ reports/
 
 The Reports endpoint operations and examples.
 
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
 === Create Report Object
 
 include::../operations/examples/raw/create-report.adoc[]

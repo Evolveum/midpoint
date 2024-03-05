@@ -79,9 +79,10 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Examples
 
+include::../raw/curl-env-note.adoc[]
+
 include::../../rest/operations/examples/raw/modify-attr-user.adoc[]
 include::../../rest/operations/examples/raw/modify-attr.adoc[]
-
 
 == See Also
 

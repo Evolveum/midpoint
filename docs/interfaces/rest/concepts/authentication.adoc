@@ -7,6 +7,7 @@
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2020-06-02T10:29:25.618+02:00
 :page-toc: top
+:page-keywords: [ 'rest', 'authentication' ]
 
 [TIP]
 ====
@@ -71,7 +72,6 @@ Curl example:
 
 [source,bash]
 ----
-# Authenticating with the credentials "administrator" and password "y0uR_P455woR*d" on a localhost instance running on port 8080
 curl --user "administrator:y0uR_P455woR*d" -X GET -H "Switch-To-Principal: dc12980b-0b92-4c4b-9a4d-f18f70ac977f" -H "Accept: application/yaml" "http://localhost:8080/midpoint/ws/rest/self" -v
 ----
 
@@ -84,16 +84,13 @@ Example proxy authorization (which is assigned to the application user such as s
   <object>
     <type>UserType</type>
     <filter>
-      <q:equal>
-        <q:path>employeeType</q:path>
-        <q:value>enduser</q:value>
-      </q:equal>
+        <text>archetypeRef/@/name = "Person"</text>
     </filter>
   </object>
 </authorization>
 ----
 
-The authorization above allows the user to switch identity to any other user who has the `employeeType` attribute set to value `enduser`.
+The authorization above allows the user to switch identity to any other user who has the archetype `person` assigned.
 
 == Security Questions
 
@@ -135,7 +132,7 @@ Example curl call:
 curl -X GET -H "Authorization: SecQ ew0KInVzZXIiIDogImFkbWluaXN0cmF0b3IiLA0KImFuc3dlciIgOiBbDQogew0KICAgInFpZCIgOiAiaHR0cDovL21pZHBvaW50LmV2b2x2ZXVtLmNvbS94bWwvbnMvcHVibGljL3NlY3VyaXR5L3F1ZXN0aW9uLTIjcTAwMSIsDQogICAicWFucyIgOiAiSSBkb24ndCBrbm93ISINCiB9DQpdDQp9" -H "Content-Type: application/xml" -H "Accept: application/yaml" "http://localhost:8080/midpoint/ws/rest/self" -v
 ----
 
-=== challengeResponseSecQ Challenge - Response implementation
+=== Challenge - Response implementation (challengeResponseSecQ)
 
 The whole sequence with link:https://httpie.org/[HTTPie] and link:https://linux.die.net/man/1/base64[base64] encoding using command substitution in bash may look like this:
 

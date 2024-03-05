@@ -78,6 +78,8 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Examples
 
+include::../raw/curl-env-note.adoc[]
+
 include::../../rest/operations/examples/raw/role-id-generate.adoc[]
 
 include::../../rest/operations/examples/raw/modify-id-generate.adoc[]
