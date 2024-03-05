@@ -23,6 +23,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Manages secrets providers instances.
+ * Wraps all new secrets providers with {@link CacheableSecretsProviderDelegate} to handle caching and key validation.
  *
  * It's used to handle configuration changes in {@link SystemConfigurationType} related to secrets providers.
  */
@@ -125,13 +126,6 @@ public class SecretsProviderManager {
         }
 
         SecretsProvider<?> provider = createProviderImpl(configuration);
-        if (provider == null) {
-            return null;
-        }
-
-        if (configuration.getCache() == null) {
-            return provider;
-        }
 
         return new CacheableSecretsProviderDelegate<>(provider, configuration.getCache());
     }

@@ -10,7 +10,7 @@
 :page-upkeep-status: green
 :page-toc: top
 
-This document describes the necessary steps to upgrade xref:/midpoint/install/distribution/[MidPoint installation].
+This document describes the necessary steps to upgrade xref:/midpoint/install/bare-installation/distribution/[MidPoint installation].
 It describes the usual steps, risks and consideration for upgrade, therefore it is quite comprehensive.
 
 The document describes upgrade of _production_ environment.

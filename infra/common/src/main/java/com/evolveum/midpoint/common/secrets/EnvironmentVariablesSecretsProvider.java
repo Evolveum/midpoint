@@ -7,14 +7,10 @@
 
 package com.evolveum.midpoint.common.secrets;
 
-import com.evolveum.midpoint.prism.crypto.SecretsProvider;
-
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.prism.crypto.SecretsProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentVariablesSecretsProviderType;
 
 /**
@@ -24,26 +20,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentVariables
  */
 public class EnvironmentVariablesSecretsProvider extends SecretsProviderImpl<EnvironmentVariablesSecretsProviderType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(EnvironmentVariablesSecretsProvider.class);
-
     public EnvironmentVariablesSecretsProvider(EnvironmentVariablesSecretsProviderType configuration) {
         super(configuration);
     }
 
     @Override
     protected <ST> ST resolveSecret(@NotNull String key, @NotNull Class<ST> type) {
-        String prefix = getConfiguration().getPrefix();
-
-        String finalKey = StringUtils.isNotEmpty(prefix) ? prefix + key : key;
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Reading secret from environment variable {}", finalKey);
-        }
-
-        String value = System.getenv(finalKey);
+        String value = System.getenv(key);
 
         if (value == null && BooleanUtils.isTrue(getConfiguration().isUseSystemProperties())) {
-            value = System.getProperty(finalKey);
+            value = System.getProperty(key);
         }
 
         byte[] data = value != null ? value.getBytes() : null;

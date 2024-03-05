@@ -19,6 +19,13 @@ cases/
 
 The Cases endpoint operations and examples.
 
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
 === Get Case Objects
 
 Get operation for fetching a single specific object.
@@ -33,7 +40,7 @@ include::../operations/examples/raw/get-case-employee.adoc[]
 
 Search operation usable for fetching the full list of objects or a list based on filter.
 
-include::../operations/examples/raw/search-all-cases.adoc[]
+include::../operations/examples/raw/search-name-cases.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
 
@@ -56,7 +63,6 @@ include::../operations/examples/raw/delete-case.adoc[]
 - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
 
 == Common Use-case Examples
-1.
 
 == JSON Example
 

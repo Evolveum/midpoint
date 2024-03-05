@@ -526,12 +526,12 @@ public final class WebComponentUtil {
 
     }
 
-    public static Class<?> qnameToClass(PrismContext prismContext, QName type) {
-        return prismContext.getSchemaRegistry().determineCompileTimeClass(type);
+    public static Class<?> qnameToClass(QName type) {
+        return PrismContext.get().getSchemaRegistry().determineCompileTimeClass(type);
     }
 
-    public static <T extends ObjectType> Class<T> qnameToClass(PrismContext prismContext, QName type, Class<T> returnType) {
-        return prismContext.getSchemaRegistry().determineCompileTimeClass(type);
+    public static <T extends ObjectType> Class<T> qnameToClass(QName type, Class<T> returnType) {
+        return PrismContext.get().getSchemaRegistry().determineCompileTimeClass(type);
     }
 
     public static <T extends ObjectType> QName classToQName(PrismContext prismContext, Class<T> clazz) {
@@ -982,7 +982,7 @@ public final class WebComponentUtil {
             String oid = ref.getOid();
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
                     .createCollection(GetOperationOptions.createNoFetch());
-            Class<O> type = ref.getType() != null ? (Class<O>) qnameToClass(pageBase.getPrismContext(), ref.getType()) : (Class<O>) ObjectType.class;
+            Class<O> type = ref.getType() != null ? (Class<O>) qnameToClass(ref.getType()) : (Class<O>) ObjectType.class;
             PrismObject<O> object = WebModelServiceUtils.loadObject(type, oid, pageBase,
                     pageBase.createSimpleTask(operation), new OperationResult(operation));
             if (object != null) {
@@ -1011,6 +1011,10 @@ public final class WebComponentUtil {
     }
 
     public static String getName(ObjectReferenceType ref) {
+        return getName(ref, true);
+    }
+
+    public static String getName(Referencable ref) {
         return getName(ref, true);
     }
 

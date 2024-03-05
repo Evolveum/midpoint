@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
@@ -138,6 +139,24 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
             return null;
         }
         return objectTypes.iterator().next();
+    }
+
+    public ResourceObjectTypeDefinition getObjectTypeDefinition(ShadowKindType kind, String intent) {
+        ResourceSchema resourceSchema = getResourceSchemaOrNothing();
+        if (resourceSchema == null) {
+            return null;
+        }
+
+        if (StringUtils.isEmpty(intent)) {
+            return getDefaultObjectType(kind);
+        }
+
+        ResourceObjectTypeDefinition defaultObjectType = resourceSchema.getObjectTypeDefinition(kind, intent);
+        if (defaultObjectType == null) {
+            return getDefaultObjectType(kind);
+        }
+
+        return defaultObjectType;
     }
 
     public List<? extends ResourceObjectTypeDefinition> getResourceObjectTypesDefinitions(ShadowKindType kind) {

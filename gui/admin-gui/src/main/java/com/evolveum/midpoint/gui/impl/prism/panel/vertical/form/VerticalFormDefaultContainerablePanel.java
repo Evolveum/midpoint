@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpe
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -229,8 +230,20 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                 button.onClick(target);
             }
 
+            @Override
+            public boolean isVisible() {
+                return isShowEmptyButtonVisible();
+            }
         };
         buttonContainer.add(button);
         return buttonContainer;
+    }
+
+    protected boolean isShowEmptyButtonVisible() {
+        return true;
+    }
+
+    public Component getFormContainer() {
+        return get(createComponentPath(ID_PROPERTIES_LABEL, ID_FORM_CONTAINER));
     }
 }

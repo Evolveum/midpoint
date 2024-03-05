@@ -15,6 +15,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.page.error.PageError404;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -40,7 +42,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -282,7 +283,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return saveOrPreviewPerformed(target, result, previewOnly, null);
     }
 
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
+    public final Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
 
         PrismObjectWrapper<O> objectWrapper = getModelWrapperObject();
         LOGGER.debug("Saving object {}", objectWrapper);
@@ -292,6 +293,31 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
 
         ExecuteChangeOptionsDto options = getExecuteChangesOptionsDto();
+
+        Collection<ExecutedDeltaPostProcessor> preconditionDeltas;
+        try {
+            preconditionDeltas = getObjectDetailsModels().collectPreconditionDeltas(this, result);
+        } catch (CommonException ex) {
+            result.recordHandledError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);
+            showResult(result);
+            target.add(getFeedbackPanel());
+            return null;
+        }
+
+        if (!previewOnly && !preconditionDeltas.isEmpty()) {
+            for (ExecutedDeltaPostProcessor preconditionDelta : preconditionDeltas) {
+                OperationResult subResult = result.createSubresult("executePreconditionDeltas");
+                Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(
+                        preconditionDelta.getObjectDeltas(), previewOnly, options, task, subResult, target);
+                if (subResult.isFatalError()) {
+                    afterSavePerformed(subResult, executedDeltas, target);
+                    return null;
+                }
+                preconditionDelta.processExecutedDelta(executedDeltas, AbstractPageObjectDetails.this);
+            }
+        }
+
         Collection<ObjectDelta<? extends ObjectType>> deltas;
         try {
             if (isShowedByWizard()) {
@@ -309,18 +335,28 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             return null;
         }
 
+        if (previewOnly) {
+            for (ExecutedDeltaPostProcessor preconditionDelta : preconditionDeltas) {
+                deltas.addAll(preconditionDelta.getObjectDeltas());
+            }
+        }
+
         LOGGER.trace("returning from saveOrPreviewPerformed");
 
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly,
                 options, task, result, target);
 
+        afterSavePerformed(result, executedDeltas, target);
+
+        return executedDeltas;
+    }
+
+    private void afterSavePerformed(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
         if (!isShowedByWizard()) {
             postProcessResult(result, executedDeltas, target);
         } else {
             postProcessResultForWizard(result, executedDeltas, target);
         }
-
-        return executedDeltas;
     }
 
     protected void postProcessResultForWizard(

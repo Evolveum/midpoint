@@ -84,7 +84,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
                 this.defaultType = (Class<? extends O>) ObjectType.class;
             }
             this.defaultType =
-                    (Class<? extends O>) WebComponentUtil.qnameToClass(parentPage.getPrismContext(),
+                    (Class<? extends O>) WebComponentUtil.qnameToClass(
                             supportedTypes.iterator().next());
         } else {
             this.defaultType = defaultType;

@@ -47,25 +47,6 @@ GET http://localhost:8080/midpoint/ws/rest/self?options=raw
 .Request to read own profile data (raw) full example using CURL
 xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/#_ex_get_own_profile_information_json_raw[Request to read own profile data]
 
-=== REST Endpoints
-Naturally by having a feature rich interface there is no "one size fits them all" way to invoke the operations, so the url will
-be different in specific use cases. The most common ones you can see
-at xref:/midpoint/reference/interfaces/rest/#_common_use_cases[this] section of the documentation.
-
-The REST interface provides you with a long list of *Endpoints* which you can access. The interface also provides
-you with *different kinds of operations*, based on the type of object endpoint you choose.
-
-.*Commonly Used Object Endpoints:*
-- xref:/midpoint/reference/interfaces/rest/endpoints/users/[users]
-- xref:/midpoint/reference/interfaces/rest/endpoints/roles/[roles]
-- xref:/midpoint/reference/interfaces/rest/endpoints/organizational-units/[orgs]
-- xref:/midpoint/reference/interfaces/rest/endpoints/resources/[resources]
-- xref:/midpoint/reference/interfaces/rest/endpoints/rpc/[rpc]
-
-
-.The *full collection of Object Endpoints* can be found here:
-xref:/midpoint/reference/interfaces/rest/endpoints/[Endpoints]
-
 === Content Type
 
 Please have a look at the following example of a search request (we used curl as a REST client):
@@ -270,6 +251,24 @@ object: !<http://midpoint.evolveum.com/xml/ns/public/common/api-types-3/ObjectLi
     familyName: "Administrator"
 ----
 
+=== REST Endpoints
+Naturally by having a feature rich interface there is no "one size fits them all" way to invoke the operations, so the url will
+be different in specific use cases. The most common ones you can see
+at xref:/midpoint/reference/interfaces/rest/#_common_use_cases[this] section of the documentation.
+
+The REST interface provides you with a long list of *Endpoints* which you can access. The interface also provides
+you with *different kinds of operations*, based on the type of object endpoint you choose.
+
+.*Commonly Used Object Endpoints:*
+- xref:/midpoint/reference/interfaces/rest/endpoints/users/[users]
+- xref:/midpoint/reference/interfaces/rest/endpoints/roles/[roles]
+- xref:/midpoint/reference/interfaces/rest/endpoints/organizational-units/[orgs]
+- xref:/midpoint/reference/interfaces/rest/endpoints/resources/[resources]
+- xref:/midpoint/reference/interfaces/rest/endpoints/rpc/[rpc]
+
+
+.The *full collection of Object Endpoints* can be found here:
+xref:/midpoint/reference/interfaces/rest/endpoints/[Endpoints]
 
 == MidPoint Client
 
@@ -283,10 +282,10 @@ xref:/midpoint/reference/interfaces/midpoint-client-java/[MidPoint Client Librar
 
 // TODO add links
 
-1. xref:/midpoint/reference/interfaces/rest/operations/examples/search-objects-filter/[List all users with their profile information.]
-2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get User with the REST API]
-3. xref:/midpoint/reference/interfaces/rest/operations/examples/create-user/[Create User with the REST API]
-4. xref:/midpoint/reference/interfaces/rest/operations/examples/user-pwd-reset.adoc/[Password Reset]
+1. xref:/midpoint/reference/interfaces/rest/operations/examples/search-objects-filter.adoc[List all users with their profile information.]
+2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id.adoc[Get User with the REST API]
+3. xref:/midpoint/reference/interfaces/rest/operations/examples/create-user.adoc[Create User with the REST API]
+4. xref:/midpoint/reference/interfaces/rest/operations/examples/user-pwd-reset.adoc[Password Reset by Administrator]
 
 == See Also
 

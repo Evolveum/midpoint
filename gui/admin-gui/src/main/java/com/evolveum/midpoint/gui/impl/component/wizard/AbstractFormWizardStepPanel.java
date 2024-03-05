@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismReferenceValuePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -105,6 +106,10 @@ public abstract class AbstractFormWizardStepPanel<ODM extends ObjectDetailsModel
         getVerticalForm().visitChildren(
                 VerticalFormPrismPropertyValuePanel.class,
                 (component, objectIVisit) -> ((VerticalFormPrismPropertyValuePanel<?>) component).updateFeedbackPanel(target));
+
+        getVerticalForm().visitChildren(
+                VerticalFormPrismReferenceValuePanel.class,
+                (component, objectIVisit) -> ((VerticalFormPrismReferenceValuePanel<?>) component).updateFeedbackPanel(target));
     }
 
     protected VerticalFormPanel getVerticalForm() {

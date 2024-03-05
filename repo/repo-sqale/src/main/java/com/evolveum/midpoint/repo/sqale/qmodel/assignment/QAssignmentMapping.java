@@ -282,6 +282,7 @@ public class QAssignmentMapping<OR extends MObject>
     @SuppressWarnings("DuplicatedCode")
     @Override
     public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
+        assignment = assignment.clone(); // initRowObejctWithFullObject normalizes relations, this modifies delta
         MAssignment row = initRowObjectWithFullObject(assignment, ownerRow);
 
         row.lifecycleState = assignment.getLifecycleState();

@@ -64,6 +64,7 @@ public class ResourceObjectTypeBasicWizardPanel extends AbstractWizardPanel<Reso
                 OperationResult result = ResourceObjectTypeBasicWizardPanel.this.onSavePerformed(target);
                 if (result == null || result.isError()) {
                     target.add(getFeedback());
+                    refresh(target);
                 }
             }
 

@@ -15,6 +15,8 @@ xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authent
 
 == Example
 
+include::../../raw/curl-env-note.adoc[]
+
 [#_ex_get_own_profile_information]
 .Get Own profile information
 [source,bash]

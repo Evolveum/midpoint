@@ -10,13 +10,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.user.component;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.web.session.PageStorage;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -41,7 +38,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.column.AssignmentPathPanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -49,7 +45,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
 @PanelType(name = "userAllAccesses")
 @PanelInstance(identifier = "igaAccesses",
@@ -135,7 +130,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                         variablesMap.put("activation", getActivation(rowValue), ProvenanceMetadataType.class);
                         variablesMap.put("assignment", getAssignment(rowValue), ProvenanceMetadataType.class);
                         variablesMap.put("owner", getObjectDetailsModels().getObjectType(), UserType.class);
-                        variablesMap.put("target", getResolvedTarget(rowValue), WebComponentUtil.qnameToClass(PrismContext.get(), rowValue.getType()));
+                        variablesMap.put("target", getResolvedTarget(rowValue), WebComponentUtil.qnameToClass(rowValue.getType()));
                     }
                 };
             }

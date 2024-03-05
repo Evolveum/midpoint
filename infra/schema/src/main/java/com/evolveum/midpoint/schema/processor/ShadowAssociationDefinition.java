@@ -27,9 +27,8 @@ import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.config.*;
-import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -38,19 +37,29 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
 import com.evolveum.midpoint.util.exception.SystemException;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+
 /**
- * Definition of an association, as seen from the point of view of its subject.
+ * Definition of a usually multi-valued association item, e.g., `ri:group`.
+ *
+ * Effectively immutable (if constituent definitions are immutable), except for the ability of changing the {@link #maxOccurs}
+ * value.
  */
 public class ShadowAssociationDefinition extends AbstractFreezable
         implements Serializable, Visitable<Definition>, Freezable, DebugDumpable,
-        PrismContainerDefinition<ShadowAssociationValueType> {
+        PrismContainerDefinition<ShadowAssociationValueType>,
+        MutablePrismContainerDefinition.Unsupported<ShadowAssociationValueType> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -63,16 +72,14 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     /** Refined definition for {@link ShadowAssociationValueType} values that are stored in the {@link ShadowAssociation} item. */
     @NotNull private final ComplexTypeDefinition complexTypeDefinition;
 
-    /** The configuration item (wrapping the definition bean). Either legacy or "new". */
-    @NotNull private final AssociationConfigItem associationConfigItem;
+    private int maxOccurs = -1;
 
-    private ShadowAssociationDefinition(
-            @NotNull ItemName associationItemName,
-            @NotNull ShadowAssociationTypeDefinition associationTypeDefinition,
-            @NotNull AssociationConfigItem associationConfigItem) {
-        this.associationTypeDefinition = associationTypeDefinition;
-        this.associationConfigItem = associationConfigItem;
-        this.associationItemName = associationItemName;
+    public ShadowAssociationDefinition(
+            @NotNull ResourceObjectAssociationType definitionBean,
+            @NotNull ResourceObjectTypeDefinition associationTarget,
+            @NotNull Object errorCtx) throws ConfigurationException {
+        this.definitionBean = CloneUtil.toImmutable(definitionBean);
+        this.associationTarget = associationTarget;
         this.complexTypeDefinition = createComplexTypeDefinition();
     }
 
@@ -312,7 +319,13 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @Override
     public int getMaxOccurs() {
-        return -1;
+        return maxOccurs;
+    }
+
+    @Override
+    public void setMaxOccurs(int value) {
+        checkMutable();
+        maxOccurs = value;
     }
 
     @Override
@@ -417,7 +430,18 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public @NotNull ShadowAssociationDefinition clone() {
-        return this;
+        try {
+            ShadowAssociationDefinition clone =
+                    new ShadowAssociationDefinition(definitionBean, associationTarget, "");
+            copyDefinitionDataFrom(clone);
+            return clone;
+        } catch (ConfigurationException e) {
+            throw SystemException.unexpected(e, "(during cloning - unexpected because the configuration should be OK");
+        }
+    }
+
+    private void copyDefinitionDataFrom(ShadowAssociationDefinition source) {
+        maxOccurs = source.maxOccurs;
     }
 
     @Override
@@ -446,8 +470,9 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     }
 
     @Override
-    public MutablePrismContainerDefinition<ShadowAssociationValueType> toMutable() {
-        throw new UnsupportedOperationException();
+    public ShadowAssociationDefinition toMutable() {
+        checkMutableOnExposing();
+        return this;
     }
 
     @Override

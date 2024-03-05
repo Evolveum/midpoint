@@ -3,8 +3,11 @@
 .Create a new Report regarding Error audit records in 24h
 [source,bash]
 ----
-# Authenticating with the credentials "administrator" and password "y0uR_P455woR*d" on a localhost instance running on port 8080
-curl --user administrator:y0uR_P455woR*d -H "Content-Type: application/json" -X POST http://localhost:8080/midpoint/ws/rest/reports --data-binary @pathToMidpointGit\samples\rest\report-error-audit-records-24h.json -v
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/reports \
+-v \
+--data-binary @./samples/rest/report-error-audit-records-24h.json
 ----
 
 .*Show* data source example for *"Create a new Report regarding Error audit records in 24h"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/report-error-audit-records-24h.json[GitHub]
