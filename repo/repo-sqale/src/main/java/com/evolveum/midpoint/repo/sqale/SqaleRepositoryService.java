@@ -279,27 +279,37 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     private <T extends ObjectType> String executeGetVersion(Class<T> type, UUID oid)
             throws ObjectNotFoundException {
         long opHandle = registerOperationStart(OP_GET_VERSION, type);
-        try (JdbcSession jdbcSession =
-                sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
-            SqaleTableMapping<T, QObject<MObject>, MObject> rootMapping =
-                    sqlRepoContext.getMappingBySchemaType(type);
-            QObject<MObject> root = rootMapping.defaultAlias();
+        try {
+            return executeRetriable(OP_GET_VERSION, oid, opHandle, () -> {
+                try (JdbcSession jdbcSession =
+                        sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+                    SqaleTableMapping<T, QObject<MObject>, MObject> rootMapping =
+                            sqlRepoContext.getMappingBySchemaType(type);
+                    QObject<MObject> root = rootMapping.defaultAlias();
 
-            Integer version = jdbcSession.newQuery()
-                    .select(root.version)
-                    .from(root)
-                    .where(root.oid.eq(oid))
-                    .fetchOne();
-            if (version == null) {
-                throw new ObjectNotFoundException(type, oid.toString(), false);
-            }
+                    Integer version = jdbcSession.newQuery()
+                            .select(root.version)
+                            .from(root)
+                            .where(root.oid.eq(oid))
+                            .fetchOne();
+                    if (version == null) {
+                        throw new ObjectNotFoundException(type, oid.toString(), false);
+                    }
 
-            String versionString = version.toString();
-            invokeConflictWatchers((w) -> w.afterGetVersion(oid.toString(), versionString));
-            return versionString;
+                    String versionString = version.toString();
+                    invokeConflictWatchers((w) -> w.afterGetVersion(oid.toString(), versionString));
+                    return versionString;
+                }
+            });
+        } catch (ObjectAlreadyExistsException | SchemaException | RepositoryException e) {
+            throw shouldNotHappen(e);
         } finally {
             registerOperationFinish(opHandle);
         }
+    }
+
+    private AssertionError shouldNotHappen(Throwable e) {
+        return new AssertionError("Should not happen", e);
     }
     // endregion
 
@@ -933,9 +943,11 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         long opHandle = registerOperationStart(OP_COUNT_OBJECTS, type);
         try {
-            return sqlQueryExecutor.count(
+            return executeRetriable(OP_COUNT_OBJECTS, null, opHandle,  () -> sqlQueryExecutor.count(
                     SqaleQueryContext.from(type, sqlRepoContext),
-                    query, options);
+                    query, options));
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
+            throw shouldNotHappen(e);
         } finally {
             registerOperationFinish(opHandle);
         }
@@ -1303,9 +1315,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         long opHandle = registerOperationStart(OP_COUNT_CONTAINERS, type);
         try {
-            return sqlQueryExecutor.count(
-                    SqaleQueryContext.from(type, sqlRepoContext),
-                    query, options);
+            return executeRetriable(OP_COUNT_CONTAINERS, null, opHandle,
+                    () -> sqlQueryExecutor.count(SqaleQueryContext.from(type, sqlRepoContext),query, options));
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
+            throw shouldNotHappen(e);
         } finally {
             registerOperationFinish(opHandle);
         }
@@ -1348,13 +1361,16 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     private @NotNull <T extends Containerable> SearchResultList<T> executeSearchContainers(
             Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, String opName)
             throws RepositoryException, SchemaException {
-
         long opHandle = registerOperationStart(opName, type);
         try {
-            SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
+            return executeRetriable(opName, null, opHandle, () -> {
+                SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
                     SqaleQueryContext.from(type, sqlRepoContext, this::readByOid);
-            return sqlQueryExecutor.list(queryContext, query, options);
-        } finally {
+                return sqlQueryExecutor.list(queryContext, query, options);
+            });
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException e) {
+            throw shouldNotHappen(e);
+        }finally {
             registerOperationFinish(opHandle);
         }
     }
@@ -1390,7 +1406,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    public int executeCountReferences(
+    private int executeCountReferences(
             ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
             throws RepositoryException {
         long opHandle = registerOperationStart(OP_COUNT_REFERENCES, ObjectReferenceType.class);
@@ -1442,12 +1458,18 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             String operationKind)
             throws SchemaException, RepositoryException {
         long opHandle = registerOperationStart(operationKind, ObjectReferenceType.class);
+        QReferenceMapping<?, ?, ?, ?> refMapping = determineMapping(query.getFilter());
+
         try {
-            QReferenceMapping<?, ?, ?, ?> refMapping = determineMapping(query.getFilter());
-            SqaleQueryContext<ObjectReferenceType, ?, ?> queryContext =
-                    SqaleQueryContext.from(
-                            refMapping, sqlRepoContext, sqlRepoContext.newQuery(), null);
-            return sqlQueryExecutor.list(queryContext, query, options);
+            return executeRetriable(operationKind, null, opHandle, () -> {
+                SqaleQueryContext<ObjectReferenceType, ?, ?> queryContext =
+                        SqaleQueryContext.from(
+                                refMapping, sqlRepoContext, sqlRepoContext.newQuery(), null);
+
+                return sqlQueryExecutor.list(queryContext, query, options);
+            });
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException e) {
+            throw shouldNotHappen(e);
         } finally {
             registerOperationFinish(opHandle);
         }
@@ -1828,16 +1850,22 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .collect(Collectors.toList());
 
         long opHandle = registerOperationStart(OP_IS_DESCENDANT, OrgType.class);
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            jdbcSession.executeStatement("CALL m_refresh_org_closure()");
+        try {
+            return executeRetriable(OP_IS_DESCENDANT, SqaleUtils.oidToUuid(object.getOid()), opHandle, () -> {
+                try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+                    jdbcSession.executeStatement("CALL m_refresh_org_closure()");
 
-            QOrgClosure oc = new QOrgClosure();
-            long count = jdbcSession.newQuery()
-                    .from(oc)
-                    .where(oc.ancestorOid.eq(UUID.fromString(ancestorOrgOid))
-                            .and(oc.descendantOid.in(objParentOrgOids)))
-                    .fetchCount();
-            return count != 0L;
+                    QOrgClosure oc = new QOrgClosure();
+                    long count = jdbcSession.newQuery()
+                            .from(oc)
+                            .where(oc.ancestorOid.eq(UUID.fromString(ancestorOrgOid))
+                                    .and(oc.descendantOid.in(objParentOrgOids)))
+                            .fetchCount();
+                    return count != 0L;
+                }
+            });
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RepositoryException e) {
+            throw shouldNotHappen(e);
         } finally {
             registerOperationFinish(opHandle);
         }
@@ -1856,16 +1884,22 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
 
         long opHandle = registerOperationStart(OP_IS_ANCESTOR, OrgType.class);
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            jdbcSession.executeStatement("CALL m_refresh_org_closure()");
+        try {
+            return executeRetriable(OP_IS_ANCESTOR, SqaleUtils.oidToUuid(object.getOid()), opHandle, () -> {
+                try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+                    jdbcSession.executeStatement("CALL m_refresh_org_closure()");
 
-            QOrgClosure oc = new QOrgClosure();
-            long count = jdbcSession.newQuery()
-                    .from(oc)
-                    .where(oc.ancestorOid.eq(UUID.fromString(object.getOid()))
-                            .and(oc.descendantOid.eq(UUID.fromString(descendantOrgOid))))
-                    .fetchCount();
-            return count != 0L;
+                    QOrgClosure oc = new QOrgClosure();
+                    long count = jdbcSession.newQuery()
+                            .from(oc)
+                            .where(oc.ancestorOid.eq(UUID.fromString(object.getOid()))
+                                    .and(oc.descendantOid.eq(UUID.fromString(descendantOrgOid))))
+                            .fetchCount();
+                    return count != 0L;
+                }
+            });
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RepositoryException e) {
+            throw shouldNotHappen(e);
         } finally {
             registerOperationFinish(opHandle);
         }
@@ -2017,24 +2051,30 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws ObjectNotFoundException, SchemaException, RepositoryException {
         MiscUtil.argCheck(howMany > 0, "howMany must be positive");
         long opHandle = registerOperationStart(OP_ALLOCATE_CONTAINER_IDENTIFIERS, type);
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
-                    prepareUpdateContext(jdbcSession, type, oid);
-            long sequenceBefore = MiscUtil.stateNonNull(
-                    updateContext.row().containerIdSeq,
-                    "no container ID seq in %s", oid);
+        try {
+            return executeRetriable(OP_ALLOCATE_CONTAINER_IDENTIFIERS, oid, opHandle, () ->{
+                try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+                    RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
+                            prepareUpdateContext(jdbcSession, type, oid);
+                    long sequenceBefore = MiscUtil.stateNonNull(
+                            updateContext.row().containerIdSeq,
+                            "no container ID seq in %s", oid);
 
-            long sequenceAfter = sequenceBefore;
-            List<Long> allocatedIdentifiers = new ArrayList<>(howMany);
-            for (int i = 0; i < howMany; i++) {
-                allocatedIdentifiers.add(sequenceAfter++);
-            }
-            logger.trace("Container identifiers allocated: from {} to {} (inclusive) for {}/{}",
-                    sequenceBefore, sequenceAfter - 1, type.getSimpleName(), oid);
+                    long sequenceAfter = sequenceBefore;
+                    List<Long> allocatedIdentifiers = new ArrayList<>(howMany);
+                    for (int i = 0; i < howMany; i++) {
+                        allocatedIdentifiers.add(sequenceAfter++);
+                    }
+                    logger.trace("Container identifiers allocated: from {} to {} (inclusive) for {}/{}",
+                            sequenceBefore, sequenceAfter - 1, type.getSimpleName(), oid);
 
-            updateContext.finishExecutionSetCidOnly(sequenceAfter);
-            jdbcSession.commit();
-            return allocatedIdentifiers;
+                    updateContext.finishExecutionSetCidOnly(sequenceAfter);
+                    jdbcSession.commit();
+                    return allocatedIdentifiers;
+                }
+            });
+        } catch (ObjectAlreadyExistsException e) {
+            throw shouldNotHappen(e);
         } finally {
             registerOperationFinish(opHandle);
         }
@@ -2047,6 +2087,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     @Override
     public void repositorySelfTest(OperationResult parentResult) {
+        // Does not need retries, because does not select from data tables.
         OperationResult operationResult =
                 parentResult.createSubresult(opNamePrefix + OP_REPOSITORY_SELF_TEST);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
@@ -2067,7 +2108,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 parentResult.subresult(opNamePrefix + OP_TEST_ORG_CLOSURE_CONSISTENCY)
                         .addParam("repairIfNecessary", repairIfNecessary)
                         .build();
-
+        // FIXME: RetriableRead: Make retriable
         try {
             long closureCount, expectedCount;
             try (JdbcSession jdbcSession =
@@ -2159,46 +2200,52 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws RepositoryException, SchemaException {
         long opHandle = registerOperationStart(OP_EXECUTE_QUERY_DIAGNOSTICS, (Class<? extends Containerable>) null);
 
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
-            // Modified code from SqlQueryExecutor.list()
-            SimulatedSqlQuery<Object> simulatedQuery = new SimulatedSqlQuery<>(
-                    sqlRepoContext.getQuerydslConfiguration(), jdbcSession.connection(), request.isTranslateOnly());
+        try {
+            return executeRetriable(OP_EXECUTE_QUERY_DIAGNOSTICS, null, opHandle, () -> {
+                try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+                    // Modified code from SqlQueryExecutor.list()
+                    SimulatedSqlQuery<Object> simulatedQuery = new SimulatedSqlQuery<>(
+                            sqlRepoContext.getQuerydslConfiguration(), jdbcSession.connection(), request.isTranslateOnly());
 
-            // Special handling for references?
-            SqaleQueryContext<S, Q, R> context;
-            if (ObjectReferenceType.class.isAssignableFrom(type)) {
-                SqaleTableMapping mapping = determineMapping(request.getQuery().getFilter());
-                context = SqaleQueryContext.from(mapping, sqlRepoContext, simulatedQuery, null);
-            } else {
-                context = SqaleQueryContext.from(type, sqlRepoContext, simulatedQuery, null);
-            }
-            ObjectQuery query = request.getQuery();
-            if (query != null) {
-                context.processFilter(query.getFilter());
-                context.processObjectPaging(query.getPaging());
-            }
-            context.processOptions(request.getOptions());
+                    // Special handling for references?
+                    SqaleQueryContext<S, Q, R> context;
+                    if (ObjectReferenceType.class.isAssignableFrom(type)) {
+                        SqaleTableMapping mapping = determineMapping(request.getQuery().getFilter());
+                        context = SqaleQueryContext.from(mapping, sqlRepoContext, simulatedQuery, null);
+                    } else {
+                        context = SqaleQueryContext.from(type, sqlRepoContext, simulatedQuery, null);
+                    }
+                    ObjectQuery query = request.getQuery();
+                    if (query != null) {
+                        context.processFilter(query.getFilter());
+                        context.processObjectPaging(query.getPaging());
+                    }
+                    context.processOptions(request.getOptions());
 
-            List<?> resultList = null; // default for case when query is just translated
-            context.beforeQuery();
-            PageOf<Tuple> result;
-            try {
-                result = context.executeQuery(jdbcSession);
-                PageOf<S> transformedResult = context.transformToSchemaType(result, jdbcSession);
-                //noinspection unchecked
-                if (ObjectReferenceType.class.isAssignableFrom(type)) {
-                    resultList = transformedResult.content();
-                } else {
-                    resultList = transformedResult.map(o -> (PrismContainerValue<S>) o.asPrismContainerValue()).content();
+                    List<?> resultList = null; // default for case when query is just translated
+                    context.beforeQuery();
+                    PageOf<Tuple> result;
+                    try {
+                        result = context.executeQuery(jdbcSession);
+                        PageOf<S> transformedResult = context.transformToSchemaType(result, jdbcSession);
+                        //noinspection unchecked
+                        if (ObjectReferenceType.class.isAssignableFrom(type)) {
+                            resultList = transformedResult.content();
+                        } else {
+                            resultList = transformedResult.map(o -> (PrismContainerValue<S>) o.asPrismContainerValue()).content();
+                        }
+                    } catch (RuntimeException e) {
+                        if (e != SimulatedSqlQuery.SIMULATION_EXCEPTION) {
+                            throw e; // OK, this was unexpected, so rethrow it
+                        }
+                    }
+
+                    return new RepositoryQueryDiagResponse(
+                            resultList, simulatedQuery.toString(), simulatedQuery.paramsMap());
                 }
-            } catch (RuntimeException e) {
-                if (e != SimulatedSqlQuery.SIMULATION_EXCEPTION) {
-                    throw e; // OK, this was unexpected, so rethrow it
-                }
-            }
-
-            return new RepositoryQueryDiagResponse(
-                    resultList, simulatedQuery.toString(), simulatedQuery.paramsMap());
+            });
+        } catch(ObjectAlreadyExistsException | ObjectNotFoundException e) {
+            throw shouldNotHappen(e);
         } finally {
             registerOperationFinish(opHandle);
         }
@@ -2370,8 +2417,12 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     @Override
     public @NotNull SearchResultList<PrismContainerValue<?>> searchAggregate(AggregateQuery<?> query, OperationResult parentResult) throws SchemaException {
         var result = parentResult.createSubresult(OP_SEARCH_AGGREGATE);
+        var handler = aggregateQueryHandler(query, result);
+        var opHandle = registerOperationStart(OP_SEARCH_AGGREGATE, ObjectType.class);
         try {
-            return aggregateQueryHandler(query, result).search();
+            return executeRetriable(OP_SEARCH_AGGREGATE, null, opHandle, handler::search);
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException e) {
+            throw shouldNotHappen(e);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, result);
         } catch (Throwable t) {
@@ -2385,8 +2436,12 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     @Override
     public int countAggregate(AggregateQuery<?> query, OperationResult parentResult) throws SchemaException {
         var result = parentResult.createSubresult(OP_COUNT_AGGREGATE);
+        var handler = aggregateQueryHandler(query, result);
+        var opHandle = registerOperationStart(OP_COUNT_AGGREGATE, ObjectType.class);
         try {
-            return aggregateQueryHandler(query, result).count();
+            return executeRetriable(OP_COUNT_AGGREGATE, null, opHandle, handler::count);
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException e) {
+            throw shouldNotHappen(e);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, result);
         } catch (Throwable t) {
@@ -2394,6 +2449,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throw t;
         } finally {
             result.computeStatusIfUnknown();
+            registerOperationFinish(opHandle);
         }
     }
 
