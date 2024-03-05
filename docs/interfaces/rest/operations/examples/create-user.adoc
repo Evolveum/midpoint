@@ -14,6 +14,8 @@ xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authent
 
 == Example
 
+include::../../raw/curl-env-note.adoc[]
+
 include::../examples/raw/create-user-jack.adoc[]
 
 == See Also

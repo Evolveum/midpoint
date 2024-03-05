@@ -3,8 +3,11 @@
 .Create a new User object in MidPoint with file data source
 [source,bash]
 ----
-# Authenticating with the credentials "administrator" and password "y0uR_P455woR*d" on a localhost instance running on port 8080
-curl --user administrator:y0uR_P455woR*d -H "Content-Type: application/json" -X POST http://localhost:8080/midpoint/ws/rest/users --data-binary @pathToMidpointGit\samples\rest\user-jack.json -v
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/users \
+-v \
+--data-binary @./samples/rest/user-jack.json
 ----
 
 .*Show* data source example for *"Create a new User object in MidPoint"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/user-jack.json[GitHub]

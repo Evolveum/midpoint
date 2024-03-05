@@ -32,7 +32,6 @@ get queries. As in this example:
  http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}?options=raw
 ----
 
-
 == Request
 
 Use the HTTP GET method with your request.
@@ -218,6 +217,8 @@ for your use case*.
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getSelf+`
 
 == Examples
+
+include::../raw/curl-env-note.adoc[]
 
 include::../operations/examples/raw/get-user-administrator.adoc[]
 
