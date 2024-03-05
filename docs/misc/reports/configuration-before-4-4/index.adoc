@@ -238,7 +238,7 @@ The xref:/midpoint/reference/security/audit/[structure of an audit table is docu
 MidPoint is neither of those systems and it has no ambition to become one.
 Therefore such integration is likely to be required anyway to construct a complete information security solution.
 
-See xref:/midpoint/reference/security/security-guide/[Security Guide] for more detail regarding security-related functionality of midPoint.
+See xref:/midpoint/security/security-guide/[Security Guide] for more detail regarding security-related functionality of midPoint.
 
 == New report
 
@@ -1321,4 +1321,4 @@ Target of assignment define via name of role variable _role_name_.  Variables _v
 
 * xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles]
 
-* xref:/midpoint/reference/security/security-guide/[Security Guide]
+* xref:/midpoint/security/security-guide/[Security Guide]

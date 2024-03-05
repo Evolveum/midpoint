@@ -19,14 +19,14 @@
 | 2
 | `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#<operation>+`
 | Access to specific REST operation.
-The URI fragments of individual operations are present xref:/midpoint/reference/interfaces/rest/operations/[in their description]: on pages devoted to individual operations, e.g., xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[].
+The URI fragments of individual operations are present xrefv:/midpoint/reference/before-4.8/interfaces/rest/operations/[in their description]: on pages devoted to individual operations, e.g., xrefv:/midpoint/reference/before-4.8/interfaces/rest/operations/search-op-rest/[].
 These authorizations do *not* check for any specific objects, e.g., an object that is going to be retrieved or modified by the operation.
 They are just "yes/no" authorizations for the operation itself.
 
 See the note below.
 | 3
 | `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#proxy+`
-| Authorizes the xref:/midpoint/reference/interfaces/rest/concepts/authentication/#proxy-impersonation[impersonation].
+| Authorizes the xrefv:/midpoint/reference/before-4.8/interfaces/rest/concepts/authentication/#proxy-impersonation[impersonation].
 
 |===
 
