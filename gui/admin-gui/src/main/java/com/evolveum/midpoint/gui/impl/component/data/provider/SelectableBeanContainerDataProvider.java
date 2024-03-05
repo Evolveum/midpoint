@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -46,13 +49,13 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
 
     @Override
     protected List<C> searchObjects(Class<C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {
-        return getModelService().searchContainers(type, query, options, task, result);
+        return WebModelServiceUtils.searchContainersByQueryFromSearchPanel(type, query, options, task, result, getModelService());
     }
 
     protected Integer countObjects(Class<C> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
             throws CommonException {
-        return getModelService().countContainers(type, getQuery(), currentOptions, task, result);
+        return WebModelServiceUtils.countContainersByQueryFromSearchPanel(type, getQuery(), currentOptions, task, result, getModelService());
     }
 
     @Override

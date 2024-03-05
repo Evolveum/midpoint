@@ -17,6 +17,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -374,7 +376,8 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         try {
             ObjectQuery query = PrismContext.get().queryFactory().createQuery(
                     PrismContext.get().queryFactory().createAnd(filter, situationFilter));
-            return getPageBase().getModelService().countObjects(ShadowType.class, query, options, task, result);
+            return WebModelServiceUtils.countObjectsByQueryFromSearchPanel(
+                    ShadowType.class, query, options, task, result, getPageBase().getModelService());
         } catch (CommonException | RuntimeException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count shadows", ex);
         }
@@ -513,7 +516,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                     return 0;
                 }
 
-                ObjectQuery query = createQueryFroTasks(isSimulationTasks);
+                ObjectQuery query = createQueryForTasks(isSimulationTasks);
                 if (archetypeOid != null) {
                     query.addFilter(PrismContext.get()
                             .queryFor(TaskType.class)
@@ -573,13 +576,13 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
             }
         }
 
-        ObjectQuery query = createQueryFroTasks(isSimulationTasks);
+        ObjectQuery query = createQueryForTasks(isSimulationTasks);
 
         PageTasks pageTasks = new PageTasks(query, pageParameters);
         getPageBase().setResponsePage(pageTasks);
     }
 
-    private ObjectQuery createQueryFroTasks(boolean isSimulationTasks) {
+    private ObjectQuery createQueryForTasks(boolean isSimulationTasks) {
         S_FilterExit filter = PrismContext.get()
                 .queryFor(TaskType.class)
                 .item(ItemPath.create(
