@@ -1,10 +1,25 @@
 = Request access
 :page-toc: top
-:page-since: "4.6"
 
-Request access functionality is a complete rewrite and redesign of midPoint xref:../role-request/index.adoc[role requesting UI].
+Many traditional Role-Based Access Control (RBAC) theories seem to be based on assumption that there is some kind of all-knowing authority that knows which user should have which role.
+This approach works in some kind of organizations, but in reality such organizations are very rare.
+In practice the knowledge about roles and role policies is not centralized.
+It is rather distributed among many people in the organization: application owners have part of the knowledge, line managers have more bits of knowledge, other parts are maintained by security officers and other specialists.
+It is almost impossible to analyze this knowledge and specify it in a form of an algorithm that a machine can execute.
+In addition to that, such policy is constantly changing.
+Implementing this a fully-automated system is almost always infeasible.
 
-New UI takes form of proper wizard with up to four steps:
+Therefore, most identity management and governance systems come with an alternative approach: user are requesting role assignment.
+The request is then routed through an xref:/midpoint/reference/cases/approval/[approval process]. If the request is approved, then the requested roles are assigned.
+
+However, this approach requires _end users_ to take part in the interaction.
+End users are usually not experts on RBAC and they do not have comprehensive knowledge about role design and structures used in the organization.
+Therefore, midPoint has a simplified view of xref:/midpoint/reference/admin-gui/role-catalog/[role catalog] that is suitable for end users.
+The role catalog is used to present the roles in a similar way as an e-shop presents the products.
+The roles are sorted into categories and sub-categories.
+The user may browse the role catalog and select the roles.
+
+User interface takes form of proper wizard with up to four steps:
 
 * Person of interest
 * Relation
@@ -27,37 +42,43 @@ There are two type of tiles:
 * Group - defined by collection or query filter. Group allow to select one or more users via autocomplete text field or by clicking *Select manually* button.
 
 Autocomplete search withing group is done using `user/name` property with `norm` poly-string matcher by default.
+Autocomplete configuration can be customized using `group/autocompleteConfiguration` configuration option.
 
-Concrete search behaviour can be customized using `group/searchFilterTemplate` where filter with expression can be used.
-Search result labels can be also configured using expression defined in `group/userDisplayName`.
+Concrete search behaviour can be customized using `autocompleteConfiguration/searchFilterTemplate` where filter with expression can be used.
+Filter expression should contain `input` variable which will be replaced by user input.
+Such filter will be joined with group defined filter/collection using `and` operator.
+
+Search result items can be also modified using expression defined in `autocompleteConfiguration/displayExpression`.
+
 Minimum number of characters needed to start autocomplete can be configured using `group/autocompleteMinChars`.
+Default value is 2.
 
-Search behaviour configuration was moved to `autoCompleteConfiguration` configuration option.
-
-In following example filter template will create substring search `givenName like '%King *<VALUE>*%'`.
+In following example filter template will create substring search `givenName like '%King *<VALUE_FROM_AUTOCOMPLETE_TEXT>*%'`.
 Results will be displayed in format `<USER_NAME> (<USER_OID>)`
 
 [source, xml]
 ----
 <group>
-    <searchFilterTemplate>
-        <q:substring>
-            <q:path>givenName</q:path>
-            <expression>
-                <script>
-                    <code>
-                        return "King " + input
-                    </code>
-                </script>
-            </expression>
-        </q:substring>
-    </searchFilterTemplate>
-    <userDisplayName>
-        <script>
-            <code>return basic.stringify(object.name) + " (" + object.oid + ")"</code>
-        </script>
-    </userDisplayName>
-    <autocompleteMinChars>2</autocompleteMinChars>
+    <identifier>kings</identifier>
+    <display>
+        <label>Kings</label>
+    </display>
+    <collection>
+        <collectionRef oid="1324096e-3b16-4097-86b2-47c43b1d2ad5" type="ArchetypeType"/>
+    </collection>
+    <autocompleteConfiguration>
+        <searchFilterTemplate>
+            <q:text xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                givenName contains `"King " + input`
+            </q:text>
+        </searchFilterTemplate>
+        <displayExpression>
+            <script>
+                <code>return basic.stringify(object.name) + " (" + object.oid + ")"</code>
+            </script>
+        </displayExpression>
+        <autocompleteMinChars>1</autocompleteMinChars>
+    </autocompleteConfiguration>
 </group>
 ----
 
@@ -90,6 +111,8 @@ Default set of relations is:
 Set of relations, their label and icon can be configured, see xref:../../concepts/relation/index.adoc[Relations] and xref:./configuration.adoc[Configuration].
 
 If there's only one relation to be selected, then this step is not visible (and skipped).
+
+List of available relations is based authorizations and first user that was added in `Person of interest` step.
 
 [NOTE]
 ====
@@ -140,7 +163,7 @@ Roles of teammate option can be disabled via configuration.
 
 Search for teammate will by default create filter using `user/name` property with `norm` poly-string matcher by default.
 
-Search behaviour can be customized using `autoCompleteConfiguration` configuration option.
+Search behaviour can be customized using `autoCompleteConfiguration` configuration option, similar to auto-complete in <<Person of interest>> step.
 
 .Roles of teammate
 image::step-3-roles-of-teammate.png[Roles of teammate,100%]
@@ -154,6 +177,10 @@ Last step in request access wizard is checkout.
 In this step user can finalize whole request, review and solve conflicts if necessary.
 If configuration allows comment for this request can be added also with custom validity period for requested items.
 This can be done either globally for whole cart or for each item separately.
+
+If there are items in the cart that has to be approved and items that don't need approval process, then submit behavior can be configured using `systemConfiguration/roleManagement/defaultExecuteAfterAllApprovals` configuration option.
+This boolean flag defines whether all changes are applied after all approvals or items can be assigned immediately if they don't need approval process.
+This flag is global and can't be overridden via `adminGuiConfiguration/accessRequest` configuration.
 
 === Conflict solver
 

@@ -27,13 +27,7 @@ public class TestDummyReadReplaceForAll extends TestDummy {
     public static final File RESOURCE_DUMMY_FILENAME = new File(TEST_DIR, "resource-dummy-all-read-replace.xml");
 
     @Override
-    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        super.initSystem(initTask, initResult);
-    }
-
-    @Override
     protected File getResourceDummyFile() {
         return RESOURCE_DUMMY_FILE;
     }
-
 }

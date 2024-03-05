@@ -164,4 +164,21 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
     public Expression<?> rightHand(ValueFilter<?, ?> filter) throws RepositoryException {
         throw new RepositoryException("Path " + filter.getRightHandSidePath() + "is not supported as right hand side.");
     }
+
+    protected final QueryException createUnsupportedMatchingRuleException(O filter) {
+        return createUnsupportedMatchingRuleException(filter, false);
+    }
+
+    protected final QueryException createUnsupportedMatchingRuleException(O filter, boolean addFilter) {
+        var definition = filter.getDefinition();
+        String suffix = ".";
+        if (definition != null) {
+            suffix = " for value type '" + definition.getTypeName().getLocalPart() +"'.";
+        }
+
+        return new QueryException("Unsupported matching rule '" +
+                (filter.getMatchingRule() != null ? filter.getMatchingRule().getLocalPart() : "empty_value")
+                + "'" + suffix
+                + (addFilter ? (" Filter: " + filter) : ""));
+    }
 }

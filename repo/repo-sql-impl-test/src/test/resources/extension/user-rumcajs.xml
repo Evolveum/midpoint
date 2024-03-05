@@ -7,7 +7,9 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:ext="http://example.com/p"
+        xmlns:ext="http://example.com/p"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         oid="6a39f871-4e8c-4c24-bfc1-abebc4a66ee6">
     <name>rumcajs</name>
     <extension>
@@ -18,5 +20,9 @@
         <ext:visible>v1</ext:visible>
         <ext:visible>v2</ext:visible>
         <ext:visible>v3</ext:visible>
+        <ext:poly xsi:type="t:PolyStringType">
+            <t:orig>VALUE</t:orig>
+            <t:norm>value</t:norm>
+        </ext:poly>
     </extension>
 </user>

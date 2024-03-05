@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticati
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -38,6 +39,7 @@ public class HttpClusterModuleWebSecurityConfigurer extends ModuleWebSecurityCon
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private TaskManager taskManager;
+    @Autowired private ApplicationContext applicationContext;
 
     public HttpClusterModuleWebSecurityConfigurer(AbstractAuthenticationModuleType moduleType,
             String sequeneSuffix,
@@ -67,7 +69,8 @@ public class HttpClusterModuleWebSecurityConfigurer extends ModuleWebSecurityCon
         if (rememberMeServices != null) {
             filter.setRememberMeServices(rememberMeServices);
         }
-        http.authorizeRequests().accessDecisionManager(new MidpointAllowAllAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager));
+        http.authorizeRequests().accessDecisionManager(new MidpointAllowAllAuthorizationEvaluator(
+                securityEnforcer, securityContextManager, taskManager, applicationContext));
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
         http.formLogin().disable()
                 .csrf().disable();

@@ -78,6 +78,31 @@ public class CleanupActionProcessor {
         return result;
     }
 
+    /**
+     * Processes container value (modifies it) and removes unwanted items.
+     */
+    public CleanupResult process(PrismContainerValue<?> containerValue) {
+        CleanupResult result = new CleanupResult();
+
+        if (containerValue.isEmpty()) {
+            return result;
+        }
+
+        Map<Item<?, ?>, CleanupPathAction> customItemActions = new HashMap<>();
+
+        final List<Item<?, ?>> toBeRemoved = new ArrayList<>();
+
+        Collection<Item<?, ?>> items = containerValue.getItems();
+        for (Item<?, ?> i : items) {
+            if (processItemRecursively(i, i.getElementName(), customItemActions, null, result)) {
+                toBeRemoved.add(i);
+            }
+        }
+
+        items.removeAll(toBeRemoved);
+        return result;
+    }
+
     private boolean processItemRecursively(
             Item<?, ?> item, ItemPath currentPath, Map<Item<?, ?>, CleanupPathAction> customItemActions, PrismObject<?> object,
             CleanupResult result) {

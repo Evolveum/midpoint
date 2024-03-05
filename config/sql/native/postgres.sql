@@ -498,6 +498,7 @@ CREATE TABLE m_ref_role_membership (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('ROLE_MEMBERSHIP') STORED
         CHECK (referenceType = 'ROLE_MEMBERSHIP'),
+    fullObject BYTEA,
 
     PRIMARY KEY (ownerOid, relationId, targetOid)
 )
@@ -563,7 +564,7 @@ CREATE TABLE m_ref_projection (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('PROJECTION') STORED
         CHECK (referenceType = 'PROJECTION'),
-
+    fullObject BYTEA,
     PRIMARY KEY (ownerOid, relationId, targetOid)
 )
     INHERITS (m_reference);
@@ -1941,6 +1942,7 @@ CREATE TABLE m_assignment (
     modifierRefRelationId INTEGER REFERENCES m_uri(id),
     modifyChannelId INTEGER REFERENCES m_uri(id),
     modifyTimestamp TIMESTAMPTZ,
+    fullObject BYTEA,
 
     PRIMARY KEY (ownerOid, cid)
 );
@@ -2030,6 +2032,7 @@ CREATE TABLE m_operation_execution (
     taskRefTargetType ObjectType,
     taskRefRelationId INTEGER REFERENCES m_uri(id),
     timestamp TIMESTAMPTZ,
+    fullObject BYTEA,
 
     PRIMARY KEY (ownerOid, cid)
 )
@@ -2241,8 +2244,10 @@ BEGIN
 END $$;
 -- endregion
 
+
+
 -- Initializing the last change number used in postgres-new-upgrade.sql.
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(25, $$ SELECT 1 $$, true);
+call apply_change(26, $$ SELECT 1 $$, true);

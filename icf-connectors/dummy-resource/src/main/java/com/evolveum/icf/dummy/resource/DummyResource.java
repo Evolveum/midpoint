@@ -985,7 +985,7 @@ public class DummyResource implements DebugDumpable {
     public void populateWithDefaultSchema() {
         accountObjectClass.clear();
         accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_FULLNAME_NAME, String.class, true, false);
-        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERNAL_ID, String.class, false, false);
+        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERNAL_ID, Integer.class, false, false);
         accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_DESCRIPTION_NAME, String.class, false, false);
         accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERESTS_NAME, String.class, false, true);
         accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_PRIVILEGES_NAME, String.class, false, true);

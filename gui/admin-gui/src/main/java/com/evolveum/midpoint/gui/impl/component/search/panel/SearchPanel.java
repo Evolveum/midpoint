@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -60,6 +62,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.wicket.util.string.StringValue;
 
 public abstract class SearchPanel<C extends Serializable> extends BasePanel<Search<C>> {
 
@@ -229,7 +233,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
 
                     @Override
                     protected void saveSearchFilterPerformed(AjaxRequestTarget target) {
-                        SearchPanel.this.saveSearchFilterPerformed(target);
+                        reloadSavedSearchFilters(target);
                     }
                 };
                 getPageBase().showMainPopup(panel, target);
@@ -349,12 +353,13 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 deleteFilterPerformed(filter, target);
+                reloadSavedSearchFilters(target);
             }
         };
         getPageBase().showMainPopup(confirmationPanel, target);
     }
 
-    private void saveSearchFilterPerformed(AjaxRequestTarget target) {
+    private void reloadSavedSearchFilters(AjaxRequestTarget target) {
         savedSearchListModel.detach();
         getModelObject().reloadSavedFilters(getParentPage());
         refreshSearchForm(target);
@@ -363,21 +368,58 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
     private void deleteFilterPerformed(AvailableFilterType filter, AjaxRequestTarget target) {
         Task task = getPageBase().createSimpleTask(OPERATION_REMOVE_SAVED_FILTER);
         OperationResult result = task.getResult();
+        FocusType principalFocus = getPageBase().getPrincipalFocus();
         try {
             ObjectDelta<UserType> delta = getPageBase().getPrismContext().deltaFactory().object().createModificationDeleteContainer
-                    (UserType.class, getPageBase().getPrincipalFocus().getOid(),
-                            filter.asPrismContainerValue().getPath().allExceptLast(),
+                    (UserType.class, principalFocus.getOid(),
+                            getAvailableFilterItemPath(principalFocus, filter),
                             filter.asPrismContainerValue().clone());
             getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
         } catch (Exception e) {
             LOGGER.error("Cannot remove filter from user admin gui configuration: {}", e.getMessage(), e);
             result.recordPartialError("Cannot remove filter from user admin gui configuration: {}", e);
-
         }
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
         target.add(getPageBase().getFeedbackPanel());
         target.add(get(ID_FORM));
+    }
+
+    private ItemPath getAvailableFilterItemPath(FocusType principalFocus, AvailableFilterType filter) {
+        if (!(principalFocus instanceof UserType user)) {
+            return null;
+        }
+
+        OperationResult result = new OperationResult("load user");
+        Task task = getPageBase().createSimpleTask("load user");
+        PrismObject<UserType> reloadedPrincipalUser = WebModelServiceUtils.loadObject(UserType.class, user.getOid(), getParentPage(),
+                task, result);
+        if (reloadedPrincipalUser == null) {
+            return null;
+        }
+        user = reloadedPrincipalUser.asObjectable();
+        List<GuiObjectListViewType> views = user.getAdminGuiConfiguration().getObjectCollectionViews().getObjectCollectionView();
+        if (CollectionUtils.isEmpty(views)) {
+            return null;
+        }
+
+        StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
+        String viewName = collectionViewParameter == null || collectionViewParameter.isNull()
+                ? getCollectionInstanceDefaultIdentifier() : collectionViewParameter.toString();
+        if (viewName == null) {
+            return null;
+        }
+        for (GuiObjectListViewType view : views) {
+            if (viewName.equals(view.getIdentifier())) {
+                SearchBoxConfigurationType searchBoxConfigurationType = view.getSearchBoxConfiguration();
+                for (AvailableFilterType availableFilter : searchBoxConfigurationType.getAvailableFilter()) {
+                    if (availableFilter.equals(filter)) {
+                        return availableFilter.asPrismContainerValue().getPath().allExceptLast();
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private VisibleEnableBehaviour getSearchButtonVisibleEnableBehavior() {

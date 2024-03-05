@@ -25,26 +25,27 @@ import java.util.Collection;
 @SuppressWarnings("rawtypes")
 public interface ResourceAttributeContainer extends PrismContainer<ShadowAttributesType> {
 
-    static ResourceAttributeContainer convertFromContainer(PrismContainer<?> origAttrContainer,
-            ResourceObjectDefinition resourceObjectDefinition) throws SchemaException {
-        if (origAttrContainer == null) {
-            return null;
-        }
-        QName elementName = origAttrContainer.getElementName();
+    static ResourceAttributeContainer convertFromPrismContainer(
+            @NotNull PrismContainer<?> origPrismContainer, @NotNull ResourceObjectDefinition resourceObjectDefinition) throws SchemaException {
+        QName elementName = origPrismContainer.getElementName();
         ResourceAttributeContainer attributesContainer = createEmptyContainer(elementName, resourceObjectDefinition);
-        for (Item item: origAttrContainer.getValue().getItems()) {
-            if (item instanceof PrismProperty) {
+        for (Item item : origPrismContainer.getValue().getItems()) {
+            if (item instanceof PrismProperty<?> property) {
                 attributesContainer.add(
-                        resourceObjectDefinition.propertyToAttribute((PrismProperty<?>) item));
+                        resourceObjectDefinition
+                                .findAttributeDefinitionRequired(property.getElementName())
+                                .instantiateFrom(property));
             } else {
-                throw new SchemaException("Cannot process item of type "+item.getClass().getSimpleName()+", attributes can only be properties");
+                throw new SchemaException(
+                        "Cannot use item of type %s as an attribute: attributes can only be properties".formatted(
+                                item.getClass().getSimpleName()));
             }
         }
         return attributesContainer;
     }
 
-    static ResourceAttributeContainerImpl createEmptyContainer(QName elementName,
-            ResourceObjectDefinition resourceObjectDefinition) {
+    static ResourceAttributeContainerImpl createEmptyContainer(
+            QName elementName, ResourceObjectDefinition resourceObjectDefinition) {
         ResourceAttributeContainerDefinition attributesContainerDefinition =
                 new ResourceAttributeContainerDefinitionImpl(
                         elementName,
@@ -55,11 +56,14 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
     @Override
     ResourceAttributeContainerDefinition getDefinition();
 
+    default @NotNull ResourceAttributeContainerDefinition getDefinitionRequired() {
+        return MiscUtil.stateNonNull(
+                getDefinition(),
+                () -> "No definition in " + this);
+    }
+
     default @NotNull ResourceObjectDefinition getResourceObjectDefinitionRequired() {
-        ResourceAttributeContainerDefinition definition =
-                MiscUtil.stateNonNull(
-                        getDefinition(),
-                        () -> "No definition in " + this);
+        ResourceAttributeContainerDefinition definition = getDefinitionRequired();
         return MiscUtil.stateNonNull(
                 definition.getComplexTypeDefinition(),
                 () -> "No resource object definition in " + definition);
@@ -80,12 +84,12 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
 
     void add(ResourceAttribute<?> attribute) throws SchemaException;
 
-    /**
-     * Adds a {@link PrismProperty}, converting to {@link ResourceAttribute} if needed.
-     *
-     * Requires the resource object definition (i.e. complex type definition) be present.
-     */
-    void addAdoptedIfNeeded(@NotNull PrismProperty<?> attribute) throws SchemaException;
+//    /**
+//     * Adds a {@link PrismProperty}, converting to {@link ResourceAttribute} if needed.
+//     *
+//     * Requires the resource object definition (i.e. complex type definition) be present.
+//     */
+//    void addAdoptedIfNeeded(@NotNull PrismProperty<?> attribute) throws SchemaException;
 
     /**
      * Returns a (single) primary identifier.
@@ -147,10 +151,6 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
     @NotNull Collection<ResourceAttribute<?>> getSecondaryIdentifiers();
 
     @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers();
-
-    @NotNull
-    Collection<ResourceAttribute<?>> extractAttributesByDefinitions(
-            Collection<? extends ResourceAttributeDefinition> definitions);
 
     /**
      * TODO review docs

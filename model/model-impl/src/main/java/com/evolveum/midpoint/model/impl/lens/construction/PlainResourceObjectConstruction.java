@@ -50,17 +50,9 @@ public class PlainResourceObjectConstruction<AH extends AssignmentHolderType>
     }
 
     protected void initializeDefinitions() throws SchemaException, ConfigurationException {
-        ResourceObjectDefinition rOcDef = projectionContext.getStructuralObjectDefinition();
-        if (rOcDef == null) {
-            LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}",
-                    projectionContext.getKey(), lensContext.debugDump(1));
-            throw new IllegalStateException("Definition for " + projectionContext.getKey()
-                    + " not found in the context, but it should be there");
-        }
-        setResourceObjectDefinition(rOcDef);
-        Collection<ResourceObjectDefinition> auxiliaryObjectClassDefinitions =
-                getResourceObjectDefinition().getAuxiliaryDefinitions();
-        for (ResourceObjectDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+        setResourceObjectDefinition(
+                projectionContext.getStructuralObjectDefinitionRequired());
+        for (ResourceObjectDefinition auxiliaryObjectClassDefinition: getResourceObjectDefinition().getAuxiliaryDefinitions()) {
             addAuxiliaryObjectClassDefinition(auxiliaryObjectClassDefinition);
         }
     }

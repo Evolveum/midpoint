@@ -74,6 +74,21 @@ less filter - All users which will not be valid after 2021
 Comparison filters also supports item path on right side of filter.
 For example `activation/validFrom > activation/validTo` should return all objects with incorrectly set activations (activation start is after activation end).
 
+[#_matching_rules]
+==== Matching rules
+Comparison filter can be even more specified by definition of matching rule in the filter.
+The syntax of matching rule in query is: `filter[matchingRuleName]`
+
+.Example of matching rules usage
+`givenName =[origIgnoreCase] "Adam"`::
+query matches all 'Adam', 'adam' or 'ADAM' in givenName
+`emailAddress endsWith[stringIgnoreCase] "@test.com"`::
+query matches user with email address ending with specific domain.
+
+See different matching rules in the examples above.
+There are different matching rules defined for PolyStringType (givenName) and strings (emailAddress).
+List of all matching rules is defined in xref:../../matching-rules.adoc[matching rules] page.
+
 ==== String filters
 
 [options="header", cols="15,40", width=70]

@@ -99,10 +99,11 @@ public class QAbstractRoleMapping<
             @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
-        List<AssignmentType> inducement = schemaObject.getInducement();
-        if (!inducement.isEmpty()) {
-            inducement.forEach(assignment ->
-                    QAssignmentMapping.getInducementMapping().insert(assignment, row, jdbcSession));
+        List<AssignmentType> inducements = schemaObject.getInducement();
+        if (!inducements.isEmpty()) {
+            for (var inducement : inducements) {
+                QAssignmentMapping.getInducementMapping().insert(inducement, row, jdbcSession);
+            }
         }
     }
 }

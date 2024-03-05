@@ -11,13 +11,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.assertj.core.api.Assertions;
+import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -39,7 +40,7 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
         SchemaDebugUtil.initialize(); // Make sure the pretty printer is activated
     }
@@ -105,14 +106,85 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
     public void test200User() throws Exception {
         PrismObject<ResourceType> user = getPrismContext().parseObject(new File(TEST_DIR, "user.xml"));
 
+        Assertions.assertThat(user.findItem(UserType.F_METADATA))
+                .isNotNull();
+        Assertions.assertThat(user.findItem(UserType.F_OPERATION_EXECUTION))
+                .isNotNull();
+
         CleanupActionProcessor processor = new CleanupActionProcessor();
         TestCleanupListener listener = new TestCleanupListener();
         processor.setListener(listener);
         processor.process(user);
 
+        Assertions.assertThat(user.findItem(UserType.F_METADATA))
+                .isNull();
+        Assertions.assertThat(user.findItem(UserType.F_OPERATION_EXECUTION))
+                .isNull();
+
         Assertions.assertThat(listener.getProtectedStringCleanupEvents())
                 .hasSize(1);
         Assertions.assertThat(listener.getProtectedStringCleanupEvents().get(0).path())
                 .isEqualTo(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE));
+    }
+
+    @Test
+    public void test300ResourceObjectType() throws Exception {
+        PrismObject<ResourceType> resource = getPrismContext().parseObject(new File(TEST_DIR, "resource.xml"));
+
+        Assertions.assertThat(
+                        resource.findItem(
+                                ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)))
+                .isNotNull();
+
+        PrismContainer<ResourceObjectTypeDefinitionType> container =
+                resource.findContainer(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
+
+        @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> value = container.getValue();
+
+        LOG.info("BEFORE \n{}", value.debugDump());
+
+        CleanupActionProcessor processor = new CleanupActionProcessor();
+        processor.setPaths(List.of(
+                new CleanupPath(ResourceObjectFocusSpecificationType.COMPLEX_TYPE, ResourceObjectFocusSpecificationType.F_TYPE, CleanupPathAction.REMOVE)
+        ));
+
+        TestCleanupListener listener = new TestCleanupListener();
+        processor.setListener(listener);
+        processor.process(value);
+
+        LOG.info("AFTER \n{}", value.debugDump());
+
+        Assertions.assertThat(
+                        value.findItem(
+                                ItemPath.create(ResourceObjectTypeDefinitionType.F_FOCUS, ResourceObjectFocusSpecificationType.F_TYPE)))
+                .isNull();
+    }
+
+    @Test
+    public void test400ResourceCapabilities() throws Exception {
+        PrismObject<ResourceType> resource = getPrismContext().parseObject(new File(TEST_DIR, "resource.xml"));
+
+        Assertions.assertThat(
+                        resource.findItem(
+                                ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CACHING_METADATA)))
+                .isNotNull();
+
+        PrismContainer<CapabilitiesType> container = resource.findContainer(ResourceType.F_CAPABILITIES);
+
+        @NotNull PrismContainerValue<CapabilitiesType> value = container.getValue();
+
+        LOG.info("BEFORE \n{}", value.debugDump());
+
+        CleanupActionProcessor processor = new CleanupActionProcessor();
+        TestCleanupListener listener = new TestCleanupListener();
+        processor.setListener(listener);
+        processor.process(value);
+
+        LOG.info("AFTER \n{}", value.debugDump());
+
+        Assertions.assertThat(
+                        resource.findItem(
+                                ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CACHING_METADATA)))
+                .isNull();
     }
 }

@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -151,9 +153,9 @@ class ShadowSearchLikeOperation {
 
         ResourceObjectHandler shadowHandler = (ResourceObjectFound objectFound, OperationResult lResult) -> {
 
-            ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound, ctx);
+            ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound);
             shadowedObjectFound.initialize(ctx.getTask(), lResult);
-            ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod);
+            ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod, lResult);
 
             try {
                 return handler.handle(shadowedObject.asPrismObject(), lResult);
@@ -165,7 +167,7 @@ class ShadowSearchLikeOperation {
             }
         };
 
-        boolean fetchAssociations = SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATION, options, true);
+        boolean fetchAssociations = SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATIONS, options, true);
         try {
             return b.resourceObjectConverter.searchResourceObjects(
                     ctx, shadowHandler, createOnResourceQuery(), fetchAssociations, ucfErrorReportingMethod, result);
@@ -304,7 +306,7 @@ class ShadowSearchLikeOperation {
 
     /**
      * Provides common processing for shadows found in repo during iterative and non-iterative searches.
-     * Analogous to {@link ShadowGetOperation#returnCached(String)}.
+     * Analogous to {@link ShadowGetOperation#returnCached(String)}. (Except for the futurization.)
      */
     private ResultHandler<ShadowType> createRepoShadowHandler(ResultHandler<ShadowType> upstreamHandler) {
         return (PrismObject<ShadowType> shadow, OperationResult result) -> {
@@ -331,27 +333,26 @@ class ShadowSearchLikeOperation {
         };
     }
 
-    private void processRepoShadow(PrismObject<ShadowType> shadow, OperationResult result)
+    private void processRepoShadow(PrismObject<ShadowType> rawRepoShadow, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
 
-        ShadowType shadowBean = shadow.asObjectable();
-
-        ctx.applyAttributesDefinition(shadowBean);
         if (isRaw()) {
+            ctx.applyDefinitionInNewCtx(rawRepoShadow); // TODO is this really OK?
             return;
         }
 
-        ctx.updateShadowState(shadowBean);
+        // We don't need to keep the raw repo shadow. (At least not now.)
+        RepoShadow repoShadow = ctx.adoptRawRepoShadowSimple(rawRepoShadow);
 
         // Fixing MID-1640; hoping that the protected object filter uses only identifiers (that are stored in repo)
         // TODO we will eventually store the "protected" flag right in the repo shadow, so this code will be obsolete
-        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, shadowBean, result);
+        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, repoShadow, result);
 
-        ProvisioningUtil.validateShadow(shadow, true);
+        ProvisioningUtil.validateShadow(repoShadow.getBean(), true); // TODO move elsewhere
 
         if (isMaxStaleness()) {
-            if (shadowBean.getCachingMetadata() == null) {
+            if (repoShadow.getBean().getCachingMetadata() == null) {
                 result.recordFatalError("Requested cached data but no cached data are available in the shadow");
             }
         }

@@ -31,6 +31,8 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 })
 public class ROExtPolyString extends ROExtBase<String> {
 
+    public static final String F_NORM = "norm";
+
     //orig value
     private String value;
     private String norm;
@@ -79,6 +81,7 @@ public class ROExtPolyString extends ROExtBase<String> {
         return value;
     }
 
+    @Column(name = "norm")
     public String getNorm() {
         return norm;
     }
@@ -97,12 +100,13 @@ public class ROExtPolyString extends ROExtBase<String> {
         if (o == null || getClass() != o.getClass()) { return false; }
         if (!super.equals(o)) { return false; }
         ROExtPolyString that = (ROExtPolyString) o;
-        return Objects.equals(value, that.value);
+        return Objects.equals(value, that.value)
+                && Objects.equals(norm, that.norm);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), value);
+        return Objects.hash(super.hashCode(), value, norm);
     }
 
     @Override

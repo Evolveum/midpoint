@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.processor.*;
 
@@ -36,12 +36,12 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default @Nullable ResourceAttributeDefinition<?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+    default <T> @Nullable ResourceAttributeDefinition<T> findAttributeDefinition(QName name, boolean caseInsensitive) {
         return delegate().findAttributeDefinition(name, caseInsensitive);
     }
 
     @Override
-    default ResourceAttributeDefinition<?> findAttributeDefinition(String name) {
+    default <T> ResourceAttributeDefinition<T> findAttributeDefinition(String name) {
         return delegate().findAttributeDefinition(name);
     }
 
@@ -81,12 +81,12 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
+    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
         return delegate().toResourceAttributeContainerDefinition();
     }
 
     @Override
-    default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
+    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
         return delegate().toResourceAttributeContainerDefinition(elementName);
     }
 
@@ -146,7 +146,7 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
 
     @Override
     @NotNull
-    default Collection<ResourceAssociationDefinition> getAssociationDefinitions() {
+    default Collection<ShadowAssociationDefinition> getAssociationDefinitions() {
         return delegate().getAssociationDefinitions();
     }
     @Override
@@ -306,5 +306,10 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     @Override
     default @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy() {
         return delegate().getEffectiveShadowCachingPolicy();
+    }
+
+    @Override
+    default @NotNull String getShortIdentification() {
+        return delegate().getShortIdentification();
     }
 }

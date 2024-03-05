@@ -18,9 +18,12 @@ import com.evolveum.midpoint.repo.sql.query.restriction.ItemRestrictionOperation
 public class DefaultMatcher<T> extends Matcher<T> {
 
     @Override
-    public Condition match(HibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, T value, String matcher)
+    public Condition match(
+            HibernateQuery hibernateQuery, ItemRestrictionOperation operation,
+            String propertyName, boolean extension,
+            T value, String matchingRule)
             throws QueryException {
 
-        return basicMatch(hibernateQuery, operation, propertyName, value, false);
+        return basicMatch(hibernateQuery, operation, toActualHqlName(propertyName, extension), value, false);
     }
 }

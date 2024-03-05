@@ -56,7 +56,12 @@ public class InitializationState implements Serializable {
     }
 
     public void recordError(@NotNull Throwable t) {
-        errorState = ErrorState.error(t);
+        recordError(
+                ErrorState.error(t));
+    }
+
+    public void recordError(@NotNull ErrorState errorState) {
+        this.errorState = errorState;
     }
 
     public void moveFromCreatedToInitializing() {

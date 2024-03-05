@@ -10,6 +10,9 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.IOException;
 import java.util.List;
+
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -37,7 +40,7 @@ public class TestStaticValues extends AbstractUnitTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 

@@ -106,4 +106,8 @@ public class PopoverSearchPopupPanel<T> extends BasePanel<T> {
     protected void removeSearchValue(AjaxRequestTarget target) {
 
     }
+
+    protected final MidpointForm getPopoverForm() {
+        return (MidpointForm) get(ID_POPOVER_FORM);
+    }
 }

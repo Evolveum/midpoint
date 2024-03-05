@@ -7,22 +7,20 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.AcknowledgementSink;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.jetbrains.annotations.NotNull;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
 
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static java.util.Collections.emptyList;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.AcknowledgementSink;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /** The UCF-level asynchronous update change. */
 public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSink {
@@ -41,22 +39,15 @@ public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSi
     public UcfAsyncUpdateChange(
             int localSequenceNumber,
             @NotNull Object primaryIdentifierRealValue,
-            ResourceObjectClassDefinition objectClassDefinition,
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
-            ObjectDelta<ShadowType> objectDelta,
-            PrismObject<ShadowType> currentResourceObject,
+            @Nullable ObjectDelta<ShadowType> objectDelta,
+            @Nullable UcfResourceObject currentResourceObject,
             boolean notificationOnly,
             AcknowledgementSink acknowledgeSink) {
-        super(localSequenceNumber, primaryIdentifierRealValue, objectClassDefinition, identifiers,
+        super(localSequenceNumber, primaryIdentifierRealValue, resourceObjectDefinition, identifiers,
                 objectDelta, currentResourceObject, UcfErrorState.success());
         this.notificationOnly = notificationOnly;
-        this.acknowledgeSink = acknowledgeSink;
-    }
-
-    public UcfAsyncUpdateChange(int localSequenceNumber, UcfErrorState errorState, AcknowledgementSink acknowledgeSink) {
-        super(localSequenceNumber, null, null, emptyList(),
-                null, null, errorState);
-        this.notificationOnly = false;
         this.acknowledgeSink = acknowledgeSink;
     }
 
@@ -82,8 +73,6 @@ public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSi
 
     @Override
     protected void checkObjectClassDefinitionPresence() {
-        if (errorState.isSuccess()) {
-            stateCheck(resourceObjectDefinition != null, "No object class definition");
-        }
+        stateCheck(resourceObjectDefinition != null, "No object class definition");
     }
 }

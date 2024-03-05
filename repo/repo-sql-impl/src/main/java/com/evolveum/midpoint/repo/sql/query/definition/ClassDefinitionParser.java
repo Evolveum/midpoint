@@ -18,7 +18,6 @@ import jakarta.persistence.*;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.Index;
 
 import com.evolveum.midpoint.prism.path.IdentifierPathSegment;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -46,9 +45,9 @@ public class ClassDefinitionParser {
         return parseClass(jpaClass);
     }
 
-    private JpaEntityDefinition parseClass(Class jpaClass) {
+    private JpaEntityDefinition parseClass(Class<?> jpaClass) {
 
-        Class jaxbClass = getJaxbClassForEntity(jpaClass);
+        Class<?> jaxbClass = getJaxbClassForEntity(jpaClass);
         JpaEntityDefinition entity = new JpaEntityDefinition(jpaClass, jaxbClass);
         LOGGER.trace("### {}", entity);
 
@@ -70,11 +69,11 @@ public class ClassDefinitionParser {
 
             LOGGER.trace("# {}", method);
 
-            JpaLinkDefinition linkDefinition;
+            JpaLinkDefinition<?> linkDefinition;
             OwnerGetter ownerGetter = method.getAnnotation(OwnerGetter.class);
             if (ownerGetter != null) {
                 String jpaName = getJpaName(method);
-                JpaDataNodeDefinition nodeDefinition = new JpaEntityPointerDefinition(ownerGetter.ownerClass());
+                var nodeDefinition = new JpaEntityPointerDefinition(ownerGetter.ownerClass());
                 // Owner is considered as not embedded, so we generate left outer join to access it
                 // (instead of implicit inner join that would be used if we would do x.owner.y = '...')
                 linkDefinition = new JpaLinkDefinition<>(SchemaConstants.PATH_PARENT, jpaName, null, false, nodeDefinition);
@@ -86,7 +85,7 @@ public class ClassDefinitionParser {
         return entity;
     }
 
-    private JpaLinkDefinition parseMethod(Method method) {
+    private JpaLinkDefinition<?> parseMethod(Method method) {
         CollectionSpecification collectionSpecification;    // non-null if return type is Set<X>, null if it's X
         Type returnedContentType;                           // X in return type, which is either X or Set<X>
         if (Set.class.isAssignableFrom(method.getReturnType())) {
@@ -111,7 +110,7 @@ public class ClassDefinitionParser {
             throw new IllegalStateException("Collection within collection is not supported: method=" + method);
         }
 
-        JpaLinkDefinition<? extends JpaDataNodeDefinition> linkDefinition;
+        JpaLinkDefinition<?> linkDefinition;
         Any any = method.getAnnotation(Any.class);
         if (any != null) {
             JpaAnyContainerDefinition targetDefinition = new JpaAnyContainerDefinition(jpaClass);
@@ -136,8 +135,6 @@ public class ClassDefinitionParser {
         } else {
             boolean lob = method.isAnnotationPresent(Lob.class);
             boolean enumerated = method.isAnnotationPresent(Enumerated.class);
-            //todo implement also lookup for @Table indexes
-            boolean indexed = method.isAnnotationPresent(Index.class);
             boolean count = method.isAnnotationPresent(Count.class);
             Class jaxbClass = getJaxbClass(method, jpaClass);
 
@@ -155,8 +152,8 @@ public class ClassDefinitionParser {
 
             boolean neverNull = method.isAnnotationPresent(NeverNull.class);
 
-            JpaPropertyDefinition<?> propertyDefinition = new JpaPropertyDefinition<>(
-                    jpaClass, jaxbClass, lob, enumerated, indexed, count, neverNull);
+            var propertyDefinition = new JpaPropertyDefinition(jpaClass, jaxbClass, lob, enumerated, count, neverNull);
+
             // Note that properties are considered to be embedded
             linkDefinition = new JpaLinkDefinition<>(
                     itemPath, jpaName, collectionSpecification, true, propertyDefinition);
@@ -175,7 +172,7 @@ public class ClassDefinitionParser {
         }
     }
 
-    private void addVirtualDefinitions(Class jpaClass, JpaEntityDefinition entityDef) {
+    private void addVirtualDefinitions(Class<?> jpaClass, JpaEntityDefinition entityDef) {
         addVirtualDefinitionsForClass(jpaClass, entityDef);
 
         while ((jpaClass = jpaClass.getSuperclass()) != null) {
@@ -183,8 +180,8 @@ public class ClassDefinitionParser {
         }
     }
 
-    private void addVirtualDefinitionsForClass(Class jpaClass, JpaEntityDefinition entityDef) {
-        QueryEntity qEntity = (QueryEntity) jpaClass.getAnnotation(QueryEntity.class);
+    private void addVirtualDefinitionsForClass(Class<?> jpaClass, JpaEntityDefinition entityDef) {
+        QueryEntity qEntity = jpaClass.getAnnotation(QueryEntity.class);
         if (qEntity == null) {
             return;
         }
@@ -192,8 +189,8 @@ public class ClassDefinitionParser {
         for (VirtualAny any : qEntity.anyElements()) {
             ItemName jaxbName = new ItemName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
             VirtualAnyContainerDefinition def = new VirtualAnyContainerDefinition(any.ownerType());
-            JpaLinkDefinition linkDefinition = new JpaLinkDefinition<>(jaxbName, null, null, false, def);
-            entityDef.addDefinition(linkDefinition);
+            entityDef.addDefinition(
+                    new JpaLinkDefinition<>(jaxbName, null, null, false, def));
         }
 
         for (VirtualCollection collection : qEntity.collections()) {
@@ -202,8 +199,8 @@ public class ClassDefinitionParser {
             ItemName jaxbName = createItemName(collection.jaxbName());
             String jpaName = collection.jpaName();
             JpaEntityDefinition content = parseClass(collection.collectionType());
-            JpaLinkDefinition linkDefinition = new JpaLinkDefinition<>(jaxbName, jpaName, colSpec, false, content);
-            entityDef.addDefinition(linkDefinition);
+            entityDef.addDefinition(
+                    new JpaLinkDefinition<>(jaxbName, jpaName, colSpec, false, content));
         }
     }
 
@@ -211,7 +208,7 @@ public class ClassDefinitionParser {
         return new ItemName(name.namespace(), name.localPart());
     }
 
-    private boolean isEntity(Class type) {
+    private boolean isEntity(Class<?> type) {
         if (RPolyString.class.isAssignableFrom(type)) {
             //it's hibernate entity but from prism point of view it's property
             return false;
@@ -240,12 +237,12 @@ public class ClassDefinitionParser {
     }
 
     // second parameter is just to optimize
-    private Class getJaxbClass(Method method, Class returnedClass) {
+    private Class<?> getJaxbClass(Method method, Class<?> returnedClass) {
         JaxbType annotation = method.getAnnotation(JaxbType.class);
         if (annotation != null) {
             return annotation.type();
         }
-        Class classFromEntity = getJaxbClassForEntity(returnedClass);
+        Class<?> classFromEntity = getJaxbClassForEntity(returnedClass);
         if (classFromEntity != null) {
             return classFromEntity;
         }
@@ -258,12 +255,13 @@ public class ClassDefinitionParser {
         }
     }
 
-    private Class getJaxbClassForEntity(Class clazz) {
+    private Class<?> getJaxbClassForEntity(Class<?> clazz) {
         if (RObject.class.isAssignableFrom(clazz)) {
-            ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(clazz);
+            //noinspection unchecked
+            ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType((Class<? extends RObject>) clazz);
             return objectType.getClassDefinition();
         }
-        JaxbType annotation = (JaxbType) clazz.getAnnotation(JaxbType.class);
+        JaxbType annotation = clazz.getAnnotation(JaxbType.class);
         if (annotation != null) {
             return annotation.type();
         }

@@ -518,6 +518,10 @@ public class GuiProfileCompiler {
             ar.setTargetSelection(accessRequest.getTargetSelection().clone());
         }
 
+        if (accessRequest.getRelationSelection() != null) {
+            ar.setRelationSelection(accessRequest.getRelationSelection().clone());
+        }
+
         if (accessRequest.getRoleCatalog() != null) {
             ar.setRoleCatalog(accessRequest.getRoleCatalog().clone());
         }

@@ -10,20 +10,20 @@ package com.evolveum.midpoint.model.common.expression.evaluator.caching;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang3.Validate;
 
 import java.util.List;
 
-public class AssociationSearchQueryResult extends QueryResult<PrismContainerValue<ShadowAssociationType>> {
+public class AssociationSearchQueryResult extends QueryResult<PrismContainerValue<ShadowAssociationValueType>> {
 
     private final String resourceOid;
     private final ShadowKindType kind;
 
     AssociationSearchQueryResult(
-            List<PrismContainerValue<ShadowAssociationType>> resultingList, List<PrismObject<ShadowType>> rawResultsList) {
+            List<PrismContainerValue<ShadowAssociationValueType>> resultingList, List<PrismObject<ShadowType>> rawResultsList) {
         super(resultingList);
 
         Validate.isTrue(rawResultsList != null && !rawResultsList.isEmpty());

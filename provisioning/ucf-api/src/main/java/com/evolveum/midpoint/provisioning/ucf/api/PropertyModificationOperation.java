@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -126,5 +128,21 @@ public final class PropertyModificationOperation<T> extends Operation {
         bean.getDelta().addAll(DeltaConvertor.toItemDeltaTypes(propertyDelta));
         bean.setMatchingRule(matchingRuleQName);
         return bean;
+    }
+
+    // Let's ignore the type safety for now
+    public void addValueToAdd(@NotNull PrismPropertyValue<?> value) {
+        //noinspection unchecked
+        propertyDelta.addValueToAdd((PrismPropertyValue<T>) value);
+    }
+
+    // Let's ignore the type safety for now
+    public void addValueToDelete(@NotNull PrismPropertyValue<?> value) {
+        //noinspection unchecked
+        propertyDelta.addValueToDelete((PrismPropertyValue<T>) value);
+    }
+
+    public @NotNull ItemName getItemName() {
+        return propertyDelta.getElementName();
     }
 }

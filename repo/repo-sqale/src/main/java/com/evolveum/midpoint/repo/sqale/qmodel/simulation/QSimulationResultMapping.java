@@ -89,7 +89,7 @@ public class QSimulationResultMapping
     public @NotNull Path<?>[] selectExpressions(QSimulationResult entity,
             Collection<SelectorOptions<GetOperationOptions>> options) {
         // We always want to know if result is partitioned
-        return new Path[] { entity.oid, entity.fullObject, entity.partitioned };
+        return new Path[] { entity.oid, entity.objectType, entity.fullObject, entity.partitioned };
     }
 
     @Override
@@ -116,8 +116,8 @@ public class QSimulationResultMapping
     }
 
     @Override
-    protected PathSet fullObjectItemsToSkip() {
-        return PathSet.of(SimulationResultType.F_PROCESSED_OBJECT);
+    protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
+        mutableSet.add(F_PROCESSED_OBJECT);
     }
 
     @Override

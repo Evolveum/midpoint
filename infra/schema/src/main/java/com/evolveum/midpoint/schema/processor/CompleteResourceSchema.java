@@ -18,4 +18,6 @@ import org.jetbrains.annotations.NotNull;
 public interface CompleteResourceSchema extends ResourceSchema {
 
     @NotNull BasicResourceInformation getBasicResourceInformation();
+
+    boolean isCaseIgnoreAttributeNames();
 }

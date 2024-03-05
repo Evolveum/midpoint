@@ -10,6 +10,8 @@ package com.evolveum.midpoint.task.quartzimpl;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
@@ -60,7 +62,7 @@ public class AbstractTaskManagerTest extends AbstractIntegrationTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 

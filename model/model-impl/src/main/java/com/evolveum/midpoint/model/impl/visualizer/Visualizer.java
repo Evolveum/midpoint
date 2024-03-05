@@ -171,13 +171,9 @@ public class Visualizer {
 
         // Looks like, it should be an ADD not MODIFY delta (just a guess work since status is BROKEN)
         ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(context.getObjectTypeClass(), ChangeType.ADD);
-        ResourceObjectDefinition objectTypeDef = context.getCompositeObjectDefinition();
+        ResourceObjectDefinition objectTypeDef = context.getCompositeObjectDefinitionRequired();
 
         ProjectionContextKey key = context.getKey();
-        if (objectTypeDef == null) {
-            throw new IllegalStateException("Definition for account type " + key
-                    + " not found in the context, but it should be there");
-        }
 
         String resourceOid;
         if (context.getResource() != null) {
@@ -830,7 +826,7 @@ public class Visualizer {
 
         D def = itemDelta.getDefinition();
         if (def != null) {
-            Item<V, D> item = def.instantiate();
+            Item<V, D> item = (Item<V, D>) def.instantiate();
             if (itemDelta.getEstimatedOldValues() != null) {
                 item.addAll(CloneUtil.cloneCollectionMembers(itemDelta.getEstimatedOldValues()));
             }

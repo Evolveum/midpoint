@@ -1,0 +1,10 @@
+= Keys
+
+Command that lists keys from keystore defined in `${midpoint.home}/config.xml` using `keystore/keyStorePath`.
+Password for keys can be filled in using `-k <PASSWORD>` or `-K` to ask for password interactively.
+
+.List keys in with aliases from keystore located in `${midpoint.home}`
+[source,bash]
+----
+./bin/ninja.sh keys -K
+----

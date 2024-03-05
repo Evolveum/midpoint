@@ -1,10 +1,5 @@
 = Ninja
-:page-wiki-name: Ninja
-:page-wiki-id: 24676171
-:page-wiki-metadata-create-user: lazyman
-:page-wiki-metadata-create-date: 2017-12-13T13:04:51.807+01:00
-:page-wiki-metadata-modify-user: vix
-:page-wiki-metadata-modify-date: 2020-02-28T12:26:18.029+01:00
+
 :page-upkeep-status: red
 :page-upkeep-note: Need to update, also for midScale and DB migration
 :page-alias: { "parent" : "/midpoint/tools/" }
@@ -31,7 +26,7 @@ Another great example is "administrator" user lockout.
 Users of this tool need to be aware that using repository layer, access is not validated using
 authorisations, model component is not used during processing and changes are not audited.
 It allows you to obtain or modify data in an otherwise unusable midPoint.
-Ninja also plan to support some other operations like listing keys from keystore, enforcing objects
+Ninja also supports some other operations like listing keys from keystore, enforcing objects
 reencryption with new key, DB schema validation, password reset or user unlock.
 
 Ninja can be started using standard `java -jar` or via bundled shell/bat script.
@@ -43,19 +38,19 @@ option `-m` using `MIDPOINT_HOME` environment variable, defaulting to the `<midp
 
 Connection options:
 
-* using `midpoint.home`
+* using `${midpoint.home}`
 * using REST service (not yet implemented)
 
 === midpoint.home connection
 
-This type of connection initialises repository layer of midPoint and operates on top of the database as a new midPoint node.
-For all commands that communicate with DB layer `midpoint.home` must be specified using `-m <path>` option.
+This type of connection initialises repository layer of midPoint and operates on top of the database.
+For all commands that communicate with DB layer `${midpoint.home}` must be specified using `-m <path>` option.
 Ninja will try to read database connection information from `config.xml`.
 This will not work when there's only datasource definition in `config.xml` (no JDBC url/username/password).
 In such chase one have to specify URL (`-U`), username (`-u`) and password (`-p` or `-P`).
 These options can also be used to override JDBC URL, username and password specified in `config.xml`.
 
-With bash, you can provide `MIDPOINT_HOME` for the `ninja.sh` command with this shortcut:
+With bash, you can provide environment variable `MIDPOINT_HOME` for the `ninja.sh` command with this shortcut:
 
 [source,bash]
 ----
@@ -67,7 +62,7 @@ MIDPOINT_HOME=/var/other-mp-home <midpoint>/bin/ninja.sh [general options] [comm
 Only JDBC driver that is bundled is for PostgreSQL database.
 This means that for other databases, you must provide JDBC driver yourself.
 Most of the time JDBC driver is already present in `<midpoint>/lib` directory.
-However, it will not be picked up automatically and you must point Ninja to it explicitly.
+However, it will not be picked up automatically, and you must point ninja to it explicitly.
 Example when using `java -jar`:
 
 [source,bash]
@@ -84,235 +79,22 @@ If the bundled scripts are used, you can specify the path to the driver with `-j
 
 == Supported operations
 
-Ninja currently supports these operations:
+Documentation for supported commands is available xref:./command/index.adoc[here].
 
-* count
-* delete
-* download-distribution (midPoint 4.4.6, 4.7.2, 4.8 or later)
-* export
-* export-audit (midPoint 4.4.1 or later)
-* export-mining (midPoint 4.4.4 or later)
-* help (midPoint 4.8 or later)
-* import
-* import-audit (midPoint 4.4.1 or later)
-* info
-* keys
-* pre-upgrade-check (midPoint 4.4.6, 4.7.2, 4.8 or later)
-* run-sql (midPoint 4.4.6, 4.7.2, 4.8 or later)
-* trace (midPoint 4.4.6, 4.7.2, 4.8 or later)
-* upgrade-distribution (midPoint 4.4.6, 4.7.2, 4.8 or later)
-* upgrade-installation (midPoint 4.4.6, 4.7.2, 4.8 or later)
-* upgrade-objects (midPoint 4.4.6, 4.7.2, 4.8 or later)
-* verify (midPoint 3.9 or later)
+== FAQ
 
-=== Import
+=== Can I use ninja from midPoint 4.8.* distribution with deployment running midPoint 4.4.*?
 
-Import command allow users to import objects from `SYSOUT` or file (either plain XML or compressed ZIP, which may contain multiple files).
-One can define `oid`, multiple types or filter to filter imported objects.
-Example of import from XML file using 4 threads with raw and overwrite option using explicit `midpoint.home` folder path:
+No, ninja 4.8 internally uses repository (DB) implementation from midPoint 4.8
+MidPoint 4.4.* has differences in DB schema compared to midPoint 4.8.
+Technically it is possible to run ninja 4.4.7 against midPoint 4.4.2 for example since DB schema didn't change between these versions.
+However, this is not recommended and not supported.
 
-.Example
-[source,bash]
-----
-java -jar ninja.jar -m ~/Desktop/midpoint/var import -O -i midpoint/samples/objects/user-ceresnickova.xml -l 4 -r
-----
+=== Why raw (`-r`, `--raw`) option is needed when exporting objects?
 
-=== Export
-
-Export command allows users to export objects to SYSOUT or file (either plain XML or compressed ZIP).
-One can define oid, multiple types or filter to filter exported objects.
-Export objects to compressed zip file using 4 threads:
-
-.Example
-[source,bash]
-----
-java -jar ninja.jar -m ~/Desktop/midpoint/var export -O export.zip -z -l 4
-----
-
-Use -O switch if you wish to overwrite an existing output file.
-
-=== Verify
-
-[TIP]
-.MidPoint 3.9 and later
-====
-This feature is available only in midPoint 3.9 and later.
-
-====
-
-Command that verifies objects in midPoint repository.
-It displays warnings about objects to SYSOUT or file.
-Similarly to export, one can define oid, multiple types or filter to filter verified objects.
-Simple usage to verify all objects in the repository for all warnings:
-
-.Example: verify all objects in repository for all warnings
-[source,bash]
-----
-ninja.sh verify
-----
-
-There is a -w switch that can be used to select specific warnings to display.
-Currently, it only supports values deprecated and plannedRemoval.
-Following command will show warnings about planned removal of items used by all objects in the repository:
-
-.Example: verify all objects in repository for planned removal of items
-[source,bash]
-----
-ninja.sh verify --verification-category planned_removal
-----
-
-=== Keys
-
-List keys in with aliases from keystore located in `midpoint.home`.
-
-.Example
-[source,bash]
-----
-java -jar ninja.jar -m /opt/midpoint-home keys -K
-----
-
-=== Audit export/import
-
-[NOTE]
-Audit export/import uses the same format as objects, even utilizing `<objects>` element,
-but audit records are *containers, not objects*.
-These files are only useful for Ninja import/export, do not try to use them in Studio or otherwise.
-
-.Example: audit export to a zipped file, overwriting any existing file, using an Axiom filter
-[source,bash]
-----
-ninja.sh exportAudit -o audit-export.xml.zip -z -O -f '%timestamp < "2021-12-01"'
-----
-
-Now you can move the exported file to a new environment and run the import:
-
-.Example: audit import
-[source,bash]
-----
-ninja.sh importAudit -i audit-export.xml.zip -z
-----
-
-Check also the xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[migration guide for the Native audit].
-
-=== Role mining export/import
-
-[NOTE]
-Role mining export is an anonymized export of relationships between roles, users, and
-organizations. The goal of the export is to obtain a map of relations between objects, which could
-be helpful in the development of new features such as "Role mining".
-For detailed information regarding role mining export, please refer to the
-xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data].
-
-.Example: role mining export to a `zipped` file, `overwriting` any existing file. `SEQUENTIAL` name mode and `ADVANCED` security by default. For exporting in JSON format, rename the exported file extension to `-o role-mining-export.json`.
-[source,bash]
-----
-ninja.sh export-mining -o role-mining-export.xml.zip -z -O
-----
-
-----
-java -jar ninja.jar -m <midpoint.home> export-mining -o role-mining-export.xml.zip -z -O
-
-----
-
-.Example: role mining export using `ENCRYPTED` name mode and  `STANDARD` security.
-[source,bash]
-----
-ninja.sh export-mining -o role-mining-export.xml.zip -z -O -nm ENCRYPTED -s STANDARD
-----
-
-.Example: role mining export using an `Axiom filter` for roles.
-[source,bash]
-----
-ninja.sh export-mining -o role-mining-export.xml -fr '% name != "Superuser"'
-----
-
-.Example: role mining export using `ORIGINAL` name mode, identifiers Application and Business role `prefixes/suffixes` and specific `archetypes oids`.
-[source,bash]
-----
-ninja.sh export-mining -o role-mining-export.xml  -nm ORIGINAL -arp "APP_ROLE_, AR-" -ars "_Apr" -brp "BUS_ROLE_" -brs "_BR" --business-role-archetype-oid "e9c4654e-c146-4b5f-8336-2065c65060df" --application-role-archetype-oid "52b8361a-c955-4132-97a4-77ff3820beeb"
-----
-
-.Example: role mining export with `disable organization` structure export.
-[source,bash]
-----
-ninja.sh export-mining -o role-mining-export.xml --disable-org
-----
-
-.Example: role mining import.
-[source,bash]
-----
-java -jar ninja.jar -m <midpoint.home> import -O -i <path_to_imported_file> -l 4 -r
-----
-
-== Other scenarios
-
-=== Administrator unlock
-
-Ninja does not provide unlock or password reset operations explicitly.
-Normally administrator can do this via GUI.
-It may happen that administrator locks out itself from the system, in which case we recommend to reinitialize the object:
-
-.Administrator object refresh from the initial object
-[source,bash]
-----
-ninja.sh import --input <midpoint>/doc/config/initial-objects/050-user-administrator.xml --overwrite
-----
-
-Now, this is rather a drastic measure - let's modify the existing user instead.
-First we need to export it.
-
-[NOTE]
-If you want to use Ninja for midPoint running with H2 database (which is sensible only for testing), the application must be stopped first.
-Other databases have dedicated servers and Ninja can be used while midPoint is running.
-
-.Exporting administrator user by OID
-[source,bash]
-----
-ninja.sh export --oid 00000000-0000-0000-0000-000000000002 --output admin.xml
-----
-
-Alternatively, you can use type option and filter to specify name
-(don't forget the `--overwrite` option, if the file already exists):
-
-.Exporting user by name
-[source,bash]
-----
-ninja.sh export --type user --filter '% name = "administrator"' --output admin.xml
-----
-
-Now is the time to carefully edit the object XML.
-If a single object is in the XML (which is our case), you can remove the `<objects>` wrapper element.
-This may actually help with code completion if xref:/midpoint/tools/studio/[midPoint Studio] is used.
-
-Typical fixes to shape up the uncooperative user object are:
-
-* Remove `administrativeStatus` and `effectiveStatus` elements from the top-level `activation`
-element (be sure not to modify `activation` under `assignments` inadvertently).
-This should fix any problems with disabled user.
-* If you forgot the password, change the whole content of the `credentials/password/value` element
-to this snippet (must be inside the `value` element):
-+
-[source,xml]
-----
-<t:clearValue>asdf1234</t:clearValue>
-----
-
-After the fixes, it's time to push the object back into the repository.
-Import process can handle both plain object or objects inside `<object>` container.
-Use the following command:
-
-.Importing the fixed user object
-[source,bash]
-----
-ninja.sh import --input admin.xml --overwrite
-----
-
-Now you should enjoy easy administrator login.
-Of course, this works for any user object, but using the GUI with working administrator is the way to go.
-
-[IMPORTANT]
-If you changed the password in this way, don't forget to change it immediately to something more solid.
-This will also properly encrypt it in the object representation, as expected.
+Raw option will tell ninja to export objects together with their definitions if needed.
+These definitions are used to import objects back to midPoint.
+For more information see xref:./command/export.adoc[].
 
 == Full help
 
@@ -375,8 +157,7 @@ Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [com
     info                    Shows information about the repository for the provided midPoint home
     import-audit            Imports audit records into MidPoint
     export-audit            Exports audit records from MidPoint
-    export-mining           Export of anonymized structure of relationships between roles, users and
-            organizations objects.
+    export-mining           Export of anonymized structure of relationships between roles, users and organizations objects.
     trace                   Edit trace file
     download-distribution   Download target midPoint distribution (latest LTS).
     run-sql                 Run arbitrary SQL scripts

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.*;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -26,7 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceConsistencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Handler for provisioning errors. The handler can invoke additional functionality to
@@ -54,9 +54,9 @@ public abstract class ErrorHandler {
      *
      * @param failedOperationResult The operation result carrying the failed operation. Should be closed.
      */
-    public abstract ShadowType handleGetError(
+    public abstract RepoShadow handleGetError(
             @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repositoryShadow,
+            @NotNull RepoShadow repositoryShadow,
             @NotNull Exception cause,
             @NotNull OperationResult failedOperationResult,
             @NotNull OperationResult result)

@@ -21,6 +21,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertiesSecretsProviderType;
 
+/*
+ * Secrets provider that reads secrets from properties file.
+ */
 public class PropertiesSecretsProvider extends SecretsProviderImpl<PropertiesSecretsProviderType> {
 
     private Charset charset;
@@ -57,8 +60,9 @@ public class PropertiesSecretsProvider extends SecretsProviderImpl<PropertiesSec
             props.load(reader);
 
             String value = props.getProperty(key);
+            byte[] data = value != null? value.getBytes(charset) : null;
 
-            return mapValue(value.getBytes(charset), type);
+            return mapValue(data, type);
         } catch (IOException ex) {
             throw new EncryptionException("Couldn't read properties file in provider " + getIdentifier(), ex);
         }

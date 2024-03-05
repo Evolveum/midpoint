@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath.JSONB_TYPE;
 import java.sql.Types;
 import java.time.Instant;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObject;
+
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
@@ -26,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusTy
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR> {
+public class QAssignment<OR extends MObject> extends QContainerWithFullObject<MAssignment, OR> {
 
     private static final long serialVersionUID = 7068031681581618788L;
 
@@ -117,6 +119,7 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
     public static final ColumnMetadata MODIFY_TIMESTAMP =
             ColumnMetadata.named("modifyTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 
+
     // attributes
 
     public final EnumPath<MObjectType> ownerType =
@@ -192,6 +195,7 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
             createInteger("modifyChannelId", MODIFY_CHANNEL_ID);
     public final DateTimePath<Instant> modifyTimestamp =
             createInstant("modifyTimestamp", MODIFY_TIMESTAMP);
+
 
     public QAssignment(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

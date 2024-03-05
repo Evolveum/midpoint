@@ -386,21 +386,19 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
                 .secondaryDelta()
                 .display()
                 .assertModify()
-                .container(ShadowType.F_ASSOCIATION)
+                .container(ShadowType.F_ASSOCIATIONS.append(ASSOCIATION_GROUP_QNAME))
                 .assertNoValuesToAdd()
                 .assertNoValuesToReplace()
                 .valuesToDelete()
                 .single()
-                .assertPropertyEquals(ShadowAssociationType.F_NAME, ASSOCIATION_GROUP_QNAME)
-                .assertRefEquals(ShadowAssociationType.F_SHADOW_REF, shadowGroupPiratesOid)
+                .assertRefEquals(ShadowAssociationValueType.F_SHADOW_REF, shadowGroupPiratesOid)
                 .end()
                 .end()
                 .end()
                 .end()
                 .objectNew()
                 .display()
-                .assertNoItem(ShadowType.F_ASSOCIATION);
-
+                .assertNoItem(ShadowType.F_ASSOCIATIONS.append(ASSOCIATION_GROUP_QNAME));
     }
 
     /**

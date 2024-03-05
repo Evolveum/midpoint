@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+
 import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,14 +21,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.exception.*;
+
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -66,10 +68,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -3384,6 +3382,43 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .containsEntry(extensionKey(extensionContainer, "int"), 510)
                 .containsEntry(extensionKey(extensionContainer, "string"), "510");
     }
+
+    /** Checks that the attribute type can be changed e.g. from {@link String} to {@link PolyString}. */
+    @Test
+    public void test520ChangeAttributeType() throws CommonException {
+        OperationResult result = createOperationResult();
+
+        given("a shadow in repository");
+        ShadowType shadow = new ShadowType().name("shadow-520")
+                .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("intent");
+        ItemName attrName = new ItemName(NS_RI, "a520");
+        ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrName);
+        new ShadowAttributesHelper(shadow)
+                .<String>set(attrName, DOMUtil.XSD_STRING, 0, 1, "jack");
+        var shadowOid = repositoryService.addObject(shadow.asPrismObject(), null, result);
+
+        when("attribute is replaced by PolyString version");
+        MutablePrismPropertyDefinition<PolyString> updatedAttrDef =
+                prismContext.definitionFactory().createPropertyDefinition(attrName, PolyStringType.COMPLEX_TYPE);
+        updatedAttrDef.setMinOccurs(0);
+        updatedAttrDef.setMaxOccurs(1);
+        updatedAttrDef.setDynamic(true);
+        var deltas = prismContext.deltaFor(ShadowType.class)
+                .item(attrPath, updatedAttrDef)
+                .replace(PolyString.fromOrig("JACK2"))
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, deltas, result);
+
+        then("everything is OK");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        var shadowAfter = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        PrismProperty<PolyString> valueAfter = shadowAfter.findProperty(attrPath);
+        assertThat(valueAfter.getRealValue()).isEqualTo(PolyString.fromOrig("JACK2"));
+    }
     // endregion
 
     // region precondition and modify dynamically
@@ -3600,7 +3635,11 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_MODIFY_OBJECT);
     }
 
-    @Test
+    /**
+        Disabled: This type of edit (remove of assignment row) does not survive reindex if assignments are not stored in
+        full object.
+     */
+    @Test(enabled = false)
     public void test951ReindexAfterManualChangeOfFullObject()
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
@@ -3652,7 +3691,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertEquals(found.size(), count, "Found situation count does not match.");
     }
 
-    @Test
+    // This test assumes assignments are in full object and separate table at same time
+    @Test(enabled = false)
     public void test952ReindexFixingColumnsOutOfSync()
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
@@ -3745,7 +3785,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(assRows.get(0).orderValue).isEqualTo(1);
     }
 
-    @Test
+    // This test assumes assignments are in full object and separete table at same time
+    @Test(enabled = false)
     public void test955ReindexOfShadowWithAttributes() throws Exception {
         OperationResult result = createOperationResult();
 

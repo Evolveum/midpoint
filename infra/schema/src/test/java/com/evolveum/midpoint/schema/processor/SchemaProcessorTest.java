@@ -14,6 +14,8 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -38,13 +40,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import javax.xml.namespace.QName;
-
 public class SchemaProcessorTest extends AbstractSchemaTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 

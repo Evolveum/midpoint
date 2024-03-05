@@ -4,12 +4,12 @@
 
 == Description
 
-=== Approach
-
 MidPoint "REST API" is an HTTP-based application programming interface.
 This interface is a set of web resources that provide access to internal midPoint functionality.
 
-[TIP]
+=== Approach
+
+[NOTE]
 .Terminology note
 ====
 We call this interface "REST API" even though it is in fact not entirely RESTful.
@@ -24,8 +24,20 @@ Yes, we should not call this interface "REST".
 But almost everyone else does call things like this "REST", and almost everyone expects to see a "REST" interface, so please excuse us.
 ====
 
-== See Also
+Basic concepts of the interface are described here:
 
 - xref:/midpoint/reference/interfaces/rest/concepts/methods-http-and-outcome/[Use of HTTP Verbs]
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 - xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+
+For the Supported Endpoints and Operations please have a look here:
+
+- xref:/midpoint/reference/interfaces/rest/operations[Operations]
+- xref:/midpoint/reference/interfaces/rest/endpoints/[REST Endpoints]
+
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/[REST API]
+- xref:/midpoint/reference/interfaces/midpoint-client-java/[MidPoint Client]
+- xref:/midpoint/reference/interfaces/rest/operations/examples/[User Story Examples]

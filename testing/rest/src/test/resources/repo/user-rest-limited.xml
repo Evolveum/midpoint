@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<user oid="9e511e95-b6cc-4661-8736-3ad2a1f0c43e"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>rest-limited</name>
+    <assignment>
+        <targetRef oid="7247d685-b530-4d66-b191-248ebdf0c759" type="RoleType"/>
+    </assignment>
+    <credentials>
+        <password>
+            <value>r3stL1m1t3d</value>
+        </password>
+        <securityQuestions>
+            <questionAnswer>
+                <questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</questionIdentifier>
+                <questionAnswer>r3stL1m1t3d</questionAnswer>
+            </questionAnswer>
+        </securityQuestions>
+    </credentials>
+</user>

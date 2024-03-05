@@ -44,7 +44,8 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
 
     @Override
     protected void debugDumpExtra(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "notificationOnly", notificationOnly, indent + 1);
+        sb.append('\n');
+        DebugUtil.debugDumpWithLabel(sb, "notificationOnly", notificationOnly, indent + 1);
     }
 
     @Override

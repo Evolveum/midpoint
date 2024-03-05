@@ -14,6 +14,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileSecretsProviderType;
 
+/**
+ * @see ContainerSecretsProvider
+ */
 public class FileSecretsProvider extends ContainerSecretsProvider<FileSecretsProviderType> {
 
     public FileSecretsProvider(@NotNull FileSecretsProviderType configuration) {

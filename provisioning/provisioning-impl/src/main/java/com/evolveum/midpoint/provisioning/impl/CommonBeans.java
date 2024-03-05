@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
@@ -53,6 +54,6 @@ public class CommonBeans {
     @Autowired public ConnectorManager connectorManager;
     @Autowired public ResourceOperationalStateManager operationalStateManager;
     @Autowired public SystemObjectCache systemObjectCache;
-    @Autowired public ShadowCaretaker shadowCaretaker;
     @Autowired public ObjectOperationPolicyHelper shadowMarkManager;
+    @Autowired public Clock clock;
 }

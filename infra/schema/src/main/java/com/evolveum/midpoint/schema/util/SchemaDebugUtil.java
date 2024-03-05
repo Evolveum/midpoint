@@ -16,6 +16,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -1138,4 +1141,8 @@ public class SchemaDebugUtil {
         // nothing to do here, we just make sure static initialization will take place
     }
 
+    public static void initializePrettyPrinter() {
+        PrettyPrinter.addDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrettyPrinter.addDefaultNamespacePrefix(PrismConstants.NS_PREFIX);
+    }
 }

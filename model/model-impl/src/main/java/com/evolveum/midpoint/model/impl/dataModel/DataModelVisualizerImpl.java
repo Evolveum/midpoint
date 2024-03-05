@@ -127,8 +127,8 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                     }
                     processInboundMappings(model, attrItem, attributeDefinition.getInboundMappingBeans());
                 }
-                Collection<ResourceAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
-                for (ResourceAssociationDefinition associationDefinition : associationDefinitions) {
+                Collection<ShadowAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
+                for (ShadowAssociationDefinition associationDefinition : associationDefinitions) {
                     if (associationDefinition.isIgnored()) {
                         continue;
                     }
@@ -225,8 +225,8 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                     model.registerDataItem(attrItem);
                 }
                 // TODO check attributes not mentioned in schema handling
-                Collection<ResourceAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
-                for (ResourceAssociationDefinition associationDefinition : associationDefinitions) {
+                Collection<ShadowAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
+                for (ShadowAssociationDefinition associationDefinition : associationDefinitions) {
                     if (associationDefinition.isIgnored()) {
                         continue;
                     }

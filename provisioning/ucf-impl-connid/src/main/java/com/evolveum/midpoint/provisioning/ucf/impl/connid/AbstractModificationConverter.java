@@ -152,7 +152,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
             // Auxiliary object class change means modification of __AUXILIARY_OBJECT_CLASS__ attribute
             collect(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME, auxiliaryObjectClassDelta, null,
                     (pvals, midPointAttributeName) ->
-                            covertAuxiliaryObjectClassValuesToConnId(pvals, midPointAttributeName, auxiliaryObjectClassMap));
+                            covertAuxiliaryObjectClassValuesToConnId(pvals, auxiliaryObjectClassMap));
         }
 
         for (Operation operation : changes) {
@@ -327,16 +327,11 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 
     private <T> List<Object> covertAuxiliaryObjectClassValuesToConnId(
             Collection<PrismPropertyValue<QName>> pvals,
-            QName midPointAttributeName,
             Map<QName, ResourceObjectDefinition> auxiliaryObjectClassMap) throws SchemaException {
         List<Object> connIdVals = new ArrayList<>(pvals.size());
         for (PrismPropertyValue<QName> pval : pvals) {
             QName auxQName = pval.getValue();
-            ResourceObjectDefinition auxDef = resourceSchema.findObjectClassDefinition(auxQName);
-            if (auxDef == null) {
-                throw new SchemaException("Auxiliary object class " + auxQName + " not found in the schema");
-            }
-            auxiliaryObjectClassMap.put(auxQName, auxDef);
+            auxiliaryObjectClassMap.put(auxQName, resourceSchema.findDefinitionForObjectClassRequired(auxQName));
             ObjectClass icfOc = connIdNameMapper.objectClassToConnId(pval.getValue(), connectorType, false);
             connIdVals.add(icfOc.getObjectClassValue());
         }

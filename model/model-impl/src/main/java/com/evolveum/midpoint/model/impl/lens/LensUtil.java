@@ -689,7 +689,7 @@ public class LensUtil {
         if (!(object.asObjectable() instanceof ShadowType)) {
             return false;
         }
-        return path.startsWithName(ShadowType.F_ATTRIBUTES) || path.startsWithName(ShadowType.F_ASSOCIATION);
+        return path.startsWithName(ShadowType.F_ATTRIBUTES) || path.startsWithName(ShadowType.F_ASSOCIATIONS);
     }
 
     public static <O extends ObjectType> void setDeltaOldValue(LensElementContext<O> ctx, ObjectDelta<O> objectDelta) {
@@ -868,7 +868,6 @@ public class LensUtil {
                     throw new SchemaException("Unsupported type "+propDef.getTypeName()+" for property "+itemPath+" in "+focusDefinition+" as specified in object policy, only string and polystring properties are supported for OID-bound mode");
                 }
                 focusContext.swallowToSecondaryDelta(propDelta);
-                focusContext.recompute();
             }
         }
     }

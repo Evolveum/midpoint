@@ -7,16 +7,18 @@
 
 package com.evolveum.midpoint.repo.sql.query.definition;
 
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+
 /**
  * Specifies "any" reference. In contrast to other JPA definitions, it is not derived by analyzing R-class
  * structure, but created on demand in the process if ItemPath translation.
- * <p>
+ *
  * It was created to ensure consistency of resolution mechanism, which should provide
  * HQL property + JPA definition for any item path provided.
  */
-public class JpaAnyReferenceDefinition extends JpaReferenceDefinition<JpaAnyReferenceDefinition> {
+public class JpaAnyReferenceDefinition extends JpaReferenceDefinition {
 
-    public JpaAnyReferenceDefinition(Class jpaClass, Class referencedEntityJpaClass) {
+    JpaAnyReferenceDefinition(Class<?> jpaClass, Class<? extends RObject> referencedEntityJpaClass) {
         super(jpaClass, referencedEntityJpaClass);
     }
 

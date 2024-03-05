@@ -198,8 +198,6 @@ public class ActivationProcessor implements ProjectorProcessor {
                     }
                 }
             }
-
-            projectionContext.recompute();
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -596,8 +594,6 @@ public class ActivationProcessor implements ProjectorProcessor {
                 || decision == SynchronizationPolicyDecision.DELETE) {
             return;
         }
-
-        projCtx.recompute();
 
         evaluateExistenceMapping(context, projCtx, now, MappingTimeEval.FUTURE, task, result);
 
@@ -1257,8 +1253,6 @@ public class ActivationProcessor implements ProjectorProcessor {
                     null, now, MappingTimeEval.CURRENT, ShadowType.F_PURPOSE.getLocalPart(), task, result);
         }
 
-        context.checkConsistenceIfNeeded();
-        projCtx.recompute();
         context.checkConsistenceIfNeeded();
     }
 

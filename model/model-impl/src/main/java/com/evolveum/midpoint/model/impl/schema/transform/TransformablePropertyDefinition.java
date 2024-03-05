@@ -16,19 +16,19 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.processor.deleg.RefinedAttributeDefinitionDelegator;
+import com.evolveum.midpoint.schema.processor.deleg.ResourceAttributeDefinitionDelegator;
 import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
 import com.evolveum.midpoint.schema.processor.MutableRawResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.deleg.AttributeDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import java.io.Serial;
 
 public class TransformablePropertyDefinition<T> extends TransformableItemDefinition<PrismProperty<T>, PrismPropertyDefinition<T>>
     implements PropertyDefinitionDelegator<T>, PartiallyMutableItemDefinition.Property<T> {
 
+    @Serial private static final long serialVersionUID = 1L;
 
-    private static final long serialVersionUID = 1L;
-
-    public TransformablePropertyDefinition(PrismPropertyDefinition<T> delegate) {
+    TransformablePropertyDefinition(PrismPropertyDefinition<T> delegate) {
         super(delegate);
     }
 
@@ -103,8 +103,8 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
 
     public static class ResourceAttribute<T>
             extends TransformablePropertyDefinition<T>
-            implements AttributeDefinitionDelegator<T>, PartiallyMutableItemDefinition.Attribute<T> {
-        private static final long serialVersionUID = 1L;
+            implements ResourceAttributeDefinitionDelegator<T>, PartiallyMutableItemDefinition.Attribute<T> {
+        @Serial private static final long serialVersionUID = 1L;
 
         public ResourceAttribute(PrismPropertyDefinition<T> delegate) {
             super(delegate);
@@ -161,9 +161,15 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
             deleg.setDefinition(this);
             return deleg;
         }
+
+        @Override
+        public @NotNull Class<T> getTypeClass() {
+            return super.getTypeClass();
+        }
     }
 
-    public static class RefinedAttribute<T> extends ResourceAttribute<T> implements RefinedAttributeDefinitionDelegator<T> {
+    /** TODO is this used? */
+    public static class RefinedAttribute<T> extends ResourceAttribute<T> implements ResourceAttributeDefinitionDelegator<T> {
 
         public RefinedAttribute(PrismPropertyDefinition<T> delegate) {
             super(delegate);

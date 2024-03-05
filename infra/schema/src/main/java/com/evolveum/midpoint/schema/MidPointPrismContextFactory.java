@@ -9,40 +9,36 @@ package com.evolveum.midpoint.schema;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-
 import javax.xml.XMLConstants;
 
-import com.evolveum.midpoint.prism.impl.PrismContextImpl;
-import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
-import com.evolveum.midpoint.prism.impl.schema.axiom.AxiomEnabledSchemaRegistry;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-
-import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
-import com.evolveum.midpoint.schema.metadata.MidpointValueMetadataFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ObjectFactory;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
-import com.evolveum.midpoint.prism.util.PrismContextFactory;
+import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.prism.impl.schema.axiom.AxiomEnabledSchemaRegistry;
 import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
+import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
+import com.evolveum.midpoint.schema.metadata.MidpointValueMetadataFactory;
 import com.evolveum.midpoint.schema.processor.MidPointSchemaDefinitionFactory;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ObjectFactory;
 
 /**
  * @author semancik
- *
  */
 public class MidPointPrismContextFactory implements PrismContextFactory {
 
@@ -80,17 +76,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         return context;
     }
 
-    public PrismContext createEmptyPrismContext() throws SchemaException, IOException {
-        SchemaRegistryImpl schemaRegistry = createSchemaRegistry();
-        PrismContextImpl context = PrismContextImpl.createEmptyContext(schemaRegistry);
-        context.setDefinitionFactory(createDefinitionFactory());
-        context.setDefaultRelation(SchemaConstants.ORG_DEFAULT);
-        context.setObjectsElementName(SchemaConstants.C_OBJECTS);
-        context.setDefaultReferenceTypeName(ObjectReferenceType.COMPLEX_TYPE);
-        context.setExtensionContainerTypeName(ExtensionType.COMPLEX_TYPE);
-        return context;
-    }
-
     private SchemaDefinitionFactory createDefinitionFactory() {
         return new MidPointSchemaDefinitionFactory();
     }
@@ -114,8 +99,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
     }
 
     private void registerAxiomSchemas(SchemaRegistryImpl schemaRegistry) {
-        if (schemaRegistry instanceof AxiomEnabledSchemaRegistry) {
-            AxiomEnabledSchemaRegistry axiomRegistry = (AxiomEnabledSchemaRegistry) schemaRegistry;
+        if (schemaRegistry instanceof AxiomEnabledSchemaRegistry axiomRegistry) {
             AxiomModelStatementSource commonMetadata;
             try {
                 commonMetadata = AxiomModelStatementSource.fromResource("xml/ns/public/common/common-metadata-3.axiom");
@@ -203,9 +187,4 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerStaticNamespace(SchemaConstants.NS_ORG, SchemaConstants.PREFIX_NS_ORG, false);
         schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault(SchemaConstants.PREFIX_NS_ORG); // declared by default
     }
-
-    private void setupDebug() {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-    }
-
 }

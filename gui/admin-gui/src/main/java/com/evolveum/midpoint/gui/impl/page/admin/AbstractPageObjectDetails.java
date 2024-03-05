@@ -15,8 +15,13 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.web.page.error.PageError404;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -37,7 +42,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -279,7 +283,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return saveOrPreviewPerformed(target, result, previewOnly, null);
     }
 
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
+    public final Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
 
         PrismObjectWrapper<O> objectWrapper = getModelWrapperObject();
         LOGGER.debug("Saving object {}", objectWrapper);
@@ -289,6 +293,31 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
 
         ExecuteChangeOptionsDto options = getExecuteChangesOptionsDto();
+
+        Collection<ExecutedDeltaPostProcessor> preconditionDeltas;
+        try {
+            preconditionDeltas = getObjectDetailsModels().collectPreconditionDeltas(this, result);
+        } catch (CommonException ex) {
+            result.recordHandledError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);
+            showResult(result);
+            target.add(getFeedbackPanel());
+            return null;
+        }
+
+        if (!previewOnly && !preconditionDeltas.isEmpty()) {
+            for (ExecutedDeltaPostProcessor preconditionDelta : preconditionDeltas) {
+                OperationResult subResult = result.createSubresult("executePreconditionDeltas");
+                Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(
+                        preconditionDelta.getObjectDeltas(), previewOnly, options, task, subResult, target);
+                if (subResult.isFatalError()) {
+                    afterSavePerformed(subResult, executedDeltas, target);
+                    return null;
+                }
+                preconditionDelta.processExecutedDelta(executedDeltas, AbstractPageObjectDetails.this);
+            }
+        }
+
         Collection<ObjectDelta<? extends ObjectType>> deltas;
         try {
             if (isShowedByWizard()) {
@@ -306,18 +335,28 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             return null;
         }
 
+        if (previewOnly) {
+            for (ExecutedDeltaPostProcessor preconditionDelta : preconditionDeltas) {
+                deltas.addAll(preconditionDelta.getObjectDeltas());
+            }
+        }
+
         LOGGER.trace("returning from saveOrPreviewPerformed");
 
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly,
                 options, task, result, target);
 
+        afterSavePerformed(result, executedDeltas, target);
+
+        return executedDeltas;
+    }
+
+    private void afterSavePerformed(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
         if (!isShowedByWizard()) {
             postProcessResult(result, executedDeltas, target);
         } else {
             postProcessResultForWizard(result, executedDeltas, target);
         }
-
-        return executedDeltas;
     }
 
     protected void postProcessResultForWizard(
@@ -496,13 +535,22 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
+        String panelId = WebComponentUtil.getPanelIdentifierFromParams(getPageParameters());
 
-        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject(),
-                WebComponentUtil.getPanelIdentifierFromParams(getPageParameters()));
+        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject(), panelId);
 
-        if (defaultConfiguration != null) {
+        if (defaultConfiguration != null && WebComponentUtil.getElementVisibility(defaultConfiguration.getVisibility())) {
             return defaultConfiguration;
         }
+
+        if (panelId != null) {
+            //wrong panel id or hidden panel
+            getSession().error(
+                    createStringResource(
+                            "AbstractPageObjectDetails.panelNotFound", panelId, getPageTitleModel().getObject()).getString());
+            throw new RestartResponseException(PageError404.class);
+        }
+
         return getPanelConfigurations().getObject()
                 .stream()
                 .filter(config -> isApplicableForOperation(config) && WebComponentUtil.getElementVisibility(config.getVisibility()))
@@ -642,7 +690,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private PrismObject<O> loadPrismObject() {
         Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
         OperationResult result = task.getResult();
-        PrismObject<O> prismObject;
+        PrismObject<O> prismObject = null;
         try {
             if (!isEditObject()) {
                 prismObject = getPrismContext().createObject(getType());
@@ -651,12 +699,19 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 prismObject = WebModelServiceUtils.loadObject(getType(), focusOid, getOperationOptions(), false, this, task, result);
                 LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, prismObject);
             }
+        } catch (RestartResponseException e) {
+            //ignore restart exception
         } catch (Exception ex) {
             result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
             throw redirectBackViaRestartResponseException();
         }
         result.computeStatusIfUnknown();
+        if (prismObject == null && result.isFatalError()) {
+            getSession().getFeedbackMessages().clear();
+            getSession().error(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"));
+            throw new RestartResponseException(PageError404.class);
+        }
         showResult(result, false);
         return prismObject;
     }

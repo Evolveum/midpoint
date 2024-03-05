@@ -7,39 +7,34 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Evaluation of an association mapping in resource object construction (assigned/plain).
  */
-public class AssociationEvaluation<AH extends AssignmentHolderType>
-        extends ItemEvaluation<AH, PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>, ResourceAssociationDefinition> {
+class AssociationEvaluation<AH extends AssignmentHolderType>
+        extends ItemEvaluation<AH, PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition> {
 
     // [EP:M:OM] DONE 2/2
     AssociationEvaluation(
             ConstructionEvaluation<AH, ?> constructionEvaluation,
-            ResourceAssociationDefinition associationDefinition,
+            ShadowAssociationDefinition associationDefinition,
             MappingConfigItem mappingConfigItem,
             OriginType originType,
             MappingKindType mappingKind) {
         super(
                 constructionEvaluation,
                 associationDefinition.getName(),
-                ShadowType.F_ASSOCIATION.append(associationDefinition.getName()),
+                ShadowType.F_ASSOCIATIONS.append(associationDefinition.getName()),
                 associationDefinition,
-                constructionEvaluation.construction.getAssociationContainerDefinition(),
                 mappingConfigItem, // [EP:M:OM] DONE
                 originType,
                 mappingKind);
@@ -52,25 +47,11 @@ public class AssociationEvaluation<AH extends AssignmentHolderType>
 
     @Override
     String getLifecycleState() {
-        return itemRefinedDefinition.getLifecycleState();
+        return itemDefinition.getLifecycleState();
     }
 
     @Override
     ResourceObjectTypeDefinition getAssociationTargetObjectClassDefinition() {
-        return itemRefinedDefinition.getAssociationTarget();
-    }
-
-    @Override
-    protected Collection<PrismContainerValue<ShadowAssociationType>> getOriginalTargetValuesFromShadow(
-            @NotNull PrismObject<ShadowType> shadow) {
-        // Note that it's possible that association values are simply not known. However, returning
-        // an empty list is the best we can do in such situations.
-        List<ShadowAssociationType> allValues = shadow.asObjectable().getAssociation();
-
-        //noinspection unchecked
-        return allValues.stream()
-                .filter(value -> QNameUtil.match(value.getName(), itemName))
-                .map(value -> (PrismContainerValue<ShadowAssociationType>) value.asPrismContainerValue())
-                .collect(Collectors.toList());
+        return itemDefinition.getAssociationTarget();
     }
 }

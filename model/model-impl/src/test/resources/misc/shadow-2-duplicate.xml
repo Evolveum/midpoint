@@ -10,8 +10,8 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>identity-A</name>
     <resourceRef oid="8fdb9db5-429a-4bcc-94f4-043dbd7f2eb2"/>
-    <objectClass>ri:account2</objectClass>
-    <kind>account</kind>
+    <objectClass>ri:GroupObjectClass</objectClass>
+    <kind>entitlement</kind>
     <intent>intent2</intent>
     <attributes>
         <icfs:name>identity-A</icfs:name>

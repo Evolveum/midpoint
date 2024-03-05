@@ -250,9 +250,9 @@ public class QAccessCertificationCaseMapping
     @Override
     public ResultListRowTransformer<AccessCertificationCaseType, QAccessCertificationCase, MAccessCertificationCase> createRowTransformer(
             SqlQueryContext<AccessCertificationCaseType, QAccessCertificationCase, MAccessCertificationCase> sqlQueryContext,
-            JdbcSession jdbcSession) {
+            JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         Map<UUID, PrismObject<AccessCertificationCampaignType>> cache = new HashMap<>();
-        return (tuple, entityPath, options) -> {
+        return (tuple, entityPath) -> {
             Long cid = Objects.requireNonNull(tuple.get(entityPath.cid));
             UUID ownerOid = Objects.requireNonNull(tuple.get(entityPath.ownerOid));
             PrismObject<AccessCertificationCampaignType> owner = cache.get(ownerOid);

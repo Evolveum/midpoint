@@ -36,7 +36,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -65,7 +65,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
 
 
     private LoadableDetachableModel<PrismObject<ResourceType>> resourceModel;
-    private LoadableDetachableModel<List<ResourceAssociationDefinition>> refinedAssociationDefinitionsModel;
+    private LoadableDetachableModel<List<ShadowAssociationDefinition>> refinedAssociationDefinitionsModel;
 
     public ConstructionAssociationPanel(String id, IModel<PrismContainerWrapper<ConstructionType>> model) {
         super(id, model);
@@ -99,7 +99,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
 
         refinedAssociationDefinitionsModel = new LoadableDetachableModel<>() {
             @Override
-            protected List<ResourceAssociationDefinition> load() {
+            protected List<ShadowAssociationDefinition> load() {
                 ConstructionType construction = getModelObject().getItem().getRealValue();
 
                 return ProvisioningObjectsUtil.getRefinedAssociationDefinition(resourceModel.getObject().asObjectable(), construction.getKind(),
@@ -109,9 +109,9 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
     }
 
     protected void initLayout() {
-        ListView<ResourceAssociationDefinition> associationsPanel = new ListView<>(ID_ASSOCIATIONS, refinedAssociationDefinitionsModel) {
+        ListView<ShadowAssociationDefinition> associationsPanel = new ListView<>(ID_ASSOCIATIONS, refinedAssociationDefinitionsModel) {
             @Override
-            protected void populateItem(ListItem<ResourceAssociationDefinition> item) {
+            protected void populateItem(ListItem<ShadowAssociationDefinition> item) {
 
                 item.setOutputMarkupId(true);
 
@@ -168,7 +168,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
         add(associationsPanel);
     }
 
-    private void removeValuePerformed(ResourceAssociationDefinition def) {
+    private void removeValuePerformed(ShadowAssociationDefinition def) {
         try {
             QName defName = def.getName();
             PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper =
@@ -195,7 +195,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
         }
     }
 
-    private IModel<ExpressionType> getExpressionModel(ResourceAssociationDefinition def) {
+    private IModel<ExpressionType> getExpressionModel(ShadowAssociationDefinition def) {
         return new LoadableModel<>() {
             private static final long serialVersionUID = 1L;
 
@@ -227,7 +227,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
         };
     }
 
-    private void addNewShadowRefValuePerformed(ResourceAssociationDefinition def, AjaxRequestTarget target) {
+    private void addNewShadowRefValuePerformed(ShadowAssociationDefinition def, AjaxRequestTarget target) {
         try {
             @NotNull ItemName defName = def.getName();
             PrismContainerWrapper<ConstructionType> constructionContainerWrapper = ConstructionAssociationPanel.this.getModelObject();

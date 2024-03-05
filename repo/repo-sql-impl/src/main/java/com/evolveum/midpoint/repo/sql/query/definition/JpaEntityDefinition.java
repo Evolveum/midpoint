@@ -14,17 +14,15 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.resolution.DataSearchResult;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 
 /**
  * @author lazyman
  */
-public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefinition> {
+public class JpaEntityDefinition extends JpaDataNodeDefinition {
 
     /**
      * child definitions of this entity
@@ -32,7 +30,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefiniti
     private final List<JpaLinkDefinition<?>> definitions = new ArrayList<>();
     private JpaEntityDefinition superclassDefinition;
 
-    public JpaEntityDefinition(Class<? extends RObject> jpaClass, Class jaxbClass) {
+    public JpaEntityDefinition(Class<?> jpaClass, Class<?> jaxbClass) {
         super(jpaClass, jaxbClass);
     }
 
@@ -49,7 +47,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefiniti
         definitions.sort(new LinkDefinitionComparator());
     }
 
-    private <D extends JpaDataNodeDefinition<D>> JpaLinkDefinition<D> findRawLinkDefinition(
+    private <D extends JpaDataNodeDefinition> JpaLinkDefinition<D> findRawLinkDefinition(
             @NotNull ItemPath itemPath, @NotNull Class<D> type, boolean exact) {
         for (JpaLinkDefinition<?> definition : definitions) {
             if (exact) {
@@ -72,7 +70,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefiniti
 
     @FunctionalInterface
     public interface LinkDefinitionHandler {
-        void handle(JpaLinkDefinition linkDefinition);
+        void handle(JpaLinkDefinition<?> linkDefinition);
     }
 
     /**
@@ -84,27 +82,28 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefiniti
      * @return If successful, returns correct definition + empty path.
      * If unsuccessful, return null.
      */
-    public <D extends JpaDataNodeDefinition<D>> DataSearchResult<D> findDataNodeDefinition(ItemPath path,
-            ItemDefinition itemDefinition, Class<D> type, PrismContext prismContext) throws QueryException {
-        return findDataNodeDefinition(path, itemDefinition, type, null, prismContext);
+    public <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(
+            ItemPath path, ItemDefinition<?> itemDefinition, Class<D> type) throws QueryException {
+        return findDataNodeDefinition(path, itemDefinition, type, null);
     }
 
-    public <D extends JpaDataNodeDefinition<D>> DataSearchResult<D> findDataNodeDefinition(ItemPath path,
-            ItemDefinition itemDefinition, Class<D> type, LinkDefinitionHandler handler, PrismContext prismContext) throws QueryException {
+    private <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(ItemPath path,
+            ItemDefinition<?> itemDefinition, Class<D> type, LinkDefinitionHandler handler) throws QueryException {
         JpaDataNodeDefinition currentDefinition = this;
         for (; ; ) {
-            DataSearchResult<?> result = currentDefinition.nextLinkDefinition(path, itemDefinition, prismContext);
+            DataSearchResult<?> result = currentDefinition.nextLinkDefinition(path, itemDefinition);
             if (result == null) {   // oops
                 return null;
             }
             if (handler != null) {
                 handler.handle(result.getLinkDefinition());
             }
-            JpaLinkDefinition linkDefinition = result.getLinkDefinition();
+            JpaLinkDefinition<?> linkDefinition = result.getLinkDefinition();
             JpaDataNodeDefinition targetDefinition = linkDefinition.getTargetDefinition();
 
             if (result.isComplete()) {
                 if (type.isAssignableFrom(targetDefinition.getClass())) {
+                    //noinspection unchecked
                     return (DataSearchResult<D>) result;
                 } else {
                     return null;
@@ -120,13 +119,8 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefiniti
         this.superclassDefinition = superclassDefinition;
     }
 
-    public JpaEntityDefinition getSuperclassDefinition() {
-        return superclassDefinition;
-    }
-
     @Override
-    public DataSearchResult<?> nextLinkDefinition(
-            ItemPath path, ItemDefinition<?> itemDefinition, PrismContext prismContext)
+    public DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition<?> itemDefinition)
             throws QueryException {
 
         if (ItemPath.isEmpty(path)) {     // doesn't fulfill precondition
@@ -150,9 +144,9 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefiniti
     }
 
     @Override
-    public void accept(Visitor<JpaDataNodeDefinition<JpaEntityDefinition>> visitor) {
+    public void accept(Visitor<JpaDataNodeDefinition> visitor) {
         visitor.visit(this);
-        for (JpaLinkDefinition definition : definitions) {
+        for (JpaLinkDefinition<?> definition : definitions) {
             definition.accept(visitor);
         }
     }
@@ -177,7 +171,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefiniti
         if (superclassDefinition != null) {
             sb.append(" extends ").append(superclassDefinition);
         }
-        for (JpaLinkDefinition definition : definitions) {
+        for (JpaLinkDefinition<?> definition : definitions) {
             sb.append("\n");
             sb.append(definition.debugDump(indent + 1));
         }

@@ -12,8 +12,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class HqlEntityInstance extends HqlDataInstance<JpaEntityDefinition> {
 
-    public HqlEntityInstance(String hqlPath, JpaEntityDefinition jpaDefinition, HqlDataInstance parentPropertyPath) {
-        super(hqlPath, jpaDefinition, parentPropertyPath);
+    public HqlEntityInstance(String hqlPath, JpaEntityDefinition jpaDefinition, HqlDataInstance<?> parentDataInstance) {
+        super(hqlPath, jpaDefinition, parentDataInstance);
     }
 
     public HqlEntityInstance narrowFor(@NotNull JpaEntityDefinition overridingDefinition) {

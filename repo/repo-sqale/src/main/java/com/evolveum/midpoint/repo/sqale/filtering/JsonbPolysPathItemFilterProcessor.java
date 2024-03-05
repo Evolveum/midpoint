@@ -82,7 +82,7 @@ public class JsonbPolysPathItemFilterProcessor<T>
             return processPolyStringComponentEq(JSONB_POLY_NORM_KEY, extractNorm(values.singleValue())
             );
         } else {
-            throw new QueryException("Unknown matching rule '" + matchingRule + "'. Filter: " + filter);
+            throw createUnsupportedMatchingRuleException(filter, true);
         }
     }
 
@@ -113,7 +113,7 @@ public class JsonbPolysPathItemFilterProcessor<T>
                     singleValuePredicate(stringTemplate(JSONB_POLY_NORM_KEY), operation,
                             extractNorm(values.singleValue())));
         } else {
-            throw new QueryException("Unknown matching rule '" + matchingRule + "'. Filter: " + filter);
+            throw createUnsupportedMatchingRuleException(filter, true);
         }
 
         return subselect.exists();

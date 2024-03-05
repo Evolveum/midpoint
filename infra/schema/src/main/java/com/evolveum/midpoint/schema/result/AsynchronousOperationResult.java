@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.result;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Primary goal of this class is to support asynchronous operations.
  * The call to operation may return even if the resource operation
@@ -27,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
  */
 public class AsynchronousOperationResult implements ShortDumpable {
 
-    private OperationResult operationResult;
+    @NotNull private final OperationResult operationResult;
 
     /** TODO what exactly is the meaning of this? */
     private PendingOperationTypeType operationType;
@@ -39,12 +41,12 @@ public class AsynchronousOperationResult implements ShortDumpable {
      */
     private boolean quantumOperation;
 
-    public OperationResult getOperationResult() {
-        return operationResult;
+    public AsynchronousOperationResult(@NotNull OperationResult operationResult) {
+        this.operationResult = operationResult;
     }
 
-    public void setOperationResult(OperationResult operationResult) {
-        this.operationResult = operationResult;
+    public @NotNull OperationResult getOperationResult() {
+        return operationResult;
     }
 
     public PendingOperationTypeType getOperationType() {
@@ -63,10 +65,8 @@ public class AsynchronousOperationResult implements ShortDumpable {
         this.quantumOperation = quantumOperation;
     }
 
-    public static AsynchronousOperationResult wrap(OperationResult result) {
-        AsynchronousOperationResult ret = new AsynchronousOperationResult();
-        ret.setOperationResult(result);
-        return ret;
+    public static AsynchronousOperationResult wrap(@NotNull OperationResult result) {
+        return new AsynchronousOperationResult(result);
     }
 
     public boolean isInProgress() {
@@ -81,9 +81,7 @@ public class AsynchronousOperationResult implements ShortDumpable {
         if (quantumOperation) {
             sb.append("QUANTUM,");
         }
-        if (operationResult != null) {
-            sb.append("status=").append(operationResult.getStatus());
-        }
+        sb.append("status=").append(operationResult.getStatus());
     }
 
     @Override
@@ -93,5 +91,4 @@ public class AsynchronousOperationResult implements ShortDumpable {
         sb.append(")");
         return sb.toString();
     }
-
 }

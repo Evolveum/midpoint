@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ResourceTemplateProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTemplate.TemplateType;
@@ -154,8 +155,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                 OperationResult result = task.getResult();
                 @Nullable PrismObject<ResourceType> resource =
                         WebModelServiceUtils.loadObject(ResourceType.class, resourceTemplate.getOid(), getPageBase(), task, result);
-                PrismObject<ResourceType> obj = resource.cloneComplex(CloneStrategy.REUSE);
-                obj.setOid(null);
+                PrismObject<ResourceType> obj = DuplicationProcessHelper.duplicateObjectDefault(resource);
                 obj.findOrCreateProperty(ResourceType.F_TEMPLATE).setRealValue(null);
                 obj.findOrCreateProperty(ResourceType.F_ABSTRACT).setRealValue(null);
                 obj.findOrCreateProperty(ResourceType.F_NAME).setRealValue(null);

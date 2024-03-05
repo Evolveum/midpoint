@@ -8,8 +8,9 @@
 package com.evolveum.midpoint.gui.impl.component.tile;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.data.column.RoundedImagePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -123,11 +124,16 @@ public class FocusTilePanel<F extends Serializable, T extends Tile<F>> extends B
             return null;
         }
 
-        String icon = IconAndStylesUtil.createDefaultBlackIcon(obj.asPrismContainerValue().getTypeName());
+        OperationResult result =  new OperationResult("getIcon");
+        DisplayType type =  GuiDisplayTypeUtil.getDisplayTypeForObject(obj, result, getPageBase());
+        if (type == null || type.getIcon() == null) {
+            return type;
+        }
 
-        return new DisplayType()
-                .icon(new IconType()
-                        .cssClass(StringUtils.joinWith(" ", icon, "fa-2x")));
+        IconType icon = type.getIcon();
+        icon.setCssClass(StringUtils.joinWith(" ", icon.getCssClass(), "fa-2x"));
+
+        return type;
     }
 
     protected IModel<IResource> createPreferredImage(IModel<T> model) {

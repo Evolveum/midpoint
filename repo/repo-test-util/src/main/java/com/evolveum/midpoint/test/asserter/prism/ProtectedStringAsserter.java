@@ -42,27 +42,27 @@ public class ProtectedStringAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ProtectedStringAsserter<RA> assertIsEncrypted() {
-        assertTrue("Non-encrypted procted string in "+desc(), protectedString.isEncrypted());
+        assertTrue("Non-encrypted protected string in " + desc(), protectedString.isEncrypted());
         return this;
     }
 
     public ProtectedStringAsserter<RA> assertIsHashed() {
-        assertTrue("Non-encrypted procted string in "+desc(), protectedString.isHashed());
+        assertTrue("Non-encrypted protected string in " + desc(), protectedString.isHashed());
         return this;
     }
 
     public ProtectedStringAsserter<RA> assertHasClearValue() {
-        assertNotNull("No clear value procted string in "+desc(), protectedString.getClearValue());
+        assertNotNull("No clear value protected string in " + desc(), protectedString.getClearValue());
         return this;
     }
 
     public ProtectedStringAsserter<RA> assertNoClearValue() {
-        assertNull("Unexpected clear value procted string in "+desc(), protectedString.getClearValue());
+        assertNull("Unexpected clear value protected string in " + desc(), protectedString.getClearValue());
         return this;
     }
 
     public ProtectedStringAsserter<RA> assertClearValue(String expected) {
-        AssertJUnit.assertEquals("Wrong clear value in "+desc(), expected, protectedString.getClearValue());
+        AssertJUnit.assertEquals("Wrong clear value in " + desc(), expected, protectedString.getClearValue());
         return this;
     }
 

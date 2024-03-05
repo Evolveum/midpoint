@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2024 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-column">
+        <div wicket:id="radioGroup">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" wicket:id="noValueCheck"/>
+                <span wicket:id="noValueLabel"/>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" wicket:id="useExistingCheck"/>
+                <span wicket:id="useExistingLabel"/>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" wicket:id="createNewCheck"/>
+                <span wicket:id="createNewLabel"/>
+            </div>
+        </div>
+        <div wicket:id="useExistingContainer">
+            <div wicket:id="useExistingInput"/>
+        </div>
+        <div wicket:id="createNewContainer" class="bg-light rounded">
+            <div wicket:id="createNewCallout" class="mx-3 mt-3"/>
+            <div wicket:id="createNewForm"/>
+        </div>
+    </div>
+</wicket:panel>
+</html>

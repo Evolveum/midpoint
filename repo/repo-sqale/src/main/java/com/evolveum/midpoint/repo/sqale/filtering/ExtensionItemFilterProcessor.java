@@ -352,7 +352,7 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
                     extItem, ValueFilterValues.from(filter, PolyStringItemFilterProcessor::extractNorm),
                     JSONB_POLY_NORM_KEY, operation);
         } else {
-            throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
+            throw createUnsupportedMatchingRuleException(filter);
         }
     }
 
@@ -382,7 +382,7 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
             subselect.where(singleValuePredicate(stringTemplate(JSONB_POLY_NORM_KEY), operation,
                     PolyStringItemFilterProcessor.extractNorm(values.singleValue())));
         } else {
-            throw new QueryException("Unknown matching rule '" + matchingRule + "'. Filter: " + filter);
+            throw createUnsupportedMatchingRuleException(filter, true);
         }
 
         return subselect.exists();

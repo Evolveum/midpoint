@@ -498,19 +498,16 @@ public class ObjectRetriever {
                 }
             }
         } else if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
-            //we store it because provisioning now sends it to repo, but it should be transient
-            prismObject.removeContainer(ShadowType.F_ASSOCIATION);
-
             if (raw) {
-                LOGGER.debug("Loading definitions for shadow attributes.");
+                LOGGER.trace("Loading definitions for shadow attributes.");
                 Class[] classes = GetObjectResult.EXT_COUNT_CLASSES;
                 for (Class aClass : classes) {
                     // TODO restrict classes to only those that are currently present in the object
                     applyShadowAttributeDefinitions(aClass, prismObject, session);
                 }
-                LOGGER.debug("Definitions for attributes loaded.");
+                LOGGER.trace("Definitions for attributes loaded.");
             } else {
-                LOGGER.debug("Not loading definitions for shadow attributes, raw=false");
+                LOGGER.trace("Not loading definitions for shadow attributes, raw=false");
             }
         } else if (LookupTableType.class.equals(prismObject.getCompileTimeClass())) {
             lookupTableHelper.updateLoadedLookupTable(prismObject, options, session);
@@ -715,7 +712,7 @@ public class ObjectRetriever {
             if (item != null && item.getDefinition() == null) {
                 MutableItemDefinition<?> def = createDynamicDefinition(extItem, name);
                 //noinspection unchecked
-                item.applyDefinition(def, true);
+                item.applyDefinition(def);
             }
         }
     }

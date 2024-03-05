@@ -151,7 +151,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         navigateToObject.add(new VisibleBehaviour(() -> {
             ObjectReferenceType ort = getReferencedObjectToNavigate();
             Class refType = !isReferencedObjectNull()
-                    ? WebComponentUtil.qnameToClass(AbstractSummaryPanel.this.getPageBase().getPrismContext(), ort.getType())
+                    ? WebComponentUtil.qnameToClass(ort.getType())
                     : null;
             return ort != null && refType != null
                     && DetailsPageUtil.getObjectDetailsPage(refType) != null;

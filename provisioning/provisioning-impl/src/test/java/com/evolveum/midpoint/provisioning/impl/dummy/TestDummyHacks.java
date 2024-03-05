@@ -49,7 +49,6 @@ public class TestDummyHacks extends TestDummy {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         // DO NOT DO provisioningService.postInit(..) yet
         // We want to avoid connector discovery and insert our own connector object
-//        provisioningService.postInit(initResult);
 
         repoAddObjectFromFile(CONNECTOR_DUMMY_FILE, initResult);
 

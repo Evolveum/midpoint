@@ -12,31 +12,40 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
-public class JpaLinkDefinition<D extends JpaDataNodeDefinition>
+/**
+ * @param <TD> Target definition
+ */
+public class JpaLinkDefinition<TD extends JpaDataNodeDefinition>
         implements Visitable, DebugDumpable {
 
-    @NotNull private final ItemPath itemPath;                         // usually single item, but might be longer
-    private final String jpaName;                                     // beware - null for "same entity" transitions (metadata, construction, ...)
-    private final CollectionSpecification collectionSpecification;    // null if single valued
+    /** usually single item, but might be longer */
+    @NotNull private final ItemPath itemPath;
+
+    /** beware - null for "same entity" transitions (metadata, construction, ...) */
+    private final String jpaName;
+
+    /** null if single valued */
+    private final CollectionSpecification collectionSpecification;
+
     private final boolean embedded;
 
     /** When joining, should we mention the target type explicitly? See {@link JoinSpecification#explicitJoinedType}. */
     private final boolean explicitTargetTypeRequired;
 
-    @NotNull private D targetDefinition;
+    @NotNull private TD targetDefinition;
 
-    public JpaLinkDefinition(@NotNull ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification,
-            boolean embedded, @NotNull D targetDefinition) {
+    public JpaLinkDefinition(
+            @NotNull ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification,
+            boolean embedded, @NotNull TD targetDefinition) {
         this(itemPath, jpaName, collectionSpecification, embedded, targetDefinition, false);
 
     }
     public JpaLinkDefinition(@NotNull ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification,
-            boolean embedded, @NotNull D targetDefinition, boolean explicitTargetTypeRequired) {
+            boolean embedded, @NotNull TD targetDefinition, boolean explicitTargetTypeRequired) {
         this.itemPath = itemPath;
         this.jpaName = jpaName;
         this.collectionSpecification = collectionSpecification;
@@ -48,13 +57,6 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition>
     @NotNull
     public ItemPath getItemPath() {
         return itemPath;
-    }
-
-    ItemName getItemName() {
-        if (itemPath.size() != 1) {
-            throw new IllegalStateException("Expected single-item path, found '" + itemPath + "' instead.");
-        }
-        return ItemPath.toName(itemPath.first());
     }
 
     Object getItemPathSegment() {
@@ -77,7 +79,7 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition>
     }
 
     @NotNull
-    public D getTargetDefinition() {
+    public TD getTargetDefinition() {
         return targetDefinition;
     }
 
@@ -90,8 +92,8 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition>
     }
 
     @SuppressWarnings("unchecked")
-    public Class<D> getTargetClass() {
-        return (Class<D>) targetDefinition.getClass();
+    public Class<TD> getTargetClass() {
+        return (Class<TD>) targetDefinition.getClass();
     }
 
     public boolean isMultivalued() {
@@ -142,9 +144,9 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition>
 
     @SuppressWarnings("unchecked")
     void resolveEntityPointer() {
-        if (targetDefinition instanceof JpaEntityPointerDefinition) {
+        if (targetDefinition instanceof JpaEntityPointerDefinition pointerDefinition) {
             // typing hack but we don't mind
-            targetDefinition = (D) ((JpaEntityPointerDefinition) targetDefinition).getResolvedEntityDefinition();
+            targetDefinition = (TD) pointerDefinition.getResolvedEntityDefinition();
         }
     }
 

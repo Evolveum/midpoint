@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+          <div wicket:id="textWrapper">
+            <div class="input-group input-group-sm">
+                <div wicket:id="text" class="flex-grow-1"/>
+                <span class="input-group-append">
+                    <button wicket:id="edit" class="btn btn-default" type="button">
+                        <span>
+                            <i class="fa-fw fa-solid fa-arrow-pointer"></i>
+                            <span wicket:id="buttonLabel"></span>
+                        </span>
+                    </button>
+                </span>
+
+            </div>
+            <div>
+                <span wicket:id="feedback" />
+            </div>
+        </div>
+
+</wicket:panel>
+</html>

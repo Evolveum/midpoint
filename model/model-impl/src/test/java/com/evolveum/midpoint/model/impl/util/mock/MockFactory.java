@@ -190,11 +190,11 @@ public class MockFactory {
 
             @Override
             public void refreshShadow(
-                    PrismObject<ShadowType> shadow,
+                    @NotNull PrismObject<ShadowType> shadow,
                     ProvisioningOperationOptions options,
                     ProvisioningOperationContext context,
-                    Task task,
-                    OperationResult parentResult) {
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
             }
 
             @Override

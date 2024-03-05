@@ -13,9 +13,6 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWith
 
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -24,9 +21,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.application.PanelType;
 
@@ -75,7 +70,7 @@ public class GenericMultivalueContainerPanel<C extends Containerable, O extends 
     }
 
     private <C extends Containerable> Class<C> getListTypeClass() {
-        return (Class<C>) WebComponentUtil.qnameToClass(getPrismContext(), getListType());
+        return (Class<C>) WebComponentUtil.qnameToClass(getListType());
     }
 
     private QName getListType() {

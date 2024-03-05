@@ -30,17 +30,6 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
 
     public PrismContainerPanel(String id, IModel<PCW> model, ItemPanelSettings settings) {
         super(id, model, settings);
-
-        if(getModelObject() != null) {
-            getModelObject().setExpanded(isExpanded());
-        }
-    }
-
-    public boolean isExpanded() {
-        if (getModelObject() != null) {
-            return true;
-        }
-        return false;
     }
 
     @Override
@@ -63,11 +52,10 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
         valueContainer.add(AttributeAppender.append(
                 "aria-label",
                 () -> {
-                    if (getModelObject() != null && getModelObject().isMultiValue()) {
-                        if (getHeader() == null) {
-                            return getParentPage().createStringResource(
-                                    "PrismContainerPanel.container");
-                        }
+                    if (getModelObject() == null) {
+                        return null;
+                    }
+                    if (getModelObject().isMultiValue()) {
                         return getParentPage().createStringResource(
                                         "PrismContainerPanel.container", getHeader().createLabelModel().getObject())
                                 .getString();
@@ -76,12 +64,12 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
                 }));
         valueContainer.add(AttributeAppender.append(
                 "tabindex",
-                () -> getModelObject().isMultiValue() ? "0" : null));
+                () -> getModelObject() != null && getModelObject().isMultiValue() ? "0" : null));
         return valueContainer;
     }
 
     private PrismContainerHeaderPanel getHeader() {
-        return (PrismContainerHeaderPanel) get(ID_HEADER);
+        return (PrismContainerHeaderPanel)get(ID_HEADER);
     }
 
     @Override

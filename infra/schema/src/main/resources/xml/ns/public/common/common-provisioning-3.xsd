@@ -4539,12 +4539,12 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="exists" type="xsd:boolean" minOccurs="0" default="false">
+                    <xsd:element name="exists" type="xsd:boolean" minOccurs="0" default="true">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Set to true if the object is known to exist on the resource.
                                 There may be shadows for objects that do not exist yet (e.g. create operations in progress)
-                                or shadows for objects that we known nothing about yet.
+                                or shadows for objects that we know nothing about yet.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -4559,10 +4559,23 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="associations" type="tns:ShadowAssociationsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Associations of this shadow, categorized according to their name.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ShadowType.association</a:displayName>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="association" type="tns:ShadowAssociationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.association</a:displayName>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.9</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4879,10 +4892,38 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:complexType name="ShadowAssociationsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Association values from the resource.
+                Their caching works in a way similar to the caching of attributes.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+                <a:defaultItemTypeName>tns:ShadowAssociationValueType</a:defaultItemTypeName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:element name="associations" type="tns:ShadowAssociationsType">
+        <!--  Necessary to find item definition for associations -->
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:displayName>ShadowType.associations</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:complexType name="ShadowAssociationType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                The value of an association. Not used since 4.9.
+                ShadowAssociationValueType is used instead.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -4902,6 +4943,44 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="shadowAssociation" type="tns:ShadowAssociationType"/>
+
+    <xsd:complexType name="ShadowAssociationValueType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The value of an association.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="shadowRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the shadow that represents the association target (e.g., an LDAP group).
+                        May or may not be known, depending on the processing state.
+                        At least one of "shadowRef" and "identifiers" should be known, though.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="identifiers" type="tns:ShadowIdentifiersType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Set of identifiers (names and values) that identify the association target.
+                        May or may not be known, depending on the processing state.
+                        At least one of "shadowRef" and "identifiers" should be known, though.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- attributes/parameters -->
+            <!-- others, last usage timestamp -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="shadowAssociationValue" type="tns:ShadowAssociationValueType"/>
 
     <xsd:complexType name="ShadowIdentifiersType">
         <xsd:annotation>

@@ -7,15 +7,10 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,9 +22,13 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.SimulationTransaction;
@@ -57,27 +56,26 @@ class ClassificationHelper {
     @Autowired private ShadowUpdater shadowUpdater;
 
     /**
-     * Classifies the current shadow, based on information from the resource object.
+     * Classifies the current repoShadow, based on information from the resource object.
      * As a result, the repository is updated.
      */
     ResourceObjectClassification classify(
-            ProvisioningContext ctx,
-            ShadowType shadow,
-            ShadowType resourceObject,
-            OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
+            @NotNull ProvisioningContext ctx,
+            @NotNull RepoShadow repoShadow,
+            @NotNull ExistingResourceObject resourceObject,
+            @NotNull OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
-        argCheck(shadow.getOid() != null, "Shadow has no OID");
-
-        // The classifier code works with the "combined" version of resource object and its shadow.
+        // The classifier code works with the "combined" version of resource object and its repoShadow.
         // This is NOT a full shadowization. Just good enough for the classifier to work.
-        ShadowType combinedObject = combine(resourceObject, shadow);
+        ShadowType combinedObject = combine(resourceObject, repoShadow);
 
-        return classifyInternal(ctx, combinedObject, result);
+        return classifyInternal(ctx, repoShadow, combinedObject, result);
     }
 
     private ResourceObjectClassification classifyInternal(
             ProvisioningContext ctx,
+            RepoShadow repoShadow,
             ShadowType combinedObject,
             OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
@@ -91,7 +89,7 @@ class ClassificationHelper {
 
         if (isDifferent(classification, combinedObject)) {
             LOGGER.trace("New/updated classification of {} found: {}", combinedObject, classification);
-            updateShadowClassificationAndTag(combinedObject, classification, ctx, result);
+            updateShadowClassificationAndTag(repoShadow, combinedObject, classification, ctx, result);
         } else {
             LOGGER.trace("No change in classification of {}: {}", combinedObject, classification);
         }
@@ -100,18 +98,16 @@ class ClassificationHelper {
 
     /**
      * The combination simply takes attributes from the resource object, and the rest from the shadow.
-     * It is much simplified version of what is done in {@link ShadowedObjectConstruction}. We hope if will suffice for now.
+     * It is much simplified version of what is done in {@link ShadowedObjectConstruction}. We hope it will suffice for now.
      * In particular, we hope that the object class is roughly OK, and things like entitlement, credentials, and so on
      * are not needed.
      */
-    private ShadowType combine(ShadowType resourceObject, ShadowType shadow)
+    private ShadowType combine(ExistingResourceObject resourceObject, RepoShadow shadow)
             throws SchemaException {
-        ShadowType combined = shadow.clone();
-        ResourceAttributeContainer fullAttributes = ShadowUtil.getAttributesContainer(resourceObject);
-        if (fullAttributes != null) {
-            combined.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);
-            combined.asPrismObject().add(fullAttributes.clone());
-        }
+        ShadowType combined = shadow.getBean().clone();
+        combined.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);
+        combined.asPrismObject().add(
+                resourceObject.getAttributesContainer().clone());
         LOGGER.trace("Combined object:\n{}", combined.debugDumpLazily(1));
         return combined;
     }
@@ -122,6 +118,7 @@ class ClassificationHelper {
      * (We intentionally set the value of intent to "unknown" if the classification is not known!)
      */
     private void updateShadowClassificationAndTag(
+            @NotNull RepoShadow repoShadow,
             @NotNull ShadowType combinedObject,
             @NotNull ResourceObjectClassification classification,
             @NotNull ProvisioningContext ctx,
@@ -155,23 +152,21 @@ class ClassificationHelper {
         }
 
         if (ctx.getTask().areShadowChangesSimulated()) {
-            sendSimulationData(combinedObject, itemDeltas, ctx.getTask(), result);
+            sendSimulationData(repoShadow, itemDeltas, ctx.getTask(), result);
+            repoShadow.updateWith(itemDeltas);
         } else {
-            try {
-                shadowUpdater.executeRepoShadowModificationsRaw(combinedObject, itemDeltas, result);
-            } catch (ObjectAlreadyExistsException e) {
-                throw SystemException.unexpected(e, "when updating classification and tag");
-            }
+            var modifications = RepoShadowModifications.of(itemDeltas);
+            shadowUpdater.executeRepoShadowModifications(ctx, repoShadow, modifications, result);
         }
     }
 
-    private void sendSimulationData(ShadowType shadow, List<ItemDelta<?, ?>> itemDeltas, Task task, OperationResult result) {
+    private void sendSimulationData(RepoShadow shadow, List<ItemDelta<?, ?>> itemDeltas, Task task, OperationResult result) {
         SimulationTransaction transaction = task.getSimulationTransaction();
         if (transaction == null) {
             LOGGER.debug("Ignoring simulation data because there is no simulation transaction: {}: {}", shadow, itemDeltas);
         } else {
             transaction.writeSimulationData(
-                    ShadowSimulationData.of(shadow, itemDeltas), task, result);
+                    ShadowSimulationData.of(shadow.getBean(), itemDeltas), task, result);
         }
     }
 
@@ -198,13 +193,13 @@ class ClassificationHelper {
         ProvisioningContext subCtx = ctx.spawnForShadow(repoShadow);
         ResourceObjectDefinition resolvedDefinition = subCtx.getObjectDefinition();
         if (resolvedDefinition == null) {
-            LOGGER.trace("Shadow is classified as {} but no definition exists -> will re-classify it", declaredType);
+            LOGGER.trace("Shadow is classified as {} but no definition (currently) exists -> will re-classify it", declaredType);
             return true;
         }
         @Nullable ResourceObjectTypeIdentification resolvedType = resolvedDefinition.getTypeIdentification();
         if (!declaredType.equals(resolvedType)) {
             // For example, if the type no longer exists in the definition, we may end up either with class definition, or
-            // (even worse) with default type definition for given class. Hence the type equality check.
+            // (even worse) with default type definition for given class. Hence, the type equality check.
             // See also 2nd part of MID-8613.
             LOGGER.trace("Shadow is classified as {} but the definition is resolved to {} ({}) -> will re-classify it",
                     declaredType, resolvedType, resolvedDefinition);

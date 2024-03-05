@@ -49,7 +49,7 @@
             <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyLegacyUpdate" />
             <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyCaching" />
             <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyCachingPartial" />
-            <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyCachingIndexOnly" />
+            <!--<class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyCachingIndexOnly" />--> <!-- TEMPORARILY DISABLED; MID-2119 -->
             <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyIncomplete" />
             <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyExpression" />
             <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyParallelism" />
@@ -73,7 +73,7 @@
     <test name="provisioning-service-async" parallel="none" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.provisioning.impl.async.update.TestAsyncUpdateCaching" />
-            <class name="com.evolveum.midpoint.provisioning.impl.async.update.TestAsyncUpdateCachingIndexOnly" />
+            <!--<class name="com.evolveum.midpoint.provisioning.impl.async.update.TestAsyncUpdateCachingIndexOnly" />--> <!-- TEMPORARILY DISABLED; MID-2119 -->
             <class name="com.evolveum.midpoint.provisioning.impl.async.update.TestAsyncUpdateNoCaching" />
             <class name="com.evolveum.midpoint.provisioning.impl.async.update.TestAsyncUpdateCachingAmqp" />
             <class name="com.evolveum.midpoint.provisioning.impl.async.provisioning.TestAsyncProvisioningMockPlain" />

@@ -193,7 +193,6 @@ public class TestClockwork extends AbstractLensTest {
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceUserProperty(
                 context, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED);
-        context.recompute();
 
         displayDumpable("Input context", context);
 

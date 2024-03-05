@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +44,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     private PrismContext prismContext;
 
     private PrismContainerValue<?> connectorConfiguration;
-    private ResourceSchema resourceSchema = null;
+    private CompleteResourceSchema resourceSchema = null;
     private CapabilityCollectionType capabilities = null;
     private boolean configured = false;
 
@@ -86,11 +87,11 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
         this.prismContext = prismContext;
     }
 
-    public ResourceSchema getResourceSchema() {
+    public CompleteResourceSchema getResourceSchema() {
         return resourceSchema;
     }
 
-    protected void setResourceSchema(ResourceSchema resourceSchema) {
+    protected void setResourceSchema(CompleteResourceSchema resourceSchema) {
         this.resourceSchema = resourceSchema;
     }
 
@@ -104,9 +105,8 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 
     @Override
     public void initialize(
-            ResourceSchema resourceSchema,
-            CapabilityCollectionType capabilities,
-            boolean caseIgnoreAttributeNames,
+            @Nullable CompleteResourceSchema resourceSchema,
+            @Nullable CapabilityCollectionType capabilities,
             OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
@@ -120,14 +120,14 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     }
 
     @Override
-    public void updateSchema(ResourceSchema resourceSchema) {
+    public void updateSchema(CompleteResourceSchema resourceSchema) {
         setResourceSchema(resourceSchema);
     }
 
     @Override
     public void configure(
             @NotNull PrismContainerValue<?> configuration,
-            @Nullable ConnectorConfigurationOptions options,
+            @NotNull ConnectorConfigurationOptions options,
             @NotNull OperationResult parentResult)
             throws SchemaException, ConfigurationException {
 

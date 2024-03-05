@@ -79,11 +79,6 @@ public abstract class ResourceObjectConstruction<
     private final List<ResourceObjectDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
 
     /**
-     * Definition for associations.
-     */
-    private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
-
-    /**
      * Delta set triple for evaluated constructions. These correspond to tags triple:
      * - if tags are not used then there is a single zero-set evaluated construction;
      * - if tags are used then the evaluated constructions are modeled after tag triple (plus/minus/zero).
@@ -508,30 +503,21 @@ public abstract class ResourceObjectConstruction<
         return null;
     }
 
-    ResourceAssociationDefinition findAssociationDefinition(QName associationName) {
+    ShadowAssociationDefinition findAssociationDefinition(QName associationName) {
         if (resourceObjectDefinition == null) {
             throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
         }
-        ResourceAssociationDefinition assocDef = resourceObjectDefinition.findAssociationDefinition(associationName);
+        ShadowAssociationDefinition assocDef = resourceObjectDefinition.findAssociationDefinition(associationName);
         if (assocDef != null) {
             return assocDef;
         }
         for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-            ResourceAssociationDefinition auxAssocDef = auxiliaryObjectClassDefinition.findAssociationDefinition(associationName);
+            ShadowAssociationDefinition auxAssocDef = auxiliaryObjectClassDefinition.findAssociationDefinition(associationName);
             if (auxAssocDef != null) {
                 return auxAssocDef;
             }
         }
         return null;
-    }
-
-    PrismContainerDefinition<ShadowAssociationType> getAssociationContainerDefinition() {
-        if (associationContainerDefinition == null) {
-            PrismObjectDefinition<ShadowType> shadowDefinition = PrismContext.get().getSchemaRegistry()
-                    .findObjectDefinitionByCompileTimeClass(ShadowType.class);
-            associationContainerDefinition = shadowDefinition.findContainerDefinition(ShadowType.F_ASSOCIATION);
-        }
-        return associationContainerDefinition;
     }
     //endregion
 

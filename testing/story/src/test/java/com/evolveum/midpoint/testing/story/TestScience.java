@@ -259,7 +259,6 @@ public class TestScience  extends AbstractStoryTest {
 
         OperationResult result = task.getResult();
 
-
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         openDJController.stop();
 

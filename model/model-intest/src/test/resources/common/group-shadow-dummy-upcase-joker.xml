@@ -7,18 +7,24 @@
   -->
 
 <shadow oid="bc2a1d98-9ca4-11e4-a600-001e8c717e5b"
-    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>JOKER</name>
     <resourceRef oid="10000000-0000-0000-0000-000000001204"/>
     <objectClass>ri:GroupObjectClass</objectClass>
     <kind>entitlement</kind>
     <intent>group</intent>
     <attributes>
-        <icfs:uid>joker</icfs:uid>
-        <icfs:name>joker</icfs:name>
+        <icfs:uid xsi:type="t:PolyStringType">
+            <t:orig>JOKER</t:orig>
+            <t:norm>joker</t:norm>
+        </icfs:uid>
+        <icfs:name xsi:type="t:PolyStringType">
+            <t:orig>JOKER</t:orig>
+            <t:norm>joker</t:norm>
+        </icfs:name>
     </attributes>
 </shadow>

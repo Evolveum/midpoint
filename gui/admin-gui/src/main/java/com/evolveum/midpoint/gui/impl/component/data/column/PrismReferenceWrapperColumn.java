@@ -104,7 +104,7 @@ public class PrismReferenceWrapperColumn<C extends Containerable, R extends Refe
         if (ref != null) {
             Referencable referencable = ref.getItem().getRealValue();
             if (referencable != null) {
-                Class targetClass = WebComponentUtil.qnameToClass(pageBase.getPrismContext(), referencable.getType());
+                Class targetClass = WebComponentUtil.qnameToClass(referencable.getType());
                 return WebComponentUtil.isAuthorized(targetClass);
             }
         }

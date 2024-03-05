@@ -14,13 +14,13 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
@@ -153,9 +153,9 @@ public class ResourceAttributeRefPanelFactory
             }
 
             if (ConstructionType.F_ASSOCIATION.equivalent(attributeWrapper.getItemName())) {
-                Collection<ResourceAssociationDefinition> associationDefs = rOcd.getAssociationDefinitions();
+                Collection<ShadowAssociationDefinition> associationDefs = rOcd.getAssociationDefinitions();
                 return associationDefs.stream()
-                        .map(ResourceAssociationDefinition::getName)
+                        .map(ShadowAssociationDefinition::getName)
                         .collect(Collectors.toList());
             }
 

@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaParser;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.*;
@@ -83,7 +84,9 @@ public abstract class AbstractProvisioningIntegrationTest
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        InternalsConfig.turnOnAllChecks();
         // We need to switch off the encryption checks. Some values cannot be encrypted as we do not have a definition.
+        InternalsConfig.readEncryptionChecks = false;
         InternalsConfig.encryptionChecks = false;
         repositoryService.postInit(initResult); // initialize caches here
         provisioningService.postInit(initResult);
@@ -361,5 +364,19 @@ public abstract class AbstractProvisioningIntegrationTest
     @Override
     public SimpleObjectResolver getResourceReloader() {
         return RepoSimpleObjectResolver.get();
+    }
+
+    protected void checkShadowConsistence(@NotNull PrismObject<ShadowType> shadow) {
+        shadow.checkConsistence(true, true);
+        ShadowUtil.checkConsistence(shadow, getTestNameShort());
+    }
+
+    protected ShadowAsserter<Void> assertProvisioningShadowNew(@NotNull String oid)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        var shadow = provisioningService
+                .getObject(ShadowType.class, oid, null, getTestTask(), getTestOperationResult())
+                .asObjectable();
+        return assertShadowNew(shadow);
     }
 }

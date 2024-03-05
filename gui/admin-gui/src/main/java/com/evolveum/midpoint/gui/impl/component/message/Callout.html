@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div wicket:id="card" class="card card-outline-left m-0">
+        <div class="d-flex flex-column">
+            <span wicket:id="closeButton" class="btn btn-tool ml-auto pt-3 pr-2 text-secondary">
+                <i class="fa fa-xmark text-secondary fa-sm"/>
+            </span>
+            <div class="d-flex flex-wrap">
+                <div>
+                    <div wicket:id="badgeContainer" class="badge d-flex flex-wrap ml-3 small mt-1">
+                        <div wicket:id="badgeIcon" class="pr-1"/>
+                        <div wicket:id="badgeLabel"/>
+                    </div>
+                </div>
+                <div wicket:id="title" class="ml-3 font-weight-bold text-gray"/>
+            </div>
+            <div wicket:id="message" class="text-secondary p-3 small"/>
+        </div>
+    </div>
+</wicket:panel>
+</body>
+</html>

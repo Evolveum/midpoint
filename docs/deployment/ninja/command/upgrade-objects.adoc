@@ -1,0 +1,13 @@
+= Upgrade objects
+
+Command `upgrade-objects` can be used to _upgrade_ objects to get rid deprecated or obsolete items and configuration.
+This operation can use CSV output file of `verify` command.
+
+.Example of command that upgrades objects, also with
+[source,bash]
+----
+./bin/ninja.sh upgrade-objects \
+  --verification-file verify-output.csv
+----
+
+#TODO#

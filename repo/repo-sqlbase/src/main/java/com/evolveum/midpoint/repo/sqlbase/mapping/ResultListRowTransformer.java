@@ -51,8 +51,7 @@ public interface ResultListRowTransformer<S, Q extends FlexibleRelationalPathBas
     /**
      * Transforms row tuple to the midPoint object.
      */
-    S transform(Tuple rowTuple, Q entityPath,
-            Collection<SelectorOptions<GetOperationOptions>> options);
+    S transform(Tuple rowTuple, Q entityPath);
 
     /**
      * This method is called after all the rows were transformed and allows for additional

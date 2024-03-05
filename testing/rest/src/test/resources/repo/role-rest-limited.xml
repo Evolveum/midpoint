@@ -1,0 +1,22 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="7247d685-b530-4d66-b191-248ebdf0c759"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>rest-limited</name>
+    <authorization>
+        <description>The only allowed REST operation is "get object".</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getObject</action>
+    </authorization>
+    <authorization>
+        <description>Hence, the user has no chance to utilize this model-level authorization.</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+    </authorization>
+    <authorization>
+        <description>This one can be applied.</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    </authorization>
+</role>

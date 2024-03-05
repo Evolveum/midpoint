@@ -6,22 +6,25 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.form.ReferenceAutocompletePanel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.gui.impl.component.search.panel.ReferenceAutocomplete;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
+
+import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * @author lskublik
@@ -53,9 +56,16 @@ public class AutoCompleteReferencePanelFactory
 
     @Override
     public org.apache.wicket.Component createPanel(PrismReferencePanelContext<ObjectReferenceType> panelCtx) {
-        ReferenceAutocomplete panel = new ReferenceAutocomplete(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-                new AutoCompleteReferenceRenderer(),
-                panelCtx.getPageBase());
+        ReferenceAutocompletePanel<ObjectReferenceType> panel = new ReferenceAutocompletePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel()) {
+            @Override
+            public List<QName> getSupportedTypes() {
+                List<QName> targetTypeList = panelCtx.getItemWrapperModel().getObject().getTargetTypes();
+                if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
+                    return super.getSupportedTypes();
+                }
+                return targetTypeList;
+            }
+        };
         panel.setOutputMarkupId(true);
         return panel;
     }

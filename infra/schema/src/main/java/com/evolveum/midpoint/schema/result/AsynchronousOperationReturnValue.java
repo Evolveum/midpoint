@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.schema.result;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * This may seems too simple and maybe pointless now. But we expect
  * that it may later evolve to something like future/promise.
@@ -14,21 +17,19 @@ package com.evolveum.midpoint.schema.result;
  */
 public class AsynchronousOperationReturnValue<T> extends AsynchronousOperationResult {
 
-    private T returnValue;
+    @Nullable private final T returnValue;
 
-    public T getReturnValue() {
-        return returnValue;
-    }
-
-    public void setReturnValue(T returnValue) {
+    public AsynchronousOperationReturnValue(@Nullable T returnValue, @NotNull OperationResult operationResult) {
+        super(operationResult);
         this.returnValue = returnValue;
     }
 
-    public static <T> AsynchronousOperationReturnValue<T> wrap(T returnValue, OperationResult result) {
-        AsynchronousOperationReturnValue<T> ret = new AsynchronousOperationReturnValue<>();
-        ret.setOperationResult(result);
-        ret.setReturnValue(returnValue);
-        return ret;
+    public @Nullable T getReturnValue() {
+        return returnValue;
+    }
+
+    public static <T> AsynchronousOperationReturnValue<T> wrap(@Nullable T returnValue, @NotNull OperationResult result) {
+        return new AsynchronousOperationReturnValue<>(returnValue, result);
     }
 
     @Override
@@ -45,5 +46,4 @@ public class AsynchronousOperationReturnValue<T> extends AsynchronousOperationRe
         sb.append(")");
         return sb.toString();
     }
-
 }

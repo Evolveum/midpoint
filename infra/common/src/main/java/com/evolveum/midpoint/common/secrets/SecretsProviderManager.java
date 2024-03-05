@@ -23,6 +23,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Manages secrets providers instances.
+ * Wraps all new secrets providers with {@link CacheableSecretsProviderDelegate} to handle caching and key validation.
  *
  * It's used to handle configuration changes in {@link SystemConfigurationType} related to secrets providers.
  */
@@ -50,11 +51,11 @@ public class SecretsProviderManager {
         LOGGER.debug("Existing providers: {}", existingProviders.keySet());
 
         List<SecretsProviderType> configurations = new ArrayList<>();
-        configurations.add(configuration.getDockerSecretsProvider());
-        configurations.addAll(configuration.getEnvironmentVariablesSecretsProvider());
-        configurations.addAll(configuration.getFileSecretsProvider());
-        configurations.addAll(configuration.getPropertiesSecretsProvider());
-        configurations.addAll(configuration.getCustomSecretsProvider());
+        configurations.add(configuration.getDocker());
+        configurations.addAll(configuration.getEnvironmentVariables());
+        configurations.addAll(configuration.getFile());
+        configurations.addAll(configuration.getProperties());
+        configurations.addAll(configuration.getCustom());
 
         Map<String, SecretsProvider<?>> newProviders = configurations.stream()
                 .map(c -> createProvider(c))
@@ -119,8 +120,18 @@ public class SecretsProviderManager {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private <C extends SecretsProviderType> SecretsProvider<?> createProvider(C configuration) {
+        if (configuration == null) {
+            return null;
+        }
+
+        SecretsProvider<?> provider = createProviderImpl(configuration);
+
+        return new CacheableSecretsProviderDelegate<>(provider, configuration.getCache());
+    }
+
+    @SuppressWarnings("unchecked")
+    private <C extends SecretsProviderType> SecretsProvider<?> createProviderImpl(C configuration) {
         if (configuration == null) {
             return null;
         }

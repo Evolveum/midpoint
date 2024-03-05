@@ -8,29 +8,44 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.repo.sqlbase.SqlBaseOperationTracker;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleMappingMixin;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.*;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
+
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.util.exception.SystemException;
+
+import com.google.common.collect.*;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.RepositoryMappingException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -41,10 +56,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.jetbrains.annotations.VisibleForTesting;
+
+import javax.xml.namespace.QName;
 
 /**
  * Mapping between {@link QObject} and {@link ObjectType}.
@@ -59,6 +76,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     public static final String DEFAULT_ALIAS_NAME = "o";
 
     private static QObjectMapping<?, ?, ?> instance;
+    private PathSet fullObjectSkips;
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QObjectMapping<?, ?, ?> initObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -69,10 +87,16 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         return instance;
     }
 
+    private Map<ItemName, FullObjectItemMapping> separatellySerializedItems = new HashMap<>();
+
     // Explanation in class Javadoc for SqaleTableMapping
     public static QObjectMapping<?, ?, ?> getObjectMapping() {
         return Objects.requireNonNull(instance);
     }
+
+
+    private boolean storeSplitted = false;
+
 
     protected QObjectMapping(
             @NotNull String tableName,
@@ -131,7 +155,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         addContainerTableMapping(F_OPERATION_EXECUTION,
                 QOperationExecutionMapping.init(repositoryContext),
-                joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
+                joinOn((o, trg) -> o.oid.eq(trg.ownerOid))); // TODO: separate fullObject fields
         addContainerTableMapping(F_TRIGGER,
                 QTriggerMapping.init(repositoryContext),
                 joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
@@ -143,7 +167,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         // TODO: there is currently no support for index-only extensions (from entity.ext).
         //  See how QShadowMapping.loadIndexOnly() is used, and probably compose the result of this call
         //  using super... call in the subclasses. (joining arrays? providing mutable list?)
-        return new Path[] { entity.oid, entity.fullObject };
+        return new Path[] { entity.oid, entity.objectType, entity.fullObject };
     }
 
     @Override
@@ -188,6 +212,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull JdbcSession jdbcSession,
             boolean forceFull) {
+        var result = SqlBaseOperationTracker.parsePrimary();
         try {
             return toSchemaObjectComplete(tuple, entityPath, options, jdbcSession, forceFull);
         } catch (SchemaException e) {
@@ -203,6 +228,8 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             } catch (SchemaException ex) {
                 throw new RepositoryMappingException("Schema exception [" + ex + "] while handling schema exception: " + e, e);
             }
+        } finally {
+            result.close();
         }
     }
 
@@ -297,12 +324,15 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         List<OperationExecutionType> operationExecutions = schemaObject.getOperationExecution();
         if (!operationExecutions.isEmpty()) {
-            operationExecutions.forEach(oe ->
-                    QOperationExecutionMapping.get().insert(oe, row, jdbcSession));
+            for (var oe : operationExecutions) {
+                QOperationExecutionMapping.get().insert(oe, row, jdbcSession);
+            }
         }
 
         storeRefs(row, schemaObject.getParentOrgRef(),
                 QObjectReferenceMapping.getForParentOrg(), jdbcSession);
+
+        // FIXME: Store fullObjects here?
     }
 
     private @NotNull List<ObjectReferenceType> getEffectiveMarks(@NotNull S schemaObject) {
@@ -336,5 +366,201 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         row.fullObject = createFullObject(schemaObject);
     }
+
+    @Override
+    public <C extends Containerable, TQ extends QContainer<TR, R>, TR extends MContainer> SqaleMappingMixin<S, Q, R> addContainerTableMapping(
+            @NotNull ItemName itemName, @NotNull QContainerMapping<C, TQ, TR, R> containerMapping, @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
+        if (containerMapping instanceof QContainerWithFullObjectMapping mappingWithFullObject) {
+            return addFullObjectContainerTableMapping(itemName, (QContainerWithFullObjectMapping) containerMapping, true, (BiFunction) joinPredicate);
+        }
+        return super.addContainerTableMapping(itemName, containerMapping, joinPredicate);
+    }
+
+    @Override
+    public <TQ extends QReference<TR, R>, TR extends MReference> SqaleMappingMixin<S, Q, R> addRefMapping(@NotNull QName itemName, @NotNull QReferenceMapping<TQ, TR, Q, R> referenceMapping) {
+        if (referenceMapping instanceof QSeparatelySerializedItem<?,?> casted) {
+            separatellySerializedItems.put((ItemName) itemName, new FullObjectItemMapping(casted, true));
+        }
+        return super.addRefMapping(itemName, referenceMapping);
+    }
+
+    public <C extends Containerable, TQ extends QContainerWithFullObject<TR, R>, TR extends MContainerWithFullObject> SqaleMappingMixin<S, Q, R> addFullObjectContainerTableMapping(
+            @NotNull ItemName itemName, @NotNull QContainerWithFullObjectMapping<C, TQ, TR, R> containerMapping, boolean includeByDefault, @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
+        separatellySerializedItems.put(itemName, new FullObjectItemMapping(containerMapping, includeByDefault));
+        return super.addContainerTableMapping(itemName, containerMapping, joinPredicate);
+    }
+
+        @Override
+    protected final PathSet fullObjectItemsToSkip() {
+        if (fullObjectSkips == null) {
+            var pathSet = new PathSet();
+            if (storeSplitted) {
+                for (var mapping : separatellySerializedItems.values()) {
+                    pathSet.add(mapping.getPath());
+                }
+            }
+            customizeFullObjectItemsToSkip(pathSet);
+            pathSet.freeze();
+            fullObjectSkips = pathSet;
+        }
+        return fullObjectSkips;
+    }
+
+
+    private class FullObjectItemMapping<IQ extends FlexibleRelationalPathBase<IR>, IR> {
+
+        protected final QSeparatelySerializedItem<IQ,IR> mapping;
+        protected final boolean includedByDefault;
+
+        public FullObjectItemMapping(QSeparatelySerializedItem mapping, boolean includedByDefault) {
+            this.mapping = mapping;
+            this.includedByDefault = includedByDefault;
+        }
+
+        public ItemPath getPath() {
+            return mapping.getItemPath();
+        }
+
+        public boolean isIncluded(Collection<SelectorOptions<GetOperationOptions>> options) {
+            if (includedByDefault) {
+                var retrieveOptions = SelectorOptions.findOptionsForPath(options, UniformItemPath.from(this.getPath()));
+                if (retrieveOptions.stream().anyMatch(o -> RetrieveOption.EXCLUDE.equals(o.getRetrieve()))) {
+                    // There is at least one exclude for options
+                    return false;
+                }
+                return true;
+            }
+            return SelectorOptions.hasToFetchPathNotRetrievedByDefault(getPath(), options);
+        }
+
+        public Multimap<UUID, Tuple> fetchChildren(Collection<UUID> oidList, JdbcSession jdbcSession) throws SchemaException {
+            Multimap<UUID, Tuple> ret = MultimapBuilder.hashKeys().arrayListValues().build();
+
+            var q = mapping.createAlias();
+            var query = jdbcSession.newQuery()
+                    .from(q)
+                    .select(mapping.fullObjectExpressions(q)) // no complications here, we load it whole
+                    .where(mapping.allOwnedBy(q, oidList))
+                    .orderBy(mapping.orderSpecifier(q));
+            for (var row : query.fetch()) {
+                // All assignments should have full object present / legacy assignments should be kept
+                if (mapping.hasFullObject(row,q)) {
+                    ret.put(mapping.getOwner(row,q), row);
+                }
+            }
+            return ret;
+        }
+
+        public void applyToSchemaObject(S target, Collection<Tuple> values) throws SchemaException {
+            if (values.isEmpty()) {
+                // Do not create empty items
+                return;
+            }
+            var container = target.asPrismObject().findOrCreateItem(getPath(), (Class) mapping.getPrismItemType());
+            var alias = mapping.createAlias();
+            container.setIncomplete(false);
+            for (var val : values) {
+                var containerable = mapping.toSchemaObjectEmbedded(val, alias);
+                // FIXME: Some better addition method should be necessary.
+                ((Item) container).addIgnoringEquivalents(containerable);
+            }
+        }
+    }
+
+    protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
+        // NOOP for overrides
+    }
+
+    @Override
+    public ResultListRowTransformer<S, Q, R> createRowTransformer(SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
+        // here we should load external objects
+
+        Map<MObjectType, Set<FullObjectItemMapping>> itemsToFetch = new HashMap<>();
+        Multimap<FullObjectItemMapping, UUID> oidsToFetch = HashMultimap.create();
+
+        Map<FullObjectItemMapping, Multimap<UUID, PrismValue>> mappingToData = new HashMap<>();
+        return new ResultListRowTransformer<S, Q, R>() {
+
+            @Override
+            public void beforeTransformation(List<Tuple> tuples, Q entityPath) throws SchemaException {
+                for (var tuple : tuples) {
+                    var objectType = tuple.get(entityPath.objectType);
+                    var fetchItems = itemsToFetch.get(objectType);
+
+                    // If we did not resolved list of items to already fetch based on object type, we resolve it now.
+                    if (fetchItems == null) {
+                        var objMapping = (QObjectMapping) sqlQueryContext.repositoryContext().getMappingByQueryType((Class) objectType.getQueryType());
+
+                        if (objMapping.storeSplitted) {
+                            fetchItems = new HashSet<>();
+                            for (var rawMapping : objMapping.separatellySerializedItems.values()) {
+                                @SuppressWarnings("unchecked")
+                                var mapping = (FullObjectItemMapping) rawMapping;
+                                if (mapping.isIncluded(options)) {
+                                    mappingToData.put(mapping, ImmutableMultimap.of());
+                                    fetchItems.add(mapping);
+                                }
+                            }
+                        } else {
+                            fetchItems = Collections.emptySet();
+                        }
+                    }
+
+                    // For each item to fetch we maintain seperate entry in map
+                    for (var item : fetchItems) {
+                        oidsToFetch.put(item, tuple.get(entityPath.oid));
+                    }
+                }
+
+                for (var mapping : mappingToData.entrySet()) {
+                    var result = SqlBaseOperationTracker.fetchChildren(mapping.getKey().mapping.tableName());
+                    try {
+                        mapping.setValue(mapping.getKey().fetchChildren(oidsToFetch.get(mapping.getKey()), jdbcSession));
+                    } finally {
+                        result.close();
+                    }
+                }
+            }
+
+            @Override
+            public S transform(Tuple tuple, Q entityPath) {
+                // Parsing full object
+                S baseObject = toSchemaObjectCompleteSafe(tuple, entityPath, options, jdbcSession, false);
+                var uuid = tuple.get(entityPath.oid);
+                if (!storeSplitted) {
+                    return baseObject;
+                }
+                var childrenResult = SqlBaseOperationTracker.parseChildren("all");
+                try {
+                    for (var entry : mappingToData.entrySet()) {
+                        var mapping = entry.getKey();
+                        try {
+                            mapping.applyToSchemaObject(baseObject, entry.getValue().get(uuid));
+                        } catch (SchemaException e) {
+                            throw new SystemException(e);
+                        }
+                    }
+                } finally {
+                    childrenResult.close();
+                }
+                resolveReferenceNames(baseObject, jdbcSession, options);
+                return baseObject;
+            }
+        };
+    }
+
+    @VisibleForTesting
+    public int additionalSelectsByDefault() {
+        if (storeSplitted) {
+            return (int) separatellySerializedItems.entrySet().stream().filter(e -> e.getValue().includedByDefault).count();
+        }
+        return 0;
+    }
+
+    public void setStoreSplitted(boolean storeSplitted) {
+        this.storeSplitted = storeSplitted;
+        fullObjectSkips = null; // Needs to be recomputed
+    }
+
     // endregion
 }

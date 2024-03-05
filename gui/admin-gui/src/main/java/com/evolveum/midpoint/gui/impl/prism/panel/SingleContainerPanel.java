@@ -18,6 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -139,5 +140,9 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
     //TODO copied from abstractObjectMainPanel
     public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel(ItemPath path) {
         return PrismContainerWrapperModel.fromContainerWrapper(getModel(), path);
+    }
+
+    public WebMarkupContainer getContainer(){
+        return (WebMarkupContainer) get(ID_CONTAINER);
     }
 }

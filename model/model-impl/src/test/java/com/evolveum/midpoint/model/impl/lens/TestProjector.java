@@ -132,11 +132,6 @@ public class TestProjector extends AbstractLensTest {
         assert accountDeltaPrimaryClone.equals(accountDeltaPrimary) : "account primary delta changed";
         assert accountDeltaSecondaryClone.equals(accountDeltaSecondary) : "account secondary delta changed";
 
-        // WHEN: recompute
-        context.recompute();
-
-        displayDumpable("Context after recompute", context);
-
         assert focusContext == context.getFocusContext() : "focus context delta replaced";
         assert focusContext.getPrimaryDelta() == userDeltaPrimary : "focus primary delta replaced";
 
@@ -334,7 +329,6 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Tortuga"));
-        context.recompute();
 
         displayDumpable("Input context", context);
 
@@ -385,7 +379,6 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Captain Hector Barbossa"));
-        context.recompute();
 
         displayDumpable("Input context", context);
 
@@ -435,7 +428,6 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceUserProperty(context, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED);
-        context.recompute();
 
         displayDumpable("Input context", context);
 
@@ -497,7 +489,6 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addFocusModificationToContext(context, USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC_FILE);
-        context.recompute();
 
         displayDumpable("Input context", context);
 
@@ -551,7 +542,6 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceAccountAttribute(context, ACCOUNT_HBARBOSSA_DUMMY_OID,
                 DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "Water");
-        context.recompute();
 
         displayDumpable("Input context", context);
 
@@ -587,7 +577,6 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceAccountAttribute(context, ACCOUNT_HBARBOSSA_DUMMY_OID,
                 DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "I'm disinclined to acquiesce to your request.");
-        context.recompute();
 
         displayDumpable("Input context", context);
 
@@ -646,7 +635,6 @@ public class TestProjector extends AbstractLensTest {
         // Do not fill user to context. Projector should figure that out.
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextDeleteAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID);
-        context.recompute();
 
         displayDumpable("Input context", context);
 
@@ -680,7 +668,6 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addFocusDeltaToContext(context, createAssignmentUserDelta(USER_BARBOSSA_OID, ORG_BRETHREN_OID,
                 OrgType.COMPLEX_TYPE, null, null, true));
-        context.recompute();
 
         displayDumpable("Input context", context);
 
@@ -742,8 +729,6 @@ public class TestProjector extends AbstractLensTest {
         addFocusDeltaToContext(context, createAssignmentUserDelta(USER_BARBOSSA_OID, ORG_BRETHREN_OID,
                 OrgType.COMPLEX_TYPE, null, null, false));
 
-        context.recompute();
-
         displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
@@ -794,7 +779,6 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addFocusDeltaToContext(context, createAssignmentUserDelta(USER_BARBOSSA_OID, ROLE_MUTINEER_OID,
                 RoleType.COMPLEX_TYPE, null, null, true));
-        context.recompute();
 
         displayDumpable("Input context", context);
 
@@ -888,7 +872,6 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithEmptyAddUserDelta(context);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
-        context.recompute();
 
         displayDumpable("Input context", context);
 
@@ -945,7 +928,6 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithEmptyAddUserDelta(context);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
-        context.recompute();
 
         displayDumpable("Input context", context);
 
@@ -989,7 +971,6 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
         fillContextWithAccount(context, ACCOUNT_SHADOW_GUYBRUSH_OID, task, result);
         addSyncModificationToContextReplaceAccountAttribute(context, ACCOUNT_SHADOW_GUYBRUSH_OID, "ship", "Black Pearl");
-        context.recompute();
 
         displayDumpable("Input context", context);
 
@@ -1029,7 +1010,6 @@ public class TestProjector extends AbstractLensTest {
         LensProjectionContext guybrushAccountContext = context.findProjectionContextByOid(ACCOUNT_SHADOW_GUYBRUSH_OID);
         guybrushAccountContext.setFullShadow(true);
         guybrushAccountContext.setDoReconciliation(true);
-        context.recompute();
 
         displayDumpable("Input context", context);
 

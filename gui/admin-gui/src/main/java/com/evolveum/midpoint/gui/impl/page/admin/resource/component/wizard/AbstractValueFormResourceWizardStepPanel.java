@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
+import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
@@ -167,5 +168,9 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
 
     protected IModel<PrismContainerValueWrapper<C>> getValueModel() {
         return newValueModel;
+    }
+
+    protected void refresh(AjaxRequestTarget target) {
+        target.add(get(ID_VALUE));
     }
 }

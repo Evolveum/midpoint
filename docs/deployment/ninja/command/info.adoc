@@ -1,0 +1,26 @@
+= Info
+
+`info` command prints the information about the current midPoint repository implementation and connection details.
+
+.Sample output of info command
+[source,sh]
+----
+$ ./bin/ninja.sh info
+
+MidPoint home: /opt/midpoint-home/
+Java home: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
+Repository test: SUCCESS
+Repository diag:
+ Type: Native
+ Description: Implementation that stores data in PostgreSQL database using JDBC with Querydsl.
+ JDBC URL: jdbc:postgresql://localhost:5432/midpoint
+ Driver type: org.postgresql.Driver
+ Driver version: 42.5
+ Additional details:
+ - clientInfo.ApplicationName: mp-repo
+ - dataSource: null
+ - schemaAuditChangeNumber: 7
+ - schemaChangeNumber: 26
+ - select-1-round-trip-ms: 1
+ - transactionIsolation: TRANSACTION_READ_COMMITTED (read from connection)
+----

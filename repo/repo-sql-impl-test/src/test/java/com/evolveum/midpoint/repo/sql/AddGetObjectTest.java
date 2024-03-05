@@ -69,15 +69,15 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
     @Test
     public void test002AddGetDSEESyncDouble() throws Exception {
-        final File OBJECTS_FILE = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
-        if (!OBJECTS_FILE.exists()) {
-            logger.warn("skipping addGetDSEESyncDoubleTest, file {} not found.", OBJECTS_FILE.getPath());
+        final File objectsFile = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
+        if (!objectsFile.exists()) {
+            logger.warn("skipping addGetDSEESyncDoubleTest, file {} not found.", objectsFile.getPath());
             return;
         }
-        addGetCompare(OBJECTS_FILE);
+        addGetCompare(objectsFile);
         try {
             // WHEN
-            addGetCompare(OBJECTS_FILE);
+            addGetCompare(objectsFile);
 
             assert false : "Unexpected success";
         } catch (ObjectAlreadyExistsException e) {
@@ -87,8 +87,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
     @Test
     public void test005SimpleAddGet() throws Exception {
-        final File OBJECTS_FILE = new File(FOLDER_BASIC, "objects.xml");
-        List<PrismObject<?>> objects = addGetCompare(OBJECTS_FILE);
+        final File objectsFile = new File(FOLDER_BASIC, "objects.xml");
+        List<PrismObject<?>> objects = addGetCompare(objectsFile);
 
         boolean foundAtestuserX00003 = false;
         for (PrismObject<?> object : objects) {
@@ -273,7 +273,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         // apply appropriate schema
         PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
         ShadowUtil.applyResourceSchema(fileAccount, resourceSchema);
 
         OperationResult result = new OperationResult("ADD");
@@ -340,13 +340,13 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         PrismObjectDefinition accDef = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(ShadowType.class);
         PrismObject<ShadowType> shadow = accDef.instantiate();
-        final Date TIME = new Date();
+        final Date time = new Date();
         ShadowType shadowType = shadow.asObjectable();
         shadowType.setName(new PolyStringType("sync desc test"));
         SynchronizationSituationDescriptionType desc = new SynchronizationSituationDescriptionType();
         desc.setChannel("channel");
         desc.setSituation(SynchronizationSituationType.LINKED);
-        desc.setTimestamp(XMLGregorianCalendarType.asXMLGregorianCalendar(TIME));
+        desc.setTimestamp(XMLGregorianCalendarType.asXMLGregorianCalendar(time));
         shadowType.getSynchronizationSituationDescription().add(desc);
 
         OperationResult result = new OperationResult("sync desc test");
@@ -355,7 +355,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         shadow = repositoryService.getObject(ShadowType.class, oid, null, result);
         shadowType = shadow.asObjectable();
         desc = shadowType.getSynchronizationSituationDescription().get(0);
-        AssertJUnit.assertEquals("Times don't match", TIME, XMLGregorianCalendarType.asDate(desc.getTimestamp()));
+        AssertJUnit.assertEquals("Times don't match", time, XMLGregorianCalendarType.asDate(desc.getTimestamp()));
     }
 
     @Test
@@ -469,11 +469,11 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         for (PrismContainerValue value : (List<PrismContainerValue>) container.getValues()) {
             value.setId(null);
         }
-        final String OID = repositoryService.addObject(user, null, result);
+        final String oid = repositoryService.addObject(user, null, result);
         result.computeStatusIfUnknown();
 
         //get user
-        user = repositoryService.getObject(UserType.class, OID, null, result);
+        user = repositoryService.getObject(UserType.class, oid, null, result);
         result.computeStatusIfUnknown();
 
         PrismContainer pc = user.findContainer(ItemPath.create(UserType.F_ASSIGNMENT, 1,
@@ -492,7 +492,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         Session session = open();
         try {
             Query query = session.createNativeQuery("select id from m_assignment where owner_oid=:oid");
-            query.setParameter("oid", OID);
+            query.setParameter("oid", oid);
             List<Short> dbShorts = new ArrayList<>();
             for (Number n : (List<Number>) query.list()) {
                 dbShorts.add(n.shortValue());
@@ -610,11 +610,11 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResult result = createOperationResult();
 
         // GIVEN
-        final String OID = "f82cdad5-8748-43c1-b20b-7f679fbc1995";
-        UserType user = new UserType(prismContext).name("t210").oid(OID).version("443");
+        final String oid = "f82cdad5-8748-43c1-b20b-7f679fbc1995";
+        UserType user = new UserType(prismContext).name("t210").oid(oid).version("443");
 
         // WHEN
-        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(OID);
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(oid);
         repositoryService.addObject(user.asPrismObject(), null, result);
 
         // THEN

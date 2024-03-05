@@ -199,7 +199,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
         try {
             PrismObjectDefinition<O> objectDef = getModelInteractionService().getEditObjectDefinition(object, phase, task, result);
-            object.applyDefinition(objectDef, true);
+            object.applyDefinition(objectDef);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
                 | CommunicationException | SecurityViolationException e) {
             LOGGER.error("Exception while applying security constraints: {}", e.getMessage(), e);
@@ -246,7 +246,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         duplicatedBean
                 .name(copyOf)
                 .description(copyOf +
-                        (originalObject.getDescription() == null ? null : (System.lineSeparator() + originalObject.getDescription())));
+                        (originalObject.getDescription() == null ? "" : (System.lineSeparator() + originalObject.getDescription())));
         return duplicatedBean;
     }
 }

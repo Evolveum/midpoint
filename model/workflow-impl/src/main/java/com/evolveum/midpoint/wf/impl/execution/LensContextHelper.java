@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.task.api.Task;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,7 @@ public class LensContextHelper {
     @Autowired private MiscHelper miscHelper;
     @Autowired private PcpGeneralHelper pcpGeneralHelper;
     @Autowired private ApprovalMetadataHelper approvalMetadataHelper;
+    @Autowired private ProvisioningService provisioningService;
 
     LensContext<?> collectApprovedDeltasToModelContext(CaseType rootCase, List<CaseType> subcases, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
@@ -73,12 +75,14 @@ public class LensContextHelper {
                 }
             }
         }
-        mergeDeltasToModelContext(rootContext, deltasToMerge);
+        mergeDeltasToModelContext(rootContext, deltasToMerge, task, result);
         return rootContext;
     }
 
-    void mergeDeltasToModelContext(LensContext<?> rootContext, List<ObjectTreeDeltas<?>> deltasToMerge)
-            throws SchemaException {
+    void mergeDeltasToModelContext(
+            LensContext<?> rootContext, List<ObjectTreeDeltas<?>> deltasToMerge, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException {
         for (ObjectTreeDeltas<?> deltaToMerge : deltasToMerge) {
             LensFocusContext<?> focusContext = rootContext.getFocusContext();
             //noinspection rawtypes
@@ -90,14 +94,17 @@ public class LensContextHelper {
             }
             Set<Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>>> entries = deltaToMerge.getProjectionChangeMapEntries();
             for (Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>> entry : entries) {
-                LOGGER.trace("Adding projection delta to root model context; rsd = {}, delta = {}", entry.getKey(),
-                        entry.getValue().debugDumpLazily());
-                ModelProjectionContext projectionContext = rootContext.findProjectionContextByKeyExact(entry.getKey());
+                var projCtxKey = entry.getKey();
+                var shadowDelta = entry.getValue();
+                LOGGER.trace("Adding projection delta to root model context; rsd = {}, delta = {}",
+                        projCtxKey, shadowDelta.debugDumpLazily());
+                ModelProjectionContext projectionContext = rootContext.findProjectionContextByKeyExact(projCtxKey);
                 if (projectionContext == null) {
                     // TODO more liberal treatment?
-                    throw new IllegalStateException("No projection context for " + entry.getKey());
+                    throw new IllegalStateException("No projection context for " + projCtxKey);
                 }
-                projectionContext.addToPrimaryDelta(entry.getValue());
+                provisioningService.applyDefinition(shadowDelta, task, result);
+                projectionContext.addToPrimaryDelta(shadowDelta);
             }
         }
     }

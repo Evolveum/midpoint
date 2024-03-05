@@ -81,7 +81,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, RI_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();

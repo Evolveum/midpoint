@@ -101,9 +101,6 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         processProjectionCredentials(context, projectionContext, now, task, result);
         context.checkConsistenceIfNeeded();
 
-        projectionContext.recompute();
-        context.checkConsistenceIfNeeded();
-
         medic.traceContext(LOGGER, activityDescription, "projection values and credentials of "+projectionContext.getDescription(), false, context, true);
     }
 

@@ -53,7 +53,7 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
     public abstract Condition interpretInternal() throws QueryException;
 
     <V> Condition createPropertyVsConstantCondition(
-            String hqlPropertyPath, V value, ValueFilter<?, ?> filter) throws QueryException {
+            String hqlPropertyPath, boolean extension, V value, ValueFilter<?, ?> filter) throws QueryException {
         ItemRestrictionOperation operation = findOperationForFilter(filter);
 
         InterpretationContext context = getContext();
@@ -63,21 +63,18 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
 
         // TODO treat null for multivalued properties (at least throw an exception!)
         return matcher.match(
-                context.getHibernateQuery(), operation, hqlPropertyPath, value, matchingRule);
+                context.getHibernateQuery(), operation, hqlPropertyPath, extension, value, matchingRule);
     }
 
     ItemRestrictionOperation findOperationForFilter(ValueFilter filter) throws QueryException {
         ItemRestrictionOperation operation;
         if (filter instanceof EqualFilter) {
             operation = ItemRestrictionOperation.EQ;
-        } else if (filter instanceof GreaterFilter) {
-            GreaterFilter gf = (GreaterFilter) filter;
+        } else if (filter instanceof GreaterFilter gf) {
             operation = gf.isEquals() ? ItemRestrictionOperation.GE : ItemRestrictionOperation.GT;
-        } else if (filter instanceof LessFilter) {
-            LessFilter lf = (LessFilter) filter;
+        } else if (filter instanceof LessFilter lf) {
             operation = lf.isEquals() ? ItemRestrictionOperation.LE : ItemRestrictionOperation.LT;
-        } else if (filter instanceof SubstringFilter) {
-            SubstringFilter substring = (SubstringFilter) filter;
+        } else if (filter instanceof SubstringFilter substring) {
             if (substring.isAnchorEnd()) {
                 operation = ItemRestrictionOperation.ENDS_WITH;
             } else if (substring.isAnchorStart()) {
@@ -95,8 +92,7 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         PrismValue val = filter.getSingleValue();
         if (val == null) {
             return null;
-        } else if (val instanceof PrismPropertyValue) {
-            PrismPropertyValue propertyValue = (PrismPropertyValue) val;
+        } else if (val instanceof PrismPropertyValue propertyValue) {
             return propertyValue.getValue();
         } else {
             throw new QueryException("Non-property value in filter: " + filter + ": " + val.getClass());

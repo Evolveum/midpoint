@@ -7,32 +7,29 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.util.SimulationUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.google.common.base.Preconditions;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.JavaTypeConverter;
+import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.util.SimulationUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Information about a resource attribute that is available from the connector and
  * optionally refined by configuration in resource `schemaHandling` section.
- *
- * For clarity, the information is categorized into:
- *
- * - data obtainable from the resource: {@link RawResourceAttributeDefinition},
- * - full information available (this interface)
  *
  * This class represents schema definition for resource object attribute. See
  * {@link Definition} for more details.
@@ -41,7 +38,6 @@ import java.util.function.Consumer;
  */
 public interface ResourceAttributeDefinition<T>
         extends PrismPropertyDefinition<T>,
-        RawResourceAttributeDefinition<T>,
         LayeredDefinition {
 
     /**
@@ -200,6 +196,44 @@ public interface ResourceAttributeDefinition<T>
     @Override
     @NotNull ResourceAttribute<T> instantiate(QName name);
 
+    /**
+     * Creates a new {@link ResourceAttribute} from given {@link PrismProperty}.
+     * Used in the process of "definition application" in `applyDefinitions` and similar methods.
+     *
+     * Assumes that the original property is correctly constructed, i.e. it has no duplicate values.
+     */
+    default @NotNull ResourceAttribute<T> instantiateFrom(@NotNull PrismProperty<?> property) throws SchemaException {
+        //noinspection unchecked
+        ResourceAttribute<T> attribute = instantiateFromRealValues((Collection<T>) property.getRealValues());
+        attribute.setIncomplete(property.isIncomplete());
+        return attribute;
+    }
+
+    default @NotNull ResourceAttribute<T> instantiateFromValue(PrismPropertyValue<T> value) throws SchemaException {
+        ResourceAttribute<T> attribute = instantiate();
+        attribute.add(value);
+        return attribute;
+    }
+
+    /**
+     * Creates a new {@link ResourceAttribute} from given real values, converting them if necessary.
+     *
+     * Assumes that the values contain no duplicates and no nulls.
+     */
+    default @NotNull ResourceAttribute<T> instantiateFromRealValues(@NotNull Collection<T> realValues) throws SchemaException {
+        ResourceAttribute<T> attribute = instantiate();
+        attribute.addNormalizedValues(realValues, this); // FIXME SKIP NORMALIZATION!!!
+        return attribute;
+    }
+
+    default @NotNull ResourceAttribute<T> instantiateFromRealValue(@NotNull T realValue) throws SchemaException {
+        return instantiateFromRealValues(List.of(realValue));
+    }
+
+    default @NotNull PrismPropertyValue<T> convertPrismValue(@NotNull PrismPropertyValue<?> srcValue) {
+        return PrismUtil.convertPropertyValue(srcValue, this);
+    }
+
     @Override
     @NotNull ResourceAttributeDefinition<T> clone();
 
@@ -222,9 +256,11 @@ public interface ResourceAttributeDefinition<T>
      * (So various alternate implementations of this interface need not support this method.)
      *
      * May not preserve all information (like access override flags).
+     *
+     * TODO is this needed?
      */
     default ResourceAttributeDefinition<T> spawnModifyingRaw(
-            @NotNull Consumer<MutableRawResourceAttributeDefinition<T>> rawPartCustomizer) {
+            @NotNull Consumer<RawResourceAttributeDefinition<T>> rawPartCustomizer) {
         throw new UnsupportedOperationException();
     }
 
@@ -340,8 +376,67 @@ public interface ResourceAttributeDefinition<T>
         return SimulationUtil.isVisible(getLifecycleState(), taskExecutionMode);
     }
 
-    default @NotNull MatchingRule<T> getMatchingRule() throws SchemaException {
-        return SchemaService.get().matchingRuleRegistry()
-                .getMatchingRule(getMatchingRuleQName(), getTypeName());
+    /** Note that attributes must always have static Java type. */
+    @Override
+    @NotNull Class<T> getTypeClass();
+
+    /**
+     * Is this attribute returned by default? (I.e. if no specific options are sent to the connector?)
+     */
+    @Nullable Boolean getReturnedByDefault();
+
+    /**
+     * Is this attribute returned by default? (I.e. if no specific options are sent to the connector?)
+     */
+    default boolean isReturnedByDefault() {
+        return !Boolean.FALSE.equals(
+                getReturnedByDefault());
+    }
+
+    /**
+     * Returns native attribute name.
+     *
+     * Native name of the attribute is a name as it is used on the resource or
+     * as seen by the connector. It is used for diagnostics purposes and may be
+     * used by the connector itself. As the attribute names in XSD have to
+     * comply with XML element name limitations, this may be the only way how to
+     * determine original attribute name.
+     *
+     * Returns null if native attribute name is not set or unknown.
+     *
+     * The name should be the same as the one used by the resource, if the
+     * resource supports naming of attributes. E.g. in case of LDAP this
+     * annotation should contain "cn", "givenName", etc. If the resource is not
+     * that flexible, the native attribute names may be hardcoded (e.g.
+     * "username", "homeDirectory") or may not be present at all.
+     *
+     * @return native attribute name
+     */
+    String getNativeAttributeName();
+
+    /**
+     * Returns name of the attribute as given in the connector framework.
+     * This is not used for any significant logic. It is mostly for diagnostics.
+     *
+     * @return name of the attribute as given in the connector framework.
+     */
+    String getFrameworkAttributeName();
+
+    /** Returns `true` if there are any refinements (like in `schemaHandling`). */
+    boolean hasRefinements();
+
+    /** Creates a normalization-aware version of this definition. */
+    default <N> @NotNull NormalizationAwareResourceAttributeDefinition<N> toNormalizationAware() {
+        return new NormalizationAwareResourceAttributeDefinition<>(this);
+    }
+
+    /** Returns the standard path where this attribute can be found in shadows. E.g. for searching. */
+    default @NotNull ItemPath getStandardPath() {
+        return ItemPath.create(ShadowType.F_ATTRIBUTES, getItemName());
+    }
+
+    /** Creates an empty delta for this attribute against its standard path. */
+    default @NotNull PropertyDelta<T> createEmptyDelta() {
+        return createEmptyDelta(getStandardPath());
     }
 }
