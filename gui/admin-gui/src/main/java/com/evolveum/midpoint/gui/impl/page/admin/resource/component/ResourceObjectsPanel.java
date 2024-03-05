@@ -17,6 +17,11 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
+import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
+import com.evolveum.midpoint.web.session.ResourceContentStorage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -203,8 +208,30 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private void createObjectTypeChoice() {
-        var objectTypes = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
-                Model.of(getObjectDetailsModels().getDefaultObjectType(getKind())),
+
+        LoadableDetachableModel<ResourceObjectTypeDefinition> objectTypeModel = new LoadableDetachableModel<>() {
+            @Override
+            protected ResourceObjectTypeDefinition load() {
+                ResourceContentStorage storage = getPageStorage();
+                String intent = null;
+                if (storage != null) {
+                    intent = storage.getContentSearch().getIntent();
+                }
+                return getObjectDetailsModels().getObjectTypeDefinition(getKind(), intent);
+            }
+
+            @Override
+            public void setObject(ResourceObjectTypeDefinition object) {
+                super.setObject(object);
+                ResourceContentStorage storage = getPageStorage();
+                if (storage != null) {
+                    storage.getContentSearch().setIntent(object.getIntent());
+                }
+            }
+        };
+        var objectTypes = new DropDownChoicePanel<>(
+                ID_OBJECT_TYPE,
+                objectTypeModel,
                 () -> {
                     List<? extends ResourceObjectTypeDefinition> choices = getObjectDetailsModels()
                             .getResourceObjectTypesDefinitions(getKind());
@@ -392,7 +419,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
             @Override
             public PageStorage getPageStorage() {
-                return getPageBase().getSessionStorage().getResourceContentStorage(getKind());
+                return ResourceObjectsPanel.this.getPageStorage();
             }
 
             @Override
@@ -433,6 +460,10 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         };
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
+    }
+
+    private ResourceContentStorage getPageStorage() {
+        return getPageBase().getSessionStorage().getResourceContentStorage(getKind());
     }
 
     private void createTasksButton() {
