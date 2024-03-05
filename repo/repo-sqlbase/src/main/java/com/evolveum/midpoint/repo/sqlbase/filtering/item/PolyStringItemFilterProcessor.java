@@ -79,7 +79,7 @@ public class PolyStringItemFilterProcessor<T>
             return createBinaryCondition(filter, normPath,
                     ValueFilterValues.from(filter, PolyStringItemFilterProcessor::extractNorm));
         } else {
-            throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
+            throw createUnsupportedMatchingRuleException(filter);
         }
     }
 
@@ -163,7 +163,7 @@ public class PolyStringItemFilterProcessor<T>
             return createBinaryCondition(filter, normPath,
                     ValueFilterValues.from(filter, this.normPath));
         } else {
-            throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
+            throw createUnsupportedMatchingRuleException(filter);
         }
     }
 
