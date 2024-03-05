@@ -6,15 +6,13 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
@@ -27,8 +25,11 @@ import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.config.*;
+import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -37,18 +38,11 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.midpoint.util.exception.SystemException;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import static com.evolveum.midpoint.util.MiscUtil.*;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 /**
  * Definition of a usually multi-valued association item, e.g., `ri:group`.
@@ -72,14 +66,18 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     /** Refined definition for {@link ShadowAssociationValueType} values that are stored in the {@link ShadowAssociation} item. */
     @NotNull private final ComplexTypeDefinition complexTypeDefinition;
 
+    /** The configuration item (wrapping the definition bean). Either legacy or "new". */
+    @NotNull private final AssociationConfigItem associationConfigItem;
+
     private int maxOccurs = -1;
 
-    public ShadowAssociationDefinition(
-            @NotNull ResourceObjectAssociationType definitionBean,
-            @NotNull ResourceObjectTypeDefinition associationTarget,
-            @NotNull Object errorCtx) throws ConfigurationException {
-        this.definitionBean = CloneUtil.toImmutable(definitionBean);
-        this.associationTarget = associationTarget;
+    private ShadowAssociationDefinition(
+            @NotNull ItemName associationItemName,
+            @NotNull ShadowAssociationTypeDefinition associationTypeDefinition,
+            @NotNull AssociationConfigItem associationConfigItem) {
+        this.associationTypeDefinition = associationTypeDefinition;
+        this.associationConfigItem = associationConfigItem;
+        this.associationItemName = associationItemName;
         this.complexTypeDefinition = createComplexTypeDefinition();
     }
 
@@ -430,14 +428,10 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public @NotNull ShadowAssociationDefinition clone() {
-        try {
-            ShadowAssociationDefinition clone =
-                    new ShadowAssociationDefinition(definitionBean, associationTarget, "");
-            copyDefinitionDataFrom(clone);
-            return clone;
-        } catch (ConfigurationException e) {
-            throw SystemException.unexpected(e, "(during cloning - unexpected because the configuration should be OK");
-        }
+        ShadowAssociationDefinition clone =
+                new ShadowAssociationDefinition(associationItemName, associationTypeDefinition, associationConfigItem);
+        copyDefinitionDataFrom(clone);
+        return clone;
     }
 
     private void copyDefinitionDataFrom(ShadowAssociationDefinition source) {
