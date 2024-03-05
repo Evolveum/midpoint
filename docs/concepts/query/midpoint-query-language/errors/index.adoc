@@ -167,3 +167,39 @@ Select version according your midPoint version. +
 In this case search in schema "common/common-3" for "LockoutStatusType"
 
 |====
+
+=== Couldn't count objects
+image:err-couldnt-count-objects.png[Error couldn't count objects]
+
+This is error message telling that processing of the query failed somehow during processing.
+
+To know why it failed you need to open the error message and see what happened in the messages below.
+
+==== Unknown matching rule 'stringIgnoreCase'
+
+image:err-couldnt-count-objects.png[Error couldn't count objects]
+
+[cols="15h,50" width=85%]
+|====
+| Request
+| Find all users with locality "Edinburgh" ignoring case. Find all with "edinburgh", "EDINBURGH" or "Edinbugh".
+
+| Query
+| `locality =[stringIgnoreCase] "Edinburgh"`
+
+| Error message
+| Couldn't count objects +
+Unknown matching rule 'stringIgnoreCase'.
+
+| Reason
+a| The matching rules relate to attribute type. +
+locality is of PolystringType and `stringIgnoreCase` matching rule is defined for strings only. +
+For polystring you need to use `origIgnoreCase` matching rule.
+
+| Correct query
+| `locality =[origIgnoreCase] "Edinburgh"`
+
+| Troubleshooting hints
+a| * For more information about matching rules in query see xref:../introduction.adoc#_matching_rules[matching rules chapter] in introduction to Midpoint Query Language.
+* List of all matching rules is defined in xref:../../matching-rules.adoc[matching rules] page.
+
