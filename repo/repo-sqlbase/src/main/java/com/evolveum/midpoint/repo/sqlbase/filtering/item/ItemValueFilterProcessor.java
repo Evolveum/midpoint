@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 
 import static com.evolveum.midpoint.prism.PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME;
 
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import com.querydsl.core.types.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +24,8 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.RightHandProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
+
+import java.util.ArrayList;
 
 /**
  * Type of {@link FilterProcessor} for a single Prism item (not necessarily one SQL column).
@@ -170,15 +174,34 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
     }
 
     protected final QueryException createUnsupportedMatchingRuleException(O filter, boolean addFilter) {
-        var definition = filter.getDefinition();
-        String suffix = ".";
-        if (definition != null) {
-            suffix = " for value type '" + definition.getTypeName().getLocalPart() +"'.";
+
+        StringBuilder technicalMessage = new StringBuilder();
+        String key;
+        ArrayList<Object> objects = new ArrayList<>();
+
+        if (filter.getMatchingRule() != null) {
+            key = "ItemValueFilterProcessor.message.error.unsupportedMatchingRule";
+            objects.add(filter.getMatchingRule().getLocalPart());
+            technicalMessage.append("Unsupported matching rule '").append(filter.getMatchingRule().getLocalPart()).append("'");
+        } else {
+            key = "ItemValueFilterProcessor.message.error.unsupportedEmptyMatchingRule";
+            technicalMessage.append("Unsupported empty matching rule");
         }
 
-        return new QueryException("Unsupported matching rule '" +
-                (filter.getMatchingRule() != null ? filter.getMatchingRule().getLocalPart() : "empty_value")
-                + "'" + suffix
-                + (addFilter ? (" Filter: " + filter) : ""));
+        var definition = filter.getDefinition();
+        if (definition != null) {
+            key += ".withType";
+            objects.add(definition.getTypeName().getLocalPart());
+            technicalMessage.append(" for value type '").append(definition.getTypeName().getLocalPart()).append("'.");
+        } else {
+            technicalMessage.append(".");
+        }
+
+        if (addFilter) {
+            technicalMessage.append(" Filter: ").append(filter);
+        }
+
+        SingleLocalizableMessage message = new SingleLocalizableMessage(key, objects.toArray(), technicalMessage.toString());
+        return new QueryException(message);
     }
 }
