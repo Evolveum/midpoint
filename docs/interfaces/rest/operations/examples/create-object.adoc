@@ -27,6 +27,8 @@ Sometimes the newlines are not correctly handled during the transfer.
 
 == Example
 
+include::../../raw/curl-env-note.adoc[]
+
 include::../examples/raw/create-resource.adoc[]
 
 == See Also

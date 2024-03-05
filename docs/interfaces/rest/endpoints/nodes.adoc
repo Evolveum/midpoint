@@ -13,6 +13,13 @@ Node objects are a part of the REST API web resources.
 
 The Node type endpoint operations and examples.
 
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
 === Get Node type Objects
 
 Get operation for fetching a single specific object.

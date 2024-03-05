@@ -82,6 +82,8 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Examples
 
+include::../raw/curl-env-note.adoc[]
+
 include::../operations/examples/raw/create-user-jack.adoc[]
 
 == See Also
