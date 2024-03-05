@@ -10,6 +10,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -144,7 +145,8 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
                                 .buildFilter();
                         ObjectQuery query = prismContext.queryFactory().createQuery(
                                 prismContext.queryFactory().createAnd(filter, situationFilter));
-                        return getPageBase().getModelService().countObjects(ShadowType.class, query, options, task, result);
+                        return WebModelServiceUtils.countObjectsByQueryFromSearchPanel(
+                                ShadowType.class, query, options, task, result, getPageBase().getModelService());
                     } catch (CommonException|RuntimeException ex) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count shadows", ex);
                     }
