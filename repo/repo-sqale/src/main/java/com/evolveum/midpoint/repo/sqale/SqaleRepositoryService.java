@@ -2489,12 +2489,20 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
      * https://www.postgresql.org/docs/16/transaction-iso.html
      */
     private static final String PSQL_CONCURRENT_UPDATE_MESSAGE = "ERROR: could not serialize access due to concurrent update";
+    private static final String PSQL_FOREIGN_KEY_VIOLATION = "23503";
 
     private boolean isRetriableException(Exception e) {
         Throwable toCheck = e;
         while (toCheck != null) {
-            if (toCheck instanceof PSQLException && toCheck.getMessage().startsWith(PSQL_CONCURRENT_UPDATE_MESSAGE)) {
-                return true;
+            if (toCheck instanceof PSQLException pgEx) {
+                if (pgEx.getMessage().startsWith(PSQL_CONCURRENT_UPDATE_MESSAGE)) {
+                    // Concurrency issue - concurrent update
+                    return true;
+                }
+                if (PSQL_FOREIGN_KEY_VIOLATION.equals(pgEx.getSQLState()) && pgEx.getMessage().contains("m_uri")) {
+                    // This could be immediate retry - because of URI cache.
+                    return true;
+                }
             }
             toCheck = toCheck.getCause();
         }
