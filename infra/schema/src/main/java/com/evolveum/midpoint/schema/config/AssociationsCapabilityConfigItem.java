@@ -42,4 +42,9 @@ public class AssociationsCapabilityConfigItem
         }
         return single(matching, "Multiple definitions for simulated association '%s' in %s", className, DESC);
     }
+
+    @Override
+    public @NotNull String localDescription() {
+        return "simulated associations capability configuration";
+    }
 }

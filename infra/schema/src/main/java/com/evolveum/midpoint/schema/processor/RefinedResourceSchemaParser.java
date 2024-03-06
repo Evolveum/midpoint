@@ -684,7 +684,7 @@ class RefinedResourceSchemaParser {
                 return definitions;
             } else {
                 // May happen if the simulated participant has no delineations.
-                throw new ConfigurationException("No object type definitions found for " + simulatedParticipant);
+                throw new ConfigurationException("No object type/class definitions found for " + simulatedParticipant);
             }
         }
     }

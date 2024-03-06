@@ -150,4 +150,9 @@ public class SimulatedAssociationClassConfigItem
         }
         return delineations;
     }
+
+    @Override
+    public @NotNull String localDescription() {
+        return "simulated association class '%s' definition".formatted(value().getName());
+    }
 }

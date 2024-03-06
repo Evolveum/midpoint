@@ -108,41 +108,59 @@
             <objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
 
-        <associationTypes>
-            <simulated>
-                <name>ri:group</name>
-                <subject>
-                    <kind>account</kind>
-                    <intent>default</intent>
-                    <!-- name is not unique, so we must use something else -->
-                    <primaryBindingAttributeRef>icfs:uid</primaryBindingAttributeRef>
-                </subject>
-                <object>
-                    <kind>entitlement</kind>
-                    <intent>group</intent>
-                    <primaryBindingAttributeRef>ri:members</primaryBindingAttributeRef>
-                </object>
-                <direction>objectToSubject</direction>
-            </simulated>
-            <simulated>
-                <name>ri:priv</name>
-                <subject>
-                    <kind>account</kind>
-                    <intent>default</intent>
-                    <primaryBindingAttributeRef>ri:privileges</primaryBindingAttributeRef>
-                </subject>
-                <object>
-                    <kind>entitlement</kind>
-                    <intent>privilege</intent>
-                    <primaryBindingAttributeRef>icfs:name</primaryBindingAttributeRef>
-                </object>
-                <direction>subjectToObject</direction>
-            </simulated>
-        </associationTypes>
+        <associationType>
+            <name>ri:groupMembership</name>
+            <associationClass>ri:groupMembership</associationClass>
+            <!-- Will apply to all relevant object types -->
+        </associationType>
+
+        <associationType>
+            <name>ri:privilegePossession</name>
+            <associationClass>ri:privilegePossession</associationClass>
+            <!-- Will apply to all relevant object types -->
+        </associationType>
+
     </schemaHandling>
 
     <capabilities>
         <configured>
+            <cap:associations>
+                <cap:associationClass>
+                    <cap:name>ri:groupMembership</cap:name>
+                    <cap:subject>
+                        <cap:delineation>
+                            <cap:objectClass>ri:AccountObjectClass</cap:objectClass>
+                        </cap:delineation>
+                        <!-- name is not unique, so we must use something else -->
+                        <cap:primaryBindingAttributeRef>icfs:uid</cap:primaryBindingAttributeRef>
+                        <cap:localItemName>ri:group</cap:localItemName>
+                    </cap:subject>
+                    <cap:object>
+                        <cap:delineation>
+                            <cap:objectClass>ri:GroupObjectClass</cap:objectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:members</cap:primaryBindingAttributeRef>
+                    </cap:object>
+                    <cap:direction>objectToSubject</cap:direction>
+                </cap:associationClass>
+                <cap:associationClass>
+                    <cap:name>ri:privilegePossession</cap:name>
+                    <cap:subject>
+                        <cap:delineation>
+                            <cap:objectClass>ri:AccountObjectClass</cap:objectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:privileges</cap:primaryBindingAttributeRef>
+                        <cap:localItemName>ri:priv</cap:localItemName>
+                    </cap:subject>
+                    <cap:object>
+                        <cap:delineation>
+                            <cap:objectClass>ri:CustomprivilegeObjectClass</cap:objectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>icfs:name</cap:primaryBindingAttributeRef>
+                    </cap:object>
+                    <cap:direction>subjectToObject</cap:direction>
+                </cap:associationClass>
+            </cap:associations>
             <cap:countObjects>
                 <cap:simulate>pagedSearchEstimate</cap:simulate>
             </cap:countObjects>
