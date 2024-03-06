@@ -363,11 +363,21 @@ class EntitlementConverter {
             PrismPropertyValue<?> subjectAttrValue = searchOp.getSubjectAttrValue();
             if (subjectAttrValue == null) {
                 // This is very unfortunate situation. We wanted to delete all mentions of the subject in entitlement objects
-                // (like groups), but the subject has no identifier! We can nothing to do, but let us at least report the problem.
-                LOGGER.error("No identifier of the subject:\n{}\nSimulation definition:\n{}\nSubject context:\n{}",
-                        subjectRepoShadow.debugDump(1), simulationDefinition.debugDump(1),
-                        subjectCtx.debugDump(1));
-                throw new SchemaException("No identifier of the subject to be deleted! Cannot delete entitlement associations.");
+                // (like groups), but the subject shadow has no identifier! Most probably the value is not cached.
+                LOGGER.error("""
+                                No value of binding attribute '{}' in the subject repo shadow:
+                                {}
+                                Simulation definition:
+                                {}
+                                Subject context:
+                                {}
+
+                                Most probably, the attribute is not cached. The recommended way is to mark it as a secondary identifier.""",
+                        searchOp.getSubjectAttrName(), subjectRepoShadow.debugDump(1),
+                        simulationDefinition.debugDump(1), subjectCtx.debugDump(1));
+                throw new SchemaException(String.format(
+                        "Cannot delete associations for the subject, as the value of binding attribute '%s' "
+                                + "is unknown or missing in the subject shadow.", searchOp.getSubjectAttrName()));
             }
 
             // .. and remove it from each of the entitlement objects (e.g. group) found for that account.

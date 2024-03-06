@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.schema.config.AssociationConfigItem;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
@@ -68,5 +68,11 @@ public class SimulatedAssociationClassParticipantDelineation extends ResourceObj
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "(already checked at schema parse time)");
         }
+    }
+
+    @Override
+    void extendDebugDump(StringBuilder sb, int indent) {
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "objectDefinition", objectDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "auxiliaryObjectClassName", auxiliaryObjectClassName, indent + 1);
     }
 }

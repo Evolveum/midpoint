@@ -12,6 +12,8 @@ import java.io.File;
 import java.util.Arrays;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.directory.api.util.GeneralizedTime;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -301,9 +303,9 @@ public class TestUnixTolerantAux extends TestUnix {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void assertLabeledUri(PrismObject<ShadowType> shadow, String expecteduri) throws DirectoryException {
+    private void assertLabeledUri(PrismObject<ShadowType> shadow, String expecteduri) throws DirectoryException, SchemaException {
         //noinspection ConstantConditions
-        String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();
+        String dn = getDn(shadow);
 
         Entry entry = openDJController.fetchEntry(dn);
         assertNotNull("No ou LDAP entry for " + dn, entry);

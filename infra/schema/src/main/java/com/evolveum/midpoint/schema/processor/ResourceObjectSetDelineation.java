@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +26,7 @@ import java.util.Collection;
  *
  * TODO later, we may move filter(s) here as well
  */
-public abstract class ResourceObjectSetDelineation implements Serializable {
+public abstract class ResourceObjectSetDelineation implements DebugDumpable, Serializable {
 
     /**
      * There is intentionally only a single class name here. The reason is that we cannot execute resource searches
@@ -62,4 +64,17 @@ public abstract class ResourceObjectSetDelineation implements Serializable {
     public @NotNull Collection<ObjectFilter> getFilterClauses() {
         return filterClauses;
     }
+
+    @Override
+    public String debugDump(int indent) {
+        var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectClassName", objectClassName, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "baseContext", baseContext, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "searchHierarchyScope", searchHierarchyScope, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "filterClauses", filterClauses, indent + 1);
+        extendDebugDump(sb, indent);
+        return sb.toString();
+    }
+
+    abstract void extendDebugDump(StringBuilder sb, int indent);
 }

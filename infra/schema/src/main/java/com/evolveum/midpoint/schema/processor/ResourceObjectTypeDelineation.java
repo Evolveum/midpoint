@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DebugUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -114,5 +116,12 @@ public class ResourceObjectTypeDelineation
 
     Integer getClassificationOrder() {
         return delineationBean.getClassificationOrder();
+    }
+
+    @Override
+    void extendDebugDump(StringBuilder sb, int indent) {
+        DebugUtil.debugDumpWithLabelLn(sb, "auxiliaryObjectClassNames", auxiliaryObjectClassNames, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "condition", String.valueOf(condition), indent + 1); // TODO
+        DebugUtil.debugDumpWithLabel(sb, "classificationOrder", getClassificationOrder(), indent + 1);
     }
 }

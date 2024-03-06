@@ -518,6 +518,11 @@ See bug:MID-9220[].
 * Automatic caching of association binding attributes (the "value" side, i.e. `valueAttribute` in the association definition) is no longer provided.
 It is recommended to mark them as secondary identifiers.
 
+* The filtering of associations was changed slightly.
+In particular, even if the required auxiliary object class is not present for the subject, the association values are still shown - if they exist on the resource.
+(They were hidden before.)
+#TODO reconsider this#
+
 === Java and REST API Changes Since 4.8
 
 NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.

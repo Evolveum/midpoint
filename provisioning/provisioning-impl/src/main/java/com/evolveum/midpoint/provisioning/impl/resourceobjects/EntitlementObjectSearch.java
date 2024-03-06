@@ -25,6 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
+
 import static com.evolveum.midpoint.provisioning.impl.resourceobjects.DelineationProcessor.determineQueryWithConstraints;
 import static com.evolveum.midpoint.provisioning.impl.resourceobjects.EntitlementUtils.createEntitlementQuery;
 import static com.evolveum.midpoint.provisioning.impl.resourceobjects.EntitlementUtils.getSingleValue;
@@ -45,7 +47,13 @@ class EntitlementObjectSearch<T> {
     @NotNull private final ShadowType subject;
 
     /**
-     * The value according to which we are searching the entitlements. Typically the account DN.
+     * The name of the attribute (on the subject) according to the value of which we are searching the entitlements.
+     * Typically the account DN.
+     */
+    @NotNull private final QName subjectAttrName;
+
+    /**
+     * The value of {@link #subjectAttrName} according to which we are searching the entitlements.
      * Determined during construction. If null, the search cannot be done.
      */
     @Nullable private final PrismPropertyValue<T> subjectAttrValue;
@@ -63,7 +71,7 @@ class EntitlementObjectSearch<T> {
         this.attributeBinding = attributeBinding;
         this.subject = subject;
 
-        var subjectAttrName = attributeBinding.subjectSide(); // e.g. ri:dn
+        this.subjectAttrName = attributeBinding.subjectSide(); // e.g. ri:dn
         var subjectAssocName = simulationDefinition.getLocalSubjectItemName();
 
         this.subjectAttrValue = getSingleValue(subject, subjectAttrName, subjectAssocName, errorCtx);
@@ -103,6 +111,10 @@ class EntitlementObjectSearch<T> {
                 throw e.schemaException;
             }
         }
+    }
+
+    public @NotNull QName getSubjectAttrName() {
+        return subjectAttrName;
     }
 
     @Nullable PrismPropertyValue<T> getSubjectAttrValue() {
