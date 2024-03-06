@@ -1,5 +1,5 @@
 :page-visibility: hidden
-.Delete an Organizational Unit type object
+.*Delete an Organizational Unit type object*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

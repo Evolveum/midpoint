@@ -1,5 +1,5 @@
 :page-visibility: hidden
-.Delete a Case type object
+.*Delete a Case type object*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

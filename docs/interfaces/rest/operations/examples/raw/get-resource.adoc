@@ -1,4 +1,6 @@
 :page-visibility: hidden
+
+.*Get Resource object*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

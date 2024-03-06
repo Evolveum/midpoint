@@ -1,6 +1,6 @@
 :page-visibility: hidden
 
-.Import shadow
+.*Import Shadow*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

@@ -1,6 +1,6 @@
 :page-visibility: hidden
 
-.Resume a suspended task
+.*Resume a Suspended Task*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \
