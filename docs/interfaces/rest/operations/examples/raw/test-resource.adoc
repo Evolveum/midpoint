@@ -1,6 +1,6 @@
 :page-visibility: hidden
 
-.Execute the Test operation for a Resource object in MidPoint
+.*Execute the Test Operation for a Resource Object in MidPoint*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

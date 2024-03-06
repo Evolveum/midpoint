@@ -1,4 +1,6 @@
 :page-visibility: hidden
+
+.*Modify Resource*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

@@ -17,6 +17,10 @@ xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authent
 
 include::../../raw/curl-env-note.adoc[]
 
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
 [#_ex_get_own_profile_information]
 .Get Own profile information
 [source,bash]

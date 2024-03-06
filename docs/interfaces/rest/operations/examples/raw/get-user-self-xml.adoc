@@ -1,4 +1,6 @@
 :page-visibility: hidden
+
+.*Get User Self XML*
 [source,bash]
 ----
 curl --user administrator:5ecr3t \

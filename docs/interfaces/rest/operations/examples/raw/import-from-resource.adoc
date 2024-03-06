@@ -1,6 +1,6 @@
 :page-visibility: hidden
 
-.Execute the import operation for a Resource object in MidPoint
+.*Execute the import operation for a Resource object in MidPoint*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

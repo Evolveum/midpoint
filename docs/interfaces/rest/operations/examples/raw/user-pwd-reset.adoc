@@ -1,6 +1,6 @@
 :page-visibility: hidden
 
-.Execute password reset by administrator for user
+.*Execute Password Reset by Administrator for User*
 Please see note:
 
 [NOTE]

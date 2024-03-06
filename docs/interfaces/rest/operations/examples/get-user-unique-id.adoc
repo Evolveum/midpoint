@@ -16,6 +16,10 @@ xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authent
 
 include::../../raw/curl-env-note.adoc[]
 
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
 [#_get_default_administrator_object]
 .Get default administrator object
 [source,bash]
