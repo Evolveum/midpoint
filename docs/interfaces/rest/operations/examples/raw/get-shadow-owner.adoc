@@ -1,6 +1,6 @@
 :page-visibility: hidden
 
-.Get Shadow owner
+.*Get Shadow owner*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

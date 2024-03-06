@@ -1,4 +1,6 @@
 :page-visibility: hidden
+
+.*Get Task Object*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \
@@ -9,7 +11,7 @@ curl --user administrator:y0uR_P455woR*d \
 
 The response is an HTTP 200 code in case of success with a response body containing the queried item.
 
-.Example Output of *"Get Task object"* example
+.Example Output of *"Get Task Object"* example
 [%collapsible]
 ====
 The example is *simplified*, some properties were removed to keep the example output "short". This example *does

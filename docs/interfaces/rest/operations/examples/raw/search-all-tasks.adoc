@@ -1,5 +1,5 @@
 :page-visibility: hidden
-.Search for all Tasks
+.*Search for All Tasks*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \
