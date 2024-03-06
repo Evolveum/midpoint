@@ -278,7 +278,7 @@ public class ExpressionUtil {
             return elements;
         }
         for (JAXBElement<?> element : expression.getExpressionEvaluator()) {
-            if (element != null && element.getName().equals(elementName)) {
+            if (element != null && QNameUtil.match(element.getName(), elementName)) {
                 elements.add(element);
             }
         }
@@ -348,6 +348,17 @@ public class ExpressionUtil {
         }
         expression.getExpressionEvaluator().clear();
         expression.getExpressionEvaluator().addAll(elementList);
+    }
+
+    public static boolean containsAssociationFromLinkElement(ExpressionType expression) {
+        if (expression == null) {
+            return false;
+        }
+        List<JAXBElement<?>> elementList = findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK);
+        if (CollectionUtils.isEmpty(elementList)) {
+            return false;
+        }
+        return true;
     }
 
     private static String getShadowRefNodeOid(MapXNode shadowRefNode) {
