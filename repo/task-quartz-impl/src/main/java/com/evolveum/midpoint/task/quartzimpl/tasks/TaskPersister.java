@@ -113,7 +113,7 @@ public class TaskPersister {
             try {
                 MidPointPrincipal principal = SecurityUtil.getPrincipal();
                 if (principal != null) {
-                    ObjectReferenceType newOwnerRef = ObjectTypeUtil.createObjectRef(principal.getFocus(), prismContext);
+                    ObjectReferenceType newOwnerRef = ObjectTypeUtil.createObjectRef(principal.getFocus());
                     taskPrism.asObjectable().setOwnerRef(newOwnerRef);
                 }
             } catch (SecurityViolationException e) {

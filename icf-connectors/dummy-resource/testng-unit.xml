@@ -10,7 +10,7 @@
     <listeners>
         <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
     </listeners>
-    <test name="Model Basic" preserve-order="true" parallel="none" verbose="10" enabled="false">
+    <test name="Basic" preserve-order="true" parallel="none" verbose="10" enabled="false">
         <classes>
             <class name="com.evolveum.icf.dummy.resource.DummyResource"/>
         </classes>

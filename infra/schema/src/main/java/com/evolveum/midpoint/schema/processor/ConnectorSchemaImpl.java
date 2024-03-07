@@ -26,13 +26,13 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
         super(namespace);
     }
 
-    private ConnectorSchemaImpl(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
+    private ConnectorSchemaImpl(Element element, String shortDesc) throws SchemaException {
         super(DOMUtil.getSchemaTargetNamespace(element));
-        parseThis(element, true, shortDesc, prismContext);
+        parseThis(element, true, shortDesc);
     }
 
-    public static ConnectorSchemaImpl parse(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
-        return new ConnectorSchemaImpl(element, shortDesc, prismContext);
+    public static ConnectorSchemaImpl parse(Element element, String shortDesc) throws SchemaException {
+        return new ConnectorSchemaImpl(element, shortDesc);
     }
 
     @Override

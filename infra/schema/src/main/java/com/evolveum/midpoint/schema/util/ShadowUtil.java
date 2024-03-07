@@ -183,7 +183,7 @@ public class ShadowUtil {
     }
 
     /** Assuming the shadow has the correct definition. */
-    public static ResourceAttributeContainer getOrCreateAttributesContainer(ShadowType shadow) {
+    public static @NotNull ResourceAttributeContainer getOrCreateAttributesContainer(ShadowType shadow) {
         try {
             return (ResourceAttributeContainer) shadow
                     .asPrismObject()
@@ -191,6 +191,10 @@ public class ShadowUtil {
         } catch (SchemaException e) {
             throw SystemException.unexpected(e);
         }
+    }
+
+    public static @NotNull ResourceAttributeContainer getOrCreateAttributesContainer(PrismObject<ShadowType> shadow) {
+        return getOrCreateAttributesContainer(shadow.asObjectable());
     }
 
     public static ResourceAttributeContainer getOrCreateAttributesContainer(

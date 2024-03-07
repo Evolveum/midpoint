@@ -610,11 +610,6 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public PrismContext getPrismContext() {
-        return metadataValueWrapper.getPrismContext();
-    }
-
-    @Override
     public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
         return metadataValueWrapper.accept(visitor, visitation);
     }

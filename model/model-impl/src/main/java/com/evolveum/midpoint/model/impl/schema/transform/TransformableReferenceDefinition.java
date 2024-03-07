@@ -9,13 +9,10 @@ package com.evolveum.midpoint.model.impl.schema.transform;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutablePrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.deleg.ReferenceDefinitionDelegator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
@@ -60,7 +57,7 @@ public class TransformableReferenceDefinition extends TransformableItemDefinitio
                 }
             }
             PrismObjectDefinition<?> referencedObjectDefinition =
-                    getSchemaRegistry().determineReferencedObjectDefinition(targetType, rest);
+                    PrismContext.get().getSchemaRegistry().determineReferencedObjectDefinition(targetType, rest);
             return (T) ((ItemDefinition) referencedObjectDefinition).findItemDefinition(rest, clazz);
         }
     }

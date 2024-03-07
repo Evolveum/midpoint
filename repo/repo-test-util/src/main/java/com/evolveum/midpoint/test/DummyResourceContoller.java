@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.test;
 
-import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
-import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
@@ -24,7 +22,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.time.ZonedDateTime;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -40,6 +37,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
@@ -129,19 +127,6 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     public static final String DUMMY_ORG_ATTRIBUTE_DESCRIPTION = "description";
 
-    public static final String DUMMY_HR_PERSON_OBJECT_CLASS_NAME = "person";
-    public static final String DUMMY_HR_PERSON_ATTRIBUTE_FIRST_NAME_NAME = "firstName";
-    public static final String DUMMY_HR_PERSON_ATTRIBUTE_LAST_NAME_NAME = "lastName";
-    public static final String DUMMY_HR_PERSON_ATTRIBUTE_TITLE_NAME = "lastName";
-    public static final String DUMMY_HR_PERSON_ATTRIBUTE_CONTRACT_NAME = "contract";
-
-    public static final String DUMMY_HR_CONTRACT_OBJECT_CLASS_NAME = "contract";
-    public static final String DUMMY_HR_CONTRACT_ATTRIBUTE_VALID_FROM = "validFrom";
-    public static final String DUMMY_HR_CONTRACT_ATTRIBUTE_VALID_TO = "validTo";
-    public static final String DUMMY_HR_CONTRACT_ATTRIBUTE_ORG_UNIT = "orgUnit";
-
-    public static final String DUMMY_HR_PERSON_CONTRACT_LINK_TYPE_NAME = "personContractLinkType";
-
     public static final String DUMMY_PRIVILEGE_ATTRIBUTE_POWER = "power";
 
     public static final String DUMMY_ENTITLEMENT_GROUP_NAME = "group";
@@ -160,20 +145,23 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     public static final int PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS = 19;
 
-    private DummyResource dummyResource;
+    @NotNull private final DummyResource dummyResource;
     private boolean isExtendedSchema = false;
     private String instanceName;
 
+    public DummyResourceContoller(@NotNull DummyResource dummyResource) {
+        this.dummyResource = dummyResource;
+    }
 
     public static DummyResourceContoller create(String instanceName) {
         return create(instanceName, null);
     }
 
     public static DummyResourceContoller create(String instanceName, PrismObject<ResourceType> resource) {
-        DummyResourceContoller ctl = new DummyResourceContoller();
+
+        DummyResourceContoller ctl = new DummyResourceContoller(DummyResource.getInstance(instanceName));
 
         ctl.instanceName = instanceName;
-        ctl.dummyResource = DummyResource.getInstance(instanceName);
         ctl.dummyResource.reset();
 
         ctl.resource = resource;
@@ -181,7 +169,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         return ctl;
     }
 
-    public DummyResource getDummyResource() {
+    public @NotNull DummyResource getDummyResource() {
         return dummyResource;
     }
 
@@ -196,7 +184,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     /**
      * Extend schema in piratey fashion. Arr! This is used in many tests. Lots of attributes, various combination of types, etc.
      */
-    public void extendSchemaPirate() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    public DummyResourceContoller extendSchemaPirate() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         populateWithDefaultSchema();
         DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
         addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class, false, true);
@@ -220,6 +208,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 
         DummyObjectClass privilegeObjectClass = dummyResource.getPrivilegeObjectClass();
         addAttrDef(privilegeObjectClass, DUMMY_PRIVILEGE_ATTRIBUTE_POWER, Integer.class, false, false);
+        return this;
     }
 
     /**
@@ -253,39 +242,6 @@ public class DummyResourceContoller extends AbstractResourceController {
         addAttrDef(posixAccount, DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, Integer.class, false, false);            // uid and gid are temporarily not required
         addAttrDef(posixAccount, DUMMY_ACCOUNT_ATTRIBUTE_POSIX_GID_NUMBER, Integer.class, false, false);
         dummyResource.addAuxiliaryObjectClass(DUMMY_POSIX_ACCOUNT_OBJECT_CLASS_NAME, posixAccount);
-    }
-
-    /** Creates a HR-like schema, having persons, contracts, and org units. */
-    public void extendSchemaHr() {
-        var personOC = new DummyObjectClass();
-        addAttrDef(personOC, DUMMY_HR_PERSON_ATTRIBUTE_FIRST_NAME_NAME, String.class, false, false);
-        addAttrDef(personOC, DUMMY_HR_PERSON_ATTRIBUTE_LAST_NAME_NAME, String.class, false, false);
-        addAttrDef(personOC, DUMMY_HR_PERSON_ATTRIBUTE_TITLE_NAME, String.class, false, false);
-        dummyResource.addStructuralObjectClass(DUMMY_HR_PERSON_OBJECT_CLASS_NAME, personOC);
-
-        var contractOC = new DummyObjectClass();
-        addAttrDef(contractOC, DUMMY_HR_CONTRACT_ATTRIBUTE_VALID_FROM, ZonedDateTime.class, false, false);
-        addAttrDef(contractOC, DUMMY_HR_CONTRACT_ATTRIBUTE_VALID_TO, ZonedDateTime.class, false, false);
-        addAttrDef(contractOC, DUMMY_HR_CONTRACT_ATTRIBUTE_ORG_UNIT, String.class, false, false);
-        dummyResource.addStructuralObjectClass(DUMMY_HR_CONTRACT_OBJECT_CLASS_NAME, contractOC);
-
-        var orgOC = dummyResource.getOrgObjectClass();
-        addAttrDef(orgOC, DUMMY_ORG_ATTRIBUTE_DESCRIPTION, String.class, false, false);
-
-        addLinkClassDefinition(
-                aLinkClassDefinition()
-                        .withName(DUMMY_HR_PERSON_CONTRACT_LINK_TYPE_NAME)
-                        .withFirstParticipant(aParticipant()
-                                .withObjectClassNames(Set.of(DUMMY_HR_PERSON_OBJECT_CLASS_NAME))
-                                .withAttributeName(DUMMY_HR_PERSON_ATTRIBUTE_CONTRACT_NAME)
-                                .withMaxOccurs(-1)
-                                .build())
-                        .withSecondParticipant(aParticipant()
-                                .withObjectClassNames(Set.of(DUMMY_HR_CONTRACT_OBJECT_CLASS_NAME))
-                                .withMinOccurs(1)
-                                .withMaxOccurs(1)
-                                .build())
-                        .build());
     }
 
     public DummyAttributeDefinition addAttrDef(DummyObjectClass objectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {
@@ -623,5 +579,17 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     public ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
         return ResourceSchemaFactory.getCompleteSchema(getResourceType());
+    }
+
+    @Override
+    public DummyResourceContoller setResource(PrismObject<ResourceType> resource) {
+        super.setResource(resource);
+        return this;
+    }
+
+    @Override
+    public DummyResourceContoller setResource(ResourceType resource) {
+        super.setResource(resource);
+        return this;
     }
 }

@@ -286,6 +286,12 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
 
     <X> ResourceAttribute<X> findOrCreateAttribute(QName attributeName) throws SchemaException;
 
+    default ResourceAttributeContainer add(QName attributeName, Object realValue) throws SchemaException {
+        findOrCreateAttribute(attributeName)
+                .setRealValue(realValue);
+        return this;
+    }
+
     <T> boolean contains(ResourceAttribute<T> attr);
 
     @Override

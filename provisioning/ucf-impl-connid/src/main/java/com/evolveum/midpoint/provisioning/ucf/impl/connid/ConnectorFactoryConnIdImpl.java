@@ -25,7 +25,6 @@ import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.commons.configuration2.Configuration;
 import org.identityconnectors.common.Version;
@@ -35,6 +34,7 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.*;
 import org.identityconnectors.framework.api.operations.*;
 import org.identityconnectors.framework.common.FrameworkUtil;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -200,7 +200,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * connector instance.
      */
     @Override
-    public ConnectorInstance createConnectorInstance(ConnectorType connectorBean, String instanceName, String instanceDescription)
+    public @NotNull ConnectorInstance createConnectorInstance(
+            ConnectorType connectorBean, String instanceName, String instanceDescription)
             throws ObjectNotFoundException, SchemaException {
 
         ConnectorInfo cinfo = getConnectorInfo(connectorBean);
@@ -228,7 +229,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         }
 
         PrismSchema connectorSchema;
-        var storedConnectorSchema = UcfUtil.getConnectorSchema(connectorBean, prismContext);
+        var storedConnectorSchema = UcfUtil.getConnectorSchema(connectorBean);
         if (storedConnectorSchema != null) {
             connectorSchema = storedConnectorSchema;
         } else {
@@ -330,7 +331,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) throws SchemaException {
         ConnectorType connectorType = new ConnectorType();
         ConnectorKey key = cinfo.getConnectorKey();
-        UcfUtil.addConnectorNames(connectorType, "ConnId", key.getBundleName(), key.getConnectorName(), key.getBundleVersion(), hostType);
+        UcfUtil.addConnectorNames(connectorType, "ConnId", key.getConnectorName(), key.getBundleVersion(), hostType);
         String stringID = keyToNamespaceSuffix(key);
         connectorType.setFramework(SchemaConstants.ICF_FRAMEWORK_URI);
         connectorType.setConnectorType(key.getConnectorName());

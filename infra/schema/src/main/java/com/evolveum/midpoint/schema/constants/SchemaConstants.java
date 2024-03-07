@@ -490,8 +490,12 @@ public abstract class SchemaConstants {
     public static final ItemName ICF_CONFIGURATION_PROPERTIES = new ItemName(NS_ICF_CONFIGURATION,
             "configurationProperties");
 
+    // People could expect to find the constant here.
+    public static final String NS_RI = MidPointConstants.NS_RI;
+
     // Note! This is also specified in SchemaConstants (MID-356)
     public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-3";
+    public static final String NS_ICFS = NS_ICF_SCHEMA; // alternative name
     public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
     public static final ItemName ICFS_NAME = new ItemName(NS_ICF_SCHEMA, "name");
     public static final ItemPath ICFS_NAME_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_NAME);

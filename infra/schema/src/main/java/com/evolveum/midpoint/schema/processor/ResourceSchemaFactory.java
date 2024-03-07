@@ -188,6 +188,7 @@ public class ResourceSchemaFactory {
         return parseCompleteSchema(resource, ResourceSchemaFactory.getRawSchema(resource));
     }
 
+    /** Parses the complete schema from the provided raw schema plus definitions in the resource. */
     public static CompleteResourceSchema parseCompleteSchema(ResourceType resource, ResourceSchema rawResourceSchema)
             throws SchemaException, ConfigurationException {
         if (rawResourceSchema != null) {

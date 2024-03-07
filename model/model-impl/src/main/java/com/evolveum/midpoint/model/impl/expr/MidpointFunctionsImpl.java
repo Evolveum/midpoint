@@ -1231,7 +1231,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public <T extends ObjectType> T searchObjectByName(Class<T> type, String name)
             throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SchemaException, ExpressionEvaluationException {
-        ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
+        ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name);
         List<PrismObject<T>> foundObjects = modelService
                 .searchObjects(type, nameQuery,
                         getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
@@ -1248,7 +1248,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public <T extends ObjectType> T searchObjectByName(Class<T> type, PolyString name)
             throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SchemaException, ExpressionEvaluationException {
-        ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
+        ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name);
         List<PrismObject<T>> foundObjects = modelService
                 .searchObjects(type, nameQuery,
                         getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
@@ -1265,7 +1265,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public <T extends ObjectType> T searchObjectByName(Class<T> type, PolyStringType name)
             throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SchemaException, ExpressionEvaluationException {
-        ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
+        ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name);
         List<PrismObject<T>> foundObjects = modelService
                 .searchObjects(type, nameQuery,
                         getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
@@ -1521,7 +1521,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public List<ObjectReferenceType> getMembersAsReferences(String orgOid) throws SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
         return getMembers(orgOid).stream()
-                .map(obj -> createObjectRef(obj, prismContext))
+                .map(obj -> createObjectRef(obj))
                 .collect(Collectors.toList());
     }
 
@@ -1967,7 +1967,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
         newTask.setOid(null);
         newTask.setTaskIdentifier(null);
-        newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
+        newTask.setOwnerRef(createObjectRef(principal.getFocus()));
         newTask.setExecutionState(RUNNABLE);
         newTask.setSchedulingState(TaskSchedulingStateType.READY);
         newTask.setActivity(null);
@@ -2401,7 +2401,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public @Nullable ObjectReferenceType getFocusObjectReference() {
         ObjectType focusObject = getFocusObjectAny();
         String oid = focusObject.getOid();
-        return oid != null ? ObjectTypeUtil.createObjectRef(focusObject, prismContext) : null;
+        return oid != null ? ObjectTypeUtil.createObjectRef(focusObject) : null;
     }
 
     @Experimental

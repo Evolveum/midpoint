@@ -8,14 +8,13 @@ package com.evolveum.icf.dummy.resource;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.FileNotFoundException;
-import java.net.ConnectException;
-
 /**
  * @author Radovan Semancik
  *
  */
 public class DummyOrg extends DummyObject {
+
+    public static final String OBJECT_CLASS_NAME = "org";
 
     public DummyOrg() {
         super();
@@ -27,7 +26,7 @@ public class DummyOrg extends DummyObject {
 
     @Override
     public @NotNull String getObjectClassName() {
-        return DummyResource.OBJECTCLASS_ORG_NAME;
+        return OBJECT_CLASS_NAME;
     }
 
     @Override

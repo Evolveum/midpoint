@@ -59,7 +59,7 @@ public class ResourceCarefulAntUtil {
             SchemaHandlingType schemaHandling;
             @Override
             public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
-                schemaHandling = createNewSchemaHandling(resourceFile, iteration, prismContext);
+                schemaHandling = createNewSchemaHandling(resourceFile, iteration);
                 return prismContext.deltaFactory().container().createModificationReplace(ResourceType.F_SCHEMA_HANDLING,
                         prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class),
                         schemaHandling.asPrismContainerValue().clone());
@@ -79,7 +79,7 @@ public class ResourceCarefulAntUtil {
             SchemaDefinitionType xmlSchemaDef;
             @Override
             public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
-                xmlSchemaDef = createNewXmlSchemaDef(resourceFile, iteration, prismContext);
+                xmlSchemaDef = createNewXmlSchemaDef(resourceFile, iteration);
                 return prismContext.deltaFactory().property().createModificationReplaceProperty(
                         ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION),
                         resourceDef, xmlSchemaDef);
@@ -94,8 +94,8 @@ public class ResourceCarefulAntUtil {
         });
     }
 
-    private static SchemaHandlingType createNewSchemaHandling(File resourceFile, int iteration, PrismContext prismContext) throws SchemaException {
-        PrismObject<ResourceType> resource = parseResource(resourceFile, prismContext);
+    private static SchemaHandlingType createNewSchemaHandling(File resourceFile, int iteration) throws SchemaException {
+        PrismObject<ResourceType> resource = parseResource(resourceFile);
         SchemaHandlingType schemaHandling = resource.asObjectable().getSchemaHandling();
         ResourceObjectTypeDefinitionType accountType = schemaHandling.getObjectType().iterator().next();
         List<ResourceAttributeDefinitionType> attrDefs = accountType.getAttribute();
@@ -104,8 +104,8 @@ public class ResourceCarefulAntUtil {
         return schemaHandling;
     }
 
-    private static SchemaDefinitionType createNewXmlSchemaDef(File resourceFile, int iteration, PrismContext prismContext) throws SchemaException {
-        PrismObject<ResourceType> resource = parseResource(resourceFile, prismContext);
+    private static SchemaDefinitionType createNewXmlSchemaDef(File resourceFile, int iteration) throws SchemaException {
+        PrismObject<ResourceType> resource = parseResource(resourceFile);
         XmlSchemaType schema = resource.asObjectable().getSchema();
         SchemaDefinitionType def;
         if (schema == null) {
@@ -118,9 +118,9 @@ public class ResourceCarefulAntUtil {
         return def;
     }
 
-    private static PrismObject<ResourceType> parseResource(File resourceFile, PrismContext prismContext) throws SchemaException{
+    private static PrismObject<ResourceType> parseResource(File resourceFile) throws SchemaException{
         try{
-            return prismContext.parseObject(resourceFile);
+            return PrismContext.get().parseObject(resourceFile);
         } catch (IOException ex){
             throw new SchemaException(ex.getMessage(), ex);
         }

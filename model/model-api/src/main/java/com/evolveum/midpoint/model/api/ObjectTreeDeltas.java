@@ -138,9 +138,9 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
     }
 
     @SuppressWarnings("unused")
-    public static String toObjectTreeDeltasTypeXml(ObjectTreeDeltasType objectTreeDeltasType, PrismContext prismContext) throws SchemaException {
+    public static String toObjectTreeDeltasTypeXml(ObjectTreeDeltasType objectTreeDeltasType) throws SchemaException {
         if (objectTreeDeltasType != null) {
-            return prismContext.xmlSerializer().serializeRealValue(objectTreeDeltasType, SchemaConstantsGenerated.C_OBJECT_TREE_DELTAS);
+            return PrismContext.get().xmlSerializer().serializeRealValue(objectTreeDeltasType, SchemaConstantsGenerated.C_OBJECT_TREE_DELTAS);
         } else {
             return null;
         }

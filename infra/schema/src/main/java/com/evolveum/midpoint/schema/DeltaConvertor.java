@@ -55,10 +55,9 @@ public class DeltaConvertor {
      */
     @NotNull
     public static <T extends Objectable> ObjectDelta<T> createObjectDelta(
-            ObjectModificationType objectModification, Class<T> type, PrismContext prismContext)
+            ObjectModificationType objectModification, Class<T> type)
             throws SchemaException {
-        Validate.notNull(prismContext, "No prismContext in DeltaConvertor.createObjectDelta call");
-        PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+        PrismObjectDefinition<T> objectDefinition = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
         if (objectDefinition == null) {
             throw new SchemaException("No object definition for class " + type);
         }
@@ -71,7 +70,7 @@ public class DeltaConvertor {
     @NotNull
     public static <T extends Objectable> ObjectDelta<T> createObjectDelta(
             ObjectModificationType objectModification, PrismObjectDefinition<T> objDef) throws SchemaException {
-        ObjectDelta<T> objectDelta = objDef.getPrismContext().deltaFactory().object()
+        ObjectDelta<T> objectDelta = PrismContext.get().deltaFactory().object()
                 .create(objDef.getCompileTimeClass(), ChangeType.MODIFY);
 
         objectDelta.setOid(objectModification.getOid());
@@ -187,11 +186,10 @@ public class DeltaConvertor {
      * Object delta: XML (api-types-3) -> native (ItemDelta collection)
      */
     public static <T extends Objectable> Collection<? extends ItemDelta<?, ?>> toModifications(
-            ObjectModificationType objectModification, Class<T> type, PrismContext prismContext)
+            ObjectModificationType objectModification, Class<T> type)
             throws SchemaException {
-        argCheck(prismContext != null, "No prismContext in DeltaConvertor.toModifications call");
         PrismObjectDefinition<T> objectDefinition =
-                requireNonNull(prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type),
+                requireNonNull(PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type),
                         () -> "No object definition for class " + type);
 
         return toModifications(objectModification, objectDefinition);
@@ -371,9 +369,8 @@ public class DeltaConvertor {
      * That's the reason this method needs schema and objectType (to locate the appropriate definitions).
      */
     public static <IV extends PrismValue, ID extends ItemDefinition<?>> ItemDelta<IV, ID> createItemDelta(ItemDeltaType propMod,
-            Class<? extends Containerable> objectType, PrismContext prismContext) throws SchemaException {
-        argCheck(prismContext != null, "No prismContext in DeltaConvertor.createItemDelta call");
-        PrismContainerDefinition<? extends Containerable> objectDefinition = prismContext.getSchemaRegistry().
+            Class<? extends Containerable> objectType) throws SchemaException {
+        PrismContainerDefinition<? extends Containerable> objectDefinition = PrismContext.get().getSchemaRegistry().
                 findContainerDefinitionByCompileTimeClass(objectType);
         return createItemDelta(propMod, objectDefinition);
     }
@@ -423,9 +420,6 @@ public class DeltaConvertor {
             throws SchemaException {
         if (InternalsConfig.consistencyChecks) {
             delta.checkConsistence();
-        }
-        if (!delta.isEmpty() && delta.getPrismContext() == null) {
-            throw new IllegalStateException("Non-empty ItemDelta with no prismContext cannot be converted to ItemDeltaType.");
         }
         Collection<ItemDeltaType> deltaBeans = new ArrayList<>();
         ItemPathType pathBean = new ItemPathType(delta.getPath());
@@ -485,7 +479,7 @@ public class DeltaConvertor {
         if (values != null && !values.isEmpty()) {
             for (PrismValue value : values) {
                 XNode xnode = toXNode(delta, value, options);
-                RawType modValue = new RawType(xnode, value.getPrismContext());
+                RawType modValue = new RawType(xnode);
                 targetCollection.add(modValue);
             }
         }
@@ -493,7 +487,7 @@ public class DeltaConvertor {
 
     private static XNode toXNode(ItemDelta<?, ?> delta, @NotNull PrismValue value, DeltaConversionOptions options)
             throws SchemaException {
-        var ret = delta.getPrismContext().xnodeSerializer()
+        var ret = PrismContext.get().xnodeSerializer()
                 .definition(delta.getDefinition())
                 .options(DeltaConversionOptions.isSerializeReferenceNames(options) ?
                         SerializationOptions.createSerializeReferenceNames() : null)
@@ -509,11 +503,11 @@ public class DeltaConvertor {
      * Dubious. Consider removal.
      */
     public static Collection<ObjectDelta<? extends com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType>>
-    createObjectDeltas(ObjectDeltaListType deltaList, PrismContext prismContext)
+    createObjectDeltas(ObjectDeltaListType deltaList)
             throws SchemaException {
         List<ObjectDelta<? extends com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType>> retval = new ArrayList<>();
         for (ObjectDeltaType deltaType : deltaList.getDelta()) {
-            retval.add(createObjectDelta(deltaType, prismContext));
+            retval.add(createObjectDelta(deltaType));
         }
         return retval;
     }

@@ -11,7 +11,6 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -62,7 +61,7 @@ public abstract class AbstractAuthenticationContext {
     public ObjectQuery createFocusQuery() {
         if (StringUtils.isNotBlank(username)) {
             PolyString usernamePoly = new PolyString(username);
-            return ObjectQueryUtil.createNormNameQuery(usernamePoly, PrismContext.get());
+            return ObjectQueryUtil.createNormNameQuery(usernamePoly);
         }
         return null;
     }

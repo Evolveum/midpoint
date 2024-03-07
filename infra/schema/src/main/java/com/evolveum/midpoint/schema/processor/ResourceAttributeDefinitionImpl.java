@@ -663,7 +663,7 @@ public class ResourceAttributeDefinitionImpl<T>
 
     @Override
     public @NotNull PropertyDelta<T> createEmptyDelta(ItemPath path) {
-        return new PropertyDeltaImpl<>(path, this, PrismContext.get());
+        return new PropertyDeltaImpl<>(path, this);
     }
 
     @Override
@@ -858,7 +858,7 @@ public class ResourceAttributeDefinitionImpl<T>
         //noinspection OptionalAssignedToNull
         if (structuredType == null) {
             this.structuredType = Optional.ofNullable(
-                    getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(getTypeName()));
+                    PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByType(getTypeName()));
         }
         return structuredType;
     }
@@ -868,11 +868,6 @@ public class ResourceAttributeDefinitionImpl<T>
         stateCheck(rawDefinition.isImmutable(), "Raw definition is not immutable");
         stateCheck(customizationBean.isImmutable(), "Customization bean is not immutable");
         // accessOverride should be frozen but there's currently no support for that
-    }
-
-    @Override
-    public PrismContext getPrismContext() {
-        return PrismContext.get();
     }
 
     @Override

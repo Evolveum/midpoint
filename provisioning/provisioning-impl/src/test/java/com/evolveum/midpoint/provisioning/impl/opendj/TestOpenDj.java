@@ -2324,7 +2324,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         when();
         ObjectModificationType modification =
                 prismContext.parserFor(FILE_MODIFY_ASSOCIATION_REPLACE).parseRealValue(ObjectModificationType.class);
-        ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(modification, ShadowType.class, prismContext);
+        ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(modification, ShadowType.class);
         try {
             provisioningService.modifyObject(
                     ShadowType.class, ACCOUNT_MORGAN_OID, delta.getModifications(), null, null, task, result);
@@ -2397,10 +2397,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        openDJController.addEntry("dn: cn=seadogs,ou=groups,dc=EXAMPLE,dc=com\n" +
-                "objectClass: groupOfUniqueNames\n" +
-                "objectClass: top\n" +
-                "cn: seadogs");
+        openDJController.addEntry("""
+                dn: cn=seadogs,ou=groups,dc=EXAMPLE,dc=com
+                objectClass: groupOfUniqueNames
+                objectClass: top
+                cn: seadogs""");
 
         ObjectQuery query =
                 ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_GROUP_OBJECTCLASS);

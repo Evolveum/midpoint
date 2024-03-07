@@ -59,7 +59,7 @@ public class AssociationSearchExpressionEvaluatorCache
             ExpressionEvaluationContext params,
             PrismContext prismContext) {
         try {
-            return new AssociationSearchQueryKey(type, query, searchStrategy, params, prismContext);
+            return new AssociationSearchQueryKey(type, query, searchStrategy, params);
         } catch (Exception e) { // TODO THIS IS REALLY UGLY HACK - query converter / prism serializer refuse to serialize some queries - should be fixed RSN!
             LoggingUtils.logException(LOGGER, "Couldn't create query key. Although this particular exception is harmless, please fix prism implementation!", e);
             return null; // we "treat" it so that we simply pretend the entry is not in the cache and/or refuse to enter it into the cache

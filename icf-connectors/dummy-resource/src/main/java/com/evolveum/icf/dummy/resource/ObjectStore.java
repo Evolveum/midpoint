@@ -32,10 +32,14 @@ public class ObjectStore<O extends DummyObject> implements DebugDumpable {
     /** Objects, indexed by the normalized name (if enforcing unique names), or by {@link DummyObject#id} (otherwise). */
     @NotNull private final Map<String, O> objectMap = Collections.synchronizedMap(new LinkedHashMap<>());
 
-    ObjectStore(@NotNull Class<O> objectJavaType, @NotNull String objectClassName) {
+    ObjectStore(@NotNull Class<O> objectJavaType, @NotNull String objectClassName, @NotNull DummyObjectClass objectClass) {
         this.objectJavaType = objectJavaType;
         this.objectClassName = objectClassName;
-        this.objectClass = new DummyObjectClass();
+        this.objectClass = objectClass;
+    }
+
+    ObjectStore(@NotNull Class<O> objectJavaType, @NotNull String objectClassName) {
+        this(objectJavaType, objectClassName, new DummyObjectClass());
     }
 
     public @NotNull String getObjectClassName() {

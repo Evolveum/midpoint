@@ -293,7 +293,7 @@ public class RAnyConverter {
 
         Object object = value.getValue();
         if (object instanceof Element) {
-            object = getRealRepoValue(definition, (Element) object, prismContext);
+            object = getRealRepoValue(definition, (Element) object);
         } else if (object instanceof RawType) {
             RawType raw = (RawType) object;
             object = raw.getParsedRealValue(returnType);        // todo this can return null!
@@ -332,7 +332,7 @@ public class RAnyConverter {
      * [pm] is this method really used? i.e. do we ever try to store PrismPropertyValue<Element>?
      */
     @NotNull
-    public static Object getRealRepoValue(ItemDefinition definition, Element value, PrismContext prismContext) throws SchemaException {
+    public static Object getRealRepoValue(ItemDefinition definition, Element value) throws SchemaException {
         ValueType willBeSavedAs;
         QName typeName;
         if (definition != null) {
@@ -353,7 +353,7 @@ public class RAnyConverter {
                 return DOMUtil.serializeDOMToString(value);     //composite elements or containers
             }
         } else {
-            Object object = prismContext.parserFor(value).type(typeName).parseRealValue();
+            Object object = PrismContext.get().parserFor(value).type(typeName).parseRealValue();
             object = getAggregatedRepoObject(object);
             if (object == null) {
                 throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);

@@ -110,7 +110,7 @@ public class SchemaProcessorTest extends AbstractSchemaTest {
 
         Document parsedXsd = DOMUtil.parseDocument(stringXmlSchema);
 
-        PrismSchema newSchema = PrismSchemaImpl.parse(DOMUtil.getFirstChildElement(parsedXsd), true, "serialized schema", PrismTestUtil.getPrismContext());
+        PrismSchema newSchema = PrismSchemaImpl.parse(DOMUtil.getFirstChildElement(parsedXsd), true, "serialized schema");
 
         System.out.println("Generic schema after parsing from XSD: ");
         System.out.println(newSchema.debugDump());

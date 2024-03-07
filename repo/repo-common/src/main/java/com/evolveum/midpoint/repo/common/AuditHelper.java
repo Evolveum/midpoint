@@ -140,7 +140,7 @@ public class AuditHelper {
                     result.computeStatusIfUnknown();
                 }
             };
-            resolveNames(delta, nameResolver, prismContext);
+            resolveNames(delta, nameResolver);
         }
     }
 

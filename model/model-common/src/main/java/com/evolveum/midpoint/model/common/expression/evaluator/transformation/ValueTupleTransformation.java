@@ -359,7 +359,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
                 for (PrismValue value : valuesTuple) {
                     SourceTriple<?, ?> sourceTriple = sourceTriplesIterator.next();
                     sb.append(sourceTriple.getName().getLocalPart()).append('=');
-                    sb.append(value == null ? null : value.getRealValueOrRawType(combinatorialEvaluation.prismContext));
+                    sb.append(value == null ? null : value.getRealValueOrRawType());
                     if (sourceTriplesIterator.hasNext()) {
                         sb.append(", ");
                     }
@@ -373,7 +373,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         Iterator<SourceTriple<?, ?>> sourceTriplesIterator = combinatorialEvaluation.sourceTripleList.iterator();
         for (PrismValue pval : valuesTuple) {
             SourceTriple<?, ?> sourceTriple = sourceTriplesIterator.next();
-            trace.getInput().add(TraceUtil.toNamedValueType(pval, sourceTriple.getName(), combinatorialEvaluation.prismContext));
+            trace.getInput().add(TraceUtil.toNamedValueType(pval, sourceTriple.getName()));
         }
         trace.setInputOrigin(
                 sets.stream()
@@ -415,7 +415,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         if (trace != null) {
             trace.setDestination(PlusMinusZeroType.fromValue(outputSet));
             trace.setConditionResult(conditionResult);
-            trace.getOutput().addAll(TraceUtil.toAnyValueTypeList(transformationResult, combinatorialEvaluation.prismContext));
+            trace.getOutput().addAll(TraceUtil.toAnyValueTypeList(transformationResult));
         }
     }
 

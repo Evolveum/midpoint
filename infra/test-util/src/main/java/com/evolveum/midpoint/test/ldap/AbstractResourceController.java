@@ -25,8 +25,14 @@ public abstract class AbstractResourceController {
         return resource;
     }
 
-    public void setResource(PrismObject<ResourceType> resource) {
+    public AbstractResourceController setResource(PrismObject<ResourceType> resource) {
         this.resource = resource;
+        return this;
+    }
+
+    public AbstractResourceController setResource(ResourceType resource) {
+        this.resource = resource.asPrismObject();
+        return this;
     }
 
     public ResourceType getResourceType() {

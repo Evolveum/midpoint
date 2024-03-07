@@ -182,7 +182,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Manual Connector", repoConnector);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector);
     }
 
     @Test

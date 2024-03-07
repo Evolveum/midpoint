@@ -204,7 +204,7 @@ public class RActivation {
         repo.setValidityChangeTimestamp(jaxb.getValidityChangeTimestamp());
     }
 
-    public static void copyToJAXB(RActivation repo, ActivationType jaxb, PrismContext prismContext) {
+    public static void copyToJAXB(RActivation repo, ActivationType jaxb) {
         Objects.requireNonNull(jaxb, "JAXB object must not be null.");
         Objects.requireNonNull(repo, "Repo object must not be null.");
 
@@ -229,7 +229,7 @@ public class RActivation {
 
     public ActivationType toJAXB(PrismContext prismContext) {
         ActivationType activation = new ActivationType();
-        RActivation.copyToJAXB(this, activation, prismContext);
+        RActivation.copyToJAXB(this, activation);
         return activation;
     }
 }

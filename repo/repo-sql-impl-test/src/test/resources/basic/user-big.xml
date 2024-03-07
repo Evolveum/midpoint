@@ -136,22 +136,19 @@
     </organizationalUnit>
     <credentials>
         <password>
-            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                     xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
-                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-                     xsi:type="t:ProtectedStringType">
-                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
-                    <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
-                    <ds:KeyInfo>
-                        <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
-                    </ds:KeyInfo>
-                    <enc:CipherData>
-                        <enc:CipherValue>R8JV6Bsf6Hjh1yodavjZ0cPshnGyHdspmANJmCQe2zXo7brYj1I/Bs5LGTZNI4k8
-                        </enc:CipherValue>
-                    </enc:CipherData>
-                </enc:EncryptedData>
-            </c:value>
+            <value>
+                <t:encryptedData>
+                    <t:encryptionMethod>
+                        <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc</t:algorithm>
+                    </t:encryptionMethod>
+                    <t:keyInfo>
+                        <t:keyName>9UKH+dYwTmyWVxE6pu9LiuvxsNE=</t:keyName>
+                    </t:keyInfo>
+                    <t:cipherData>
+                        <t:cipherValue>7FvHTyTOFd3jml+r0s7TpJ706v8PI4U7z+qK7VcIpNo=</t:cipherValue>
+                    </t:cipherData>
+                </t:encryptedData>
+            </value>
             <c:lastSuccessfulLogin xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
                 <c:timestamp>2012-10-17T21:14:44.376+02:00</c:timestamp>
                 <c:from>127.0.0.1</c:from>

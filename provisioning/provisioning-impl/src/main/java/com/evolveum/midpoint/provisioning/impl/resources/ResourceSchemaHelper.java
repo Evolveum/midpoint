@@ -441,7 +441,7 @@ class ResourceSchemaHelper {
             connectorSchema = prismContext.schemaFactory().createPrismSchema(
                     DOMUtil.getSchemaTargetNamespace(connectorSchemaElement));
             connectorSchema.parseThis(
-                    connectorSchemaElement, true, "schema for " + connector, prismContext);
+                    connectorSchemaElement, true, "schema for " + connector);
         } catch (SchemaException e) {
             throw new SchemaException("Error parsing connector schema for " + connector + ": " + e.getMessage(), e);
         }

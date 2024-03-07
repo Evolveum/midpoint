@@ -107,7 +107,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         // WHEN
         // This should NOT throw an exception. It should just indicate the failure in results
         resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
-        ResourceType resourceType = resource.asObjectable();
 
         // THEN
         result.computeStatus();
@@ -289,7 +288,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         OperationResult result = getTestOperationResult();
 
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
-        ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
+        ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class);
         displayDumpable("Object change", delta);
 
         try {
@@ -628,7 +627,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
-        ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
+        ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class);
         displayDumpable("Object change", delta);
 
         // WHEN

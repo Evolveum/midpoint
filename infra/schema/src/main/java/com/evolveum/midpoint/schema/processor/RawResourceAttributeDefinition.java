@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.DeepCloneOperation;
 import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.normalization.Normalizer;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -383,6 +384,8 @@ public class RawResourceAttributeDefinition<T>
 
     @Override
     public String debugDump(int indent, LayerType layer) {
-        return null; // FIXME implement
+        var sb = new StringBuilder();
+        DebugUtil.debugDumpWithLabelToString(sb, "attribute " + getItemName().getLocalPart(), this, indent);
+        return sb.toString();
     }
 }

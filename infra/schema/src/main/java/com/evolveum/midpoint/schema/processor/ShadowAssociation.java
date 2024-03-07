@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
@@ -34,7 +36,7 @@ public class ShadowAssociation extends PrismContainerImpl<ShadowAssociationValue
     @Serial private static final long serialVersionUID = 0L;
 
     public ShadowAssociation(QName name, ShadowAssociationDefinition definition) {
-        super(name, definition, PrismContext.get());
+        super(name, definition);
     }
 
     /** TODO shouldn't be the definition always required? */
@@ -62,7 +64,7 @@ public class ShadowAssociation extends PrismContainerImpl<ShadowAssociationValue
      * Currently, this method ignores the identifiers: they are used "as is". No eventual definition application,
      * and conversion to resource attributes is done.
      */
-    public static ShadowAssociation convertFromPrismItem(
+    static ShadowAssociation convertFromPrismItem(
             @NotNull Item<?, ?> item, @NotNull ShadowAssociationDefinition associationDef) {
         var association = new ShadowAssociation(item.getElementName(), associationDef);
         for (PrismValue value : item.getValues()) {
@@ -78,6 +80,24 @@ public class ShadowAssociation extends PrismContainerImpl<ShadowAssociationValue
             }
         }
         return association;
+    }
+
+    @Override
+    protected boolean addInternalExecution(@NotNull PrismContainerValue<ShadowAssociationValueType> newValue) {
+        argCheck(newValue instanceof ShadowAssociationValue,
+                "Trying to add a value which is not a ShadowAssociationValue: %s", newValue);
+        return super.addInternalExecution(newValue);
+    }
+
+    @Override
+    public ShadowAssociationValue createNewValue() {
+        // Casting is safe here, as "createNewValueInternal" provides this type.
+        return (ShadowAssociationValue) super.createNewValue();
+    }
+
+    @Override
+    protected @NotNull PrismContainerValueImpl<ShadowAssociationValueType> createNewValueInternal() {
+        return new ShadowAssociationValue();
     }
 
     public int size() {
@@ -109,7 +129,7 @@ public class ShadowAssociation extends PrismContainerImpl<ShadowAssociationValue
 
     /** Adds both target shadow ref and identifiers. */
     @SuppressWarnings("UnusedReturnValue")
-    public @NotNull PrismContainerValue<ShadowAssociationValueType> createNewValueForTarget(@NotNull AbstractShadow target)
+    public @NotNull ShadowAssociationValue createNewValueForTarget(@NotNull AbstractShadow target)
             throws SchemaException {
         var value = createNewValue();
         value.getValue().setShadowRef(target.getRef());

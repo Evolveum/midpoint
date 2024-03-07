@@ -150,9 +150,10 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         OperationResult result = new OperationResult("initUcf");
         configure(
-                resourceBean.getConnectorConfiguration().asPrismContainerValue(),
+                resourceBean.getConnectorConfiguration(),
                 ResourceTypeUtil.getSchemaGenerationConstraints(resourceBean),
                 result);
+
         cc.initialize(null, null, result);
         // TODO: assert something
 
@@ -440,8 +441,8 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         // GIVEN
         OperationResult result = new OperationResult(contextName());
 
-        ConnectorInstance badConnector = factory.createConnectorInstance(connectorType,
-                "bad resource", "bad resource description");
+        ConnectorInstance badConnector = factory.createConnectorInstance(
+                connectorType, "bad resource", "bad resource description");
         badConnector.configure(
                 badResourceBean.getConnectorConfiguration().asPrismContainerValue(),
                 new ConnectorConfigurationOptions()
@@ -668,7 +669,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         //set the replace value
         XNode passPsXnode = prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(passPs).getSubnode();
-        RawType value = new RawType(passPsXnode.frozen(), prismContext);
+        RawType value = new RawType(passPsXnode.frozen());
         propMod.getValue().add(value);
 
         //set the modification type

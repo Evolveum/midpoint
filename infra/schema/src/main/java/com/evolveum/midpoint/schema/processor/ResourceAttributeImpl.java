@@ -31,7 +31,7 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
     @Serial private static final long serialVersionUID = -6149194956029296486L;
 
     ResourceAttributeImpl(QName name, ResourceAttributeDefinition<T> definition) {
-        super(name, definition, PrismContext.get());
+        super(name, definition);
     }
 
     @Override

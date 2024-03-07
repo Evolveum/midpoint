@@ -250,7 +250,7 @@ public class PageAuditLogDetails extends PageBase {
             public void onClick(AjaxRequestTarget target) {
                 TaskType finalTask = taskModel.getObject();
                 if (finalTask != null) {
-                    DetailsPageUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(finalTask, getPrismContext()), this, false);
+                    DetailsPageUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(finalTask), this, false);
                 }
             }
         };

@@ -109,7 +109,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         display("Async Connector", repoConnector);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector);
     }
 
     @Test

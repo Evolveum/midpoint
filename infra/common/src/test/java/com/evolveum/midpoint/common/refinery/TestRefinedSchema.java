@@ -423,7 +423,6 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         // THEN
         assertNotNull("No blank shadow", blankShadow);
-        assertNotNull("No prism context in blank shadow", blankShadow.getPrismContext());
         PrismObjectDefinition<ShadowType> objectDef = blankShadow.getDefinition();
         assertNotNull("Blank shadow has no definition", objectDef);
         PrismContainerDefinition<?> attrDef = objectDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);

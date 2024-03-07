@@ -31,6 +31,7 @@ TODO
 === New Features and Major Improvements
 
 * Shadow caching
+* Shadow associations
 
 === Other Improvements
 
@@ -543,6 +544,15 @@ But these two objects are something that can be unofficially considered to be th
 NOTE: These changes should not influence people that use midPoint "as is".
 They should also not influence the XML/JSON/YAML-based customizations or scripting expressions that rely just on the provided library classes.
 These changes will influence midPoint forks and deployments that are heavily customized using the Java components.
+
+* Internal APIs were massively changed with regard to passing `prismContext` object between methods.
+This object has been statically available for quite a long time.
+Now it was definitely removed from methods' signatures.
++
+*The official APIs (like `midpoint` and `basic` objects) were not touched by this change.
+However, if you use some of the unofficial or undocumented APIs, please make sure you migrate your code appropriately.*
++
+The change itself is very simple: basically, the `PrismContext` parameter was removed from methods' signatures.
 
 // * The post-processing of retrieved objects in the IDM Model subsystem (sometimes called "apply schemas and security") was xref:/midpoint/devel/design/apply-schemas-and-security-4.8/summary.adoc[simplified].
 //

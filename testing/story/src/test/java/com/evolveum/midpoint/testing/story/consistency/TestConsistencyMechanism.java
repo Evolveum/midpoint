@@ -2557,7 +2557,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         ExpressionType expression = new ExpressionType();
         ObjectFactory of = new ObjectFactory();
-        RawType raw = new RawType(prismContext.xnodeFactory().primitive("uid=morgan,ou=users,dc=example,dc=com").frozen(), prismContext);
+        RawType raw = new RawType(prismContext.xnodeFactory().primitive("uid=morgan,ou=users,dc=example,dc=com").frozen());
 
         JAXBElement<?> val = of.createValue(raw);
         expression.getExpressionEvaluator().add(val);
@@ -2571,7 +2571,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         ConstructionType construction = new ConstructionType();
         construction.getAttribute().add(attrDefType);
-        construction.setResourceRef(ObjectTypeUtil.createObjectRef(resourceTypeOpenDjrepo, prismContext));
+        construction.setResourceRef(ObjectTypeUtil.createObjectRef(resourceTypeOpenDjrepo));
 
         AssignmentType assignment = new AssignmentType();
         assignment.setConstruction(construction);

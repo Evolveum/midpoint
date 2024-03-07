@@ -581,7 +581,7 @@ public class ExpressionUtil {
         removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
         for (String value : values) {
             PrimitiveXNode<String> newValueNode = prismContext.xnodeFactory().primitive(value);
-            RawType raw = new RawType(newValueNode.frozen(), prismContext);
+            RawType raw = new RawType(newValueNode.frozen());
             JAXBElement element = new JAXBElement<>(SchemaConstantsGenerated.C_VALUE, RawType.class, raw);
             expression.expressionEvaluator(element);
         }

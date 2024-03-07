@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +17,7 @@ public class ResourceSchemaParser {
 
     public static @NotNull ResourceSchema parse(Element xsdSchema, String description) throws SchemaException {
         ResourceSchemaImpl schema = new ResourceSchemaImpl();
-        schema.parseThis(xsdSchema, true, description, PrismContext.get());
+        schema.parseThis(xsdSchema, true, description);
         return schema;
     }
 }

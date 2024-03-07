@@ -423,7 +423,7 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @Override
     public @NotNull ContainerDelta<ShadowAssociationValueType> createEmptyDelta(ItemPath path) {
-        return new ContainerDeltaImpl<>(path, this, PrismContext.get());
+        return new ContainerDeltaImpl<>(path, this);
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
@@ -450,7 +450,7 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @Override
     public PrismContainerValue<ShadowAssociationValueType> createValue() {
-        return new PrismContainerValueImpl<>(getPrismContext());
+        return new PrismContainerValueImpl<>();
     }
 
     @Override
@@ -519,11 +519,6 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     public ContainerDelta<ShadowAssociationValueType> createEmptyDelta() {
         return PrismContext.get().deltaFactory().container().create(
                 getStandardPath(), this);
-    }
-
-    @Override
-    public PrismContext getPrismContext() {
-        return PrismContext.get();
     }
 
     @Override

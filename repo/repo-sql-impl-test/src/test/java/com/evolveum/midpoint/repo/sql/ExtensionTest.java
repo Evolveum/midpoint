@@ -1647,7 +1647,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
     public void test175ReplaceAssignments() throws Exception {
         OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test175ReplaceAssignments");
 
-        AssignmentType newAssignment = new AssignmentType(prismContext)
+        AssignmentType newAssignment = new AssignmentType()
                 .id(999L)
                 .targetRef("999999aaaaa", OrgType.COMPLEX_TYPE);
         PrismContainerValue<?> newExtValue = newAssignment.asPrismContainerValue()

@@ -10,7 +10,6 @@ import java.io.File;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions.CompleteSchemaProvider;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,6 +21,8 @@ import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,26 +47,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
- * Simple UCF tests. No real resource, just basic setup and sanity.
+ * Simple UCF tests over dummy resource.
  *
- * @author Radovan Semancik
- * <p>
- * This is an UCF test. It shold not need repository or other things from the midPoint spring context
+ * This is an UCF test. It should not need repository or other things from the midPoint spring context
  * except from the provisioning beans. But due to a general issue with spring context initialization
  * this is a lesser evil for now (MID-392)
+ *
+ * @author Radovan Semancik
  */
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public abstract class AbstractUcfDummyTest extends AbstractSpringTest
         implements InfraTestMixin {
 
     protected static final File RESOURCE_DUMMY_FILE = new File(UcfTestUtil.TEST_DIR, "resource-dummy.xml");
-    protected static final File CONNECTOR_DUMMY_FILE = new File(UcfTestUtil.TEST_DIR, "connector-dummy.xml");
-    protected static final String ACCOUNT_JACK_USERNAME = "jack";
+    private static final File CONNECTOR_DUMMY_FILE = new File(UcfTestUtil.TEST_DIR, "connector-dummy.xml");
+    static final String ACCOUNT_JACK_USERNAME = "jack";
 
-    protected ConnectorFactory connectorFactory;
+    ConnectorFactory connectorFactory;
     protected PrismObject<ResourceType> resource;
     protected ResourceType resourceBean;
-    protected ConnectorType connectorBean;
+    ConnectorType connectorBean;
     protected ConnectorInstance cc;
     protected ResourceSchema resourceSchema;
     protected static DummyResource dummyResource;
@@ -94,8 +95,9 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest
         connectorBean = connector.asObjectable();
     }
 
-    protected void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
-            int maxOccurs) {
+    @SuppressWarnings("SameParameterValue")
+    void assertPropertyDefinition(
+            PrismContainer<?> container, String propName, QName xsdType, int minOccurs, int maxOccurs) {
         QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
         PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
     }
@@ -105,8 +107,9 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest
         PrismAsserts.assertPropertyValue(container, propQName, propValue);
     }
 
-    protected void assertContainerDefinition(PrismContainer<?> container, String contName, QName xsdType, int minOccurs,
-            int maxOccurs) {
+    @SuppressWarnings("SameParameterValue")
+    void assertContainerDefinition(
+            PrismContainer<?> container, String contName, QName xsdType, int minOccurs, int maxOccurs) {
         QName qName = new QName(SchemaConstantsGenerated.NS_COMMON, contName);
         PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
     }
@@ -115,21 +118,22 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest
         PrismTestUtil.display(title, value);
     }
 
-    protected UcfExecutionContext createExecutionContext() {
+    UcfExecutionContext createExecutionContext() {
         return createExecutionContext(resourceBean);
     }
 
-    protected UcfExecutionContext createExecutionContext(ResourceType resource) {
+    UcfExecutionContext createExecutionContext(ResourceType resource) {
         return new UcfExecutionContext(lightweightIdentifierGenerator, resource, NullTaskImpl.INSTANCE);
     }
 
     protected void configure(
-            @NotNull PrismContainerValue<?> configuration,
+            @NotNull ConnectorConfigurationType configuration,
             @Nullable List<QName> generateObjectClasses,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
+        displayDumpable("Using configuration", configuration);
         cc.configure(
-                configuration,
+                configuration.asPrismContainerValue(),
                 new ConnectorConfigurationOptions()
                         .generateObjectClasses(generateObjectClasses)
                         .completeSchemaProvider(CompleteSchemaProvider.forResource(resourceBean)),

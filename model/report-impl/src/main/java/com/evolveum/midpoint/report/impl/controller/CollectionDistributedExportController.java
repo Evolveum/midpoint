@@ -97,7 +97,7 @@ public class CollectionDistributedExportController<C extends Containerable> exte
 
         ReportDataType partialReportData = new ReportDataType()
                 .name(name)
-                .reportRef(ObjectTypeUtil.createObjectRef(report, prismContext))
+                .reportRef(ObjectTypeUtil.createObjectRef(report))
                 .parentRef(globalReportDataRef.clone())
                 .sequentialNumber(bucketNumber)
                 .data(data);

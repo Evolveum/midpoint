@@ -75,9 +75,11 @@ public interface ConnectorInstance {
      * The connector instance must be operational at all times, even during re-configuration.
      * Operations cannot be interrupted or refused due to missing configuration.
      *
+     * Returns the same instance (`this`) to allow changed calls.
+     *
      * @param configuration new connector configuration (prism container value)
      */
-    void configure(
+    ConnectorInstance configure(
             @NotNull PrismContainerValue<?> configuration,
             @NotNull ConnectorConfigurationOptions options,
             @NotNull OperationResult result)
@@ -96,6 +98,8 @@ public interface ConnectorInstance {
      * If resource schema and capabilities are already cached by midPoint they may be passed to the connector instance.
      * Otherwise the instance may need to fetch them from the resource which may be less efficient.
      *
+     * Returns `this`.
+     *
      * NOTE: the capabilities and schema that are used here are NOT necessarily those that are detected by the resource.
      *       The detected schema will come later. The schema here is the one that is stored in the resource
      *       definition (ResourceType). This may be schema that was detected previously. But it may also be a schema
@@ -104,7 +108,7 @@ public interface ConnectorInstance {
      *       Most connectors will just ignore the schema and capabilities that are provided here.
      *       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
      */
-    void initialize(
+    @NotNull ConnectorInstance initialize(
             @Nullable CompleteResourceSchema lastKnownResourceSchema,
             @Nullable CapabilityCollectionType lastKnownCapabilities,
             OperationResult result)

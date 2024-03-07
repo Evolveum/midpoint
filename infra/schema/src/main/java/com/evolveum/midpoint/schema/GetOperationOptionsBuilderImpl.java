@@ -264,7 +264,7 @@ public class GetOperationOptionsBuilderImpl
 
     @Override
     public GetOperationOptionsBuilder errorReportingMethod(FetchErrorReportingMethodType method) {
-        return forPaths(opts -> opts.setErrorReportingMethod(method, prismContext));
+        return forPaths(opts -> opts.setErrorReportingMethod(method));
     }
 
     //endregion

@@ -288,7 +288,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         connectorInstanceCache.put(connectorSpec.getCacheKey(), cacheEntry);
     }
 
-    private ConnectorInstance createConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
+    private @NotNull ConnectorInstance createConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
 
         ConnectorType connectorBean = getConnectorWithSchema(connectorSpec, result).getConnector();
@@ -316,7 +316,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
     }
 
-    private ConnectorInstance createConnectorInstance(String connectorOid, OperationResult result)
+    private @NotNull ConnectorInstance createConnectorInstance(String connectorOid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
         ConnectorType connectorBean = getConnectorWithSchema(connectorOid, result).getConnector();

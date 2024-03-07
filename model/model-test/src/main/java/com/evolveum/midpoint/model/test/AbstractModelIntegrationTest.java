@@ -1870,7 +1870,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected ObjectQuery createNameQuery(String name) throws SchemaException {
-        return ObjectQueryUtil.createNameQuery(PrismTestUtil.createPolyString(name), prismContext);
+        return ObjectQueryUtil.createNameQuery(PolyString.fromOrig(name));
     }
 
     protected PrismObject<UserType> findUserByUsernameFullRequired(String username)
@@ -3091,7 +3091,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <T extends ObjectType> PrismObject<T> searchObjectByName(Class<T> type, String name, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ObjectQuery query = ObjectQueryUtil.createNameQuery(name, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(name);
         List<PrismObject<T>> foundObjects = modelService.searchObjects(type, query, null, task, result);
         if (foundObjects.isEmpty()) {
             return null;

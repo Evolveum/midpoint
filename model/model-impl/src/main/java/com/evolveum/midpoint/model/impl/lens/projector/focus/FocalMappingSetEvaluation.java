@@ -301,7 +301,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
 
         MappingSpecificationType specification = new MappingSpecificationType()
                 .mappingName(mappingBean.getName())
-                .definitionObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext))
+                .definitionObjectRef(ObjectTypeUtil.createObjectRef(originObject))
                 .assignmentId(createAssignmentId(assignmentPathVariables));
 
         MappingBuilder<V, D> mappingBuilder = // [EP:M:FM] DONE

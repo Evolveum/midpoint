@@ -489,7 +489,7 @@ public class ProvisioningObjectsUtil {
         OperationResult result = new OperationResult(operation);
 
         try {
-            ResourceUtils.deleteSchema(resource, pageBase.getModelService(), pageBase.getPrismContext(), task, result);
+            ResourceUtils.deleteSchema(resource, pageBase.getModelService(), task, result);
             pageBase.getModelService().testResource(resource.getOid(), task, result); // try to load fresh schema
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                 | ExpressionEvaluationException | CommunicationException | ConfigurationException

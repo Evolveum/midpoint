@@ -21,10 +21,10 @@ public class QueryKey {
     private QueryType query;        // consider using ObjectQuery here
     private ObjectSearchStrategyType searchStrategy;
 
-    public <T extends ObjectType> QueryKey(Class<T> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, PrismContext prismContext) {
+    public <T extends ObjectType> QueryKey(Class<T> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy) {
         this.type = type;
         try {
-            this.query = query != null ? prismContext.getQueryConverter().createQueryType(query) : null;
+            this.query = query != null ? PrismContext.get().getQueryConverter().createQueryType(query) : null;
         } catch (SchemaException e) {
             throw new SystemException(e);
         }

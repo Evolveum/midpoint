@@ -12,8 +12,6 @@ import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.Pa
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Set;
-
 import com.evolveum.midpoint.util.DebugUtil;
 
 import org.testng.annotations.BeforeClass;
@@ -54,12 +52,12 @@ public class TestDummyResource {
                 aLinkClassDefinition()
                         .withName(LC_PERSON_CONTRACT)
                         .withFirstParticipant(aParticipant()
-                                .withObjectClassNames(Set.of(OC_PERSON))
-                                .withAttributeName(ATTR_CONTRACT)
+                                .withObjectClassNames(OC_PERSON)
+                                .withLinkAttributeName(ATTR_CONTRACT)
                                 .withMaxOccurs(-1)
                                 .build())
                         .withSecondParticipant(aParticipant()
-                                .withObjectClassNames(Set.of(OC_CONTRACT))
+                                .withObjectClassNames(OC_CONTRACT)
                                 .withMinOccurs(1)
                                 .withMaxOccurs(1)
                                 .build())
@@ -68,13 +66,13 @@ public class TestDummyResource {
                 aLinkClassDefinition()
                         .withName(LC_CONTRACT_ORG)
                         .withFirstParticipant(aParticipant()
-                                .withObjectClassNames(Set.of(OC_CONTRACT))
+                                .withObjectClassNames(OC_CONTRACT)
                                 .withMinOccurs(1)
                                 .withMaxOccurs(1)
                                 .build())
                         .withSecondParticipant(aParticipant()
-                                .withObjectClassNames(Set.of(DummyResource.OBJECTCLASS_ORG_NAME))
-                                .withAttributeName(ATTR_CONTRACT)
+                                .withObjectClassNames(DummyOrg.OBJECT_CLASS_NAME)
+                                .withLinkAttributeName(ATTR_CONTRACT)
                                 .withMaxOccurs(-1)
                                 .build())
                         .build());

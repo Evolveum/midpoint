@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -120,8 +121,12 @@ public class Resource {
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassName);
     }
 
-    // Beware, no kind/intent/OC filter is set here. Must be private.
-    private S_FilterExit queryFor(@NotNull ResourceObjectDefinition objectDefinition) {
+    /**
+     * Beware, no kind/intent/OC filter is set here. Use with care, only for resources that do not have own schema,
+     * e.g., in low-level tests.
+     */
+    @VisibleForTesting
+    public @NotNull S_FilterExit queryFor(@NotNull ResourceObjectDefinition objectDefinition) {
         return PrismContext.get().queryFor(ShadowType.class, new ResourceItemDefinitionResolver(objectDefinition))
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceBean.getOid());
     }

@@ -36,11 +36,12 @@ import org.identityconnectors.common.logging.Log;
  * @see DummyResource
  *
  */
-public abstract class AbstractModernObjectDummyConnector extends AbstractObjectDummyConnector implements UpdateDeltaOp, InstanceNameAware {
+public abstract class AbstractModernObjectDummyConnector
+        extends AbstractObjectDummyConnector
+        implements UpdateDeltaOp, InstanceNameAware {
 
     // We want to see if the ICF framework logging works properly
     private static final Log LOG = Log.getLog(AbstractModernObjectDummyConnector.class);
-
 
     private String instanceName;
 
@@ -50,7 +51,8 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
     }
 
     @Override
-    public Set<AttributeDelta> updateDelta(final ObjectClass objectClass, final Uid uid, final Set<AttributeDelta> modifications, final OperationOptions options) {
+    public Set<AttributeDelta> updateDelta(
+            ObjectClass objectClass, Uid uid, Set<AttributeDelta> modifications, OperationOptions options) {
         LOG.info("updateDelta::begin {0}", instanceName);
         validate(objectClass);
         validate(uid);
@@ -60,18 +62,18 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
 
         try {
 
+            String objectClassName = fromConnIdObjectClass(objectClass);
+
             if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
 
                 final DummyAccount account;
                 if (configuration.isUidBoundToName()) {
                     account = resource.getAccountByName(uid.getUidValue(), false);
-                } else if (configuration.isUidSeparateFromName()) {
-                    account = resource.getAccountById(uid.getUidValue(), false);
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    account = resource.getAccountById(uid.getUidValue(), false);
                 }
                 if (account == null) {
-                    throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Account with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(account, options);
 
@@ -151,10 +153,8 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                 final DummyGroup group;
                 if (configuration.isUidBoundToName()) {
                     group = resource.getGroupByName(uid.getUidValue(), false);
-                } else if (configuration.isUidSeparateFromName()) {
-                    group = resource.getGroupById(uid.getUidValue(), false);
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    group = resource.getGroupById(uid.getUidValue(), false);
                 }
                 if (group == null) {
                     throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
@@ -198,29 +198,27 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                 }
 
 
-            } else if (objectClass.is(DummyResource.OBJECTCLASS_PRIVILEGE_NAME)) {
+            } else {
 
-                final DummyPrivilege priv;
+                final DummyObject dummyObject;
                 if (configuration.isUidBoundToName()) {
-                    priv = resource.getPrivilegeByName(uid.getUidValue(), false);
-                } else if (configuration.isUidSeparateFromName()) {
-                    priv = resource.getPrivilegeById(uid.getUidValue(), false);
+                    dummyObject = resource.getObjectByName(objectClassName, uid.getUidValue(), false);
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    dummyObject = resource.getObjectById(uid.getUidValue(), false);
                 }
-                if (priv == null) {
-                    throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
+                if (dummyObject == null) {
+                    throw getUnknownUidException(objectClassName, uid);
                 }
-                applyModifyMetadata(priv, options);
+                applyModifyMetadata(dummyObject, options);
 
                 for (AttributeDelta delta : modifications) {
                     if (delta.is(Name.NAME)) {
                         assertReplace(delta);
                         String newName = getSingleReplaceValueMandatory(delta, String.class);
-                        boolean doRename = handlePhantomRenames(objectClass, priv, newName);
+                        boolean doRename = handlePhantomRenames(objectClass, dummyObject, newName);
                         if (doRename) {
                             try {
-                                resource.renamePrivilege(priv.getId(), priv.getName(), newName);
+                                resource.renameObject(objectClassName, dummyObject.getId(), dummyObject.getName(), newName);
                             } catch (ObjectDoesNotExistException e) {
                                 throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
                             } catch (ObjectAlreadyExistsException e) {
@@ -232,63 +230,16 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                             }
                         }
                     } else if (delta.is(OperationalAttributes.PASSWORD_NAME)) {
-                        throw new InvalidAttributeValueException("Attempt to change password on privilege");
+                        throw new InvalidAttributeValueException("Attempt to change password on " + objectClassName);
 
                     } else if (delta.is(OperationalAttributes.ENABLE_NAME)) {
-                        throw new InvalidAttributeValueException("Attempt to change enable on privilege");
+                        throw new InvalidAttributeValueException("Attempt to change enable on " + objectClassName);
 
                     } else {
-                        applyOrdinaryAttributeDelta(priv, delta, null);
+                        applyOrdinaryAttributeDelta(dummyObject, delta, null);
                     }
                 }
-
-
-            } else if (objectClass.is(DummyResource.OBJECTCLASS_ORG_NAME)) {
-
-                final DummyOrg org;
-                if (configuration.isUidBoundToName()) {
-                    org = resource.getOrgByName(uid.getUidValue(), false);
-                } else if (configuration.isUidSeparateFromName()) {
-                    org = resource.getOrgById(uid.getUidValue(), false);
-                } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-                }
-                if (org == null) {
-                    throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
-                }
-                applyModifyMetadata(org, options);
-
-                for (AttributeDelta delta : modifications) {
-                    if (delta.is(Name.NAME)) {
-                        assertReplace(delta);
-                        String newName = getSingleReplaceValueMandatory(delta, String.class);
-                        try {
-                            resource.renameOrg(org.getId(), org.getName(), newName);
-                        } catch (ObjectDoesNotExistException e) {
-                            throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
-                        } catch (ObjectAlreadyExistsException e) {
-                            throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
-                        }
-                        // We need to change the returned uid here
-                        if (configuration.isUidBoundToName()) {
-                            addUidChange(sideEffectChanges, newName);
-                        }
-                    } else if (delta.is(OperationalAttributes.PASSWORD_NAME)) {
-                        throw new InvalidAttributeValueException("Attempt to change password on org");
-
-                    } else if (delta.is(OperationalAttributes.ENABLE_NAME)) {
-                        throw new InvalidAttributeValueException("Attempt to change enable on org");
-
-                    } else {
-                        applyOrdinaryAttributeDelta(org, delta, null);
-                    }
-                }
-
-
-            } else {
-                throw new ConnectorException("Unknown object class "+objectClass);
             }
-
         } catch (ConnectException e) {
             LOG.info("update::exception "+e);
             throw new ConnectionFailedException(e.getMessage(), e);
@@ -340,9 +291,6 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
 
     protected void validateModifications(ObjectClass objectClass, Set<AttributeDelta> modifications) {
         String[] alwaysRequireUpdateOfAttributes = getConfiguration().getAlwaysRequireUpdateOfAttribute();
-        if (alwaysRequireUpdateOfAttributes.length == 0) {
-            return;
-        }
         for (String alwaysRequireUpdateOfAttributeSpec : alwaysRequireUpdateOfAttributes) {
             String[] split = alwaysRequireUpdateOfAttributeSpec.split(":");
             String objectClassName = split[0];

@@ -225,7 +225,7 @@ public class ExecutionHelper {
         Task task = taskManager.createTaskInstance("execute");
         task.setName("Execution of " + aCase.getName().getOrig());
         task.setOwner(getExecutionTaskOwner(aCase, result));
-        task.setObjectRef(ObjectTypeUtil.createObjectRef(aCase, prismContext));
+        task.setObjectRef(ObjectTypeUtil.createObjectRef(aCase));
         task.setHandlerUri(CaseOperationExecutionTaskHandler.HANDLER_URI);
         if (waiting) {
             task.setInitiallyWaitingForPrerequisites();

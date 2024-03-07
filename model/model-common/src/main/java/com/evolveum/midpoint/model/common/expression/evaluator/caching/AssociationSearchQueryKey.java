@@ -19,8 +19,8 @@ public class AssociationSearchQueryKey extends QueryKey {
 
     private QName mappingName;
 
-    public AssociationSearchQueryKey(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, ExpressionEvaluationContext params, PrismContext prismContext) {
-        super(type, query, searchStrategy, prismContext);
+    public AssociationSearchQueryKey(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, ExpressionEvaluationContext params) {
+        super(type, query, searchStrategy);
         mappingName = params != null ? params.getMappingQName() : null;
     }
 

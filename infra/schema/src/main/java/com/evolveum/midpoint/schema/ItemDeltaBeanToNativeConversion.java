@@ -130,7 +130,7 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
             //noinspection unchecked
             return (ItemDelta<IV, ID>) itemDefinition.createEmptyDelta(itemPath);
         } else {
-            PrismProperty<?> property = new PrismPropertyImpl<>(itemName, PrismContext.get());
+            PrismProperty<?> property = new PrismPropertyImpl<>(itemName);
             //noinspection unchecked
             return (ItemDelta<IV, ID>) property.createDelta(itemPath);
         }

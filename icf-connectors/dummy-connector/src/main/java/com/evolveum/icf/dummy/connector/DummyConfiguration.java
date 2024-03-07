@@ -6,9 +6,6 @@
  */
 package com.evolveum.icf.dummy.connector;
 
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.icf.dummy.resource.UidMode;
-
 import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -16,6 +13,8 @@ import org.identityconnectors.framework.common.exceptions.ConfigurationException
 import org.identityconnectors.framework.common.objects.ValueListOpenness;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
+
+import com.evolveum.icf.dummy.resource.UidMode;
 
 /**
  * Extends the {@link AbstractConfiguration} class to provide all the necessary
@@ -493,21 +492,9 @@ public class DummyConfiguration extends AbstractConfiguration {
         LOG.info("end");
     }
 
-    public boolean isUidModeUuid() {
-        return uidMode == UidMode.NAME;
-    }
-
-    public boolean isUidModeExternal() {
-        return uidMode == UidMode.EXTERNAL;
-    }
-
     /**
      * @return true if externally visible UID is separate from NAME attribute
      */
-    public boolean isUidSeparateFromName() {
-        return isUidModeUuid() || isUidModeExternal();
-    }
-
     public boolean isUidBoundToName() {
         return uidMode == UidMode.NAME;
     }

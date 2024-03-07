@@ -153,7 +153,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
         row.setKey(key);
         row.setLastChangeTimestamp(lastChangeTimestamp);
         row.setValue(value);
-        row.setLabel(RPolyString.copyToJAXB(label, prismContext));
+        row.setLabel(RPolyString.copyToJAXB(label));
 
         return row;
     }

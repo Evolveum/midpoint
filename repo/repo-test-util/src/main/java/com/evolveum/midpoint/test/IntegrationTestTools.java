@@ -1041,7 +1041,7 @@ public class IntegrationTestTools {
         assertNotNull("Connector namespace is missing in "+conn, conn.getNamespace());
     }
 
-    public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
+    public static void assertConnectorSchemaSanity(ConnectorType conn) throws SchemaException {
         XmlSchemaType xmlSchemaType = conn.getSchema();
         assertNotNull("xmlSchemaType is null", xmlSchemaType);
         Element connectorXsdSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(conn);
@@ -1052,7 +1052,7 @@ public class IntegrationTestTools {
         // Try to parse the schema
         PrismSchema schema;
         try {
-            schema = PrismSchemaImpl.parse(xsdElement, true, "schema of " + conn, prismContext);
+            schema = PrismSchemaImpl.parse(xsdElement, true, "schema of " + conn);
         } catch (SchemaException e) {
             throw new SchemaException("Error parsing schema of " + conn + ": " + e.getMessage(), e);
         }

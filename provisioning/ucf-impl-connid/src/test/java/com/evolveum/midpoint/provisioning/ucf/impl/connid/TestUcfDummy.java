@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod.EXCEPTION;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 import java.io.File;
@@ -20,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions.CompleteSchemaProvider;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -30,78 +31,53 @@ import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions.CompleteSchemaProvider;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.test.DummyHrScenario;
+import com.evolveum.midpoint.test.DummyHrScenario.Contract;
+import com.evolveum.midpoint.test.DummyHrScenario.OrgUnit;
+import com.evolveum.midpoint.test.DummyHrScenario.Person;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Simple UCF tests. No real resource, just basic setup and sanity.
- * <p>
- * This is an UCF test. It should not need repository or other things from the midPoint spring context
- * except from the provisioning beans. But due to a general issue with spring context initialization
- * this is a lesser evil for now (MID-392)
+ * Simple UCF tests, using dummy resource. Some tests even avoid UCF/ConnId.
  *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public class TestUcfDummy extends AbstractUcfDummyTest {
 
-    private static final File HIERARCHICAL_RESOURCE_DUMMY_FILE =
-            new File(UcfTestUtil.TEST_DIR, "hierarchical-resource-dummy.xml");
+    private static final File HR_RESOURCE_DUMMY_FILE =
+            new File(UcfTestUtil.TEST_DIR, "hr-resource-dummy.xml");
 
-    private PrismObject<ResourceType> hierarchicalResourceObject;
-    private ResourceType hierarchicalResourceBean;
+    /** Dummy resource with the support of hierarchical (LDAP-like) object names. Used for 2xx tests. */
     private DummyResource hierarchicalResource;
     private DummyResourceContoller hierarchicalResourceCtl;
-    private ConnectorInstance hierarchicalConnectorInstance;
 
-    /** For test2xx. */
-    private void initializeHierarchicalResourceIfNeeded() throws Exception {
-        if (hierarchicalResource != null) {
-            return;
-        }
+    /** Scenario with associations, HR-style. Used for 3xx tests. */
+    private DummyHrScenario hrScenario;
 
-        OperationResult result = createOperationResult();
-
-        hierarchicalResourceObject = PrismTestUtil.parseObject(HIERARCHICAL_RESOURCE_DUMMY_FILE);
-        hierarchicalResourceBean = hierarchicalResourceObject.asObjectable();
-
-        hierarchicalResourceCtl = DummyResourceContoller.create("hierarchical");
-        hierarchicalResourceCtl.setResource(hierarchicalResourceObject);
-        hierarchicalResourceCtl.extendSchemaPirate();
-        hierarchicalResource = hierarchicalResourceCtl.getDummyResource();
-
-        hierarchicalConnectorInstance =
-                connectorFactory.createConnectorInstance(connectorBean, "hierarchical", "");
-        assertNotNull("Failed to instantiate connector", hierarchicalConnectorInstance);
-
-        //noinspection unchecked
-        PrismContainerValue<ConnectorConfigurationType> configContainer =
-                hierarchicalResourceBean.getConnectorConfiguration().asPrismContainerValue();
-        displayDumpable("Configuration container", configContainer);
-        hierarchicalConnectorInstance.configure(
-                configContainer,
-                new ConnectorConfigurationOptions()
-                        .completeSchemaProvider(CompleteSchemaProvider.forResource(hierarchicalResourceBean)),
-                result);
-        hierarchicalConnectorInstance.initialize(null, null, result);
-    }
+    /** Connector instance to access {@link #hrScenario} via UCF. */
+    private ConnectorInstance hrConnectorInstance;
 
     @Test
     public void test000PrismContextSanity() {
@@ -109,9 +85,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
         assertNotNull("ICFC schema not found in the context (" + SchemaConstants.NS_ICF_CONFIGURATION + ")", schemaIcfc);
         PrismContainerDefinition<ConnectorConfigurationType> configurationPropertiesDef =
-                schemaIcfc.findContainerDefinitionByElementName(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+                schemaIcfc.findContainerDefinitionByElementName(CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
         assertNotNull("icfc:configurationProperties not found in icfc schema (" +
-                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME + ")", configurationPropertiesDef);
+                CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME + ")", configurationPropertiesDef);
         PrismSchema schemaIcfs = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_SCHEMA);
         assertNotNull("ICFS schema not found in the context (" + SchemaConstants.NS_ICF_SCHEMA + ")", schemaIcfs);
     }
@@ -129,7 +105,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         ResourceType resourceType = resource.asObjectable();
         assertNotNull("asObjectable resulted in null", resourceType);
 
-        assertPropertyValue(resource, "name", PrismTestUtil.createPolyString("Dummy Resource"));
+        assertPropertyValue(resource, "name", PolyString.fromOrig("Dummy Resource"));
         assertPropertyDefinition(resource, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 
         PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
@@ -138,8 +114,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         Collection<Item<?, ?>> configItems = configContainerValue.getItems();
         assertEquals("Wrong number of config items", 2, configItems.size());
 
-        PrismContainer<?> dummyConfigPropertiesContainer = configurationContainer.findContainer(
-                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+        PrismContainer<?> dummyConfigPropertiesContainer =
+                configurationContainer.findContainer(CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
         assertNotNull("No icfc:configurationProperties container", dummyConfigPropertiesContainer);
         Collection<Item<?, ?>> dummyConfigPropItems = dummyConfigPropertiesContainer.getValue().getItems();
         assertEquals("Wrong number of dummy ConfigPropItems items", 4, dummyConfigPropItems.size());
@@ -152,11 +128,11 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertEquals("Unexpected number of definitions", 3, connectorSchema.getDefinitions().size());
 
         Document xsdSchemaDom = connectorSchema.serializeToXsd();
-        assertNotNull("No serialized connector schema", xsdSchemaDom);
         displayValue("Serialized XSD connector schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
 
         // Try to re-parse
-        PrismSchema reparsedConnectorSchema = PrismSchemaImpl.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), true, "schema fetched from " + cc, PrismTestUtil.getPrismContext());
+        PrismSchema reparsedConnectorSchema =
+                PrismSchemaImpl.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), true, "");
         IntegrationTestTools.assertConnectorSchemaSanity(reparsedConnectorSchema, "re-parsed", true);
         // TODO: 3 definitions would be cleaner. But we can live with this
         assertEquals("Unexpected number of definitions in re-parsed schema", 6, reparsedConnectorSchema.getDefinitions().size());
@@ -177,8 +153,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         for (ConnectorType connector : connectors) {
             assertNotNull(connector.getName());
-            System.out.println("CONNECTOR OID=" + connector.getOid() + ", name=" + connector.getName() + ", version="
-                    + connector.getConnectorVersion());
+            System.out.printf("CONNECTOR OID=%s, name=%s, version=%s%n",
+                    connector.getOid(), connector.getName(), connector.getConnectorVersion());
             System.out.println("--");
             System.out.println(ObjectTypeUtil.dump(connector));
             System.out.println("--");
@@ -194,15 +170,13 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         cc = connectorFactory.createConnectorInstance(connectorBean,
                 "dummy",
                 "description of dummy test connector instance");
-        assertNotNull("Failed to instantiate connector", cc);
         OperationResult result = createOperationResult();
-        //noinspection unchecked
-        PrismContainerValue<ConnectorConfigurationType> configContainer =
-                resourceBean.getConnectorConfiguration().asPrismContainerValue();
-        displayDumpable("Configuration container", configContainer);
 
         // WHEN
-        configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceBean), result);
+        configure(
+                resourceBean.getConnectorConfiguration(),
+                ResourceTypeUtil.getSchemaGenerationConstraints(resourceBean),
+                result);
 
         // THEN
         result.computeStatus();
@@ -236,16 +210,10 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         cc = connectorFactory.createConnectorInstance(connectorBean,
                 "dummy",
                 "description of dummy test connector instance");
-        assertNotNull("Failed to instantiate connector", cc);
 
-        //noinspection unchecked
-        PrismContainerValue<ConnectorConfigurationType> configContainer =
-                resourceBean.getConnectorConfiguration().asPrismContainerValue();
-        displayDumpable("Configuration container", configContainer);
-        cc.configure(
-                configContainer,
-                new ConnectorConfigurationOptions()
-                        .completeSchemaProvider(CompleteSchemaProvider.forResource(resourceBean)),
+        configure(
+                resourceBean.getConnectorConfiguration(),
+                null,
                 result);
 
         // WHEN
@@ -280,16 +248,11 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         cc = connectorFactory.createConnectorInstance(connectorBean,
                 "dummy",
                 "description of dummy test connector instance");
-        assertNotNull("Failed to instantiate connector", cc);
 
-        //noinspection unchecked
-        PrismContainerValue<ConnectorConfigurationType> configContainer =
-                resourceBean.getConnectorConfiguration().asPrismContainerValue();
-        displayDumpable("Configuration container", configContainer);
-        List<QName> objectClassesToGenerate = new ArrayList<>();
-        objectClassesToGenerate.add(RI_ACCOUNT_OBJECT_CLASS);
-
-        configure(configContainer, objectClassesToGenerate, result);
+        configure(
+                resourceBean.getConnectorConfiguration(),
+                List.of(RI_ACCOUNT_OBJECT_CLASS),
+                result);
 
         // WHEN
         resourceSchema = cc.fetchResourceSchema(result);
@@ -327,24 +290,17 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     public void test040AddAccount() throws Exception {
         OperationResult result = createOperationResult();
 
-        ResourceObjectClassDefinition defaultAccountDefinition =
-                resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
-        ShadowType shadowType = new ShadowType();
-        PrismTestUtil.getPrismContext().adopt(shadowType);
-        shadowType.setName(PrismTestUtil.createPolyStringType(ACCOUNT_JACK_USERNAME));
-        ObjectReferenceType resourceRef = new ObjectReferenceType();
-        resourceRef.setOid(resource.getOid());
-        shadowType.setResourceRef(resourceRef);
-        shadowType.setObjectClass(defaultAccountDefinition.getTypeName());
-        PrismObject<ShadowType> shadow = shadowType.asPrismObject();
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
-        ResourceAttribute<String> icfsNameProp = attributesContainer.findOrCreateAttribute(SchemaConstants.ICFS_NAME);
-        icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
+        var accountClassDefinition = resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
 
-        // WHEN
+        var shadow = ShadowBuilder.withDefinition(accountClassDefinition)
+                .onResource(resource.getOid())
+                .withAttribute(SchemaConstants.ICFS_NAME, ACCOUNT_JACK_USERNAME)
+                .asPrismObject();
+
+        when();
         cc.addObject(shadow, null, result);
 
-        // THEN
+        then();
         DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_JACK_USERNAME);
         assertNotNull("Account " + ACCOUNT_JACK_USERNAME + " was not created", dummyAccount);
         assertNotNull("Account " + ACCOUNT_JACK_USERNAME + " has no username", dummyAccount.getName());
@@ -352,28 +308,28 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test050Search() throws Exception {
-        // GIVEN
-        UcfExecutionContext ctx = createExecutionContext();
 
-        final ResourceObjectClassDefinition accountDefinition =
-                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
-        // Determine object class from the schema
+        var accountClassDefinition = resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
 
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
         UcfObjectHandler handler = (ucfObject, result) -> {
             displayDumpable("Search: found", ucfObject);
-            checkUcfObject(ucfObject, accountDefinition);
+            checkUcfObject(ucfObject, accountClassDefinition);
             searchResults.add(ucfObject.getPrismObject());
             return true;
         };
 
+        UcfExecutionContext ctx = createExecutionContext();
         OperationResult result = createOperationResult();
 
-        // WHEN
-        cc.search(accountDefinition, null, handler, null, null, null, null, ctx, result);
+        when();
+        cc.search(
+                accountClassDefinition, null, handler,
+                null, null, null, null,
+                ctx, result);
 
-        // THEN
+        then();
         assertEquals("Unexpected number of search results", 1, searchResults.size());
     }
 
@@ -394,58 +350,51 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         UcfExecutionContext ctx = createExecutionContext();
         OperationResult result = createOperationResult();
 
-        ResourceObjectClassDefinition accountDefinition =
-                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
-        //noinspection unchecked
-        ResourceAttribute<String> uid =
-                (ResourceAttribute<String>) accountDefinition.getPrimaryIdentifiers().iterator().next().instantiate();
-        uid.setRealValue("jack");
-        //noinspection unchecked
-        ResourceAttribute<String> name =
-                (ResourceAttribute<String>) accountDefinition.getSecondaryIdentifiers().iterator().next().instantiate();
-        name.setRealValue("jack");
-        var identification = ResourceObjectIdentification.withPrimary(accountDefinition, uid, List.of(name));
+        var accountClassDefinition = resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
+        var uidAttr = accountClassDefinition.<String>getPrimaryIdentifierRequired().instantiateFromRealValue("jack");
+        var nameAttr = accountClassDefinition.<String>getSecondaryIdentifierRequired().instantiateFromRealValue("jack");
+        var identification = ResourceObjectIdentification.withPrimary(accountClassDefinition, uidAttr, List.of(nameAttr));
 
-        when("getting account by UID");
+        when("getting account by UID with name hint");
         var resourceObject = cc.fetchObject(identification, null, ctx, result);
 
         then("account is retrieved OK");
         displayDumpable("resourceObject retrieved", resourceObject);
         assertThat(resourceObject).as("resourceObject").isNotNull();
-        checkUcfObject(resourceObject, accountDefinition);
+        checkUcfObject(resourceObject, accountClassDefinition);
     }
 
+    /** No operation, no sync changes. */
     @Test
     public void test100FetchEmptyChanges() throws Exception {
         OperationResult result = createOperationResult();
-        ResourceObjectClassDefinition accountDefinition =
-                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
+        var accountClassDefinition = resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
 
-        // WHEN
-        UcfSyncToken lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
+        when("current token is fetched");
+        UcfSyncToken lastToken = cc.fetchCurrentToken(accountClassDefinition, null, result);
 
+        then();
+        displayValue("Token", lastToken);
         assertNotNull("No last sync token", lastToken);
 
-        System.out.println("Token:");
-        System.out.println(lastToken);
-
-        // WHEN
+        when("changes are fetched");
         CollectingChangeListener handler = new CollectingChangeListener();
-        cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
+        cc.fetchChanges(accountClassDefinition, lastToken, null, null, null, handler, result);
 
-        AssertJUnit.assertEquals(0, handler.getChanges().size());
+        then();
+        assertThat(handler.getChanges()).as("changes").isEmpty();
     }
 
+    /** An account is manually added to the resource; then a single sync change is fetched. */
     @Test
     public void test101FetchAddChange() throws Exception {
         OperationResult result = createOperationResult();
-        ResourceObjectClassDefinition accountDefinition =
-                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
+        var accountClassDefinition = resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
 
-        UcfSyncToken lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
+        UcfSyncToken lastToken = cc.fetchCurrentToken(accountClassDefinition, null, result);
         assertNotNull("No last sync token", lastToken);
 
-        // Add account to the resource
+        given("account is added to the resource");
         dummyResource.setSyncStyle(DummySyncStyle.DUMB);
         DummyAccount newAccount = new DummyAccount("blackbeard");
         newAccount.addAttributeValues("fullname", "Edward Teach");
@@ -453,11 +402,13 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         newAccount.setPassword("shiverMEtimbers");
         dummyResource.addAccount(newAccount);
 
-        // WHEN
+        when("changes are fetched");
         CollectingChangeListener handler = new CollectingChangeListener();
-        cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
-        List<UcfLiveSyncChange> changes = handler.getChanges();
+        cc.fetchChanges(accountClassDefinition, lastToken, null, null, null, handler, result);
 
+        then("there is 1 change, and is sane");
+
+        List<UcfLiveSyncChange> changes = handler.getChanges();
         AssertJUnit.assertEquals(1, changes.size());
         UcfLiveSyncChange change = changes.get(0);
         assertNotNull("null change", change);
@@ -469,8 +420,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertFalse("empty identifiers", identifiers.isEmpty());
     }
 
+    /** Checks if the hierarchical support on {@link DummyResource} works OK (no UCF/ConnId contact). */
     @Test
-    public void test200AddObjects() throws Exception {
+    public void test200AddHierarchicalObjects() throws Exception {
         initializeHierarchicalResourceIfNeeded();
 
         given("an org exists");
@@ -500,8 +452,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertThat(hierarchicalResource.getAccountByName("test:org200")).isNotNull();
     }
 
+    /** Again, checks the hierarchical support (deleting non-empty org); no UCF/ConnId access here. */
     @Test
-    public void test210DeleteNonEmptyOrg() throws Exception {
+    public void test210DeleteNonEmptyOrgInHierarchy() throws Exception {
         initializeHierarchicalResourceIfNeeded();
 
         given("an org with account exists");
@@ -517,8 +470,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         }
     }
 
+    /** Again a hierarchical support test (rename org -> renaming its content). No UCF/ConnId. */
     @Test
-    public void test220RenameOrg() throws Exception {
+    public void test220RenameOrgInHierarchy() throws Exception {
         initializeHierarchicalResourceIfNeeded();
 
         given("two nested orgs with an account exist");
@@ -546,6 +500,22 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertAccountExists("test:org220a:root220a");
     }
 
+    /** For test2xx. */
+    private void initializeHierarchicalResourceIfNeeded() throws Exception {
+        if (hierarchicalResource != null) {
+            return;
+        }
+
+        hierarchicalResourceCtl = DummyResourceContoller.create("hierarchical")
+                .extendSchemaPirate();
+
+        hierarchicalResource = hierarchicalResourceCtl.getDummyResource();
+        hierarchicalResource.setUidMode(UidMode.UUID);
+        hierarchicalResource.setHierarchicalObjectsEnabled(true);
+
+        // No need for UCF/ConnId access
+    }
+
     private void assertOrgExists(String name)
             throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
         DummyOrg org = hierarchicalResource.getOrgByName(name);
@@ -556,6 +526,123 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
             throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
         DummyAccount account = hierarchicalResource.getAccountByName(name);
         assertThat(account).as("account named '" + name + "'").isNotNull();
+    }
+
+    /** Creates some associations manually, and then queries them via UCF. */
+    @Test
+    public void test300QueryAssociations() throws Exception {
+        initializeHrScenarioIfNeeded();
+
+        given("some objects and links are created");
+
+        DummyObject sciences = hrScenario.orgUnit.add("sciences")
+                .addAttributeValues(OrgUnit.AttributeNames.DESCRIPTION.local(), "Faculty of Sciences");
+        DummyObject law = hrScenario.orgUnit.add("law")
+                .addAttributeValues(OrgUnit.AttributeNames.DESCRIPTION.local(), "Faculty of Law");
+
+        DummyObject john = hrScenario.person.add("john")
+                .addAttributeValue(Person.AttributeNames.FIRST_NAME.local(), "John")
+                .addAttributeValue(Person.AttributeNames.LAST_NAME.local(), "Doe")
+                .addAttributeValue(Person.AttributeNames.TITLE.local(), "Ing.");
+
+        DummyObject johnContractSciences = hrScenario.contract.add("john-sciences");
+        DummyObject johnContractLaw = hrScenario.contract.add("john-law");
+
+        hrScenario.personContract.add(john, johnContractSciences);
+        hrScenario.personContract.add(john, johnContractLaw);
+
+        hrScenario.contractOrgUnit.add(johnContractSciences, sciences);
+        hrScenario.contractOrgUnit.add(johnContractLaw, law);
+
+        then("associations on the resource are OK");
+
+        displayDumpable("dummy resource", hrScenario.getDummyResource());
+
+        assertThat(john.getLinkedObjects(Person.LinkNames.CONTRACT))
+                .as("john's contracts")
+                .containsExactlyInAnyOrder(johnContractSciences, johnContractLaw);
+        assertThat(johnContractSciences.getLinkedObjects(Contract.LinkNames.ORG))
+                .as("john first contract's org")
+                .containsExactlyInAnyOrder(sciences);
+        assertThat(johnContractLaw.getLinkedObjects(Contract.LinkNames.ORG))
+                .as("john second contract's org")
+                .containsExactlyInAnyOrder(law);
+        assertThat(sciences.getLinkedObjects(OrgUnit.LinkNames.CONTRACT))
+                .as("sciences' contracts")
+                .containsExactlyInAnyOrder(johnContractSciences);
+        assertThat(law.getLinkedObjects(OrgUnit.LinkNames.CONTRACT))
+                .as("law's contracts")
+                .containsExactlyInAnyOrder(johnContractLaw);
+
+        when("associations are queried via UCF");
+
+        OperationResult result = createOperationResult();
+        UcfExecutionContext ctx = createExecutionContext(hrScenario.getResourceBean());
+
+        ResourceObjectDefinition personDefinition = hrScenario.person.getObjectClassDefinition();
+        var handler = new UcfObjectHandler.Collecting();
+        hrConnectorInstance.search(
+                personDefinition,
+                PrismContext.get().queryFor(ShadowType.class)
+                        .item(
+                                Person.AttributeNames.FIRST_NAME.path(),
+                                personDefinition.findAttributeDefinitionRequired(Person.AttributeNames.FIRST_NAME.q()))
+                        .eq("John")
+                        .build(),
+                handler,
+                null, null, null, EXCEPTION, ctx, result);
+
+        then("these are OK");
+
+        List<UcfResourceObject> objects = handler.getCollectedObjects();
+        assertThat(objects).as("objects found").hasSize(1);
+        UcfResourceObject johnUcfObject = objects.get(0);
+
+        displayDumpable("john's UCF object", johnUcfObject);
+        assertThat(johnUcfObject.getAttributeRealValues(Person.AttributeNames.FIRST_NAME.q()))
+                .as("john's first name")
+                .containsExactlyInAnyOrder("John");
+        assertThat(johnUcfObject.getAttributeRealValues(Person.AttributeNames.LAST_NAME.q()))
+                .as("john's last name")
+                .containsExactlyInAnyOrder("Doe");
+        assertThat(johnUcfObject.getAttributeRealValues(Person.AttributeNames.TITLE.q()))
+                .as("john's title")
+                .containsExactlyInAnyOrder("Ing.");
+    }
+
+    /** For test3xx. */
+    private void initializeHrScenarioIfNeeded() throws Exception {
+        if (hrScenario != null) {
+            return;
+        }
+
+        OperationResult result = createOperationResult();
+
+        var resourceDef = PrismTestUtil.<ResourceType>parseObjectable(HR_RESOURCE_DUMMY_FILE);
+
+        DummyResourceContoller hrResourceCtl = DummyResourceContoller.create("hr")
+                .setResource(resourceDef);
+        hrScenario = DummyHrScenario.on(hrResourceCtl).initialize();
+
+        var configuration = resourceDef.getConnectorConfiguration();
+        displayDumpable("Configuration", configuration);
+
+        hrConnectorInstance = connectorFactory
+                .createConnectorInstance(connectorBean, "hr", "")
+                .configure(
+                        configuration.asPrismContainerValue(),
+                        new ConnectorConfigurationOptions()
+                                .completeSchemaProvider(CompleteSchemaProvider.forResource(resourceDef)),
+                        result)
+                .initialize(null, null, result);
+
+        var rawResourceSchema = hrConnectorInstance.fetchResourceSchema(result);
+        assertThat(rawResourceSchema).as("raw HR resource schema").isNotNull();
+
+        hrScenario.attachResourceSchema(
+                ResourceSchemaFactory.parseCompleteSchema(resourceDef, rawResourceSchema));
+
+        displayDumpable("HR resource schema", hrScenario.getResourceSchemaRequired());
     }
 
     @Test

@@ -128,7 +128,7 @@ public class ItemPathCanonicalizationTest extends AbstractSchemaTest {
     }
 
     private void assertCanonical(ItemPath path, QName objectType, String... representations) {
-        CanonicalItemPathImpl canonicalItemPath = CanonicalItemPathImpl.create(path, objectType, getPrismContext());
+        CanonicalItemPathImpl canonicalItemPath = CanonicalItemPathImpl.create(path, objectType);
         System.out.println(path + " => " + canonicalItemPath.asString() + "  (" + objectType + ")");
         for (int i = 0; i < representations.length; i++) {
             String c = canonicalItemPath.allUpToIncluding(i).asString();

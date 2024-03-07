@@ -26,8 +26,8 @@ public class RefineryObjectFactory {
      */
     @SafeVarargs
     public static <O extends Objectable, X> ShadowCoordinatesQualifiedObjectDelta<O> createShadowDiscriminatorModificationReplaceProperty(Class<O> type,
-            String resourceOid, ShadowKindType kind, String intent, ItemPath propertyPath, PrismContext prismContext, X... propertyValues) {
-        ShadowCoordinatesQualifiedObjectDelta<O> objectDelta = new ShadowCoordinatesQualifiedObjectDeltaImpl<>(type, ChangeType.MODIFY, prismContext);
+            String resourceOid, ShadowKindType kind, String intent, ItemPath propertyPath, X... propertyValues) {
+        ShadowCoordinatesQualifiedObjectDelta<O> objectDelta = new ShadowCoordinatesQualifiedObjectDeltaImpl<>(type, ChangeType.MODIFY);
         objectDelta.setCoordinates(new ResourceShadowCoordinates(resourceOid, kind, intent, null));
         ObjectDeltaFactoryImpl.fillInModificationReplaceProperty(objectDelta, propertyPath, propertyValues);
         return objectDelta;

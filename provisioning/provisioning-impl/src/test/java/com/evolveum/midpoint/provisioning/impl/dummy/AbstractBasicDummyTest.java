@@ -138,7 +138,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertSuccess(result);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(connector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(connector);
 
         IntegrationTestTools.assertNoSchema(resource);
     }
@@ -172,7 +172,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             assertNotNull("No schema", connectorXsdSchemaElement);
 
             // Try to parse the schema
-            PrismSchema schema = PrismSchemaImpl.parse(connectorXsdSchemaElement, true, "connector schema " + conn, prismContext);
+            PrismSchema schema = PrismSchemaImpl.parse(connectorXsdSchemaElement, true, "connector schema " + conn);
             assertNotNull("Cannot parse schema", schema);
             assertFalse("Empty schema", schema.isEmpty());
 
@@ -1562,7 +1562,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         ObjectModificationType accountDeltaBean =
                 PrismTestUtil.parseAtomicValue(MODIFY_WILL_FULLNAME_FILE, ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<ShadowType> accountDelta =
-                DeltaConvertor.createObjectDelta(accountDeltaBean, ShadowType.class, prismContext);
+                DeltaConvertor.createObjectDelta(accountDeltaBean, ShadowType.class);
 
         when();
         provisioningService.applyDefinition(accountDelta, task, result);

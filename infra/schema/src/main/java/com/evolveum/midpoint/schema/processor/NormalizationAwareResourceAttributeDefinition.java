@@ -376,11 +376,6 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     }
 
     @Override
-    public PrismContext getPrismContext() {
-        return PrismContext.get();
-    }
-
-    @Override
     public boolean canRead() {
         return originalDefinition.canRead();
     }
@@ -428,7 +423,7 @@ public class NormalizationAwareResourceAttributeDefinition<T>
 
     @Override
     public @NotNull PropertyDelta<T> createEmptyDelta(ItemPath path) {
-        return new PropertyDeltaImpl<>(path, this, PrismContext.get());
+        return new PropertyDeltaImpl<>(path, this);
     }
 
     public @NotNull PropertyDelta<T> createEmptyDelta() {
@@ -456,12 +451,12 @@ public class NormalizationAwareResourceAttributeDefinition<T>
 
     @Override
     public @NotNull PrismProperty<T> instantiate() {
-        return new PrismPropertyImpl<>(getItemName(), this, PrismContext.get());
+        return new PrismPropertyImpl<>(getItemName(), this);
     }
 
     @Override
     public @NotNull PrismProperty<T> instantiate(QName name) {
-        return new PrismPropertyImpl<>(name, this, PrismContext.get());
+        return new PrismPropertyImpl<>(name, this);
     }
 
     @Override

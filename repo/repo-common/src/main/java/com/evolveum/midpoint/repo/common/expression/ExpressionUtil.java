@@ -86,7 +86,7 @@ public class ExpressionUtil {
         intermediateInputVal = treatAdditionalConvertor(additionalConvertor, intermediateInputVal);
 
         O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateInputVal);
-        PrismUtil.recomputeRealValue(convertedVal, PrismContext.get());
+        PrismUtil.recomputeRealValue(convertedVal);
         return convertedVal;
     }
 
@@ -242,7 +242,6 @@ public class ExpressionUtil {
         }
 
         TypedValue<?> convertedTypedValue = originalTypedValue.shallowClone();
-        convertedTypedValue.setPrismContext(prismContext);
 
         if (convertedTypedValue.getValue() instanceof Referencable) {
             convertedTypedValue = resolveReference(convertedTypedValue,
@@ -250,12 +249,12 @@ public class ExpressionUtil {
                     task, result);
         }
 
-        return convertToRealValueIfRequested(convertedTypedValue, valueVariableMode, prismContext);
+        return convertToRealValueIfRequested(convertedTypedValue, valueVariableMode);
     }
 
     @NotNull
     private static TypedValue<?> convertToRealValueIfRequested(TypedValue<?> typedValue,
-            ValueVariableModeType valueVariableMode, PrismContext prismContext) {
+            ValueVariableModeType valueVariableMode) {
 
         Object value = typedValue.getValue();
         if (value == null) {
@@ -268,7 +267,7 @@ public class ExpressionUtil {
             }
         } else if (value instanceof Item) {
             if (valueVariableMode == ValueVariableModeType.REAL_VALUE) {
-                return convertItemToRealValues(typedValue, prismContext);
+                return convertItemToRealValues(typedValue);
             } else {
                 // TODO should we attempt to convert Item to a list of PrismValues?
                 return typedValue;
@@ -286,7 +285,7 @@ public class ExpressionUtil {
         }
     }
 
-    private static TypedValue<?> convertItemToRealValues(TypedValue<?> typedValue, PrismContext prismContext) {
+    private static TypedValue<?> convertItemToRealValues(TypedValue<?> typedValue) {
         Object value = typedValue.getValue();
         if (value instanceof PrismObject<?> object) {
             typedValue.setValue(object.asObjectable());
@@ -301,7 +300,7 @@ public class ExpressionUtil {
                 }
             } else {
                 // Guess, but we may be wrong
-                PrismPropertyDefinition<?> fakeDef = prismContext.definitionFactory().createPropertyDefinition(
+                PrismPropertyDefinition<?> fakeDef = PrismContext.get().definitionFactory().createPropertyDefinition(
                         prop.getElementName(), PrimitiveType.STRING.getQname());
                 return new TypedValue<>(prop.getRealValues(), fakeDef);
             }
@@ -314,7 +313,7 @@ public class ExpressionUtil {
                     return new TypedValue<>(ref.getRealValues(), def);
                 }
             } else {
-                PrismReferenceDefinition fakeDef = prismContext.definitionFactory().createReferenceDefinition(
+                PrismReferenceDefinition fakeDef = PrismContext.get().definitionFactory().createReferenceDefinition(
                         ref.getElementName(), ObjectType.COMPLEX_TYPE);
                 return new TypedValue<>(ref.getRealValues(), fakeDef);
             }

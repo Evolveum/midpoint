@@ -220,7 +220,6 @@ public class TestDiffEquals extends AbstractSchemaTest {
         assertTrue(user.getAssignment().contains(a2identical));
 
         ObjectDelta<UserType> delta1 = user.asPrismObject().createDelta(ChangeType.DELETE);       // delta1 is without prismContext
-        assertNull(delta1.getPrismContext());
 
         // (2) user with prismContext
 
@@ -238,12 +237,9 @@ public class TestDiffEquals extends AbstractSchemaTest {
         assertTrue(user.getAssignment().contains(b2identical));
 
         // b1 and b2 obtain context when they are added to the container
-        assertNotNull(b1.asPrismContainerValue().getPrismContext());
-        assertNotNull(b2.asPrismContainerValue().getPrismContext());
         assertFalse(b1.equals(b2));
 
         ObjectDelta<UserType> delta2 = userWithContext.asPrismObject().createDelta(ChangeType.DELETE);
-        assertNotNull(delta2.getPrismContext());
     }
 
     @Test

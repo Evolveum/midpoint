@@ -169,7 +169,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public synchronized void configure(
+    public synchronized ConnectorInstance configure(
             @NotNull PrismContainerValue<?> configurationOriginal,
             @NotNull ConnectorConfigurationOptions options,
             @NotNull OperationResult parentResult)
@@ -251,6 +251,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         } finally {
             result.close();
         }
+        return this;
     }
 
     private void logTransformedConfiguration() {
@@ -325,7 +326,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public void initialize(
+    public @NotNull ConnectorInstance initialize(
             @Nullable CompleteResourceSchema resourceSchema,
             @Nullable CapabilityCollectionType capabilities,
             OperationResult parentResult)
@@ -355,6 +356,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         } finally {
             result.close();
         }
+        return this;
     }
 
     public void updateSchema(CompleteResourceSchema resourceSchema) {

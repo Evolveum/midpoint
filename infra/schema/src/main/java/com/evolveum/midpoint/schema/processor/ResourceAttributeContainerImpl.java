@@ -47,7 +47,7 @@ public final class ResourceAttributeContainerImpl
      * Use the factory methods in the {@link ResourceObjectDefinition} instead.
      */
     ResourceAttributeContainerImpl(QName name, ResourceAttributeContainerDefinition definition) {
-        super(name, definition, PrismContext.get());
+        super(name, definition);
     }
 
     @Override
@@ -185,6 +185,7 @@ public final class ResourceAttributeContainerImpl
         return getValue().contains(attr);
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ResourceAttributeContainer clone() {
         return cloneComplex(CloneStrategy.LITERAL);
@@ -197,7 +198,7 @@ public final class ResourceAttributeContainerImpl
         return clone;
     }
 
-    protected void copyValues(CloneStrategy strategy, ResourceAttributeContainerImpl clone) {
+    private void copyValues(CloneStrategy strategy, ResourceAttributeContainerImpl clone) {
         super.copyValues(strategy, clone);
         // Nothing to copy
     }

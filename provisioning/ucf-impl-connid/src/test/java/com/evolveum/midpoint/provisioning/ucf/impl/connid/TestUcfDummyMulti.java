@@ -75,17 +75,17 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
     @Test
     public void test020CreateConfiguredConnector() throws Exception {
+        OperationResult result = createOperationResult();
+
         cc = connectorFactory.createConnectorInstance(connectorBean,
                 "dummy",
                 "description of dummy test connector instance");
-        assertNotNull("Failed to instantiate connector", cc);
-        OperationResult result = createOperationResult();
-        PrismContainerValue<ConnectorConfigurationType> configContainer =
-                resourceBean.getConnectorConfiguration().asPrismContainerValue();
-        displayDumpable("Configuration container", configContainer);
 
         // WHEN
-        configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceBean), result);
+        configure(
+                resourceBean.getConnectorConfiguration(),
+                ResourceTypeUtil.getSchemaGenerationConstraints(resourceBean),
+                result);
 
         // THEN
         result.computeStatus();

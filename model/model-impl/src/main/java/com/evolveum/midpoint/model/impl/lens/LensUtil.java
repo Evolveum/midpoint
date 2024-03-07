@@ -377,7 +377,7 @@ public class LensUtil {
     // [EP:APSO] DONE origins are correct here
     public static @NotNull <R extends AbstractRoleType> List<AssignmentConfigItem> getForcedAssignments(
             LifecycleStateModelType lifecycleModel, String stateName,
-            ObjectResolver objectResolver, PrismContext prismContext, Task task, OperationResult result)
+            ObjectResolver objectResolver, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
@@ -391,7 +391,7 @@ public class LensUtil {
         if (forcedAssignmentSpec != null) {
             objectResolver.searchIterative(
                     forcedAssignmentSpec.type(),
-                    prismContext.queryFactory().createQuery(forcedAssignmentSpec.filter()),
+                    PrismContext.get().queryFactory().createQuery(forcedAssignmentSpec.filter()),
                     createReadOnlyCollection(),
                     (object, result1) -> {
                         forcedAssignments.add( // [EP:APSO] this results in pure generated assignment, no expressions
@@ -824,7 +824,7 @@ public class LensUtil {
         context.getSequences().clear();
     }
 
-    public static <AH extends AssignmentHolderType> void applyObjectPolicyConstraints(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy, PrismContext prismContext) throws SchemaException, ConfigurationException {
+    public static <AH extends AssignmentHolderType> void applyObjectPolicyConstraints(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy) throws SchemaException, ConfigurationException {
         if (archetypePolicy == null) {
             return;
         }
@@ -836,11 +836,11 @@ public class LensUtil {
         }
 
         for (ItemConstraintType itemConstraintType : archetypePolicy.getItemConstraint()) {
-            applyObjectPolicyItemConstraint(focusContext, archetypePolicy, prismContext, focusNew, itemConstraintType);
+            applyObjectPolicyItemConstraint(focusContext, archetypePolicy, focusNew, itemConstraintType);
         }
     }
 
-    private static <AH extends AssignmentHolderType> void applyObjectPolicyItemConstraint(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy, PrismContext prismContext, PrismObject<AH> focusNew, ItemConstraintType itemConstraintType) throws SchemaException, ConfigurationException {
+    private static <AH extends AssignmentHolderType> void applyObjectPolicyItemConstraint(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy, PrismObject<AH> focusNew, ItemConstraintType itemConstraintType) throws SchemaException, ConfigurationException {
         if (itemConstraintType.getPath() == null) {
             LOGGER.error("Invalid configuration. Path is mandatory for property constraint definition in {} defined in system configuration", archetypePolicy);
             throw new SchemaException("Invalid configuration. Path is mandatory for property constraint definition in " + archetypePolicy + " defined in system configuration.");
@@ -861,9 +861,9 @@ public class LensUtil {
                 }
                 PropertyDelta<Object> propDelta = propDef.createEmptyDelta(itemPath);
                 if (String.class.isAssignableFrom(propDef.getTypeClass())) {
-                    propDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(newValue, OriginType.USER_POLICY, null));
+                    propDelta.setValueToReplace(PrismContext.get().itemFactory().createPropertyValue(newValue, OriginType.USER_POLICY, null));
                 } else if (PolyString.class.isAssignableFrom(propDef.getTypeClass())) {
-                    propDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(new PolyString(newValue), OriginType.USER_POLICY, null));
+                    propDelta.setValueToReplace(PrismContext.get().itemFactory().createPropertyValue(new PolyString(newValue), OriginType.USER_POLICY, null));
                 } else {
                     throw new SchemaException("Unsupported type "+propDef.getTypeName()+" for property "+itemPath+" in "+focusDefinition+" as specified in object policy, only string and polystring properties are supported for OID-bound mode");
                 }

@@ -33,7 +33,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class UcfUtil {
 
-    public static void addConnectorNames(ConnectorType connectorType, String frameworkPrefix, String bundle, String type, String version, ConnectorHostType hostType) {
+    public static void addConnectorNames(ConnectorType connectorType, String frameworkPrefix, String type, String version, ConnectorHostType hostType) {
         StringBuilder connectorName = new StringBuilder();
         connectorName.append(frameworkPrefix).append(" ");
         connectorName.append(type);
@@ -55,7 +55,7 @@ public class UcfUtil {
         connectorType.setDisplayName(new PolyStringType(displayName.toString()));
     }
 
-    public static PrismSchema getConnectorSchema(ConnectorType connectorType, PrismContext prismContext) throws SchemaException {
+    public static PrismSchema getConnectorSchema(ConnectorType connectorType) throws SchemaException {
         XmlSchemaType xmlSchema = connectorType.getSchema();
         if (xmlSchema == null) {
             return null;
@@ -64,9 +64,9 @@ public class UcfUtil {
         if (xsdElement == null) {
             return null;
         }
-        MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(
+        MutablePrismSchema connectorSchema = PrismContext.get().schemaFactory().createPrismSchema(
                 DOMUtil.getSchemaTargetNamespace(xsdElement));
-        connectorSchema.parseThis(xsdElement, true, connectorType.toString(), prismContext);
+        connectorSchema.parseThis(xsdElement, true, connectorType.toString());
         return connectorSchema;
     }
 

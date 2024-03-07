@@ -508,7 +508,7 @@ public class ObjectImporter {
             }
             try {
                 connectorSchema = prismContext.schemaFactory().createPrismSchema(DOMUtil.getSchemaTargetNamespace(connectorSchemaElement));
-                connectorSchema.parseThis(connectorSchemaElement, true, "schema for " + connector, prismContext);
+                connectorSchema.parseThis(connectorSchemaElement, true, "schema for " + connector);
             } catch (SchemaException e) {
                 result.recordFatalError("Error parsing connector schema for " + connector + ": " + e.getMessage(), e);
                 return;
@@ -565,7 +565,7 @@ public class ObjectImporter {
 
         try {
             prismContext.schemaFactory().createPrismSchema(DOMUtil.getSchemaTargetNamespace(xsdElement))
-                    .parseThis(xsdElement, true, schemaName, prismContext);
+                    .parseThis(xsdElement, true, schemaName);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema integrity check: " + e.getMessage(), e);
             return;

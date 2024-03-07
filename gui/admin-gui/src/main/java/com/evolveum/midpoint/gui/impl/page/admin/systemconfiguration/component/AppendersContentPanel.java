@@ -189,7 +189,6 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
                 container = new SyslogAppenderConfigurationType().asPrismContainerValue();
             }
             container.setParent(model.getObject().getItem());
-            container.setPrismContext(PrismContext.get());
         }
 
         PrismContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = createNewItemContainerValueWrapper(container, model.getObject(), target);

@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DummyPrivilege extends DummyObject {
 
+    public static final String OBJECT_CLASS_NAME = "privilege";
+
     public DummyPrivilege() {
         super();
     }
@@ -24,7 +26,7 @@ public class DummyPrivilege extends DummyObject {
 
     @Override
     public @NotNull String getObjectClassName() {
-        return DummyResource.OBJECTCLASS_PRIVILEGE_NAME;
+        return OBJECT_CLASS_NAME;
     }
 
     @Override

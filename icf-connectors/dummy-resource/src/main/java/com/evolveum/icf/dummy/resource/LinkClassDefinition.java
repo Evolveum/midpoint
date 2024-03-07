@@ -58,6 +58,12 @@ public class LinkClassDefinition {
         return name;
     }
 
+    public @NotNull List<LinkDefinition> getLinkDefinitions() {
+        return List.of(
+                new LinkDefinition(this, FIRST),
+                new LinkDefinition(this, SECOND));
+    }
+
     public @NotNull Participant getFirstParticipant() {
         return firstParticipant;
     }
@@ -173,6 +179,10 @@ public class LinkClassDefinition {
             return minOccurs == 1 && maxOccurs == 1;
         }
 
+        public boolean isVisible() {
+            return linkName != null;
+        }
+
         public static final class ParticipantBuilder {
             private Set<String> objectClassNames;
             private String attributeName;
@@ -194,8 +204,13 @@ public class LinkClassDefinition {
                 return this;
             }
 
-            public ParticipantBuilder withAttributeName(String attributeName) {
-                this.attributeName = attributeName;
+            public ParticipantBuilder withObjectClassNames(String... objectClassNames) {
+                this.objectClassNames = Set.of(objectClassNames);
+                return this;
+            }
+
+            public ParticipantBuilder withLinkAttributeName(String name) {
+                this.attributeName = name;
                 return this;
             }
 

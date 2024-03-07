@@ -10,7 +10,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 /**
  * @author Radovan Semancik
@@ -20,8 +24,8 @@ public class DummyObjectClass {
 
     @NotNull private final Collection<DummyAttributeDefinition> attributeDefinitions = new ArrayList<>();
 
-    /** Links relevant to this object class. Maintained by the resource itself. */
-    @NotNull private final Collection<LinkClassDefinition> linkClassDefinitions = new HashSet<>();
+    /** Links relevant to this object class. Maintained by the resource itself. Indexed by (non-null) local link name.*/
+    @NotNull private final Map<String, LinkDefinition> visibleLinkDefinitionMap = new ConcurrentHashMap<>();
 
     public @NotNull Collection<DummyAttributeDefinition> getAttributeDefinitions() {
         return attributeDefinitions;
@@ -42,7 +46,7 @@ public class DummyObjectClass {
 
     public void clear() {
         attributeDefinitions.clear();
-        linkClassDefinitions.clear();
+        visibleLinkDefinitionMap.clear();
     }
 
     public void addAttributeDefinition(String attributeName) {
@@ -63,11 +67,18 @@ public class DummyObjectClass {
         add(attrDef);
     }
 
-    public @NotNull Collection<LinkClassDefinition> getLinkClassDefinitions() {
-        return linkClassDefinitions;
+    public Collection<LinkDefinition> getVisibleLinkDefinitions() {
+        return Collections.unmodifiableCollection(
+                visibleLinkDefinitionMap.values());
     }
 
-    public void addLinkClassDefinition(LinkClassDefinition definition) {
-        linkClassDefinitions.add(definition);
+    public LinkDefinition getVisibleLinkDefinition(@NotNull String linkName) {
+        return visibleLinkDefinitionMap.get(linkName);
+    }
+
+    synchronized void addLinkDefinition(LinkDefinition definition) {
+        var name = argNonNull(definition.getLinkName(), "No link name in %s", definition);
+        stateCheck(!visibleLinkDefinitionMap.containsKey(name), "Link definition for %s already exists", name);
+        visibleLinkDefinitionMap.put(name, definition);
     }
 }

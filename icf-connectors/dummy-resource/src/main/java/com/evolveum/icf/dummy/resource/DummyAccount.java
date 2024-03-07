@@ -19,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DummyAccount extends DummyObject {
 
+    /** BEWARE! The dummy controller may represent this class as `__ACCOUNT__` (if using legacy schema mode). */
+    public static final String OBJECT_CLASS_NAME = "account";
+
     public static final String ATTR_FULLNAME_NAME = "fullname";
     public static final String ATTR_DESCRIPTION_NAME = "description";
     public static final String ATTR_INTERESTS_NAME = "interests";
@@ -74,7 +77,7 @@ public class DummyAccount extends DummyObject {
 
     @Override
     public @NotNull String getObjectClassName() {
-        return DummyResource.OBJECTCLASS_ACCOUNT_NAME;
+        return OBJECT_CLASS_NAME;
     }
 
 }

@@ -9,8 +9,17 @@ package com.evolveum.icf.dummy.resource;
 
 import com.evolveum.icf.dummy.resource.LinkClassDefinition.ParticipantIndex;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/** TODO */
+import java.util.Objects;
+import java.util.Set;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
+/**
+ * Describes the participation of an object class in a link class: the class definition itself
+ * and whether we are first or second participant.
+ */
 public class LinkDefinition {
 
     @NotNull private final LinkClassDefinition linkClassDefinition;
@@ -30,6 +39,10 @@ public class LinkDefinition {
         return participantIndex == ParticipantIndex.FIRST;
     }
 
+    public @NotNull LinkClassDefinition.Participant getParticipant() {
+        return isFirst() ? linkClassDefinition.getFirstParticipant() : linkClassDefinition.getSecondParticipant();
+    }
+
     @NotNull ParticipantIndex getParticipantIndex() {
         return participantIndex;
     }
@@ -41,5 +54,21 @@ public class LinkDefinition {
     @Override
     public String toString() {
         return "LinkDefinition{" + participantIndex + " in " + linkClassDefinition.getName() + "}";
+    }
+
+    public boolean isVisible() {
+        return getParticipant().isVisible();
+    }
+
+    public @Nullable String getLinkName() {
+        return getParticipant().getLinkName();
+    }
+
+    public @NotNull String getLinkNameRequired() {
+        return stateNonNull(getParticipant().getLinkName(), "Link %s is not visible", this);
+    }
+
+    public @NotNull Set<String> getObjectClassNames() {
+        return getParticipant().getObjectClassNames();
     }
 }

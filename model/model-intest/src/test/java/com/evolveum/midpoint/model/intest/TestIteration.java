@@ -299,7 +299,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         MappingType mappingType = new MappingType();
         mappingType.setStrength(MappingStrengthType.STRONG);
         ExpressionType expressionType = new ExpressionType();
-        expressionType.getExpressionEvaluator().add(new ObjectFactory().createValue(RawType.create("pistol", prismContext)));
+        expressionType.getExpressionEvaluator().add(new ObjectFactory().createValue(RawType.create("pistol")));
         mappingType.setExpression(expressionType);
         attributeDefinitionType.setOutbound(mappingType);
         constructionType.getAttribute().add(attributeDefinitionType);

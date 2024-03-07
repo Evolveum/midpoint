@@ -17,7 +17,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.testng.annotations.BeforeClass;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,7 +89,7 @@ public abstract class AbstractPhotoTest<T extends FocusType> extends BaseSQLRepo
 
     ObjectDelta<T> parseDelta(String oid, File file) throws SchemaException, IOException {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(file, ObjectModificationType.COMPLEX_TYPE);
-        ObjectDelta<T> delta = DeltaConvertor.createObjectDelta(modification, getObjectType(), prismContext);
+        ObjectDelta<T> delta = DeltaConvertor.createObjectDelta(modification, getObjectType());
         delta.setOid(oid);
         return delta;
     }

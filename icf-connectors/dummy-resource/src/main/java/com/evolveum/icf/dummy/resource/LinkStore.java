@@ -19,7 +19,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
- * Stores links of given link class.
+ * Stores all links of given link class.
  */
 public class LinkStore implements DebugDumpable {
 

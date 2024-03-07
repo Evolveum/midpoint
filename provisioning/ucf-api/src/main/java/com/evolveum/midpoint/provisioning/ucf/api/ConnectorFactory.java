@@ -15,6 +15,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Set;
 
 /**
@@ -50,16 +52,11 @@ public interface ConnectorFactory {
      * Call to this method may create new connector instance each time it is
      * called unless an underlying framework is pooling connector instances.
      *
-     * May return null if the resource definition cannot be handled by this factory
-     * instance. E.g. it does not have configuration or the configuration is meant for
-     * a different factory.
-     * TODO: Better error handling
-     *
      * @return configured and initialized connector instance
      * @throws ObjectNotFoundException if the specified connector was not found
      * @throws SchemaException if there's any schema issue
      */
-    ConnectorInstance createConnectorInstance(ConnectorType connectorType, String instanceName, String desc)
+    @NotNull ConnectorInstance createConnectorInstance(ConnectorType connectorBean, String instanceName, String desc)
             throws ObjectNotFoundException, SchemaException;
 
     /**

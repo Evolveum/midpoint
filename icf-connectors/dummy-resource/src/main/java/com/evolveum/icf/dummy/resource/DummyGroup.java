@@ -20,6 +20,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DummyGroup extends DummyObject {
 
+    /** BEWARE! The dummy controller may represent this class as `__GROUP__` (if using legacy schema mode). */
+    public static final String OBJECT_CLASS_NAME = "group";
+
     public static final String ATTR_MEMBERS_NAME = "members";
 
     public DummyGroup() {
@@ -54,7 +57,7 @@ public class DummyGroup extends DummyObject {
 
     @Override
     public @NotNull String getObjectClassName() {
-        return DummyResource.OBJECTCLASS_GROUP_NAME;
+        return OBJECT_CLASS_NAME;
     }
 
     @Override

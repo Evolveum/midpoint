@@ -111,7 +111,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         display("CSVFile Connector", connector);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(connector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(connector);
     }
 
     /**

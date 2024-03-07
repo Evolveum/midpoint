@@ -37,8 +37,8 @@ public class TaskOperationStatsUtil {
      * 2. operationsPerformanceInformation,
      * 3. cachingConfiguration.
      */
-    public static OperationStatsType getOperationStatsFromTree(TaskType root, PrismContext prismContext) {
-        OperationStatsType aggregate = new OperationStatsType(prismContext)
+    public static OperationStatsType getOperationStatsFromTree(TaskType root) {
+        OperationStatsType aggregate = new OperationStatsType()
                 .environmentalPerformanceInformation(new EnvironmentalPerformanceInformationType())
                 .repositoryPerformanceInformation(new RepositoryPerformanceInformationType());
 

@@ -216,11 +216,11 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         System.out.println("Parsed resource:");
         System.out.println(resource.debugDump());
 
-        assertResourceExpression(resource, prismContext, true);
+        assertResourceExpression(resource, true);
 
     }
 
-    private void assertResourceExpression(PrismObject<ResourceType> resource, PrismContext prismContext, boolean checkExpressions) throws SchemaException {
+    private void assertResourceExpression(PrismObject<ResourceType> resource, boolean checkExpressions) throws SchemaException {
         resource.checkConsistence();
 
         AssertJUnit.assertEquals("Wrong oid (prism)", TestConstants.RESOURCE_OID, resource.getOid());
@@ -251,19 +251,19 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         if (checkExpressions) {
             PrismProperty<String> hostProp = findProp(ldapConfigPropItems, "host");
             assertRaw(hostProp);
-            hostProp.applyDefinition(prismContext.definitionFactory().createPropertyDefinition(new QName("whatever","host"), DOMUtil.XSD_STRING));
+            hostProp.applyDefinition(PrismContext.get().definitionFactory().createPropertyDefinition(new QName("whatever","host"), DOMUtil.XSD_STRING));
             assertNotRaw(hostProp);
             assertExpression(hostProp, "const");
 
             PrismProperty<String> baseContextsProp = findProp(ldapConfigPropItems, "baseContexts");
             assertRaw(baseContextsProp);
-            baseContextsProp.applyDefinition(prismContext.definitionFactory().createPropertyDefinition(new QName("whatever","baseContexts"), DOMUtil.XSD_STRING));
+            baseContextsProp.applyDefinition(PrismContext.get().definitionFactory().createPropertyDefinition(new QName("whatever","baseContexts"), DOMUtil.XSD_STRING));
             assertNotRaw(baseContextsProp);
             assertExpression(baseContextsProp, "script");
 
             PrismProperty<ProtectedStringType> credentialsProp = findProp(ldapConfigPropItems, "credentials");
             assertRaw(credentialsProp);
-            credentialsProp.applyDefinition(prismContext.definitionFactory().createPropertyDefinition(new QName("whatever","credentials"), ProtectedStringType.COMPLEX_TYPE));
+            credentialsProp.applyDefinition(PrismContext.get().definitionFactory().createPropertyDefinition(new QName("whatever","credentials"), ProtectedStringType.COMPLEX_TYPE));
             assertNotRaw(credentialsProp);
             assertExpression(credentialsProp, "const");
         }
@@ -301,7 +301,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         System.out.println("Parsed resource:");
         System.out.println(resource.debugDump());
 
-        assertResourceExpression(resource, prismContext, false);
+        assertResourceExpression(resource, false);
 
         // SERIALIZE (1)
 
@@ -321,7 +321,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         System.out.println(reparsedResource.debugDump());
 
         // Cannot assert here. It will cause parsing of some of the raw values and diff will fail
-        assertResourceExpression(reparsedResource, prismContext, true);
+        assertResourceExpression(reparsedResource, true);
 
         ObjectDelta<ResourceType> objectDelta = resource.diff(reparsedResource);
         System.out.println("Delta:");
@@ -333,7 +333,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         // SERIALIZE (2)
         // Do roundtrip again, this time after the expressions were checked and definitions applied.
 
-        assertResourceExpression(resource, prismContext, true);
+        assertResourceExpression(resource, true);
         System.out.println("\nResource (2):");
         System.out.println(resource.debugDump());
 
@@ -353,7 +353,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         System.out.println(reparsedResource.debugDump());
 
         // Cannot assert here. It will cause parsing of some of the raw values and diff will fail
-        assertResourceExpression(reparsedResource, prismContext, true);
+        assertResourceExpression(reparsedResource, true);
 
     }
 

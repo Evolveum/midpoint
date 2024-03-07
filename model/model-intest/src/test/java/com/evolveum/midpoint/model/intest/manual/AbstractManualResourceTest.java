@@ -263,7 +263,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         display("Manual Connector", repoConnector);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector);
 
         PrismObject<UserType> userWill = getUser(userWillOid);
         assertUser(userWill, userWillOid, USER_WILL_NAME, USER_WILL_FULL_NAME, USER_WILL_GIVEN_NAME, USER_WILL_FAMILY_NAME);
@@ -1830,6 +1830,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         display("user before", userBefore);
         assertLiveLinks(userBefore, 0);
 
+        //noinspection CheckStyle
         final long TIMEOUT = 60000L;
 
         // WHEN
@@ -1907,6 +1908,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         display("user before", userBefore);
         assertAssignments(userBefore, getConcurrentTestNumberOfThreads());
 
+        //noinspection CheckStyle
         final long TIMEOUT = 60_000L;
 
         // WHEN

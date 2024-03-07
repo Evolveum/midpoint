@@ -223,7 +223,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         // Check import with generated OID
 //        EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "guybrush");
 //        ObjectQuery query = ObjectQuery.createObjectQuery(equal);
-        ObjectQuery query = ObjectQueryUtil.createNameQuery("guybrush", PrismTestUtil.getPrismContext());
+        ObjectQuery query = ObjectQueryUtil.createNameQuery("guybrush");
 
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 
@@ -798,7 +798,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         display("Result after good import", result);
         TestUtil.assertSuccessOrWarning("Import has failed (result)", result, 2);
 
-        ObjectQuery query = ObjectQueryUtil.createNameQuery("jack", PrismTestUtil.getPrismContext());
+        ObjectQuery query = ObjectQueryUtil.createNameQuery("jack");
 
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 

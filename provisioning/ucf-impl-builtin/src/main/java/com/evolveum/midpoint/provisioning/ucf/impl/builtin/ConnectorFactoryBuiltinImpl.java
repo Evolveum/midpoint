@@ -20,12 +20,13 @@ import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcherAware;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityContextManagerAware;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
 import com.evolveum.midpoint.task.api.Tracer;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,7 +132,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
             type = connectorClass.getSimpleName();
         }
         String version = annotation.version();
-        UcfUtil.addConnectorNames(connectorType, "Built-in", bundleName, type, version, null);
+        UcfUtil.addConnectorNames(connectorType, "Built-in", type, version, null);
         connectorType.setConnectorBundle(bundleName);
         connectorType.setConnectorType(type);
         connectorType.setConnectorVersion(version);
@@ -248,9 +249,9 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
     }
 
     @Override
-    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String instanceName,
-            String desc) throws ObjectNotFoundException {
-        ConnectorStruct struct = getConnectorStruct(connectorType);
+    public @NotNull ConnectorInstance createConnectorInstance
+            (ConnectorType connectorBean, String instanceName, String desc) throws ObjectNotFoundException {
+        ConnectorStruct struct = getConnectorStruct(connectorBean);
         Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
         ConnectorInstance connectorInstance;
         try {
@@ -266,7 +267,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         }
         if (connectorInstance instanceof AbstractManagedConnectorInstance) {
             setupAbstractConnectorInstance(
-                    (AbstractManagedConnectorInstance)connectorInstance, instanceName, connectorType, struct);
+                    (AbstractManagedConnectorInstance)connectorInstance, instanceName, connectorBean, struct);
         }
         if (connectorInstance instanceof RepositoryAware) {
             ((RepositoryAware)connectorInstance).setRepositoryService(repositoryService);
@@ -297,8 +298,6 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
             ConnectorType connectorObject, ConnectorStruct struct) {
         connectorInstance.setInstanceName(instanceName);
         connectorInstance.setConnectorObject(connectorObject);
-        connectorInstance.setResourceSchemaNamespace(MidPointConstants.NS_RI);
-        connectorInstance.setPrismContext(prismContext);
         connectorInstance.setConnectorConfigurationSchema(struct.connectorConfigurationSchema);
     }
 

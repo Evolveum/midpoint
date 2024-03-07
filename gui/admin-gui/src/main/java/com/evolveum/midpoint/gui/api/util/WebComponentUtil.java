@@ -1930,7 +1930,7 @@ public final class WebComponentUtil {
         for (AR selectedRole : selectedRoles) {
             ObjectQuery query = pageBase.getPrismContext().queryFor(FocusType.class)
                     .item(FocusType.F_ROLE_MEMBERSHIP_REF)// TODO MID-3581
-                    .ref(ObjectTypeUtil.createObjectRef(selectedRole, pageBase.getPrismContext()).asReferenceValue())
+                    .ref(ObjectTypeUtil.createObjectRef(selectedRole).asReferenceValue())
                     .maxSize(1)
                     .build();
             List<PrismObject<FocusType>> members = WebModelServiceUtils.searchObjects(FocusType.class, query, result, pageBase);

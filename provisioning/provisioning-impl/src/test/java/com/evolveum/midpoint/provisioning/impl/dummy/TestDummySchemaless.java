@@ -139,7 +139,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         display("Dummy Connector", connector);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(connector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(connector);
     }
 
     /**

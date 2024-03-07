@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
  *
  * @author Radovan Semancik
  */
+@SuppressWarnings("UnusedReturnValue") // Occurs quite often. Not everyone makes use of the fluent API.
 public abstract class DummyObject implements DebugDumpable {
 
     /**
@@ -61,8 +62,9 @@ public abstract class DummyObject implements DebugDumpable {
         return id;
     }
 
-    public void setId(String id) {
+    public DummyObject setId(String id) {
         this.id = id;
+        return this;
     }
 
     public DummyObject(String name) {
@@ -73,7 +75,7 @@ public abstract class DummyObject implements DebugDumpable {
         return resource;
     }
 
-    public void setResource(DummyResource resource) {
+    void setResource(DummyResource resource) {
         this.resource = resource;
     }
 
@@ -81,11 +83,12 @@ public abstract class DummyObject implements DebugDumpable {
         return name;
     }
 
-    public void setName(String username) {
+    public DummyObject setName(String username) {
         this.name = username;
         if (resource != null) {
             resource.updateNormalizedHierarchicalName(this);
         }
+        return this;
     }
 
     /**
@@ -100,52 +103,57 @@ public abstract class DummyObject implements DebugDumpable {
         return enabled;
     }
 
-    public void setEnabled(Boolean enabled)
+    public DummyObject setEnabled(Boolean enabled)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
         this.enabled = enabled;
         recordModify("_ENABLED", null, null, singletonList(enabled));
+        return this;
     }
 
     public Date getValidFrom() {
         return validFrom;
     }
 
-    public void setValidFrom(Date validFrom)
+    public DummyObject setValidFrom(Date validFrom)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
         this.validFrom = validFrom;
         recordModify("_VALID_FROM", null, null, singletonList(validFrom));
+        return this;
     }
 
     public Date getValidTo() {
         return validTo;
     }
 
-    public void setValidTo(Date validTo)
+    public DummyObject setValidTo(Date validTo)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
         this.validTo = validTo;
         recordModify("_VALID_TO", null, null, singletonList(validTo));
+        return this;
     }
 
     public String getLastModifier() {
         return lastModifier;
     }
 
-    public void setLastModifier(String lastModifier) {
+    public DummyObject setLastModifier(String lastModifier) {
         this.lastModifier = lastModifier;
+        return this;
     }
 
     public BreakMode getModifyBreakMode() {
         return modifyBreakMode;
     }
 
-    public void setModifyBreakMode(BreakMode modifyBreakMode) {
+    public DummyObject setModifyBreakMode(BreakMode modifyBreakMode) {
         this.modifyBreakMode = modifyBreakMode;
+        return this;
     }
 
     public Set<String> getAttributeNames() {
@@ -172,16 +180,16 @@ public abstract class DummyObject implements DebugDumpable {
         return getAttributeValue(attrName,String.class);
     }
 
-    public void replaceAttributeValue(String name, Object value)
+    public DummyObject replaceAttributeValue(String name, Object value)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        replaceAttributeValues(name, createCollection(value));
+        return replaceAttributeValues(name, createCollection(value));
     }
 
     private Set<Object> createCollection(Object value) {
         return value != null ? singleton(value) : emptySet();
     }
 
-    public void replaceAttributeValues(String name, Collection<Object> values)
+    public DummyObject replaceAttributeValues(String name, Collection<Object> values)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
@@ -192,6 +200,7 @@ public abstract class DummyObject implements DebugDumpable {
         addNonNullValues(currentValues, values);
         checkSchema(name, values, "replace");
         recordModify(name, null, null, values);
+        return this;
     }
 
     private void addNonNullValues(Set<Object> currentValues, Collection<Object> values) {
@@ -206,7 +215,7 @@ public abstract class DummyObject implements DebugDumpable {
         return attributes.computeIfAbsent(name, k -> ConcurrentHashMap.newKeySet());
     }
 
-    public void replaceAttributeValues(String name, Object... values)
+    public DummyObject replaceAttributeValues(String name, Object... values)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
@@ -224,14 +233,15 @@ public abstract class DummyObject implements DebugDumpable {
             attributes.remove(name);
         }
         recordModify(name, null, null, valuesList);
+        return this;
     }
 
-    public void addAttributeValue(String name, Object value)
+    public DummyObject addAttributeValue(String name, Object value)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        addAttributeValues(name, createCollection(value));
+        return addAttributeValues(name, createCollection(value));
     }
 
-    public <T> void addAttributeValues(String name, Collection<T> valuesToAdd)
+    public <T> DummyObject addAttributeValues(String name, Collection<T> valuesToAdd)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
@@ -240,9 +250,10 @@ public abstract class DummyObject implements DebugDumpable {
             addAttributeValue(name, currentValues, valueToAdd);
         }
         recordModify(name, valuesToAdd, null, null);
+        return this;
     }
 
-    public void addAttributeValues(String name, String... valuesToAdd)
+    public DummyObject addAttributeValues(String name, String... valuesToAdd)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
@@ -251,15 +262,16 @@ public abstract class DummyObject implements DebugDumpable {
             addAttributeValue(name, currentValues, valueToAdd);
         }
         recordModify(name, Arrays.asList(valuesToAdd), null, null);
+        return this;
     }
 
-    private void addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd)
+    private DummyObject addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
 
         if (valueToAdd == null) {
-            return; // Concurrent hash map does not allow null values.
+            return this; // Concurrent hash map does not allow null values.
         }
         if (resource != null && !resource.isTolerateDuplicateValues()) {
             for (Object currentValue: currentValues) {
@@ -290,14 +302,15 @@ public abstract class DummyObject implements DebugDumpable {
             checkSchema(attrName, valuesToCheck, "add");
         }
         currentValues.add(valueToAdd);
+        return this;
     }
 
-    public void removeAttributeValue(String name, Object value)
+    public DummyObject removeAttributeValue(String name, Object value)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        removeAttributeValues(name, createCollection(value));
+        return removeAttributeValues(name, createCollection(value));
     }
 
-    public <T> void removeAttributeValues(String name, Collection<T> values)
+    public <T> DummyObject removeAttributeValues(String name, Collection<T> values)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
@@ -337,31 +350,36 @@ public abstract class DummyObject implements DebugDumpable {
         }
 
         recordModify(name, null, values, null);
+        return this;
     }
 
     public Set<String> getAuxiliaryObjectClassNames() {
         return auxiliaryObjectClassNames;
     }
 
-    public void addAuxiliaryObjectClassName(String name) {
+    public DummyObject addAuxiliaryObjectClassName(String name) {
         auxiliaryObjectClassNames.add(name);
+        return this;
     }
 
-    public void replaceAuxiliaryObjectClassNames(List<?> values) {
+    public DummyObject replaceAuxiliaryObjectClassNames(List<?> values) {
         auxiliaryObjectClassNames.clear();
         addAuxiliaryObjectClassNames(values);
+        return this;
     }
 
-    public void deleteAuxiliaryObjectClassNames(List<?> values) {
+    public DummyObject deleteAuxiliaryObjectClassNames(List<?> values) {
         for (Object value : values) {
             auxiliaryObjectClassNames.remove(String.valueOf(value));
         }
+        return this;
     }
 
-    public void addAuxiliaryObjectClassNames(List<?> values) {
+    public DummyObject addAuxiliaryObjectClassNames(List<?> values) {
         for (Object value : values) {
             auxiliaryObjectClassNames.add(String.valueOf(value));
         }
+        return this;
     }
 
     private <T> void checkIfExist(Collection<T> valuesToDelete, Set<Object> currentValues) throws SchemaViolationException{
@@ -465,8 +483,7 @@ public abstract class DummyObject implements DebugDumpable {
         return null;
     }
 
-    @SuppressWarnings("WeakerAccess") // maybe will be useful, hence not private
-    protected DummyObjectClass getStructuralObjectClass() {
+    public @NotNull DummyObjectClass getStructuralObjectClass() {
         return resource.getStructuralObjectClass(getObjectClassName());
     }
 

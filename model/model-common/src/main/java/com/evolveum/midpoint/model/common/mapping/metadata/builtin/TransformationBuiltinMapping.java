@@ -53,7 +53,7 @@ public class TransformationBuiltinMapping extends BaseBuiltinMetadataMapping {
         LOGGER.trace("Computing transformation metadata during value transformation. Input values:\n{}",
                 lazy(() -> dumpInput(input)));
 
-        MappingTransformationType mappingTransformation = new MappingTransformationType(prismContext)
+        MappingTransformationType mappingTransformation = new MappingTransformationType()
                 .mappingSpecification(computation.getMappingSpecification());
 
         List<QName> sourceNames = computation.getSourceNames();
@@ -64,7 +64,7 @@ public class TransformationBuiltinMapping extends BaseBuiltinMetadataMapping {
         }
 
         for (int i = 0; i < sourceNames.size(); i++) {
-            MappingSourceType source = new MappingSourceType(prismContext);
+            MappingSourceType source = new MappingSourceType();
 
             QName sourceName = sourceNames.get(i);
             if (sourceName != null) {
@@ -75,13 +75,13 @@ public class TransformationBuiltinMapping extends BaseBuiltinMetadataMapping {
             if (inputValue != null) {
                 PrismValue inputValueClone = inputValue.clone();
                 markNotTransient(inputValueClone);
-                source.setValue(new RawType(inputValueClone, null, prismContext));
+                source.setValue(new RawType(inputValueClone, null));
             }
 
             mappingTransformation.getSource().add(source);
         }
 
-        TransformationMetadataType transformation = new TransformationMetadataType(prismContext)
+        TransformationMetadataType transformation = new TransformationMetadataType()
                 .mappingTransformation(mappingTransformation);
 
         LOGGER.trace("Output: transformation:\n{}", lazy(() -> transformation.asPrismContainerValue().debugDump()));
@@ -97,8 +97,7 @@ public class TransformationBuiltinMapping extends BaseBuiltinMetadataMapping {
      */
     private void markNotTransient(PrismValue rootValue) {
         rootValue.accept(visitable -> {
-            if (visitable instanceof PrismValue) {
-                PrismValue value = (PrismValue) visitable;
+            if (visitable instanceof PrismValue value) {
                 value.setTransient(false);
                 value.getValueMetadataAsContainer().valuesStream()
                         .forEach(this::markNotTransient);

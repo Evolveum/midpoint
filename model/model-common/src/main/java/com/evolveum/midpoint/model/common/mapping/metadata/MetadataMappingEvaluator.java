@@ -35,10 +35,9 @@ public class MetadataMappingEvaluator {
     }
 
     @VisibleForTesting
-    public MetadataMappingEvaluator(MappingFactory mappingFactory, PrismContext prismContext,
-            BuiltinMetadataMappingsRegistry builtinMetadataMappingsRegistry) {
+    public MetadataMappingEvaluator(MappingFactory mappingFactory, BuiltinMetadataMappingsRegistry builtinMetadataMappingsRegistry) {
         this.mappingFactory = mappingFactory;
-        this.prismContext = prismContext;
+        this.prismContext = PrismContext.get();
         this.builtinMetadataMappingsRegistry = builtinMetadataMappingsRegistry;
     }
 

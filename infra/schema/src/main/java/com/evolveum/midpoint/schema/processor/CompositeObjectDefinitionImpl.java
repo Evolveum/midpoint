@@ -400,11 +400,6 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public PrismContext getPrismContext() {
-        return structuralDefinition.getPrismContext();
-    }
-
-    @Override
     public void revive(PrismContext prismContext) {
         structuralDefinition.revive(prismContext);
         for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {

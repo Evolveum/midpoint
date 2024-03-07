@@ -417,11 +417,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public PrismContext getPrismContext() {
-        return PrismContext.get();
-    }
-
-    @Override
     public void revive(PrismContext prismContext) {
     }
 

@@ -168,7 +168,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     private void assertTaskStatistics() throws CommonException {
         String syncTaskOid = getGreenSyncTask().oid;
         PrismObject<TaskType> syncTaskTree = getTaskTree(syncTaskOid);
-        OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
+        OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable());
         displayValue("sync task stats", TaskOperationStatsUtil.format(stats));
 
         ProvisioningStatisticsType provisioningStatistics = stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics();
@@ -767,7 +767,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertUsers(9 + getNumberOfExtraDummyUsers());
 
         PrismObject<TaskType> syncTaskTree = getTaskTree(getGreenSyncTask().oid);
-        OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
+        OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable());
         displayValue("sync task stats", TaskOperationStatsUtil.format(stats));
     }
 

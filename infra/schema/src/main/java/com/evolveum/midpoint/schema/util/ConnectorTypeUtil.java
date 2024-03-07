@@ -86,7 +86,7 @@ public class ConnectorTypeUtil {
         }
         PrismSchema connectorSchema =
                 PrismSchemaImpl.parse(
-                        connectorSchemaElement, true, "schema for " + connectorType, PrismContext.get());
+                        connectorSchemaElement, true, "schema for " + connectorType);
         // Make sure that the config container definition has a correct compile-time class name
         QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
         PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition =

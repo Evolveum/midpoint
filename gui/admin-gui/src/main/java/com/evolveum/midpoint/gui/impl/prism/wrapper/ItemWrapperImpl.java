@@ -577,11 +577,6 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     }
 
     @Override
-    public PrismContext getPrismContext() {
-        return getItemDefinition().getPrismContext();
-    }
-
-    @Override
     public Class<?> getTypeClass() {
         return getItemDefinition().getTypeClass();
     }
