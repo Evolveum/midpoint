@@ -240,7 +240,7 @@ public class TestMisc extends AbstractMiscTest {
         ObjectQuery query = queryFor(UserType.class)
                 .item(UserType.F_EMPLOYEE_NUMBER)
                 .eq("EMP1234") // Real value is "emp123"
-                .matchingNorm()
+                .matchingCaseIgnore()
                 .build();
 
         when();
