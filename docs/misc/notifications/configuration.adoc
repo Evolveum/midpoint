@@ -857,10 +857,16 @@ All variables for `Event` can be used as well.
 |$event.workItemId
 |event.getWorkItemId()
 |$event.getWorkItemId()
-a|Returns the workitem id which can be used for further operations. Examples:
+a|Returns the workitem id which can be used for further operations. Example:
 
-* call (Groovy) `midpoint.createWorkItemCompletionLink(event.workItemId)` or (Velocity) `$midpoint.createWorkItemCompletionLink($event.workItemId)` to generate a direct link to act on this workitem.
 * call `event.getWorkItem().getDeadline()` to get workitem deadline date/time if workitem timeouts are used
+
+|event.workItemUrl
+|$event.workItemUrl
+|event.getWorkItemUrl()
+|$event.getWorkItemUrl()
+|Returns the URL which can be used as a direct link to act on this workitem. Very useful for notifications.
+The URL is composed using `midpoint.createWorkItemCompletionLink()` method.
 
 |event.cause.type
 |$event.cause.type
