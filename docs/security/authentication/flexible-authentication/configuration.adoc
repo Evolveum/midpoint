@@ -140,18 +140,6 @@ Each module definition contains following common attributes:
 |===
 | Name | Description | Required | Type | Default
 
-| `name`
-| Unique name of the authentication module.
-This name is fact a short identifier.
-It is supposed to give some idea about nature of the module to system administrator.
-But it is not supposed to be used as a user-friendly label for the module.
-The name is also used in the url, so it should not contain special characters.
-
-*`name` attribute is deprecated, use `identifier` instead*.
-| true
-| _String_
-|
-
 | `identifier`
 | Unique identifier of the authentication module.
 Short identifier.

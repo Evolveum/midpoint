@@ -395,7 +395,7 @@ Yet another dangerous thing is a dynamic invocation based on Java Reflection fra
 This may even be tightly integrated into some scripting languages.
 Therefore be very careful and analyse the situation properly.
 Do not rely on default configuration that comes with midPoint.
-This configuration is xref:/midpoint/reference/security/security-guide/[not meant to be completely secure].
+This configuration is xref:/midpoint/security/security-guide/[not meant to be completely secure].
 The setup may vary in various environments, some scripts need to be less powerful, some must be more powerful, some environments are more tolerant to risk and would prefer more flexibility while other environments will heavily constrain flexibility to eliminate the risk.
 One size does not fit all.
 
@@ -462,6 +462,6 @@ See xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Fu
 
 * xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles]
 
-* xref:/midpoint/reference/security/security-guide/[Security Guide]
+* xref:/midpoint/security/security-guide/[Security Guide]
 
 * xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Full Implementation]

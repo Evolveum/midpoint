@@ -47,8 +47,16 @@ However currently the set of matching rules is built-in in midPoint product.
 
 == Query matching
 
-Note that besides in attribute definitions, matching rules can also be used in queries using the tag _<matching>_.
-An example:
+Note that besides in attribute definitions, matching rules can also be used in queries. In midPoint Query Language, the matching rules are located right behind filter enclosed in square brackets.
+
+[source,midpoint-query]
+----
+locality =[origIgnoreCase] "Edinburgh"
+----
+For more information about matching rules in query see xref:./query/midpoint-query-language/introduction.adoc#_matching_rules[matching rules chapter] in introduction to Midpoint Query Language.
+
+In XML query, the matching rules are represented using the tag _<matching>_.
+An example for XML query:
 
 .Matching rule specification
 [source,xml]

@@ -14,25 +14,30 @@ xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authent
 
 == Example
 
-.Get Object
+include::../../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+[#_get_default_administrator_object]
+.Get default administrator object
 [source,bash]
 ----
+# Authenticating with the credentials "administrator" and password "5ecr3t" on a localhost instance running on port 8080
 curl --user administrator:5ecr3t -X GET http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002
 ----
 
 .Get Object in JSON format
 [source,bash]
 ----
+# Authenticating with the credentials "administrator" and password "5ecr3t" on a localhost instance running on port 8080
 curl --user administrator:5ecr3t -H "Accept: application/json" -X GET http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002
 ----
 
-.Get Object in JSON format with the Raw option set to true
-[source,bash]
-----
-curl --user administrator:5ecr3t -H "Accept: application/json" -X GET http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002?options=raw
-----
+include::../examples/raw/get-user-administrator.adoc[]
 
 == See Also
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
-- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Authentication]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

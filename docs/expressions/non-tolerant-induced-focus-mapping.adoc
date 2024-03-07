@@ -6,7 +6,6 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2018-02-16T10:44:19.889+01:00
 :page-experimenta: true
-:page-since: "3.7.1"
 :page-upkeep-status: yellow
 
 There are situations when you need to create non-tolerant focus mappings.

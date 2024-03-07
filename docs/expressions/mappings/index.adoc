@@ -52,7 +52,32 @@ The figure shows a mapping that takes `givenName` and `familyName` values from u
 The mapping is using a Groovy expression to concatenate the two values with a space in the middle.
 There is also a condition that makes sure the mapping is applied only if it has meaningful inputs.
 
-The mapping is represented in the JSON/XML form as follows:
+The mapping is represented in the XML/JSON form as follows:
+
+[source,xml]
+----
+<mapping>
+    <source>
+        <path>$focus/givenName</path>
+    </source>
+    <source>
+        <path>$focus/familyName</path>
+    </source>
+    <expression>
+        <script>
+            <code>givenName + ' ' + familyName</code>
+        </script>
+    </expression>
+    <condition>
+        <script>
+            <code>givenName != null &amp;&amp; familyName != null</code>
+        </script>
+    </condition>
+    <target>
+        <path>$projection/attributes/cn</path>
+    </target>
+</mapping>
+----
 
 [source,json]
 ----
@@ -84,31 +109,6 @@ The mapping is represented in the JSON/XML form as follows:
 ----
 
 
-[source,xml]
-----
-<mapping>
-    <source>
-        <path>$focus/givenName</path>
-    </source>
-    <source>
-        <path>$focus/familyName</path>
-    </source>
-    <expression>
-        <script>
-            <code>givenName + ' ' + familyName</code>
-        </script>
-    </expression>
-    <condition>
-        <script>
-            <code>givenName != null &amp;&amp; familyName != null</code>
-        </script>
-    </condition>
-    <target>
-        <path>$projection/attributes/cn</path>
-    </target>
-</mapping>
-----
-
 Mappings are xref:mapping-relativity/[relativistic], reactive to changes in mapping sources in a smart way.
 
 NOTE: This mapping that takes user's `givenName` and `familyName` to produce `cn` of an account should be considered only an example, an illustration, not a best practice.
@@ -126,6 +126,14 @@ The most important part of mapping source definitions is specification of the xr
 The path refers to an item in an object, which is part of xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[clockwork/project] computation, which is usually a _focus_ or a _projection_.
 
 .Mapping source definition
+[source,xml]
+----
+<source>
+    <path>$focus/familyName</path>
+</source>
+----
+
+.Mapping source definition
 [source,json]
 ----
 {
@@ -135,17 +143,17 @@ The path refers to an item in an object, which is part of xref:/midpoint/referen
 }
 ----
 
-.Mapping source definition
-[source,xml]
-----
-<source>
-    <path>$focus/familyName</path>
-</source>
-----
-
 For the mapping to operate correctly, the sources must point to an object appropriate for the clockwork phase in which the mapping is evaluated.
 E.g. source of _inbound_ mapping must point to a _projection_, source of _outbound_ mapping must point to a focus.
 The appropriate object is usually set up as _default context_ for the mapping, which means that relative item paths should be conveniently used to point to appropriate object:
+
+.Mapping source definition (relative path)
+[source,xml]
+----
+<source>
+    <path>familyName</path>
+</source>
+----
 
 .Mapping source definition (relative path)
 [source,json]
@@ -155,14 +163,6 @@ The appropriate object is usually set up as _default context_ for the mapping, w
         "path" : "familyName"
     }
 }
-----
-
-.Mapping source definition (relative path)
-[source,xml]
-----
-<source>
-    <path>familyName</path>
-</source>
 ----
 
 More details about mapping context is provided below.
@@ -206,6 +206,15 @@ For that purpose, source definition has one additional element: a name.
 The `name` element explicitly specifies the name that the source will take when used as an expression variable:
 
 .Explicit specification of source name
+[source,xml]
+----
+<source>
+    <name>lastName</name>
+    <path>$focus/familyName</path>
+</source>
+----
+
+.Explicit specification of source name
 [source,json]
 ----
 {
@@ -216,15 +225,6 @@ The `name` element explicitly specifies the name that the source will take when 
 }
 ----
 
-.Explicit specification of source name
-[source,xml]
-----
-<source>
-    <name>lastName</name>
-    <path>$focus/familyName</path>
-</source>
-----
-
 This source will be accessible under the name `lastName` in the mapping expression.
 
 In some cases, the primary input to an expression is accessible under name `input`.
@@ -233,11 +233,6 @@ Similar approach is applied to stand-alone expression, where there is no obvious
 
 
 === Mapping Domain
-
-++++
-{% include since.html since="3.5.1" %}
-++++
-
 
 The _domain_ of a mapping (in a mathematical sense) is a set of values that are valid inputs of the mapping.
 The mapping will operate only on the values that belong to its domain.
@@ -295,6 +290,14 @@ The most important part is _item path_, binding the mapping to the target item.
 
 
 .Mapping target definition
+[source,xml]
+----
+<target>
+    <path>fullName</path>
+</target>
+----
+
+.Mapping target definition
 [source,json]
 ----
 {
@@ -304,22 +307,10 @@ The most important part is _item path_, binding the mapping to the target item.
 }
 ----
 
-.Mapping target definition
-[source,xml]
-----
-<target>
-    <path>fullName</path>
-</target>
-----
-
 Unlike mapping sources, there can be only one mapping target.
 
 
 === Mapping Range
-
-++++
-{% include since.html since="3.6" %}
-++++
 
 The _range_ of a mapping (in a mathematical sense) is a set of values that are considered to be valid outputs of the mapping.
 Definition of mapping range is not important for evaluation of mapping expression.
@@ -562,10 +553,6 @@ Using such values for reference time will make sure the result of the mapping ev
 
 ==== Time Constraint Expressions
 
-++++
-{% include since.html since="4.0" %}
-++++
-
 The timestamp for the time constraint can be determined by an expression.
 E.g. scripting expressions can be used to set the time constraint in a very flexible manner:
 
@@ -639,9 +626,13 @@ Therefore, such conditional mapping is an ideal mechanism to automatically add a
 </inbound>
 ----
 
-The mapping above adds the assignment when `hrJobCode` is `1234` and removes the assignment when the code is different.
+The mapping above adds the assignment when `hrJobCode` is `1234` and removes the assignment when the code is changed or removed.
 This is a very useful behavior, implemented by a simple condition.
 On the other hand, conditions can be quite subtle, and there are often misunderstandings as to the working of conditions and their purpose.
+
+[CAUTION]
+Even though this mapping can add the assignment and subsequently remove it, it won't remove the existing assignment unless the condition will switch from `true` to `false`.
+If you want this mapping to remove the assignment at all time, set a proper xref:range/[mapping range].
 
 Please see xref:condition/[] page for more details on mapping conditions.
 
@@ -688,7 +679,7 @@ The script expression transforms the value, converting it to lower case.
 [source,xml]
 ----
 <attribute>
-    <ref>ri:businessCategory</ref>
+    <ref>businessCategory</ref>
     ...
     <inbound>
         <expression>
@@ -716,7 +707,7 @@ It constructs a value of account attribute `title`. The value is explicitly defi
 <construction>
     ...
     <attribute>
-        <ref>ri:title</ref>
+        <ref>title</ref>
         <outbound>
             <expression>
                 <value>Bloody Pirate</value>
@@ -760,11 +751,6 @@ See also xref:/midpoint/reference/expressions/mappings/mapping-evaluation-exampl
 
 
 == Mapping State Properties
-
-++++
-{% include since.html since="4.0" %}
-++++
-
 
 Mappings can have state properties that are maintained through entire execution of the mappings.
 Those properties are shared by all the expressions in the mapping.
@@ -897,7 +883,7 @@ Should it be a candidate for deprecation?
 
 === Enabled
 
-WARNING: This feature is deprecated since midPoint 4.8. Please use mapping lifecycle state set to `draft` to disable a mapping instead.
+WARNING: This feature is deprecated. Please use mapping lifecycle state set to `draft`, `suspended` or `archive` to disable a mapping instead.
 
 Enabled flag specifies if the mapping is evaluated or not.
 Each specified mapping is by default evaluated.
@@ -908,9 +894,11 @@ Default value is `true`.
 === Lifecycle State
 
 Lifecycle state of the mapping.
-Can be used to disable a mapping (`draft`) or during xref:/midpoint/reference/simulation/[simulations].
+Can be used to disable a mapping or during xref:/midpoint/reference/simulation/[simulations].
 
 Default value is `active`.
+
+Check xref:/midpoint/reference/support-4.8/concepts/object-lifecycle/[] for details.
 
 === Exclusive
 
@@ -1161,14 +1149,6 @@ So now we have two deltas on the input side of the mapping that are supposed to 
 Now imagine that there may be any number of input variables and that midPoint does not really know which of them are used in expression or condition.
 We will not confuse the reader with a detailed explanation of the algorithm, and we will refer extremely curious readers to midPoint source code.
 The source code is the most precise documentation anyway.
-
-
-== Notes
-
-Mapping `tolerant` setting was an experimental setting in old versions of midPoint.
-When set to true, it allowed attribute/property values that are set outside of the mapping.
-It was completely replaced by the _range_ mechanism.
-The `tolerant` setting was removed in midPoint 4.0.
 
 
 ==  See Also
