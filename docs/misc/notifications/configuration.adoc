@@ -78,6 +78,11 @@ This is especially important for Microsoft Exchange, where the default limit see
 Also please note that SSL-related settings for mail messaging are currently experimental (e.g. there is no support for setting certificate validation-related properties; default behavior of `javax.mail` implementation is used).
 You may also need to store the mail server self-signed SSL certificate in your Java "cacerts" keystore.
 
+[Important]
+====
+All root and intermediate CA certificates in chain for mailserver certificate must be imported into keystore, please see related documentation link:../../security/crypto/ssl-connections-client-side-.adoc[TLS Connections] how to get certificates and import them into keystore.
+====
+
 [TIP]
 ====
 For Microsoft Exchange, we've successfully tested the configuration with port=587, transportSecurity=starttlsRequired and a valid username/password combination.
