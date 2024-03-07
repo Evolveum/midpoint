@@ -27,6 +27,10 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.8.2
+
+** Fixed issue with Asynchronous Messaging Connector not working. See bug:MID-9512[].
+
 == Changes With Respect To Version 4.8.1
 
 ** Fixed the issue with authorizations being checked too late during the operation processing.
