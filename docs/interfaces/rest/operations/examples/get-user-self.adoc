@@ -1,6 +1,6 @@
 = Get User Self
 :page-nav-title: Get User Self
-:page-display-order: 300
+:page-display-order: 800
 :page-toc: top
 
 == Description
