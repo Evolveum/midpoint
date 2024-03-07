@@ -811,6 +811,81 @@ All variables for `Event` can be used as well.
 
 |===
 
+=== Expression Variables Specific For WorkflowProcess Event
+
+[TIP]
+====
+Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/WorkflowProcessEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.WorkflowProcessEvent] to learn about *all* possible variables.
+The methods documented in Javadoc can be used in your expressions.
+
+All variables for `Event` can be used as well.
+====
+
+[%autowidth]
+|===
+|Groovy (short) | Velocity (short) |Groovy (long)| Velocity (long)|Description
+
+|event.caseName
+|$event.caseName
+|event.getCaseName()
+|$event.getCaseName()
+|Returns the case name
+
+|event.statusAsText
+|$event.statusAsText
+|event.getStatusAsText()
+|$event.getStatusAsText()
+|Returns the case outcome (`Approved` or `Rejected`).
+
+|===
+
+=== Expression Variables Specific For WorkItemAllocation Event
+
+[TIP]
+====
+Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/WorkItemEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.WorkItemEvent] to learn about *all* possible variables.
+The methods documented in Javadoc can be used in your expressions.
+
+All variables for `Event` can be used as well.
+====
+
+[%autowidth]
+|===
+|Groovy (short) | Velocity (short) |Groovy (long)| Velocity (long)|Description
+
+|event.workItemId
+|$event.workItemId
+|event.getWorkItemId()
+|$event.getWorkItemId()
+a|Returns the workitem id which can be used for further operations. Examples:
+
+* call (Groovy) `midpoint.createWorkItemCompletionLink(event.workItemId)` or (Velocity) `$midpoint.createWorkItemCompletionLink($event.workItemId)` to generate a direct link to act on this workitem.
+* call `event.getWorkItem().getDeadline()` to get workitem deadline date/time if workitem timeouts are used
+
+|event.cause.type
+|$event.cause.type
+|event.getCause().getType()
+|$event.getCause().getType()
+|For timed actions (workitem with a deadline defined): returns `TIMED_ACTION`
+
+|event.operationKind
+|$event.operationKind
+|event.getOperationKind()
+|$event.getOperationKind()
+a|Returns information about the operation that will be executed if timed actions are used (e.g. if you set workitem deadline, it will be automatically completed (e.g. rejected) after the deadline).
+
+Possible values:
+
+`CLAIM`: Claim operation.
+`RELEASE`: Release operation.
+`COMPLETE`: Complete (approve/reject) operation. (Explicit or automated.)
+`DELEGATE`: Delegate operation. (Explicit or automated.)
+`ESCALATE`: Escalate operation. (Explicit or automated.)
+`CANCEL`: Cancel operation. Work item was cancelled as a result of other action. (E.g. another work item was completed, resulting in process or stage completion. Or the process was cancelled/deleted externally.)
+
+|===
+
+
 ////
 TODO document other expression variables
 
