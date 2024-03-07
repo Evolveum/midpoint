@@ -1,6 +1,6 @@
 = Access Request
-:page-nav-title: Create Object
-:page-display-order: 400
+:page-nav-title: Access Request
+:page-display-order: 700
 :page-toc: top
 
 == Description
@@ -21,14 +21,15 @@ For some help regarding the REST examples please see this link:
 
 xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
 
-<1> You set the role which we would like to be requestable as "requestable=true" (in our case "96262f4f-053a-4b0b-8901-b3ec01e3509c").
-<2> You assign the role as a member of our organizational unit which represents a role catalog (in our case "7878cf5d-9de2-486c-aeb7-41b438200a57").
-<3> For a simple approval workflow, we can assign an approver to the role.
-<4> The user which is going to request the role, in our case 'Jack', has to have an authorization assigned to him to do this.
-<5> In this use case the authorization is "Rest Self Request" present in the example. It is simplified and configured for this specific example.
-<6> The user is now capable of requesting the role through the REST api.
-<7> The request will create an approval workflow case for the roles approvers.
+1. You set the role which we would like to be requestable as "requestable=true" (in our case "96262f4f-053a-4b0b-8901-b3ec01e3509c").
+2. You assign the role as a member of our organizational unit which represents a role catalog (in our case "7878cf5d-9de2-486c-aeb7-41b438200a57").
+3. For a simple approval workflow, we can assign an approver to the role.
+4. The user which is going to request the role, in our case 'Jack', has to have an authorization assigned to him to do this.
+5. In this use case the authorization is "Rest Self Request" present in the example. It is simplified and configured for this specific example.
+6. The user is now capable of requesting the role through the REST api.
+7. The request will create an approval workflow case for the roles approvers.
 //TODO WP#9493, some kind of redirect info should be returned here so the user is capable of watching the progress of the case
+8. If you want information regarding the users case, you will have to query the open cases. A REST location header or redirect is currently missing, please see link:https://support.evolveum.com/wp/9493[work package]
 
 include::../examples/raw/modify-attr-entitlement.adoc[]
 
@@ -86,7 +87,7 @@ include::../examples/raw/modify-attr-entitlement.adoc[]
         <target>
             <type>RoleType</type>
             <filter>
-                <text>requestable equals true AND parentOrgRef matches (oid = "7878cf5d-9de2-486c-aeb7-41b438200a57")</text>
+                <q:text>requestable = true AND parentOrgRef matches (oid = "7878cf5d-9de2-486c-aeb7-41b438200a57")</q:text>
             </filter>
         </target>
         <relation>org:default</relation>
@@ -117,7 +118,7 @@ include::../examples/raw/modify-attr-entitlement.adoc[]
         <object>
             <type>RoleType</type>
             <filter>
-                <text>requestable equals true AND parentOrgRef matches (oid = "7878cf5d-9de2-486c-aeb7-41b438200a57")</text>
+                <q:text>requestable = true AND parentOrgRef matches (oid = "7878cf5d-9de2-486c-aeb7-41b438200a57")</q:text>
             </filter>
         </object>
         <object>
@@ -148,9 +149,10 @@ include::../examples/raw/modify-attr-entitlement.adoc[]
         </object>
     </authorization>
 </role>
-
 ----
 ====
+
+include::../examples/raw/search-case-open-user.adoc[]
 
 == See Also
 

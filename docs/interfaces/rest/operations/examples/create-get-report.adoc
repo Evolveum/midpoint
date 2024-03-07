@@ -1,0 +1,30 @@
+= Create and Get Report
+:page-nav-title: Create and Get Report
+:page-display-order: 900
+:page-toc: top
+//  TODO
+:page-visibility: hidden
+
+== Description
+
+The example describes a use-case when we want to create a new report definition, execute the task to create a new
+report and then download the resulting report.
+
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+== Example
+
+include::../../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../examples/raw/create-report.adoc[]
+
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
