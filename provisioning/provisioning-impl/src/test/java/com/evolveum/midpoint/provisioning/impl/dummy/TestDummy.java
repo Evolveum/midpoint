@@ -1589,7 +1589,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = createOperationResult();
 
         DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
-        dummyAccount.setLockout(true);
+        dummyAccount.setLockoutStatus(true);
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -1662,7 +1662,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         display("Retrieved account shadow", accountType);
 
         DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
-        assertTrue("Account is not locked", dummyAccount.isLockout());
+        assertTrue("Account is not locked", dummyAccount.getLockoutStatus());
 
         syncServiceMock.reset();
 
@@ -1684,7 +1684,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
         // check if activation was changed
         dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
-        assertFalse("Dummy account " + getWillNameOnResource() + " is locked, expected unlocked", dummyAccount.isLockout());
+        assertFalse("Dummy account " + getWillNameOnResource() + " is locked, expected unlocked", dummyAccount.getLockoutStatus());
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 

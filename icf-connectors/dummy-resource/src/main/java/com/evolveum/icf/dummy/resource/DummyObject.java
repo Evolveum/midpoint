@@ -6,28 +6,38 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import static java.util.Collections.*;
+
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
-import static java.util.Collections.*;
-
 /**
+ * Represents an object on this dummy resource.
+ *
  * TODO Treat null attribute values more consistently.
  *
  * @author Radovan Semancik
  */
 public abstract class DummyObject implements DebugDumpable {
 
+    /**
+     * Randomly generated or externally-supplied ID. This is the primary key for all objects on the resource,
+     * so it must be unique resource-wide.
+     *
+     * @see UidMode
+     */
     private String id;
-//    private int internalId = -1;
+
+    /** Client-supplied object name. */
     private String name;
 
     private final Map<String,Set<Object>> attributes = new ConcurrentHashMap<>();
@@ -422,18 +432,7 @@ public abstract class DummyObject implements DebugDumpable {
     }
 
     protected void checkSchema(String attrName, Collection<Object> values, String operationName) throws SchemaViolationException {
-        if (resource == null || !resource.isEnforceSchema()) {
-            return;
-        }
-        DummyObjectClass accountObjectClass;
-        try {
-            accountObjectClass = getObjectClass();
-        } catch (Exception e) {
-            // No not enforce schema if the schema is broken (simulated)
-            return;
-        }
-        if (accountObjectClass == null) {
-            // Nothing to check
+        if (resource == null || !resource.isEnforceSchema() || resource.isSchemaBroken()) {
             return;
         }
         DummyAttributeDefinition attributeDefinition = getAttributeDefinition(attrName);
@@ -449,7 +448,7 @@ public abstract class DummyObject implements DebugDumpable {
     }
 
     public DummyAttributeDefinition getAttributeDefinition(String attrName) {
-        DummyAttributeDefinition def = getObjectClassNoExceptions().getAttributeDefinition(attrName);
+        DummyAttributeDefinition def = getStructuralObjectClass().getAttributeDefinition(attrName);
         if (def != null) {
             return def;
         }
@@ -466,9 +465,10 @@ public abstract class DummyObject implements DebugDumpable {
         return null;
     }
 
-    abstract protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException;
-
-    abstract protected DummyObjectClass getObjectClassNoExceptions();
+    @SuppressWarnings("WeakerAccess") // maybe will be useful, hence not private
+    protected DummyObjectClass getStructuralObjectClass() {
+        return resource.getStructuralObjectClass(getObjectClassName());
+    }
 
     public abstract String getShortTypeName();
 
@@ -526,5 +526,15 @@ public abstract class DummyObject implements DebugDumpable {
     /** Assumes hierarchical object support is on. */
     boolean containedByOrg(HierarchicalName normalizedOrgName) {
         return normalizedHierarchicalName != null && normalizedHierarchicalName.residesIn(normalizedOrgName);
+    }
+
+    public String getNormalizedName() {
+        return resource.normalizeName(name);
+    }
+
+    @NotNull public abstract String getObjectClassName();
+
+    public Collection<DummyObject> getLinkedObjects(@NotNull String linkName) {
+        return resource.getLinkedObjects(this, linkName);
     }
 }

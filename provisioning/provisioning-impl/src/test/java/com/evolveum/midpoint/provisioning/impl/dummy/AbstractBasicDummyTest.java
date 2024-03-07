@@ -111,7 +111,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     }
 
     protected int getExpectedRefinedSchemaDefinitions() {
-        return dummyResource.getNumberOfObjectclasses();
+        return dummyResource.getNumberOfObjectClasses();
     }
 
     @AfterClass

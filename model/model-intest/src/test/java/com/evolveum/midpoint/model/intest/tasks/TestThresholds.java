@@ -666,7 +666,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     private @NotNull DummyAccount getAccount(int i) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         String accountName = String.format(ACCOUNT_NAME_PATTERN, i);
         return Objects.requireNonNull(
-                RESOURCE_SOURCE.controller.getDummyResource().getAccountByUsername(accountName),
+                RESOURCE_SOURCE.controller.getDummyResource().getAccountByName(accountName),
                 () -> "No account named " + accountName);
     }
 }

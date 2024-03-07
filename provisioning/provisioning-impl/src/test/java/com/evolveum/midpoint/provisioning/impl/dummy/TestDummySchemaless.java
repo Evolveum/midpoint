@@ -45,7 +45,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -631,7 +630,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertTrue("No members update", membersDef.canModify());
         assertTrue("No members read", membersDef.canRead());
 
-        assertEquals("Unexpected number of schema definitions in " + dummyResourceSchemalessCtl.getName() + " dummy resource", dummyResourceStaticSchema.getNumberOfObjectclasses(), resourceSchema.getDefinitions().size());
+        assertEquals("Unexpected number of schema definitions in " + dummyResourceSchemalessCtl.getName() + " dummy resource", dummyResourceStaticSchema.getNumberOfObjectClasses(), resourceSchema.getDefinitions().size());
 
         for (Definition def : resourceSchema.getDefinitions()) {
             if (def instanceof ResourceObjectTypeDefinition) {
@@ -728,7 +727,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
                 ShadowUtil.getAttributeValue(provisioningAccountType, ICFS_PASSWORD));
 
         // Check if the account was created in the dummy resource
-        DummyAccount dummyAccount = dummyResourceStaticSchema.getAccountByUsername("will");
+        DummyAccount dummyAccount = dummyResourceStaticSchema.getAccountByName("will");
         assertNotNull("No dummy account", dummyAccount);
         assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
         assertTrue("The account is not enabled", dummyAccount.isEnabled());

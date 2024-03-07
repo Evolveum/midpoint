@@ -318,7 +318,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
-            return dummyResource.getAccountByUsername(icfName);
+            return dummyResource.getAccountByName(icfName);
         } else {
             return dummyResource.getAccountById(icfUid);
         }
@@ -326,7 +326,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
-            return dummyResource.getAccountByUsername(icfName);
+            return dummyResource.getAccountByName(icfName);
         } else {
             DummyAccount account = dummyResource.getAccountById(icfUid);
             assertNotNull("No dummy account with ICF UID " + icfUid + " (expected name " + icfName + ")", account);
@@ -348,7 +348,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected void assertNoDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         DummyAccount account;
         if (isIcfNameUidSame()) {
-            account = dummyResource.getAccountByUsername(icfName);
+            account = dummyResource.getAccountByName(icfName);
         } else {
             account = dummyResource.getAccountById(icfUid);
         }

@@ -139,12 +139,12 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
             // MID-5883
             .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
-        DummyAccount jackNativeSimulatedAccount = getDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_NAME).getAccountByUsername(USER_JACK_USERNAME);
+        DummyAccount jackNativeSimulatedAccount = getDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_NAME).getAccountByName(USER_JACK_USERNAME);
         displayDumpable("Jack Dummy native-simulated account", jackNativeSimulatedAccount);
         String privilegesNativeSimulatedValue = jackNativeSimulatedAccount.getAttributeValue("privileges");
         AssertJUnit.assertEquals("Unexpected 'native-simulated' privileges attribute value: " + privilegesNativeSimulatedValue, "false", privilegesNativeSimulatedValue);
 
-        DummyAccount jackNativeAccount = getDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_NAME).getAccountByUsername(USER_JACK_USERNAME);
+        DummyAccount jackNativeAccount = getDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_NAME).getAccountByName(USER_JACK_USERNAME);
         displayDumpable("Jack Dummy native account", jackNativeAccount);
         AssertJUnit.assertTrue("Unexpected 'native' activation status value: " + jackNativeAccount.isEnabled(), jackNativeAccount.isEnabled());
         String privilegesNativeValue = jackNativeAccount.getAttributeValue("privileges");
@@ -192,12 +192,12 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
             // MID-5883
             .assertAdministrativeStatus(ActivationStatusType.DISABLED);
 
-        DummyAccount jackNativeSimulatedAccount = getDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_NAME).getAccountByUsername(USER_JACK_USERNAME);
+        DummyAccount jackNativeSimulatedAccount = getDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_NAME).getAccountByName(USER_JACK_USERNAME);
         displayDumpable("Jack Dummy native-simulated account", jackNativeSimulatedAccount);
         String privilegesNativeSimulatedValue = jackNativeSimulatedAccount.getAttributeValue("privileges");
         AssertJUnit.assertEquals("Unexpected 'native-simulated' privileges attribute value: " + privilegesNativeSimulatedValue, "true", privilegesNativeSimulatedValue);
 
-        DummyAccount jackNativeAccount = getDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_NAME).getAccountByUsername(USER_JACK_USERNAME);
+        DummyAccount jackNativeAccount = getDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_NAME).getAccountByName(USER_JACK_USERNAME);
         displayDumpable("Jack Dummy native account", jackNativeAccount);
         AssertJUnit.assertFalse("Unexpected 'native' activation status value: " + jackNativeAccount.isEnabled(), jackNativeAccount.isEnabled());
         String privilegesNativeValue = jackNativeAccount.getAttributeValue("privileges");

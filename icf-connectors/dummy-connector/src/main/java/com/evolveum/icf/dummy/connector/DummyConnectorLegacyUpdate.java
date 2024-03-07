@@ -51,7 +51,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
 
                 final DummyAccount account;
                 if (configuration.isUidBoundToName()) {
-                    account = resource.getAccountByUsername(uid.getUidValue(), false);
+                    account = resource.getAccountByName(uid.getUidValue(), false);
                 } else if (configuration.isUidSeparateFromName()) {
                     account = resource.getAccountById(uid.getUidValue(), false);
                 } else {
@@ -94,7 +94,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                         account.setValidTo(getDate(attr));
 
                     } else if (attr.is(OperationalAttributes.LOCK_OUT_NAME)) {
-                        account.setLockout(getBooleanMandatory(attr));
+                        account.setLockoutStatus(getBooleanMandatory(attr));
 
                     } else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
                         account.replaceAuxiliaryObjectClassNames(attr.getValue());
@@ -164,7 +164,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                     }
                 }
 
-            } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+            } else if (objectClass.is(DummyResource.OBJECTCLASS_PRIVILEGE_NAME)) {
 
                 final DummyPrivilege priv;
                 if (configuration.isUidBoundToName()) {
@@ -209,7 +209,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                     }
                 }
 
-            } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
+            } else if (objectClass.is(DummyResource.OBJECTCLASS_ORG_NAME)) {
 
                 final DummyOrg org;
                 if (configuration.isUidBoundToName()) {
@@ -293,7 +293,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
 
                 DummyAccount account;
                 if (configuration.isUidBoundToName()) {
-                    account = resource.getAccountByUsername(uid.getUidValue());
+                    account = resource.getAccountByName(uid.getUidValue());
                 } else if (configuration.isUidSeparateFromName()) {
                     account = resource.getAccountById(uid.getUidValue());
                 } else {
@@ -380,7 +380,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                     }
                 }
 
-            } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+            } else if (objectClass.is(DummyResource.OBJECTCLASS_PRIVILEGE_NAME)) {
 
                 DummyPrivilege priv;
                 if (configuration.isUidBoundToName()) {
@@ -417,7 +417,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                     }
                 }
 
-            } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
+            } else if (objectClass.is(DummyResource.OBJECTCLASS_ORG_NAME)) {
 
                 DummyOrg org;
                 if (configuration.isUidBoundToName()) {
@@ -492,7 +492,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
 
                 DummyAccount account;
                 if (configuration.isUidBoundToName()) {
-                    account = resource.getAccountByUsername(uid.getUidValue());
+                    account = resource.getAccountByName(uid.getUidValue());
                 } else if (configuration.isUidSeparateFromName()) {
                     account = resource.getAccountById(uid.getUidValue());
                 } else {
@@ -569,7 +569,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                     }
                 }
 
-            } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+            } else if (objectClass.is(DummyResource.OBJECTCLASS_PRIVILEGE_NAME)) {
 
                 DummyPrivilege priv;
                 if (configuration.isUidBoundToName()) {
@@ -603,7 +603,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                     }
                 }
 
-            } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
+            } else if (objectClass.is(DummyResource.OBJECTCLASS_ORG_NAME)) {
 
                 DummyOrg org;
                 if (configuration.isUidBoundToName()) {

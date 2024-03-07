@@ -9,7 +9,6 @@ package com.evolveum.midpoint.testing.story;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -457,7 +456,7 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test105ModifySrcAccountHermanRemoveLoc() throws Exception {
-        DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
+        DummyAccount account = dummyResourceSrc.getAccountByName(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC);
@@ -485,7 +484,7 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test107ModifySrcAccountHermanAddLoc() throws Exception {
-        DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
+        DummyAccount account = dummyResourceSrc.getAccountByName(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, ACCOUNT_HERMAN_LOC);
@@ -500,7 +499,7 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test108ModifySrcAccountHermanRemoveLoc() throws Exception {
-        DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
+        DummyAccount account = dummyResourceSrc.getAccountByName(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC);
@@ -644,7 +643,7 @@ public class TestVillage extends AbstractStoryTest {
      */
     @Test
     public void test150ModifySrcAccountHermanReplaceOrg() throws Exception {
-        DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
+        DummyAccount account = dummyResourceSrc.getAccountByName(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, ORG_INFRA_NAME);
@@ -664,7 +663,7 @@ public class TestVillage extends AbstractStoryTest {
      */
     @Test
     public void test152ModifySrcAccountHermanDeleteOrg() throws Exception {
-        DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
+        DummyAccount account = dummyResourceSrc.getAccountByName(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
         when();

@@ -12,6 +12,8 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author Radovan Semancik
  *
@@ -51,13 +53,8 @@ public class DummyGroup extends DummyObject {
     }
 
     @Override
-    protected DummyObjectClass getObjectClass() {
-        return resource.getGroupObjectClass();
-    }
-
-    @Override
-    protected DummyObjectClass getObjectClassNoExceptions() {
-        return resource.getGroupObjectClass();
+    public @NotNull String getObjectClassName() {
+        return DummyResource.OBJECTCLASS_GROUP_NAME;
     }
 
     @Override
@@ -75,5 +72,4 @@ public class DummyGroup extends DummyObject {
         sb.append("\n");
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Members", getMembers(), indent + 1);
     }
-
 }

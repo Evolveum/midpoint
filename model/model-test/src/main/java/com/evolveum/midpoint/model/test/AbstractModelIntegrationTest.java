@@ -4328,7 +4328,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected DummyAccount getDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException, InterruptedException {
         DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
         try {
-            return dummyResource.getAccountByUsername(username);
+            return dummyResource.getAccountByName(username);
         } catch (ConnectException | FileNotFoundException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }

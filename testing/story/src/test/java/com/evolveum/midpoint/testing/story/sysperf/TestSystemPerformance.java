@@ -317,7 +317,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         String accountName = SourceInitializer.getAccountName(0);
 
-        DummyAccount account = RESOURCE_SOURCE_LIST.get(0).controller.getDummyResource().getAccountByUsername(accountName);
+        DummyAccount account = RESOURCE_SOURCE_LIST.get(0).controller.getDummyResource().getAccountByName(accountName);
         Set<String> roles = account.getAttributeValues(SourcesConfiguration.A_ROLE, String.class);
         displayValue("Roles for " + accountName, roles);
 
@@ -374,7 +374,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     private Set<String> getMemberships(String accountName, DummyTestResource r) {
         try {
             return r.controller.getDummyResource()
-                    .getAccountByUsername(accountName)
+                    .getAccountByName(accountName)
                     .getAttributeValues(TargetsConfiguration.A_MEMBERSHIP, String.class);
         } catch (Exception e) {
             throw new SystemException(e);

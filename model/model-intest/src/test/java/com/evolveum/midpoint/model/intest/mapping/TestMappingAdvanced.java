@@ -232,7 +232,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByUsername(MAGNUS);
+        DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByName(MAGNUS);
         magnus.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
         magnus.addAttributeValue(ATTR_ORGANIZATION, "valid");
 
@@ -276,7 +276,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByUsername(MAGNUS);
+        DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByName(MAGNUS);
         magnus.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
 
         DummyGroup testers = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getGroupByName(MP_TESTERS);
@@ -348,7 +348,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByUsername(VLADIMIR);
+        DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByName(VLADIMIR);
         vladimir.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
         vladimir.addAttributeValue(ATTR_ORGANIZATION, "valid");
 
@@ -391,7 +391,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByUsername(VLADIMIR);
+        DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByName(VLADIMIR);
         vladimir.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
 
         DummyGroup testers = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getGroupByName(MP_TESTERS);

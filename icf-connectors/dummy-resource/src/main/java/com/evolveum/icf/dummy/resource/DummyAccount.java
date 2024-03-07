@@ -11,6 +11,8 @@ import java.net.ConnectException;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author Radovan Semancik
  *
@@ -24,10 +26,11 @@ public class DummyAccount extends DummyObject {
     public static final String ATTR_INTERNAL_ID = "internalId";
 
     private String password = null;
-    private Boolean lockout = null;
+
+    /** "True" means the account is locked-out. */
+    private Boolean lockoutStatus = null;
 
     public DummyAccount() {
-        super();
     }
 
     public DummyAccount(String username) {
@@ -43,23 +46,13 @@ public class DummyAccount extends DummyObject {
         this.password = password;
     }
 
-    public Boolean isLockout() {
-        return lockout;
+    public Boolean getLockoutStatus() {
+        return lockoutStatus;
     }
 
-    public void setLockout(boolean lockout) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+    public void setLockoutStatus(boolean lockoutStatus) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
         checkModifyBreak();
-        this.lockout = lockout;
-    }
-
-    @Override
-    protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        return resource.getAccountObjectClass();
-    }
-
-    @Override
-    protected DummyObjectClass getObjectClassNoExceptions() {
-        return resource.getAccountObjectClassNoExceptions();
+        this.lockoutStatus = lockoutStatus;
     }
 
     @Override
@@ -76,7 +69,12 @@ public class DummyAccount extends DummyObject {
     protected void extendDebugDump(StringBuilder sb, int indent) {
         sb.append("\n");
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Password", password, indent + 1);
-        DebugUtil.debugDumpWithLabelToString(sb, "Lockout", lockout, indent + 1);
+        DebugUtil.debugDumpWithLabelToString(sb, "Lockout status", lockoutStatus, indent + 1);
+    }
+
+    @Override
+    public @NotNull String getObjectClassName() {
+        return DummyResource.OBJECTCLASS_ACCOUNT_NAME;
     }
 
 }

@@ -6,8 +6,11 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * @author Radovan Semancik
@@ -15,13 +18,12 @@ import java.util.Collection;
  */
 public class DummyObjectClass {
 
-    private Collection<DummyAttributeDefinition> attributeDefinitions;
+    @NotNull private final Collection<DummyAttributeDefinition> attributeDefinitions = new ArrayList<>();
 
-    public DummyObjectClass() {
-        attributeDefinitions = new ArrayList<>();
-    }
+    /** Links relevant to this object class. Maintained by the resource itself. */
+    @NotNull private final Collection<LinkClassDefinition> linkClassDefinitions = new HashSet<>();
 
-    public Collection<DummyAttributeDefinition> getAttributeDefinitions() {
+    public @NotNull Collection<DummyAttributeDefinition> getAttributeDefinitions() {
         return attributeDefinitions;
     }
 
@@ -40,6 +42,7 @@ public class DummyObjectClass {
 
     public void clear() {
         attributeDefinitions.clear();
+        linkClassDefinitions.clear();
     }
 
     public void addAttributeDefinition(String attributeName) {
@@ -54,10 +57,17 @@ public class DummyObjectClass {
         addAttributeDefinition(attributeName,attributeType,isOptional,false);
     }
 
-    public void addAttributeDefinition(String attributeName, Class<?> attributeType, boolean isRequired,
-            boolean isMulti) {
+    public void addAttributeDefinition(
+            String attributeName, Class<?> attributeType, boolean isRequired, boolean isMulti) {
         DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attributeName,attributeType,isRequired,isMulti);
         add(attrDef);
     }
 
+    public @NotNull Collection<LinkClassDefinition> getLinkClassDefinitions() {
+        return linkClassDefinitions;
+    }
+
+    public void addLinkClassDefinition(LinkClassDefinition definition) {
+        linkClassDefinitions.add(definition);
+    }
 }

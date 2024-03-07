@@ -364,7 +364,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         when("wally is changed on green");
         getGreenResource()
-                .getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME)
+                .getAccountByName(ACCOUNT_WALLY_DUMMY_USERNAME)
                 .replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Wally B. Feed");
 
         and("blue and green sync tasks are run");
@@ -831,7 +831,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
                     DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expectedFullName);
         }
 
-        DummyAccount dummyAccount = dummy.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        DummyAccount dummyAccount = dummy.getAccountByName(ACCOUNT_WALLY_DUMMY_USERNAME);
         displayDumpable("Account wally (" + resourceDesc + ")", dummyAccount);
         assertNotNull("No dummy account (" + resourceDesc + ")", dummyAccount);
         if (expectedFullName != null) {

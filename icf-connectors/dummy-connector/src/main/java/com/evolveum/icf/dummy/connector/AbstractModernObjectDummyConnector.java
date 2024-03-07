@@ -64,7 +64,7 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
 
                 final DummyAccount account;
                 if (configuration.isUidBoundToName()) {
-                    account = resource.getAccountByUsername(uid.getUidValue(), false);
+                    account = resource.getAccountByName(uid.getUidValue(), false);
                 } else if (configuration.isUidSeparateFromName()) {
                     account = resource.getAccountById(uid.getUidValue(), false);
                 } else {
@@ -134,7 +134,7 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
 
                     } else if (delta.is(OperationalAttributes.LOCK_OUT_NAME)) {
                         assertReplace(delta);
-                        account.setLockout(getBooleanMandatory(delta));
+                        account.setLockoutStatus(getBooleanMandatory(delta));
 
                     } else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(delta.getName())) {
                         applyAuxiliaryObjectClassDelta(account, delta);
@@ -198,7 +198,7 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                 }
 
 
-            } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+            } else if (objectClass.is(DummyResource.OBJECTCLASS_PRIVILEGE_NAME)) {
 
                 final DummyPrivilege priv;
                 if (configuration.isUidBoundToName()) {
@@ -243,7 +243,7 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                 }
 
 
-            } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
+            } else if (objectClass.is(DummyResource.OBJECTCLASS_ORG_NAME)) {
 
                 final DummyOrg org;
                 if (configuration.isUidBoundToName()) {

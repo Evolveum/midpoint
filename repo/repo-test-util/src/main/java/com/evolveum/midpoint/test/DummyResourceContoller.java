@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
+import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
@@ -22,9 +24,11 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.time.ZonedDateTime;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
@@ -38,18 +42,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang3.StringUtils;
 import org.testng.AssertJUnit;
 
-import com.evolveum.icf.dummy.resource.BreakMode;
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
-import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
-import com.evolveum.icf.dummy.resource.DummyOrg;
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
-import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -134,6 +126,21 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final ItemName DUMMY_GROUP_ATTRIBUTE_CC_QNAME = new ItemName(NS_RI, DUMMY_GROUP_ATTRIBUTE_CC);
     public static final ItemPath DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_QNAME);
     public static final ItemPath DUMMY_GROUP_ATTRIBUTE_CC_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_GROUP_ATTRIBUTE_CC_QNAME);
+
+    public static final String DUMMY_ORG_ATTRIBUTE_DESCRIPTION = "description";
+
+    public static final String DUMMY_HR_PERSON_OBJECT_CLASS_NAME = "person";
+    public static final String DUMMY_HR_PERSON_ATTRIBUTE_FIRST_NAME_NAME = "firstName";
+    public static final String DUMMY_HR_PERSON_ATTRIBUTE_LAST_NAME_NAME = "lastName";
+    public static final String DUMMY_HR_PERSON_ATTRIBUTE_TITLE_NAME = "lastName";
+    public static final String DUMMY_HR_PERSON_ATTRIBUTE_CONTRACT_NAME = "contract";
+
+    public static final String DUMMY_HR_CONTRACT_OBJECT_CLASS_NAME = "contract";
+    public static final String DUMMY_HR_CONTRACT_ATTRIBUTE_VALID_FROM = "validFrom";
+    public static final String DUMMY_HR_CONTRACT_ATTRIBUTE_VALID_TO = "validTo";
+    public static final String DUMMY_HR_CONTRACT_ATTRIBUTE_ORG_UNIT = "orgUnit";
+
+    public static final String DUMMY_HR_PERSON_CONTRACT_LINK_TYPE_NAME = "personContractLinkType";
 
     public static final String DUMMY_PRIVILEGE_ATTRIBUTE_POWER = "power";
 
@@ -248,11 +255,48 @@ public class DummyResourceContoller extends AbstractResourceController {
         dummyResource.addAuxiliaryObjectClass(DUMMY_POSIX_ACCOUNT_OBJECT_CLASS_NAME, posixAccount);
     }
 
+    /** Creates a HR-like schema, having persons, contracts, and org units. */
+    public void extendSchemaHr() {
+        var personOC = new DummyObjectClass();
+        addAttrDef(personOC, DUMMY_HR_PERSON_ATTRIBUTE_FIRST_NAME_NAME, String.class, false, false);
+        addAttrDef(personOC, DUMMY_HR_PERSON_ATTRIBUTE_LAST_NAME_NAME, String.class, false, false);
+        addAttrDef(personOC, DUMMY_HR_PERSON_ATTRIBUTE_TITLE_NAME, String.class, false, false);
+        dummyResource.addStructuralObjectClass(DUMMY_HR_PERSON_OBJECT_CLASS_NAME, personOC);
+
+        var contractOC = new DummyObjectClass();
+        addAttrDef(contractOC, DUMMY_HR_CONTRACT_ATTRIBUTE_VALID_FROM, ZonedDateTime.class, false, false);
+        addAttrDef(contractOC, DUMMY_HR_CONTRACT_ATTRIBUTE_VALID_TO, ZonedDateTime.class, false, false);
+        addAttrDef(contractOC, DUMMY_HR_CONTRACT_ATTRIBUTE_ORG_UNIT, String.class, false, false);
+        dummyResource.addStructuralObjectClass(DUMMY_HR_CONTRACT_OBJECT_CLASS_NAME, contractOC);
+
+        var orgOC = dummyResource.getOrgObjectClass();
+        addAttrDef(orgOC, DUMMY_ORG_ATTRIBUTE_DESCRIPTION, String.class, false, false);
+
+        addLinkClassDefinition(
+                aLinkClassDefinition()
+                        .withName(DUMMY_HR_PERSON_CONTRACT_LINK_TYPE_NAME)
+                        .withFirstParticipant(aParticipant()
+                                .withObjectClassNames(Set.of(DUMMY_HR_PERSON_OBJECT_CLASS_NAME))
+                                .withAttributeName(DUMMY_HR_PERSON_ATTRIBUTE_CONTRACT_NAME)
+                                .withMaxOccurs(-1)
+                                .build())
+                        .withSecondParticipant(aParticipant()
+                                .withObjectClassNames(Set.of(DUMMY_HR_CONTRACT_OBJECT_CLASS_NAME))
+                                .withMinOccurs(1)
+                                .withMaxOccurs(1)
+                                .build())
+                        .build());
+    }
+
     public DummyAttributeDefinition addAttrDef(DummyObjectClass objectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {
         isExtendedSchema = true;
         DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attrName, type, isRequired, isMulti);
         objectClass.add(attrDef);
         return attrDef;
+    }
+
+    public void addLinkClassDefinition(LinkClassDefinition definition) {
+        dummyResource.addLinkClassDef(definition);
     }
 
     public void setExtendedSchema() {
@@ -335,7 +379,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertTrue("No members update", membersDef.canModify());
         assertTrue("No members read", membersDef.canRead());
 
-        assertEquals("Unexpected number of schema definitions in "+getName()+" dummy resource", dummyResource.getNumberOfObjectclasses(), resourceSchema.getDefinitions().size());
+        assertEquals("Unexpected number of schema definitions in "+getName()+" dummy resource", dummyResource.getNumberOfObjectClasses(), resourceSchema.getDefinitions().size());
 
         for (Definition def: resourceSchema.getDefinitions()) {
             if (def instanceof ResourceObjectTypeDefinition) {
@@ -520,7 +564,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     }
 
     public DummyAccountAsserter<Void> assertAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        DummyAccount account = dummyResource.getAccountByUsername(username);
+        DummyAccount account = dummyResource.getAccountByName(username);
         assertNotNull("Account "+username+" does not exist on dummy resource "+getName(), account);
         return assertAccount(account);
     }
@@ -536,7 +580,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     }
 
     public void assertNoAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        DummyAccount account = dummyResource.getAccountByUsername(username);
+        DummyAccount account = dummyResource.getAccountByName(username);
         assertNull("Unexpected account "+username+" on dummy resource "+getName(), account);
     }
 

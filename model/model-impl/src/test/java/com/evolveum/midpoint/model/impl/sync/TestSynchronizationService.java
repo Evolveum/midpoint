@@ -155,7 +155,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         OperationResult result = task.getResult();
         setDebugListener();
 
-        DummyAccount dummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
+        DummyAccount dummyAccount = getDummyResource().getAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         dummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 999L);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
@@ -210,7 +210,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         OperationResult result = task.getResult();
         setDebugListener();
 
-        DummyAccount dummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
+        DummyAccount dummyAccount = getDummyResource().getAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         dummyAccount.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
@@ -888,9 +888,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().resetBreakMode();
         setDebugListener();
 
-        getDummyResource().getAccountByUsername(USER_JACK_USERNAME)
+        getDummyResource().getAccountByName(USER_JACK_USERNAME)
                 .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Dummyland");
-        RESOURCE_DUMMY_LIMITED.controller.getDummyResource().getAccountByUsername(USER_JACK_USERNAME)
+        RESOURCE_DUMMY_LIMITED.controller.getDummyResource().getAccountByName(USER_JACK_USERNAME)
                 .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Limitistan");
 
         displayDumpable("Dummy resource before", getDummyResource());

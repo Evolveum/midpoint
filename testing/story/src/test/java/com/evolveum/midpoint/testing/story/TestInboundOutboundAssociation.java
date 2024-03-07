@@ -172,7 +172,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
                 .addMember(USER_JACK_USERNAME);
 
         // "fake" modification of jack's account. Just to "motivate" it to be synchronized
-        getDummyResourceDir().getAccountByUsername(USER_JACK_USERNAME)
+        getDummyResourceDir().getAccountByName(USER_JACK_USERNAME)
                 .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
 
         when();

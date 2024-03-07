@@ -345,7 +345,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         cc.addObject(shadow, null, result);
 
         // THEN
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_JACK_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_JACK_USERNAME);
         assertNotNull("Account " + ACCOUNT_JACK_USERNAME + " was not created", dummyAccount);
         assertNotNull("Account " + ACCOUNT_JACK_USERNAME + " has no username", dummyAccount.getName());
     }
@@ -480,7 +480,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         hierarchicalResourceCtl.addAccount("test");
 
         then("it is there");
-        assertThat(hierarchicalResource.getAccountByUsername("test")).isNotNull();
+        assertThat(hierarchicalResource.getAccountByName("test")).isNotNull();
 
         when("account in non-existent org is added");
         try {
@@ -497,7 +497,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         hierarchicalResourceCtl.addAccount("test:org200");
 
         then("it is there");
-        assertThat(hierarchicalResource.getAccountByUsername("test:org200")).isNotNull();
+        assertThat(hierarchicalResource.getAccountByName("test:org200")).isNotNull();
     }
 
     @Test
@@ -554,7 +554,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     private void assertAccountExists(String name)
             throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
-        DummyAccount account = hierarchicalResource.getAccountByUsername(name);
+        DummyAccount account = hierarchicalResource.getAccountByName(name);
         assertThat(account).as("account named '" + name + "'").isNotNull();
     }
 

@@ -509,8 +509,8 @@ public class TestDummyNegative extends AbstractDummyTest {
         String unstorableOid = selectAccountByName(accounts, UNSTORABLE_ACCOUNT).getOid();
 
         // break the accounts
-        resource.getAccountByUsername(INCONVERTIBLE_ACCOUNT).replaceAttributeValue(ENABLE_DATE_NAME, "WRONG");
-        resource.getAccountByUsername(UNSTORABLE_ACCOUNT).replaceAttributeValue(ATTR_NUMBER, "WRONG");
+        resource.getAccountByName(INCONVERTIBLE_ACCOUNT).replaceAttributeValue(ENABLE_DATE_NAME, "WRONG");
+        resource.getAccountByName(UNSTORABLE_ACCOUNT).replaceAttributeValue(ATTR_NUMBER, "WRONG");
 
         when(GOOD_ACCOUNT);
         PrismObject<ShadowType> goodReloaded =
