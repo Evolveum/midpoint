@@ -946,7 +946,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        String state = recomputeAndResolveClusterOpStatus(cluster, result, task);
+        String state = recomputeAndResolveClusterOpStatus(cluster.getOid(), result, task);
 
         if (!RoleAnalysisObjectState.isStable(state)) {
             result.recordWarning("Couldn't start detection. Some process is already in progress.");
@@ -1017,7 +1017,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        String state = recomputeAndResolveClusterOpStatus(cluster, result, task);
+        String state = recomputeAndResolveClusterOpStatus(cluster.getOid(), result, task);
 
         if (!RoleAnalysisObjectState.isStable(state)) {
             result.recordWarning("Couldn't start migration. Some process is already in progress.");
@@ -1078,11 +1078,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     public @NotNull String recomputeAndResolveClusterOpStatus(
-            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
+            @NotNull String clusterOid,
             @NotNull OperationResult result,
             @NotNull Task task) {
 
-        PrismObject<RoleAnalysisClusterType> clusterPrism = getClusterTypeObject(clusterPrismObject.getOid(), task, result);
+        PrismObject<RoleAnalysisClusterType> clusterPrism = getClusterTypeObject(clusterOid, task, result);
 
         if (clusterPrism == null) {
             return RoleAnalysisObjectState.STABLE.getDisplayString();
@@ -1127,7 +1127,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 try {
                     ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
                             .item(RoleAnalysisClusterType.F_OPERATION_STATUS).replace(collection)
-                            .asObjectDelta(clusterPrismObject.getOid());
+                            .asObjectDelta(clusterOid);
 
                     Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
@@ -1516,19 +1516,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             Set<PrismObject<UserType>> prismUsers = fetchPrismUsers(this, objectOid, task, result);
             runUserAttributeAnalysis(prismUsers, itemPathSet, attributeAnalysisStructures, membershipDensity);
-//
-//            processUserItemPaths(prismUsers, itemPathSet, attributeAnalysisStructures, usersCount);
-//            processUserAssignments(prismUsers, membershipDensity, attributeAnalysisStructures, usersCount);
-
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
             Set<PrismObject<RoleType>> prismRolesSet = fetchPrismRoles(this, objectOid, task, result);
-
             runRoleAttributeAnalysis(prismRolesSet, itemPathSet, attributeAnalysisStructures, membershipDensity);
-
-//            int rolesCount = prismRolesSet.size();
-//            processRoleItemPaths(prismRolesSet, itemPathSet, attributeAnalysisStructures, rolesCount);
-//            processRoleAssignmentsAndInducements(prismRolesSet, membershipDensity, attributeAnalysisStructures, rolesCount);
-
         }
         return attributeAnalysisStructures;
     }
@@ -1538,12 +1528,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
 
         runUserAttributeAnalysis(prismUsers, itemPathSet, attributeAnalysisStructures, membershipDensity);
-
-//        int usersCount = prismUsers.size();
-//        processUserItemPaths(prismUsers, itemPathSet, attributeAnalysisStructures, usersCount);
-//
-//        processUserAssignments(prismUsers, membershipDensity, attributeAnalysisStructures, usersCount);
-
         return attributeAnalysisStructures;
     }
 
@@ -1552,12 +1536,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
 
         runRoleAttributeAnalysis(prismRoles, itemPathSet, attributeAnalysisStructures, membershipDensity);
-
-//        int rolesCount = prismRoles.size();
-
-//        processRoleItemPaths(prismRoles, itemPathSet, attributeAnalysisStructures, rolesCount);
-//
-//        processRoleAssignmentsAndInducements(prismRoles, membershipDensity, attributeAnalysisStructures, rolesCount);
         return attributeAnalysisStructures;
     }
 
@@ -1600,6 +1578,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 roleAnalysisAttributeAnalysis.setDensity(density);
                 roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
                 roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
+                roleAnalysisAttributeAnalysis.setJsonDescription(userAttributeAnalysisStructure.getJsonDescription());
                 userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
             }
 
@@ -1615,11 +1594,34 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 roleAnalysisAttributeAnalysis.setDensity(density);
                 roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPath());
                 roleAnalysisAttributeAnalysis.setDescription(roleAttributeAnalysisStructure.getDescription());
+                roleAnalysisAttributeAnalysis.setJsonDescription(roleAttributeAnalysisStructure.getJsonDescription());
                 roleAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
             }
 
             detectedPattern.setRoleAttributeAnalysisResult(roleAnalysis);
         }
+    }
+
+    @Override
+    public List<PrismObject<RoleAnalysisClusterType>> searchSessionClusters(
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisClusterType.class)
+                .item(RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF)
+                .ref(session.getOid()).build();
+
+        try {
+            return modelService.searchObjects(RoleAnalysisClusterType.class, query, null,
+                    task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Failed to search role member objects:", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+
+        return null;
     }
 
 }

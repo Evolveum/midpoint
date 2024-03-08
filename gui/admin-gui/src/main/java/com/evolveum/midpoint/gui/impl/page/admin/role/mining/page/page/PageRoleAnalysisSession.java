@@ -138,6 +138,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             form.setDefaultButton(rebuildButton);
         }
 
+        boolean generationButtonEnabled = false;
         AjaxCompositedIconSubmitButton generate = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
                 iconBuilder.build(),
                 ((PageBase) getPage()).createStringResource("Generate")) {
@@ -157,6 +158,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         };
         generate.titleAsLabel(true);
         generate.setOutputMarkupId(true);
+        generate.setVisible(generationButtonEnabled);
         generate.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
         repeatingView.add(generate);
 
@@ -180,6 +182,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         };
         remake.titleAsLabel(true);
         remake.setOutputMarkupId(true);
+        remake.setVisible(generationButtonEnabled);
         remake.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
         repeatingView.add(remake);
 
@@ -203,6 +206,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         };
         unassign.titleAsLabel(true);
         unassign.setOutputMarkupId(true);
+        unassign.setVisible(generationButtonEnabled);
         unassign.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
         repeatingView.add(unassign);
     }
@@ -318,6 +322,13 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
             if (containerPanelConfigurationType.getIdentifier().equals("matchingOptions")) {
                 if (!analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
+                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                    continue;
+                }
+            }
+
+            if (containerPanelConfigurationType.getIdentifier().equals("topDetectedPattern")) {
+                if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
                     containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
                     continue;
                 }

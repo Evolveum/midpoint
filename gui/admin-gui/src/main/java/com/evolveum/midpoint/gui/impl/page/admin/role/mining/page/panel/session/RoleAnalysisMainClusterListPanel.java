@@ -8,16 +8,21 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
 
+import java.io.Serial;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
@@ -33,6 +38,7 @@ import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProv
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
@@ -41,6 +47,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RepeatingAttributeForm;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -72,15 +79,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 order = 20
         )
 )
-public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
+public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     private static final String ID_DATATABLE = "datatable";
     private static final String ID_FORM = "form";
-    private static final String DOT_CLASS = ClustersPanel.class.getName() + ".";
+    private static final String DOT_CLASS = RoleAnalysisMainClusterListPanel.class.getName() + ".";
     private static final String OP_DELETE_CLUSTER = DOT_CLASS + "deleteCluster";
     private static final String OP_UPDATE_STATUS = DOT_CLASS + "updateOperationStatus";
 
-    public ClustersPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model, ContainerPanelConfigurationType config) {
+    public RoleAnalysisMainClusterListPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
@@ -103,6 +110,72 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
         MainObjectListPanel<RoleAnalysisClusterType> basicTable = new MainObjectListPanel<>(ID_DATATABLE, RoleAnalysisClusterType.class) {
 
             @Override
+            protected boolean isCollapsableTable() {
+                return true;
+            }
+
+            @Override
+            protected Item<SelectableBean<RoleAnalysisClusterType>> newRowItem(String id, int index, Item<SelectableBean<RoleAnalysisClusterType>> item, @NotNull IModel<SelectableBean<RoleAnalysisClusterType>> rowModel) {
+                RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = null;
+                RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = null;
+
+                if (rowModel.getObject() != null) {
+                    RoleAnalysisClusterType value = rowModel.getObject().getValue();
+                    AnalysisClusterStatisticType clusterStatistics = value.getClusterStatistics();
+                    if (clusterStatistics != null) {
+                        roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
+                        userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
+                    }
+                }
+
+                WebMarkupContainer webMarkupContainerUser = new WebMarkupContainer(ID_FIRST_COLLAPSABLE_CONTAINER);
+                webMarkupContainerUser.setOutputMarkupId(true);
+                webMarkupContainerUser.add(AttributeModifier.replace("class", "collapse"));
+                webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
+                item.add(webMarkupContainerUser);
+
+                if (userAttributeAnalysisResult != null) {
+                    RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
+                            ID_COLLAPSABLE_CONTENT, userAttributeAnalysisResult, new HashSet<>(), RoleAnalysisProcessModeType.USER) {
+                        @Override
+                        protected boolean isTableSupported() {
+                            return false;
+                        }
+                    };
+                    repeatingAttributeForm.setOutputMarkupId(true);
+                    webMarkupContainerUser.add(repeatingAttributeForm);
+                } else {
+                    Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
+                    label.setOutputMarkupId(true);
+                    webMarkupContainerUser.add(label);
+                }
+
+                WebMarkupContainer webMarkupContainerRole = new WebMarkupContainer(ID_SECOND_COLLAPSABLE_CONTAINER);
+                webMarkupContainerRole.setOutputMarkupId(true);
+                webMarkupContainerRole.add(AttributeModifier.replace("class", "collapse"));
+                webMarkupContainerRole.add(AttributeModifier.replace("style", "display: none;"));
+                item.add(webMarkupContainerRole);
+
+                if (roleAttributeAnalysisResult != null) {
+                    RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
+                            ID_COLLAPSABLE_CONTENT, roleAttributeAnalysisResult, new HashSet<>(), RoleAnalysisProcessModeType.ROLE) {
+                        @Override
+                        protected boolean isTableSupported() {
+                            return false;
+                        }
+                    };
+                    repeatingAttributeForm.setOutputMarkupId(true);
+                    webMarkupContainerRole.add(repeatingAttributeForm);
+                } else {
+                    Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
+                    label.setOutputMarkupId(true);
+                    webMarkupContainerRole.add(label);
+                }
+
+                return item;
+            }
+
+            @Override
             protected ISelectableDataProvider<SelectableBean<RoleAnalysisClusterType>> createProvider() {
                 SelectableBeanObjectDataProvider<RoleAnalysisClusterType> provider = createSelectableBeanObjectDataProvider(() ->
                         getCustomizeContentQuery(), null);
@@ -120,8 +193,8 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
-                menuItems.add(ClustersPanel.this.createDeleteInlineMenu());
-                menuItems.add(ClustersPanel.this.createPreviewInlineMenu());
+                menuItems.add(RoleAnalysisMainClusterListPanel.this.createDeleteInlineMenu());
+                menuItems.add(RoleAnalysisMainClusterListPanel.this.createPreviewInlineMenu());
                 return menuItems;
             }
 
@@ -156,7 +229,7 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
 
                                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                                 @NotNull String stateString = roleAnalysisService.recomputeAndResolveClusterOpStatus(
-                                        value.asPrismObject(),
+                                        value.asPrismObject().getOid(),
                                         result, task);
 
                                 IconType icon = new IconType();
@@ -195,8 +268,31 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
-                        IModel<?> userObjectCount = extractUserObjectCount(model);
-                        cellItem.add(new Label(componentId, userObjectCount));
+                        IModel<String> userObjectCount = extractUserObjectCount(model);
+
+                        CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
+                                .setBasicIcon(GuiStyleConstants.CLASS_OBJECT_USER_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
+
+                        AjaxCompositedIconButton objectButton = new AjaxCompositedIconButton(componentId, iconBuilder.build(),
+                                userObjectCount) {
+
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                Component collapseContainer = cellItem.findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
+                                Component collapseContainerRole = cellItem.findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
+
+                                target.appendJavaScript(getCollapseScript(collapseContainer, collapseContainerRole));
+
+                            }
+
+                        };
+                        objectButton.titleAsLabel(true);
+                        objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                        objectButton.add(AttributeAppender.append("style", "width:150px"));
+
+                        cellItem.add(objectButton);
                     }
 
                     @Override
@@ -223,7 +319,30 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
-                        cellItem.add(new Label(componentId, extractRoleObjectCount(model)));
+                        IModel<String> iModel = extractRoleObjectCount(model);
+                        CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
+                                .setBasicIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
+
+                        AjaxCompositedIconButton objectButton = new AjaxCompositedIconButton(componentId, iconBuilder.build(),
+                                iModel) {
+
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                Component collapseContainer = cellItem.findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
+                                Component collapseContainerRole = cellItem.findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
+
+                                target.appendJavaScript(getCollapseScript(collapseContainer, collapseContainerRole));
+
+                            }
+
+                        };
+                        objectButton.titleAsLabel(true);
+                        objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                        objectButton.add(AttributeAppender.append("style", "width:150px"));
+
+                        cellItem.add(objectButton);
                     }
 
                     @Override
@@ -505,24 +624,24 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
         };
     }
 
-    private static IModel<?> extractUserObjectCount(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+    private static IModel<String> extractUserObjectCount(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
         RoleAnalysisClusterType value = model.getObject().getValue();
         if (value != null
                 && value.getClusterStatistics() != null
                 && value.getClusterStatistics().getUsersCount() != null) {
-            return Model.of(value.getClusterStatistics().getUsersCount());
+            return Model.of(value.getClusterStatistics().getUsersCount().toString());
         } else {
             return Model.of("");
         }
     }
 
-    private static IModel<?> extractRoleObjectCount(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+    private static IModel<String> extractRoleObjectCount(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
         RoleAnalysisClusterType value = model.getObject().getValue();
         if (value != null
                 && value.getClusterStatistics() != null
                 && value.getClusterStatistics().getRolesCount() != null) {
             Integer rolesCount = value.getClusterStatistics().getRolesCount();
-            return Model.of(rolesCount);
+            return Model.of(rolesCount.toString());
         } else {
             return Model.of("");
         }

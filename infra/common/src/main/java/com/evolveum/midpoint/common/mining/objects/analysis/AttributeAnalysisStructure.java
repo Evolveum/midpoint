@@ -17,6 +17,7 @@ public class AttributeAnalysisStructure implements Serializable {
     String itemPath;
     double density;
     String description;
+    String jsonDescription;
 
     public AttributeAnalysisStructure(int uniqueValues, int objectCount, int totalValues, String itemPath) {
         this.uniqueValues = uniqueValues;
@@ -77,5 +78,13 @@ public class AttributeAnalysisStructure implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getJsonDescription() {
+        return jsonDescription;
+    }
+
+    public void setJsonDescription(String jsonDescription) {
+        this.jsonDescription = jsonDescription;
     }
 }

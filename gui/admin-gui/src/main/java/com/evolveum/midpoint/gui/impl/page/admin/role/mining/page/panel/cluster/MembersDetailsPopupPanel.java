@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +15,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -35,16 +36,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessM
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class MembersDetailsPanel extends BasePanel<String> {
+public class MembersDetailsPopupPanel extends BasePanel<String> implements Popupable {
 
+    List<PrismObject<FocusType>> elements;
     RoleAnalysisProcessModeType processModeType;
-    Set<String> objectsOid;
 
-    public MembersDetailsPanel(String id, IModel<String> messageModel, Set<String> objectsOid,
+    public MembersDetailsPopupPanel(String id, IModel<String> messageModel, List<PrismObject<FocusType>> members,
             RoleAnalysisProcessModeType processModeType) {
         super(id, messageModel);
+        this.elements = members;
         this.processModeType = processModeType;
-        this.objectsOid = objectsOid;
     }
 
     @Override
@@ -54,16 +55,9 @@ public class MembersDetailsPanel extends BasePanel<String> {
         Class<?> roleTypeClass;
         if (processModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
             roleTypeClass = RoleType.class;
+
         } else {
             roleTypeClass = UserType.class;
-        }
-
-        List<PrismObject<FocusType>> objects = new ArrayList<>();
-        Task task = getPageBase().createSimpleTask("getFocusTypeObject");
-        OperationResult result = new OperationResult("getFocusTypeObject");
-        for (String userOid : objectsOid) {
-            objects.add(getPageBase().getRoleAnalysisService()
-                    .getFocusTypeObject(userOid, task, result));
         }
 
         SelectableBeanObjectDataProvider<FocusType> selectableBeanObjectDataProvider = new SelectableBeanObjectDataProvider<>(
@@ -74,12 +68,12 @@ public class MembersDetailsPanel extends BasePanel<String> {
                 Integer offset = query.getPaging().getOffset();
                 Integer maxSize = query.getPaging().getMaxSize();
 
-                return objects.subList(offset, offset + maxSize).stream().map(element -> element.asObjectable()).toList();
+                return elements.subList(offset, offset + maxSize).stream().map(element -> element.asObjectable()).toList();
             }
 
             @Override
             protected Integer countObjects(Class<FocusType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) throws CommonException {
-                return objects.size();
+                return elements.size();
             }
         };
 
@@ -128,5 +122,39 @@ public class MembersDetailsPanel extends BasePanel<String> {
 
     public void onClose(AjaxRequestTarget ajaxRequestTarget) {
         getPageBase().hideMainPopup(ajaxRequestTarget);
+    }
+
+    @Override
+    public int getWidth() {
+        return 60;
+    }
+
+    @Override
+    public int getHeight() {
+        return 50;
+    }
+
+    @Override
+    public String getWidthUnit() {
+        return "%";
+    }
+
+    @Override
+    public String getHeightUnit() {
+        return "%";
+    }
+
+    @Override
+    public Component getContent() {
+        return this;
+    }
+
+    @Override
+    public StringResourceModel getTitle() {
+//        if (processModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
+//            return new StringResourceModel("RoleMining.members.details.panel.title.roles");
+//        }
+//        return new StringResourceModel("RoleMining.members.details.panel.title.users");
+        return null;
     }
 }

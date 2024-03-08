@@ -41,7 +41,7 @@ public class DetectedPatternPopupPanel extends BasePanel<String> implements Popu
                     protected List<DetectedPattern> load() {
                         return detectedPatterns;
                     }
-                }, cluster,true);
+                }, true);
 
         components.setOutputMarkupId(true);
         add(components);

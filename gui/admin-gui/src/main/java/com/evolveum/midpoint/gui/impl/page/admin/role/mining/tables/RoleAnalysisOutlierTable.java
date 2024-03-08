@@ -38,9 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierT
 public class RoleAnalysisOutlierTable extends BasePanel<String> {
 
     private static final String ID_DATATABLE = "datatable";
-    private static final String DOT_CLASS = RoleAnalysisOutlierTable.class.getName() + ".";
-    private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
-    OperationResult result = new OperationResult(OP_PREPARE_OBJECTS);
 
     public RoleAnalysisOutlierTable(String id, RoleAnalysisClusterType cluster) {
         super(id);
@@ -66,6 +63,11 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
             @Override
             protected List<Component> createToolbarButtonsList(String buttonId) {
                 return null;
+            }
+
+            @Override
+            protected boolean isDuplicationSupported() {
+                return false;
             }
 
             @Override

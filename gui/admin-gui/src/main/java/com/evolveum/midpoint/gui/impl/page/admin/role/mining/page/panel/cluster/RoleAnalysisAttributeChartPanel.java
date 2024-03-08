@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -30,19 +29,17 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
 
-public class RoleAnalysisAttributeChartPopupPanel extends BasePanel<String> implements Popupable {
+public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
 
     private static final String ID_CHART_PANEL_USER = "chartPanelUser";
     private static final String ID_CHART_PANEL_ROLE = "chartPanelRole";
@@ -55,11 +52,12 @@ public class RoleAnalysisAttributeChartPopupPanel extends BasePanel<String> impl
     LoadableDetachableModel<ObjectDetailsModels<RoleAnalysisClusterType>> clusterModel;
     DetectedPattern detectedPattern;
 
-    public RoleAnalysisAttributeChartPopupPanel(String id, IModel<String> messageModel,
+    public RoleAnalysisAttributeChartPanel(String id,
             RoleAnalysisAttributeAnalysisResult roleAnalysisResult,
             RoleAnalysisAttributeAnalysisResult userAnalysisResult,
-            LoadableDetachableModel<ObjectDetailsModels<RoleAnalysisClusterType>> clusterModel, DetectedPattern detectedPattern) {
-        super(id, messageModel);
+            LoadableDetachableModel<ObjectDetailsModels<RoleAnalysisClusterType>> clusterModel,
+            DetectedPattern detectedPattern) {
+        super(id);
 
         this.clusterModel = clusterModel;
         this.detectedPattern = detectedPattern;
@@ -139,7 +137,7 @@ public class RoleAnalysisAttributeChartPopupPanel extends BasePanel<String> impl
     protected void onInitialize() {
         super.onInitialize();
 
-        RoleAnalysisAttributeChartPanel roleAnalysisUserChartPanel = new RoleAnalysisAttributeChartPanel(
+        com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPanel roleAnalysisUserChartPanel = new com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPanel(
                 ID_CHART_PANEL_USER, attributeAnalysisUserStructureList) {
             @Override
             public StringResourceModel getChartTitle() {
@@ -154,7 +152,7 @@ public class RoleAnalysisAttributeChartPopupPanel extends BasePanel<String> impl
         roleAnalysisUserChartPanel.setOutputMarkupId(true);
         add(roleAnalysisUserChartPanel);
 
-        RoleAnalysisAttributeChartPanel roleAnalysisRoleChartPanel = new RoleAnalysisAttributeChartPanel(
+        com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPanel roleAnalysisRoleChartPanel = new com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPanel(
                 ID_CHART_PANEL_ROLE, attributeAnalysisRoleStructureList) {
             @Override
             public StringResourceModel getChartTitle() {
@@ -172,36 +170,6 @@ public class RoleAnalysisAttributeChartPopupPanel extends BasePanel<String> impl
 
     public void onClose(AjaxRequestTarget ajaxRequestTarget) {
         getPageBase().hideMainPopup(ajaxRequestTarget);
-    }
-
-    @Override
-    public int getWidth() {
-        return 60;
-    }
-
-    @Override
-    public int getHeight() {
-        return 50;
-    }
-
-    @Override
-    public String getWidthUnit() {
-        return "%";
-    }
-
-    @Override
-    public String getHeightUnit() {
-        return "%";
-    }
-
-    @Override
-    public Component getContent() {
-        return this;
-    }
-
-    @Override
-    public StringResourceModel getTitle() {
-        return null;
     }
 
     protected IModel<? extends PrismContainerWrapper<RoleAnalysisAttributeAnalysisResult>> getUserContainerFormModel() {

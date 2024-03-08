@@ -10,6 +10,7 @@ package com.evolveum.midpoint.common.mining.objects.detection;
 import java.io.Serializable;
 import java.util.Set;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
 
 /**
@@ -21,6 +22,7 @@ public class DetectedPattern extends BasePattern implements Serializable {
     public static final String F_METRIC = "metric";
 
     public static final String F_TYPE = "searchMode";
+    ObjectReferenceType clusterRef;
 
     public DetectedPattern(Set<String> roles, Set<String> users, Double metric, Long id, String identifier, String associatedColor) {
         super(roles, users, metric, id, identifier, associatedColor);
@@ -32,5 +34,13 @@ public class DetectedPattern extends BasePattern implements Serializable {
 
     public DetectedPattern(Set<String> roles, Set<String> users, double clusterMetric, Long patternId) {
         super(roles, users, clusterMetric, patternId);
+    }
+
+    public ObjectReferenceType getClusterRef() {
+        return clusterRef;
+    }
+
+    public void setClusterRef(ObjectReferenceType clusterRef) {
+        this.clusterRef = clusterRef;
     }
 }

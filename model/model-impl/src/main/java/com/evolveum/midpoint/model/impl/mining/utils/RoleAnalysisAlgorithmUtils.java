@@ -20,6 +20,7 @@ import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
+import com.evolveum.midpoint.model.impl.mining.algorithm.detection.PatternConfidenceCalculator;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,14 +93,31 @@ public class RoleAnalysisAlgorithmUtils {
 
         Map<String, Integer> nameOccurrences = new HashMap<>();
 
-        for (PrismObject<RoleAnalysisClusterType> roleAnalysisClusterTypePrismObject : clusterTypeObjectWithStatistic) {
-            RoleAnalysisClusterType cluster = roleAnalysisClusterTypePrismObject.asObjectable();
+        double maxReduction = 0;
+        for (PrismObject<RoleAnalysisClusterType> clusterPrismObject : clusterTypeObjectWithStatistic) {
+            RoleAnalysisClusterType cluster = clusterPrismObject.asObjectable();
             String orig = cluster.getName().getOrig();
             int count = nameOccurrences.getOrDefault(orig, 0);
             if (count > 0) {
                 cluster.setName(PolyStringType.fromOrig(orig + " (" + (count + 1) + ")"));
             }
             nameOccurrences.put(orig, count + 1);
+
+            Double detectedReductionMetric = cluster.getClusterStatistics().getDetectedReductionMetric();
+            if (detectedReductionMetric != null) {
+                maxReduction = Math.max(maxReduction, detectedReductionMetric);
+            }
+        }
+
+        boolean executeDetection = true;
+        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            executeDetection = false;
+        }
+
+        for (PrismObject<RoleAnalysisClusterType> roleAnalysisClusterTypePrismObject : clusterTypeObjectWithStatistic) {
+            RoleAnalysisClusterType cluster = roleAnalysisClusterTypePrismObject.asObjectable();
+            processMetricAnalysis(cluster, session, maxReduction, executeDetection);
         }
 
         handler.enterNewStep("Prepare Outliers");
@@ -219,8 +237,58 @@ public class RoleAnalysisAlgorithmUtils {
         Set<ObjectReferenceType> processedObjectsRef = roleAnalysisService
                 .generateObjectReferences(membersOidsSet, complexType, task, result);
 
-        return new ClusterStatistic(name, processedObjectsRef, totalMembersCount, existingPropertiesInCluster, minVectorPoint,
-                maxVectorPoint, meanPoints, density);
+        ClusterStatistic clusterStatistic = new ClusterStatistic(name, processedObjectsRef, totalMembersCount,
+                existingPropertiesInCluster, minVectorPoint, maxVectorPoint, meanPoints, density);
+
+        extractAttributeStatistics(roleAnalysisService, complexType, task, result, density, propertiesOidsSet, membersOidsSet, clusterStatistic);
+
+        return clusterStatistic;
+    }
+
+    private static void extractAttributeStatistics(@NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull QName complexType,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            double density,
+            Set<String> propertiesOidsSet,
+            Set<String> membersOidsSet,
+            ClusterStatistic clusterStatistic) {
+        Set<PrismObject<UserType>> users;
+        Set<PrismObject<RoleType>> roles;
+
+        boolean isRoleMode = complexType.equals(RoleType.COMPLEX_TYPE);
+
+        Double roleDensity = null;
+        Double userDensity = null;
+        if (isRoleMode) {
+            roleDensity = density;
+            users = propertiesOidsSet.stream().map(oid -> roleAnalysisService
+                            .cacheUserTypeObject(new HashMap<>(), oid, task, result))
+                    .filter(Objects::nonNull).collect(Collectors.toSet());
+            roles = membersOidsSet.stream().map(oid -> roleAnalysisService
+                            .cacheRoleTypeObject(new HashMap<>(), oid, task, result))
+                    .filter(Objects::nonNull).collect(Collectors.toSet());
+        } else {
+            userDensity = density;
+            users = membersOidsSet.stream().map(oid -> roleAnalysisService
+                            .cacheUserTypeObject(new HashMap<>(), oid, task, result))
+                    .filter(Objects::nonNull).collect(Collectors.toSet());
+
+            roles = propertiesOidsSet.stream().map(oid -> roleAnalysisService
+                            .cacheRoleTypeObject(new HashMap<>(), oid, task, result))
+                    .filter(Objects::nonNull).collect(Collectors.toSet());
+        }
+
+        List<ItemPath> userValuePaths = getUserSingleValuePaths();
+        List<ItemPath> roleValuePaths = getRoleSingleValuePaths();
+
+        List<AttributeAnalysisStructure> userAttributeAnalysisStructures = roleAnalysisService
+                .userTypeAttributeAnalysis(users, userValuePaths, userDensity);
+        List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = roleAnalysisService
+                .roleTypeAttributeAnalysis(roles, roleValuePaths, roleDensity);
+
+        clusterStatistic.setUserAttributeAnalysisStructures(userAttributeAnalysisStructures);
+        clusterStatistic.setRoleAttributeAnalysisStructures(roleAttributeAnalysisStructures);
     }
 
     private ClusterStatistic exactStatisticLoad(
@@ -467,17 +535,62 @@ public class RoleAnalysisAlgorithmUtils {
         }
 
         double maxReduction = 0;
-        processPatternAnalysis(
-                roleAnalysisService, clusterStatistic, cluster, analysisOption, session,
-                maxReduction, detectPattern, task, result);
+        List<RoleAnalysisDetectionPatternType> detectedPatterns = processPatternAnalysis(
+                roleAnalysisService, clusterStatistic, cluster, analysisOption, session, detectPattern, task, result);
+
+        if (detectedPatterns != null) {
+            cluster.getDetectedPattern().addAll(detectedPatterns);
+            maxReduction = calculateMaxReduction(detectedPatterns);
+        }
 
         roleAnalysisClusterStatisticType.setDetectedReductionMetric(maxReduction);
+
+        resolveAttributeStatistics(clusterStatistic, roleAnalysisClusterStatisticType);
 
         cluster.setClusterStatistics(roleAnalysisClusterStatisticType);
 
         processOutliersAnalysis(roleAnalysisService, cluster, session, analysisOption, task, result);
 
         return clusterTypePrismObject;
+    }
+
+    private static void resolveAttributeStatistics(@NotNull ClusterStatistic clusterStatistic,
+            @NotNull AnalysisClusterStatisticType roleAnalysisClusterStatisticType) {
+        List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = clusterStatistic.getRoleAttributeAnalysisStructures();
+        List<AttributeAnalysisStructure> userAttributeAnalysisStructures = clusterStatistic.getUserAttributeAnalysisStructures();
+        if (roleAttributeAnalysisStructures != null && !roleAttributeAnalysisStructures.isEmpty()) {
+            RoleAnalysisAttributeAnalysisResult roleAnalysis = new RoleAnalysisAttributeAnalysisResult();
+            for (AttributeAnalysisStructure roleAttributeAnalysisStructure : roleAttributeAnalysisStructures) {
+                double density = roleAttributeAnalysisStructure.getDensity();
+                if (density == 0) {
+                    continue;
+                }
+                RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+                roleAnalysisAttributeAnalysis.setDensity(density);
+                roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPath());
+                roleAnalysisAttributeAnalysis.setDescription(roleAttributeAnalysisStructure.getDescription());
+                roleAnalysisAttributeAnalysis.setJsonDescription(roleAttributeAnalysisStructure.getJsonDescription());
+                roleAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
+            }
+            roleAnalysisClusterStatisticType.setRoleAttributeAnalysisResult(roleAnalysis);
+        }
+
+        if (userAttributeAnalysisStructures != null && !userAttributeAnalysisStructures.isEmpty()) {
+            RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
+            for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
+                double density = userAttributeAnalysisStructure.getDensity();
+                if (density == 0) {
+                    continue;
+                }
+                RoleAnalysisAttributeAnalysis userAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+                userAnalysisAttributeAnalysis.setDensity(density);
+                userAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
+                userAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
+                userAnalysisAttributeAnalysis.setJsonDescription(userAttributeAnalysisStructure.getJsonDescription());
+                userAnalysis.getAttributeAnalysis().add(userAnalysisAttributeAnalysis);
+            }
+            roleAnalysisClusterStatisticType.setUserAttributeAnalysisResult(userAnalysis);
+        }
     }
 
     private void processOutliersAnalysis(
@@ -515,20 +628,18 @@ public class RoleAnalysisAlgorithmUtils {
         }
     }
 
-
-    private void processPatternAnalysis(
+    private List<RoleAnalysisDetectionPatternType> processPatternAnalysis(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ClusterStatistic clusterStatistic,
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisOptionType analysisOption,
             @Nullable RoleAnalysisSessionType session,
-            double maxReduction,
             boolean detectPattern,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
         if (session == null || !detectPattern) {
-            return;
+            return null;
         }
 
         RoleAnalysisProcessModeType mode = analysisOption.getProcessMode();
@@ -545,10 +656,39 @@ public class RoleAnalysisAlgorithmUtils {
         roleAnalysisService.processAttributeAnalysis(detectedPatterns, userExistCache, roleExistCache,
                 userValuePaths, roleValuePaths, task, result);
 
-        cluster.getDetectedPattern().addAll(detectedPatterns);
+        return detectedPatterns;
+    }
 
-        for (RoleAnalysisDetectionPatternType detectionPatternType : detectedPatterns) {
-            maxReduction = Math.max(maxReduction, detectionPatternType.getClusterMetric());
+    private double calculateMaxReduction(@NotNull List<RoleAnalysisDetectionPatternType> detectedPatterns) {
+        double maxReduction = 0;
+        for (RoleAnalysisDetectionPatternType detectedPattern : detectedPatterns) {
+            Double clusterMetric = detectedPattern.getClusterMetric();
+            if (clusterMetric != null) {
+                maxReduction = Math.max(maxReduction, clusterMetric);
+            }
+        }
+        return maxReduction;
+
+    }
+
+    private void processMetricAnalysis(
+            @NotNull RoleAnalysisClusterType cluster,
+            @Nullable RoleAnalysisSessionType session,
+            double maxReduction,
+            boolean detectPattern) {
+
+        if (session == null || !detectPattern) {
+            return;
+        }
+
+        List<RoleAnalysisDetectionPatternType> detectedPatterns = cluster.getDetectedPattern();
+
+        for (RoleAnalysisDetectionPatternType detectedPattern : detectedPatterns) {
+            PatternConfidenceCalculator patternConfidenceCalculator = new PatternConfidenceCalculator(detectedPattern, maxReduction);
+            double itemConfidence = patternConfidenceCalculator.calculateItemConfidence();
+            double reductionFactorConfidence = patternConfidenceCalculator.calculateReductionFactorConfidence();
+            detectedPattern.setItemConfidence(itemConfidence);
+            detectedPattern.setReductionConfidence(reductionFactorConfidence);
         }
     }
 

@@ -119,7 +119,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         DetectionOption detectionOption = new DetectionOption(cluster);
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
-        @NotNull String status = roleAnalysisService.recomputeAndResolveClusterOpStatus(clusterPrismObject, result, task);
+        @NotNull String status = roleAnalysisService.recomputeAndResolveClusterOpStatus(clusterPrismObject.getOid(), result, task);
 
         if (status.equals("processing")) {
             warn("Couldn't start detection. Some process is already in progress.");
@@ -214,6 +214,10 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
             if (containerPanelConfigurationType.getIdentifier().equals("outlierPanel")) {
                 if (!analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                }
+            }else if(containerPanelConfigurationType.getIdentifier().equals("detectedPattern")){
+                if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
                     containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
                 }
             }

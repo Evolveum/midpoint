@@ -255,7 +255,6 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
 
         });
 
-
         columns.add(new AbstractColumn<>(getHeaderTitle("")) {
 
             @Override

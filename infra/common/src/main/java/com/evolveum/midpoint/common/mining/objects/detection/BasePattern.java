@@ -23,9 +23,11 @@ public abstract class BasePattern implements Serializable {
     protected String identifier;
     protected String associatedColor;
 
+    protected double itemsConfidence = 0.0;
+    protected double reductionFactorConfidence = 0.0;
+
     RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult;
     RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult;
-
 
     public BasePattern(Set<String> roles,
             Set<String> users,
@@ -54,6 +56,8 @@ public abstract class BasePattern implements Serializable {
             this.identifier = null;
         }
         this.associatedColor = null;
+        this.roleAttributeAnalysisResult = detectionPattern.getRoleAttributeAnalysisResult();
+        this.userAttributeAnalysisResult = detectionPattern.getUserAttributeAnalysisResult();
     }
 
     public BasePattern(Set<String> roles, Set<String> users,
@@ -131,6 +135,22 @@ public abstract class BasePattern implements Serializable {
 
     public void setUserAttributeAnalysisResult(RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult) {
         this.userAttributeAnalysisResult = userAttributeAnalysisResult;
+    }
+
+    public double getItemsConfidence() {
+        return itemsConfidence;
+    }
+
+    public void setItemsConfidence(double itemsConfidence) {
+        this.itemsConfidence = itemsConfidence;
+    }
+
+    public double getReductionFactorConfidence() {
+        return reductionFactorConfidence;
+    }
+
+    public void setReductionFactorConfidence(double reductionFactorConfidence) {
+        this.reductionFactorConfidence = reductionFactorConfidence;
     }
 
 }
