@@ -407,7 +407,7 @@ Provides a lot of details
 
 |===
 
-The second option is available since midPoint 3.4.1 and 3.5. It can be used to enable tracing for any particular mapping:
+The second option can be used to enable tracing for any particular mapping:
 
 [source,xml]
 ----
@@ -638,6 +638,8 @@ The audit is the easiest way to check that.
 == See Also
 
 * xref:/midpoint/reference/diag/troubleshooting/connectors/[Troubleshooting Connectors]
+
+* xref:/midpoint/reference/diag/troubleshooting/troubleshooting-with-traces/[]
 
 * xref:/midpoint/reference/expressions/[Mappings and Expressions]
 
