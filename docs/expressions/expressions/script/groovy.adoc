@@ -25,12 +25,12 @@ Therefore the use of safe dereference operator is advised in almost all situatio
 
 [source,groovy]
 ----
-user?.getName();
+focus?.getName();
 ----
 
 === Create fullName
 
 [source,groovy]
 ----
-user.getGivenName() + " " + user.getFamilyName();
+focus.getGivenName() + " " + focus.getFamilyName();
 ----
