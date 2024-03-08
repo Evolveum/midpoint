@@ -1623,7 +1623,17 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
             var direction = (providedOrdering != null && providedOrdering.getDirection() == OrderDirection.DESCENDING) ? OrderDirection.DESCENDING : OrderDirection.ASCENDING;
 
-            // Ordering first by owner oid, then by container oid in ordering direction based on only orderBy statemetn
+            // Ordering first by owner oid, then by container oid in ordering direction based on only orderBy statements
+            var mapping = (QContainerMapping) sqlRepoContext.getMappingBySchemaType(type);
+            var depth = mapping.containerDepth();
+
+            // Order first by topmost object
+            // then by containers
+            for (int i = 0; i <= depth; i++) {
+                paging.addOrderingInstruction(createParentPath(depth - i).append(PrismConstants.T_ID), direction);
+            }
+
+
             paging.addOrderingInstruction(OWNER_OID_PATH, direction);
             paging.addOrderingInstruction(CONTAINER_ID_PATH, direction);
 
