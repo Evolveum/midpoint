@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.Clock;
@@ -133,8 +135,11 @@ public class CacheableSecretsProviderDelegate<C> implements SecretsProvider<C> {
             boolean matched = allowKeyPrefixes.isEmpty() || allowKeyPrefixes.stream().anyMatch(prefix -> key.startsWith(prefix));
 
             if (!matched) {
-                throw new EncryptionException(
+                SingleLocalizableMessage message = new SingleLocalizableMessage(
+                        "CacheableSecretsProviderDelegate.noAllowedKey",
+                        new Object[] { key },
                         "Key " + key + " is not allowed by the configuration (allowKeyPrefix does not match the key)");
+                throw new EncryptionException(message);
             }
         }
 

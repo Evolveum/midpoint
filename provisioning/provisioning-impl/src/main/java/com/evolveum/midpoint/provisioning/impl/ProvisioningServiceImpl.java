@@ -717,7 +717,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, EncryptionException {
         OperationResult result = parentResult.createSubresult(OP_REFRESH_SHADOW);
 
         LOGGER.debug("Refreshing shadow {}", shadow);
@@ -734,9 +734,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                     e);
             throw e;
 
-        } catch (EncryptionException e) {
-            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
-            throw new SystemException(e.getMessage(), e);
         }
 
         result.computeStatus();

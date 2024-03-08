@@ -69,6 +69,8 @@ public class WrapperContext {
 
     private boolean isShowedByWizard;
 
+    private boolean isDeprecatedItemAllowed = false;
+
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
         this.result = result != null ? result : new OperationResult("temporary");       // TODO !!!
@@ -277,6 +279,14 @@ public class WrapperContext {
 
     public boolean isShowedByWizard() {
         return isShowedByWizard;
+    }
+
+    public boolean isDeprecatedItemAllowed() {
+        return isDeprecatedItemAllowed;
+    }
+
+    public void setDeprecatedItemAllowed(boolean deprecatedItemAllowed) {
+        isDeprecatedItemAllowed = deprecatedItemAllowed;
     }
 
     public WrapperContext clone() {

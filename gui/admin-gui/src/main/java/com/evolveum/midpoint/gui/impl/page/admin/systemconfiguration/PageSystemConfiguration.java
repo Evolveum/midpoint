@@ -75,7 +75,9 @@ public class PageSystemConfiguration extends PageBase {
 
         INTERNALS("fa fa-cogs", PageSystemInternals.class),
 
-        ACCESS_CERTIFICATION("fa fa-certificate", PageAccessCertification.class);
+        ACCESS_CERTIFICATION("fa fa-certificate", PageAccessCertification.class),
+
+        SECRETS_PROVIDERS("fa fa-key", PageSystemSecretsProviders.class);
 
         String icon;
 

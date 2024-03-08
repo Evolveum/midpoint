@@ -72,7 +72,7 @@ public interface LazilyInitializableMixin extends DebugDumpable, Checkable {
 
             checkConsistence();
 
-        } catch (CommonException | EncryptionException | RuntimeException e) {
+        } catch (CommonException | RuntimeException e) {
             getLogger().debug("Got an exception during initialization of {}", this, e);
             initializationState.recordInitializationFailed(e);
             result.recordException(e);

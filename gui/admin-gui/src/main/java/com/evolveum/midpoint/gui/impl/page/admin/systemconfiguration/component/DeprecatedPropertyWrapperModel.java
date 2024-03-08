@@ -59,6 +59,7 @@ public class DeprecatedPropertyWrapperModel<C extends Containerable, P> implemen
             Task task = panel.getPageBase().createSimpleTask("Create child containers");
             WrapperContext ctx = new WrapperContext(task, task.getResult());
             ctx.setCreateIfEmpty(true);
+            ctx.setDeprecatedItemAllowed(true);
 
             PrismPropertyWrapper child = (PrismPropertyWrapper) factory.createWrapper(value, def, ctx);
             value.addItem(child);

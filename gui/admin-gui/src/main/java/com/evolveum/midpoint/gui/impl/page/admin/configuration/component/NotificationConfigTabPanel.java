@@ -396,13 +396,13 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
             @Override
             protected Component createStaticPanel(String componentId, IModel<MailServerConfiguration> rowModel) {
-                return new PasswordPropertyPanel(componentId, Model.of(rowModel.getObject().getValue().getPassword()), true, false);
+                return new PasswordPropertyPanel(componentId, Model.of(rowModel.getObject().getValue().getPassword()), true, false, true);
             }
 
             @Override
             protected Component createInputPanel(String componentId, IModel<MailServerConfiguration> rowModel) {
                 MailServerConfigurationType mailServer = rowModel.getObject().getValue();
-                return new PasswordPropertyPanel(componentId, new PropertyModel<>(mailServer, "password"), false, true);
+                return new PasswordPropertyPanel(componentId, new PropertyModel<>(mailServer, "password"), false, true, true);
             }
         });
 
