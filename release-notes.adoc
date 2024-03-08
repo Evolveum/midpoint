@@ -31,6 +31,10 @@ TODO
 === New Features and Major Improvements
 
 * Shadow caching
+* Native Repository Support for searchContainersIteratively for all container types
+** Removed upper record limit for  reports for Assignments, Certfication Cases, Certification Work items and others.
+** Changed transaction isolation from READ_COMMITED to REPEATABLE_READ.
+** Changed storage strategy for complex container types - actual data stored inside their own table istead of parent object JSON.
 
 === Other Improvements
 
