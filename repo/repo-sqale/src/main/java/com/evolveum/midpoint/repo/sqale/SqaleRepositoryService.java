@@ -13,9 +13,9 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.isAllowNotFound;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import com.evolveum.midpoint.util.backoff.BackoffComputer;
@@ -26,7 +26,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ObjectArrays;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
@@ -36,7 +35,6 @@ import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.postgresql.util.PSQLException;
-import org.springframework.aop.config.AopNamespaceHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.SequenceUtil;
@@ -1565,10 +1563,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(handler, "Result handler must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
-        if (AccessCertificationWorkItemType.class.equals(type)) {
-            throw new UnsupportedOperationException("Iterative search not supported for AccessCertificationWorkItemType");
-        }
-
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_SEARCH_CONTAINERS_ITERATIVE)
                 .addQualifier(type.getSimpleName())
                 .addParam(OperationResult.PARAM_TYPE, type.getName())
@@ -1653,7 +1647,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 // null safe, even for both nulls - don't use filterAnd which mutates original AND filter
                 pagedQuery.setFilter(ObjectQueryUtil.filterAndImmutable(
                         originalQuery != null ? originalQuery.getFilter() : null,
-                        lastContainerCondition(lastProcessedObject, providedOrdering, direction)));
+                        lastContainerCondition(type, lastProcessedObject, providedOrdering, direction)));
 
 
                 // we don't call public searchObject to avoid subresults and query simplification
@@ -1694,11 +1688,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             registerOperationFinish(opHandle);
         }
     }
-
-    private <T extends Containerable> ObjectFilter lastContainerCondition(T lastProcessedObject, ObjectOrdering providedOrdering, OrderDirection direction) {
-        // Larger than last value
-        /*
-             So continuation filter should be like:
+    /**
+             So continuation filter for depth 1: should be like:
                 (orderingValue > $last/orderingValue)
                 or (
                         (orderingValue = $lastOrderingValue)
@@ -1707,39 +1698,34 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                         )
                 )
                 If we are ordering by value, we need to search larger values, but they may be others with same
-            */
+
+         Filter for depth 2:
+
+            (orderingValue > $last/orderingValue)
+                or (
+                        (orderingValue = $lastOrderingValue)
+                        and (
+                            (ownerOid > $last/ownerOid)
+                             or (ownerOid = $last/ownerOid and ../id > $last/../id)
+                             or (ownerOid = $last/ownerOid and  ../id = $last/../id and id > $last/id
+
+                        )
+                )
+
+    **/
+    private <T extends Containerable> ObjectFilter lastContainerCondition(Class<T> type, T lastProcessedObject, ObjectOrdering providedOrdering, OrderDirection direction) {
+
 
         // queryFor
+        var mapping = (QContainerMapping) sqlRepoContext.getMappingBySchemaType(type);
         ObjectFilter afterLastSeenContainer = null;
         if (lastProcessedObject != null) {
-            var lastOid = ownerOid(lastProcessedObject);
-            var lastContainerId = lastProcessedObject.asPrismContainerValue().getId();
+            var containerIdPath = fullIdPath(lastProcessedObject);
 
             // This filter should match containers, which are ordered after last seen container
             // We need to match any objects which follow last seen object and any containers in last seen objects
             // which follows last seen container
-
-            if (direction == OrderDirection.ASCENDING) {
-                afterLastSeenContainer = prismContext().queryFor(lastProcessedObject.getClass())
-                        .item(OWNER_OID_PATH).gt(lastOid)
-                        .or()
-                        .block()
-                        .item(OWNER_OID_PATH).eq(lastOid)
-                        .and()
-                        .item(CONTAINER_ID_PATH).gt(lastContainerId)
-                        .endBlock()
-                        .buildFilter();
-            } else {
-                afterLastSeenContainer = prismContext().queryFor(lastProcessedObject.getClass())
-                        .item(OWNER_OID_PATH).lt(lastOid)
-                        .or()
-                        .block()
-                        .item(OWNER_OID_PATH).eq(lastOid)
-                        .and()
-                        .item(CONTAINER_ID_PATH).lt(lastContainerId)
-                        .endBlock()
-                        .buildFilter();
-            }
+            afterLastSeenContainer = filterContainersAfter(direction, mapping.containerDepth(), containerIdPath);
         }
         if (providedOrdering != null && lastProcessedObject != null)  {
             // TODO: we should get last value of ordering (and this could be funky if ordering is based on dereferencing)
@@ -1825,6 +1811,73 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     private <T extends Containerable> String ownerOid(T lastProcessedObject) {
         return (String) lastProcessedObject.asPrismContainerValue().getUserData(SqaleUtils.OWNER_OID);
+    }
+
+    private <T extends Containerable> List<Object> fullIdPath(T lastProcessedObject) {
+        return (List<Object>) lastProcessedObject.asPrismContainerValue().getUserData(SqaleUtils.FULL_ID_PATH);
+    }
+
+    /**
+     * Creates filter, which selects containers after last seen based on ordering
+     *
+     * Generates composite filter in form of
+     *
+     * @param direction
+     * @param depth How deep container is inside multi-value containers (usually 1, sometimes more)
+     * @param containerIds List of OID and all container identifier of previous object
+     * @return
+     */
+    private ObjectFilter filterContainersAfter(OrderDirection direction, int depth, List<Object> containerIds) {
+        List<ItemPath> paths = new ArrayList<>(depth);
+        // We want to start with oid, then continue to nested container
+        // Prepares list of paths from top level ID to deepest ID
+        // eg. for depth 2: ../../id (oid), ../id, id
+
+        for (int i = 0; i <= depth; i++) {
+            paths.add(createParentPath(depth - i).append(PrismConstants.T_ID));
+        }
+        var queryFactory = PrismContext.get().queryFactory();
+        List<ObjectFilter> filters = new ArrayList<>();
+
+        // Creates set of filters, where parents are equals / deepest conditions are compared
+        // For depth 1:
+        // (parent/id > $last/parent/id) or  (parent/id = $last/parent/id and id > $last/id)
+        // For depth 2:
+        // (parent/parent/id > $last/parent/parent//id) or  (parent/parent/id = $last/parent/parent/id and parent/id > $last/parent/id)
+        for (int i = 0; i <= depth; i++) {
+            List<ObjectFilter> conditions = new ArrayList<>();
+            var lastPath = paths.get(i);
+            var lastId = containerIds.get(i);
+            // Equal values
+            for (int j = 0; j < i; j++) {
+                var parentPath = paths.get(j);
+                var id = containerIds.get(j);
+                conditions.add(queryFactory.createEqual(parentPath, null, null, PrismContext.get(), id));
+            }
+
+            ObjectFilter lastFilter;
+            if (OrderDirection.DESCENDING.equals(direction)) {
+                lastFilter = queryFactory.createLess(lastPath, null, null, lastId, false, PrismContext.get());
+            } else {
+                lastFilter = queryFactory.createGreater(lastPath, null, null, lastId, false, PrismContext.get());
+            }
+            conditions.add(lastFilter);
+            if (conditions.size() > 1) {
+                filters.add(queryFactory.createAnd(conditions));
+            } else {
+                // For single item we do not need to wrap it in AND filter
+                filters.add(lastFilter);
+            }
+        }
+        return queryFactory.createOr(filters);
+    };
+
+    ItemPath createParentPath(int depth) {
+        var path = ItemPath.create();
+        for (int i = 0;i < depth; i++) {
+            path = path.append(PrismConstants.T_PARENT);
+        }
+        return path;
     }
 
     private String pagingCookie(Containerable t) {

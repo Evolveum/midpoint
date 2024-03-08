@@ -207,6 +207,7 @@ public class QAccessCertificationWorkItemMapping
                 throw new SystemException("Campaign " + owner + "has no work item with ID " + row.cid);
             }
             @NotNull AccessCertificationWorkItemType ret = value.asContainerable();
+            attachContainerIdPath(ret, tuple, entityPath);
             resolveReferenceNames(ret, jdbcSession, options);
             return ret;
         };
@@ -230,5 +231,20 @@ public class QAccessCertificationWorkItemMapping
         } catch (SchemaException e) {
             throw new SystemException(e);
         }
+    }
+
+    @Override
+    protected List<Object> containerIdPath(Tuple tuple, QAccessCertificationWorkItem e) {
+        var full = tuple.get(e);
+        if (full != null) {
+            return List.of(full.ownerOid.toString(), full.accessCertCaseCid, full.cid);
+        }
+
+        return List.of(tuple.get(e.ownerOid).toString(), tuple.get(e.accessCertCaseCid), tuple.get(e.cid));
+    }
+
+    @Override
+    public int containerDepth() {
+        return 2;
     }
 }
