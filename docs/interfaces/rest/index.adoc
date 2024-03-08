@@ -57,6 +57,9 @@ By changing the content headers in the request you are capable of using
 different formats in the request body. Please see *below* for the
 "request" and "return" content.
 
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
 ==== Request Content Types
 There are multiple possibilities regarding the content type of the request body and also
 regarding the type of data which will be returned to the client.
