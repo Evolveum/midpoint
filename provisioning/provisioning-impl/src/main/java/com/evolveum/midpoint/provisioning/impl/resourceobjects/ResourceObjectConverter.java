@@ -153,11 +153,11 @@ public class ResourceObjectConverter {
             @Nullable ObjectQuery query,
             boolean fetchAssociations,
             @Nullable FetchErrorReportingMethodType errorReportingMethod,
-            @NotNull OperationResult parentResult)
+            @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        return new ResourceObjectSearchOperation(ctx, resultHandler, query, fetchAssociations, errorReportingMethod)
-                .execute(parentResult);
+        return ResourceObjectSearchOperation.execute(
+                ctx, resultHandler, query, fetchAssociations, errorReportingMethod, result);
     }
 
     public Integer countResourceObjects(

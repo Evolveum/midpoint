@@ -171,21 +171,4 @@ public class ResourceSchemaUtil {
                 .collect(Collectors.toSet());
         return objectClassNames.size() <= 1;
     }
-
-    /** TEMPORARY */
-    public static boolean isIgnored(ResourceAttributeDefinitionType attrDefBean) throws SchemaException {
-        List<PropertyLimitationsType> limitations = attrDefBean.getLimitations();
-        if (limitations == null) {
-            return false;
-        }
-        // TODO review as part of MID-7929 resolution
-        PropertyLimitationsType limitationsBean = MiscSchemaUtil.getLimitationsLabeled(limitations, LayerType.MODEL);
-        if (limitationsBean == null) {
-            return false;
-        }
-        if (limitationsBean.getProcessing() != null) {
-            return limitationsBean.getProcessing() == ItemProcessingType.IGNORE;
-        }
-        return false;
-    }
 }

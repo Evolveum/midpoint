@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -184,7 +185,7 @@ class ClockworkSource extends MSource {
     @NotNull ProcessingMode getItemProcessingMode(
             String itemDescription,
             ItemDelta<?, ?> itemAPrioriDelta,
-            List<? extends MappingType> mappingBeans,
+            List<? extends AbstractMappingConfigItem<?>> mappings,
             boolean executionModeVisible,
             boolean ignored,
             PropertyLimitations limitations) throws SchemaException, ConfigurationException {
@@ -217,7 +218,7 @@ class ClockworkSource extends MSource {
             return ProcessingMode.ABSOLUTE_STATE;
         }
 
-        if (isStrongMappingPresent(mappingBeans)) {
+        if (mappings.stream().anyMatch(mapping -> mapping.isStrong())) {
             LOGGER.trace("Mapping(s) for {}: A strong mapping is present. We'll load the shadow.", itemDescription);
             return ProcessingMode.ABSOLUTE_STATE;
         }
@@ -225,11 +226,6 @@ class ClockworkSource extends MSource {
         LOGGER.trace("Mapping(s) for {}: There is no special reason for loading the shadow. We'll apply them if the shadow"
                 + " is loaded for another reason.", itemDescription);
         return ProcessingMode.ABSOLUTE_STATE_IF_KNOWN;
-    }
-
-    private boolean isStrongMappingPresent(List<? extends MappingType> mappingBeans) {
-        return mappingBeans.stream()
-                .anyMatch(mappingBean -> mappingBean.getStrength() == MappingStrengthType.STRONG);
     }
 
     @Override

@@ -10,7 +10,6 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.ResourceObjectDiscriminator;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;

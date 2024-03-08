@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInbound
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -58,5 +59,10 @@ public class PreContext extends Context {
     @Override
     public @NotNull PathSet getCorrelationItemPaths() {
         return correlationItemPaths;
+    }
+
+    @Override
+    public @NotNull TaskExecutionMode getExecutionMode() {
+        return getTaskExecutionMode();
     }
 }

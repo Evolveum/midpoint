@@ -6,47 +6,43 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.config.*;
+import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-
 import com.evolveum.midpoint.util.DebugUtil;
-
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.midpoint.util.exception.SystemException;
-
-import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Definition of a usually multi-valued association item, e.g., `ri:group`.
@@ -61,96 +57,71 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @Serial private static final long serialVersionUID = 1L;
 
-    @NotNull private final ResourceObjectAssociationType definitionBean;
+    /** Name of the association item (in the subject). */
+    @NotNull private final ItemName associationItemName;
 
-    @NotNull private final QName associationAttributeName;
+    /** Participant-independent definition of the association. */
+    @NotNull private final ShadowAssociationTypeDefinition associationTypeDefinition;
 
-    @NotNull private final QName valueAttributeName;
-
-    @NotNull private final List<String> intents;
-
-    @NotNull private final ResourceObjectTypeDefinition associationTarget;
-
+    /** Refined definition for {@link ShadowAssociationValueType} values that are stored in the {@link ShadowAssociation} item. */
     @NotNull private final ComplexTypeDefinition complexTypeDefinition;
+
+    /** The configuration item (wrapping the definition bean). Either legacy or "new". */
+    @NotNull private final AssociationConfigItem associationConfigItem;
 
     private int maxOccurs = -1;
 
-    public ShadowAssociationDefinition(
-            @NotNull ResourceObjectAssociationType definitionBean,
-            @NotNull ResourceObjectTypeDefinition associationTarget,
-            @NotNull Object errorCtx) throws ConfigurationException {
-        this.definitionBean = CloneUtil.toImmutable(definitionBean);
-        this.associationTarget = associationTarget;
+    private ShadowAssociationDefinition(
+            @NotNull ItemName associationItemName,
+            @NotNull ShadowAssociationTypeDefinition associationTypeDefinition,
+            @NotNull AssociationConfigItem associationConfigItem) {
+        this.associationTypeDefinition = associationTypeDefinition;
+        this.associationConfigItem = associationConfigItem;
+        this.associationItemName = associationItemName;
         this.complexTypeDefinition = createComplexTypeDefinition();
-        this.associationAttributeName = MiscUtil.configNonNull(
-                definitionBean.getAssociationAttribute(),
-                () -> "No association attribute defined in entitlement association: " + this + " in " + errorCtx);
-        this.valueAttributeName = MiscUtil.configNonNull(
-                definitionBean.getValueAttribute(),
-                () -> "No value attribute defined in entitlement association: " + this + " in " + errorCtx);
-        this.intents = List.copyOf(definitionBean.getIntent());
-        configCheck(!intents.isEmpty(), "No intent(s) defined for %s in %s", this, errorCtx);
     }
 
-    public @NotNull ResourceObjectAssociationType getDefinitionBean() {
-        return definitionBean;
+    static ShadowAssociationDefinition parseAssociationType(
+            @NotNull ShadowAssociationTypeDefinition associationTypeDefinition,
+            @NotNull ShadowAssociationClassSimulationDefinition simulationDefinition,
+            @NotNull ShadowAssociationTypeDefinitionConfigItem definitionCI) {
+        return new ShadowAssociationDefinition(
+                simulationDefinition.getLocalSubjectItemName(),
+                associationTypeDefinition,
+                definitionCI);
     }
 
-    public @NotNull ResourceObjectTypeDefinition getAssociationTarget() {
-        return associationTarget;
+    static ShadowAssociationDefinition parseLegacy(
+            @NotNull ShadowAssociationTypeDefinition associationTypeDefinition,
+            @NotNull ResourceObjectAssociationConfigItem definitionCI) throws ConfigurationException {
+        return new ShadowAssociationDefinition(
+                definitionCI.getItemName(),
+                associationTypeDefinition,
+                definitionCI);
     }
 
-    public @NotNull ItemName getName() {
-        return ItemPathTypeUtil.asSingleNameOrFail(definitionBean.getRef());
+    public @NotNull ShadowAssociationTypeDefinition getAssociationTypeDefinition() {
+        return associationTypeDefinition;
     }
 
-    public @NotNull ShadowKindType getKind() {
-        return getKind(definitionBean);
+    public @NotNull ResourceObjectTypeDefinition getTargetObjectDefinition() {
+        return associationTypeDefinition.getTargetObjectDefinition();
     }
 
-    public static @NotNull ShadowKindType getKind(@NotNull ResourceObjectAssociationType definitionBean) {
-        return Objects.requireNonNullElse(
-                definitionBean.getKind(), ShadowKindType.ENTITLEMENT);
+    public boolean isEntitlement() {
+        return associationTypeDefinition.isEntitlement();
     }
 
-    public @NotNull ResourceObjectAssociationDirectionType getDirection() {
-        return Objects.requireNonNull(
-                definitionBean.getDirection(),
-                () -> "No association direction provided in association definition: " + this);
+    public @Nullable MappingConfigItem getOutboundMapping() throws ConfigurationException {
+        return associationConfigItem.getOutboundMapping();
     }
 
-    public boolean isObjectToSubject() {
-        return getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT;
-    }
-
-    public boolean isSubjectToObject() {
-        return getDirection() == ResourceObjectAssociationDirectionType.SUBJECT_TO_OBJECT;
-    }
-
-    /** There is at least one. */
-    public @NotNull Collection<String> getIntents() {
-        return intents;
-    }
-
-    /** We rely on the assumptions about multiple intents described for {@link ResourceObjectAssociationType#getIntent()}. */
-    public @NotNull String getAnyIntent() {
-        return intents.iterator().next();
-    }
-
-    public QName getAuxiliaryObjectClass() {
-        return definitionBean.getAuxiliaryObjectClass();
-    }
-
-    public MappingType getOutboundMappingType() {
-        return definitionBean.getOutbound();
-    }
-
-    public List<InboundMappingType> getInboundMappingBeans() {
-        return definitionBean.getInbound();
+    public @NotNull List<InboundMappingConfigItem> getInboundMappings() throws ConfigurationException {
+        return associationConfigItem.getInboundMappings();
     }
 
     public boolean isExclusiveStrong() {
-        return BooleanUtils.isTrue(definitionBean.isExclusiveStrong());
+        return associationConfigItem.isExclusiveStrong();
     }
 
     @Override
@@ -175,7 +146,11 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @Override
     public boolean isDeprecated() {
-        return false;
+        try {
+            return associationConfigItem.isDeprecated();
+        } catch (ConfigurationException e) {
+            throw alreadyChecked(e);
+        }
     }
 
     @Override
@@ -215,98 +190,61 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @Override
     public boolean isEmphasized() {
-        return Boolean.TRUE.equals(definitionBean.isEmphasized());
+        return getDisplayHint() == DisplayHint.EMPHASIZED;
     }
 
     @Override
     public DisplayHint getDisplayHint() {
-        return MiscSchemaUtil.toDisplayHint(definitionBean.getDisplayHint());
+        return MiscSchemaUtil.toDisplayHint(associationConfigItem.getDisplayHint());
+    }
+
+    /**
+     * We assume that the checks during the definition parsing were good enough to discover any problems
+     * related to broken configuration.
+     */
+    private static SystemException alreadyChecked(ConfigurationException e) {
+        return SystemException.unexpected(e, "(object was already checked)");
     }
 
     public boolean isIgnored(LayerType layer) throws SchemaException {
-        return getTargetAssociationAttributeDefinition().isIgnored(layer);
+        return false; // FIXME implement
     }
 
     public PropertyLimitations getLimitations(LayerType layer) throws SchemaException {
-        return getTargetAssociationAttributeDefinition().getLimitations(layer);
-    }
-
-    private @NotNull ResourceAttributeDefinition<Object> getTargetAssociationAttributeDefinition() throws SchemaException {
-        return associationTarget.findAttributeDefinitionRequired(
-                getTargetAssociationAttribute(),
-                () -> " as defined for association " + this);
-    }
-
-    private QName getTargetAssociationAttribute() {
-        if (isObjectToSubject()) {
-            return associationAttributeName; // e.g., "ri:member" on a group (for object-to-subject)
-        } else {
-            return valueAttributeName; // e.g., "icfs:name" on a privilege (for subject-to-object)
-        }
-    }
-
-    public @NotNull QName getAssociationAttributeName() {
-        return associationAttributeName;
-    }
-
-    public @NotNull QName getValueAttributeName() {
-        return valueAttributeName;
-    }
-
-    public @Nullable QName getShortcutAssociationAttributeName() {
-        return definitionBean.getShortcutAssociationAttribute();
-    }
-
-    public @Nullable QName getShortcutValueAttributeName() {
-        return definitionBean.getShortcutValueAttribute();
-    }
-
-    public @NotNull QName getShortcutValueAttributeNameRequired() throws ConfigurationException {
-        return MiscUtil.configNonNull(
-                getShortcutValueAttributeName(),
-                "Shortcut value attribute name must be present if there's shortcut association attribute in %s",
-                this);
+        return null; // FIXME implement
     }
 
     public boolean isTolerant() {
-        return BooleanUtils.isNotFalse(definitionBean.isTolerant());
+        return associationConfigItem.isTolerant();
     }
 
     @NotNull
     public List<String> getTolerantValuePattern() {
-        return definitionBean.getTolerantValuePattern();
+        return associationConfigItem.getTolerantValuePatterns();
     }
 
     @NotNull
     public List<String> getIntolerantValuePattern() {
-        return definitionBean.getIntolerantValuePattern();
-    }
-
-    public boolean requiresExplicitReferentialIntegrity() {
-        return !BooleanUtils.isFalse(getDefinitionBean().isExplicitReferentialIntegrity()); // because default is TRUE
-    }
-
-    public QName getMatchingRule() {
-        return getDefinitionBean().getMatchingRule();
+        return associationConfigItem.getIntolerantValuePatterns();
     }
 
     public String getDisplayName() {
-        return definitionBean.getDisplayName();
+        return associationConfigItem.getDisplayName();
     }
 
     @Override
     public Integer getDisplayOrder() {
-        return definitionBean.getDisplayOrder();
+        return associationConfigItem.getDisplayOrder();
     }
 
     @Override
     public String getHelp() {
-        return definitionBean.getHelp();
+        return associationConfigItem.getHelp();
     }
 
     @Override
     public String getDocumentation() {
-        return definitionBean.getDocumentation();
+        return associationConfigItem.getDocumentation();
     }
 
     @Override
@@ -321,7 +259,6 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @Override
     public <A> void setAnnotation(QName qname, A value) {
-
     }
 
     @Override
@@ -340,7 +277,7 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     }
 
     public String getLifecycleState() {
-        return definitionBean.getLifecycleState();
+        return associationConfigItem.getLifecycleState();
     }
 
     private @NotNull ComplexTypeDefinition createComplexTypeDefinition() {
@@ -352,15 +289,17 @@ public class ShadowAssociationDefinition extends AbstractFreezable
         // TODO optimize this by keeping only "important" definitions (e.g. the ones that are actually used by the association)
         def.replaceDefinition(
                 ShadowAssociationValueType.F_IDENTIFIERS,
-                associationTarget.toResourceAttributeContainerDefinition(ShadowAssociationValueType.F_IDENTIFIERS));
+                getTargetObjectDefinition()
+                        .toResourceAttributeContainerDefinition(ShadowAssociationValueType.F_IDENTIFIERS));
         def.freeze();
         return def;
     }
 
-    public boolean isVisible(@NotNull TaskExecutionMode taskExecutionMode) {
-        return SimulationUtil.isVisible(getLifecycleState(), taskExecutionMode);
+    public boolean isVisible(@NotNull ExecutionModeProvider executionModeProvider) {
+        return SimulationUtil.isVisible(getLifecycleState(), executionModeProvider);
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
@@ -368,7 +307,7 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @Override
     public @NotNull ItemName getItemName() {
-        return getName();
+        return associationItemName;
     }
 
     @Override
@@ -430,7 +369,7 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     @Override
     public boolean isValidFor(@NotNull QName elementQName, @NotNull Class<? extends ItemDefinition<?>> clazz, boolean caseInsensitive) {
         Preconditions.checkArgument(!caseInsensitive, "Case-insensitive search is not supported");
-        return QNameUtil.match(elementQName, getName())
+        return QNameUtil.match(elementQName, getItemName())
                 && clazz.isInstance(this);
     }
 
@@ -454,7 +393,7 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @Override
     public @NotNull ShadowAssociation instantiate() throws SchemaException {
-        return instantiate(getName());
+        return instantiate(getItemName());
     }
 
     @Override
@@ -489,14 +428,10 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public @NotNull ShadowAssociationDefinition clone() {
-        try {
-            ShadowAssociationDefinition clone =
-                    new ShadowAssociationDefinition(definitionBean, associationTarget, "");
-            copyDefinitionDataFrom(clone);
-            return clone;
-        } catch (ConfigurationException e) {
-            throw SystemException.unexpected(e, "(during cloning - unexpected because the configuration should be OK");
-        }
+        ShadowAssociationDefinition clone =
+                new ShadowAssociationDefinition(associationItemName, associationTypeDefinition, associationConfigItem);
+        copyDefinitionDataFrom(clone);
+        return clone;
     }
 
     private void copyDefinitionDataFrom(ShadowAssociationDefinition source) {
@@ -562,22 +497,23 @@ public class ShadowAssociationDefinition extends AbstractFreezable
 
     @Override
     public String toString() {
-        return "ResourceAssociationDefinition{" +
-                "ref=" + definitionBean.getRef() +
-                ", associationTarget=" + associationTarget +
+        return getClass().getSimpleName() + "{" +
+                "item=" + associationItemName +
+                ", type=" + associationTypeDefinition +
                 "}";
     }
 
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "definition", definitionBean, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "associationTarget", String.valueOf(associationTarget), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "item name", associationItemName, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "type definition", associationTypeDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "config item", associationConfigItem, indent + 1);
         return sb.toString();
     }
 
     public @NotNull ItemPath getStandardPath() {
-        return ItemPath.create(ShadowType.F_ASSOCIATIONS, getName());
+        return ItemPath.create(ShadowType.F_ASSOCIATIONS, getItemName());
     }
 
     public ContainerDelta<ShadowAssociationValueType> createEmptyDelta() {
@@ -612,5 +548,49 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     @Override
     public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
         throw new UnsupportedOperationException();
+    }
+
+    public String getHumanReadableDescription() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(associationItemName);
+        var displayName = getDisplayName();
+        if (displayName != null) {
+            sb.append(": ").append(displayName);
+        }
+        return sb.toString();
+    }
+
+    /** Creates a filter that provides all shadows eligible as the target value for this association. */
+    public @NotNull ObjectFilter createTargetObjectsFilter() {
+        Collection<ResourceObjectTypeDefinition> objectTypeDefinitions = getAssociationTypeDefinition().getObjectTypeDefinitions();
+        assertCheck(!objectTypeDefinitions.isEmpty(), "No object type definitions (already checked)");
+        S_FilterEntryOrEmpty atomicFilter = PrismContext.get().queryFor(ShadowType.class);
+        List<ObjectFilter> orFilterClauses = new ArrayList<>();
+        objectTypeDefinitions.stream()
+                .map(def -> def.getTypeIdentification())
+                .forEach(typeId -> orFilterClauses.add(
+                        atomicFilter
+                                .item(ShadowType.F_KIND).eq(typeId.getKind())
+                                .and().item(ShadowType.F_INTENT).eq(typeId.getIntent())
+                                .buildFilter()));
+        OrFilter intentFilter = PrismContext.get().queryFactory().createOr(orFilterClauses);
+
+        var resourceOid = stateNonNull(getTargetObjectDefinition().getResourceOid(), "No resource OID in %s", this);
+        return atomicFilter.item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
+                .and().filter(intentFilter)
+                .buildFilter();
+    }
+
+    public @Nullable ShadowAssociationClassSimulationDefinition getSimulationDefinition() {
+        return associationTypeDefinition.getSimulationDefinition();
+    }
+
+    public boolean isSimulated() {
+        return getSimulationDefinition() != null;
+    }
+
+    public ShadowAssociationClassSimulationDefinition getSimulationDefinitionRequired() {
+        assert isSimulated();
+        return Objects.requireNonNull(getSimulationDefinition());
     }
 }

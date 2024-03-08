@@ -140,7 +140,9 @@ public class QCaseWorkItemMapping
             if (workItemPcv == null) {
                 throw new SystemException("Case " + aCase + " has no work item with ID " + row.cid);
             }
-            return workItemPcv.asContainerable();
+            var containerable = workItemPcv.asContainerable();
+            attachContainerIdPath(containerable, tuple, entityPath);
+            return containerable;
         };
     }
 

@@ -80,6 +80,10 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 include::../raw/curl-env-note.adoc[]
 
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
 include::../../rest/operations/examples/raw/user-get-value-policy.adoc[]
 
 include::../../rest/operations/examples/raw/user-pwd-reset.adoc[]

@@ -149,6 +149,16 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
         public boolean isDelete() {
             return modificationType == DELETE;
         }
+
+        public boolean isAddNotDelete() {
+            if (isAdd()) {
+                return true;
+            } else if (isDelete()) {
+                return false;
+            } else {
+                throw new AssertionError("No REPLACE delta is expected here");
+            }
+        }
     }
 
     private static class Empty extends ShadowAssociationsCollection {

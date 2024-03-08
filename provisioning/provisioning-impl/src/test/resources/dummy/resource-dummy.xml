@@ -10,7 +10,6 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
@@ -107,22 +106,6 @@
                     </access>
                 </limitations>
             </attribute>
-            <association>
-                <ref>ri:group</ref>
-                <kind>entitlement</kind>
-                <intent>group</intent>
-                <direction>objectToSubject</direction>
-                <associationAttribute>ri:members</associationAttribute>
-                <valueAttribute>icfs:name</valueAttribute>
-            </association>
-            <association>
-                <ref>ri:priv</ref>
-                <kind>entitlement</kind>
-                <intent>privilege</intent>
-                <direction>subjectToObject</direction>
-                <associationAttribute>ri:privileges</associationAttribute>
-                <valueAttribute>icfs:name</valueAttribute>
-            </association>
             <protected>
                 <filter>
                     <q:equal>
@@ -191,12 +174,66 @@
             <default>false</default>
             <objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
+        <associationType>
+            <associationClass>ri:groupMembership</associationClass>
+            <subject>
+                <type>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </type>
+            </subject>
+            <object>
+                <type>
+                    <kind>entitlement</kind>
+                    <intent>group</intent>
+                </type>
+            </object>
+        </associationType>
+        <associationType>
+            <associationClass>ri:accountPrivilege</associationClass>
+            <subject>
+                <type>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </type>
+            </subject>
+            <object>
+                <type>
+                    <kind>entitlement</kind>
+                    <intent>privilege</intent>
+                </type>
+            </object>
+        </associationType>
     </schemaHandling>
     <capabilities>
         <configured>
             <cap:countObjects>
                 <cap:simulate>pagedSearchEstimate</cap:simulate>
             </cap:countObjects>
+            <cap:associations>
+                <cap:associationClass>
+                    <cap:name>ri:groupMembership</cap:name>
+                    <cap:subject>
+                        <cap:primaryBindingAttributeRef>icfs:name</cap:primaryBindingAttributeRef>
+                        <cap:localItemName>ri:group</cap:localItemName>
+                    </cap:subject>
+                    <cap:object>
+                        <cap:primaryBindingAttributeRef>ri:members</cap:primaryBindingAttributeRef>
+                    </cap:object>
+                    <cap:direction>objectToSubject</cap:direction>
+                </cap:associationClass>
+                <cap:associationClass>
+                    <cap:name>ri:accountPrivilege</cap:name>
+                    <cap:subject>
+                        <cap:primaryBindingAttributeRef>ri:privileges</cap:primaryBindingAttributeRef>
+                        <cap:localItemName>ri:priv</cap:localItemName>
+                    </cap:subject>
+                    <cap:object>
+                        <cap:primaryBindingAttributeRef>icfs:name</cap:primaryBindingAttributeRef>
+                    </cap:object>
+                    <cap:direction>subjectToObject</cap:direction>
+                </cap:associationClass>
+            </cap:associations>
         </configured>
     </capabilities>
 </resource>

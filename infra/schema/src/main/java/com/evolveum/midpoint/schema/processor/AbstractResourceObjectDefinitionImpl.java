@@ -783,7 +783,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
                 .map(ItemPath::asSingleName)
                 .collect(Collectors.toList());
         attributeDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getItemName()));
-        associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getName()));
+        associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getItemName()));
 
         // TODO what about QName references like primary or secondary identifier names,
         //  or name, display name, or description attribute names?

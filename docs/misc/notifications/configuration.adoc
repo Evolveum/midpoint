@@ -70,6 +70,11 @@ This is especially important for Microsoft Exchange, where the default limit see
 Also please note that SSL-related settings for mail messaging are currently experimental (e.g. there is no support for setting certificate validation-related properties; default behavior of `javax.mail` implementation is used).
 You may also need to store the mail server self-signed SSL certificate in your Java "cacerts" keystore.
 
+[Important]
+====
+All root and intermediate CA certificates in chain for mailserver certificate must be imported into keystore, please see related documentation link:../../security/crypto/ssl-connections-client-side-.adoc[TLS Connections] how to get certificates and import them into keystore.
+====
+
 [TIP]
 ====
 For Microsoft Exchange, we've successfully tested the configuration with port=587, transportSecurity=starttlsRequired and a valid username/password combination.
@@ -810,6 +815,87 @@ All variables for `Event` can be used as well.
 |Returns resource object password if known (e.g. during password generation)
 
 |===
+
+=== Expression Variables Specific For WorkflowProcess Event
+
+[TIP]
+====
+Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/WorkflowProcessEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.WorkflowProcessEvent] to learn about *all* possible variables.
+The methods documented in Javadoc can be used in your expressions.
+
+All variables for `Event` can be used as well.
+====
+
+[%autowidth]
+|===
+|Groovy (short) | Velocity (short) |Groovy (long)| Velocity (long)|Description
+
+|event.caseName
+|$event.caseName
+|event.getCaseName()
+|$event.getCaseName()
+|Returns the case name
+
+|event.statusAsText
+|$event.statusAsText
+|event.getStatusAsText()
+|$event.getStatusAsText()
+|Returns the case outcome (`Approved` or `Rejected`).
+
+|===
+
+=== Expression Variables Specific For WorkItemAllocation Event
+
+[TIP]
+====
+Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/WorkItemEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.WorkItemEvent] to learn about *all* possible variables.
+The methods documented in Javadoc can be used in your expressions.
+
+All variables for `Event` can be used as well.
+====
+
+[%autowidth]
+|===
+|Groovy (short) | Velocity (short) |Groovy (long)| Velocity (long)|Description
+
+|event.workItemId
+|$event.workItemId
+|event.getWorkItemId()
+|$event.getWorkItemId()
+a|Returns the workitem id which can be used for further operations. Example:
+
+* call `event.getWorkItem().getDeadline()` to get workitem deadline date/time if workitem timeouts are used
+
+|event.workItemUrl
+|$event.workItemUrl
+|event.getWorkItemUrl()
+|$event.getWorkItemUrl()
+|Returns the URL which can be used as a direct link to act on this workitem. Very useful for notifications.
+The URL is composed using `midpoint.createWorkItemCompletionLink()` method.
+
+|event.cause.type
+|$event.cause.type
+|event.getCause().getType()
+|$event.getCause().getType()
+|For timed actions (workitem with a deadline defined): returns `TIMED_ACTION`
+
+|event.operationKind
+|$event.operationKind
+|event.getOperationKind()
+|$event.getOperationKind()
+a|Returns information about the operation that will be executed if timed actions are used (e.g. if you set workitem deadline, it will be automatically completed (e.g. rejected) after the deadline).
+
+Possible values:
+
+`CLAIM`: Claim operation.
+`RELEASE`: Release operation.
+`COMPLETE`: Complete (approve/reject) operation. (Explicit or automated.)
+`DELEGATE`: Delegate operation. (Explicit or automated.)
+`ESCALATE`: Escalate operation. (Explicit or automated.)
+`CANCEL`: Cancel operation. Work item was cancelled as a result of other action. (E.g. another work item was completed, resulting in process or stage completion. Or the process was cancelled/deleted externally.)
+
+|===
+
 
 ////
 TODO document other expression variables

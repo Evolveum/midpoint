@@ -250,12 +250,10 @@ class ShadowDeltaComputerAbsolute {
 
         Collection<QName> expectedRepoAttributes = new ArrayList<>();
 
-        Collection<? extends QName> associationValueAttrs = ocDef.getAssociationValueAttributes();
-
         for (ResourceAttribute<?> resourceObjectAttribute : resourceObjectAttributesContainer.getAttributes()) {
             ResourceAttributeDefinition<?> attrDef = resourceObjectAttribute.getDefinitionRequired();
             ItemName attrName = attrDef.getItemName();
-            if (ctx.shouldStoreAttributeInShadow(ocDef, attrDef, associationValueAttrs)) {
+            if (ctx.shouldStoreAttributeInShadow(ocDef, attrDef)) {
                 expectedRepoAttributes.add(attrName);
                 if (!resourceObjectAttribute.isIncomplete()) {
                     updateAttributeIfNeeded(rawRepoShadowAttributesPcv, resourceObjectAttribute);

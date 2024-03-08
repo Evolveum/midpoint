@@ -21,7 +21,6 @@ import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
@@ -36,11 +35,9 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
-import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -58,8 +55,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 public class ProvisioningUtil {
@@ -105,164 +100,6 @@ public class ProvisioningUtil {
         scriptOperation.setCriticality(scriptBean.getCriticality());
 
         return scriptOperation;
-    }
-
-    // To be called via ProvisioningContext
-    public static @Nullable AttributesToReturn createAttributesToReturn(@NotNull ProvisioningContext ctx) {
-
-        ResourceObjectDefinition resourceObjectDefinition = ctx.getObjectDefinitionRequired();
-
-        ResourceType resource = ctx.getResource();
-
-        boolean apply = false;
-        AttributesToReturn attributesToReturn = new AttributesToReturn();
-
-        // Attributes
-
-        boolean hasMinimal = checkForMinimalFetchStrategy(ctx);
-        attributesToReturn.setReturnDefaultAttributes(!hasMinimal);
-
-        Collection<ResourceAttributeDefinition<?>> explicit = getExplicitlyFetchedAttributes(ctx, !hasMinimal);
-
-        if (!explicit.isEmpty()) {
-            attributesToReturn.setAttributesToReturn(explicit);
-            apply = true;
-        }
-
-        // Password
-        CredentialsCapabilityType credentialsCapability =
-                ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
-        if (credentialsCapability != null) {
-            if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_PASSWORD_VALUE)) {
-                attributesToReturn.setReturnPasswordExplicit(true);
-                apply = true;
-            } else {
-                if (!CapabilityUtil.isPasswordReturnedByDefault(credentialsCapability)) {
-                    // The resource is capable of returning password but it does not do it by default.
-                    AttributeFetchStrategyType passwordFetchStrategy = resourceObjectDefinition.getPasswordFetchStrategy();
-                    if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-                        attributesToReturn.setReturnPasswordExplicit(true);
-                        apply = true;
-                    }
-                }
-            }
-        }
-
-        // Activation
-        ActivationCapabilityType activationCapability =
-                ResourceTypeUtil.getEnabledCapability(resource, ActivationCapabilityType.class);
-        if (activationCapability != null) {
-            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getStatus())) {
-                if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapability)) {
-                    // The resource is capable of returning enable flag but it does not do it by default.
-                    if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
-                        attributesToReturn.setReturnAdministrativeStatusExplicit(true);
-                        apply = true;
-                    } else {
-                        AttributeFetchStrategyType administrativeStatusFetchStrategy = resourceObjectDefinition
-                                .getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
-                        if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-                            attributesToReturn.setReturnAdministrativeStatusExplicit(true);
-                            apply = true;
-                        }
-                    }
-                }
-            }
-            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getValidFrom())) {
-                if (!CapabilityUtil.isActivationValidFromReturnedByDefault(activationCapability)) {
-                    if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_ACTIVATION_VALID_FROM)) {
-                        attributesToReturn.setReturnValidFromExplicit(true);
-                        apply = true;
-                    } else {
-                        AttributeFetchStrategyType administrativeStatusFetchStrategy = resourceObjectDefinition
-                                .getActivationFetchStrategy(ActivationType.F_VALID_FROM);
-                        if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-                            attributesToReturn.setReturnValidFromExplicit(true);
-                            apply = true;
-                        }
-                    }
-                }
-            }
-            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getValidTo())) {
-                if (!CapabilityUtil.isActivationValidToReturnedByDefault(activationCapability)) {
-                    if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_ACTIVATION_VALID_TO)) {
-                        attributesToReturn.setReturnValidToExplicit(true);
-                        apply = true;
-                    } else {
-                        AttributeFetchStrategyType administrativeStatusFetchStrategy = resourceObjectDefinition
-                                .getActivationFetchStrategy(ActivationType.F_VALID_TO);
-                        if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-                            attributesToReturn.setReturnValidToExplicit(true);
-                            apply = true;
-                        }
-                    }
-                }
-            }
-            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getLockoutStatus())) {
-                if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapability)) {
-                    // The resource is capable of returning lockout flag but it does not do it by default.
-                    if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS)) {
-                        attributesToReturn.setReturnAdministrativeStatusExplicit(true);
-                        apply = true;
-                    } else {
-                        AttributeFetchStrategyType statusFetchStrategy = resourceObjectDefinition
-                                .getActivationFetchStrategy(ActivationType.F_LOCKOUT_STATUS);
-                        if (statusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-                            attributesToReturn.setReturnLockoutStatusExplicit(true);
-                            apply = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (apply) {
-            return attributesToReturn;
-        } else {
-            return null;
-        }
-    }
-
-    @NotNull
-    private static Collection<ResourceAttributeDefinition<?>> getExplicitlyFetchedAttributes(
-            ProvisioningContext ctx, boolean returnsDefaultAttributes) {
-        return ctx.getObjectDefinitionRequired().getAttributeDefinitions().stream()
-                .filter(attributeDefinition -> shouldExplicitlyFetch(attributeDefinition, returnsDefaultAttributes, ctx))
-                .collect(Collectors.toList());
-    }
-
-    private static boolean shouldExplicitlyFetch(
-            ResourceAttributeDefinition<?> attributeDefinition,
-            boolean returnsDefaultAttributes, ProvisioningContext ctx) {
-        AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
-        if (fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-            return true;
-        } else if (returnsDefaultAttributes) {
-            // Normal attributes are returned by default. So there's no need to explicitly request this attribute.
-            return false;
-        } else if (isFetchingRequested(ctx, attributeDefinition)) {
-            // Client wants this attribute.
-            return true;
-        } else {
-            // If the fetch strategy is MINIMAL, we want to skip. Otherwise, request it.
-            return fetchStrategy != AttributeFetchStrategyType.MINIMAL;
-        }
-    }
-
-    private static boolean isFetchingRequested(ProvisioningContext ctx, ResourceAttributeDefinition<?> attributeDefinition) {
-        ItemPath attributePath = ShadowType.F_ATTRIBUTES.append(attributeDefinition.getItemName());
-        ItemPath legacyPath = attributeDefinition.getItemName(); // See MID-5838
-        return ctx.isFetchingRequested(attributePath) || ctx.isFetchingRequested(legacyPath);
-    }
-
-    private static boolean checkForMinimalFetchStrategy(ProvisioningContext ctx) {
-        for (ResourceAttributeDefinition<?> attributeDefinition :
-                ctx.getObjectDefinitionRequired().getAttributeDefinitions()) {
-            if (attributeDefinition.getFetchStrategy() == AttributeFetchStrategyType.MINIMAL) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public static <T> PropertyDelta<T> narrowPropertyDelta(

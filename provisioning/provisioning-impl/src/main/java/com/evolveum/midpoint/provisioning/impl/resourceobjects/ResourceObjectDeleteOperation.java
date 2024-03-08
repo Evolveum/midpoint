@@ -121,7 +121,7 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
     private void determineAndExecuteEntitlementObjectOperations(OperationResult result) throws SchemaException {
         try {
             executeEntitlementObjectsOperations(
-                    new EntitlementConverter(ctx).transformToObjectOpsOnDelete(shadow.getBean(), result),
+                    new EntitlementConverter(ctx).transformToObjectOpsOnSubjectDelete(shadow, result),
                     result);
         } catch (SchemaException | Error e) {
             throw e; // These we want to propagate.

@@ -1,5 +1,5 @@
 :page-visibility: hidden
-.Generate a password for user
+.*Generate a Password for User*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

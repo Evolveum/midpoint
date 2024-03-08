@@ -20,18 +20,7 @@ public class PolicyActionConfigItem<A extends PolicyActionType> extends Configur
     }
 
     public PolicyActionConfigItem(@NotNull A value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
-    }
-
-    public static <A extends PolicyActionType> PolicyActionConfigItem<A> of(
-            @NotNull A bean, @NotNull ConfigurationItemOrigin origin) {
-        return new PolicyActionConfigItem<>(bean, origin);
-    }
-
-    public static <A extends PolicyActionType> PolicyActionConfigItem<A> of(
-            @NotNull A bean,
-            @NotNull OriginProvider<? super A> originProvider) {
-        return new PolicyActionConfigItem<>(bean, originProvider.origin(bean));
+        super(value, origin, null); // TODO provide parent in the future
     }
 
     @Override

@@ -7,33 +7,23 @@
 
 package com.evolveum.midpoint.schema.config;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignMappingType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
-
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
 
 /** Unfortunately, this cannot extend MappingConfigItem because of the conflict in generic type parameters. */
 public class ObjectTemplateMappingConfigItem
         extends ConfigurationItem<ObjectTemplateMappingType>
         implements AbstractMappingConfigItem<ObjectTemplateMappingType> {
 
-    @SuppressWarnings("unused") // called dynamically
+    @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
     public ObjectTemplateMappingConfigItem(@NotNull ConfigurationItem<ObjectTemplateMappingType> original) {
         super(original);
     }
 
-    public ObjectTemplateMappingConfigItem(@NotNull ObjectTemplateMappingType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
-    }
-
-    public static ObjectTemplateMappingConfigItem embedded(@NotNull ObjectTemplateMappingType bean) {
-        return of(bean, ConfigurationItemOrigin.embedded(bean));
-    }
-
-    public static ObjectTemplateMappingConfigItem of(@NotNull ObjectTemplateMappingType bean, @NotNull ConfigurationItemOrigin origin) {
-        return new ObjectTemplateMappingConfigItem(bean, origin);
+    private ObjectTemplateMappingConfigItem(@NotNull ObjectTemplateMappingType value, @NotNull ConfigurationItemOrigin origin) {
+        super(value, origin, null); // TODO provide parent in the future
     }
 
     public static ObjectTemplateMappingConfigItem of(

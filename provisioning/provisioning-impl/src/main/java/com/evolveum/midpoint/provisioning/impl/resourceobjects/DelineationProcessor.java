@@ -7,57 +7,96 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static com.evolveum.midpoint.provisioning.util.QueryConversionUtil.parseFilters;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Converts object type delineation into {@link SearchHierarchyConstraints} and filters
  * (that are added to the client-supplied query).
+ *
+ * Works in two modes, see {@link #determineQueryWithConstraints(ProvisioningContext, ObjectQuery, OperationResult)}
+ * and the other method.
  */
-@Component
 class DelineationProcessor {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectSearchOperation.class);
+    /** The delination to apply. */
+    @NotNull private final ResourceObjectSetDelineation delineation;
 
-    @Autowired private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
+    /** The current object definition. Not used to get the delineation, though! */
+    @NotNull private final ResourceObjectDefinition definition;
 
-    QueryWithConstraints determineQueryWithConstraints(ProvisioningContext ctx, ObjectQuery clientQuery, OperationResult result)
+    /** The provisioning context - a wildcard one. */
+    @NotNull private final ProvisioningContext ctx;
+
+    private final ResourceObjectsBeans b = ResourceObjectsBeans.get();
+
+    private DelineationProcessor(
+            @NotNull ResourceObjectSetDelineation delineation,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull ProvisioningContext ctx) {
+        this.definition = definition;
+        this.delineation = delineation;
+        this.ctx = ctx.toWildcard();
+    }
+
+    /**
+     * This method gets the object definition and the delineation from the context.
+     * This is the standard mode, used for the majority of provisioning operations.
+     */
+    static @NotNull QueryWithConstraints determineQueryWithConstraints(
+            @NotNull ProvisioningContext ctx,
+            @Nullable ObjectQuery clientQuery,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        ResourceObjectDefinition definition = getEffectiveDefinition(ctx);
+        return new DelineationProcessor(definition.getDelineation(), definition, ctx)
+                .execute(clientQuery, result);
+    }
+
+    /**
+     * Gets object definition and the delineation from the client. Used in special cases.
+     * The context is used only as a wildcard one.
+     */
+    static @NotNull QueryWithConstraints determineQueryWithConstraints(
+            @NotNull ProvisioningContext wildcardCtx,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull ResourceObjectSetDelineation delineation,
+            @Nullable ObjectQuery objectQuery,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        wildcardCtx.assertWildcard();
+        return new DelineationProcessor(delineation, definition, wildcardCtx)
+                .execute(objectQuery, result);
+    }
+
+    private @NotNull QueryWithConstraints execute(@Nullable ObjectQuery clientQuery, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         return new QueryWithConstraints(
-                createEffectiveQuery(ctx, clientQuery),
-                determineSearchHierarchyConstraints(ctx, result));
+                ObjectQueryUtil.addConjunctions(clientQuery, delineation.getFilterClauses()),
+                determineSearchHierarchyConstraints(result));
     }
 
-    private SearchHierarchyConstraints determineSearchHierarchyConstraints(ProvisioningContext ctx, OperationResult result)
+    private SearchHierarchyConstraints determineSearchHierarchyConstraints(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
-        ResourceObjectDefinition objectDef = getEffectiveDefinition(ctx);
-        ResourceObjectReferenceType baseContextRef = objectDef.getBaseContext();
-        SearchHierarchyScope scope = objectDef.getSearchHierarchyScope();
+        ResourceObjectReferenceType baseContextRef = delineation.getBaseContext();
+        SearchHierarchyScope scope = delineation.getSearchHierarchyScope();
 
-        var baseContextIdentification = determineBaseContextIdentification(baseContextRef, ctx, result);
+        var baseContextIdentification = determineBaseContextIdentification(baseContextRef, result);
         if (baseContextIdentification != null || scope != null) {
             return new SearchHierarchyConstraints(baseContextIdentification, scope);
         } else {
@@ -65,9 +104,8 @@ class DelineationProcessor {
         }
     }
 
-    @Nullable
-    private ResourceObjectIdentification.WithPrimary determineBaseContextIdentification(
-            ResourceObjectReferenceType baseContextRef, ProvisioningContext ctx, OperationResult result)
+    private @Nullable ResourceObjectIdentification.WithPrimary determineBaseContextIdentification(
+            ResourceObjectReferenceType baseContextRef, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
@@ -75,18 +113,17 @@ class DelineationProcessor {
             return null;
         }
 
-        ResourceObjectDefinition objectDef = getEffectiveDefinition(ctx);
         ShadowType baseContextShadow;
         try {
             // We request the use of raw object class definition to avoid endless loops during base context determination.
-            baseContextShadow = resourceObjectReferenceResolver.resolveUsingRawClass(
-                    ctx, baseContextRef, "base context specification in " + objectDef, result);
+            baseContextShadow = b.resourceObjectReferenceResolver.resolveUsingRawClass(
+                    ctx, baseContextRef, "base context specification in " + definition, result);
         } catch (RuntimeException e) {
-            throw new SystemException("Cannot resolve base context for " + objectDef + ", specified as " + baseContextRef, e);
+            throw new SystemException("Cannot resolve base context for " + definition + ", specified as " + baseContextRef, e);
         }
         if (baseContextShadow == null) {
             throw new ObjectNotFoundException(
-                    "Base context not found for " + objectDef + ", specified as " + baseContextRef,
+                    "Base context not found for " + definition + ", specified as " + baseContextRef,
                     ShadowType.class,
                     null);
         }
@@ -98,27 +135,11 @@ class DelineationProcessor {
     }
 
     /**
-     * Combines client-specified query and the definition of the object type into a single query.
-     */
-    private ObjectQuery createEffectiveQuery(ProvisioningContext ctx, ObjectQuery clientQuery) throws SchemaException {
-        ResourceObjectDefinition definition = getEffectiveDefinition(ctx);
-        LOGGER.trace("Computing effective query for {}", definition);
-        List<SearchFilterType> filterClauses = definition.getDelineation().getFilterClauses();
-        LOGGER.trace(" -> found {} filter clause(s)", filterClauses.size());
-        ObjectQuery effectiveQuery = ObjectQueryUtil.addConjunctions(
-                clientQuery,
-                parseFilters(filterClauses, definition));
-        LOGGER.trace("Effective query:\n{}", DebugUtil.debugDumpLazily(effectiveQuery, 1));
-        return effectiveQuery;
-    }
-
-    /**
      * Returns the definition to use when search is to be invoked. Normally, we use type or class definition, as provided
      * by the context. But there is a special case when the client asks for the whole class, but the schema machinery provides
      * us with a type definition instead. Here we resolve this.
      */
-    @NotNull
-    private ResourceObjectDefinition getEffectiveDefinition(ProvisioningContext ctx) {
+    private static @NotNull ResourceObjectDefinition getEffectiveDefinition(ProvisioningContext ctx) {
         ResourceObjectDefinition definition = ctx.getObjectDefinitionRequired();
         if (!(definition instanceof ResourceObjectTypeDefinition)) {
             return definition;

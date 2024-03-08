@@ -52,7 +52,7 @@ include::../operations/examples/raw/modify-attr.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
 
-=== Delete Role Objects
+=== Delete Case Objects
 
 include::../operations/examples/raw/delete-case.adoc[]
 

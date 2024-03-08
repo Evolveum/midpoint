@@ -1,4 +1,6 @@
 :page-visibility: hidden
+
+.*Modify Attribute Access Certification Campaigns*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

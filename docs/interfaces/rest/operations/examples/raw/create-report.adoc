@@ -1,6 +1,6 @@
 :page-visibility: hidden
 
-.Create a new Report regarding Error audit records in 24h
+.*Create a new Report regarding Error audit records in 24h*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

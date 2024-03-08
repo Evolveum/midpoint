@@ -542,7 +542,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                 LOGGER.trace("Skipping reconciliation of association {} because it is ignored", assocName);
                 continue;
             }
-            if (!associationDefinition.isVisible(task.getExecutionMode())) {
+            if (!associationDefinition.isVisible(task)) {
                 LOGGER.trace("Skipping reconciliation of association {} because it is not visible in current execution mode",
                         assocName);
                 return;
@@ -613,7 +613,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                     // Weak or normal value and the attribute already has a value. Skip it.
                     // We cannot override it as it might have been legally changed directly on the projection resource object.
                     LOGGER.trace("Skipping reconciliation of value {} of the association {}: the mapping is not strong",
-                            shouldBeCValue, associationDefinition.getName().getLocalPart());
+                            shouldBeCValue, associationDefinition.getItemName().getLocalPart());
                     continue;
                 }
                 if (shouldBeCvwo.isValid() && isNotInAssociationsValue(shouldBeCValue, areCValues)) {
@@ -685,7 +685,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                 }
             }
 
-            String assocNameLocal = assocDef.getName().getLocalPart();
+            String assocNameLocal = assocDef.getItemName().getLocalPart();
             if (evaluatePatterns && matchesAssociationPattern(assocDef.getTolerantValuePattern(), targetNamingIdentifier, matchingRule)) {
                 LOGGER.trace("Reconciliation: KEEPING value {} of association {}: identifier {} matches with tolerant value pattern.",
                         isCValue, assocNameLocal, targetNamingIdentifier);
@@ -715,15 +715,16 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     @NotNull
     private MatchingRule<Object> getMatchingRuleForTargetNamingIdentifier(ShadowAssociationDefinition associationDefinition) throws SchemaException {
+        ResourceObjectTypeDefinition targetObjectDefinition = associationDefinition.getTargetObjectDefinition();
         // TODO why naming attribute? Why not valueAttribute from the association definition?
-        ResourceAttributeDefinition<?> targetNamingAttributeDef = associationDefinition.getAssociationTarget().getNamingAttribute();
+        ResourceAttributeDefinition<?> targetNamingAttributeDef = targetObjectDefinition.getNamingAttribute();
         if (targetNamingAttributeDef != null) {
             QName matchingRuleName = targetNamingAttributeDef.getMatchingRuleQName();
             return matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
         } else {
             throw new IllegalStateException(
                     "Couldn't evaluate tolerant/intolerant value patterns, because naming attribute is not known for "
-                            + associationDefinition.getAssociationTarget());
+                            + targetObjectDefinition);
         }
     }
 

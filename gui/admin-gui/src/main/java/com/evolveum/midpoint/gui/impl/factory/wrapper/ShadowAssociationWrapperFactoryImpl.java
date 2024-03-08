@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 
@@ -111,7 +110,7 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
 
     private PrismReferenceDefinition createShadowAssocationDef(ShadowAssociationDefinition shadowAssociationDefinitions) {
         MutablePrismReferenceDefinition shadowRefDef = getPrismContext()
-                .definitionFactory().createReferenceDefinition(shadowAssociationDefinitions.getName(), ObjectReferenceType.COMPLEX_TYPE);
+                .definitionFactory().createReferenceDefinition(shadowAssociationDefinitions.getItemName(), ObjectReferenceType.COMPLEX_TYPE);
         shadowRefDef.toMutable().setMaxOccurs(-1);
         shadowRefDef.setDisplayName(shadowAssociationDefinitions.getDisplayName());
         shadowRefDef.setTargetTypeName(ShadowType.COMPLEX_TYPE);
@@ -237,10 +236,7 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
             PrismReference shadowAss = fillInShadowReference(def, item);
 
             PrismReferenceWrapper shadowReference = (PrismReferenceWrapper) referenceWrapperFactory.createWrapper(shadowValueWrapper, shadowAss, shadowAss.isEmpty() ? ItemStatus.ADDED : ItemStatus.NOT_CHANGED, context);
-            shadowReference.setFilter(ProvisioningObjectsUtil.createAssociationShadowRefFilter(
-                    def,
-                    getPrismContext(),
-                    context.getResource().getOid()));
+            shadowReference.setFilter(def.createTargetObjectsFilter());
             shadowReferences.add(shadowReference);
         }
 

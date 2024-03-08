@@ -18,8 +18,6 @@ import java.util.function.Supplier;
 import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.ResourceCompletionMode;
 import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.TestMode;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions;
-import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +31,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.RefinedResourceSchemaParser;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;

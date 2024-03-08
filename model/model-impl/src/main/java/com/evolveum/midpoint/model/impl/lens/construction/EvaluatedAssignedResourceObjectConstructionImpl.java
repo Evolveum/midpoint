@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.OriginType;
@@ -96,24 +95,17 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
 
         List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
 
-        for (var associationDefinitionCI : getTypedConfigItemRequired().getAssociations()) {
-            QName assocName = associationDefinitionCI.getAssociationName();
+        for (var associationConstructionCI : getTypedConfigItemRequired().getAssociations()) {
 
-            associationDefinitionCI.configCheck(
-                    !associationDefinitionCI.hasInbounds(), "Cannot process inbound section in %s", DESC);
+            associationConstructionCI.configCheck(
+                    !associationConstructionCI.hasInbounds(), "Cannot process inbound section in %s", DESC);
 
-            // [EP:M:OM] DONE, transforming to [EP:CONSTR] (via association definition in the construction)
-            var outboundMappingCI =
-                    associationDefinitionCI.configNonNull(
-                            associationDefinitionCI.getOutbound(), "No outbound section in %s", DESC);
+            var associationDef =
+                    construction.findAssociationDefinitionRequired(
+                            associationConstructionCI.getItemName(),
+                            associationConstructionCI);
 
-            ShadowAssociationDefinition associationDef =
-                    associationDefinitionCI.configNonNull(
-                            construction.findAssociationDefinition(assocName),
-                            "Association '%s' not found in schema for resource object type %s on %s; as defined in %s",
-                            assocName, getTypeIdentification(), construction.getResolvedResource().resource, DESC);
-
-            if (!associationDef.isVisible(constructionEvaluation.task.getExecutionMode())) {
+            if (!associationDef.isVisible(constructionEvaluation.task)) {
                 LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "
                         + "execution mode", associationDef);
                 continue;
@@ -122,7 +114,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
                     new AssociationEvaluation<>(
                             constructionEvaluation,
                             associationDef,
-                            outboundMappingCI, // [EP:M:OM] DONE
+                            associationConstructionCI.getOutboundMappingRequired(), // [EP:M:OM] DONE
                             OriginType.ASSIGNMENTS,
                             MappingKindType.CONSTRUCTION));
         }

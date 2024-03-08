@@ -1,6 +1,6 @@
 :page-visibility: hidden
 
-.Get Object in JSON format with the Raw option set to true
+.*Get Object in JSON format with the Raw option set to true*
 
 [source,bash]
 ----

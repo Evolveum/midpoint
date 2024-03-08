@@ -33,4 +33,9 @@ public class ConstructionConfigItem extends ConfigurationItem<ConstructionType> 
                 ResourceObjectAssociationConfigItem.class,
                 ConstructionType.F_ASSOCIATION);
     }
+
+    @Override
+    public @NotNull String localDescription() {
+        return "construction for " + value().getResourceRef(); // TODO more human readable
+    }
 }

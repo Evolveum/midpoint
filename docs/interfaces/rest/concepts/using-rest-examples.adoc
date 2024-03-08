@@ -100,7 +100,7 @@ The "Accept" header.
 -H "Accept: application/json"
 ----
 
-Similar to the request header, the accept header has the same set of media types provided as the content header.
+Similar to the request header, the "Accept" header has the same set of media types provided as the content header.
 
 Here is a list of the  xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[supported *Media Types*].
 
@@ -125,7 +125,7 @@ authorization which can be used. For a list of operations please see the followi
 
 === Model Authorizations
 
-The examples which we use imply the usage of the administrator user. The administrator
+As mentioned above the examples which we use imply the usage of the administrator user. The administrator
 user has the *"superuser"* authorization role assigned by default this permits the user
 complete access to the interface and also model.
 
@@ -150,8 +150,9 @@ If '@' is appended before a string in the "--data-binary" property value, CURL k
 === Troubleshooting Tips
 
 - An error reply quite often has data in the body.
-- Additionally check midPoint log for further information
-- Unauthorized messages point to lacking authorizations of the user invoking the request
+- Check midPoint log for further information.
+- A reply of "Unauthorized",  points to lacking authorizations of the user invoking the request, these can be
+either model or access authorizations.
 
 == See Also
 

@@ -1,5 +1,5 @@
 :page-visibility: hidden
-.Search for all Users
+.*Search for All Users*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

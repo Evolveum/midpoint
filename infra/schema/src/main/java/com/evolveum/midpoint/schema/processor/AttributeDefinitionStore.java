@@ -149,13 +149,6 @@ public interface AttributeDefinitionStore
         return findAttributeDefinition(attributeName) != null;
     }
 
-    default Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
-        return getAttributeDefinitions().stream()
-                .filter(attrDef -> !attrDef.getInboundMappingBeans().isEmpty())
-                .map(ItemDefinition::getItemName)
-                .collect(Collectors.toCollection(HashSet::new));
-    }
-
     /** Real values should have no duplicates. */
     @SuppressWarnings("unchecked")
     default <T> @NotNull ResourceAttribute<T> instantiateAttribute(@NotNull QName attrName, @NotNull T... realValues)

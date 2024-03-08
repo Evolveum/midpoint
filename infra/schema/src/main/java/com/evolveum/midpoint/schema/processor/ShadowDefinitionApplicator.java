@@ -206,7 +206,7 @@ public class ShadowDefinitionApplicator {
                     continue;
                 }
 
-                ResourceObjectDefinition assocObjectDef = assocDef.getAssociationTarget();
+                ResourceObjectDefinition assocObjectDef = assocDef.getTargetObjectDefinition();
                 applyAttributesDefinitionToContainer(
                         assocObjectDef, identifiersContainer, associationValue, "");
             }

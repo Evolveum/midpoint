@@ -1,5 +1,5 @@
 :page-visibility: hidden
-.Search for all Users with name that starts with 'a'
+.*Search for All Users With Name That Starts With 'a'*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

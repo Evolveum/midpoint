@@ -13,6 +13,7 @@ import java.util.Objects;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeIdentificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
 
 /**
  * Identifies a resource object type - by kind and intent.
@@ -45,6 +47,14 @@ public class ResourceObjectTypeIdentification implements Serializable {
     public static @NotNull ResourceObjectTypeIdentification of(
             @NotNull ShadowKindType kind, @NotNull String intent) {
         return new ResourceObjectTypeIdentification(kind, intent);
+    }
+
+    /** Assumes the configuration was already checked. */
+    public static @NotNull ResourceObjectTypeIdentification of(
+            @NotNull ResourceObjectTypeIdentificationType bean) {
+        return ResourceObjectTypeIdentification.of(
+                argNonNull(bean.getKind(), "No kind"),
+                argNonNull(bean.getIntent(), "No intent"));
     }
 
     public static @NotNull ResourceObjectTypeIdentification of(@NotNull ResourceObjectTypeDefinitionType definitionBean) {

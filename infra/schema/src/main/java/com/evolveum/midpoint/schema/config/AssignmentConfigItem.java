@@ -13,12 +13,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class AssignmentConfigItem extends AbstractAssignmentConfigItem {
 
+    @SuppressWarnings("unused") // invoked dynamically
     public AssignmentConfigItem(@NotNull ConfigurationItem<AssignmentType> original) {
         super(original);
     }
 
-    public AssignmentConfigItem(@NotNull AssignmentType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
+    private AssignmentConfigItem(@NotNull AssignmentType value, @NotNull ConfigurationItemOrigin origin) {
+        super(value, origin, null);
     }
 
     public static AssignmentConfigItem of(

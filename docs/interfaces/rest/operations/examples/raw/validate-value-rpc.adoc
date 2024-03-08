@@ -1,6 +1,6 @@
 :page-visibility: hidden
 
-.Validate value on input procedure call
+.*Validate Value on Input Procedure Call*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

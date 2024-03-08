@@ -170,7 +170,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
 
     private void removeValuePerformed(ShadowAssociationDefinition def) {
         try {
-            QName defName = def.getName();
+            QName defName = def.getItemName();
             PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper =
                     getModelObject().findContainer(ConstructionType.F_ASSOCIATION);
             Iterator<PrismContainerValueWrapper<ResourceObjectAssociationType>> iterator = associationWrapper.getValues().iterator();
@@ -202,7 +202,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
             @Override
             public ExpressionType load() {
                 try {
-                    QName defName = def.getName();
+                    QName defName = def.getItemName();
                     PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper =
                             getModelObject().findContainer(ConstructionType.F_ASSOCIATION);
                     for (PrismContainerValueWrapper<ResourceObjectAssociationType> value : associationWrapper.getValues()) {
@@ -229,7 +229,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
 
     private void addNewShadowRefValuePerformed(ShadowAssociationDefinition def, AjaxRequestTarget target) {
         try {
-            @NotNull ItemName defName = def.getName();
+            @NotNull ItemName defName = def.getItemName();
             PrismContainerWrapper<ConstructionType> constructionContainerWrapper = ConstructionAssociationPanel.this.getModelObject();
             PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper = constructionContainerWrapper.findContainer(ConstructionType.F_ASSOCIATION);
             PrismContainerValueWrapper<ResourceObjectAssociationType> valueWrapper =
@@ -250,7 +250,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
 
             ResourceObjectAssociationType association = valueWrapper.getRealValue();
 
-            ItemName associationRefPath = def.getName();
+            ItemName associationRefPath = def.getItemName();
             association.ref(new ItemPathType(associationRefPath))
                     .getOutbound().beginExpression();
         } catch (SchemaException ex) {

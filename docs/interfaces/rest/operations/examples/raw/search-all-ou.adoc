@@ -1,5 +1,5 @@
 :page-visibility: hidden
-.Search for all Organizational Units
+.*Search for All Organizational Units*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

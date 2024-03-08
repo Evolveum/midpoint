@@ -1,5 +1,5 @@
 :page-visibility: hidden
-.Search all Access Certification Campaign Type
+.*Search all Access Certification Campaign Type*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \
