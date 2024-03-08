@@ -29,7 +29,7 @@ xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How t
 6. The user is now capable of requesting the role through the REST api.
 7. The request will create an approval workflow case for the roles approvers.
 //TODO WP#9493, some kind of redirect info should be returned here so the user is capable of watching the progress of the case
-8. If you want information regarding the users case, you will have to query the open cases. A REST location header or redirect is currently missing, please see link:https://support.evolveum.com/wp/9493[work package]
+8. If you want information regarding the users case, you will have to query the open cases. A REST location header or redirect is currently missing, please see bug:MID-9493[].
 
 include::../examples/raw/modify-attr-entitlement.adoc[]
 
