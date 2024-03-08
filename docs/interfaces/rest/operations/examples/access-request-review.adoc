@@ -30,7 +30,7 @@ We are following up to the example described in xref:../examples/access-request.
 
 1. To be able to read the created work items the user needs to have a set of authorizations approving these actions. (See example)
 2. Execute the search request as the user which wants to review his cases.
-3. Select a specific case and *execute the action* which you would like to take with this case. #not yet implemented, please endorse link:https://support.evolveum.com/projects/midpoint/work_packages/6067/activity[this] improvement#
+3. Select a specific case and *execute the action* which you would like to take with this case. #not yet implemented, please endorse this bug:MID-6067[] improvement#
 
 [NOTE]
 ====
