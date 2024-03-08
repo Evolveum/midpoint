@@ -38,15 +38,7 @@ This is common practice e.g. in inbound expressions or in expressions describing
 
 == Association
 
-[TIP]
-.Available since 3.7
-====
-This feature is available since 3.7
-====
-
-Since version 3.7 it is possible to manage group membership directly.
-There is no more need to define some user's extension attribute and manage the group membership indirectly using this attribute.
-The inbound mapping for association will do the work.
+The inbound mapping for association allows you to manage group membership.
 As the example below shows, inbound can be defined in resource schema handling in the association part.
 All midpoint's expression can be used.
 In the following example the assignmentTargetSearch is used.
@@ -66,17 +58,7 @@ After applying search filter the role is found and it is assigned to the user.
             <assignmentTargetSearch>
                 <targetType>RoleType</targetType>
                 <filter>
-                    <q:equal>
-                        <q:path>name</q:path>
-                        <expression>
-                            <trace>true</trace>
-                            <script>
-                                <code>
-                                    return 'Auto' + entitlement?.getName()?.getNorm();
-                                </code>
-                            </script>
-                        </expression>
-                       </q:equal>
+                    <q:text>name = `'Auto' + entitlement?.getName()?.getNorm()`</q:text>
                 </filter>
               </assignmentTargetSearch>
         </expression>
@@ -111,7 +93,7 @@ After applying search filter the role is found and it is assigned to the user.
 </association>
 ----
 
-In the example below there is a script expression _return 'Auto' + entitlement?.getName()?.getNorm();_ which tells midPoint which role should be assigned to the user.
+In the example below there is a script expression _return 'Auto' + entitlement?.getName()?.getNorm()_ which tells midPoint which role should be assigned to the user.
 The _entitlement_ is a special variable pointing to the ShadowType representing group on resource.
 This variable is available only for script expression in the relativity mode relative.
 In other cases when there is a need to resolve ShadowType for a group there is a method in midpoint function library which can be used.
@@ -132,9 +114,9 @@ It provides additional resilience.
 
 . Assignments maintained by this mapping are marked by `ldap-group`  subtype; instead of marking based on roles' subtype.
 This is more efficient, because it does not require `getObject`  repository call on evaluation.
-(Also, the behavior is slightly different: here you can have assignment to a role bound to LDAP group, which is maintained manually, independently of assignments managed by this mapping.) This feature is available since midPoint 3.9.
+(Also, the behavior is slightly different: here you can have assignment to a role bound to LDAP group, which is maintained manually, independently of assignments managed by this mapping.)
 
-.Modified inbound example for associations (since 3.9)
+.Modified inbound example for associations
 [source,xml]
 ----
 <association>
@@ -151,17 +133,7 @@ This is more efficient, because it does not require `getObject`  repository call
             <assignmentTargetSearch>
                 <targetType>RoleType</targetType>
                 <filter>
-                    <q:equal>
-                        <q:path>name</q:path>
-                        <expression>
-                            <script>
-                                <code>
-                                    //log.info('entitlement = {}', entitlement?.asPrismObject()?.debugDump())
-                                    return basic.getAttributeValue(entitlement, 'cn')
-                                </code>
-                            </script>
-                        </expression>
-                    </q:equal>
+                    <q:text>name = `basic.getAttributeValue(entitlement, 'cn')`</q:text>
                 </filter>
                 <!-- This is to ensure that the appropriate role is created when encountered by this mapping.
                      Normally, such roles whould be created by some kind of synchronization (either live sync
@@ -213,19 +185,7 @@ Range is a set of possible values that a mapping can produce.
 This is an important tool to control which values are to be replaced by the mapping - or better to say, which values should be replaced.
 See xref:/midpoint/reference/expressions/mappings/[] page for the details.
 
-Inbound mappings in midPoint 3.x were still a bit simplistic.
-At that time midPoint supported mostly mappings of single-value properties.
-The situation is quite clear for the single-value case.
-If the target property is single-value, then it cannot hold more than one value, therefore the value will get replaced all the time.
-Range definition is not that important here.
-However, the situation got complicated in late 3.x and 4.0. More and more deployments started to use inbound mappings for multi-value items, especially for assignments.
-And the situation can get quite complex when assignments are involved.
-In this case the range definition makes all the difference.
-However, the default range for midPoint 3.x was set to `all`, which means that all the target values got replaced.
-This is a bit problematic for multi-value items, such as assignments.
-Therefore since midPoint 4.0 the default behavior was changed.
-
-Since midPoint 4.0 the default range of inbound mappings depend on the target item:
+The default range of inbound mappings depend on the target item:
 
 [%autowidth]
 |===
@@ -235,7 +195,6 @@ Since midPoint 4.0 the default range of inbound mappings depend on the target it
 | `all`
 | The target value will be replaced.
 This is nice and intuitive behavior for single-value items.
-This is also compatible with midPoint 3.x. Therefore this behavior was maintained for single-value items. +
 This is also known as _non-tolerant _behavior.
 
 
@@ -251,15 +210,14 @@ This is also known as _tolerant_ behavior.
 
 |===
 
-The default behavior can be overridden by explicit definition of mapping range.
-For example, midPoint 3.x behavior for assignment mappings could be enabled by simply specifying `all` range for the mapping:
+The default behavior can be overridden by explicit definition of mapping range, as you can see on a following example.
 
 [source,xml]
 ----
     <inbound>
         ... sources, expression, etc.
         <target>
-            <path>assignment</path>
+            <path>organization</path>
             <set>
                 <predefined>all</predefined>
             </set>
@@ -267,7 +225,7 @@ For example, midPoint 3.x behavior for assignment mappings could be enabled by s
     </inbound>
 ----
 
-See xref:/midpoint/reference/expressions/mappings/[] page for a detailed discussion of mapping ranges.
+See xref:/midpoint/reference/expressions/mappings/range[] page for a detailed discussion of mapping ranges.
 
 [TIP]
 .Motivation
