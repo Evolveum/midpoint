@@ -413,18 +413,15 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
             ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
 
-            QName propXsdType = ConnIdCapabilitiesAndSchemaParser.connIdTypeToXsdType(icfProperty.getType(), icfProperty.isConfidential());
+            var propXsdTypeInfo = ConnIdCapabilitiesAndSchemaParser.connIdTypeToXsdTypeInfo(
+                    icfProperty.getType(), icfProperty.isConfidential());
             LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", this,
-                    icfPropertyName, icfProperty.getType(), propXsdType);
-            MutablePrismPropertyDefinition<?> propertyDefinition = configPropertiesTypeDef.toMutable().createPropertyDefinition(
-                    icfPropertyName, propXsdType);
+                    icfPropertyName, icfProperty.getType(), propXsdTypeInfo);
+            MutablePrismPropertyDefinition<?> propertyDefinition =
+                    configPropertiesTypeDef.toMutable().createPropertyDefinition(icfPropertyName, propXsdTypeInfo.xsdTypeName());
             propertyDefinition.setDisplayName(icfProperty.getDisplayName(null));
             propertyDefinition.setHelp(icfProperty.getHelpMessage(null));
-            if (ConnIdCapabilitiesAndSchemaParser.isMultivaluedType(icfProperty.getType())) {
-                propertyDefinition.setMaxOccurs(-1);
-            } else {
-                propertyDefinition.setMaxOccurs(1);
-            }
+            propertyDefinition.setMaxOccurs(propXsdTypeInfo.getMaxOccurs());
             if (icfProperty.isRequired() && icfProperty.getValue() == null) {
                 // If ICF says that the property is required it may not be in fact really required if it also has a default value
                 propertyDefinition.setMinOccurs(1);

@@ -16,6 +16,7 @@ import java.time.ZonedDateTime;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
 import static com.evolveum.midpoint.test.AttrName.ri;
+import static com.evolveum.midpoint.test.ObjectClassName.legacyCustom;
 
 /** Represents the HR scenario residing on given dummy resource. */
 @SuppressWarnings("WeakerAccess") // there are a lot of constants that will be eventually used from the outside
@@ -47,7 +48,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
 
     public class Person extends ScenarioObjectClass {
 
-        public static final String OBJECT_CLASS_NAME = "person";
+        public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("person");
 
         public static class AttributeNames {
             public static final AttrName FIRST_NAME = ri("firstName");
@@ -56,7 +57,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
         }
 
         public static class LinkNames {
-            public static final String CONTRACT = "contract";
+            public static final AssocName CONTRACT = AssocName.ri("contract");
         }
 
         void initialize() {
@@ -64,18 +65,18 @@ public class DummyHrScenario extends AbstractDummyScenario {
             controller.addAttrDef(oc, AttributeNames.FIRST_NAME.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.LAST_NAME.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.TITLE.local(), String.class, false, false);
-            controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME, oc);
+            controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
         }
 
         @Override
         public @NotNull String getNativeObjectClassName() {
-            return OBJECT_CLASS_NAME;
+            return OBJECT_CLASS_NAME.local();
         }
     }
 
     public class Contract extends ScenarioObjectClass {
 
-        public static final String OBJECT_CLASS_NAME = "contract";
+        public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("contract");
 
         public static class AttributeNames {
             public static final AttrName VALID_FROM = ri("validFrom");
@@ -83,43 +84,44 @@ public class DummyHrScenario extends AbstractDummyScenario {
         }
 
         public static class LinkNames {
-            public static final String ORG = "org";
+            public static final AssocName ORG = AssocName.ri("org");
         }
 
         void initialize() {
             var oc = new DummyObjectClass();
             controller.addAttrDef(oc, AttributeNames.VALID_FROM.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.VALID_TO.local(), ZonedDateTime.class, false, false);
-            controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME, oc);
+            controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
         }
 
         @Override
         public @NotNull String getNativeObjectClassName() {
-            return OBJECT_CLASS_NAME;
+            return OBJECT_CLASS_NAME.local();
         }
     }
 
     public class OrgUnit extends ScenarioObjectClass {
 
-        public static final String OBJECT_CLASS_NAME = "orgUnit"; // for simplicity, we are not reusing standard "org" class
+        // for simplicity, we are not reusing standard "org" class
+        public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("orgUnit");
 
         public static class AttributeNames {
             public static final AttrName DESCRIPTION = ri("description");
         }
 
         public static class LinkNames {
-            public static final String CONTRACT = "contract";
+            public static final AssocName CONTRACT = AssocName.ri("contract");
         }
 
         void initialize() {
             var oc = new DummyObjectClass();
             controller.addAttrDef(oc, AttributeNames.DESCRIPTION.local(), String.class, false, false);
-            controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME, oc);
+            controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
         }
 
         @Override
         public @NotNull String getNativeObjectClassName() {
-            return OBJECT_CLASS_NAME;
+            return OBJECT_CLASS_NAME.local();
         }
     }
 
@@ -132,14 +134,14 @@ public class DummyHrScenario extends AbstractDummyScenario {
                     aLinkClassDefinition()
                             .withName(NAME)
                             .withFirstParticipant(aParticipant()
-                                    .withObjectClassNames(Person.OBJECT_CLASS_NAME)
-                                    .withLinkAttributeName(Person.LinkNames.CONTRACT)
+                                    .withObjectClassNames(Person.OBJECT_CLASS_NAME.local())
+                                    .withLinkAttributeName(Person.LinkNames.CONTRACT.local())
                                     .withMaxOccurs(-1)
                                     .withReturnedByDefault(true)
                                     .withExpandedByDefault(true)
                                     .build())
                             .withSecondParticipant(aParticipant()
-                                    .withObjectClassNames(Contract.OBJECT_CLASS_NAME)
+                                    .withObjectClassNames(Contract.OBJECT_CLASS_NAME.local())
                                     .withMinOccurs(1)
                                     .withMaxOccurs(1)
                                     // invisible on contract side
@@ -162,16 +164,16 @@ public class DummyHrScenario extends AbstractDummyScenario {
                     aLinkClassDefinition()
                             .withName(NAME)
                             .withFirstParticipant(aParticipant()
-                                    .withObjectClassNames(Contract.OBJECT_CLASS_NAME)
-                                    .withLinkAttributeName(Contract.LinkNames.ORG)
+                                    .withObjectClassNames(Contract.OBJECT_CLASS_NAME.local())
+                                    .withLinkAttributeName(Contract.LinkNames.ORG.local())
                                     .withMinOccurs(1)
                                     .withMaxOccurs(1)
                                     .withReturnedByDefault(true)
                                     .withExpandedByDefault(false)
                                     .build())
                             .withSecondParticipant(aParticipant()
-                                    .withObjectClassNames(OrgUnit.OBJECT_CLASS_NAME)
-                                    .withLinkAttributeName(OrgUnit.LinkNames.CONTRACT)
+                                    .withObjectClassNames(OrgUnit.OBJECT_CLASS_NAME.local())
+                                    .withLinkAttributeName(OrgUnit.LinkNames.CONTRACT.local())
                                     .withMaxOccurs(-1)
                                     .withReturnedByDefault(false)
                                     .withExpandedByDefault(false)

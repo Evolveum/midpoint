@@ -947,4 +947,9 @@ public class ResourceAttributeDefinitionImpl<T>
     public boolean isOptionalCleanup() {
         return false; // TODO is this ok?
     }
+
+    @Override
+    public void shortDump(StringBuilder sb) {
+        sb.append(this);
+    }
 }

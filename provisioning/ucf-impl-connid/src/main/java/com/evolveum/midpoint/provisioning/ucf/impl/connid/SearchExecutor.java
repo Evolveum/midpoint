@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.ucfAttributeNameToConnId;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -158,8 +159,7 @@ class SearchExecutor {
             desc = "(default orderBy attribute from capability definition)";
         }
         if (orderByAttributeName != null) {
-            String orderByIcfName = connectorInstance.connIdNameMapper.convertAttributeNameToConnId(
-                    orderByAttributeName, resourceObjectDefinition, desc);
+            String orderByIcfName = ucfAttributeNameToConnId(orderByAttributeName, resourceObjectDefinition, desc);
             optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
         }
     }
@@ -350,9 +350,8 @@ class SearchExecutor {
                     }
                 }
 
-                var ucfObject = connectorInstance.connIdConvertor.convertToUcfObject(
-                        connectorObject, resourceObjectDefinition, connectorInstance.getResourceSchema(),
-                        connectorInstance.isLegacySchema(), errorReportingMethod, result);
+                var ucfObject = connectorInstance.connIdObjectConvertor.convertToUcfObject(
+                        connectorObject, resourceObjectDefinition, connectorInstance, errorReportingMethod, result);
 
                 return handler.handle(ucfObject, result);
 

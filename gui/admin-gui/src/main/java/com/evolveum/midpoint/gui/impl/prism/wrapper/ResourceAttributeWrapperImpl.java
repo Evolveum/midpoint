@@ -293,4 +293,9 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     public @NotNull LayerType getCurrentLayer() {
         return getRefinedAttributeDefinition().getCurrentLayer();
     }
+
+    @Override
+    public void shortDump(StringBuilder sb) {
+        getRefinedAttributeDefinition().shortDump(sb);
+    }
 }

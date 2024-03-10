@@ -5120,6 +5120,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+                        <a:composite>true</a:composite>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

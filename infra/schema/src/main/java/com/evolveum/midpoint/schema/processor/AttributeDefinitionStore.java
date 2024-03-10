@@ -87,7 +87,7 @@ public interface AttributeDefinitionStore
             throws SchemaException {
         return MiscUtil.requireNonNull(
                 findAttributeDefinition(name),
-                () -> new SchemaException("no definition of attribute " + name + " in " + this + contextSupplier.get()));
+                () -> new SchemaException("No definition of attribute " + name + " in " + this + contextSupplier.get()));
     }
 
     /**
@@ -98,7 +98,7 @@ public interface AttributeDefinitionStore
             @NotNull QName name, @NotNull Supplier<String> contextSupplier) {
         return MiscUtil.requireNonNull(
                 findAttributeDefinition(name),
-                () -> new IllegalStateException("no definition of attribute " + name + " in " + this + contextSupplier.get()));
+                () -> new IllegalStateException("No definition of attribute " + name + " in " + this + contextSupplier.get()));
     }
 
     /**

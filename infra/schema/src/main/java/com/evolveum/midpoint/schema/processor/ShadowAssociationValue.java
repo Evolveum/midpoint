@@ -7,33 +7,115 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
-
 import java.io.Serial;
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
+import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Represents a specific shadow association value - i.e. something that is put into {@link ShadowAssociation}.
  * For example, a single group membership for a given account: `joe` is a member of `admins`.
+ *
+ * NOTE: As an experiment, we try to keep instances as consistent as possible. E.g., we require correct `shadowRef` etc.
+ * Any places where this is checked, will throw {@link IllegalStateException} instead of {@link SchemaException}.
+ * We will simply not allow creating a non-compliant association object. At least we'll try to do this.
+ * The exception are situations where the object exists between instantiation and providing the data.
+ *
+ * TODO check if it's possible to implement this approach regarding createNewValue in ShadowAssociation
  */
 @Experimental
 public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssociationValueType> {
 
     @Serial private static final long serialVersionUID = 0L;
 
-//    public ShadowAssociationValue(QName name, ShadowAssociationDefinition definition) {
+    private ShadowAssociationValue() {
+        super();
+    }
+
+    private ShadowAssociationValue(
+            OriginType type, Objectable source,
+            PrismContainerable<?> container, Long id,
+            ComplexTypeDefinition complexTypeDefinition) {
+        super(type, source, container, id, complexTypeDefinition);
+    }
+
+    public static @NotNull ShadowAssociationValue of(@NotNull ShadowAssociationValueType bean) {
+        PrismContainerValue<?> pcv = bean.asPrismContainerValue();
+        var newValue = new ShadowAssociationValue();
+        try {
+            newValue.addAll(
+                    CloneUtil.cloneCollectionMembers(
+                            pcv.getItems()));
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "when transferring association value items to a SAV");
+        }
+        return newValue;
+    }
+
+    /** Creates a new value from the full or ID-only shadow. No cloning here. */
+    public static @NotNull ShadowAssociationValue of(@NotNull AbstractShadow shadow) {
+        var newValue = empty();
+        var shadowRef = PrismContext.get().getSchemaRegistry()
+                .findComplexTypeDefinitionByCompileTimeClass(ShadowAssociationValueType.class)
+                .findReferenceDefinition(ShadowAssociationValueType.F_SHADOW_REF)
+                .instantiate();
+        try {
+            shadowRef.add(
+                    shadow.getRefWithEmbeddedObject().asReferenceValue());
+            newValue.add(shadowRef);
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "when adding shadowRef to a SAV");
+        }
+        return newValue;
+    }
+
+    public static ShadowAssociationValue empty() {
+        return new ShadowAssociationValue();
+    }
+
+    @Override
+    public ShadowAssociationValue cloneComplex(CloneStrategy strategy) {
+        ShadowAssociationValue clone = new ShadowAssociationValue(
+                getOriginType(), getOriginObject(), getParent(), null, this.complexTypeDefinition);
+        copyValues(strategy, clone);
+        return clone;
+    }
+
+    public @NotNull ResourceAttributeContainer getAttributesContainer() {
+        return ShadowUtil.getAttributesContainerRequired(getShadowBean());
+    }
+
+    public @NotNull ShadowAssociationsContainer getAssociationsContainer() {
+        return ShadowUtil.getAssociationsContainerRequired(getShadowBean());
+    }
+
+    /** Target object or its reference. TODO better name. */
+    public ShadowType getShadowBean() {
+        var shadowRef = MiscUtil.stateNonNull(asContainerable().getShadowRef(), "No shadowRef in %s", this);
+        return (ShadowType) MiscUtil.stateNonNull(shadowRef.getObjectable(), "No shadow in %s", this);
+    }
+
+    public QName getTargetObjectClassName() {
+        return getAttributesContainer().getDefinitionRequired().getTypeName();
+    }
+
+    //    public ShadowAssociationValue(QName name, ShadowAssociationDefinition definition) {
 //        super(name, definition, PrismContext.get());
 //    }
 //

@@ -15,11 +15,9 @@ import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
  * TODO consider removing
  */
 public interface MutableRawResourceAttributeDefinition<T>
-        extends MutablePrismPropertyDefinition<T> {
 
-    void setReturnedByDefault(Boolean returnedByDefault);
+        extends ResourceItemUcfDefinition.Mutable,
+        ResourceItemPrismDefinition.Mutable,
+        MutablePrismPropertyDefinition<T> {
 
-    void setNativeAttributeName(String nativeAttributeName);
-
-    void setFrameworkAttributeName(String frameworkAttributeName);
 }

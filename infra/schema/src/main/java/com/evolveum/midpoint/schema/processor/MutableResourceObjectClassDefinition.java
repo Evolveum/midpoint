@@ -23,6 +23,8 @@ public interface MutableResourceObjectClassDefinition extends ResourceObjectClas
 
     void add(ItemDefinition<?> definition);
 
+    void addAssociationDefinition(ShadowAssociationDefinition definition);
+
     void addPrimaryIdentifierName(QName name);
 
     void addSecondaryIdentifierName(QName name);

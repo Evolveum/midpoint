@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.DeepCloneOperation;
 import com.evolveum.midpoint.prism.ItemProcessing;
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.normalization.Normalizer;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -35,7 +36,12 @@ import org.jetbrains.annotations.Nullable;
  */
 public class RawResourceAttributeDefinition<T>
         extends PrismPropertyDefinitionImpl<T>
-        implements MutableRawResourceAttributeDefinition<T>, ResourceAttributeDefinition<T> {
+        implements
+            MutableRawResourceAttributeDefinition<T>,
+            ResourceItemUcfDefinition.Delegable,
+            ResourceItemUcfDefinition.Mutable.Delegable,
+            MutablePrismPropertyDefinition<T>,
+            ResourceAttributeDefinition<T> {
 
     @Serial private static final long serialVersionUID = -1756347754109326906L;
 
@@ -50,9 +56,7 @@ public class RawResourceAttributeDefinition<T>
      */
     private static final LayerType DEFAULT_LAYER = LayerType.MODEL;
 
-    private String nativeAttributeName;
-    private String frameworkAttributeName;
-    private Boolean returnedByDefault;
+    @NotNull private final ResourceItemUcfDefinitionData ucfData = new ResourceItemUcfDefinitionData();
 
     RawResourceAttributeDefinition(QName elementName, QName typeName) {
         this(elementName, typeName, DEFAULT_LAYER);
@@ -61,6 +65,11 @@ public class RawResourceAttributeDefinition<T>
     private RawResourceAttributeDefinition(QName elementName, QName typeName, @NotNull LayerType currentLayer) {
         super(elementName, typeName);
         this.currentLayer = currentLayer;
+    }
+
+    @Override
+    public ResourceItemUcfDefinitionData ucfData() {
+        return ucfData;
     }
 
     @NotNull
@@ -75,39 +84,9 @@ public class RawResourceAttributeDefinition<T>
         return new ResourceAttributeImpl<>(name, this);
     }
 
-    public Boolean getReturnedByDefault() {
-        return returnedByDefault;
-    }
-
-    @Override
-    public void setReturnedByDefault(Boolean returnedByDefault) {
-        checkMutable();
-        this.returnedByDefault = returnedByDefault;
-    }
-
-    public String getNativeAttributeName() {
-        return nativeAttributeName;
-    }
-
-    @Override
-    public void setNativeAttributeName(String nativeAttributeName) {
-        checkMutable();
-        this.nativeAttributeName = nativeAttributeName;
-    }
-
-    public String getFrameworkAttributeName() {
-        return frameworkAttributeName;
-    }
-
     @Override
     public boolean hasRefinements() {
         return false;
-    }
-
-    @Override
-    public void setFrameworkAttributeName(String frameworkAttributeName) {
-        checkMutable();
-        this.frameworkAttributeName = frameworkAttributeName;
     }
 
     //region Dummy methods
@@ -183,9 +162,9 @@ public class RawResourceAttributeDefinition<T>
             return this;
         } else {
             RawResourceAttributeDefinition<T> newDef = new RawResourceAttributeDefinition<>(getItemName(), getTypeName(), layer);
-            newDef.setNativeAttributeName(nativeAttributeName);
-            newDef.setFrameworkAttributeName(frameworkAttributeName);
-            newDef.setReturnedByDefault(returnedByDefault);
+            newDef.setNativeAttributeName(getNativeAttributeName());
+            newDef.setFrameworkAttributeName(getFrameworkAttributeName());
+            newDef.setReturnedByDefault(getReturnedByDefault());
             newDef.freeze(); // TODO ok?
             return newDef;
         }
@@ -287,7 +266,7 @@ public class RawResourceAttributeDefinition<T>
 
     public String getDisplayName() {
         // Not sure why, but this is the way it always was.
-        return MiscUtil.getFirstNonNull(displayName, nativeAttributeName);
+        return MiscUtil.getFirstNonNull(displayName, getNativeAttributeName());
     }
 
     @Override
@@ -330,9 +309,9 @@ public class RawResourceAttributeDefinition<T>
 
     private void copyDefinitionDataFrom(ResourceAttributeDefinition<T> source) {
         super.copyDefinitionDataFrom(source);
-        nativeAttributeName = source.getNativeAttributeName();
-        frameworkAttributeName = source.getFrameworkAttributeName();
-        returnedByDefault = source.getReturnedByDefault();
+        setNativeAttributeName(source.getNativeAttributeName());
+        setFrameworkAttributeName(source.getFrameworkAttributeName());
+        setReturnedByDefault(source.getReturnedByDefault());
     }
 
     @Override
@@ -341,27 +320,28 @@ public class RawResourceAttributeDefinition<T>
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         RawResourceAttributeDefinition<?> that = (RawResourceAttributeDefinition<?>) o;
-        return Objects.equals(nativeAttributeName, that.nativeAttributeName)
-                && Objects.equals(frameworkAttributeName, that.frameworkAttributeName)
-                && Objects.equals(returnedByDefault, that.returnedByDefault);
+        return Objects.equals(ucfData, that.ucfData);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), nativeAttributeName, frameworkAttributeName, returnedByDefault);
+        return Objects.hash(super.hashCode(), ucfData);
     }
 
     @Override
     protected void extendToString(StringBuilder sb) {
         super.extendToString(sb);
-        if (getNativeAttributeName()!=null) {
+        String nativeAttributeName = getNativeAttributeName();
+        if (nativeAttributeName != null) {
             sb.append(" native=");
-            sb.append(getNativeAttributeName());
+            sb.append(nativeAttributeName);
         }
-        if (getFrameworkAttributeName()!=null) {
+        String frameworkAttributeName = getFrameworkAttributeName();
+        if (frameworkAttributeName !=null) {
             sb.append(" framework=");
-            sb.append(getFrameworkAttributeName());
+            sb.append(frameworkAttributeName);
         }
+        var returnedByDefault = getReturnedByDefault();
         if (returnedByDefault != null) {
             sb.append(" returnedByDefault=");
             sb.append(returnedByDefault);
@@ -387,5 +367,10 @@ public class RawResourceAttributeDefinition<T>
         var sb = new StringBuilder();
         DebugUtil.debugDumpWithLabelToString(sb, "attribute " + getItemName().getLocalPart(), this, indent);
         return sb.toString();
+    }
+
+    @Override
+    public void shortDump(StringBuilder sb) {
+        sb.append(this);
     }
 }

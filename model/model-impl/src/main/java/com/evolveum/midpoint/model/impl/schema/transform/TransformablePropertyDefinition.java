@@ -166,6 +166,11 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         public @NotNull Class<T> getTypeClass() {
             return super.getTypeClass();
         }
+
+        @Override
+        public void shortDump(StringBuilder sb) {
+            delegate().shortDump(sb);
+        }
     }
 
     /** TODO is this used? */
@@ -221,7 +226,10 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
             deleg.setDefinition(this);
             return deleg;
         }
+
+        @Override
+        public void shortDump(StringBuilder sb) {
+            delegate().shortDump(sb);
+        }
     }
-
-
 }

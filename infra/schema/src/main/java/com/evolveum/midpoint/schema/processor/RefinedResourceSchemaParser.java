@@ -12,13 +12,15 @@ import static com.evolveum.midpoint.schema.config.ConfigurationItemOrigin.inReso
 import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.SuperReference;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.util.QNameUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.schema.config.*;
 import com.evolveum.midpoint.schema.merger.objdef.ResourceObjectTypeDefinitionMergeOperation;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -127,6 +130,7 @@ class RefinedResourceSchemaParser {
         // Associations refer to object types, attributes, and delineation, so they must come after them.
         parseAssociationTypesDefinitions();
         parseLegacyAssociations();
+        parseNativeAssociations();
 
         completeSchema.freeze();
 
@@ -283,6 +287,14 @@ class RefinedResourceSchemaParser {
         for (ResourceObjectTypeDefinition objectTypeDef : completeSchema.getObjectTypeDefinitions()) {
             new ResourceObjectDefinitionParser(objectTypeDef)
                     .parseLegacyAssociations();
+        }
+    }
+
+    /** TEMPORARY CODE!!! TO BE REMOVED. */
+    private void parseNativeAssociations() {
+        for (ResourceObjectDefinition objectDef : completeSchema.getResourceObjectDefinitions()) {
+            new ResourceObjectDefinitionParser(objectDef)
+                    .parseNativeAssociations();
         }
     }
 
@@ -489,6 +501,18 @@ class RefinedResourceSchemaParser {
             }
         }
 
+        /** TEMPORARY CODE!!! TO BE REMOVED. */
+        void parseNativeAssociations() {
+            var rawObjectClassDef = definition.getRawObjectClassDefinition();
+            for (var origAssocDef : rawObjectClassDef.getAssociationDefinitions()) {
+                stateCheck(origAssocDef.isRaw(), "Non-raw definition %s in %s", origAssocDef, rawObjectClassDef);
+                // TODO connect with the refinements
+                definition.addAssociationDefinition(
+                        ShadowAssociationDefinition.fromRaw(
+                                origAssocDef.getRawDefinitionRequired(), null));
+            }
+        }
+
         /**
          * Parses protected objects, delineation, and so on.
          */
@@ -642,8 +666,9 @@ class RefinedResourceSchemaParser {
 
             // Attaching to subject types
             for (ResourceObjectTypeDefinition subjectTypeDef : subjectTypeDefinitions) {
+                // TODO connect to the raw definition, if one is present
                 var associationDef = ShadowAssociationDefinition.parseAssociationType(
-                        typeDefinition, simulationDefinition, associationTypeDefinitionCI);
+                        simulationDefinition.getLocalSubjectItemName(), typeDefinition, null, associationTypeDefinitionCI);
                 configCheck(!subjectTypeDef.containsAssociationDefinition(associationDef.getItemName()),
                         "Association %s already exists in %s in %s",
                         associationDef.getItemName(), subjectTypeDef, associationTypeDefinitionCI);
@@ -717,6 +742,7 @@ class RefinedResourceSchemaParser {
             var associationTypeDefinition = ShadowAssociationTypeDefinition.parseLegacy(
                     associationDefCI, simulationDefinition, subjectTypeDefinition, objectTypeDefinitions);
 
+            // TODO check if raw definition is not present
             return ShadowAssociationDefinition.parseLegacy(associationTypeDefinition, associationDefCI);
         }
 

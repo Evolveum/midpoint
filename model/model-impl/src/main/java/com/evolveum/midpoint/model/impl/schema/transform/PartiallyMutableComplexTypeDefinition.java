@@ -17,6 +17,8 @@ import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.schema.processor.MutableRawResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.processor.MutableResourceObjectClassDefinition;
@@ -117,7 +119,6 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
     @Override
     default void add(ItemDefinition<?> definition) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-
     }
 
     @Override
@@ -227,6 +228,11 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
 
         @Override
         default void add(ItemDefinition<?> definition) {
+            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+        }
+
+        @Override
+        default void addAssociationDefinition(ShadowAssociationDefinition definition) {
             throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
         }
 

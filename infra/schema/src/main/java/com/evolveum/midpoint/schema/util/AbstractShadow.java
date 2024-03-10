@@ -75,6 +75,10 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return oid != null ? ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SHADOW) : null;
     }
 
+    default @NotNull ObjectReferenceType getRefWithEmbeddedObject() {
+        return ObjectTypeUtil.createObjectRefWithFullObject(getBean());
+    }
+
     /** Returns the definition corresponding to this shadow. */
     default @NotNull ResourceObjectDefinition getObjectDefinition() {
         return ShadowUtil.getResourceObjectDefinition(getBean());

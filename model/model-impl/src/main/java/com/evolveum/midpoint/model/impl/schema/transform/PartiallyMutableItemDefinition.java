@@ -300,6 +300,32 @@ public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends Mut
 
     public interface Attribute<T> extends MutableRawResourceAttributeDefinition<T>, Property<T> {
 
+        // FIXME not sure why these have to be here
+        @Override
+        default void setCanRead(boolean val) {
+            Property.super.setCanRead(val);
+        }
+
+        @Override
+        default void setCanModify(boolean val) {
+            Property.super.setCanModify(val);
+        }
+
+        @Override
+        default void setCanAdd(boolean val) {
+            Property.super.setCanAdd(val);
+        }
+
+        @Override
+        default void setMinOccurs(int value) {
+            Property.super.setMinOccurs(value);
+        }
+
+        @Override
+        default void setMaxOccurs(int value) {
+            Property.super.setMaxOccurs(value);
+        }
+
         @Override
         default void setReturnedByDefault(Boolean returnedByDefault) {
             throw new IllegalStateException("Item Definition is not modifiable");

@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod.EXCEPTION;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -558,19 +558,19 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         displayDumpable("dummy resource", hrScenario.getDummyResource());
 
-        assertThat(john.getLinkedObjects(Person.LinkNames.CONTRACT))
+        assertThat(john.getLinkedObjects(Person.LinkNames.CONTRACT.local()))
                 .as("john's contracts")
                 .containsExactlyInAnyOrder(johnContractSciences, johnContractLaw);
-        assertThat(johnContractSciences.getLinkedObjects(Contract.LinkNames.ORG))
+        assertThat(johnContractSciences.getLinkedObjects(Contract.LinkNames.ORG.local()))
                 .as("john first contract's org")
                 .containsExactlyInAnyOrder(sciences);
-        assertThat(johnContractLaw.getLinkedObjects(Contract.LinkNames.ORG))
+        assertThat(johnContractLaw.getLinkedObjects(Contract.LinkNames.ORG.local()))
                 .as("john second contract's org")
                 .containsExactlyInAnyOrder(law);
-        assertThat(sciences.getLinkedObjects(OrgUnit.LinkNames.CONTRACT))
+        assertThat(sciences.getLinkedObjects(OrgUnit.LinkNames.CONTRACT.local()))
                 .as("sciences' contracts")
                 .containsExactlyInAnyOrder(johnContractSciences);
-        assertThat(law.getLinkedObjects(OrgUnit.LinkNames.CONTRACT))
+        assertThat(law.getLinkedObjects(OrgUnit.LinkNames.CONTRACT.local()))
                 .as("law's contracts")
                 .containsExactlyInAnyOrder(johnContractLaw);
 
@@ -608,6 +608,40 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertThat(johnUcfObject.getAttributeRealValues(Person.AttributeNames.TITLE.q()))
                 .as("john's title")
                 .containsExactlyInAnyOrder("Ing.");
+        var associations = johnUcfObject.getAssociations();
+        assertThat(associations).as("john's associations").hasSize(1);
+        var contractItem = associations.iterator().next();
+        assertThat(contractItem.getElementName()).as("association name").isEqualTo(Person.LinkNames.CONTRACT.q());
+        var contracts = contractItem.getAssociationValues();
+        assertThat(contracts).as("john's contracts").hasSize(2);
+        for (var contract : contracts) {
+            assertThat(contract.getTargetObjectClassName())
+                    .as("target class name")
+                    .isEqualTo(Contract.OBJECT_CLASS_NAME.xsd());
+            var contractAttrContainer = contract.getAttributesContainer();
+            assertThat(contractAttrContainer.getAttributes()).as("contract attributes").hasSize(2);
+            var contractAssocContainer = contract.getAssociationsContainer();
+            assertThat(contractAssocContainer.getAssociations()).as("contract associations").hasSize(1);
+            var orgAssociation = contractAssocContainer.getAssociations().iterator().next();
+            assertThat(orgAssociation.getElementName()).as("association name").isEqualTo(Contract.LinkNames.ORG.q());
+            var orgs = orgAssociation.getAssociationValues();
+            assertThat(orgs).as("contract's orgs").hasSize(1);
+            var org = orgs.iterator().next();
+            var orgAttrContainer = org.getAttributesContainer();
+            assertThat(orgAttrContainer.getAttributes()).as("org attributes in contract").hasSize(1);
+            ResourceAttribute<?> orgAttribute = orgAttrContainer.getAttributes().iterator().next();
+            assertThat(orgAttribute.getElementName()).as("org attribute name").isEqualTo(ICFS_NAME);
+            var orgName = (String) orgAttribute.getRealValue();
+
+            var contractName = contractAttrContainer.getNamingAttribute().getRealValue();
+            if ("john-sciences".equals(contractName)) {
+                assertThat(orgName).as("associated org name").isEqualTo("sciences");
+            } else if ("john-law".equals(contractName)) {
+                assertThat(orgName).as("associated org name").isEqualTo("law");
+            } else {
+                throw new AssertionError("Unknown contract: " + contractName);
+            }
+        }
     }
 
     /** For test3xx. */

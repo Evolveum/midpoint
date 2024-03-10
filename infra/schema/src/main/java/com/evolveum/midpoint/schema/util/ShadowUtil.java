@@ -137,6 +137,16 @@ public class ShadowUtil {
         return getAttributesContainer(shadowType.asPrismObject());
     }
 
+    public static @NotNull ResourceAttributeContainer getAttributesContainerRequired(ShadowType shadow) {
+        return getAttributesContainerRequired(shadow.asPrismObject());
+    }
+
+    public static @NotNull ResourceAttributeContainer getAttributesContainerRequired(PrismObject<ShadowType> shadow) {
+        return MiscUtil.stateNonNull(
+                getAttributesContainer(shadow),
+                "No attributes container in %s", shadow);
+    }
+
     public static ResourceAttributeContainer getAttributesContainer(PrismObject<? extends ShadowType> shadow) {
         return castShadowContainer(shadow.getValue(), ShadowType.F_ATTRIBUTES, ResourceAttributeContainer.class);
     }
@@ -144,6 +154,13 @@ public class ShadowUtil {
     /** Similar to {@link #getAttributesContainer(ShadowType)}. */
     public static ShadowAssociationsContainer getAssociationsContainer(@NotNull ShadowType shadow) {
         return getAssociationsContainer(shadow.asPrismObject());
+    }
+
+    // TODO what kind of exception?
+    public static ShadowAssociationsContainer getAssociationsContainerRequired(@NotNull ShadowType shadow) {
+        return MiscUtil.stateNonNull(
+                getAssociationsContainer(shadow.asPrismObject()),
+                "No associations container in %s", shadow);
     }
 
     /** Assuming the shadow has the correct definition. */
@@ -1147,5 +1164,9 @@ public class ShadowUtil {
     public static ShadowAssociation getAssociation(PrismObject<ShadowType> shadow, QName associationName) {
         var container = getAssociationsContainer(shadow);
         return container != null ? container.findAssociation(associationName) : null;
+    }
+
+    public static void addAttribute(ShadowType shadow, ResourceAttribute<?> attribute) throws SchemaException {
+        getOrCreateAttributesContainer(shadow).add(attribute);
     }
 }

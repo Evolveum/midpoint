@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serial;
+import java.util.Collections;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
@@ -97,7 +99,7 @@ public class ShadowAssociation extends PrismContainerImpl<ShadowAssociationValue
 
     @Override
     protected @NotNull PrismContainerValueImpl<ShadowAssociationValueType> createNewValueInternal() {
-        return new ShadowAssociationValue();
+        return ShadowAssociationValue.empty();
     }
 
     public int size() {
@@ -143,5 +145,12 @@ public class ShadowAssociation extends PrismContainerImpl<ShadowAssociationValue
         var value = createNewValue();
         value.getValue().setShadowRef(ref);
         return value;
+    }
+
+    public @NotNull List<? extends ShadowAssociationValue> getAssociationValues() {
+        // IDE accepts the version without cast to List, but the compiler doesn't.
+        //noinspection unchecked,RedundantCast,rawtypes
+        return Collections.unmodifiableList(
+                (List<? extends ShadowAssociationValue>) (List) getValues());
     }
 }

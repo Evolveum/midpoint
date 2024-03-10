@@ -505,6 +505,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
             sb.append(rAttrDef.debugDump(indent + 1, layer));
         }
         sb.append("\n");
+        for (ShadowAssociationDefinition assocDef : _this.getAssociationDefinitions()) {
+            sb.append("\n");
+            sb.append(assocDef.debugDump(indent + 1));
+        }
+        sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "Expanded definition bean", _this.getDefinitionBean(), indent + 1);
         _this.addDebugDumpTrailer(sb, indent);
         return sb.toString();
@@ -806,7 +811,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         return definitionBean;
     }
 
-    void addAssociationDefinition(@NotNull ShadowAssociationDefinition associationDef) {
+    public void addAssociationDefinition(@NotNull ShadowAssociationDefinition associationDef) {
         checkMutable();
         associationDefinitions.add(associationDef);
     }

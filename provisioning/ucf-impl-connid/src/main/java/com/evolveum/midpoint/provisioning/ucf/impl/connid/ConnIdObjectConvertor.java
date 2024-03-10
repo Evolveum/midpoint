@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.ucfAttributeNameToConnId;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
@@ -16,7 +17,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
-import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -34,19 +34,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Converts from ConnId connector objects to midPoint resource objects (by delegating
- * to {@link ConnIdToMidPointConversion}) and back from midPoint to ConnId (by itself).
+ * Converts from ConnId connector objects to UCF resource objects (by delegating
+ * to {@link ConnIdToUcfObjectConversion}) and back from UCF to ConnId (by itself).
  *
  * @author semancik
  */
-class ConnIdConvertor {
+class ConnIdObjectConvertor {
 
-    private final ConnIdNameMapper connIdNameMapper;
     private final ConnIdBeans b = ConnIdBeans.get();
-
-    ConnIdConvertor(ConnIdNameMapper connIdNameMapper) {
-        this.connIdNameMapper = connIdNameMapper;
-    }
 
     /**
      * Converts ICF ConnectorObject to the midPoint ResourceObject.
@@ -72,26 +67,21 @@ class ConnIdConvertor {
     @NotNull UcfResourceObject convertToUcfObject(
             @NotNull ConnectorObject co,
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull CompleteResourceSchema completeResourceSchema,
-            boolean legacySchema,
+            @NotNull ConnectorContext connectorContext,
             UcfFetchErrorReportingMethod ucfErrorReportingMethod,
             OperationResult parentResult) throws SchemaException {
 
         // This is because of suspicion that this operation sometimes takes a long time.
         // If it will not be the case, we can safely remove subresult construction here.
-        OperationResult result = parentResult.subresult(ConnIdConvertor.class.getName() + ".convertToUcfObject")
+        OperationResult result = parentResult.subresult(ConnIdObjectConvertor.class.getName() + ".convertToUcfObject")
                 .setMinor()
                 .addArbitraryObjectAsParam("uid", co.getUid())
                 .addArbitraryObjectAsParam("objectDefinition", objectDefinition)
-                .addArbitraryObjectAsParam("completeResourceSchema", completeResourceSchema)
-                .addParam("legacySchema", legacySchema)
                 .addArbitraryObjectAsParam("ucfErrorReportingMethod", ucfErrorReportingMethod)
                 .build();
         try {
 
-            ConnIdToMidPointConversion conversion = new ConnIdToMidPointConversion(
-                    co, objectDefinition, completeResourceSchema, legacySchema, connIdNameMapper);
-
+            var conversion = new ConnIdToUcfObjectConversion(co, objectDefinition, connectorContext);
             try {
                 conversion.execute();
                 return conversion.getUcfResourceObjectIfSuccess();
@@ -147,7 +137,7 @@ class ConnIdConvertor {
             throw new SchemaException("ICF UID explicitly specified in attributes");
         }
 
-        String connIdAttrName = connIdNameMapper.convertAttributeNameToConnId(mpAttribute, ocDef);
+        String connIdAttrName = ucfAttributeNameToConnId(mpAttribute, ocDef);
 
         Set<Object> connIdAttributeValues = new HashSet<>();
         for (PrismPropertyValue<?> pval : mpAttribute.getValues()) {
