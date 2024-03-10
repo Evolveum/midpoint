@@ -7,17 +7,16 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Provides information about definitions of associations.
@@ -32,16 +31,17 @@ public interface AssociationDefinitionStore {
      */
     @NotNull Collection<ShadowAssociationDefinition> getAssociationDefinitions();
 
-    default Collection<ShadowAssociationDefinition> getAssociationDefinitions(ShadowKindType kind) {
-        return getAssociationDefinitions().stream()
-                .filter(association -> association.getKind() == kind)
-                .toList();
-    }
-
     default ShadowAssociationDefinition findAssociationDefinition(QName name) {
         return getAssociationDefinitions().stream()
-                .filter(a -> QNameUtil.match(a.getName(), name))
+                .filter(a -> QNameUtil.match(a.getItemName(), name))
                 .findFirst().orElse(null);
+    }
+
+    /**
+     * Returns true if there is an association with the given name defined.
+     */
+    default boolean containsAssociationDefinition(@NotNull QName associationName) {
+        return findAssociationDefinition(associationName) != null;
     }
 
     default ShadowAssociationDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
@@ -59,36 +59,7 @@ public interface AssociationDefinitionStore {
 
     default @NotNull Collection<QName> getNamesOfAssociations() {
         return getAssociationDefinitions().stream()
-                .map(ShadowAssociationDefinition::getName)
+                .map(ShadowAssociationDefinition::getItemName)
                 .collect(Collectors.toCollection(HashSet::new));
-    }
-
-    default @NotNull Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
-        return getAssociationDefinitions().stream()
-                .filter(assocDef -> assocDef.getOutboundMappingType() != null)
-                .map(ShadowAssociationDefinition::getName)
-                .collect(Collectors.toCollection(HashSet::new));
-    }
-
-    default @NotNull Collection<? extends QName> getNamesOfAssociationsWithInboundExpressions() {
-        return getAssociationDefinitions().stream()
-                .filter(assocDef -> CollectionUtils.isNotEmpty(assocDef.getInboundMappingBeans()))
-                .map(ShadowAssociationDefinition::getName)
-                .collect(Collectors.toCollection(HashSet::new));
-    }
-
-    /**
-     * Returns all attributes that are used as targets for object-to-subject associations, i.e., attributes whose values
-     * are referenced from the entitlements. For example, the group (an entitlement) may list its members by their `uid`
-     * attribute. This method returns `uid` in such a case.
-     *
-     * The goal is to making sure such attributes are always cached, regardless of whether they are formally defined
-     * as identifiers.
-     */
-    default @NotNull Collection<? extends QName> getAssociationValueAttributes() {
-        return getAssociationDefinitions().stream()
-                .filter(assocDef -> assocDef.isObjectToSubject())
-                .map(associationDef -> associationDef.getValueAttributeName())
-                .toList();
     }
 }

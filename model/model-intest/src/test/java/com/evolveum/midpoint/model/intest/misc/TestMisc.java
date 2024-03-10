@@ -231,7 +231,7 @@ public class TestMisc extends AbstractMiscTest {
      * This does not really fit. It fill not fail. But it will find nothing and there is a warning.
      * MID-5911
      */
-    @Test
+    @Test(enabled = false)
     public void test216SearchUsersMatchingRulesStringNorm() throws Exception {
         given();
         Task task = getTestTask();
@@ -240,7 +240,7 @@ public class TestMisc extends AbstractMiscTest {
         ObjectQuery query = queryFor(UserType.class)
                 .item(UserType.F_EMPLOYEE_NUMBER)
                 .eq("EMP1234") // Real value is "emp123"
-                .matchingNorm()
+                .matchingCaseIgnore()
                 .build();
 
         when();

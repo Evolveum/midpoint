@@ -53,4 +53,4 @@ Change it?
 
 * Mapping constraints: are they "turning mapping off"? Or are they relativistic (like condition)?
 
-* Script (tranformation) expression condition (since 3.9, Palo) ... what should we do with it?
+* Script (tranformation) expression condition ... what should we do with it?

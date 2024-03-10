@@ -1,9 +1,10 @@
 :page-visibility: hidden
-.Delete an Organizational Unit type object
+.*Delete an Organizational Unit type object*
 [source,bash]
 ----
-# Authenticating with the credentials "administrator" and password "y0uR_P455woR*d" on a localhost instance running on port 8080
-curl --user administrator:y0uR_P455woR*d -X DELETE http://localhost:8080/midpoint/ws/rest/orgs/e5ae2f30-141c-4990-8387-4c8e7433132d -v
+curl --user administrator:y0uR_P455woR*d \
+-v \
+-X DELETE http://localhost:8080/midpoint/ws/rest/orgs/e5ae2f30-141c-4990-8387-4c8e7433132d
 ----
 
 The response is an HTTP 204 code in case of success *without* a response body.

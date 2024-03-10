@@ -32,8 +32,8 @@ class AssociationEvaluation<AH extends AssignmentHolderType>
             MappingKindType mappingKind) {
         super(
                 constructionEvaluation,
-                associationDefinition.getName(),
-                ShadowType.F_ASSOCIATIONS.append(associationDefinition.getName()),
+                associationDefinition.getItemName(),
+                ShadowType.F_ASSOCIATIONS.append(associationDefinition.getItemName()),
                 associationDefinition,
                 mappingConfigItem, // [EP:M:OM] DONE
                 originType,
@@ -51,7 +51,7 @@ class AssociationEvaluation<AH extends AssignmentHolderType>
     }
 
     @Override
-    ResourceObjectTypeDefinition getAssociationTargetObjectClassDefinition() {
-        return itemDefinition.getAssociationTarget();
+    ResourceObjectTypeDefinition getAssociationTargetObjectDefinition() {
+        return itemDefinition.getTargetObjectDefinition();
     }
 }

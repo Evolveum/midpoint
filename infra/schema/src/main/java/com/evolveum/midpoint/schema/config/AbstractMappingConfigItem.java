@@ -17,6 +17,8 @@ import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType.STRONG;
+
 /**
  * Functionality common to all "mapping config items". In the form of a mixin, as the superclass is {@link ConfigurationItem}.
  *
@@ -48,9 +50,13 @@ public interface AbstractMappingConfigItem<M extends AbstractMappingType> extend
         return value().getName();
     }
 
+    default boolean isStrong() {
+        return value().getStrength() == STRONG;
+    }
+
     default void setDefaultStrong() {
         if (value().getStrength() == null) {
-            value().setStrength(MappingStrengthType.STRONG);
+            value().setStrength(STRONG);
         }
     }
 

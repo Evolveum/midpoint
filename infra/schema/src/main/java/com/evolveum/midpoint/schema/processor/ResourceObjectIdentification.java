@@ -187,6 +187,13 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         }
     }
 
+    /** Returns identification for a shadow. The shadow must have the primary identifier and correct definition. */
+    public static @NotNull ResourceObjectIdentification.WithPrimary fromCompleteShadow(@NotNull ShadowType shadow) {
+        return fromCompleteShadow(
+                ShadowUtil.getResourceObjectDefinition(shadow),
+                shadow);
+    }
+
     /** Returns identification for a shadow. The shadow must have the primary identifier. */
     public static @NotNull ResourceObjectIdentification.WithPrimary fromCompleteShadow(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,

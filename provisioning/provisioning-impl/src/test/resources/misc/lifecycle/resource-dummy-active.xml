@@ -62,7 +62,7 @@
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
                 <filter>
-                    <q:text>attributes/ri:name contains "d_"</q:text> <!-- intentionally with NS prefixe -->
+                    <q:text>attributes/icfs:name contains "d_"</q:text> <!-- intentionally with NS prefix -->
                 </filter>
                 <classificationOrder>3</classificationOrder>
             </delineation>

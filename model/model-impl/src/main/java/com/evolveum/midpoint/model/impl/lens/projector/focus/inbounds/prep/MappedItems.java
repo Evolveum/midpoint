@@ -9,11 +9,14 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,8 +77,8 @@ class MappedItems<F extends FocusType> {
      * This excludes special mappings. They are _evaluated_ later. (This is planned to be changed!)
      */
     void createMappedItems() throws SchemaException, ConfigurationException {
-        for (QName attributeName : source.resourceObjectDefinition.getNamesOfAttributesWithInboundExpressions()) {
-            createMappedItemForAttribute(attributeName);
+        for (var attributeDef : source.resourceObjectDefinition.getAttributeDefinitions()) {
+            createMappedItemForAttribute(attributeDef);
         }
 
         // FIXME Remove this temporary check
@@ -84,8 +87,8 @@ class MappedItems<F extends FocusType> {
             return;
         }
 
-        for (QName associationName : source.resourceObjectDefinition.getNamesOfAssociationsWithInboundExpressions()) {
-            createMappedItemForAssociation(associationName);
+        for (var associationDef : source.resourceObjectDefinition.getAssociationDefinitions()) {
+            createMappedItemForAssociation(associationDef);
         }
 
         if (!source.isProjectionBeingDeleted()) {
@@ -100,24 +103,30 @@ class MappedItems<F extends FocusType> {
      * Creates a mapping creation request for mapping(s) for given attribute.
      *
      * @param <T> type of the attribute
-     * @see #createMappedItemForAssociation(QName)
+     * @see #createMappedItemForAssociation(ShadowAssociationDefinition)
      * @see #createMappedItemForAuxObjectClasses()
      */
-    private <T> void createMappedItemForAttribute(QName attributeName) throws SchemaException, ConfigurationException {
+    private <T> void createMappedItemForAttribute(ResourceAttributeDefinition<T> attributeDefinition)
+            throws SchemaException, ConfigurationException {
 
         // 1. Definitions and mapping beans
+        List<InboundMappingType> inboundMappingBeans = attributeDefinition.getInboundMappingBeans();
+        if (inboundMappingBeans.isEmpty()) {
+            return;
+        }
 
-        ResourceAttributeDefinition<T> attributeDefinition =
-                Objects.requireNonNull(
-                        source.resourceObjectDefinition.findAttributeDefinition(attributeName),
-                        () -> "No definition for attribute " + attributeName);
+        var inboundMappings = InboundMappingConfigItem.ofList(
+                inboundMappingBeans,
+                item -> ConfigurationItemOrigin.inResourceOrAncestor(source.getResource()),
+                InboundMappingConfigItem.class);
 
-        List<InboundMappingType> mappingBeans = // [EP:M:IM] DONE beans are really from the resource
+        var attributeName = attributeDefinition.getItemName();
+        List<InboundMappingConfigItem> applicableMappings = // [EP:M:IM] DONE beans are really from the resource
                 source.selectMappingBeansForEvaluationPhase(
-                        attributeDefinition.getInboundMappingBeans(),
+                        inboundMappings,
                         attributeDefinition.getCorrelatorDefinition() != null,
                         context.getCorrelationItemPaths());
-        if (mappingBeans.isEmpty()) {
+        if (applicableMappings.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
             return;
         }
@@ -134,7 +143,7 @@ class MappedItems<F extends FocusType> {
         ProcessingMode processingMode = source.getItemProcessingMode(
                 itemDescription,
                 attributeAPrioriDelta,
-                mappingBeans,
+                applicableMappings,
                 attributeDefinition.isVisible(context.getTaskExecutionMode()),
                 attributeDefinition.isIgnored(LayerType.MODEL),
                 attributeDefinition.getLimitations(LayerType.MODEL));
@@ -149,7 +158,7 @@ class MappedItems<F extends FocusType> {
                         source,
                         target,
                         context,
-                        mappingBeans, // [EP:M:IM] DONE beans are from the resource
+                        applicableMappings, // [EP:M:IM] DONE beans are from the resource
                         attributePath,
                         itemDescription,
                         attributeAPrioriDelta,
@@ -165,25 +174,28 @@ class MappedItems<F extends FocusType> {
      *
      * The situation is complicated by the fact that all associations are mixed up in `shadow.association` container.
      *
-     * @see #createMappedItemForAttribute(QName)
+     * @see #createMappedItemForAttribute(ResourceAttributeDefinition)
      * @see #createMappedItemForAuxObjectClasses()
      */
-    private void createMappedItemForAssociation(QName associationName) throws SchemaException, ConfigurationException {
+    private void createMappedItemForAssociation(ShadowAssociationDefinition associationDefinition)
+            throws SchemaException, ConfigurationException {
 
         // 1. Definitions
 
-        ShadowAssociationDefinition associationDefinition =
-                Objects.requireNonNull(
-                        source.resourceObjectDefinition.findAssociationDefinition(associationName),
-                        () -> "No definition for association " + associationName);
+        List<InboundMappingConfigItem> inboundMappings = associationDefinition.getInboundMappings();
+        if (inboundMappings.isEmpty()) {
+            return;
+        }
+
+        var associationName = associationDefinition.getItemName();
         ItemPath itemPath = ShadowType.F_ASSOCIATIONS.append(associationName);
         String itemDescription = "association " + associationName;
-        List<InboundMappingType> mappingBeans =
+        List<InboundMappingConfigItem> applicableMappings =
                 source.selectMappingBeansForEvaluationPhase(
-                        associationDefinition.getInboundMappingBeans(),
+                        inboundMappings,
                         false,
                         Set.of()); // Associations are not evaluated before clockwork anyway
-        if (mappingBeans.isEmpty()) {
+        if (applicableMappings.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
             return;
         }
@@ -211,8 +223,8 @@ class MappedItems<F extends FocusType> {
         ProcessingMode processingMode = source.getItemProcessingMode(
                 itemDescription,
                 associationAPrioriDelta,
-                mappingBeans,
-                associationDefinition.isVisible(context.getTaskExecutionMode()),
+                applicableMappings,
+                associationDefinition.isVisible(context),
                 associationDefinition.isIgnored(LayerType.MODEL),
                 associationDefinition.getLimitations(LayerType.MODEL));
         if (processingMode == ProcessingMode.NONE) {
@@ -226,7 +238,7 @@ class MappedItems<F extends FocusType> {
                         source,
                         target,
                         context,
-                        mappingBeans, // [EP:M:IM] DONE mappings are from the resource
+                        applicableMappings, // [EP:M:IM] DONE mappings are from the resource
                         itemPath, // source path (cannot point to specified association name!)
                         itemDescription,
                         associationAPrioriDelta,
@@ -240,8 +252,8 @@ class MappedItems<F extends FocusType> {
     /**
      * Creates a {@link MappedItem} for "auxiliary object classes" property.
      *
-     * @see #createMappedItemForAttribute(QName)
-     * @see #createMappedItemForAssociation(QName)
+     * @see #createMappedItemForAttribute(ResourceAttributeDefinition)
+     * @see #createMappedItemForAssociation(ShadowAssociationDefinition)
      */
     private void createMappedItemForAuxObjectClasses() throws SchemaException, ConfigurationException {
 
@@ -261,6 +273,11 @@ class MappedItems<F extends FocusType> {
             return;
         }
 
+        var mappings = MappingConfigItem.ofList(
+                mappingBeans,
+                item -> ConfigurationItemOrigin.inResourceOrAncestor(source.getResource()),
+                MappingConfigItem.class);
+
         // 2. Values
 
         ItemDelta<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>> itemAPrioriDelta = getItemAPrioriDelta(itemPath);
@@ -272,7 +289,7 @@ class MappedItems<F extends FocusType> {
         ProcessingMode processingMode = source.getItemProcessingMode(
                 itemDescription,
                 itemAPrioriDelta,
-                mappingBeans,
+                mappings,
                 true, // aux OCs are always visible
                 false, // aux OCs are never ignored
                 null); // aux OCs are never unreadable
@@ -295,7 +312,7 @@ class MappedItems<F extends FocusType> {
                         source,
                         target,
                         context,
-                        mappingBeans, // [EP:M:IM] DONE mappings are from the resource
+                        mappings, // [EP:M:IM] DONE mappings are from the resource
                         itemPath,
                         itemDescription,
                         null, // ignoring a priori delta

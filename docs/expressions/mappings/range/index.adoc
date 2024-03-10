@@ -309,6 +309,40 @@ NOTE: Several mappings with `all` range definition also creates an overlapping r
 The `all` pre-defined range is often used to specify a fully authoritative mapping, a mapping that is the sole source of all values for target property.
 It is perhaps quite intuitive that there cannot be more than one fully authoritative source for any particular target.
 
+
+== Range for mappings with single-value target
+
+Even though in most cases ranges are useful only for mapping with multi-value target, there are corner cases where range is useful even for single-value target.
+Such a situation might happen when you are deploying the mapping to an existing environment with existing data that you want to overwrite.
+Thanks to relativistic behaviour of mappings, in some situations the evaluation of mapping might result in none change that needed to be applied and thus keeping the current value.
+Using range you can ensure the old values will always be replaced.
+
+Let's demonstrate it on a example:
+
+[source,xml]
+----
+<inbound>
+    <expression>
+        <value>ExAmPLE, Inc.</value>
+    </expression>
+    <target>
+        <path>description</path>
+        <set>
+             <predefined>all</predefined>
+        </set>
+    </target>
+    <condition>
+        <script>
+            <code>orgCode == "001"</code>
+        </script>
+    </condition>
+</inbound>
+----
+Without the range, mapping works well for both adding and removing `ExAmPLE, Inc.` value based on `orgCode`.
+But when you have existing value in _description_ attribute and the condition is false, the mapping won't remove the existing value.
+With the range as it is in the example, mapping will always set the correct value `ExAmPLE, Inc.` when the condition is true and set _description_ value to empty when the condition is false.
+
+
 == Other Cases
 
 Mapping range is empty by default, making the mapping non-authoritative (tolerant).
@@ -348,8 +382,7 @@ Therefore, we may consider using another term instead of _range_.
 
 == Range and Metadata
 
-As of midPoint 4.4, the default range is empty (`none`).
-This makes the mapping non-authoritative (tolerant), not removing any values due to range application.
+The default range is empty (`none`), which makes the mapping non-authoritative (tolerant), not removing any values due to range application.
 This is a conservative default, yet it is perhaps not very smart.
 
 Ideally, the mapping should remove and replace values that were produced by the same mapping.

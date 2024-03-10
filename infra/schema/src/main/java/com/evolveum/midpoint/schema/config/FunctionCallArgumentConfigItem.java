@@ -26,11 +26,12 @@ public class FunctionCallArgumentConfigItem extends ExpressionParameterConfigIte
         super(original);
     }
 
-    protected FunctionCallArgumentConfigItem(@NotNull ExpressionParameterType value, @NotNull ConfigurationItemOrigin origin) {
+    private FunctionCallArgumentConfigItem(@NotNull ExpressionParameterType value, @NotNull ConfigurationItemOrigin origin) {
         super(value, origin);
     }
 
-    public static FunctionCallArgumentConfigItem of(@NotNull ExpressionParameterType bean, @NotNull ConfigurationItemOrigin origin) {
+    public static FunctionCallArgumentConfigItem of(
+            @NotNull ExpressionParameterType bean, @NotNull ConfigurationItemOrigin origin) {
         return new FunctionCallArgumentConfigItem(bean, origin);
     }
 }

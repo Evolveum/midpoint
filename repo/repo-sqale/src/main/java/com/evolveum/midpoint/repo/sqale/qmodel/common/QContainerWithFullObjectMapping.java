@@ -73,7 +73,7 @@ public abstract class QContainerWithFullObjectMapping<S extends Containerable, Q
 
     @Override
     public Path<?>[] fullObjectExpressions(Q base) {
-        return  new Path[] {base.ownerOid, base.fullObject};
+        return  new Path[] {base.ownerOid, base.cid, base.fullObject};
     }
 
     @Override
@@ -91,10 +91,13 @@ public abstract class QContainerWithFullObjectMapping<S extends Containerable, Q
                 fullObject = row.fullObject;
             }
         }
-        return parseSchemaObject(
+
+        var obj =  parseSchemaObject(
                 fullObject,
                 getItemPath() + " for " + tuple.get(alias.ownerOid),
                 schemaType()).asPrismContainerValue();
+        attachContainerIdPath((S) obj.asContainerable(), tuple, alias);
+        return obj;
     }
 
     @Override

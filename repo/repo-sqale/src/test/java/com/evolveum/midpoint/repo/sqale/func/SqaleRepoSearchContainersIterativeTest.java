@@ -16,7 +16,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationWorkItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QProcessedObject;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -42,7 +44,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class SqaleRepoSearchContainersIterativeTest extends SqaleRepoBaseTest {
 
-    private final TestResultHandler testHandler = new TestResultHandler();
+    private final TestResultHandler<SimulationResultProcessedObjectType> testHandler = new TestResultHandler();
+    private final TestResultHandler<AccessCertificationWorkItemType> workItemHandler = new TestResultHandler();
 
     // default page size for iterative search, reset before each test
     private static final int ITERATION_PAGE_SIZE = 100;
@@ -92,11 +95,47 @@ public class SqaleRepoSearchContainersIterativeTest extends SqaleRepoBaseTest {
             repositoryService.modifyObject(SimulationResultType.class, secondOid, toDelta.apply(processed), result);
 
         }
+
+        var campaignOid = repositoryService.addObject(
+            new AccessCertificationCampaignType()
+                    .name("Campaign")
+                    .stageNumber(5)
+                    .iteration(5)
+                    .asPrismObject(),
+        null, result);
+        // we will create two full "pages" of data, page of cases, each case two workitems
+        for (int i = 1; i <= ITERATION_PAGE_SIZE; i++) {
+
+
+
+            var delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
+                            .item(AccessCertificationCampaignType.F_CASE)
+                                    .add(new AccessCertificationCaseType()
+                                            .stageNumber(5)
+                                            .iteration(i)
+                                            .workItem(new AccessCertificationWorkItemType()
+                                                    .name(i + "-first")
+                                                    .output(new AbstractWorkItemOutputType().outcome("done"))
+                                                    .iteration(i)
+                                            )
+                                            .workItem(new AccessCertificationWorkItemType()
+                                                    .name(i + "second")
+                                                    .output(new AbstractWorkItemOutputType().outcome("done"))
+                                                    .iteration(i)
+                                            )
+
+                                    ).asItemDeltas();
+
+
+
+            repositoryService.modifyObject(AccessCertificationCampaignType.class, campaignOid, delta, result);
+        };
     }
 
     @BeforeMethod
     public void resetTestHandler() {
         testHandler.reset();
+        workItemHandler.reset();
         repositoryConfiguration.setIterativeSearchByPagingBatchSize(ITERATION_PAGE_SIZE);
     }
 
@@ -418,6 +457,121 @@ public class SqaleRepoSearchContainersIterativeTest extends SqaleRepoBaseTest {
         assertThat(testHandler.getCounter()).isEqualTo(COUNT_OF_CREATED_USERS - 100);
     }
 
+    public void test510SearchIterativeWorkItemsWithEmptyFilter() throws Exception {
+        OperationResult operationResult = createOperationResult();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+
+        when("calling search iterative with null query");
+        SearchResultMetadata metadata =
+                searchIterative(AccessCertificationWorkItemType.class, null, workItemHandler, operationResult);
+
+        then("result metadata is not null and reports the handled objects");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(workItemHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse();
+        assertThat(metadata.getPagingCookie()).isNotNull();
+
+        and("search operations were called");
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_CONTAINERS_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("all objects of the specified type (here User) were processed");
+        assertThat(workItemHandler.getCounter()).isEqualTo(count(QAccessCertificationWorkItem.class));
+    }
+
+    @Test
+    public void test511SearchIterativeWithLastPageNotFull() throws Exception {
+        OperationResult operationResult = createOperationResult();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+
+        given("total result count not multiple of the page size");
+        long totalCount = count(QAccessCertificationWorkItem.class);
+        int iterativePageSize = 47;
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(iterativePageSize);
+        assertThat(totalCount % repositoryConfiguration.getIterativeSearchByPagingBatchSize()).isNotZero();
+        queryRecorder.clearBufferAndStartRecording();
+
+        when("calling search iterative with null query");
+        SearchResultMetadata metadata =
+                searchIterative(AccessCertificationWorkItemType.class, null,  workItemHandler, operationResult);
+
+        then("result metadata is not null and reports the handled objects");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(workItemHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse();
+        // page cookie is not null and it's OID in UUID format
+        assertThat(metadata.getPagingCookie()).isNotNull();
+
+        and("search operations were called");
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_CONTAINERS_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("all objects of the specified type were processed");
+        assertThat(workItemHandler.getCounter()).isEqualTo(count(QAccessCertificationWorkItem.class));
+
+        and("last iteration query has proper conditions");
+        List<SqlRecorder.QueryEntry> iterativeSelects = queryRecorder.getQueryBuffer().stream()
+                .filter(e -> e.sql.contains("select acwi.ownerOid, acwi.cid"))
+                .collect(Collectors.toList());
+        assertThat(iterativeSelects).hasSize((int) totalCount / iterativePageSize + 1); // +1 for the last page
+        SqlRecorder.QueryEntry lastEntry = iterativeSelects.get(iterativeSelects.size() - 1);
+        // we want to be sure no accidental filter accumulation happens
+        assertThat(lastEntry.sql).contains("and acwi.cid > ");
+    }
+
+    @Test
+    public void test512SearchIterativeWithLastPageNotFullWithAndFilter() throws Exception {
+        // Like test111 but detects error when conditions are accumulating in provided AND filter with each page.
+        OperationResult operationResult = createOperationResult();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+
+        given("total result count not multiple of the page size");
+        long totalCount = count(QAccessCertificationWorkItem.class);
+        int iterativePageSize = 47;
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(iterativePageSize);
+        assertThat(totalCount % repositoryConfiguration.getIterativeSearchByPagingBatchSize()).isNotZero();
+        queryRecorder.clearBufferAndStartRecording();
+
+        when("calling search iterative with query containing condition");
+        SearchResultMetadata metadata = searchIterative(AccessCertificationWorkItemType.class,
+                prismContext.queryFor(AccessCertificationWorkItemType.class)
+                        .not().item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).isNull() // not null, matches all users
+                        .build(),
+                         workItemHandler,
+                operationResult);
+        then("result metadata is not null and reports the handled objects");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(workItemHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse();
+        // page cookie is not null and it's OID in UUID format
+        assertThat(metadata.getPagingCookie()).isNotNull();
+
+        and("search operations were called");
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_CONTAINERS_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("all objects of the specified type were processed");
+        assertThat(workItemHandler.getCounter()).isEqualTo(count(QAccessCertificationWorkItem.class));
+
+        and("last iteration query has proper conditions");
+        List<SqlRecorder.QueryEntry> iterativeSelects = queryRecorder.getQueryBuffer().stream()
+                .filter(e -> e.sql.contains("select acwi.ownerOid, acwi.cid"))
+                .collect(Collectors.toList());
+        assertThat(iterativeSelects).hasSize((int) totalCount / iterativePageSize + 1); // +1 for the last page
+        SqlRecorder.QueryEntry lastEntry = iterativeSelects.get(iterativeSelects.size() - 1);
+        // We want to be sure no accidental filter accumulation happens, see ObjectQueryUtil.filterAnd() vs createAnd().
+        assertThat(lastEntry.sql).contains("where not acwi.outcome is null");
+    }
+
     @SafeVarargs
     private SearchResultMetadata searchIterative(
             ObjectQuery query,
@@ -433,6 +587,24 @@ public class SqaleRepoSearchContainersIterativeTest extends SqaleRepoBaseTest {
             selectorOptions != null && selectorOptions.length != 0 ? List.of(selectorOptions) : null,
             operationResult);
     }
+
+    private <T extends Containerable> SearchResultMetadata searchIterative(
+            Class<T> containerable,
+            ObjectQuery query,
+            TestResultHandler<T> handler,
+            OperationResult operationResult,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
+
+        displayQuery(query);
+        return repositoryService.searchContainersIterative(
+                containerable,
+                query,
+                handler,
+                selectorOptions != null && selectorOptions.length != 0 ? List.of(selectorOptions) : null,
+                operationResult);
+    }
+
 
     private void assertTypicalPageOperationCount(SearchResultMetadata metadata) {
         boolean lastRowCausingPartialResult = metadata.isPartialResults()
@@ -452,10 +624,10 @@ public class SqaleRepoSearchContainersIterativeTest extends SqaleRepoBaseTest {
     /**
      * Counts processed objects and changes user's employee number (test+count).
      */
-    private class TestResultHandler implements ObjectHandler<SimulationResultProcessedObjectType> {
+    private class TestResultHandler <T extends Containerable> implements ObjectHandler<T> {
 
         private final AtomicInteger counter = new AtomicInteger();
-        private Predicate<SimulationResultProcessedObjectType> stoppingPredicate;
+        private Predicate<T> stoppingPredicate;
 
         public void reset() {
             counter.set(0);
@@ -466,12 +638,12 @@ public class SqaleRepoSearchContainersIterativeTest extends SqaleRepoBaseTest {
             return counter.get();
         }
 
-        public void setStoppingPredicate(Predicate<SimulationResultProcessedObjectType> stoppingPredicate) {
+        public void setStoppingPredicate(Predicate<T> stoppingPredicate) {
             this.stoppingPredicate = stoppingPredicate;
         }
 
         @Override
-        public boolean handle(SimulationResultProcessedObjectType object, OperationResult parentResult) {
+        public boolean handle(T object, OperationResult parentResult) {
 
             try {
                 counter.getAndIncrement();

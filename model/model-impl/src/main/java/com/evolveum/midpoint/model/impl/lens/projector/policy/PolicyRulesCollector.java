@@ -256,7 +256,7 @@ class PolicyRulesCollector<O extends ObjectType> {
         checkInitialized();
         Collection<GlobalPolicyRuleType> allGlobalRules = rulesWithIds.stream()
                 .map(GlobalRuleWithId::ruleCI)
-                .map(GlobalPolicyRuleConfigItem::value)
+                .map(ci -> ci.value())
                 .collect(Collectors.toList());
         PolicyRuleTypeUtil.resolveConstraintReferences(rules, allGlobalRules);
     }

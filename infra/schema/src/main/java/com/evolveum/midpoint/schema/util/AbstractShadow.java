@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -24,9 +24,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -213,6 +210,11 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return getAttributesContainer().findAttribute(name);
     }
 
+    default <X> @NotNull Collection<PrismPropertyValue<X>> getAttributeValues(@NotNull QName name) {
+        ResourceAttribute<X> attribute = findAttribute(name);
+        return attribute != null ? attribute.getValues() : List.of();
+    }
+
     /** These checks are to be executed even in production (at least when creating the object). */
     default void checkConsistence() {
         getResourceOid(); // checks the presence
@@ -283,6 +285,10 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
      */
     default @Nullable ShadowAssociationsContainer getAssociationsContainer() {
         return ShadowUtil.getAssociationsContainer(getBean());
+    }
+
+    default @NotNull ShadowAssociationsContainer getOrCreateAssociationsContainer() {
+        return ShadowUtil.getOrCreateAssociationsContainer(getBean());
     }
 
     /**

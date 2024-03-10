@@ -23,21 +23,11 @@ public class ExpressionConfigItem
     }
 
     protected ExpressionConfigItem(@NotNull ExpressionType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
-    }
-
-    public static ExpressionConfigItem embedded(@NotNull ExpressionType bean) {
-        return of(bean, ConfigurationItemOrigin.embedded(bean));
+        super(value, origin, null); // provide parent in the future
     }
 
     public static ExpressionConfigItem of(@NotNull ExpressionType bean, @NotNull ConfigurationItemOrigin origin) {
         return new ExpressionConfigItem(bean, origin);
-    }
-
-    public static ExpressionConfigItem of(
-            @NotNull ExpressionType bean,
-            @NotNull OriginProvider<? super ExpressionType> originProvider) {
-        return new ExpressionConfigItem(bean, originProvider.origin(bean));
     }
 
     public @Nullable ExecutionPrivilegesSpecificationType getPrivileges() throws ConfigurationException {

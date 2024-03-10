@@ -215,7 +215,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
             selectedItems.getObject().forEach(item -> {
                 try {
 
-                    PrismContainerValueWrapper<ResourceObjectAssociationType> valueWrapper;
+                    PrismContainerValueWrapper<ResourceObjectAssociationType> valueWrapper = null;
 
                     Optional<PrismContainerValueWrapper<ResourceObjectAssociationType>> match = associationContainer.getValues().stream().filter(
                             value -> {
@@ -224,9 +224,21 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                                 }
                                 return item.associationName.equivalent(value.getRealValue().getRef().getItemPath());
                             }).findFirst();
+
+                    boolean  createNewAssociationValue = false;
+
                     if (match.isPresent()) {
                         valueWrapper = match.get();
+
+                        PrismPropertyWrapper<ExpressionType> expression = valueWrapper.findProperty(
+                                        ItemPath.create(ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION));
+                        if (ExpressionUtil.containsAssociationFromLinkElement(expression.getValue().getRealValue())) {
+                            createNewAssociationValue = true;
+                        }
                     } else {
+                        createNewAssociationValue = true;
+                    }
+                    if (createNewAssociationValue) {
 
                         PrismContainerValue<ResourceObjectAssociationType> newValue = associationContainer.getItem().createNewValue();
 

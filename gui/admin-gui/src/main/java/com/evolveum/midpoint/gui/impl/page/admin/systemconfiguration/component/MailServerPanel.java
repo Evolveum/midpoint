@@ -55,7 +55,7 @@ public class MailServerPanel extends ComplexPropertyInputPanel<MailServerConfigu
 
         add(new TextPanel<>(ID_USERNAME, createEmbeddedModel(c -> c.getUsername(), (c, o) -> c.setUsername(o))), "MailServerPanel.username");
 
-        add(new PasswordPropertyPanel(ID_PASSWORD, createEmbeddedModel(c -> c.getPassword(), (c, o) -> c.setPassword(o))), false, "MailServerPanel.password");
+        add(new PasswordPropertyPanel(ID_PASSWORD, createEmbeddedModel(c -> c.getPassword(), (c, o) -> c.setPassword(o)), true), false, "MailServerPanel.password");
 
         DropDownChoicePanel transportSecurity = WebComponentUtil.createEnumPanel(MailTransportSecurityType.class, ID_TRANSPORT_SECURITY,
                 createEmbeddedModel(c -> c.getTransportSecurity(), (c, o) -> c.setTransportSecurity(o)), this);

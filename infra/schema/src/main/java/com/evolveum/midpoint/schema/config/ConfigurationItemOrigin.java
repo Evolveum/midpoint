@@ -23,8 +23,6 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-
 /**
  * Description of an origin of a configuration item (expression, mapping, and so on).
  * Necessary e.g. for the derivation of an {@link ExpressionProfile}.
@@ -120,6 +118,10 @@ public abstract class ConfigurationItemOrigin implements Serializable {
      */
     public static ConfigurationItemOrigin inResourceOrAncestor(@NotNull ResourceType resource) {
         return new InObject(resource, false, ItemPath.EMPTY_PATH, false);
+    }
+
+    public static ConfigurationItemOrigin inResourceOrAncestor(@NotNull ResourceType resource, ItemPath path) {
+        return new InObject(resource, false, path, true);
     }
 
     public static ConfigurationItemOrigin inObjectApproximate(
@@ -253,9 +255,6 @@ public abstract class ConfigurationItemOrigin implements Serializable {
             this.preciseObject = preciseObject;
             this.path = path;
             this.precisePath = precisePath;
-            if (!preciseObject) {
-                argCheck(!precisePath, "Not knowing the object but knowing the path?! %s, %s", originatingObject, path);
-            }
         }
 
         @Override
@@ -286,13 +285,12 @@ public abstract class ConfigurationItemOrigin implements Serializable {
         public String toString() {
             var sb = new StringBuilder();
             sb.append("in ").append(originatingObject);
-            if (preciseObject) {
-                sb.append(" @").append(path);
-                if (!precisePath) {
-                    sb.append(" (approximate)");
-                }
-            } else {
-                sb.append(" (or some of its ancestors");
+            if (!preciseObject) {
+                sb.append(" (or some of its ancestors)");
+            }
+            sb.append(" @").append(path);
+            if (!precisePath) {
+                sb.append(" (approximate)");
             }
             return sb.toString();
         }

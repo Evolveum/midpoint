@@ -124,20 +124,28 @@ public final class PropertyModificationOperation<T> extends Operation {
 
     @Override
     public PropertyModificationOperationType asBean(PrismContext prismContext) throws SchemaException {
-        PropertyModificationOperationType bean = new PropertyModificationOperationType(prismContext);
+        PropertyModificationOperationType bean = new PropertyModificationOperationType();
         bean.getDelta().addAll(DeltaConvertor.toItemDeltaTypes(propertyDelta));
         bean.setMatchingRule(matchingRuleQName);
         return bean;
     }
 
+    public void swallowValue(@NotNull PrismPropertyValue<?> value, boolean toPlusSet) {
+        if (toPlusSet) {
+            swallowValueToAdd(value);
+        } else {
+            swallowValueToDelete(value);
+        }
+    }
+
     // Let's ignore the type safety for now
-    public void addValueToAdd(@NotNull PrismPropertyValue<?> value) {
+    private void swallowValueToAdd(@NotNull PrismPropertyValue<?> value) {
         //noinspection unchecked
         propertyDelta.addValueToAdd((PrismPropertyValue<T>) value);
     }
 
     // Let's ignore the type safety for now
-    public void addValueToDelete(@NotNull PrismPropertyValue<?> value) {
+    public void swallowValueToDelete(@NotNull PrismPropertyValue<?> value) {
         //noinspection unchecked
         propertyDelta.addValueToDelete((PrismPropertyValue<T>) value);
     }

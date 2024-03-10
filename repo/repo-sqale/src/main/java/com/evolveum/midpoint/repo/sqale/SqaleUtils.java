@@ -48,6 +48,7 @@ public class SqaleUtils {
      * THe owner oid knowledge is required for correctly computing filters in case of iterative search of containers
      */
     public static final String OWNER_OID = "ownerOid";
+    public static final String FULL_ID_PATH = "containerIdPath";
 
     /**
      * Returns version from midPoint object as a number.

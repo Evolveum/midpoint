@@ -156,7 +156,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
 
         mappingBuilder = construction.initializeMappingBuilder(
                 mappingBuilder, itemPath, itemName, itemDefinition,
-                getAssociationTargetObjectClassDefinition(), constructionEvaluation.task);
+                getAssociationTargetObjectDefinition(), constructionEvaluation.task);
 
         if (mappingBuilder == null) {
             return null;
@@ -191,7 +191,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         return mapping;
     }
 
-    abstract ResourceObjectTypeDefinition getAssociationTargetObjectClassDefinition();
+    abstract ResourceObjectTypeDefinition getAssociationTargetObjectDefinition();
 
     private ConfigurableValuePolicySupplier createValuePolicySupplier() {
         return new ConfigurableValuePolicySupplier() {

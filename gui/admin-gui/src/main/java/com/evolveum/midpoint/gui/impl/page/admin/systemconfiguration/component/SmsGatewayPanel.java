@@ -77,7 +77,7 @@ public class SmsGatewayPanel extends ComplexPropertyInputPanel<SmsGatewayConfigu
                 createExpressionModel(createEmbeddedModel(o -> o.getBodyExpression(), (o, v) -> o.setBodyExpression(v))), 10), "SmsGatewayPanel.bodyExpression");
         add(new TextPanel<>(ID_BODY_ENCODING, createEmbeddedModel(o -> o.getBodyEncoding(), (o, v) -> o.setBodyEncoding(v))), "SmsGatewayPanel.bodyEncoding");
         add(new TextPanel<>(ID_USERNAME, createEmbeddedModel(o -> o.getUsername(), (o, v) -> o.setUsername(v))), "SmsGatewayPanel.username");
-        add(new PasswordPropertyPanel(ID_PASSWORD, createEmbeddedModel(o -> o.getPassword(), (o, v) -> o.setPassword(v))), false, "SmsGatewayPanel.password");
+        add(new PasswordPropertyPanel(ID_PASSWORD, createEmbeddedModel(o -> o.getPassword(), (o, v) -> o.setPassword(v)), true), false, "SmsGatewayPanel.password");
         add(new TextPanel<>(ID_PROXY_HOST, createEmbeddedModel(o -> o.getProxyHost(), (o, v) -> o.setProxyHost(v))), "SmsGatewayPanel.proxyHost");
 
         TextPanel port = new TextPanel<>(ID_PROXY_PORT, createEmbeddedModel(o -> o.getProxyPort(), (o, v) -> o.setProxyPort(v)));
@@ -87,7 +87,7 @@ public class SmsGatewayPanel extends ComplexPropertyInputPanel<SmsGatewayConfigu
         add(port, "SmsGatewayPanel.proxyPort");
 
         add(new TextPanel<>(ID_PROXY_USERNAME, createEmbeddedModel(o -> o.getProxyUsername(), (o, v) -> o.setProxyUsername(v))), "SmsGatewayPanel.proxyUsername");
-        add(new PasswordPropertyPanel(ID_PROXY_PASSWORD, createEmbeddedModel(o -> o.getProxyPassword(), (o, v) -> o.setProxyPassword(v))), false, "SmsGatewayPanel.proxyPassword");
+        add(new PasswordPropertyPanel(ID_PROXY_PASSWORD, createEmbeddedModel(o -> o.getProxyPassword(), (o, v) -> o.setProxyPassword(v)), true), false, "SmsGatewayPanel.proxyPassword");
         add(new TextPanel<>(ID_REDIRECT_TO_FILE, createEmbeddedModel(o -> o.getRedirectToFile(), (o, v) -> o.setRedirectToFile(v))), "SmsGatewayPanel.redirectToFile");
         add(new TextPanel<>(ID_LOG_TO_FILE, createEmbeddedModel(o -> o.getLogToFile(), (o, v) -> o.setLogToFile(v))), "SmsGatewayPanel.logToFile");
     }

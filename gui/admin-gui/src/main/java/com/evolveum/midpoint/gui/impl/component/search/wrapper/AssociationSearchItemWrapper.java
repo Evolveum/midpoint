@@ -37,7 +37,7 @@ public class AssociationSearchItemWrapper extends ChoicesSearchItemWrapper<ItemN
         List<DisplayableValue<ItemName>> values = new ArrayList<>();
         associations.forEach(association -> values.add(
                 new SearchValue<>(
-                        association.getName(),
+                        association.getItemName(),
                         ProvisioningObjectsUtil.getAssociationDisplayName(association))));
         return values;
     }

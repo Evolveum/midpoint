@@ -15,23 +15,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 /** Exception from naming convention (because of assignment vs inducement dichotomy). */
 public class AbstractAssignmentConfigItem extends ConfigurationItem<AssignmentType> {
 
-    @SuppressWarnings("unused") // called dynamically
+    @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
     public AbstractAssignmentConfigItem(@NotNull ConfigurationItem<AssignmentType> original) {
         super(original);
     }
 
-    public AbstractAssignmentConfigItem(@NotNull AssignmentType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
+    AbstractAssignmentConfigItem(
+            @NotNull AssignmentType value, @NotNull ConfigurationItemOrigin origin, @Nullable ConfigurationItem<?> parent) {
+        super(value, origin, parent);
     }
 
     public static AbstractAssignmentConfigItem of(@NotNull AssignmentType bean, @NotNull ConfigurationItemOrigin origin) {
-        return new AbstractAssignmentConfigItem(bean, origin);
-    }
-
-    public static AbstractAssignmentConfigItem of(
-            @NotNull AssignmentType bean,
-            @NotNull OriginProvider<? super AssignmentType> originProvider) {
-        return new AbstractAssignmentConfigItem(bean, originProvider.origin(bean));
+        return new AbstractAssignmentConfigItem(bean, origin, null);
     }
 
     @Override

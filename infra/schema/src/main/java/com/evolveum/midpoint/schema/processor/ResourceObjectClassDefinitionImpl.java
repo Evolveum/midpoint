@@ -71,6 +71,7 @@ public class ResourceObjectClassDefinitionImpl
     /** Set only for raw schema! */
     private boolean auxiliary;
 
+    // Some day, we will use ConfigurationItem for definition bean here.
     private ResourceObjectClassDefinitionImpl(
             @NotNull LayerType layer,
             @Nullable BasicResourceInformation basicResourceInformation,

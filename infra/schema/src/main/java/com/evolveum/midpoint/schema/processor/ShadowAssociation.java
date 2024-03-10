@@ -100,7 +100,7 @@ public class ShadowAssociation extends PrismContainerImpl<ShadowAssociationValue
     public @NotNull PrismContainerValue<ShadowAssociationValueType> createNewValueWithIdentifier(
             @NotNull ResourceAttribute<?> identifier) throws SchemaException {
         var identifiersContainer = getDefinitionRequired()
-                .getAssociationTarget()
+                .getTargetObjectDefinition()
                 .toResourceAttributeContainerDefinition()
                 .instantiate(ShadowAssociationValueType.F_IDENTIFIERS);
         identifiersContainer.add(identifier);

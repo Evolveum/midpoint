@@ -136,7 +136,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
             }
         }
 
-        if (ItemStatus.ADDED == status && def.isDeprecated()) {
+        if (ItemStatus.ADDED == status && def.isDeprecated() && !context.isDeprecatedItemAllowed()) {
             LOGGER.trace("Skipping creating wrapper for {}, because item is deprecated and doesn't contain any value.", def);
             return true;
         }

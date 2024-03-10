@@ -20,6 +20,13 @@ users/
 The User web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
 present in midPoint. This is apparent in the operations which are available for this type of object.
 
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
 === Create User Object
 
 include::../operations/examples/raw/create-user-jack.adoc[]
@@ -38,9 +45,9 @@ include::../operations/examples/raw/get-user-administrator.adoc[]
 
 Search operation usable for fetching the full list of objects or a list based on filter.
 
-include::../operations/examples/raw/search-all-users.adoc[]
+include::../operations/examples/raw/search-name-users.adoc[]
 
-include::../operations/examples/raw/search-all.adoc[]
+include::../operations/examples/raw/search-gen-name.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
 
@@ -80,8 +87,10 @@ include::../operations/examples/raw/user-pwd-generate.adoc[]
 == Common Use-case Examples
 
 1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-user/[Create User]
-2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get user based on his unique identificator]
-3. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get Users Data with Direct and Indirect assignments]
+2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get User Based on his unique identificator]
+3. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get Users data with direct and indirect assignments]
+4. xref:/midpoint/reference/interfaces/rest/operations/examples/access-request/[User access request]
+5. xref:/midpoint/reference/interfaces/rest/operations/examples/access-request-review/[Access request review]
 
 == UserType JSON Example
 

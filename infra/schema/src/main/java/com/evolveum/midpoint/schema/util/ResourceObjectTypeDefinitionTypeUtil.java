@@ -7,12 +7,17 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import static com.evolveum.midpoint.schema.config.ConfigurationItem.configItem;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ResourceObjectTypeDefinitionConfigItem;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeIdentificationType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +29,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SuperObjectTypeReferenceType;
 
 /**
  * Helps with {@link ResourceObjectTypeDefinitionType} objects.
@@ -46,33 +50,25 @@ public class ResourceObjectTypeDefinitionTypeUtil {
         return getKind(bean) == kind && getIntent(bean).equals(intent);
     }
 
+    @Deprecated // use the config item instead
     public static @Nullable QName getObjectClassName(@NotNull ResourceObjectTypeDefinitionType bean) {
         ResourceObjectTypeDelineationType delineation = bean.getDelineation();
         QName newName = delineation != null ? delineation.getObjectClass() : null;
         QName legacyName = bean.getObjectClass();
-        checkNoContradiction(newName, legacyName, bean);
-        return MiscUtil.getFirstNonNull(newName, legacyName);
-    }
-
-    private static void checkNoContradiction(QName newName, QName legacyName, ResourceObjectTypeDefinitionType bean) {
         // This should be a configuration exception; but let's not bother all the callers with handling it.
         stateCheck(newName == null || legacyName == null || QNameUtil.match(newName, legacyName),
                 "Contradicting legacy (%s) vs delineation-based (%s) object class names in %s",
                 legacyName, newName, bean);
+        return MiscUtil.getFirstNonNull(newName, legacyName);
     }
 
+    @Deprecated // use the CI directly
     public static @NotNull List<QName> getAuxiliaryObjectClassNames(@NotNull ResourceObjectTypeDefinitionType bean) {
-        ResourceObjectTypeDelineationType delineation = bean.getDelineation();
-        List<QName> newValues = delineation != null ? delineation.getAuxiliaryObjectClass() : List.of();
-        List<QName> legacyValues = bean.getAuxiliaryObjectClass();
-        // This should be a configuration exception; but let's not bother all the callers with handling it.
-        // And we do not want to compare the lists (etc) - we simply disallow specifying at both places.
-        stateCheck(newValues.isEmpty() || legacyValues.isEmpty(),
-                "Auxiliary object classes must not be specified in both new and legacy ways in %s", bean);
-        if (!newValues.isEmpty()) {
-            return newValues;
-        } else {
-            return legacyValues;
+        try {
+            return configItem(bean, ConfigurationItemOrigin.undeterminedSafe(), ResourceObjectTypeDefinitionConfigItem.class)
+                    .getAuxiliaryObjectClassNames();
+        } catch (ConfigurationException e) {
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 
@@ -97,7 +93,7 @@ public class ResourceObjectTypeDefinitionTypeUtil {
         }
 
         // TODO improve error messages
-        public static @NotNull SuperReference of(@NotNull SuperObjectTypeReferenceType bean) throws ConfigurationException {
+        public static @NotNull SuperReference of(@NotNull ResourceObjectTypeIdentificationType bean) throws ConfigurationException {
             ShadowKindType kind = bean.getKind();
             String intent = bean.getIntent();
             configCheck(kind != null, "Kind must be specified in %s", bean);

@@ -110,7 +110,7 @@ public class DotModel {
                         continue;
                     }
                     ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(),
-                            getObjectClassName(def), assocDef.getName());
+                            getObjectClassName(def), assocDef.getItemName());
                     previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
                 }
                 previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,

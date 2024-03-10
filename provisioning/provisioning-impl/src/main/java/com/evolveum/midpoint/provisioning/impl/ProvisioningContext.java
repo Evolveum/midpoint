@@ -8,6 +8,8 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isDiscoveryAllowed;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -17,9 +19,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.util.AttributesToReturnProvider;
+import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabili
  *
  * @author semancik
  */
-public class ProvisioningContext implements DebugDumpable {
+public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningContext.class);
 
@@ -404,6 +407,22 @@ public class ProvisioningContext implements DebugDumpable {
         return new ProvisioningContext(this, task, newDefinition, wholeClass);
     }
 
+    /**
+     * Creates a wildcard context (but only if needed - hence it's not named "spawnWildcard").
+     * This is to avoid mistakenly using a wrong object definition.
+     */
+    public ProvisioningContext toWildcard() {
+        if (isWildcard()) {
+            return this;
+        } else {
+            return new ProvisioningContext(this, task, null, null);
+        }
+    }
+
+    public void assertWildcard() {
+        stateCheck(isWildcard(), "Provisioning context must be a wildcard one: %s", this);
+    }
+
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean hasDefinition() {
         return resourceObjectDefinition != null;
@@ -508,13 +527,9 @@ public class ProvisioningContext implements DebugDumpable {
 
     public boolean shouldStoreAttributeInShadow(
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull ResourceAttributeDefinition<?> attrDef,
-            @NotNull Collection<? extends QName> associationValueAttrs) {
+            @NotNull ResourceAttributeDefinition<?> attrDef) {
         ItemName attrName = attrDef.getItemName();
         if (objectDefinition.isIdentifier(attrName)) {
-            return true;
-        }
-        if (QNameUtil.matchAny(attrName, associationValueAttrs)) {
             return true;
         }
         if (Boolean.FALSE.equals(getExplicitCachingStatus())) {
@@ -605,6 +620,11 @@ public class ProvisioningContext implements DebugDumpable {
         return task;
     }
 
+    @Override
+    public @NotNull TaskExecutionMode getExecutionMode() {
+        return task.getExecutionMode();
+    }
+
     public UcfExecutionContext getUcfExecutionContext() {
         return new UcfExecutionContext(
                 contextFactory.getLightweightIdentifierGenerator(),
@@ -636,14 +656,6 @@ public class ProvisioningContext implements DebugDumpable {
         return contextFactory.getResourceManager();
     }
 
-    public boolean isFetchingRequested(ItemPath path) {
-        return SelectorOptions.hasToIncludePath(path, getOperationOptions, false);
-    }
-
-    public boolean isFetchingNotDisabled(ItemPath path) {
-        return SelectorOptions.hasToIncludePath(path, getOperationOptions, true);
-    }
-
     /**
      * Returns association definitions, or an empty list if we do not have appropriate definition available.
      */
@@ -652,22 +664,35 @@ public class ProvisioningContext implements DebugDumpable {
                 resourceObjectDefinition.getAssociationDefinitions() : List.of();
     }
 
-    public @Nullable ResourceAttributeDefinition<?> findAttributeDefinition(QName name) throws SchemaException {
+    public @NotNull Collection<ShadowAssociationDefinition> getVisibleAssociationDefinitions() {
+        return getAssociationDefinitions().stream()
+                .filter(def -> def.isVisible(this))
+                .toList();
+    }
+
+    public @NotNull Collection<ShadowAssociationDefinition> getVisibleSimulatedAssociationDefinitions() {
+        return getAssociationDefinitions().stream()
+                .filter(def -> def.isVisible(this))
+                .filter(def -> def.isSimulated())
+                .toList();
+    }
+
+    public <T> @Nullable ResourceAttributeDefinition<T> findAttributeDefinition(QName name) throws SchemaException {
         return resourceObjectDefinition != null ? resourceObjectDefinition.findAttributeDefinition(name) : null;
     }
 
-    public @NotNull ResourceAttributeDefinition<?> findAttributeDefinitionRequired(QName name) throws SchemaException {
+    public <T> @NotNull ResourceAttributeDefinition<T> findAttributeDefinitionRequired(QName name) throws SchemaException {
         return getObjectDefinitionRequired().findAttributeDefinitionRequired(name);
     }
 
-    public @NotNull ResourceAttributeDefinition<?> findAttributeDefinitionRequired(QName name, Supplier<String> contextSupplier)
+    public <T> @NotNull ResourceAttributeDefinition<T> findAttributeDefinitionRequired(QName name, Supplier<String> contextSupplier)
             throws SchemaException {
         return getObjectDefinitionRequired()
                 .findAttributeDefinitionRequired(name, contextSupplier);
     }
 
     public @NotNull ShadowAssociationDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
-        return findAssociationDefinitionRequired(name, () -> "");
+        return findAssociationDefinitionRequired(name, () -> " in " + this);
     }
 
     public @NotNull ShadowAssociationDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
@@ -681,7 +706,8 @@ public class ProvisioningContext implements DebugDumpable {
      * is to be decided yet.
      */
     public AttributesToReturn createAttributesToReturn() {
-        return ProvisioningUtil.createAttributesToReturn(this);
+        return new AttributesToReturnProvider(resource, getObjectDefinitionRequired(), getOperationOptions)
+                .createAttributesToReturn();
     }
 
     /** Beware! Creates a new context based on the shadow kind/intent/OC. */
@@ -832,14 +858,6 @@ public class ProvisioningContext implements DebugDumpable {
         return task.getExecutionMode().isProductionConfiguration();
     }
 
-    public boolean isExecutionFullyPersistent() {
-        return task.isExecutionFullyPersistent();
-    }
-
-    public boolean areShadowChangesSimulated() {
-        return task.getExecutionMode().areShadowChangesSimulated();
-    }
-
     /**
      * This is a check that we are not going to cause any modification on a resource.
      *
@@ -861,6 +879,10 @@ public class ProvisioningContext implements DebugDumpable {
     /** Convenience method for {@link #getExceptionDescription(ConnectorInstance)}. */
     public String getExceptionDescription() {
         return getExceptionDescription(null);
+    }
+
+    public @NotNull Object getExceptionDescriptionLazy() {
+        return lazy(() -> getExceptionDescription());
     }
 
     /** Provides basic information about the context in which an exception occurred. See MID-6712. */

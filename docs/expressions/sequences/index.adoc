@@ -32,18 +32,18 @@ This may seem simple, but the real power in using sequences are in combination w
 
 [source,xml]
 ----
-            <mapping>
-                <name>sequenceUID</name>
-                <strength>weak</strength>
-                <expression>
-                    <sequentialValue>
-                        <sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
-                    </sequentialValue>
-                </expression>
-                <target>
-                    <path>extension/uidNumber</path>
-                </target>
-            </mapping>
+<mapping>
+    <name>sequenceUID</name>
+    <strength>weak</strength>
+    <expression>
+        <sequentialValue>
+            <sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
+        </sequentialValue>
+    </expression>
+    <target>
+        <path>extension/uidNumber</path>
+    </target>
+</mapping>
 ----
 
 This mapping will take a counter from the sequence and place it in the target property.

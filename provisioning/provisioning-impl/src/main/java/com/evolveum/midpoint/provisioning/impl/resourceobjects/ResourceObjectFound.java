@@ -29,6 +29,9 @@ public class ResourceObjectFound extends AbstractLazilyInitializableResourceEnti
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectFound.class);
 
+    /** Used for some clients. */
+    @NotNull private final UcfResourceObject initialUcfResourceObject;
+
     /**
      * The resource object, as provided by UCF. Its content may be modified during processing here (no cloning is done).
      * Ultimately, it should be transformed into {@link #completeResourceObject}.
@@ -40,20 +43,18 @@ public class ResourceObjectFound extends AbstractLazilyInitializableResourceEnti
 
     private ResourceObjectFound(
             @NotNull ProvisioningContext ctx,
-            @NotNull ExistingResourceObject initialResourceObject,
+            @NotNull UcfResourceObject initialUcfResourceObject,
             boolean fetchAssociations) {
         super(ctx, fetchAssociations);
-        this.initialResourceObject = initialResourceObject;
+        this.initialUcfResourceObject = initialUcfResourceObject;
+        this.initialResourceObject = ExistingResourceObject.fromUcf(initialUcfResourceObject, ctx.getResourceRef());
     }
 
     static ResourceObjectFound fromUcf(
             @NotNull UcfResourceObject ucfResourceObject,
             @NotNull ProvisioningContext ctx,
             boolean fetchAssociations) {
-        return new ResourceObjectFound(
-                ctx,
-                ExistingResourceObject.fromUcf(ucfResourceObject, ctx.getResourceRef()),
-                fetchAssociations);
+        return new ResourceObjectFound(ctx, ucfResourceObject, fetchAssociations);
     }
 
     /**
@@ -68,6 +69,11 @@ public class ResourceObjectFound extends AbstractLazilyInitializableResourceEnti
         completeResourceObject =
                 ResourceObjectCompleter.completeResourceObject(effectiveCtx, initialResourceObject, fetchAssociations, result);
         getInitializationState().recordError(completeResourceObject.errorState());
+    }
+
+    /** For clients that want to access the "raw" data. */
+    @NotNull UcfResourceObject getInitialUcfResourceObject() {
+        return initialUcfResourceObject;
     }
 
     /** Returns the best available resource object. */

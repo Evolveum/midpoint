@@ -6,13 +6,11 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -59,26 +57,32 @@ public final class ResourceObjectTypeDefinitionImpl
      */
     @NotNull private final String intent;
 
+    /** All supertypes of this object type. */
+    @NotNull private final Set<ResourceObjectTypeIdentification> ancestorsIds;
+
     @NotNull private final ResourceObjectClassDefinition refinedObjectClassDefinition;
 
     ResourceObjectTypeDefinitionImpl(
             @NotNull BasicResourceInformation basicResourceInformation,
             @NotNull ResourceObjectTypeIdentification identification,
+            @NotNull Set<ResourceObjectTypeIdentification> ancestorsIds,
             @NotNull ResourceObjectClassDefinition refinedObjectClassDefinition,
             @NotNull ResourceObjectTypeDefinitionType definitionBean)
             throws SchemaException, ConfigurationException {
-        this(DEFAULT_LAYER, basicResourceInformation, identification, refinedObjectClassDefinition, definitionBean);
+        this(DEFAULT_LAYER, basicResourceInformation, identification, ancestorsIds, refinedObjectClassDefinition, definitionBean);
     }
 
     private ResourceObjectTypeDefinitionImpl(
             @NotNull LayerType layer,
             @NotNull BasicResourceInformation basicResourceInformation,
             @NotNull ResourceObjectTypeIdentification identification,
+            @NotNull Set<ResourceObjectTypeIdentification> ancestorsIds,
             @NotNull ResourceObjectClassDefinition refinedObjectClassDefinition,
             @NotNull ResourceObjectTypeDefinitionType definitionBean)
             throws SchemaException, ConfigurationException {
         super(layer, basicResourceInformation, definitionBean);
         this.identification = identification;
+        this.ancestorsIds = ancestorsIds;
         this.kind = identification.getKind();
         this.intent = identification.getIntent();
         this.refinedObjectClassDefinition = refinedObjectClassDefinition;
@@ -97,6 +101,11 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public @NotNull ResourceObjectTypeDefinition getTypeDefinition() {
         return this;
+    }
+
+    @Override
+    public @NotNull Set<ResourceObjectTypeIdentification> getAncestorsIds() {
+        return ancestorsIds;
     }
 
     @Override
@@ -201,7 +210,8 @@ public final class ResourceObjectTypeDefinitionImpl
         ResourceObjectTypeDefinitionImpl clone;
         try {
             clone = new ResourceObjectTypeDefinitionImpl(
-                    layer, getBasicResourceInformation(), identification, refinedObjectClassDefinition, definitionBean);
+                    layer, getBasicResourceInformation(), identification, ancestorsIds,
+                    refinedObjectClassDefinition, definitionBean);
         } catch (SchemaException | ConfigurationException e) {
             // The data should be already checked for correctness, so this should not happen.
             throw SystemException.unexpected(e, "when cloning");
@@ -263,7 +273,8 @@ public final class ResourceObjectTypeDefinitionImpl
                 && Objects.equals(basicResourceInformation, that.basicResourceInformation)
                 && definitionBean.equals(that.definitionBean)
                 && kind == that.kind
-                && intent.equals(that.intent);
+                && intent.equals(that.intent)
+                && ancestorsIds.equals(that.ancestorsIds);
     }
 
     @Override
@@ -390,6 +401,12 @@ public final class ResourceObjectTypeDefinitionImpl
         }
         sb.append(",kind=").append(getKind().value());
         sb.append(",intent=").append(getIntent());
+    }
+
+    @Override
+    protected void addDebugDumpTrailer(StringBuilder sb, int indent) {
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "ancestors", ancestorsIds, indent + 1);
     }
 
     @Override

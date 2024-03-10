@@ -602,6 +602,21 @@ public class ExpressionUtil {
         return result.getValue();
     }
 
+    public static boolean hasExpressionsAndHasNoValue(@Nullable ObjectFilter filter) {
+        if (filter == null) {
+            return false;
+        }
+        Holder<Boolean> result = new Holder<>(false);
+        filter.accept(f -> {
+            if (f instanceof ValueFilter<?, ?> vf) {
+                if (vf.getExpression() != null && vf.hasNoValue()) {
+                    result.setValue(true);
+                }
+            }
+        });
+        return result.getValue();
+    }
+
     @Contract("null, _, _, _, _, _, _ -> null; !null, _, _, _, _, _, _ -> !null")
     private static ObjectFilter evaluateFilterExpressionsInternal(
             ObjectFilter filter, VariablesMap variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,

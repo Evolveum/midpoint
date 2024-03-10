@@ -54,7 +54,7 @@ class AttributeEvaluation<AH extends AssignmentHolderType, T>
     }
 
     @Override
-    ResourceObjectTypeDefinition getAssociationTargetObjectClassDefinition() {
+    ResourceObjectTypeDefinition getAssociationTargetObjectDefinition() {
         return null;
     }
 }

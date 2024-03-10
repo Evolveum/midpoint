@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.classification;
 
 import java.util.Collection;
-import java.util.List;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.xml.namespace.QName;
@@ -28,7 +27,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.provisioning.util.QueryConversionUtil;
+import com.evolveum.midpoint.schema.processor.ShadowQueryConversionUtil;
 import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -76,15 +75,12 @@ class DelineationMatcher {
     private static final Trace LOGGER = TraceManager.getTrace(DelineationMatcher.class);
 
     @NotNull private final ResourceObjectTypeDelineation delineation;
-    @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
     @NotNull private final ClassificationContext context;
 
     DelineationMatcher(
             @NotNull ResourceObjectTypeDelineation delineation,
-            @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull ClassificationContext context) {
         this.delineation = delineation;
-        this.resourceObjectDefinition = resourceObjectDefinition;
         this.context = context;
     }
 
@@ -191,12 +187,11 @@ class DelineationMatcher {
         ResourceObjectDefinition scopeObjectClassDefinition = Resource.of(context.getResource())
                 .getRawSchemaRequired()
                 .findObjectClassDefinitionRequired(rootObjectClassName);
-        ObjectFilter filter = QueryConversionUtil.parseFilter(filterBean, scopeObjectClassDefinition);
-        if (!(filter instanceof EqualFilter)) {
+        ObjectFilter filter = ShadowQueryConversionUtil.parseFilter(filterBean, scopeObjectClassDefinition);
+        if (!(filter instanceof EqualFilter<?> equalFilter)) {
             LOGGER.debug("Base context filter not supported for classification: {}", filter);
             return null;
         }
-        EqualFilter<?> equalFilter = (EqualFilter<?>) filter;
         PrismPropertyDefinition<?> definition =
                 MiscUtil.requireNonNull(
                         equalFilter.getDefinition(),
@@ -265,11 +260,10 @@ class DelineationMatcher {
     }
 
     private boolean filterMatches() throws SchemaException {
-        List<SearchFilterType> clauses = delineation.getFilterClauses();
-        List<ObjectFilter> filterList = QueryConversionUtil.parseFilters(clauses, resourceObjectDefinition);
+        var filterClauses = delineation.getFilterClauses();
         PrismContainerValue<?> shadowValue = context.getShadowedResourceObject().asPrismContainerValue();
-        for (ObjectFilter objectFilter : filterList) {
-            if (!objectFilter.match(shadowValue, context.getBeans().matchingRuleRegistry)) {
+        for (ObjectFilter filterClause : filterClauses) {
+            if (!filterClause.match(shadowValue, context.getBeans().matchingRuleRegistry)) {
                 return false;
             }
         }

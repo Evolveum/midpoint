@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -175,6 +174,10 @@ class ShadowedObjectConstruction {
         resultingShadowedBean.setCachingMetadata(resourceObject.getBean().getCachingMetadata());
     }
 
+    /**
+     * Acquires target shadows for association values. Copies the identifiers from these shadows.
+     * Keeps only those shadows that match the association definition (if it's restricted to specific target object types).
+     */
     private void copyAndAdoptAssociations(OperationResult result) throws SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, SecurityViolationException,
             EncryptionException {
@@ -187,14 +190,15 @@ class ShadowedObjectConstruction {
 
         PrismContainer<ShadowAssociationsType> associationsCloned = resourceObjectAssociations.clone();
         resultingShadowedBean.asPrismObject().addReplaceExisting(associationsCloned);
-        ShadowAssociationsCollection collection = ShadowAssociationsCollection.ofAssociations(associationsCloned.getRealValue());
-        var associationValueIterator = collection.iterator();
+
+        var associationsCollection = ShadowAssociationsCollection.ofAssociations(associationsCloned.getRealValue());
+        var associationValueIterator = associationsCollection.iterator();
         while (associationValueIterator.hasNext()) {
             if (!adoptAssociationValue(associationValueIterator.next(), result)) {
                 associationValueIterator.remove();
             }
         }
-        collection.cleanup();
+        associationsCollection.cleanup();
     }
 
     /**
@@ -321,39 +325,42 @@ class ShadowedObjectConstruction {
      *
      * @return false if the association value does not fit and should be removed
      */
-    private boolean adoptAssociationValue(IterableAssociationValue associationValue, OperationResult result)
+    private boolean adoptAssociationValue(IterableAssociationValue iterableAssociationValue, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException, EncryptionException {
 
-        LOGGER.trace("Determining shadowRef for {}", associationValue);
+        LOGGER.trace("Determining shadowRef for {}", iterableAssociationValue);
 
-        QName associationName = associationValue.name();
-        var associationValueBean = associationValue.value();
-        var associationValuePcv = associationValue.associationPcv();
+        QName associationName = iterableAssociationValue.name();
+        var associationValueBean = iterableAssociationValue.value();
+        var associationValuePcv = iterableAssociationValue.associationPcv();
 
         ResourceAttributeContainer identifierContainer = ShadowUtil.getIdentifiersContainerRequired(associationValuePcv);
 
-        ShadowAssociationDefinition rAssociationDef = getAssociationDefinition(associationName);
-        ShadowKindType entitlementKind = rAssociationDef.getKind();
+        ShadowAssociationDefinition associationDef = getAssociationDefinition(associationName);
+        ShadowAssociationTypeDefinition associationTypeDef = associationDef.getAssociationTypeDefinition();
 
-        // TODO what if we find a shadow given one of the intents? Shouldn't we stop there? Overall, the process seems
-        //  to be inefficient for multiple intents.
-        for (String entitlementIntent : rAssociationDef.getIntents()) {
-            LOGGER.trace("Processing kind={}, intent={} (from the definition)", entitlementKind, entitlementIntent);
-            ProvisioningContext ctxEntitlement = ctx.spawnForKindIntent(entitlementKind, entitlementIntent);
+        boolean potentialMatch = false;
+        // FIXME reconsider this process especially for multiple intents
+        for (var targetObjectDefinition : associationTypeDef.getObjectTypeDefinitions()) {
+            LOGGER.trace("Processing target object definition: {}", targetObjectDefinition);
+            ProvisioningContext ctxEntitlement = ctx.spawnForDefinition(targetObjectDefinition);
 
-            RepoShadow entitlementRepoShadow = acquireEntitlementRepoShadow(
-                    associationValue, identifierContainer, ctxEntitlement, result);
+            RepoShadow entitlementRepoShadow =
+                    acquireEntitlementRepoShadow(iterableAssociationValue, identifierContainer, ctxEntitlement, result);
             if (entitlementRepoShadow == null) {
                 continue; // maybe we should try another intent
             }
-            if (doesAssociationMatch(rAssociationDef, entitlementRepoShadow)) {
+            if (doesAssociationMatch(targetObjectDefinition.getTypeIdentification(), entitlementRepoShadow)) {
                 LOGGER.trace("Association value matches. Repo shadow is: {}", entitlementRepoShadow);
                 associationValueBean.setShadowRef(entitlementRepoShadow.objectRef());
                 if (entitlementRepoShadow.isClassified()) {
                     addMissingIdentifiers(identifierContainer, ctxEntitlement, entitlementRepoShadow);
+                    return true;
                 } else {
                     // We are not sure we have the right shadow. Hence let us be careful and not copy any identifiers.
+                    // But we may return this shadow, if nothing better is found.
+                    potentialMatch = true;
                 }
             } else {
                 LOGGER.trace("Association value does not match. Repo shadow is: {}", entitlementRepoShadow);
@@ -362,10 +369,9 @@ class ShadowedObjectConstruction {
                 // We can do that only if we have shadow or full resource object. And that is available at this point only.
                 // Therefore just silently filter out the association values that do not belong here.
                 // See MID-5790
-                return false;
             }
         }
-        return true;
+        return potentialMatch;
     }
 
     /** Copies missing identifiers from entitlement repo shadow to the association value; does not overwrite anything! */
@@ -469,7 +475,7 @@ class ShadowedObjectConstruction {
     }
 
     private boolean doesAssociationMatch(
-            ShadowAssociationDefinition rEntitlementAssociationDef, @NotNull RepoShadow entitlementRepoShadow) {
+            @NotNull ResourceObjectTypeIdentification typeIdentification, @NotNull RepoShadow entitlementRepoShadow) {
 
         ShadowKindType shadowKind = entitlementRepoShadow.getKind();
         String shadowIntent = entitlementRepoShadow.getIntent();
@@ -481,7 +487,7 @@ class ShadowedObjectConstruction {
             // for debugging.
             return true;
         }
-        return rEntitlementAssociationDef.getKind() == shadowKind
-                && rEntitlementAssociationDef.getIntents().contains(shadowIntent);
+        return typeIdentification.getKind() == shadowKind
+                && typeIdentification.getIntent().equals(shadowIntent);
     }
 }
