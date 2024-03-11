@@ -1,0 +1,41 @@
+= Create and Get Report
+:page-nav-title: Create and Get Report
+:page-display-order: 900
+:page-toc: top
+//  TODO
+:page-visibility: hidden
+
+== Description
+
+The example describes a use-case when we want to create a new report definition, execute the task to create a new
+report and then fetch a report data object witch contains the file path to the report data.
+
+1. You have to create the new report definition, for this we use the example "Create a new Report regarding Error audit records in 24h".
+2. Based on the example "Create a new Task for Report Execution" a new task referencing the report definition is created and the report data is generated.
+3. A filter is used to fetch the report data, we use the query in the example "Search Report Data based on Report Reference".
+4. The report data contains the file path which we then can use to fetch the actual report CSV from the file system.
+// TODO Should we implement some action which returns the bytestream of the csv based on the report data oid or smthing ??
+
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+== Example
+
+include::../../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+include::../examples/raw/create-report.adoc[]
+
+include::../examples/raw/create-task-report.adoc[]
+
+include::../examples/raw/search-report-data-from-report-def.adoc[]
+
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

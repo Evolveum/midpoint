@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
@@ -252,6 +253,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @SpringBean
     private CertGuiHandlerRegistry certGuiHandlerRegistry;
+
+    @SpringBean
+    private SecretsProviderManager secretsProviderManager;
 
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
@@ -1051,5 +1055,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     public SessionStorage getSessionStorage() {
         MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
         return session.getSessionStorage();
+    }
+
+    public SecretsProviderManager getSecretsProviderManager() {
+        return secretsProviderManager;
     }
 }

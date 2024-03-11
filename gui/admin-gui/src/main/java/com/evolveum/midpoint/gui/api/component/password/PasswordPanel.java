@@ -70,6 +70,7 @@ public class PasswordPanel extends InputPanel {
 
     private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
+    private static final String ID_VALIDATION_PROGRESS_BAR = "validationProgressBar";
     private static final String ID_PASSWORD_TWO = "password2";
     private static final String ID_PASSWORD_TWO_VALIDATION_MESSAGE = "password2ValidationMessage";
     private static final String ID_VALIDATION_PANEL = "validationPanel";
@@ -79,20 +80,29 @@ public class PasswordPanel extends InputPanel {
     private final IModel<ProtectedStringType> passwordModel;
     protected boolean isReadOnly;
     private boolean shouldTrimInput = false;
+    private final boolean showOneLinePasswordPanel;
 
-    public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel) {
-        this(id, passwordModel, false, passwordModel == null || passwordModel.getObject() == null);
+    public <F extends FocusType> PasswordPanel(
+            String id,
+            IModel<ProtectedStringType> passwordModel,
+            boolean isReadOnly,
+            boolean isInputVisible,
+            PrismObject<F> prismObject) {
+        this(id, passwordModel, isReadOnly, isInputVisible, false, prismObject);
     }
 
-    public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible) {
-        this(id, passwordModel, isReadOnly, isInputVisible, null);
-    }
-
-    public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible, PrismObject<F> prismObject) {
+    public <F extends FocusType> PasswordPanel(
+            String id,
+            IModel<ProtectedStringType> passwordModel,
+            boolean isReadOnly,
+            boolean isInputVisible,
+            boolean showOneLinePasswordPanel,
+            PrismObject<F> prismObject) {
         super(id);
         this.passwordInputVisible = isInputVisible;
         this.passwordModel = passwordModel;
         this.isReadOnly = isReadOnly;
+        this.showOneLinePasswordPanel = showOneLinePasswordPanel;
         this.prismObject = prismObject;
         initLayout();
     }
@@ -152,6 +162,11 @@ public class PasswordPanel extends InputPanel {
         password1.add(AttributeAppender.append("aria-label", PageAdminLTE.createStringResourceStatic(getLabelKey())));
         inputContainer.add(password1);
 
+        WebMarkupContainer validationProgressBar = new WebMarkupContainer(ID_VALIDATION_PROGRESS_BAR);
+        validationProgressBar.setOutputMarkupId(true);
+        validationProgressBar.add(new VisibleBehaviour(() -> !showOneLinePasswordPanel));
+        inputContainer.add(validationProgressBar);
+
         final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO,
                 new ProtectedStringModel(Model.of(new ProtectedStringType()))) {
 
@@ -166,6 +181,7 @@ public class PasswordPanel extends InputPanel {
         password2.setRequired(false);
         password2.setOutputMarkupId(true);
         password2.add(new EnableBehaviour(this::canEditPassword));
+        password2.add(new VisibleBehaviour(() -> !showOneLinePasswordPanel));
         password2.add(AttributeAppender.append(
                 "aria-label",
                 LocalizationUtil.translate(
@@ -188,6 +204,7 @@ public class PasswordPanel extends InputPanel {
         IModel<String> password2ValidationModel = () -> getPasswordMatched(password1.getModelObject(), password2.getValue());
         Label password2ValidationMessage = new Label(ID_PASSWORD_TWO_VALIDATION_MESSAGE, password2ValidationModel);
         password2ValidationMessage.setOutputMarkupId(true);
+        password2ValidationMessage.add(new VisibleBehaviour(() -> !showOneLinePasswordPanel));
         inputContainer.add(password2ValidationMessage);
 
         password1.add(new AjaxFormComponentUpdatingBehavior("keyup input") {
@@ -209,8 +226,10 @@ public class PasswordPanel extends InputPanel {
             }
         });
 
-        PasswordValidator pass2Validator = new PasswordValidator(password1);
-        password2.add(pass2Validator);
+        if (!showOneLinePasswordPanel) {
+            PasswordValidator pass2Validator = new PasswordValidator(password1);
+            password2.add(pass2Validator);
+        }
         password2.add(new AjaxFormComponentUpdatingBehavior("keyup input") {
             private static final long serialVersionUID = 1L;
 
@@ -362,7 +381,7 @@ public class PasswordPanel extends InputPanel {
     }
 
     protected boolean isPasswordLimitationPopupVisible() {
-        return true;
+        return !showOneLinePasswordPanel;
     }
 
     protected void updatePasswordValidation(AjaxRequestTarget target) {

@@ -28,12 +28,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -107,7 +102,7 @@ public class ExportActivitySupport extends ReportActivitySupport {
                     options,
                     runningTask,
                     result);
-        } else if (SimulationResultProcessedObjectType.class.isAssignableFrom(type)) {
+        } else if (modelService.isSupportedByRepository(SimulationResultType.class) && Containerable.class.isAssignableFrom(type)) {
             Class<? extends Containerable> containerableType = type.asSubclass(Containerable.class);
             modelService.searchContainersIterative(
                     containerableType,

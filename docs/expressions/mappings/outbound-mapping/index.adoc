@@ -22,7 +22,7 @@ The expression definition is inside attribute definition which is inside account
   ...
   <schemaHandling>
     ...
-    <accountType>
+    <objectType>
       ...
       <attribute>
         ...
@@ -30,14 +30,14 @@ The expression definition is inside attribute definition which is inside account
           <initial>true</initial>
           <expression>
             <code>
-              concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')
+              concat('uid=', $c:focus/c:name, ',ou=people,dc=example,dc=com')
             </code>
           </expression>
         </outbound>
         ...
       </attribute>
       ...
-    </accountType>
+    </objectType>
     ...
   </schemaHandling>
   ...
@@ -55,10 +55,10 @@ Following table summarizes the variables available to outbound expressions.
 |===
 | Variable name | Type | Description
 
-| `user` +
+| `focus` +
 _root node_
-| xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType]
-| User associated with the account.
+| Subclasses of FocusType
+| Represents xref:https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/[focal object] which is typically a user.
 This is the most common source of data for outbound expressions.
 
 

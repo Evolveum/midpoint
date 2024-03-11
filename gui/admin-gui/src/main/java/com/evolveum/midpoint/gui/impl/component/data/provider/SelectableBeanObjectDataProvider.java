@@ -11,8 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;

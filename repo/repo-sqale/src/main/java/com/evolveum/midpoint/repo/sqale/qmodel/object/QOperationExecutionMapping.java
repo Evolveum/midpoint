@@ -203,6 +203,7 @@ public class QOperationExecutionMapping<OR extends MObject>
                     throw new SystemException("Object " + object + " has no operation execution with ID " + row.cid);
 
                 }
+                attachContainerIdPath(pcv.asContainerable(), rowTuple, entityPath);
                 return pcv.asContainerable();
             }
         };
