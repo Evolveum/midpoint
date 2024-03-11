@@ -19,6 +19,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,10 +32,6 @@ import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -246,6 +244,13 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
      * (Currently supported only for searchObjectsIterative and only in provisioning.)
      */
     private FetchErrorHandlingType errorHandling;
+
+    /**
+     * Should shadows be reclassified when being retrieved?
+     * Used for "get" style operations: get and search.
+     * For internal use. Currently supported only in a limited way.
+     */
+    private ShadowClassificationModeType shadowClassificationMode;
 
     /*
      *  !!! After adding option here don't forget to update equals, clone, merge, etc. !!!
@@ -1016,7 +1021,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         this.errorHandling = value;
     }
 
-    public void setErrorReportingMethod(FetchErrorReportingMethodType method, PrismContext prismContext) {
+    public void setErrorReportingMethod(FetchErrorReportingMethodType method) {
         if (errorHandling == null) {
             errorHandling = new FetchErrorHandlingType();
         }
@@ -1037,15 +1042,31 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return errorHandling != null ? errorHandling.getReportingMethod() : null;
     }
 
+    public ShadowClassificationModeType getShadowClassificationMode() {
+        return shadowClassificationMode;
+    }
+
+    public void setShadowClassificationMode(ShadowClassificationModeType shadowClassificationMode) {
+        this.shadowClassificationMode = shadowClassificationMode;
+    }
+
+    public GetOperationOptions shadowClassificationMode(ShadowClassificationModeType shadowClassificationMode) {
+        this.shadowClassificationMode = shadowClassificationMode;
+        return this;
+    }
+
+    public static ShadowClassificationModeType getShadowClassificationMode(GetOperationOptions options) {
+        return options != null ? options.shadowClassificationMode : null;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof GetOperationOptions)) {
+        if (!(o instanceof GetOperationOptions that)) {
             return false;
         }
-        GetOperationOptions that = (GetOperationOptions) o;
         return retrieve == that.retrieve &&
                 Objects.equals(resolve, that.resolve) &&
                 Objects.equals(resolveNames, that.resolveNames) &&
@@ -1065,16 +1086,19 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
                 Objects.equals(definitionProcessing, that.definitionProcessing) &&
                 Objects.equals(iterationMethod, that.iterationMethod) &&
                 Objects.equals(executionPhase, that.executionPhase) &&
-                Containerable.equivalent(errorHandling, that.errorHandling);
+                Containerable.equivalent(errorHandling, that.errorHandling) &&
+                Objects.equals(shadowClassificationMode, that.shadowClassificationMode);
     }
 
     @Override
     public int hashCode() {
         return Objects
                 .hash(retrieve, resolve, resolveNames, noFetch, raw, tolerateRawData, doNotDiscovery,
-                        allowNotFound, readOnly, staleness, distinct, definitionProcessing, attachDiagData, executionPhase);
+                        allowNotFound, readOnly, staleness, distinct, definitionProcessing, attachDiagData, executionPhase,
+                        shadowClassificationMode);
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public GetOperationOptions clone() {
         GetOperationOptions clone = new GetOperationOptions();
         clone.retrieve = this.retrieve;
@@ -1101,6 +1125,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         if (this.errorHandling != null) {
             clone.errorHandling = this.errorHandling.clone();
         }
+        clone.shadowClassificationMode = this.shadowClassificationMode;
         return clone;
     }
 
@@ -1134,6 +1159,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         appendVal(sb, "iterationMethod", iterationMethod);
         appendFlag(sb, "executionPhase", executionPhase);
         appendVal(sb, "errorHandling", prettyPrint(errorHandling));
+        appendVal(sb, "shadowClassificationMode", shadowClassificationMode);
         removeLastComma(sb);
     }
 
@@ -1305,6 +1331,9 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         }
         if (increment.errorHandling != null) {
             this.errorHandling = increment.errorHandling.clone();
+        }
+        if (increment.shadowClassificationMode != null) {
+            this.shadowClassificationMode = increment.shadowClassificationMode;
         }
     }
 

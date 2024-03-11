@@ -243,6 +243,9 @@
         </object>
     </authorization>
     <adminGuiConfiguration>
+        <feedbackMessagesHook>
+            <stackTraceVisibility>hidden</stackTraceVisibility>
+        </feedbackMessagesHook>
         <homePage id="34">
             <type>UserType</type>
             <widget id="35">

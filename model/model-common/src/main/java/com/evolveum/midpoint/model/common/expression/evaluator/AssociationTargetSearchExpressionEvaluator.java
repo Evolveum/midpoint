@@ -6,21 +6,13 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
-import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
-
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -31,20 +23,23 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -92,7 +87,7 @@ public class AssociationTargetSearchExpressionEvaluator
             }
 
             @Override
-            protected PrismContainerValue<ShadowAssociationValueType> createResultValue(
+            protected @NotNull PrismContainerValue<ShadowAssociationValueType> createResultValue(
                     String oid,
                     PrismObject<ShadowType> object,
                     List<ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> newValueDeltas)
@@ -140,15 +135,11 @@ public class AssociationTargetSearchExpressionEvaluator
             }
 
             @Override
-            protected void extendOptions(
-                    Collection<SelectorOptions<GetOperationOptions>> options, boolean searchOnResource) {
-                super.extendOptions(options, searchOnResource);
+            protected void extendOptions(GetOperationOptionsBuilder builder, boolean searchOnResource) {
+                super.extendOptions(builder, searchOnResource);
                 // We do not need to worry about associations of associations here
                 // (nested associations). Avoiding that will make the query faster.
-                options.add(
-                        SelectorOptions.create(
-                                prismContext.toUniformPath(ShadowType.F_ASSOCIATIONS),
-                                GetOperationOptions.createDontRetrieve()));
+                builder.item(ShadowType.F_ASSOCIATIONS).dontRetrieve();
             }
 
             @Override

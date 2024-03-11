@@ -95,4 +95,16 @@
         <item>riskLevel</item>
         <item>serviceType</item>
     </authorization>
+    <authorization>
+        <name>certification-campaign-read</name>
+        <description>
+            Allow to read stageNumber property of certification campaign.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AccessCertificationCampaignType</type>
+        </object>
+        <item>name</item>
+        <item>stageNumber</item>
+    </authorization>
 </role>

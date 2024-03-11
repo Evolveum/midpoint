@@ -82,6 +82,7 @@ public class GetOperationOptionsUtil {
                         options.getDefinitionProcessing()));
         optionsType.setStaleness(options.getStaleness());
         optionsType.setDistinct(options.getDistinct());
+        optionsType.setShadowClassificationMode(options.getShadowClassificationMode());
         return optionsType;
     }
 
@@ -119,6 +120,7 @@ public class GetOperationOptionsUtil {
         options.setDefinitionProcessing(DefinitionProcessingOption.toDefinitionProcessingOption(optionsType.getDefinitionProcessing()));
         options.setStaleness(optionsType.getStaleness());
         options.setDistinct(optionsType.isDistinct());
+        options.setShadowClassificationMode(optionsType.getShadowClassificationMode());
         return options;
     }
 

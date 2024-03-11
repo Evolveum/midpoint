@@ -458,11 +458,18 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             }
             var container = target.asPrismObject().findOrCreateItem(getPath(), (Class) mapping.getPrismItemType());
             var alias = mapping.createAlias();
-            container.setIncomplete(false);
-            for (var val : values) {
-                var containerable = mapping.toSchemaObjectEmbedded(val, alias);
-                // FIXME: Some better addition method should be necessary.
-                ((Item) container).addIgnoringEquivalents(containerable);
+
+
+            if (container.isEmpty() || container.isIncomplete()) {
+                // If container is not empty and or not incomplete - it contained data from previous versions (not splitted)
+                // so we should not populate it with splitted
+                container.setIncomplete(false);
+                for (var val : values) {
+                    var containerable = mapping.toSchemaObjectEmbedded(val, alias);
+                    // FIXME: Some better addition method should be necessary.
+                    // Check if value is present...
+                    ((Item) container).addIgnoringEquivalents(containerable);
+                }
             }
         }
     }
