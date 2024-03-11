@@ -38,7 +38,7 @@ There are two main scenarios that can be followed:
 * <<No changes in initial objects>>
 * <<Custom changes in initial objects>>
 
-==== No changes in initial objects
+== No changes in initial objects
 
 This one is the simplest case.
 If there are no custom changes in initial objects made by users, then ninja can update initial objects automatically.
@@ -50,7 +50,7 @@ Following command can be used (please use `--dry-run` if you want to see what wi
 ./bin/ninja.sh initial-objects --no-merge
 ----
 
-==== Custom changes in initial objects
+== Custom changes in initial objects
 
 If there are custom changes in initial objects made by users, then ninja can help you merge them.
 First, dry run is recommended to see what needs to be done, optionally with report of changes:
@@ -68,7 +68,7 @@ If there are objects (filtered by types or oids) that can be handled without mer
 ./bin/ninja.sh initial-objects --no-merge [--type securityPolicy,valuePolicy,...] [--oid 93ae3cd3-b34d-4093-ad49-adba573a95ba]
 ----
 
-==== Important updates
+== Important updates
 
 There is at least one object - securityPolicy that needs to be updated when upgrading LTS from 4.4 to 4.8.
 If there are no custom changes in securityPolicy, following command can be used:

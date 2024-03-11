@@ -2079,7 +2079,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
             updateContext.finishExecutionOwn();
             jdbcSession.commit();
-        } finally {
             return null;
         }
     }
