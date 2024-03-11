@@ -12,6 +12,8 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowClassificationModeType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -184,6 +186,11 @@ class ClassificationHelper {
      * See https://docs.evolveum.com/midpoint/devel/design/simulations/simulated-shadows/#shadow-classification.
      */
     boolean shouldClassify(ProvisioningContext ctx, ShadowType repoShadow) throws SchemaException, ConfigurationException {
+        if (ctx.getClassificationMode() == ShadowClassificationModeType.FORCED) {
+            LOGGER.trace("Classification is forced -> will do it now");
+            return true;
+        }
+
         ResourceObjectTypeIdentification declaredType = ShadowUtil.getTypeIdentification(repoShadow);
         if (declaredType == null) {
             LOGGER.trace("Shadow is not classified -> we will do that");
