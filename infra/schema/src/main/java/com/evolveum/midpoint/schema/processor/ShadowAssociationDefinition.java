@@ -238,6 +238,11 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     }
 
     @Override
+    public @Nullable Merge getMerge() {
+        return null;
+    }
+
+    @Override
     public String getHelp() {
         return associationConfigItem.getHelp();
     }

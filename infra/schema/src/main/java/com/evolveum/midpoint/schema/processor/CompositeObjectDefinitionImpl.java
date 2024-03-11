@@ -139,6 +139,11 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public @Nullable Merge getMerge() {
+        return structuralDefinition.getMerge();
+    }
+
+    @Override
     public boolean isEmphasized() {
         return structuralDefinition.isEmphasized();
     }

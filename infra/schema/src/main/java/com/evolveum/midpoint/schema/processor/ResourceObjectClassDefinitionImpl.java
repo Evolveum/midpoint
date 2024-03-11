@@ -472,6 +472,11 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
+    public void setMerge(Merge merge) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void setHelp(String help) {
         throw new UnsupportedOperationException();
     }

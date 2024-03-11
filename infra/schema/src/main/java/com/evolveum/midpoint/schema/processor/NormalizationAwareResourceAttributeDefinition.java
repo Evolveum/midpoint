@@ -294,6 +294,11 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     }
 
     @Override
+    public @Nullable Merge getMerge() {
+        return originalDefinition.getMerge();
+    }
+
+    @Override
     public boolean isIndexOnly() {
         return originalDefinition.isIndexOnly();
     }

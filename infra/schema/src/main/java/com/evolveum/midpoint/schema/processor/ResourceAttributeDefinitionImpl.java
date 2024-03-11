@@ -360,6 +360,11 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public @Nullable Merge getMerge() {
+        return rawDefinition.getMerge();
+    }
+
+    @Override
     public ItemProcessing getProcessing() {
         return getProcessing(currentLayer);
     }

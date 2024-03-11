@@ -639,6 +639,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
+    public @Nullable Merge getMerge() {
+        return null;
+    }
+
+    @Override
     public boolean isEmphasized() {
         return false;
     }
