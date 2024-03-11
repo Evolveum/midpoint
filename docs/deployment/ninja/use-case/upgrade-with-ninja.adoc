@@ -26,16 +26,16 @@ For concrete examples of upgrade scenarios, please see <<Upgrade procedure examp
 . *Preparation phase*
 .. Read release notes for the new midPoint version / for all intermediate midPoint versions between your current and the new midPoint version (this is especially important for LTS to LTS upgrade)
 .. <<Upgrade tasks to use activities>>
-.. xref:./index.adoc[Pre-upgrade check]
+.. <<Pre-upgrade check>>
 .. <<Verification & upgrade objects>>
 //.. Review verification results
 //.. Run upgrade objects (based on verification results)
-.. xref:./index.adoc[Download distribution]
+.. <<Download distribution>>
 . *Upgrade phase*
 .. Stop midPoint
 .. <<Upgrade DB schema>>
 .. <<Upgrade installation,Upgrade midPoint installation>>
-.. xref:./<<Initial objects,Update initial objects>>
+.. <<Initial objects,Update initial objects>>
 .. Start midPoint
 .. <<Verify connector references in resources>>
 
@@ -624,6 +624,16 @@ MidPoint Studio plugin with Intellij Idea will be able to help with migration of
 
 More information about task migration can be found in xref:/midpoint/reference/tasks/activities/migration/[Migration of Tasks from 4.0/4.3 to 4.4] section of midPoint documentation.
 
+=== Pre-upgrade check
+
+Pre-upgrade check is a simple check that verifies that current midPoint version matches version of distribution that is going to be upgraded.
+There are two items being checked:
+
+* database schema version
+* midPoint cluster nodes version
+
+For more information see xref:../command/pre-upgrade-check.adoc[] command documentation.
+
 === Verification & upgrade objects
 
 Verification is a process that reads objects from midPoint repository and checks whether they are compatible with new version of midPoint.
@@ -633,6 +643,13 @@ Command `upgrade-objects` can be used to _upgrade_ objects to get rid of depreca
 
 See more information about verification in xref:../command/verify.adoc[] and xref:../command/upgrade-objects.adoc[] command documentation.
 
+=== Download distribution
+
+Download distribution is simple step that helps you download specific version of distribution of midPoint.
+Midpoint distribution is downloaded from https://download.evolveum.com/midpoint/[download.evolveum.com].
+
+For more information see xref:../command/download-distribution.adoc[] command documentation.
+
 === Upgrade DB schema
 
 Database schema changes are handled by SQL scripts that are bundled with distribution in folder `doc/config/sql/native/*.sql`.
@@ -641,6 +658,22 @@ For more information see xref:../index.adoc#run-sql[run-sql] command documentati
 
 // TODO TODO TODO what if I was using other than Default Security Policy?
 // TODO TODO TODO GUI auth works, but REST (Studio) will not work
+
+=== Upgrade installation
+
+Upgrade installation command will copy and replace files in midPoint installation directory using files from distribution.
+By default, installation directory is computed as a parent of midpoint-home directory.
+
+This command is useful only in non-container environments.
+
+To learn more about this command see xref:../command/upgrade-installation.adoc[].
+
+=== Initial objects
+
+This is the last step of upgrade procedure while midPoint is still down.
+It is necessary to update initial objects to make sure that they are compatible with new version of midPoint and midPoint can start and work properly.
+
+For more information see xref:../command/initial-objects.adoc[] command documentation.
 
 === Verify connector references in resources
 

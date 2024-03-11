@@ -58,7 +58,7 @@ metadata/createTimestamp > ```
 ----
 
 The syntax for multi-line expressions is a bit more elaborated, multi-line script
-starts with triple backticks (`{triple-backtick}`), followed by new-line.
+starts with triple backticks followed by new-line (`{triple-backtick}\n`).
 Script body is closed by triple backticks (`{triple-backtick}`). This minimizes
 need for escaping most of the quotes or sequences inside the script body.
 
