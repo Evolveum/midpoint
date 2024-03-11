@@ -16,8 +16,6 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFactory;
-import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
 
