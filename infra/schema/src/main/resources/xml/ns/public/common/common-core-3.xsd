@@ -6615,13 +6615,26 @@
 
                                 It is planned to be used to "remember" the search result. E.g. to
                                 search for the target on import and then store the fixed OID.
-                                But this is not yet implemented.
+                                But this is not yet implemented. Actually, it can be a problem if multiple objects
+                                are found by the search by filter.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
+                    <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Filter or filters to use to look for objects.
+                            </xsd:documentation>
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="searchStrategy" type="tns:ObjectSearchStrategyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How we try to find matching objects. Note that when "onResourceIfNeeded" is used,
+                                it is applied onto the filters individually. That means, that each filter is evaluated
+                                against the repository, and if nothing is found, the resource is consulted.
+                            </xsd:documentation>
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="defaultTargetRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>

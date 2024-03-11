@@ -7684,4 +7684,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 () -> new AssertionError("More than one open work item: " + openWorkItems),
                 () -> new AssertionError("No open work items in: " + aCase));
     }
+
+    @Override
+    protected <A extends AbstractAsserter<?>> A initializeAsserter(A asserter) {
+        super.initializeAsserter(asserter);
+        asserter.setObjectResolver(createSimpleModelObjectResolver());
+        return asserter;
+    }
 }

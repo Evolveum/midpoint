@@ -76,7 +76,7 @@ public class TestParseObjectTemplate extends AbstractSchemaTest {
         for (int i = 0; i < THREADS; i++) {
             Thread thread = new Thread(() -> {
                 try {
-                    ObjectFilter filter = prismContext.getQueryConverter().createObjectFilter(RoleType.class, evaluator.getFilter());
+                    ObjectFilter filter = prismContext.getQueryConverter().createObjectFilter(RoleType.class, evaluator.getFilter().get(0));
                     EqualFilter equalFilter = (EqualFilter) filter;
                     assertNotNull(equalFilter.getExpression());
                     ExpressionType expression = (ExpressionType) equalFilter.getExpression().getExpression();
