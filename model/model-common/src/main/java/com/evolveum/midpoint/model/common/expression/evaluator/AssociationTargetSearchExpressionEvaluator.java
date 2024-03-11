@@ -87,7 +87,7 @@ public class AssociationTargetSearchExpressionEvaluator
             }
 
             @Override
-            protected PrismContainerValue<ShadowAssociationValueType> createResultValue(
+            protected @NotNull PrismContainerValue<ShadowAssociationValueType> createResultValue(
                     String oid,
                     PrismObject<ShadowType> object,
                     List<ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> newValueDeltas)
