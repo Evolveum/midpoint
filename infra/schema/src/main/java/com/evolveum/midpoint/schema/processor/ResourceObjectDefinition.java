@@ -590,4 +590,23 @@ public interface ResourceObjectDefinition
             return CompositeObjectDefinition.of(this, auxiliaryDefinitions);
         }
     }
+
+    /** TODO ... ignoreCase will be part of the schema, soon ... */
+    default ShadowItemDefinition<?> findShadowItemDefinitionRequired(
+            @NotNull ItemName itemName, boolean ignoreCase, Object errorCtx) throws SchemaException {
+
+        var attributeDefinition = findAttributeDefinition(itemName, ignoreCase);
+        var associationDefinition = findAssociationDefinition(itemName);
+
+        stateCheck(attributeDefinition == null || associationDefinition == null,
+                "'%s' is both an attribute and an association in '%s' (should be checked already)",
+                itemName, this);
+        if (attributeDefinition != null) {
+            return attributeDefinition;
+        } else if (associationDefinition != null) {
+            return associationDefinition;
+        } else {
+            throw new SchemaException("Unknown attribute/association '%s' in '%s'; %s".formatted(itemName, this, errorCtx));
+        }
+    }
 }

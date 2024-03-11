@@ -23,7 +23,7 @@ import java.util.Collection;
  * TODO
  */
 @SuppressWarnings("rawtypes")
-public interface ResourceAttributeContainer extends PrismContainer<ShadowAttributesType> {
+public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismContainer<ShadowAttributesType> {
 
     static ResourceAttributeContainer convertFromPrismContainer(
             @NotNull PrismContainer<?> origPrismContainer, @NotNull ResourceObjectDefinition resourceObjectDefinition) throws SchemaException {

@@ -33,7 +33,9 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
  * Contained in {@link ShadowAssociationsContainer}.
  */
 @Experimental
-public class ShadowAssociation extends PrismContainerImpl<ShadowAssociationValueType> {
+public class ShadowAssociation
+        extends PrismContainerImpl<ShadowAssociationValueType>
+        implements ShadowItem<ShadowAssociationValue, ShadowAssociationValueType> {
 
     @Serial private static final long serialVersionUID = 0L;
 
@@ -50,6 +52,11 @@ public class ShadowAssociation extends PrismContainerImpl<ShadowAssociationValue
     public @NotNull ShadowAssociationDefinition getDefinitionRequired() {
         return stateNonNull(
                 getDefinition(), "No definition in %s", this);
+    }
+
+    @Override
+    public ShadowAssociation clone() {
+        return (ShadowAssociation) super.clone();
     }
 
     @Override
@@ -152,5 +159,14 @@ public class ShadowAssociation extends PrismContainerImpl<ShadowAssociationValue
         //noinspection unchecked,RedundantCast,rawtypes
         return Collections.unmodifiableList(
                 (List<? extends ShadowAssociationValue>) (List) getValues());
+    }
+
+    @Override
+    public void addValueSkipUniquenessCheck(ShadowAssociationValue value) throws SchemaException {
+        addIgnoringEquivalents(value);
+    }
+
+    public boolean hasNoValues() {
+        return getValues().isEmpty();
     }
 }

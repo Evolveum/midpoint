@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsTy
  *
  * @see ResourceAttributeContainer
  */
-public interface ShadowAssociationsContainer extends PrismContainer<ShadowAssociationsType> {
+public interface ShadowAssociationsContainer extends ShadowItemsContainer, PrismContainer<ShadowAssociationsType> {
 
     static ShadowAssociationsContainer convertFromPrismContainer(
             @NotNull PrismContainer<?> origPrismContainer, @NotNull ResourceObjectDefinition resourceObjectDefinition)

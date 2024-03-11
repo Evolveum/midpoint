@@ -57,6 +57,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 public class ShadowAssociationDefinition extends AbstractFreezable
         implements Serializable, Visitable<Definition>, Freezable, DebugDumpable,
         PrismContainerDefinition<ShadowAssociationValueType>,
+        ShadowItemDefinition<ShadowAssociation>,
         MutablePrismContainerDefinition.Unsupported<ShadowAssociationValueType> {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -491,7 +492,7 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     }
 
     @Override
-    public ShadowAssociationDefinition toMutable() {
+    public @NotNull ShadowAssociationDefinition toMutable() {
         checkMutableOnExposing();
         return this;
     }
@@ -502,7 +503,7 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     }
 
     @Override
-    public ItemDefinition<PrismContainer<ShadowAssociationValueType>> deepClone(@NotNull DeepCloneOperation operation) {
+    public ShadowAssociationDefinition deepClone(@NotNull DeepCloneOperation operation) {
         return this; // TODO ???
     }
 

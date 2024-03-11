@@ -17,6 +17,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ItemFactory;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObjectFragment;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -24,9 +27,7 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.*;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
@@ -52,6 +53,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  *
  * - UCF {@link UcfResourceObject}
  * - or UCF {@link UcfResourceObjectIdentification}
+ *
+ * Calls itself recursively: when converting an object, its associations (with embedded objects or references)
+ * are converted using the very same mechanism as the containing object.
+ * See {@link Conversion#convertReferenceToAssociationValue(ConnectorObjectReference)}.
  */
 class ConnIdToUcfObjectConversion {
 
@@ -65,6 +70,8 @@ class ConnIdToUcfObjectConversion {
 
     /** Used to access resource schema and the like. */
     @NotNull private final ConnectorContext connectorContext;
+
+    @NotNull private final ItemFactory itemFactory = PrismContext.get().itemFactory();
 
     @NotNull private final ConnIdBeans b = ConnIdBeans.get();
 
@@ -87,23 +94,26 @@ class ConnIdToUcfObjectConversion {
 
     /**
      * In order to report errors both in "exception" and "ucf_object" mode, this method throws an exception if the conversion
-     * was not entirely successful. The client can then call {@link #getPartialUcfResourceObject(UcfErrorState)} to get the
-     * partial result, with customized error state that may include client-supplied context.
+     * was not entirely successful. The client can then call {@link #getPartiallyConvertedUcfResourceObject(Throwable)}
+     * to get the partial result, with customized error state that may include client-supplied context.
      */
     @NotNull UcfResourceObject getUcfResourceObjectIfSuccess() throws SchemaException {
         return (UcfResourceObject) conversion.getResourceObjectFragmentIfSuccess();
     }
 
+    /** As {@link #getUcfResourceObjectIfSuccess()} but for fragments, i.e., association values. */
     private @NotNull UcfResourceObjectFragment getUcfResourceObjectFragmentIfSuccess() throws SchemaException {
         return conversion.getResourceObjectFragmentIfSuccess();
     }
 
-    @NotNull UcfResourceObject getPartialUcfResourceObject(UcfErrorState errorState) throws SchemaException {
+    @NotNull UcfResourceObject getPartiallyConvertedUcfResourceObject(@NotNull Throwable exception) throws SchemaException {
         String uidValue = getUidValue();
+        var errorState = UcfErrorState.error(exception);
         if (conversion != null) {
+            // Hopefully, at least some attributes were converted.
             return UcfResourceObject.of(conversion.convertedObject, uidValue, errorState);
         } else {
-            // Something is seriously broken, so let's return just the empty object
+            // Something is seriously broken, so let's return just the empty object.
             return UcfResourceObject.of(originalResourceObjectDefinition.createBlankShadow(uidValue), uidValue, errorState);
         }
     }
@@ -280,25 +290,32 @@ class ConnIdToUcfObjectConversion {
             return MiscUtil.castSafely(valueInUcf, type, lazy(() -> " in attribute " + connIdAttribute.getName()));
         }
 
-        private Object convertAttributeValueFromConnId(Object connIdValue) {
+        private PrismValue convertAttributeValueFromConnId(Object connIdValue) throws SchemaException {
             if (connIdValue == null) {
                 return null;
             }
             if (connIdValue instanceof ZonedDateTime zonedDateTime) {
-                return XmlTypeConverter.createXMLGregorianCalendar(zonedDateTime);
+                return itemFactory.createPropertyValue(
+                        XmlTypeConverter.createXMLGregorianCalendar(zonedDateTime));
             }
             if (connIdValue instanceof GuardedString guardedString) {
-                return fromGuardedString(guardedString);
+                return itemFactory.createPropertyValue(
+                        fromGuardedString(guardedString));
             }
             if (connIdValue instanceof Map<?, ?> map) {
                 // TODO: check type that this is really PolyString
                 //noinspection unchecked
-                return polyStringFromConnIdMap((Map<String, String>) map);
+                var ps = polyStringFromConnIdMap((Map<String, String>) map);
+                return ps != null ? itemFactory.createPropertyValue(ps) : null;
             }
-            return connIdValue;
+            if (connIdValue instanceof ConnectorObjectReference reference) {
+                return ShadowAssociationValue.of(
+                        convertReferenceToAssociationValue(reference));
+            }
+            return itemFactory.createPropertyValue(connIdValue);
         }
 
-        private ProtectedStringType fromGuardedString(GuardedString icfValue) {
+        private @NotNull ProtectedStringType fromGuardedString(GuardedString icfValue) {
             final ProtectedStringType ps = new ProtectedStringType();
             icfValue.access(passwordChars -> {
                 try {
@@ -341,104 +358,50 @@ class ConnIdToUcfObjectConversion {
         private void convertOtherAttribute(Attribute connIdAttr, String connIdAttrName)
                 throws SchemaException {
             var convertedAttrName = connIdAttributeNameToUcf(connIdAttrName, null, resourceObjectDefinition);
-            var mpDefinition = findDefinitionForConnIdAttribute(convertedAttrName, connIdAttrName);
 
-            if (mpDefinition instanceof ResourceAttributeDefinition<?> attributeDefinition) {
-                convertAttribute(connIdAttr, attributeDefinition);
-            } else if (mpDefinition instanceof ShadowAssociationDefinition associationDefinition) {
-                convertAssociation(connIdAttr, associationDefinition);
-            } else {
-                throw new IllegalStateException("Unexpected definition type: " + mpDefinition.getClass());
-            }
-        }
+            // We have no ConnId definition at hand to distinguish between attributes and associations.
+            // We could do something with the value(s) but in theory, there can be no values.
+            var mpDefinition = resourceObjectDefinition.findShadowItemDefinitionRequired(
+                    convertedAttrName,
+                    getResourceSchema().isCaseIgnoreAttributeNames(),
+                    lazy(() -> "original ConnId name: '%s' in resource object identified by %s".formatted(
+                            connIdAttrName, connectorObjectFragment.getIdentification())));
 
-        private <T> void convertAttribute(Attribute connIdAttr, ResourceAttributeDefinition<T> attributeDefinition)
-                throws SchemaException {
-
-            ResourceAttribute<T> convertedAttribute = attributeDefinition.instantiate();
+            ShadowItem<?, ?> convertedItem = mpDefinition.instantiate();
 
             // Note: we skip uniqueness checks here because the attribute in the resource object is created from scratch.
-            // I.e. its values will be unique (assuming that values coming from the resource are unique).
-
+            // I.e. its values will be unique (assuming that values coming from the resource are unique, and no two values
+            // from resource are mapped into the same value in midPoint).
             for (Object connIdValue : emptyIfNull(connIdAttr.getValue())) {
-                if (connIdValue != null) {
-                    // Convert the value. While most values do not need conversions, some of them may need it (e.g. GuardedString)
-                    //noinspection unchecked
-                    convertedAttribute.addRealValueSkipUniquenessCheck(
-                            (T) convertAttributeValueFromConnId(connIdValue));
+                // Convert the value. While most values do not need conversions, some of them may need it (e.g. GuardedString)
+                var convertedValue = convertAttributeValueFromConnId(connIdValue);
+                if (convertedValue != null) {
+                    //noinspection unchecked,rawtypes
+                    ((ShadowItem) convertedItem).addValueSkipUniquenessCheck(convertedValue);
                 }
             }
 
-            convertedAttribute.setIncomplete(ConnIdAttributeUtil.isIncomplete(connIdAttr));
-            if (!convertedAttribute.getValues().isEmpty() || convertedAttribute.isIncomplete()) {
-                LOGGER.trace("Converted attribute {}", convertedAttribute);
-                ShadowUtil.addAttribute(convertedObject, convertedAttribute);
+            convertedItem.setIncomplete(ConnIdAttributeUtil.isIncomplete(connIdAttr));
+            if (!convertedItem.hasNoValues() || convertedItem.isIncomplete()) {
+                LOGGER.trace("Converted attribute/association {}", convertedItem);
+                ShadowUtil.addShadowItem(convertedObject, convertedItem);
             }
         }
 
-        private void convertAssociation(Attribute connIdAttr, ShadowAssociationDefinition associationDefinition)
+        private @NotNull UcfResourceObjectFragment convertReferenceToAssociationValue(ConnectorObjectReference reference)
                 throws SchemaException {
-            var association = associationDefinition.instantiate();
-            for (Object connIdValue : emptyIfNull(connIdAttr.getValue())) {
-                if (connIdValue != null) {
-                    var reference = MiscUtil.castSafely(
-                            connIdValue, ConnectorObjectReference.class, lazy(() -> " in association " + connIdAttr.getName()));
-                    var targetObjectOrItsIdentification = convertReference(reference);
-                    association.add(
-                            ShadowAssociationValue.of(targetObjectOrItsIdentification));
-                }
-            }
-            association.setIncomplete(ConnIdAttributeUtil.isIncomplete(connIdAttr));
-            if (!association.hasNoValues() || association.isIncomplete()) {
-                ShadowUtil
-                        .getOrCreateAssociationsContainer(convertedObject)
-                        .add(association);
-            }
-        }
-
-        private @NotNull UcfResourceObjectFragment convertReference(ConnectorObjectReference reference) throws SchemaException {
-            var targetObjectOrIdentification = reference.getReferencedValue();
+            BaseConnectorObject targetObjectOrIdentification = reference.getReferencedValue();
             var targetObjectClassName =
                     connIdObjectClassNameToUcf(targetObjectOrIdentification.getObjectClass(), isLegacySchema());
             var targetObjectDefinition = getResourceSchema().findDefinitionForObjectClassRequired(targetObjectClassName);
 
-            var embeddedConversion = new ConnIdToUcfObjectConversion(
-                    targetObjectOrIdentification, targetObjectDefinition, connectorContext);
+            var embeddedConversion =
+                    new ConnIdToUcfObjectConversion(
+                            targetObjectOrIdentification, targetObjectDefinition, connectorContext);
             embeddedConversion.execute();
             // If the conversion is not successful, the conversion of the particular association - as a whole - fails
             // (and the error is handled just as if any attribute conversion failed).
             return embeddedConversion.getUcfResourceObjectFragmentIfSuccess();
-        }
-
-        /** Finds the definition. The original name is for error reporting only. */
-        private @NotNull ItemDefinition<?> findDefinitionForConnIdAttribute(ItemName convertedAttrName, String connIdAttrName)
-                throws SchemaException {
-            // TODO in the future, this should be treated in the "findXYZ" methods themselves
-            var isCaseInsensitive = getResourceSchema().isCaseIgnoreAttributeNames();
-
-            // We have no ConnId definition at hand to distinguish between attributes and associations.
-            // We could do something with the value(s) but in theory, there can be no values.
-            var attributeDefinition =
-                    resourceObjectDefinition.findAttributeDefinition(convertedAttrName, isCaseInsensitive);
-            var associationDefinition =
-                    resourceObjectDefinition.findAssociationDefinition(convertedAttrName); // TODO case insensitiveness
-
-            if (attributeDefinition != null && associationDefinition != null) {
-                throw new SchemaException(
-                        "'%s' is both an attribute and an association in '%s'?".formatted(
-                                convertedAttrName, resourceObjectDefinition));
-            } else if (attributeDefinition != null) {
-                return attributeDefinition;
-            } else if (associationDefinition != null) {
-                return associationDefinition;
-            } else {
-                throw new SchemaException(
-                        ("Unknown attribute '%s' in definition of object class '%s'. "
-                                + "Original ConnId name: '%s' in resource object identified by %s").formatted(
-                                convertedAttrName, resourceObjectDefinition.getTypeName(),
-                                connIdAttrName, connectorObjectFragment.getIdentification()),
-                        convertedAttrName);
-            }
         }
 
         @NotNull UcfResourceObjectFragment getResourceObjectFragmentIfSuccess() throws SchemaException {

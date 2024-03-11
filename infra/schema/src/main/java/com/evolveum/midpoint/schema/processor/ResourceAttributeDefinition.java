@@ -36,7 +36,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @see ResourceAttribute
  */
 public interface ResourceAttributeDefinition<T>
-        extends ResourceItemUcfDefinition, PrismPropertyDefinition<T>, LayeredDefinition {
+        extends ShadowItemDefinition<ResourceAttribute<T>>,
+        ResourceItemUcfDefinition,
+        PrismPropertyDefinition<T>,
+        LayeredDefinition {
 
     /**
      * Returns limitations (cardinality, access rights, processing) for given layer.
@@ -232,7 +235,6 @@ public interface ResourceAttributeDefinition<T>
         return PrismUtil.convertPropertyValue(srcValue, this);
     }
 
-    @Override
     @NotNull ResourceAttributeDefinition<T> clone();
 
     @Override

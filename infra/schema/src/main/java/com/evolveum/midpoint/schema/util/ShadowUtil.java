@@ -1169,4 +1169,18 @@ public class ShadowUtil {
     public static void addAttribute(ShadowType shadow, ResourceAttribute<?> attribute) throws SchemaException {
         getOrCreateAttributesContainer(shadow).add(attribute);
     }
+
+    public static void addAssociation(ShadowType shadow, ShadowAssociation association) throws SchemaException {
+        getOrCreateAssociationsContainer(shadow).add(association);
+    }
+
+    public static void addShadowItem(ShadowType shadow, ShadowItem item) throws SchemaException {
+        if (item instanceof ResourceAttribute<?> attribute) {
+            addAttribute(shadow, attribute);
+        } else if (item instanceof ShadowAssociation association) {
+            addAssociation(shadow, association);
+        } else {
+            throw new IllegalArgumentException("Neither attribute nor association: " + item);
+        }
+    }
 }

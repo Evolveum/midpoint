@@ -220,4 +220,9 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
             }
         }
     }
+
+    @Override
+    public void addValueSkipUniquenessCheck(PrismPropertyValue<T> value) throws SchemaException {
+        addIgnoringEquivalents(value);
+    }
 }

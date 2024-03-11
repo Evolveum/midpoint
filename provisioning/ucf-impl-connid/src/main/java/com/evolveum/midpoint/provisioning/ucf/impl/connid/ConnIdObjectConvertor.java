@@ -89,7 +89,7 @@ class ConnIdObjectConvertor {
                 if (ucfErrorReportingMethod == UcfFetchErrorReportingMethod.UCF_OBJECT) {
                     Throwable wrappedException = MiscUtil.createSame(t, createMessage(co, t));
                     result.recordException(wrappedException);
-                    return conversion.getPartialUcfResourceObject(UcfErrorState.error(wrappedException));
+                    return conversion.getPartiallyConvertedUcfResourceObject(wrappedException);
                 } else {
                     throw t; // handled just below
                 }
