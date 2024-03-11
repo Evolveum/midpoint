@@ -212,7 +212,11 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         } else {
             if (ResourceType.class.equals(getType()) || ShadowType.class.equals(getType())) {
                 GetOperationOptions root = SelectorOptions.findRootOptions(options);
-                root.setNoFetch(Boolean.TRUE);
+                if (root == null) {
+                    options.add(new SelectorOptions<>(GetOperationOptions.createNoFetch()));
+                } else {
+                    root.setNoFetch(Boolean.TRUE);
+                }
             }
         }
         return options;
