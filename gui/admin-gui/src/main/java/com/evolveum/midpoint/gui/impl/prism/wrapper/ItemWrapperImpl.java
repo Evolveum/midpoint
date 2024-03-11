@@ -545,6 +545,11 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     }
 
     @Override
+    public @Nullable Merge getMerge() {
+        return getItemDefinition().getMerge();
+    }
+
+    @Override
     public boolean isAlwaysUseForEquals() {
         return getItemDefinition().isAlwaysUseForEquals();
     }

@@ -107,6 +107,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public @Nullable Merge getMerge() {
+        return metadataValueWrapper.getMerge();
+    }
+
+    @Override
     public boolean isAlwaysUseForEquals() {
         return metadataValueWrapper.isAlwaysUseForEquals();
     }

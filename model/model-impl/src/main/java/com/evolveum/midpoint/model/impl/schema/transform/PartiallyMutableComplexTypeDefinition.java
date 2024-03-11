@@ -67,6 +67,11 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
     }
 
     @Override
+    default void setMerge(Merge merge) {
+        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+    }
+
+    @Override
     default void setEmphasized(boolean emphasized) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 

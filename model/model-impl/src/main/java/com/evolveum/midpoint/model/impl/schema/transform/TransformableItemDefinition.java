@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.deleg.ItemDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 
@@ -47,6 +48,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     private Integer maxOccurs;
     private ItemProcessing processing;
     private PrismReferenceValue valueEnumerationRef;
+    private Merge merge;
 
     protected TransformableItemDefinition(D delegate) {
         super(delegate);
@@ -71,6 +73,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
             this.valueEnumerationRef = copyOf.valueEnumerationRef;
             this.delegate = copyOf.delegate;
             this.alwaysUseForEquals = copyOf.alwaysUseForEquals;
+            this.merge = copyOf.merge;
         } else {
             this.delegate = new DelegatedItem.FullySerializable<>(delegate);
         }
@@ -183,6 +186,16 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     public void freeze() {
         // Intentional Noop for now
 
+    }
+
+    @Override
+    public @Nullable Merge getMerge() {
+        return merge;
+    }
+
+    @Override
+    public void setMerge(Merge merge) {
+        this.merge = merge;
     }
 
     @Override
