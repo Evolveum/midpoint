@@ -243,13 +243,32 @@ public class ImportAction {
     }
 
     public void generateAndImportUsers(int userCount) {
-        int regularUsersCount = (int) (userCount * 0.3);
-        int semiRegularUsersCount = (int) (userCount * 0.2);
-        int irregularUsersCount = (int) (userCount * 0.2);
-        int managersCount = (int) (userCount * 0.1);
-        int salesCount = (int) (userCount * 0.1);
-        int securityOfficersCount = (int) (userCount * 0.05);
-        int contractorsCount = (int) (userCount * 0.05);
+        String division = generatorOptions.getDivision();
+        String[] parts = division.split(":");
+        int sum = 0;
+        int[] partsInt = new int[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i];
+            int value = Integer.parseInt(part);
+            sum += value;
+            partsInt[i] = value;
+        }
+
+        if (sum != 100) {
+            log.error("Division is not valid. Sum of parts is not 100 but " + sum);
+            throw new IllegalArgumentException("Division is not valid. Sum of parts is not 100 but " + sum);
+        } else if (parts.length != 7) {
+            log.error("Division is not valid. It should contain 7 parts but it contains " + parts.length);
+            throw new IllegalArgumentException("Division is not valid. It should contain 7 parts but it contains " + parts.length);
+        }
+
+        int regularUsersCount = (int) (userCount * (partsInt[0] / 100.0));
+        int semiRegularUsersCount = (int) (userCount * (partsInt[1] / 100.0));
+        int irregularUsersCount = (int) (userCount * (partsInt[2] / 100.0));
+        int managersCount = (int) (userCount * (partsInt[3] / 100.0));
+        int salesCount = (int) (userCount * (partsInt[4] / 100.0));
+        int securityOfficersCount = (int) (userCount * (partsInt[5] / 100.0));
+        int contractorsCount = (int) (userCount * (partsInt[6] / 100.0));
 
         RepositoryService repository = context.getRepository();
         resolveRegularUsers(regularUsersCount, repository);

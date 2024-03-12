@@ -36,6 +36,12 @@ public class BaseGeneratorOptions {
     public static final String P_ARCHETYPE_USER = "-au";
     public static final String P_ARCHETYPE_USER_LONG = "--archetype-user-enabled";
 
+    public static final String P_USER_DIVISION = "-ud";
+    public static final String P_USER_DIVISION_LONG = "--user-division";
+
+    @Parameter(names = { P_USER_DIVISION, P_USER_DIVISION_LONG }, descriptionKey = "baseGeneratorOptions.userDivision")
+    private String division = "30:20:20:10:10:5:5";
+
     @Parameter(names = { P_ARCHETYPE_ROLE, P_ARCHETYPE_ROLE_LONG }, descriptionKey = "baseGeneratorOptions.archetypeRole")
     private boolean isArchetypeRoleEnable = false;
     @Parameter(names = { P_ARCHETYPE_USER, P_ARCHETYPE_USER_LONG }, descriptionKey = "baseGeneratorOptions.archetypeUser")
@@ -83,6 +89,10 @@ public class BaseGeneratorOptions {
 
     public boolean isArchetypeUserEnable() {
         return isArchetypeUserEnable;
+    }
+
+    public String getDivision() {
+        return division;
     }
 
 }
