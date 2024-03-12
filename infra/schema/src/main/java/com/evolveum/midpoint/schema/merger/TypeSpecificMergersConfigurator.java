@@ -28,6 +28,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 class TypeSpecificMergersConfigurator {
 
+    static Map<String, Supplier<ItemMerger>> createMergersMap(@Nullable OriginMarker marker) {
+        return Map.ofEntries(
+                entry(
+                        "assignment",
+                        () -> new AssignmentMerger(marker)));
+    }
+
+    @Deprecated
     static Map<Class<?>, Supplier<ItemMerger>> createStandardTypeSpecificMergersMap(@Nullable OriginMarker marker) {
         return Map.ofEntries(
                 // for ResourceType

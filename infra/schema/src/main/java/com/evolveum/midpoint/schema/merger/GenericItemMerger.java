@@ -7,27 +7,31 @@
 
 package com.evolveum.midpoint.schema.merger;
 
+import static com.evolveum.midpoint.schema.merger.GenericItemMerger.Kind.CONTAINER;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
+import com.evolveum.midpoint.schema.merger.key.DefaultNaturalKeyImpl;
 import com.evolveum.midpoint.schema.merger.key.NaturalKey;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.function.Supplier;
-
-import static com.evolveum.midpoint.schema.merger.GenericItemMerger.Kind.CONTAINER;
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * The generic item merger that follows these rules:
@@ -52,7 +56,7 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
     @NotNull private final PathKeyedMap<ItemMerger> childrenMergers;
 
     /** Mergers to be used universally. Indexed by the value class. */
-    @NotNull private final Map<Class<?>, Supplier<ItemMerger>> typeSpecificMergers;
+    @NotNull private final Map<String, Supplier<ItemMerger>> typeSpecificMergers;
 
     private GenericItemMerger(
             @Nullable OriginMarker originMarker,
@@ -63,7 +67,7 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
         this.childrenMergers = childrenMergers;
 
         // In the future this may be parameterized on instance creation.
-        this.typeSpecificMergers = TypeSpecificMergersConfigurator.createStandardTypeSpecificMergersMap(originMarker);
+        this.typeSpecificMergers = TypeSpecificMergersConfigurator.createMergersMap(originMarker);
     }
 
     public GenericItemMerger(
@@ -102,34 +106,35 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
         // but maybe we could go with the real values (if this would not work).
         ComplexTypeDefinition ctd = sourcePcv.getComplexTypeDefinition();
         stateCheck(ctd != null, "No complex type definition of %s", sourcePcv);
+
         ItemDefinition<?> childDef = ctd.findItemDefinition(itemName);
         stateCheck(childDef != null, "No definition of %s in %s", itemName, ctd);
-        Class<?> valueClass = childDef.getTypeClass();
-        if (valueClass != null) {
-            Map.Entry<Class<?>, Supplier<ItemMerger>> entryFound = null;
-            for (Map.Entry<Class<?>, Supplier<ItemMerger>> entry : typeSpecificMergers.entrySet()) {
-                if (entry.getKey().isAssignableFrom(valueClass)) {
-                    if (entryFound == null) {
-                        entryFound = entry;
-                    } else {
-                        // we're looking for the most concrete supplier
-                        if (entryFound.getKey().isAssignableFrom(entry.getKey())) {
-                            entryFound = entry;
-                        }
-                    }
-                }
-            }
 
-            if (entryFound != null) {
-                ItemMerger byTypeName = entryFound.getValue().get();
-                LOGGER.trace("Type-specific merger for {} (type {}) was found: {}", itemName, valueClass, byTypeName);
-                return byTypeName;
-            }
+        Class<?> valueClass = childDef.getTypeClass();
+
+        Merge merge = childDef.getMerge();
+        if (merge == null) {
+            LOGGER.trace("Using default merger for {} (value class {})", itemName, valueClass);
+            return createDefaultSubMerger(itemName);
         }
 
-        // Finally, let's go with the default
-        LOGGER.trace("Using default merger for {} (value class {})", itemName, valueClass);
-        return createDefaultSubMerger(itemName);
+        List<QName> identifiers = merge.getIdentifiers();
+        if (!identifiers.isEmpty()) {
+            NaturalKey key = DefaultNaturalKeyImpl.of(identifiers.toArray(new QName[0]));
+
+            LOGGER.trace("Using generic item merger for {} (value class {}) with key {}", itemName, valueClass, key);
+            return new GenericItemMerger(originMarker, key);
+        }
+
+        String customMerger = merge.getMerger();
+        Supplier<ItemMerger> mergerSupplier = typeSpecificMergers.get(customMerger);
+
+        if (customMerger == null || mergerSupplier == null) {
+            LOGGER.trace("Using default merger for {} (value class {})", itemName, valueClass);
+            return createDefaultSubMerger(itemName);
+        }
+
+        return mergerSupplier.get();
     }
 
     private ItemMerger createDefaultSubMerger(ItemName itemName) {
