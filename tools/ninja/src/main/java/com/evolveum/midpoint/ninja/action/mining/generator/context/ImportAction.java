@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGe
 import java.io.IOException;
 import java.util.*;
 
+import com.evolveum.midpoint.schema.ResultHandler;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +27,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -68,7 +69,7 @@ public class ImportAction {
 
         if (generatorOptions.isTransform()) {
             log.info("Make sure that RoleType objects is recomputed");
-            remakeBusinessRoles(context, result, null, null);
+            remakeUsersBusinessRoles(context, result, null, null);
         }
     }
 
@@ -545,77 +546,89 @@ public class ImportAction {
      * @param options The options for retrieving users.
      * @throws RuntimeException If an error occurs during the process.
      */
-    public static void remakeBusinessRoles(@NotNull NinjaContext context,
+    public static void remakeUsersBusinessRoles(@NotNull NinjaContext context,
             @NotNull OperationResult result,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
 
         RepositoryService repository = context.getRepository();
         Log log = context.getLog();
-        log.info("Replace business role for their inducements on users");
+        log.info("Replace business role for their inducements on users started");
 
-        SearchResultList<PrismObject<UserType>> users;
+        ResultHandler<UserType> handler = (object, parentResult) -> {
+            executeChangesOnUser(result, object, repository, log);
+            return true;
+        };
+
         try {
-            users = repository.searchObjects(UserType.class, query, options, result);
+            repository.searchObjectsIterative(UserType.class, query, handler, options, false, result);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
 
-        log.info("Replace business role for their inducements on users 0/{}", users.size() - 1);
-        for (int i = 0; i < users.size(); i++) {
-            log.info("Progress: {}/{}", i, users.size() - 1);
-            PrismObject<UserType> user = users.get(i);
+        log.info("Replace business role for their inducements on users finished");
+    }
 
-            String userOid = user.getOid();
-            PolyString name = user.getName();
-            if (name == null) {
-                continue;
-            }
+    /**
+     * Executes changes on a user object.
+     * <p>
+     * This method replaces business roles with their inducements on a user object.
+     *
+     * @param result The operation result used for tracking the operation.
+     * @param object The user object to execute changes on.
+     * @param repository The repository service used for executing changes.
+     * @param log The log used for logging the operation.
+     * @throws RuntimeException If an error occurs during the process.
+     */
+    private static void executeChangesOnUser(@NotNull OperationResult result, @NotNull PrismObject<UserType> object, RepositoryService repository, Log log) {
+        String userOid = object.getOid();
+        PolyString name = object.getName();
+        if (name == null) {
+            return;
+        }
 
-            String stringName = name.toString();
+        String stringName = name.toString();
 
-            if (stringName.equals("administrator")) {
-                continue;
-            }
+        if (stringName.equals("administrator")) {
+            return;
+        }
 
-            UserType userObject = user.asObjectable();
+        UserType userObject = object.asObjectable();
 
-            List<PrismObject<RoleType>> rolesOidAssignment;
+        List<PrismObject<RoleType>> rolesOidAssignment;
+        try {
+            rolesOidAssignment = getBusinessRolesOidAssignment(userObject, repository, result);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            log.error("Error while getting roles oid assignment for user: {}", userOid, e);
+            throw new RuntimeException(e);
+        }
+
+        for (PrismObject<RoleType> roleTypePrismObject : rolesOidAssignment) {
+            RoleType role = roleTypePrismObject.asObjectable();
+            List<AssignmentType> inducement = role.getInducement();
+
+            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
             try {
-                rolesOidAssignment = getBusinessRolesOidAssignment(userObject, repository, result);
-            } catch (SchemaException | ObjectNotFoundException e) {
-                log.error("Error while getting roles oid assignment for user: {}", userOid, e);
-                throw new RuntimeException(e);
-            }
 
-            for (PrismObject<RoleType> roleTypePrismObject : rolesOidAssignment) {
-                RoleType role = roleTypePrismObject.asObjectable();
-                List<AssignmentType> inducement = role.getInducement();
-
-                List<ItemDelta<?, ?>> modifications = new ArrayList<>();
-                try {
-
-                    for (AssignmentType assignmentType : inducement) {
-                        modifications.add(PrismContext.get().deltaFor(UserType.class)
-                                .item(UserType.F_ASSIGNMENT).add(createRoleAssignment(assignmentType.getTargetRef().getOid()))
-                                .asItemDelta());
-                    }
-
+                for (AssignmentType assignmentType : inducement) {
                     modifications.add(PrismContext.get().deltaFor(UserType.class)
-                            .item(UserType.F_ASSIGNMENT).delete(createRoleAssignment(role.getOid()))
+                            .item(UserType.F_ASSIGNMENT).add(createRoleAssignment(assignmentType.getTargetRef().getOid()))
                             .asItemDelta());
-
-                    repository.modifyObject(UserType.class, userOid, modifications, result);
-
-                } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
-                    throw new RuntimeException(e);
                 }
 
+                modifications.add(PrismContext.get().deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT).delete(createRoleAssignment(role.getOid()))
+                        .asItemDelta());
+
+                repository.modifyObject(UserType.class, userOid, modifications, result);
+
+            } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
+                throw new RuntimeException(e);
             }
 
         }
 
-        log.info("Replace business role for their inducements on users finished");
+        log.info("User {} prepared", name);
     }
 
     /**
