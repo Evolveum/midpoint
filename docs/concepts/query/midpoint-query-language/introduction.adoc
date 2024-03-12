@@ -47,9 +47,9 @@ In its simplest form it is a name of object _property_, or names of items and co
 === Filter Name
 Item path is followed by filter name or its alias, which specifies which filtering condition should be used.
 
-Following tables summarizes common property filters:
-
 ==== Comparison filters
+
+Following tables summarizes common property filters:
 
 [options="header", cols="15,10,30", width=70]
 |====
@@ -91,6 +91,8 @@ List of all matching rules is defined in xref:../../matching-rules.adoc[matching
 
 ==== String filters
 
+Following table summarizes additional filters that can be applied on string and polystring values.
+
 [options="header", cols="15,40", width=70]
 |====
 | Name | Description
@@ -107,11 +109,13 @@ Value is usually a string literal, enclosed in double quotes.
 However, value may take various forms.
 For example, it may be a path of another item, e.g. in case when the query compares two items.
 The value may be also quite complex.
-The exact form of the value part of the filter depends on the operator.
 
-The exact syntax can be best described on examples.
+The exact form of the value part of the filter depends on the operator and type of the value.
 
-.Examples of queries performed on different value types
+==== Querying values of different types
+
+The exact syntax of queries for values of different types is described in the following table:
+
 [options="header", cols="10,30, 60", width=80]
 |====
 | Type | Query | Note
@@ -130,11 +134,11 @@ The exact syntax can be best described on examples.
 
 | int
 | `extension/height > 170`
-| Number values do not need quotes. Only standard comparison filters (=,>, ..) are defined for number types.
+| Number values do not need quotes. Only common property filters (=,>, ..) are defined for number types.
 
 | float
 | `extension/perfScore > 1.05`
-| Number values do not need quotes. Only standard comparison filters (=,>, ..) are defined for number types.
+| Number values do not need quotes. Only common property filters (=,>, ..) are defined for number types.
 
 | dateTime
 | `metadata/createTimestamp >= "2024-03-01"`
