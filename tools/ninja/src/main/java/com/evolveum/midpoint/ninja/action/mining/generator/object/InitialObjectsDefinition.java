@@ -37,7 +37,9 @@ public class InitialObjectsDefinition {
     public List<RoleType> getBusinessRolesObjects() {
         List<RoleType> roleObjects = new ArrayList<>();
         addBusinessRoleObjects(BirthrightBusinessRole.values(), roleObjects);
-        addBusinessRoleObjects(AuxInitialBusinessRole.values(), roleObjects);
+        if (options.isAuxInclude()) {
+            addBusinessRoleObjects(AuxInitialBusinessRole.values(), roleObjects);
+        }
         addBusinessRoleObjects(JobInitialBusinessRole.values(), roleObjects);
         addBusinessRoleObjects(LocationInitialBusinessRole.values(), roleObjects);
         addBusinessRoleObjects(TechnicalBusinessRole.values(), roleObjects);

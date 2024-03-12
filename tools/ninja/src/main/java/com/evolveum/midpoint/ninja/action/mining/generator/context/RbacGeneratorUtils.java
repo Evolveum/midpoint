@@ -18,6 +18,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.ninja.action.mining.generator.object.InitialObjectsDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -174,14 +175,15 @@ public class RbacGeneratorUtils {
             ObjectReferenceType targetRef = assignment.getTargetRef();
             if (targetRef != null) {
                 if (targetRef.getType().equals(RoleType.COMPLEX_TYPE)) {
-                    String oid = targetRef.getOid();
-                    PrismObject<RoleType> roleTypeObject = repository.getObject(RoleType.class, oid, null, result);
+                    String assignmentRefOid = targetRef.getOid();
+                    PrismObject<RoleType> roleTypeObject = repository.getObject(
+                            RoleType.class, assignmentRefOid, null, result);
                     RoleType role = roleTypeObject.asObjectable();
                     List<ObjectReferenceType> archetypeRef = role.getArchetypeRef();
                     if (archetypeRef != null && !archetypeRef.isEmpty()) {
                         ObjectReferenceType objectReferenceType = archetypeRef.get(0);
-                        String oid1 = objectReferenceType.getOid();
-                        if (oid1.equals("00000000-0000-0000-0000-000000000321")) {
+                        String refOid = objectReferenceType.getOid();
+                        if (refOid.equals("00000000-0000-0000-0000-000000000321")) {
                             list.add(roleTypeObject);
                         }
                     }
@@ -216,6 +218,45 @@ public class RbacGeneratorUtils {
         }
 
         return names;
+    }
+
+    /**
+     * Retrieves aux role with a chance specified chance.
+     *
+     * @param auxRole The business role to consider.
+     * @param chance The chance of the role being returned.
+     * @return The randomly selected location business role.
+     */
+    public static InitialObjectsDefinition.@Nullable AuxInitialBusinessRole getRandomAuxWithChance(
+            @NotNull InitialObjectsDefinition.AuxInitialBusinessRole auxRole, int chance) {
+        Random random = new Random();
+        if (random.nextInt(100) < chance) {
+            return auxRole;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Resolves auxiliary roles for a user.
+     * <p>
+     * This method resolves auxiliary roles for a user based on specified criteria.
+     *
+     * @param user The user to resolve auxiliary roles for.
+     */
+    static void resolveAuxRoles(@NotNull UserType user) {
+        InitialObjectsDefinition.AuxInitialBusinessRole randomAuxWithChanceNomad = getRandomAuxWithChance(
+                InitialObjectsDefinition.AuxInitialBusinessRole.NOMAD, 1);
+        InitialObjectsDefinition.AuxInitialBusinessRole randomAuxWithChanceVpn = getRandomAuxWithChance(
+                InitialObjectsDefinition.AuxInitialBusinessRole.VPN_REMOTE_ACCESS, 30);
+
+        if (randomAuxWithChanceNomad != null) {
+            user.getAssignment().add(createRoleAssignment(randomAuxWithChanceNomad.getOidValue()));
+        }
+
+        if (randomAuxWithChanceVpn != null) {
+            user.getAssignment().add(createRoleAssignment(randomAuxWithChanceVpn.getOidValue()));
+        }
     }
 
 }

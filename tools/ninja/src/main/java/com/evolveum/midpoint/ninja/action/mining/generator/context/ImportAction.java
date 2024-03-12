@@ -209,11 +209,15 @@ public class ImportAction {
         }
     }
 
-    private void importUser(
+    private void importUserAndResolveAuxRoles(
             @NotNull UserType user,
             @NotNull RepositoryService repositoryService,
             @NotNull OperationResult result,
             @NotNull Log log) {
+
+        if (generatorOptions.isAuxInclude()) {
+            resolveAuxRoles(user);
+        }
 
         try {
             repositoryService.addObject(user.asPrismObject(), null, result);
@@ -312,7 +316,7 @@ public class ImportAction {
 
             setUpArchetypeUser(user, archetypeOid);
 
-            importUser(user, repository, result, log);
+            importUserAndResolveAuxRoles(user, repository, result, log);
         }
     }
 
@@ -358,7 +362,7 @@ public class ImportAction {
 
             setUpArchetypeUser(user, archetypeOid);
 
-            importUser(user, repository, result, log);
+            importUserAndResolveAuxRoles(user, repository, result, log);
         }
     }
 
@@ -393,7 +397,7 @@ public class ImportAction {
 
             setUpArchetypeUser(user, archetypeOid);
 
-            importUser(user, repository, result, log);
+            importUserAndResolveAuxRoles(user, repository, result, log);
 
         }
     }
@@ -440,7 +444,7 @@ public class ImportAction {
 
             setUpArchetypeUser(user, archetypeOid);
 
-            importUser(user, repository, result, log);
+            importUserAndResolveAuxRoles(user, repository, result, log);
 
         }
 
@@ -490,7 +494,7 @@ public class ImportAction {
 
             setUpArchetypeUser(user, archetypeOid);
 
-            importUser(user, repository, result, log);
+            importUserAndResolveAuxRoles(user, repository, result, log);
 
         }
     }
@@ -519,7 +523,7 @@ public class ImportAction {
 
             setUpArchetypeUser(user, archetypeOid);
 
-            importUser(user, repository, result, log);
+            importUserAndResolveAuxRoles(user, repository, result, log);
         }
     }
 
@@ -550,7 +554,7 @@ public class ImportAction {
 
             setUpArchetypeUser(user, archetypeOid);
 
-            importUser(user, repository, result, log);
+            importUserAndResolveAuxRoles(user, repository, result, log);
         }
     }
 

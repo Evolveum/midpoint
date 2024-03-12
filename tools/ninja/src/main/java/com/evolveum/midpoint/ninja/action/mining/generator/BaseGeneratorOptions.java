@@ -39,6 +39,12 @@ public class BaseGeneratorOptions {
     public static final String P_USER_DIVISION = "-ud";
     public static final String P_USER_DIVISION_LONG = "--user-division";
 
+    public static final String P_INCLUDE_AUX = "-ia";
+    public static final String P_INCLUDE_AUX_LONG = "--include-aux";
+
+    @Parameter(names = { P_INCLUDE_AUX, P_INCLUDE_AUX_LONG }, descriptionKey = "baseGeneratorOptions.includeAux")
+    private boolean isAuxInclude = false;
+
     @Parameter(names = { P_USER_DIVISION, P_USER_DIVISION_LONG }, descriptionKey = "baseGeneratorOptions.userDivision")
     private String division = "30:20:20:10:10:5:5";
 
@@ -95,4 +101,7 @@ public class BaseGeneratorOptions {
         return division;
     }
 
+    public boolean isAuxInclude() {
+        return isAuxInclude;
+    }
 }
