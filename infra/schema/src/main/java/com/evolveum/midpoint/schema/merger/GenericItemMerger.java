@@ -123,7 +123,9 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
             NaturalKey key = DefaultNaturalKeyImpl.of(identifiers.toArray(new QName[0]));
 
             LOGGER.trace("Using generic item merger for {} (value class {}) with key {}", itemName, valueClass, key);
-            return new GenericItemMerger(originMarker, key);
+            GenericItemMerger merger = new GenericItemMerger(originMarker, key);
+            merger.setFullMerge(isFullMerge());
+            return merger;
         }
 
         String customMerger = merge.getMerger();
@@ -138,9 +140,12 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
     }
 
     private ItemMerger createDefaultSubMerger(ItemName itemName) {
-        return new GenericItemMerger(
+        GenericItemMerger merger = new GenericItemMerger(
                 originMarker,
                 createSubChildMergersMap(itemName));
+        merger.setFullMerge(isFullMerge());
+
+        return merger;
     }
 
     private PathKeyedMap<ItemMerger> createSubChildMergersMap(@NotNull ItemName itemName) {
@@ -190,7 +195,14 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
                     (PrismContainerValue<?>) getSingleValue(targetItem),
                     (PrismContainerValue<?>) getSingleValue(sourceItem));
         } else {
-            LOGGER.trace("Overriding non-container (single) value - i.e. keeping target item as is");
+            if (isFullMerge()) {
+                Item<PrismValue, ?> target = (Item<PrismValue, ?>) targetItem;
+
+                PrismValue value = createMarkedClone(sourceItem.getValue());
+                target.replace(value);
+            } else {
+                LOGGER.trace("Overriding non-container (single) value - i.e. keeping target item as is");
+            }
         }
     }
 
@@ -201,6 +213,9 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
 
     private void mergeMultiValuedItem(Item<?, ?> targetItem, Item<?, ?> sourceItem)
             throws SchemaException, ConfigurationException {
+
+        Set<PrismValue> targetValuesMatched = new HashSet<>();
+
         Kind kind = Kind.of(targetItem, sourceItem);
         for (PrismValue sourceValue : sourceItem.getValues()) {
             LOGGER.trace("Going to merge source value: {}", sourceValue);
@@ -212,26 +227,45 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
                     LOGGER.trace(" -> Matching target value found, merging into it: {}", matchingTargetValue);
                     mergeKey(matchingTargetValue, sourcePcv);
                     mergeContainerValues(matchingTargetValue, sourcePcv);
+
+                    targetValuesMatched.add(matchingTargetValue);
                 } else {
                     LOGGER.trace(" -> Has no matching target value, so adding it to the target item (without ID) - if needed");
-                    addIfNotThere(targetItem, sourceValue);
+                    PrismValue added = addIfNotThere(targetItem, sourceValue);
+                    if (added != null) {
+                        targetValuesMatched.add(added);
+                    }
                 }
             } else {
                 LOGGER.trace(" -> Not a container, adding the value right to the target item - if needed");
-                addIfNotThere(targetItem, sourceValue);
+                PrismValue added = addIfNotThere(targetItem, sourceValue);
+                if (added != null) {
+                    targetValuesMatched.add(added);
+                }
             }
+        }
+
+        if (isFullMerge()) {
+            List<?> toBeRemoved = targetItem.getValues().stream()
+                    .filter(v -> !targetValuesMatched.contains(v))
+                    .toList();
+
+            toBeRemoved.forEach(v -> targetItem.getValues().remove(v));
         }
     }
 
-    private void addIfNotThere(Item<?, ?> targetItem, PrismValue sourceValue) throws SchemaException {
+    private PrismValue addIfNotThere(Item<?, ?> targetItem, PrismValue sourceValue) throws SchemaException {
         //noinspection unchecked
         Item<PrismValue, ?> target = (Item<PrismValue, ?>) targetItem;
         if (target.contains(sourceValue, VALUE_COMPARISON_STRATEGY)) {
             LOGGER.trace("     (but target contains the corresponding value - not adding)");
-        } else {
-            target.add(
-                    createMarkedClone(sourceValue));
+            return null;
         }
+
+        PrismValue cloned = createMarkedClone(sourceValue);
+        target.add(cloned);
+
+        return cloned;
     }
 
     private PrismContainerValue<?> findMatchingTargetValue(

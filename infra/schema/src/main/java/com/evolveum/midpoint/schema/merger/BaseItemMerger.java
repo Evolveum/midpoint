@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.schema.merger;
 
+import java.util.Arrays;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -16,12 +21,8 @@ import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Provides common functionality for the majority for (non-trivial) item mergers.
@@ -37,8 +38,24 @@ public abstract class BaseItemMerger<T extends Item<?, ?>> implements ItemMerger
     /** Marks any values inherited from "source" to "target" with appropriate (presumably source-related) origin. */
     @Nullable protected final OriginMarker originMarker;
 
+    /**
+     * TODO: rename
+     *
+     * If fullMerge is true, item/values that don't exist in source will be removed from target.
+     * IF fullMerge is false then, item/values that don't exist in source will be left untouched in target.
+     */
+    private boolean fullMerge;
+
     protected BaseItemMerger(@Nullable OriginMarker originMarker) {
         this.originMarker = originMarker;
+    }
+
+    public boolean isFullMerge() {
+        return fullMerge;
+    }
+
+    public void setFullMerge(boolean fullMerge) {
+        this.fullMerge = fullMerge;
     }
 
     @Override
@@ -54,7 +71,12 @@ public abstract class BaseItemMerger<T extends Item<?, ?>> implements ItemMerger
         T sourceItem = (T) sourceParent.findItem(itemName);
         // some shortcuts first
         if (sourceItem == null || sourceItem.hasNoValues()) {
-            LOGGER.trace(" -> Nothing found at source; keeping target unchanged");
+            if (fullMerge) {
+                LOGGER.trace(" -> Nothing found at source; removing target item");
+                targetParent.removePaths(Arrays.asList(itemName));
+            } else {
+                LOGGER.trace(" -> Nothing found at source; keeping target unchanged");
+            }
         } else if (targetItem == null) {
             LOGGER.trace(" -> Target item not found; copying source item to the target");
             targetParent.add(

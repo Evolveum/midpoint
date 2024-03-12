@@ -58,7 +58,7 @@ public class BaseMergeOperation<C extends Containerable> {
 
     /**
      * A convenience method that merges two values without origin marking or custom config.
-     * Use as a starting point when you just need to merge two containerable values.
+     * Use as a starting point when you just need to merge two {@link Containerable} values.
      */
     public static <C extends Containerable> C merge(@Nullable C target, @Nullable C source)
             throws SchemaException, ConfigurationException {

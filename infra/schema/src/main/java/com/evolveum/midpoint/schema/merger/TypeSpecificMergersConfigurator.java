@@ -12,6 +12,7 @@ import static java.util.Map.entry;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.merger.assignment.AssignmentMerger;
