@@ -1034,13 +1034,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test360AssignCombinedRole() throws Exception {
         when("creating user with combined role (mapmaker/landluber)");
-        var userOid = traced(
-                //createModelAndProvisioningLoggingTracingProfile(),
-                () -> addObject(
+        var userOid = addObject(
                 new UserType()
                         .name("test360")
                         .assignment(ROLE_MAPMAKER_LANDLUBER.assignmentTo())
-                        .asPrismObject()));
+                        .asPrismObject());
 
         then("operation is OK");
         assertSuccess();
