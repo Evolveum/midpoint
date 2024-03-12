@@ -405,6 +405,11 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
                         LayeredIconCssStyle.IN_ROW_STYLE);
 
+                String iconColor = object.getIconColor();
+                if (iconColor != null) {
+                    compositedIconBuilder.appendColorHtmlValue(iconColor);
+                }
+
                 for (ObjectReferenceType ref : reductionObjects) {
                     if (roles.contains(ref.getOid())) {
                         compositedIconBuilder.setBasicIcon(defaultBlackIcon + " " + GuiStyleConstants.GREEN_COLOR,
@@ -651,15 +656,22 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                 @Override
                 public Component getHeader(String componentId) {
-
                     List<String> elements = userChunk.getUsers();
 
-                    DisplayType displayType = GuiDisplayTypeUtil.createDisplayType(
-                            IconAndStylesUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
+                    String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE);
+                    CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
+                            LayeredIconCssStyle.IN_ROW_STYLE);
+
+                    String iconColor = userChunk.getIconColor();
+                    if (iconColor != null) {
+                        compositedIconBuilder.appendColorHtmlValue(iconColor);
+                    }
+
+                    CompositedIcon compositedIcon = compositedIconBuilder.build();
 
                     String title = userChunk.getChunkName();
                     return new AjaxLinkTruncatePanelAction(componentId,
-                            createStringResource(title), createStringResource(title), displayType,
+                            createStringResource(title), createStringResource(title), compositedIcon,
                             new LoadableDetachableModel<>() {
                                 @Override
                                 protected RoleAnalysisOperationMode load() {

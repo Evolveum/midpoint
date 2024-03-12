@@ -17,6 +17,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 
@@ -373,7 +374,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
         List<IColumn<MiningUserTypeChunk, String>> columns = new ArrayList<>();
 
-        columns.add(new IconColumn<>(null) {
+        columns.add(new CompositedIconColumn<>(null) {
+
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -382,14 +384,23 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
             }
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<MiningUserTypeChunk> rowModel) {
-                return GuiDisplayTypeUtil
-                        .createDisplayType(IconAndStylesUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
+            protected CompositedIcon getCompositedIcon(IModel<MiningUserTypeChunk> rowModel) {
+                MiningUserTypeChunk object = rowModel.getObject();
+
+                String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE);
+                CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
+                        LayeredIconCssStyle.IN_ROW_STYLE);
+
+                String iconColor = object.getIconColor();
+                if (iconColor != null) {
+                    compositedIconBuilder.appendColorHtmlValue(iconColor);
+                }
+
+                return compositedIconBuilder.build();
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<MiningUserTypeChunk>> cellItem,
-                    String componentId, IModel<MiningUserTypeChunk> rowModel) {
+            public void populateItem(Item<ICellPopulator<MiningUserTypeChunk>> cellItem, String componentId, IModel<MiningUserTypeChunk> rowModel) {
                 int propertiesCount = rowModel.getObject().getUsers().size();
                 RoleAnalysisTableTools.StyleResolution styleResolution = RoleAnalysisTableTools
                         .StyleResolution
@@ -399,6 +410,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 cellItem.add(AttributeAppender.append("style", " width:40px; height:" + sizeInPixels + ";"));
                 super.populateItem(cellItem, componentId, rowModel);
             }
+
         });
 
         columns.add(new AbstractColumn<>(createStringResource("")) {
@@ -617,6 +629,11 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                     String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE);
                     CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
                             LayeredIconCssStyle.IN_ROW_STYLE);
+
+                    String iconColor = roleChunk.getIconColor();
+                    if (iconColor != null) {
+                        compositedIconBuilder.appendColorHtmlValue(iconColor);
+                    }
 
                     for (ObjectReferenceType ref : reductionObjects) {
                         if (roles.contains(ref.getOid())) {

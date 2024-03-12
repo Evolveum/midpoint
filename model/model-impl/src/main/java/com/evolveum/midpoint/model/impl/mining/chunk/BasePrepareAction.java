@@ -173,19 +173,27 @@ public abstract class BasePrepareAction implements MiningStructure {
 
             int rolesSize = roles.size();
             String chunkName = "'" + rolesSize + "' Roles";
+            String iconColor = null;
             if (rolesSize == 1) {
                 PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(
                         roleExistCache, roles.get(0), task, result);
                 chunkName = "NOT FOUND";
                 if (role != null) {
                     chunkName = role.getName().toString();
+                    iconColor = roleAnalysisService.resolveFocusObjectIconColor(role.asObjectable(), task, result);
                 }
             }
 
             double frequency = Math.min(key.size() / membersCount, 1);
 
+            MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(roles, key, chunkName, frequency, RoleAnalysisOperationMode.EXCLUDE);
+
+            if(iconColor != null) {
+                miningRoleTypeChunk.setIconColor(iconColor);
+            }
+
             miningRoleTypeChunks
-                    .add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, RoleAnalysisOperationMode.EXCLUDE));
+                    .add(miningRoleTypeChunk);
 
         }
     }
@@ -209,16 +217,25 @@ public abstract class BasePrepareAction implements MiningStructure {
             double frequency = Math.min(size / (double) mapSize, 1);
             int userSize = users.size();
             String chunkName = "'" + userSize + "' Users";
+            String iconColor = null;
             if (userSize == 1) {
                 PrismObject<UserType> user = roleAnalysisService.cacheUserTypeObject(
                         userExistCache, users.get(0), task, result);
                 chunkName = "NOT FOUND";
                 if (user != null) {
                     chunkName = user.getName().toString();
+                    iconColor = roleAnalysisService.resolveFocusObjectIconColor(user.asObjectable(), task, result);
                 }
             }
+
+            MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(users, key, chunkName, frequency, RoleAnalysisOperationMode.EXCLUDE);
+
+            if(iconColor != null) {
+                miningUserTypeChunk.setIconColor(iconColor);
+            }
+
             miningUserTypeChunks
-                    .add(new MiningUserTypeChunk(users, key, chunkName, frequency, RoleAnalysisOperationMode.EXCLUDE));
+                    .add(miningUserTypeChunk);
 
         }
     }

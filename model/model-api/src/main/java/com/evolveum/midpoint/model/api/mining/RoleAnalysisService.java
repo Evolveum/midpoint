@@ -720,4 +720,6 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisSessionType session,
             @NotNull Task task,
             @NotNull OperationResult result);
+
+    String resolveFocusObjectIconColor(@NotNull FocusType focusObject, @NotNull Task task, @NotNull OperationResult result);
 }

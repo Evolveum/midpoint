@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 import java.util.*;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -36,9 +38,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Utility class for resolving cell colors and status in the context of role analysis tables.
@@ -388,8 +387,10 @@ public class RoleAnalysisTableCellFillResolver {
                 List<String> properties = new ArrayList<>(mappedMembers.get(detectedPatternRole));
                 PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(detectedPatternRole, task, result);
                 String chunkName = "Unknown";
+                String iconColor = null;
                 if (roleTypeObject != null) {
                     chunkName = roleTypeObject.getName().toString();
+                    iconColor = roleAnalysisService.resolveFocusObjectIconColor(roleTypeObject.asObjectable(), task, result);
                 }
 
                 MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(
@@ -398,6 +399,9 @@ public class RoleAnalysisTableCellFillResolver {
                         chunkName,
                         100.0,
                         roleAnalysisObjectStatus);
+                if (iconColor != null) {
+                    miningRoleTypeChunk.setIconColor(iconColor);
+                }
                 roles.add(miningRoleTypeChunk);
             }
 
@@ -408,9 +412,11 @@ public class RoleAnalysisTableCellFillResolver {
                 PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(detectedPatternUser, task, result);
                 List<String> properties = new ArrayList<>();
                 String chunkName = "Unknown";
+                String iconColor = null;
                 if (userTypeObject != null) {
                     chunkName = userTypeObject.getName().toString();
                     properties = getRolesOidAssignment(userTypeObject.asObjectable());
+                    iconColor = roleAnalysisService.resolveFocusObjectIconColor(userTypeObject.asObjectable(), task, result);
                 }
 
                 MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(
@@ -419,6 +425,11 @@ public class RoleAnalysisTableCellFillResolver {
                         chunkName,
                         100.0,
                         roleAnalysisObjectStatus);
+
+                if (iconColor != null) {
+                    miningUserTypeChunk.setIconColor(iconColor);
+                }
+
                 users.add(miningUserTypeChunk);
             }
         }

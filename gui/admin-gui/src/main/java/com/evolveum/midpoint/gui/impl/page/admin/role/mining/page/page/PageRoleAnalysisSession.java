@@ -139,6 +139,10 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         }
 
         boolean generationButtonEnabled = false;
+        String orig = getModelObjectType().getName().getOrig();
+        if (orig.equals("generator")) {
+            generationButtonEnabled = true;
+        }
         AjaxCompositedIconSubmitButton generate = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
                 iconBuilder.build(),
                 ((PageBase) getPage()).createStringResource("Generate")) {

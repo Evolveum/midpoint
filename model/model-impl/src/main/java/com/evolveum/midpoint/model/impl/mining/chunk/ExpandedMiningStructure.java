@@ -103,6 +103,8 @@ public class ExpandedMiningStructure extends BasePrepareAction {
             }
 
             String chunkName = "unknown";
+            String iconColor = roleAnalysisService.resolveFocusObjectIconColor(roleTypePrismObject.asObjectable(), task, result);
+
             if (option != null && option.getRoleItemValuePath() != null) {
                 ItemPath roleItemValuePath = option.getRoleItemValuePath();
                 Item<PrismValue, ItemDefinition<?>> item = roleTypePrismObject.findItem(roleItemValuePath);
@@ -113,13 +115,19 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 chunkName = roleTypePrismObject.getName().toString();
             }
 
-            miningRoleTypeChunks.add(new MiningRoleTypeChunk(
+            MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(
                     Collections.singletonList(clusterMember),
                     users,
                     chunkName,
                     0,
                     RoleAnalysisOperationMode.EXCLUDE
-            ));
+            );
+
+            if (iconColor != null) {
+                miningRoleTypeChunk.setIconColor(iconColor);
+            }
+
+            miningRoleTypeChunks.add(miningRoleTypeChunk);
 
             users.forEach(user -> userChunk.putAll(user, Collections.singletonList(clusterMember)));
         }
@@ -147,6 +155,12 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                     .cacheUserTypeObject(userExistCache, key, task, result);
 
             String chunkName = "unknown";
+            String iconColor = null;
+
+            if (user != null) {
+                iconColor = roleAnalysisService.resolveFocusObjectIconColor(user.asObjectable(), task, result);
+            }
+
             if (user != null && option != null && option.getUserItemValuePath() != null) {
                 ItemPath userItemValuePath = option.getUserItemValuePath();
                 Item<PrismValue, ItemDefinition<?>> item = user.findItem(userItemValuePath);
@@ -157,8 +171,14 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 chunkName = user.getName().toString();
             }
 
-            miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(key), roleIds, chunkName, frequency,
-                    RoleAnalysisOperationMode.EXCLUDE));
+            MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(Collections.singletonList(key), roleIds, chunkName, frequency,
+                    RoleAnalysisOperationMode.EXCLUDE);
+
+            if (iconColor != null) {
+                miningUserTypeChunk.setIconColor(iconColor);
+            }
+
+            miningUserTypeChunks.add(miningUserTypeChunk);
 
         }
 
@@ -198,6 +218,8 @@ public class ExpandedMiningStructure extends BasePrepareAction {
             }
 
             String chunkName = "unknown";
+            String iconColor = roleAnalysisService.resolveFocusObjectIconColor(user.asObjectable(), task, result);
+
             if (option != null && option.getUserItemValuePath() != null) {
                 ItemPath userItemValuePath = option.getUserItemValuePath();
                 Item<PrismValue, ItemDefinition<?>> item = user.findItem(userItemValuePath);
@@ -228,8 +250,14 @@ public class ExpandedMiningStructure extends BasePrepareAction {
 
             }
 
-            miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(userOid), existingRolesAssignment,
-                    chunkName, 0, RoleAnalysisOperationMode.EXCLUDE));
+            MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(Collections.singletonList(userOid), existingRolesAssignment,
+                    chunkName, 0, RoleAnalysisOperationMode.EXCLUDE);
+
+            if (iconColor != null) {
+                miningUserTypeChunk.setIconColor(iconColor);
+            }
+
+            miningUserTypeChunks.add(miningUserTypeChunk);
 
         }
 
@@ -255,6 +283,10 @@ public class ExpandedMiningStructure extends BasePrepareAction {
             PrismObject<RoleType> role = roleAnalysisService
                     .cacheRoleTypeObject(roleExistCache, key, task, result);
             String chunkName = "unknown";
+            String iconColor = null;
+            if (role != null) {
+                iconColor = roleAnalysisService.resolveFocusObjectIconColor(role.asObjectable(), task, result);
+            }
 
             if (role != null && option != null && option.getRoleItemValuePath() != null) {
                 ItemPath roleItemValuePath = option.getRoleItemValuePath();
@@ -266,8 +298,13 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 chunkName = role.getName().toString();
             }
 
-            miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(key), usersOidList, chunkName, frequency,
-                    RoleAnalysisOperationMode.EXCLUDE));
+            MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(Collections.singletonList(key), usersOidList, chunkName, frequency,
+                    RoleAnalysisOperationMode.EXCLUDE);
+            if (iconColor != null) {
+                miningRoleTypeChunk.setIconColor(iconColor);
+            }
+
+            miningRoleTypeChunks.add(miningRoleTypeChunk);
 
         }
 

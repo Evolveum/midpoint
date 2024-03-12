@@ -1577,8 +1577,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
                 roleAnalysisAttributeAnalysis.setDensity(density);
                 roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
+                roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
                 roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
-                roleAnalysisAttributeAnalysis.setJsonDescription(userAttributeAnalysisStructure.getJsonDescription());
+                List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
+                for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                    roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
+                }
+
                 userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
             }
 
@@ -1593,8 +1598,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
                 roleAnalysisAttributeAnalysis.setDensity(density);
                 roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPath());
+                roleAnalysisAttributeAnalysis.setIsMultiValue(roleAttributeAnalysisStructure.isMultiValue());
                 roleAnalysisAttributeAnalysis.setDescription(roleAttributeAnalysisStructure.getDescription());
-                roleAnalysisAttributeAnalysis.setJsonDescription(roleAttributeAnalysisStructure.getJsonDescription());
+                List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAttributeAnalysisStructure.getAttributeStatistics();
+                for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                    roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
+                }
                 roleAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
             }
 
@@ -1622,6 +1631,29 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
 
         return null;
+    }
+
+    //TODO temporary
+    public String resolveFocusObjectIconColor(@NotNull FocusType focusObject, @NotNull Task task, @NotNull OperationResult result) {
+        String color = null;
+        List<ObjectReferenceType> archetypeRef = focusObject.getArchetypeRef();
+        if (archetypeRef != null && !archetypeRef.isEmpty()) {
+            PrismObject<ArchetypeType> object = this.getObject(ArchetypeType.class, archetypeRef.get(0).getOid(), task, result);
+            if (object != null) {
+                ArchetypePolicyType archetypePolicy = object.asObjectable().getArchetypePolicy();
+                if (archetypePolicy != null) {
+                    DisplayType display = archetypePolicy.getDisplay();
+                    if (display != null) {
+                        IconType icon = display.getIcon();
+                        if (icon != null && icon.getColor() != null) {
+                            color = icon.getColor();
+                        }
+                    }
+
+                }
+            }
+        }
+        return color;
     }
 
 }
