@@ -27,10 +27,7 @@
                <expression>
                   <associationTargetSearch>
                      <filter>
-                        <q:equal>
-                           <q:path>attributes/ri:cn</q:path>
-                           <q:value>Big</q:value>
-                        </q:equal>
+                         <q:text>attributes/ri:cn = "Big"</q:text>
                      </filter>
                       <!-- Need this. CN is not an identifier, it is not cached in shadow -->
                       <searchStrategy>onResource</searchStrategy>

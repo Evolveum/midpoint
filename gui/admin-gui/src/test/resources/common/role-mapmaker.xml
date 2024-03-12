@@ -23,11 +23,7 @@
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                                        attributes/icfs:name</q:path>
-                                    <q:value>mapmakers</q:value>
-                                </q:equal>
+                                 <q:text>attributes/icfs:name = "mapmakers"</q:text>
                             </filter>
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>

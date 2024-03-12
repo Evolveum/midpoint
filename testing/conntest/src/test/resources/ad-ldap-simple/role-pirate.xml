@@ -21,10 +21,7 @@
                <expression>
                   <associationTargetSearch>
                      <filter>
-                        <q:equal>
-                           <q:path>attributes/ri:cn</q:path>
-                           <q:value>Pirates</q:value>
-                        </q:equal>
+                         <q:text>attributes/ri:cn = "Pirates"</q:text>
                      </filter>
                      <searchStrategy>onResource</searchStrategy>
                   </associationTargetSearch>
