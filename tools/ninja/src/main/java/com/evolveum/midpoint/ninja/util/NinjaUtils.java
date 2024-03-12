@@ -344,7 +344,10 @@ public class NinjaUtils {
             formatter.usage(sb);
         }
 
-        return sb.toString();
+        String helpText = sb.toString();
+        helpText = helpText.replace(Command.GENERATE_RBAC_DATA.getCommandName(), "");
+
+        return helpText;
     }
 
     public static String printObjectNameOidAndType(PrismObject<?> object) {
