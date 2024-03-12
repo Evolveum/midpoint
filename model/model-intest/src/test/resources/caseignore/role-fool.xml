@@ -32,10 +32,7 @@
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/icfs:name</q:path>
-                                    <q:value>FOOLS</q:value>
-                                </q:equal>
+                                 <q:text>attributes/icfs:name = "FOOLS"</q:text>
                             </filter>
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>

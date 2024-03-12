@@ -48,10 +48,7 @@
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/name</q:path>
-                                    <q:value>mp_users</q:value>
-                                </q:equal>
+                                 <q:text>attributes/name = "mp_users"</q:text>
                             </filter>
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>
