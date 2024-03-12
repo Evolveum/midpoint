@@ -163,7 +163,7 @@ public abstract class AbstractSearchExpressionEvaluator<
         final QName targetTypeQName;
 
         /** Class corresponding to {@link #targetTypeQName}. */
-        private final Class<O> targetTypeClass;
+        protected final Class<O> targetTypeClass;
 
         /** Do we have explicitly specified target object OID? */
         private final String explicitTargetOid;
@@ -285,16 +285,20 @@ public abstract class AbstractSearchExpressionEvaluator<
             }
         }
 
-        private @NotNull ObjectQuery createQuery()
-                throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
-
+        protected ObjectQuery createRawQuery(ExpressionEvaluationContext params) throws ConfigurationException, SchemaException, ExpressionEvaluationException {
             SearchFilterType filterBean =
                     MiscUtil.configNonNull(
                             expressionEvaluatorBean.getFilter(),
                             () -> "No filter in " + shortDebugDump());
+            return prismContext.getQueryConverter().createObjectQuery(targetTypeClass, filterBean);
+        };
 
-            ObjectQuery rawQuery = prismContext.getQueryConverter().createObjectQuery(targetTypeClass, filterBean);
+
+        private @NotNull ObjectQuery createQuery()
+                throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+                ConfigurationException, SecurityViolationException {
+
+            ObjectQuery rawQuery = createRawQuery(context);
             LOGGER.trace("XML query converted to: {}", rawQuery.debugDumpLazily());
 
             ObjectQuery evaluatedQuery = ExpressionUtil.evaluateQueryExpressions(
