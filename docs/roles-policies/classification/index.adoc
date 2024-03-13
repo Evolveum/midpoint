@@ -25,7 +25,7 @@ The classifications specify security requirements that must be met to be able to
 
 * `Clearance` archetype is used to define clearances.
 Clearances are objects which testify that security requirements were met by a particular user or organization.
-They represent completion of security trainings, non-disclosure agreements (NDA) in place, formal government clearances or professional certifications.
+They represent knowledge gained at mandatory trainings (e.g. security training, health and safety briefing), non-disclosure agreements (NDA) in place, formal government clearances or professional certifications, user categories (internal/external).
 Clearances allow access to classified applications.
 
 The actual mechanism is based on combination of xref:../metaroles/[meta-roles] and xref:../policy-rules/[policy rules].
@@ -251,12 +251,13 @@ However, some job roles or organizational units may be cleared implicitly, given
 For example, the clearance may be awarded automatically to all members of `Chief Audit Office` organizational unit.
 The usual inducement can be used for that:
 
-.special-security-clearance.xml
+.chief-audit-office.xml
 [source,xml]
 ----
 <org oid="03a7128d-42c8-4056-9f2e-171658562eeb">
     <name>Chief Audit Office</name>
     <inducement>
+        <!-- Special security clearance -->
         <targetRef oid="147a93c6-c8c3-4430-9603-659ffeb5e544" type="RoleType" />
     </inducement>
 </org>
@@ -288,3 +289,5 @@ Generally speaking, visibility of policy rules and their execution is somehow li
 * xref:../policy-rules/[]
 
 * xref:../metaroles/[]
+
+* xref:/midpoint/features/planned/classifications/[]
