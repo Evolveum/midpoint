@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.StringAutoCompleteRenderer;
@@ -24,6 +25,15 @@ public class ResourceIntentFactory extends AbstractIntentFactory {
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
+        if (!wrapper.getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_INTENT)) {
+            return false;
+        }
+
+        if (ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE, ResourceObjectTypeDefinitionType.F_INTENT)
+                .equivalent(wrapper.getPath().namedSegmentsOnly())) {
+            return false;
+        }
+
         PrismObjectWrapper<?> objectWrapper = wrapper.findObjectWrapper();
         if (objectWrapper == null) {
             return false;
@@ -33,6 +43,7 @@ public class ResourceIntentFactory extends AbstractIntentFactory {
         if (!(object instanceof ResourceType)) {
             return false;
         }
-        return wrapper.getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_INTENT);
+
+        return true;
     }
 }
