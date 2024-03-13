@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.component.search;
+package com.evolveum.midpoint.web.component.query;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,6 +16,9 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchableItemsDefinition
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
+
+import com.evolveum.midpoint.web.component.search.AbstractSearchConfigurationPanel;
+import com.evolveum.midpoint.web.component.search.Property;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

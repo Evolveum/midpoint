@@ -4,11 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.page.admin.reports.component;
+package com.evolveum.midpoint.web.component.query;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+
+import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,7 +33,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.search.BasicSearchFilterModel;
-import com.evolveum.midpoint.web.component.search.SearchPropertiesConfigPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;

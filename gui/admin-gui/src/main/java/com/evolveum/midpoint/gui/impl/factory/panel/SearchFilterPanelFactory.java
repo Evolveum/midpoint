@@ -19,7 +19,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.SearchFilterConfigurationPanel;
+import com.evolveum.midpoint.web.component.query.SearchFilterConfigurationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
