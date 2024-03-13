@@ -15,7 +15,11 @@ xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authent
 
 == Example
 
-include::../../raw/curl-env-note.adoc[]
+[NOTE]
+====
+In this example we are using the user *Jack* and authenticating with the password *y0uR_P455woR*d* on a midPoint instance running on *localhost:8080*.
+This is due to the character of the example.
+====
 
 For some help regarding the REST examples please see this link:
 
@@ -30,8 +34,6 @@ xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How t
 7. The request will create an approval workflow case for the roles approvers.
 //TODO WP#9493, some kind of redirect info should be returned here so the user is capable of watching the progress of the case
 8. If you want information regarding the users case, you will have to query the open cases. A REST location header or redirect is currently missing, please see bug:MID-9493[].
-
-include::../examples/raw/modify-attr-entitlement.adoc[]
 
 .*Show* example authorization for *"Entitlement self request"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/roles/role-authz-request-access.xml[GitHub]
 [%collapsible]
@@ -53,7 +55,7 @@ include::../examples/raw/modify-attr-entitlement.adoc[]
     <description></description>
     <activation/>
     <authorization>
-        <name>self-modify-rest</name>
+        <name>rest</name>
         <description></description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#all</action>
     </authorization>
@@ -65,10 +67,7 @@ include::../examples/raw/modify-attr-entitlement.adoc[]
         <object>
             <type>RoleType</type>
             <filter>
-                <q:equal>
-                    <q:path>requestable</q:path>
-                    <q:value>true</q:value>
-                </q:equal>
+                <q:text>requestable = true AND parentOrgRef/@/name = "Role Catalog"</q:text>
             </filter>
         </object>
     </authorization>
@@ -87,7 +86,7 @@ include::../examples/raw/modify-attr-entitlement.adoc[]
         <target>
             <type>RoleType</type>
             <filter>
-                <q:text>requestable = true AND parentOrgRef matches (oid = "7878cf5d-9de2-486c-aeb7-41b438200a57")</q:text>
+                <q:text>requestable = true AND parentOrgRef/@/name = "Role Catalog"</q:text>
             </filter>
         </target>
         <relation>org:default</relation>
@@ -117,9 +116,9 @@ include::../examples/raw/modify-attr-entitlement.adoc[]
         </object>
         <object>
             <type>RoleType</type>
-            <filter>
-                <q:text>requestable = true AND parentOrgRef matches (oid = "7878cf5d-9de2-486c-aeb7-41b438200a57")</q:text>
-            </filter>
+        </object>
+        <object>
+            <type>ArchetypeType</type>
         </object>
         <object>
             <type>UserType</type>
@@ -151,6 +150,10 @@ include::../examples/raw/modify-attr-entitlement.adoc[]
 </role>
 ----
 ====
+
+include::../examples/raw/search-requestable-from-role-catalog-cases.adoc[]
+
+include::../examples/raw/modify-attr-entitlement.adoc[]
 
 include::../examples/raw/search-case-open-user.adoc[]
 
