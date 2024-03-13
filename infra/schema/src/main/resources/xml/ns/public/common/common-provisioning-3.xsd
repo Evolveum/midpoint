@@ -616,6 +616,9 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:merge>
+                    <a:merger>ResourceObjectTypeDefinitionType</a:merger>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2073,6 +2076,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:merge>
+                    <a:identifier>ref</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -5768,6 +5774,9 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.6</a:since>
+                <a:merge>
+                    <a:identifier>name</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -5915,6 +5924,9 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.6</a:since>
+                <a:merge>
+                    <a:identifier>name</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

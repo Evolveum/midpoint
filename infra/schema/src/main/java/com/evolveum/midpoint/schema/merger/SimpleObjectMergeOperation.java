@@ -18,6 +18,10 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * @author Viliam Repan
+ */
+@Deprecated
 public class SimpleObjectMergeOperation extends BaseMergeOperation<ObjectType> {
 
     private static final Set<Class<? extends ObjectType>> SUPPORTED_TYPES = Set.of(
@@ -37,12 +41,9 @@ public class SimpleObjectMergeOperation extends BaseMergeOperation<ObjectType> {
             ValuePolicyType.class
     );
 
-    public SimpleObjectMergeOperation(
-            @Nullable OriginMarker originMarker,
-            @NotNull ObjectType target,
-            @NotNull ObjectType source) {
-
-        super(target,
+    public SimpleObjectMergeOperation(@Nullable OriginMarker originMarker, @NotNull ObjectType target, @NotNull ObjectType source) {
+        super(
+                target,
                 source,
                 new GenericItemMerger(
                         originMarker,

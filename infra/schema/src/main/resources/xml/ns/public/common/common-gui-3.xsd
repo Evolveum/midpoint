@@ -549,6 +549,9 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.6</a:since>
+                <a:merge>
+                    <a:identifier>identifier</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -777,6 +780,9 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>RichHyperlinkType.details</a:displayName>
+                <a:merge>
+                    <a:identifier>targetUrl</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1535,6 +1541,9 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.0</a:since>
+                <a:merge>
+                    <a:identifier>path</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1564,6 +1573,9 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6.1</a:since>
+                <a:merge>
+                    <a:identifier>identifier</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2867,6 +2879,9 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6</a:since>
+                <a:merge>
+                    <a:identifier>name</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <!-- TODO: maybe we want this to be subtype of UserInterfaceFeatureType? -->
@@ -4627,6 +4642,9 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.6</a:since>
+                <a:merge>
+                    <a:identifier>identifier</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -4707,6 +4725,10 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.6</a:since>
+                <a:merge>
+                    <a:identifier>identifier</a:identifier>
+                    <a:identifier>type</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

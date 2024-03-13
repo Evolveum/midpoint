@@ -4482,6 +4482,9 @@
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:merge>
+                    <a:merger>PropertyLimitationsType</a:merger>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -5392,6 +5395,9 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>MappingType.details</a:displayName>
+                <a:merge>
+                    <a:identifier>name</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -5801,6 +5807,9 @@
             <xsd:appinfo>
                 <a:since>4.3</a:since>
                 <a:container/>
+                <a:merge>
+                    <a:identifier>name</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -9134,6 +9143,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:merge>
+                    <a:identifier>ref</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10141,6 +10153,9 @@
                 <a:container/>
                 <a:relational>true</a:relational>
                 <a:expensive>true</a:expensive>
+                <a:merge>
+                    <a:identifier>key</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -11968,6 +11983,9 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:merge>
+                    <a:identifier>identifier</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12261,6 +12279,9 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:merge>
+                    <a:identifier>identifier</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -12304,6 +12325,9 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:merge>
+                    <a:identifier>name</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12353,6 +12377,9 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:merge>
+                    <a:identifier>name</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12411,6 +12438,9 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:merge>
+                    <a:identifier>name</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -14867,6 +14897,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:merge>
+                    <a:identifier>package</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -14894,6 +14927,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:merge>
+                    <a:identifier>component</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -15089,6 +15125,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:merge>
+                    <a:identifier>name</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -16070,6 +16109,9 @@
                 <a:since>3.5</a:since>
                 <a:container>true</a:container>
                 <a:displayName>GlobalPolicyRuleType.details</a:displayName>
+                <a:merge>
+                    <a:identifier>name</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

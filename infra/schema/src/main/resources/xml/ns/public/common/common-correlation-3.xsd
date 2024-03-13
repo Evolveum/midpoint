@@ -264,6 +264,9 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
+                <a:merge>
+                    <a:identifier>name</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

@@ -2328,6 +2328,9 @@
                 <a:experimental>true</a:experimental>
                 <a:container>true</a:container>
                 <a:since>4.0</a:since>
+                <a:merge>
+                    <a:identifier>name</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

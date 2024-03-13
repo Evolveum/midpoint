@@ -180,6 +180,9 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
+                <a:merge>
+                    <a:identifier>identifier</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1833,6 +1836,9 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
+                <a:merge>
+                    <a:identifier>identifier</a:identifier>
+                </a:merge>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

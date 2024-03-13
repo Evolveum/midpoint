@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +57,9 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
     @NotNull private final PathKeyedMap<ItemMerger> childrenMergers;
 
     /** Mergers to be used universally. Indexed by the value class. */
-    @NotNull private final Map<String, Supplier<ItemMerger>> typeSpecificMergers;
+    @NotNull private final Map<Class<?>, Supplier<ItemMerger>> typeSpecificMergers;
+
+    @NotNull private final Map<String, TypeSpecificMergersConfigurator.TypedMergerSupplier> identifierSpecificMergers;
 
     private GenericItemMerger(
             @Nullable OriginMarker originMarker,
@@ -67,7 +70,11 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
         this.childrenMergers = childrenMergers;
 
         // In the future this may be parameterized on instance creation.
-        this.typeSpecificMergers = TypeSpecificMergersConfigurator.createMergersMap(originMarker);
+        this.identifierSpecificMergers = TypeSpecificMergersConfigurator.createMergersMap(originMarker);
+        this.typeSpecificMergers = this.identifierSpecificMergers.values().stream()
+                .collect(Collectors.toMap(
+                        o -> o.type(),
+                        o -> o.supplier()));
     }
 
     public GenericItemMerger(
@@ -115,7 +122,7 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
         Merge merge = childDef.getMerge();
         if (merge == null) {
             LOGGER.trace("Using default merger for {} (value class {})", itemName, valueClass);
-            return createDefaultSubMerger(itemName);
+            return createDefaultSubMerger(itemName, valueClass);
         }
 
         List<QName> identifiers = merge.getIdentifiers();
@@ -129,17 +136,38 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
         }
 
         String customMerger = merge.getMerger();
-        Supplier<ItemMerger> mergerSupplier = typeSpecificMergers.get(customMerger);
-
-        if (customMerger == null || mergerSupplier == null) {
+        TypeSpecificMergersConfigurator.TypedMergerSupplier typedSupplier = identifierSpecificMergers.get(customMerger);
+        if (customMerger == null || typedSupplier == null) {
             LOGGER.trace("Using default merger for {} (value class {})", itemName, valueClass);
-            return createDefaultSubMerger(itemName);
+            return createDefaultSubMerger(itemName, valueClass);
         }
 
-        return mergerSupplier.get();
+        return typedSupplier.supplier().get();
     }
 
-    private ItemMerger createDefaultSubMerger(ItemName itemName) {
+    private ItemMerger createDefaultSubMerger(ItemName itemName, Class<?> valueClass) {
+        if (valueClass != null) {
+            Map.Entry<Class<?>, Supplier<ItemMerger>> entryFound = null;
+            for (Map.Entry<Class<?>, Supplier<ItemMerger>> entry : typeSpecificMergers.entrySet()) {
+                if (entry.getKey().isAssignableFrom(valueClass)) {
+                    if (entryFound == null) {
+                        entryFound = entry;
+                    } else {
+                        // we're looking for the most concrete supplier
+                        if (entryFound.getKey().isAssignableFrom(entry.getKey())) {
+                            entryFound = entry;
+                        }
+                    }
+                }
+            }
+
+            if (entryFound != null) {
+                ItemMerger byTypeName = entryFound.getValue().get();
+                LOGGER.trace("Type-specific merger for {} (type {}) was found: {}", itemName, valueClass, byTypeName);
+                return byTypeName;
+            }
+        }
+
         GenericItemMerger merger = new GenericItemMerger(
                 originMarker,
                 createSubChildMergersMap(itemName));

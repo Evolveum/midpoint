@@ -12,96 +12,45 @@ import static java.util.Map.entry;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.merger.assignment.AssignmentMerger;
 import com.evolveum.midpoint.schema.merger.key.DefaultNaturalKeyImpl;
-import com.evolveum.midpoint.schema.merger.key.ItemPathNaturalKeyImpl;
 import com.evolveum.midpoint.schema.merger.objdef.LimitationsMerger;
 import com.evolveum.midpoint.schema.merger.resource.ObjectTypeDefinitionMerger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Separate class to hold the configuration of type-specific item mergers.
- *
- * TODO: this should be moved to XSDs as schema annotations.
  */
 class TypeSpecificMergersConfigurator {
 
-    static Map<String, Supplier<ItemMerger>> createMergersMap(@Nullable OriginMarker marker) {
+    record TypedMergerSupplier(Class<?> type, Supplier<ItemMerger> supplier) {
+    }
+
+    static Map<String, TypedMergerSupplier> createMergersMap(@Nullable OriginMarker marker) {
         return Map.ofEntries(
                 entry(
-                        "assignment",
-                        () -> new AssignmentMerger(marker)));
+                        "ResourceObjectTypeDefinitionType",
+                        new TypedMergerSupplier(
+                                ResourceObjectTypeDefinitionType.class,
+                                () -> new ObjectTypeDefinitionMerger(marker))),
+                entry(
+                        "PropertyLimitationsType",
+                        new TypedMergerSupplier(
+                                PropertyLimitationsType.class,
+                                () -> new LimitationsMerger(marker))),
+                entry(
+                        "AssignmentType",
+                        new TypedMergerSupplier(
+                                AssignmentType.class,
+                                () -> new AssignmentMerger(marker)))
+        );
     }
 
     @Deprecated
     static Map<Class<?>, Supplier<ItemMerger>> createStandardTypeSpecificMergersMap(@Nullable OriginMarker marker) {
         return Map.ofEntries(
-                // for ResourceType
-                entry(
-                        ConnectorInstanceSpecificationType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ConnectorInstanceSpecificationType.F_NAME))),
-                entry(
-                        ResourceObjectTypeDefinitionType.class,
-                        () -> new ObjectTypeDefinitionMerger(marker)),
-
-                // for ObjectTemplateType
-                entry(
-                        ObjectTemplateItemDefinitionType.class,
-                        () -> new GenericItemMerger(
-                                marker, ItemPathNaturalKeyImpl.of(ItemRefinedDefinitionType.F_REF))),
-
-                // for ResourceObjectTypeDefinitionType (object type definitions and embedded structures)
-                entry(
-                        ResourceItemDefinitionType.class,
-                        () -> new GenericItemMerger(
-                                marker, ItemPathNaturalKeyImpl.of(ResourceAttributeDefinitionType.F_REF))),
-                entry(
-                        PropertyLimitationsType.class,
-                        () -> new LimitationsMerger(marker)),
-                entry(
-                        MappingType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(MappingType.F_NAME))),
-                entry(
-                        AbstractCorrelatorType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractCorrelatorType.F_NAME))),
-                entry(
-                        SynchronizationReactionType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SynchronizationReactionType.F_NAME))),
-                entry(
-                        AbstractSynchronizationActionType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractSynchronizationActionType.F_NAME))),
-                entry(
-                        LookupTableRowType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(LookupTableRowType.F_KEY))),
-                entry(
-                        AbstractAuthenticationModuleType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractAuthenticationModuleType.F_IDENTIFIER))),
-                entry(
-                        AuthenticationSequenceType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AuthenticationSequenceType.F_IDENTIFIER))),
-                entry(
-                        ClassLoggerConfigurationType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ClassLoggerConfigurationType.F_PACKAGE))),
-                entry(
-                        AppenderConfigurationType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AppenderConfigurationType.F_NAME))),
-                entry(
-                        TracingProfileType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(TracingProfileType.F_NAME))),
-                entry(
-                        HomePageType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
-                                HomePageType.F_IDENTIFIER,
-                                HomePageType.F_TYPE))),
-                entry(
-                        PreviewContainerPanelConfigurationType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(PreviewContainerPanelConfigurationType.F_IDENTIFIER))),
-                entry(
-                        UserInterfaceFeatureType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(UserInterfaceFeatureType.F_IDENTIFIER))),
                 entry(
                         SearchItemType.class,
                         () -> new GenericItemMerger(
@@ -111,11 +60,6 @@ class TypeSpecificMergersConfigurator {
                 entry(
                         GuiObjectDetailsPageType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(GuiObjectDetailsPageType.F_TYPE))),
-                entry(
-                        VirtualContainerItemSpecificationType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(VirtualContainerItemSpecificationType.F_PATH))),
                 entry(
                         VirtualContainersSpecificationType.class,
                         () -> new GenericItemMerger(
@@ -129,41 +73,12 @@ class TypeSpecificMergersConfigurator {
                                 GuiResourceDetailsPageType.F_TYPE,
                                 GuiResourceDetailsPageType.F_CONNECTOR_REF))),
                 entry(
-                        RoleCollectionViewType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(RoleCollectionViewType.F_IDENTIFIER))),
-                entry(
-                        RichHyperlinkType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(RichHyperlinkType.F_TARGET_URL))),
-                entry(
-                        ExpressionProfileType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ExpressionProfileType.F_IDENTIFIER))),
-                entry(
                         ExpressionEvaluatorProfileType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ExpressionEvaluatorProfileType.F_TYPE))),
                 entry(
                         ScriptLanguageExpressionProfileType.class,
                         () -> new GenericItemMerger(
                                 marker, DefaultNaturalKeyImpl.of(ScriptLanguageExpressionProfileType.F_LANGUAGE))),
-                entry(
-                        ExpressionPermissionProfileType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(ExpressionPermissionProfileType.F_IDENTIFIER))),
-                entry(
-                        ExpressionPermissionPackageProfileType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(ExpressionPermissionPackageProfileType.F_NAME))),
-                entry(
-                        ExpressionPermissionClassProfileType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(ExpressionPermissionClassProfileType.F_NAME))),
-                entry(
-                        ExpressionPermissionMethodProfileType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(ExpressionPermissionMethodProfileType.F_NAME))),
                 entry(
                         TracingTypeProfileType.class,
                         () -> new GenericItemMerger(
@@ -182,15 +97,6 @@ class TypeSpecificMergersConfigurator {
                         () -> new GenericItemMerger(
                                 marker,
                                 DefaultNaturalKeyImpl.of(ObjectSelectorType.F_NAME, ObjectSelectorType.F_TYPE))),
-                entry(
-                        AssignmentType.class,
-                        () -> new AssignmentMerger(marker)),
-                entry(
-                        GuiObjectColumnType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(GuiObjectColumnType.F_NAME))),
-                entry(
-                        ParameterType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ParameterType.F_NAME))),
                 entry(
                         CollectionSpecificationType.class,
                         () -> new GenericItemMerger(
@@ -216,12 +122,6 @@ class TypeSpecificMergersConfigurator {
                         ItemConstraintType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ItemConstraintType.F_PATH))),
                 entry(
-                        GlobalPolicyRuleType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(GlobalPolicyRuleType.F_NAME))),
-                entry(
-                        AbstractPolicyConstraintType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractPolicyConstraintType.F_NAME))),
-                entry(
                         ModificationPolicyConstraintType.class,
                         () -> new GenericItemMerger(
                                 marker,
@@ -237,9 +137,6 @@ class TypeSpecificMergersConfigurator {
                 entry(
                         SecurityQuestionDefinitionType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SecurityQuestionDefinitionType.F_IDENTIFIER))),
-                entry(
-                        SubSystemLoggerConfigurationType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SubSystemLoggerConfigurationType.F_COMPONENT))),
                 entry(
                         GuiObjectListViewType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
@@ -269,7 +166,7 @@ class TypeSpecificMergersConfigurator {
                                 marker,
                                 DefaultNaturalKeyImpl.of(
                                         SelectorQualifiedGetOptionType.F_OPTIONS,
-                                        SelectorQualifiedGetOptionType.F_SELECTOR))));
-
+                                        SelectorQualifiedGetOptionType.F_SELECTOR)))
+        );
     }
 }
