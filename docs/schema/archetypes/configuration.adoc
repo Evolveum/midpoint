@@ -1,3 +1,7 @@
+---
+midpoint-feature: archetype
+doc-type: config
+---
 = Archetype Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Archetype Configuration
