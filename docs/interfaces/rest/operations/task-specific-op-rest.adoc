@@ -74,9 +74,26 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
+include::../operations/raw/a-auth.adoc[]
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#suspendTask+`
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#resumeTask+`
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#runTask+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+For the "run" task operation please use:
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#runTaskImmediately+`
+
+For the "suspend" operation please use:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#suspendTask+`
+
+For the "resume" operation please use:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#resumeTask+`
 
 == Examples
 

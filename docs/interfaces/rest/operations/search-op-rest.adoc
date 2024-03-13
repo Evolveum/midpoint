@@ -71,7 +71,15 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
+include::../operations/raw/a-auth.adoc[]
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#searchObjects+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read+`
 
 == Examples
 
