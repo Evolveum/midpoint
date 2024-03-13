@@ -17,7 +17,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchQueryResult;
 import com.evolveum.midpoint.schema.*;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.xml.resolver.apps.XParseError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -205,57 +208,51 @@ public abstract class AbstractSearchExpressionEvaluator<
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
                 CommunicationException, ConfigurationException, SecurityViolationException {
 
-            List<V> resultValues;
-            Collection<ObjectQuery> queries;
-
             // Deltas to be applied on the newly-created value (assuming the value is an assignment value)
             List<ItemDelta<V, D>> newValueDeltas = createNewValueDeltas();
 
             if (explicitTargetOid != null) {
-
                 // Shortcut: no searching, we already have OID
-                resultValues = new ArrayList<>(1);
-                resultValues.add(
-                        createResultValue(
-                                explicitTargetOid, null, newValueDeltas));
-
-                queries = List.of();
-
-            } else {
-
-                queries = createQueries();
-
-                resultValues = executeSearchUsingCache(queries, false, newValueDeltas);
-
-                if (resultValues.isEmpty()) {
-                    String defaultTargetOid = Referencable.getOid(expressionEvaluatorBean.getDefaultTargetRef());
-                    if (defaultTargetOid != null) {
-                        resultValues.add(
-                                createResultValue(defaultTargetOid, null, newValueDeltas));
-                    }
-                }
+                log("explicit OID", 1);
+                return List.of(createResultValue(explicitTargetOid, null, newValueDeltas));
             }
 
-            if (resultValues.isEmpty()
-                    && Boolean.TRUE.equals(expressionEvaluatorBean.isCreateOnDemand())
-                    && (valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
+            var queries = createQueries();
+            var searchResults = executeSearchUsingCache(queries, false, newValueDeltas);
+            if (!searchResults.isEmpty()) {
+                log("search operation (potentially cached)", searchResults.size());
+                return searchResults;
+            }
 
+            String defaultTargetOid = Referencable.getOid(expressionEvaluatorBean.getDefaultTargetRef());
+            if (defaultTargetOid != null) {
+                log("default target OID", 1);
+                return List.of(createResultValue(defaultTargetOid, null, newValueDeltas));
+            }
+
+            if (Boolean.TRUE.equals(expressionEvaluatorBean.isCreateOnDemand())
+                    && (valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
                 try {
                     PrismObject<O> createdObject = createOnDemand();
                     if (createdObject != null) {
-                        resultValues.add(
-                                createResultValue(createdObject.getOid(), createdObject, newValueDeltas));
+                        log("create-on-demand", 1);
+                        return List.of(createResultValue(createdObject.getOid(), createdObject, newValueDeltas));
                     }
                 } catch (ObjectAlreadyExistsException ex) {
                     // object was created in the meantime, so we should try to search for it once more
-                    resultValues = executeSearchUsingCache(queries, true, newValueDeltas);
+                    var secondSearchResults = executeSearchUsingCache(queries, true, newValueDeltas);
+                    log("create-on-demand (with conflict), followed by repeated search", secondSearchResults.size());
+                    return secondSearchResults;
                 }
             }
 
-            LOGGER.trace("Search expression {} (valueDestination={}) got {} results for query {}",
-                    contextDescription, valueDestination, resultValues.size(), queries);
+            log("search that found nothing", 0);
+            return List.of();
+        }
 
-            return resultValues;
+        private void log(String source, int values) {
+            LOGGER.trace("Search expression {} (valueDestination={}) resolved via {}: returning {} values",
+                    contextDescription, valueDestination, source, values);
         }
 
         private @Nullable List<ItemDelta<V, D>> createNewValueDeltas()
@@ -286,7 +283,7 @@ public abstract class AbstractSearchExpressionEvaluator<
 
             List<ObjectQuery> queries = new ArrayList<>();
             for (var filterBean : filterBeans) {
-                ObjectQuery rawQuery = prismContext.getQueryConverter().createObjectQuery(targetTypeClass, filterBean);
+                ObjectQuery rawQuery = createRawQuery(filterBean, context);
                 LOGGER.trace("XML query converted to: {}", rawQuery.debugDumpLazily());
 
                 ObjectQuery evaluatedQuery = ExpressionUtil.evaluateQueryExpressions(
@@ -306,6 +303,10 @@ public abstract class AbstractSearchExpressionEvaluator<
             }
 
             return queries;
+        }
+
+        protected ObjectQuery createRawQuery(SearchFilterType filter, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
+            return prismContext.getQueryConverter().createObjectQuery(targetTypeClass, filter);
         }
 
         protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params)
@@ -495,7 +496,7 @@ public abstract class AbstractSearchExpressionEvaluator<
         // e.g parameters, activation for assignment etc.
 
         /** Converts the object found into a value to be returned (from the expression) - i.e. assignment, association, etc. */
-        protected abstract V createResultValue(
+        protected abstract @NotNull V createResultValue(
                 String oid, PrismObject<O> object, List<ItemDelta<V, D>> newValueDeltas) throws SchemaException;
 
         private PrismObject<O> createOnDemand()

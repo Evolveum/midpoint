@@ -134,6 +134,38 @@ permit only specific actions, please have a look at this xref:/midpoint/referenc
 
 === Troubleshooting
 
+==== Client Error
+
+When the client sends a request which cannot be processed, midPoint often responds with a structure called *OperationResult*.
+OperationResult contains more information, quite often a large amount of detail on the situation.
+
+In the following example we have an operation result object returned in the case when midPoint was provided a task which should execute some action on a non-existing object.
+The example is in the JSON format:
+
+.*Example of OperationResult Returned in Case of Client Error.*
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "c:OperationResultType",
+    "operation" : "addObject",
+    "status" : "handled_error",
+    "importance" : "normal",
+    "start" : "2024-03-08T15:42:05.727+01:00",
+    "end" : "2024-03-08T15:42:05.762+01:00",
+    "microseconds" : 35816,
+    "invocationId" : 5374,
+    "token" : 1000000000000001288,
+    "message" : "Reference reportRef refers to a non-existing object dad5370f-6132-496d-8faa-6c1d3daac2b1: Object of type 'ReportType' with OID 'dad5370f-6132-496d-8faa-6c1d3daac2b1' was not found.: Reference reportRef refers to a non-existing object dad5370f-6132-496d-8faa-6c1d3daac2b1: Object of type 'ReportType' with OID 'dad5370f-6132-496d-8faa-6c1d3daac2b1' was not found.",
+    "partialResults" : [ ]
+  }
+}
+----
+====
+
 ==== Frequent Issues
 
 ===== Missing '@' Character In Data Content File Path

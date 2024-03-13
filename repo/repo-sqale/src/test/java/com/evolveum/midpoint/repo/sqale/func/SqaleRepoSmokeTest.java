@@ -492,7 +492,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         // 1 query for user, plus additional queries for items in  separate table (linkRef, roleMembershipRef, assignmentRef, operationExecution)
         assertThat(queryBuffer).hasSize(1 + QUserMapping.getUserMapping().additionalSelectsByDefault());
         entry = queryBuffer.remove();
-        assertThat(entry.sql).startsWith("select u.oid, u.fullObject");
+        assertThat(entry.sql).startsWith("select u.oid, u.objectType, u.fullObject");
     }
 
     @Test

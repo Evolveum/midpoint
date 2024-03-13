@@ -1633,10 +1633,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 paging.addOrderingInstruction(createParentPath(depth - i).append(PrismConstants.T_ID), direction);
             }
 
-
-            paging.addOrderingInstruction(OWNER_OID_PATH, direction);
-            paging.addOrderingInstruction(CONTAINER_ID_PATH, direction);
-
             pagedQuery.setPaging(paging);
 
             int pageSize = Math.min(

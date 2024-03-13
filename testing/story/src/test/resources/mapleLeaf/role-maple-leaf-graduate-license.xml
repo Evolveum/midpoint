@@ -27,10 +27,7 @@
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/ri:cn</q:path>
-                                    <q:value>mapleLeafGraduateLicense</q:value>
-                                </q:equal>
+                                 <q:text>attributes/ri:cn = "mapleLeafGraduateLicense"</q:text>
                             </filter>
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>

@@ -26,6 +26,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Creates an assignment (or assignments) based on specified conditions for the assignment target.
  * Can create target objects on demand.
@@ -67,7 +69,7 @@ public class AssignmentTargetSearchExpressionEvaluator
 
         return new Evaluation(variables, valueDestination, useNew, context, contextDescription, task, result) {
 
-            protected PrismContainerValue<AssignmentType> createResultValue(
+            protected @NotNull PrismContainerValue<AssignmentType> createResultValue(
                     String oid,
                     PrismObject<AssignmentHolderType> object,
                     List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> newValueDeltas)

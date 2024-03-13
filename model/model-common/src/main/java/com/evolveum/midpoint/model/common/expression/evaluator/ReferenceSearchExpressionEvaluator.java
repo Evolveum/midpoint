@@ -25,6 +25,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpressionEvaluatorType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Creates a generic reference (or references) based on specified condition for the referenced object.
  * (It seems to be not much used.)
@@ -59,7 +61,7 @@ public class ReferenceSearchExpressionEvaluator
             OperationResult result) throws SchemaException {
         return new Evaluation(variables, valueDestination, useNew, context, contextDescription, task, result) {
             @Override
-            protected PrismReferenceValue createResultValue(
+            protected @NotNull PrismReferenceValue createResultValue(
                     String oid,
                     PrismObject<ObjectType> object,
                     List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> newValueDeltas) {
