@@ -130,9 +130,13 @@ public class PageDebugList extends PageAdminConfiguration {
                 if (search == null || search.isForceReload()) {
                     Class<? extends ObjectType> type = getType();
 
-                    search = createSearch(type);
+                    Search newSearch = createSearch(type);
 
-                    storage.setSearch(search);
+                    if (search != null && search.isForceReload()) {
+                        newSearch.setSearchMode(search.getSearchMode());
+                    }
+                    storage.setSearch(newSearch);
+                    return newSearch;
                 }
                 return search;
             }
@@ -153,6 +157,7 @@ public class PageDebugList extends PageAdminConfiguration {
         SearchContext ctx = new SearchContext();
         ctx.setPanelType(CollectionPanelType.DEBUG);
         ctx.setAvailableSearchBoxModes(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.AXIOM_QUERY, SearchBoxModeType.OID));
+
         return ctx;
     }
 
