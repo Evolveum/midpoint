@@ -253,7 +253,6 @@ public class SearchBuilder<C extends Serializable> {
 
     private Search<C> createSearch(SearchBoxConfigurationType mergedConfig, BasicQueryWrapper basicSearchWrapper) {
         AxiomQueryWrapper axiomWrapper = new AxiomQueryWrapper(getDefinitionOverride());
-        AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper(null);
         FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper(null);
 
         ObjectTypeSearchItemWrapper objectTypeSearchItemWrapper = new ObjectTypeSearchItemWrapper(mergedConfig.getObjectTypeConfiguration());
@@ -264,7 +263,6 @@ public class SearchBuilder<C extends Serializable> {
         OidSearchItemWrapper oidSearchItemWrapper = new OidSearchItemWrapper();
         oidSearchItemWrapper.setValue(new SearchValue<>());
         search.setOidSearchItemWrapper(oidSearchItemWrapper);
-        search.setAdvancedQueryWrapper(advancedQueryWrapper);
         search.setAxiomQueryWrapper(axiomWrapper);
         search.setFulltextQueryWrapper(fulltextQueryWrapper);
         search.setSearchConfigurationWrapper(basicSearchWrapper);

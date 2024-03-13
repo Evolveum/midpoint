@@ -161,11 +161,6 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
                 axiomSearchPanel.setOutputMarkupId(true);
                 form.addOrReplace(axiomSearchPanel);
                 break;
-            case ADVANCED:
-                XmlSearchPanel xmlSearchPanel = new XmlSearchPanel(panelId, new PropertyModel<>(getModel(), Search.F_ADVANCED_SEARCH));
-                xmlSearchPanel.setOutputMarkupId(true);
-                form.addOrReplace(xmlSearchPanel);
-                break;
             case OID:
                 OidSearchItemPanel oidSearchItemPanel = new OidSearchItemPanel(panelId, new PropertyModel<>(getModel(), Search.F_OID_SEARCH));
                 oidSearchItemPanel.setOutputMarkupId(true);
@@ -447,8 +442,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
         }
         if (SearchBoxModeType.BASIC.equals(filter.getSearchMode())) {
             applyFilterToBasicMode(filter.getSearchItem());
-        } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())
-                || SearchBoxModeType.ADVANCED.equals(filter.getSearchMode())) {
+        } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())) {
             applyFilterToAxiomOrAdvancedMode(filter.getSearchItem(), filter.getSearchMode());
         } else if (SearchBoxModeType.FULLTEXT.equals(filter.getSearchMode())) {
             applyFilterToFulltextMode(filter.getSearchItem());

@@ -56,7 +56,6 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
     public static final String F_ALLOWED_MODES = "allowedModeList";
 
     public static final String F_OID_SEARCH = "oidSearchItemWrapper";
-    public static final String F_ADVANCED_SEARCH = "advancedQueryWrapper";
     public static final String F_AXIOM_SEARCH = "axiomQueryWrapper";
     public static final String F_FULLTEXT_SEARCH = "fulltextQueryWrapper";
     public static final String F_BASIC_SEARCH = "basicQueryWrapper";
@@ -64,7 +63,6 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
     private ObjectTypeSearchItemWrapper type;
     private SearchBoxModeType defaultSearchBoxMode;
     private List<SearchBoxModeType> allowedModeList = new ArrayList<>();
-    private AdvancedQueryWrapper advancedQueryWrapper;
     private AxiomQueryWrapper axiomQueryWrapper;
     private FulltextQueryWrapper fulltextQueryWrapper;
     private BasicQueryWrapper basicQueryWrapper;
@@ -106,9 +104,6 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         return type.getAvailableValues();
     }
 
-    void setAdvancedQueryWrapper(AdvancedQueryWrapper advancedQueryWrapper) {
-        this.advancedQueryWrapper = advancedQueryWrapper;
-    }
 
     void setAxiomQueryWrapper(AxiomQueryWrapper axiomQueryWrapper) {
         this.axiomQueryWrapper = axiomQueryWrapper;
@@ -165,10 +160,6 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         return determineQueryWrapper().getAdvancedError();
     }
 
-    public String getAdvancedQuery() {
-        return advancedQueryWrapper.getAdvancedQuery();
-    }
-
     public String getDslQuery() {
         return axiomQueryWrapper.getDslQuery();
     }
@@ -177,17 +168,6 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         axiomQueryWrapper = new AxiomQueryWrapper(null);
         axiomQueryWrapper.setDslQuery(dslQuery);
     }
-
-//    private ObjectQuery createAdvancedObjectFilter(PageBase pageBase) throws SchemaException {
-//        SearchBoxModeType searchMode = getSearchMode();
-//        if (SearchBoxModeType.ADVANCED.equals(searchMode)) {
-//            return advancedQueryWrapper.createQuery(getTypeClass(), pageBase, null);
-//        } else if (SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
-//            return axiomQueryWrapper.createQuery(getTypeClass(), pageBase, null);
-//        }
-//
-//        return null;
-//    }
 
     public Class<T> getTypeClass() {
         if (SearchBoxModeType.OID.equals(getSearchMode())) {
@@ -294,8 +274,6 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         switch (searchMode) {
             case OID:
                 return oidSearchItemWrapper;
-            case ADVANCED:
-                return advancedQueryWrapper;
             case AXIOM_QUERY:
                 return axiomQueryWrapper;
             case FULLTEXT:
@@ -484,10 +462,6 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
             }
         });
         return variables;
-    }
-
-    public void setAdvancedQuery(String advancedQuery) {
-        advancedQueryWrapper = new AdvancedQueryWrapper(advancedQuery);
     }
 
     public String getFullText() {

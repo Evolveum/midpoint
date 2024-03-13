@@ -1,9 +1,7 @@
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AdvancedQueryWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AxiomQueryWrapper;
-import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -58,7 +56,7 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
         add(queryDslField);
 
         Label advancedError = new Label(ID_ADVANCED_ERROR,
-                new PropertyModel<String>(getModel(), AdvancedQueryWrapper.F_ERROR));
+                new PropertyModel<String>(getModel(), AxiomQueryWrapper.F_ERROR));
         advancedError.setOutputMarkupId(true);
         advancedError.add(AttributeAppender.append("class",
                 () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "valid-feedback" : "invalid-feedback"));

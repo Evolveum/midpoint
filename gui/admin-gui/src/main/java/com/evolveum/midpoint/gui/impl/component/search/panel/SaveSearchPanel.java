@@ -159,8 +159,6 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
         } else {
             if (SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
                 searchItem = createAxiomSearchItem();
-            } else if (SearchBoxModeType.ADVANCED.equals(searchMode)) {
-                searchItem = createAdvancedSearchItem();
             } else if (SearchBoxModeType.FULLTEXT.equals(searchMode)) {
                 searchItem = createFulltextSearchItem();
             } else if (SearchBoxModeType.OID.equals(searchMode)) {
@@ -211,21 +209,6 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
         } catch (SchemaException e) {
             LOGGER.error("Unable to parse axiom filter from query: {}, {}", getModelObject().getDslQuery(), e.getLocalizedMessage());
             getPageBase().error("Unable to parse axiom filter from query: " + getModelObject().getDslQuery());
-        }
-        return null;
-    }
-
-    private SearchItemType createAdvancedSearchItem() {
-        try {
-            SearchItemType advancedSearchItem = new SearchItemType();
-
-            SearchFilterType search = PrismContext.get().parserFor(getModelObject().getAdvancedQuery()).type(SearchFilterType.COMPLEX_TYPE).parseRealValue();
-            ObjectFilter advancedFilter = PrismContext.get().getQueryConverter().parseFilter(search, getModelObject().getTypeClass());
-            advancedSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(advancedFilter));
-            return advancedSearchItem;
-        } catch (Exception e) {
-            LOGGER.error("Unable to parse advanced filter from query: {}, {}", getModelObject().getAdvancedQuery(), e.getLocalizedMessage());
-            getPageBase().error("Unable to parse advanced filter from query: " + getModelObject().getAdvancedQuery());
         }
         return null;
     }
