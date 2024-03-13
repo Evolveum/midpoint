@@ -1045,6 +1045,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         and("entitlements are there");
         assertUserAfter(userOid)
+                .withObjectResolver(createSimpleModelObjectResolver())
                 .singleLink()
                 .resolveTarget()
                 .associations()

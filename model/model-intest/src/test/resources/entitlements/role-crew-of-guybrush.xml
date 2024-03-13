@@ -25,10 +25,7 @@
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/icfs:name</q:path>
-                                    <q:value>guybrush</q:value>
-                                </q:equal>
+                                 <q:text>attributes/icfs:name = "guybrush"</q:text>
                             </filter>
                         </associationTargetSearch>
                     </expression>
