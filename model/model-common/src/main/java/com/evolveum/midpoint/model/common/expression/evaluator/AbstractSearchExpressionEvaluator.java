@@ -17,7 +17,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchQueryResult;
 import com.evolveum.midpoint.schema.*;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.xml.resolver.apps.XParseError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -280,7 +283,7 @@ public abstract class AbstractSearchExpressionEvaluator<
 
             List<ObjectQuery> queries = new ArrayList<>();
             for (var filterBean : filterBeans) {
-                ObjectQuery rawQuery = prismContext.getQueryConverter().createObjectQuery(targetTypeClass, filterBean);
+                ObjectQuery rawQuery = createRawQuery(filterBean, context);
                 LOGGER.trace("XML query converted to: {}", rawQuery.debugDumpLazily());
 
                 ObjectQuery evaluatedQuery = ExpressionUtil.evaluateQueryExpressions(
@@ -300,6 +303,10 @@ public abstract class AbstractSearchExpressionEvaluator<
             }
 
             return queries;
+        }
+
+        protected ObjectQuery createRawQuery(SearchFilterType filter, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
+            return prismContext.getQueryConverter().createObjectQuery(targetTypeClass, filter);
         }
 
         protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params)
