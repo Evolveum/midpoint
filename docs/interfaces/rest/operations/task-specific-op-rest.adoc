@@ -85,6 +85,7 @@ include::../operations/raw/a-auth.adoc[]
 include::../operations/raw/m-auth.adoc[]
 
 For the "run" task operation please use:
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#runTaskImmediately+`
 
 For the "suspend" operation please use:
