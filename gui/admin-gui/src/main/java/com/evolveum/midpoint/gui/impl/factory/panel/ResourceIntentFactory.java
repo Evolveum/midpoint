@@ -25,6 +25,10 @@ public class ResourceIntentFactory extends AbstractIntentFactory {
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
+        if (wrapper.getPath().isEmpty() || wrapper.getPath().lastName() == null) {
+            return false;
+        }
+
         if (!wrapper.getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_INTENT)) {
             return false;
         }
