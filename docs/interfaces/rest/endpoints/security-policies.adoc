@@ -3,6 +3,7 @@
 :page-display-order: 2900
 :page-toc: top
 :page-keywords: [ 'rest', 'security', 'policy', 'endpoint' ]
+:page-upkeep-status: green
 
 == Description
 

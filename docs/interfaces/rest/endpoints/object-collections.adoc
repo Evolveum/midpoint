@@ -3,6 +3,7 @@
 :page-display-order: 2400
 :page-toc: top
 :page-keywords: [ 'rest', 'object', 'collection', 'endpoint' ]
+:page-upkeep-status: green
 
 == Description
 

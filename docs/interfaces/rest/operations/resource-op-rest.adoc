@@ -3,6 +3,7 @@
 :page-display-order: 600
 :page-toc: top
 :page-keywords: [ 'rest', 'resource', 'test', 'import', 'operation' ]
+:page-upkeep-status: green
 
 == Description
 A set of operations which are specific for objects of the "Resource" type residing on the "resources" endpoint.

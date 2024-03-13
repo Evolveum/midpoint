@@ -16,6 +16,12 @@ Additionally, each REST endpoint (REST object type) has some basic examples pres
 For the list of endpoints please consult the xref:/midpoint/reference/interfaces/rest/endpoints/[following] page.
 
 
+=== User Story Examples
+
+++++
+{% children %}
+++++
+
 == See Also
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
