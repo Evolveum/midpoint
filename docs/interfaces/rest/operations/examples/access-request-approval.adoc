@@ -1,5 +1,5 @@
-= Access Request Review
-:page-nav-title: Access Request Review
+= Access Request Approval
+:page-nav-title: Access Request Approval
 :page-display-order: 800
 :page-toc: top
 
@@ -29,7 +29,7 @@ xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How t
 We are following up to the example described in xref:../examples/access-request.adoc[this] documentation article.
 
 1. To be able to read the created work items the user needs to have a set of authorizations approving these actions. (See example)
-2. Execute the search request as the user which wants to review his cases.
+2. Execute the search request as the user which wants to execute approval action on his cases.
 3. Select a specific case and *execute the action* which you would like to take with this case. #not yet implemented, please endorse this bug:MID-6067[] improvement#
 
 [NOTE]
@@ -41,7 +41,7 @@ us with UI authorizations the second with the Model authorizations
 
 ====
 
-.*Show* example authorization for *"Search for Open Cases For Specific Reviewer"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/roles/role-authz-search-get-rest.xml[GitHub]
+.*Show* example authorization for *"Search for Open Cases For Specific Approval"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/roles/role-authz-search-get-rest.xml[GitHub]
 [%collapsible]
 ====
 [source, xml]
@@ -75,7 +75,7 @@ us with UI authorizations the second with the Model authorizations
 ----
 ====
 
-include::../examples/raw/search-case-open-review.adoc[]
+include::../examples/raw/search-case-open-approval.adoc[]
 
 == See Also
 

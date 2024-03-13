@@ -73,8 +73,21 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
+include::../operations/raw/a-auth.adoc[]
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#generateValue+`
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#validateValue+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read+`
+
+Additionally, for generate:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify+`
 
 == Examples
 
