@@ -1362,6 +1362,10 @@
                             <path>schemaHandling/objectType/association/explicitReferentialIntegrity</path>
                             <visibility>visible</visibility>
                         </item>
+                        <item id="253">
+                            <path>schemaHandling/objectType/association/tolerant</path>
+                            <visibility>visible</visibility>
+                        </item>
                     </container>
                     <container id="175">
                         <visibility>hidden</visibility>
