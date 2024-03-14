@@ -54,7 +54,7 @@ public class SynchronizationWizardPanel extends AbstractWizardPanel<ResourceObje
         steps.add(new ReactionMainSettingStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showTable(target, valueModel);
+                showChoiceFragment(target, createTablePanel());
             }
         });
 
@@ -63,22 +63,17 @@ public class SynchronizationWizardPanel extends AbstractWizardPanel<ResourceObje
                 PrismContainerWrapperModel.fromContainerValueWrapper(valueModel, SynchronizationReactionType.F_ACTIONS)) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showTable(target, valueModel);
+                showChoiceFragment(target, createTablePanel());
             }
         });
 
         steps.add(new ReactionOptionalSettingStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showTable(target, valueModel);
+                showChoiceFragment(target, createTablePanel());
             }
         });
 
         return steps;
-    }
-
-    private void showTable(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<SynchronizationReactionType>> valueModel) {
-        WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
-        showChoiceFragment(target, createTablePanel());
     }
 }

@@ -38,7 +38,7 @@ public class BasicSettingResourceObjectTypeStepPanel
     public BasicSettingResourceObjectTypeStepPanel(
             ResourceDetailsModel model,
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
-        super(model, newValueModel);
+        super(model, newValueModel, null);
     }
 
     protected String getPanelType() {
