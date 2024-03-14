@@ -1,4 +1,5 @@
 :page-visibility: hidden
+:page-upkeep-status: green
 
 .*Show* data source example for *"Generate identifier for object"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/policy-items-identifier-generate.json[GitHub]
 [%collapsible]

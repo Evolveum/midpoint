@@ -1,4 +1,5 @@
 :page-visibility: hidden
+:page-upkeep-status: green
 
 .*Resume a Suspended Task*
 [source,bash]
