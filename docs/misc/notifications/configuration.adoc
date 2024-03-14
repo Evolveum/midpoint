@@ -1,3 +1,7 @@
+---
+midpoint-feature: notifications
+doc-type: config
+---
 = Notification and Transport Configuration
 :page-nav-title: Configuration
 :page-display-order: 200

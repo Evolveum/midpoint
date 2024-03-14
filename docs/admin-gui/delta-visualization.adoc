@@ -1,7 +1,6 @@
 = Delta visualization
 :page-toc: top
 :page-since: "4.7"
-:page-midpoint-feature: true
 :page-upkeep-status: green
 
 == Introduction

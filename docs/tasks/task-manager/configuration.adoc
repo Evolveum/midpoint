@@ -1,3 +1,7 @@
+---
+midpoint-feature: task-management
+doc-type: config
+---
 = Task Manager Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Task Manager Configuration

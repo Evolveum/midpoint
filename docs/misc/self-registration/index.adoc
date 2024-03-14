@@ -1,3 +1,7 @@
+---
+midpoint-feature: self-registration
+doc-type: config
+---
 = Self Registration Configuration
 :page-wiki-name: Self Registration Configuration
 :page-wiki-id: 23691393

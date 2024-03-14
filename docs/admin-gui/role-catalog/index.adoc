@@ -1,3 +1,7 @@
+---
+midpoint-feature: role-catalog
+doc-type: intro
+---
 = Role Catalog
 :page-wiki-name: Role Catalog
 :page-wiki-id: 24085265
@@ -6,8 +10,6 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-07-10T14:09:49.121+02:00
 :page-since: "3.5"
-:page-midpoint-feature: true
-:page-alias:  [ { "parent" : "/midpoint/features/current/" }, { "parent" : "/midpoint/reference/roles-policies/" } ]
 :page-upkeep-status: yellow
 
 One of the drawbacks of the general RBAC models is that there is usually a large number of roles to choose from.

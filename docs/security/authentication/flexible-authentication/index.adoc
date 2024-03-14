@@ -1,3 +1,7 @@
+---
+midpoint-feature: flexible-authentication
+doc-type: intro
+---
 = Flexible Authentication
 :page-wiki-name: Flexible Authentication
 :page-wiki-id: 24677079
@@ -6,8 +10,6 @@
 :page-wiki-metadata-modify-user: petr.gasparik
 :page-wiki-metadata-modify-date: 2020-04-06T12:59:25.118+02:00
 :page-since: "4.1"
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 Authentication used to be quite simple back in 20^th^ century.
