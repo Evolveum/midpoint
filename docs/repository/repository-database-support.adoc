@@ -1,3 +1,7 @@
+---
+midpoint-feature: identity-repository
+doc-type: intro
+---
 = Repository Database Support
 :page-wiki-name: Repository Database Support
 :page-wiki-id: 48824405
@@ -5,8 +9,6 @@
 :page-wiki-metadata-create-date: 2020-03-19T16:50:29.365+01:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2021-04-06T14:16:35.663+02:00
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 :page-display-order: 20
 :page-toc: top

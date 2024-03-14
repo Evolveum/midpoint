@@ -1,3 +1,4 @@
+
 = MidPoint Expressions and Mappings
 :page-wiki-name: Mappings and Expressions
 :page-wiki-id: 655372
@@ -8,9 +9,7 @@
 :page-nav-title: Expressions and Mappings
 :page-display-order: 200
 :page-upkeep-status: green
-:page-alias: { "parent" : "/midpoint/features/current/", "slug" : "expressions",  "title" : "Mappings and Expressions", "display-order" : 100 }
 :page-moved-from: /midpoint/reference/expressions/introduction/
-:page-midpoint-feature: true
 
 
 == Introduction

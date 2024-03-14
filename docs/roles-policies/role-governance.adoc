@@ -1,7 +1,8 @@
+---
+midpoint-feature: role-governance
+doc-type: intro
+---
 = Role Governance
-:page-midpoint-feature: role-governance
-:page-documentation-type: intro
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: red
 
 NOTE: Work in progress
