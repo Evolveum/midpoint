@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 .*Delete a Role type object*
 [source,bash]
 ----

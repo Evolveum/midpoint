@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 .*Search for All Requestable Objects which are a Part of the Role Catalog'*
 [source,bash]
 ----

@@ -2,6 +2,7 @@
 :page-nav-title: Create Object
 :page-display-order: 400
 :page-toc: top
+:page-upkeep-status: green
 
 == Description
 Example of creating an midPoint object either representing some identity data in the

@@ -3,6 +3,7 @@
 :page-display-order: 700
 :page-toc: top
 :page-keywords: [ 'rest', 'resource', 'endpoint' ]
+:page-upkeep-status: green
 
 == Description
 

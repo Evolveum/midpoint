@@ -8,6 +8,7 @@
 :page-wiki-metadata-modify-date: 2020-06-02T10:29:25.618+02:00
 :page-toc: top
 :page-keywords: [ 'rest', 'authentication' ]
+:page-upkeep-status: yellow
 
 [TIP]
 ====

@@ -2,6 +2,7 @@
 :page-nav-title: REST Endpoints
 :page-display-order: 100
 :page-toc: top
+:page-upkeep-status: green
 
 == Overview
 The REST api provides you with access to a long list of web resources. The web

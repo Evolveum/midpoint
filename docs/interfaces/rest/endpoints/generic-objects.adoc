@@ -3,6 +3,7 @@
 :page-display-order: 1900
 :page-toc: top
 :page-keywords: [ 'rest', 'generic' ,'endpoint' ]
+:page-upkeep-status: green
 
 == Description
 
