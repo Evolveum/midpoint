@@ -3,6 +3,7 @@
 :page-display-order: 3100
 :page-toc: top
 :page-keywords: [ 'rest', 'system', 'configuration', 'endpoint' ]
+:page-upkeep-status: green
 
 == Description
 

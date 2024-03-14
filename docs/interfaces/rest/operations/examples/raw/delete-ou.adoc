@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 .*Delete an Organizational Unit type object*
 [source,bash]
 ----

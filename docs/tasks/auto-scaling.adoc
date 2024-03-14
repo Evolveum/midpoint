@@ -1,6 +1,9 @@
+---
+midpoint-feature: auto-scaling
+doc-type: intro
+---
 = Auto-Scaling
 :page-since: "4.4"
-:page-midpoint-feature: true
 
 Distributed - a.k.a. multi-node or clustered - activities can be scaled up or down by starting or stopping worker tasks.
 This scaling is appropriate when the distribution definition changes, e.g. number of worker tasks is increased

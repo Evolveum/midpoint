@@ -1,3 +1,7 @@
+---
+midpoint-feature: flexible-authentication
+doc-type: config
+---
 = Flexible Authentication Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Flexible Authentication Configuration

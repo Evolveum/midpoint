@@ -1,4 +1,5 @@
 :page-visibility: hidden
+:page-upkeep-status: green
 
 The interface authorization needed for executing this type of request.
 The authorization is needed to access the specific part of the interface.

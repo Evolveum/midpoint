@@ -1,3 +1,7 @@
+---
+midpoint-feature: sequence
+doc-type: intro
+---
 = Sequences
 :page-wiki-name: Sequences
 :page-wiki-id: 21200980
@@ -5,8 +9,6 @@
 :page-wiki-metadata-create-date: 2015-09-30T11:36:47.227+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2015-09-30T12:34:09.959+02:00
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 Sequences are persistent objects in midPoint repository that maintain counters.

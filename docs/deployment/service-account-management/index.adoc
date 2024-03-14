@@ -6,8 +6,6 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2019-02-08T13:29:52.467+01:00
 :page-since: "3.9"
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 == Motivation

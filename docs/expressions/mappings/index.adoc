@@ -1,3 +1,7 @@
+---
+midpoint-feature: mapping
+doc-type: config
+---
 = Mappings
 :page-wiki-name: Mapping
 :page-wiki-id: 5931015

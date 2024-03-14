@@ -50,6 +50,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -203,8 +204,13 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
             Task task = getPageBase().createSimpleTask("Create virtual item");
             OperationResult result = task.getResult();
 
+            @NotNull PrismProperty<Object> refvalue = propertyDef.instantiate();
+            if (value != null && !ValueStatus.ADDED.equals(value.getStatus())) {
+                refvalue.addRealValue(value.getRealValue().getRef());
+            }
+
             ItemWrapper refItemWrapper = getPageBase().createItemWrapper(
-                    propertyDef.instantiate(),
+                    refvalue,
                     mapping,
                     ItemStatus.ADDED,
                     new WrapperContext(task, result));

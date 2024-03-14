@@ -1,3 +1,7 @@
+---
+midpoint-feature: dashboard
+doc-type: config
+---
 = Dashboard Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Dashboard configuration

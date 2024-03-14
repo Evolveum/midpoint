@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 .*Delete a Task type object*
 [source,bash]
 ----

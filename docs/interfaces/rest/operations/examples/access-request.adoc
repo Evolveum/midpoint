@@ -2,6 +2,7 @@
 :page-nav-title: Access Request
 :page-display-order: 700
 :page-toc: top
+:page-upkeep-status: green
 
 == Description
 The example represents a use-case, where an authorized user requests for membership to a specific role from the role catalogue.

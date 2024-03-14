@@ -2,6 +2,7 @@
 :page-nav-title: REST Password Reset
 :page-display-order: 600
 :page-toc: top
+:page-upkeep-status: green
 
 == Description
 

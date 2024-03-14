@@ -1,3 +1,7 @@
+---
+midpoint-feature: synchronization
+doc-type: intro
+---
 = MidPoint Synchronization
 :page-nav-title: Synchronization
 :page-display-order: 520
