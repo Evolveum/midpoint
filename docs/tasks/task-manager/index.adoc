@@ -1,3 +1,7 @@
+---
+midpoint-feature: task-management
+doc-type: intro
+---
 = Task Manager
 :page-wiki-name: Task Manager
 :page-wiki-id: 4423729

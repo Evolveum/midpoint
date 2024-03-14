@@ -1,3 +1,7 @@
+---
+midpoint-feature: threshold
+doc-type: intro
+---
 = Thresholds
 :page-wiki-name: Thresholds
 :page-wiki-id: 27361483
@@ -6,8 +10,6 @@
 :page-wiki-metadata-modify-user: mmacik
 :page-wiki-metadata-modify-date: 2019-04-23T12:40:41.357+02:00
 :page-since: "4.0"
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 MidPoint provides a powerful mechanism to synchronize data among different resources.

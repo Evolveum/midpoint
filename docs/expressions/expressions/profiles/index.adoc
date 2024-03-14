@@ -1,3 +1,7 @@
+---
+midpoint-feature: expression-profile
+doc-type: intro
+---
 = Expression Profiles
 :page-wiki-name: Expression Profiles
 :page-wiki-id: 30245328
@@ -5,8 +9,6 @@
 :page-wiki-metadata-create-date: 2019-04-08T13:48:53.764+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2019-04-08T14:36:26.158+02:00
-:page-midpoint-feature: true
-:page-alias: [ { "parent" : "/midpoint/features/current/" }, { "parent" : "/midpoint/reference/security/" } ]
 :page-upkeep-status: yellow
 
 [NOTE]

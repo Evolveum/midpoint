@@ -1,3 +1,7 @@
+---
+midpoint-feature: expression-javascript
+doc-type: intro
+---
 = JavaScript Expressions
 :page-nav-title: JavaScript
 :page-wiki-name: ECMAScript Expressions

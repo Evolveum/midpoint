@@ -1,3 +1,7 @@
+---
+midpoint-feature: provisioning-propagation
+doc-type: intro
+---
 = Provisioning Propagation
 :page-wiki-name: Provisioning Propagation
 :page-wiki-id: 24676289
@@ -6,8 +10,6 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2018-01-05T16:00:16.907+01:00
 :page-since: "3.7.1"
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 MidPoint is quite an eager system.

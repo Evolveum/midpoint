@@ -1,3 +1,7 @@
+---
+midpoint-feature: access-certification
+doc-type: intro
+---
 = Access Certification
 :page-wiki-name: Access Certification
 :page-wiki-id: 21200930
@@ -6,8 +10,6 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2020-06-18T07:37:54.090+02:00
 :page-toc: top
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
 
 

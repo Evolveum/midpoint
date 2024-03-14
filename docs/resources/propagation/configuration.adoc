@@ -1,3 +1,7 @@
+---
+midpoint-feature: provisioning-propagation
+doc-type: config
+---
 = Provisioning Propagation Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Provisioning Propagation Configuration

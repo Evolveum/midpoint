@@ -1,3 +1,7 @@
+---
+midpoint-feature: reporting
+doc-type: intro
+---
 = Reports Configuration
 :page-nav-title: Reports
 :page-wiki-name: Reporting

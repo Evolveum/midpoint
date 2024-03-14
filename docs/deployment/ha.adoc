@@ -1,3 +1,7 @@
+---
+midpoint-feature: ha
+doc-type: intro
+---
 = High Availability and Load Balancing
 :page-wiki-name: High Availability and Load Balancing
 :page-wiki-id: 11370589
@@ -5,8 +9,6 @@
 :page-wiki-metadata-create-date: 2013-07-03T14:37:00.429+02:00
 :page-wiki-metadata-modify-user: martin.lizner
 :page-wiki-metadata-modify-date: 2016-07-19T15:04:43.344+02:00
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
 :page-upkeep-note: Merge with clustering-ha?
 
