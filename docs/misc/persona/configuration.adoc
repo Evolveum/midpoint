@@ -1,3 +1,7 @@
+---
+midpoint-feature: persona
+doc-type: config
+---
 = Persona Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Persona Configuration

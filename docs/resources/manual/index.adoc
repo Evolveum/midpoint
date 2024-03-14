@@ -1,3 +1,7 @@
+---
+midpoint-feature: manual-resources
+doc-type: intro
+---
 = Manual Resource and ITSM Integration
 :page-wiki-name: Manual Resource and ITSM Integration
 :page-wiki-id: 24085888
@@ -6,8 +10,6 @@
 :page-wiki-metadata-modify-user: vera
 :page-wiki-metadata-modify-date: 2018-01-29T14:07:01.936+01:00
 :page-since: "3.6"
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 == Manual Resource

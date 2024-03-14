@@ -1,3 +1,7 @@
+---
+midpoint-feature: expression-function-library
+doc-type: config
+---
 = Function Libraries Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Function Libraries Configuration

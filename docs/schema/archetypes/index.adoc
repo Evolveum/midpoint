@@ -11,7 +11,6 @@ doc-type: intro
 :page-wiki-metadata-modify-date: 2019-05-06T08:28:05.280+02:00
 :page-since: "4.0"
 :page-since-improved: [ "4.1", "4.2" ]
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 == Motivation

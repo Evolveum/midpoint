@@ -7,7 +7,6 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2016-02-03T21:57:13.280+01:00
 :page-upkeep-status: orange
-:page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/reference/misc/notifications/", "slug" : "certification",  "title" : "Access Certification" }
 :page-toc: top
 

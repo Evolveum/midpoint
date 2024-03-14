@@ -1,3 +1,7 @@
+---
+midpoint-feature: expression
+doc-type: config
+---
 = Expressions
 :page-display-order: 60
 :page-wiki-name: Expression
