@@ -26,8 +26,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
-import com.evolveum.midpoint.schema.merger.key.DefaultNaturalKeyImpl;
 import com.evolveum.midpoint.schema.merger.key.NaturalKey;
+import com.evolveum.midpoint.schema.merger.key.NaturalKeyImpl;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -119,15 +119,9 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
 
         Class<?> valueClass = childDef.getTypeClass();
 
-        Merge merge = childDef.getMerge();
-        if (merge == null) {
-            LOGGER.trace("Using default merger for {} (value class {})", itemName, valueClass);
-            return createDefaultSubMerger(itemName, valueClass);
-        }
-
-        List<QName> identifiers = merge.getIdentifiers();
-        if (!identifiers.isEmpty()) {
-            NaturalKey key = DefaultNaturalKeyImpl.of(identifiers.toArray(new QName[0]));
+        List<QName> identifiers = childDef.getNaturalKey();
+        if (identifiers != null && !identifiers.isEmpty()) {
+            NaturalKey key = NaturalKeyImpl.of(identifiers.toArray(new QName[0]));
 
             LOGGER.trace("Using generic item merger for {} (value class {}) with key {}", itemName, valueClass, key);
             GenericItemMerger merger = new GenericItemMerger(originMarker, key);
@@ -135,7 +129,7 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
             return merger;
         }
 
-        String customMerger = merge.getMerger();
+        String customMerger = childDef.getMerger();
         TypeSpecificMergersConfigurator.TypedMergerSupplier typedSupplier = identifierSpecificMergers.get(customMerger);
         if (customMerger == null || typedSupplier == null) {
             LOGGER.trace("Using default merger for {} (value class {})", itemName, valueClass);
@@ -145,28 +139,35 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
         return typedSupplier.supplier().get();
     }
 
-    private ItemMerger createDefaultSubMerger(ItemName itemName, Class<?> valueClass) {
-        if (valueClass != null) {
-            Map.Entry<Class<?>, Supplier<ItemMerger>> entryFound = null;
-            for (Map.Entry<Class<?>, Supplier<ItemMerger>> entry : typeSpecificMergers.entrySet()) {
-                if (entry.getKey().isAssignableFrom(valueClass)) {
-                    if (entryFound == null) {
+    private ItemMerger findMergerByType(Class<?> valueClass) {
+        Map.Entry<Class<?>, Supplier<ItemMerger>> entryFound = null;
+        for (Map.Entry<Class<?>, Supplier<ItemMerger>> entry : typeSpecificMergers.entrySet()) {
+            if (entry.getKey().isAssignableFrom(valueClass)) {
+                if (entryFound == null) {
+                    entryFound = entry;
+                } else {
+                    // we're looking for the most concrete supplier
+                    if (entryFound.getKey().isAssignableFrom(entry.getKey())) {
                         entryFound = entry;
-                    } else {
-                        // we're looking for the most concrete supplier
-                        if (entryFound.getKey().isAssignableFrom(entry.getKey())) {
-                            entryFound = entry;
-                        }
                     }
                 }
             }
+        }
 
-            if (entryFound != null) {
-                ItemMerger byTypeName = entryFound.getValue().get();
-                LOGGER.trace("Type-specific merger for {} (type {}) was found: {}", itemName, valueClass, byTypeName);
-                return byTypeName;
+        return entryFound != null ? entryFound.getValue().get() : null;
+    }
+
+    private ItemMerger createDefaultSubMerger(ItemName itemName, Class<?> valueClass) {
+        if (valueClass != null) {
+            // check custom mergers
+            ItemMerger mergerByType = findMergerByType(valueClass);
+            if (mergerByType != null) {
+                LOGGER.trace("Type-specific merger for {} (type {}) was found: {}", itemName, valueClass, mergerByType);
+                return mergerByType;
             }
         }
+
+        // todo check for merge annotation in parent definitions...
 
         GenericItemMerger merger = new GenericItemMerger(
                 originMarker,

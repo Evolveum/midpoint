@@ -360,8 +360,13 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    public @Nullable Merge getMerge() {
-        return rawDefinition.getMerge();
+    public @Nullable String getMerger() {
+        return rawDefinition.getMerger();
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKey() {
+        return rawDefinition.getNaturalKey();
     }
 
     @Override

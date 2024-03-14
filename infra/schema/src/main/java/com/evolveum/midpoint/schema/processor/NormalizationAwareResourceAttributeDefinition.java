@@ -294,8 +294,13 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     }
 
     @Override
-    public @Nullable Merge getMerge() {
-        return originalDefinition.getMerge();
+    public @Nullable String getMerger() {
+        return originalDefinition.getMerger();
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKey() {
+        return originalDefinition.getNaturalKey();
     }
 
     @Override

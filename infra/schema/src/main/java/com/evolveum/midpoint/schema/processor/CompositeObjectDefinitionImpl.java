@@ -139,8 +139,13 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @Nullable Merge getMerge() {
-        return structuralDefinition.getMerge();
+    public @Nullable String getMerger() {
+        return structuralDefinition.getMerger();
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKey() {
+        return structuralDefinition.getNaturalKey();
     }
 
     @Override

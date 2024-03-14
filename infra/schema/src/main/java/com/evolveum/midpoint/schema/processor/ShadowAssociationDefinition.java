@@ -238,7 +238,12 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     }
 
     @Override
-    public @Nullable Merge getMerge() {
+    public @Nullable String getMerger() {
+        return null;
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKey() {
         return null;
     }
 

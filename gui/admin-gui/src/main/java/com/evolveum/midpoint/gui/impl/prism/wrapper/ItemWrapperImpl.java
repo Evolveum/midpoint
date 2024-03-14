@@ -545,8 +545,13 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     }
 
     @Override
-    public @Nullable Merge getMerge() {
-        return getItemDefinition().getMerge();
+    public @Nullable List<QName> getNaturalKey() {
+        return getItemDefinition().getNaturalKey();
+    }
+
+    @Override
+    public @Nullable String getMerger() {
+        return getItemDefinition().getMerger();
     }
 
     @Override

@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
+import java.util.List;
 
 public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends ItemDefinition<I>>
         extends TransformableDefinition
@@ -48,7 +49,9 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     private Integer maxOccurs;
     private ItemProcessing processing;
     private PrismReferenceValue valueEnumerationRef;
-    private Merge merge;
+    private String merger;
+
+    private List<QName> naturalKey;
 
     protected TransformableItemDefinition(D delegate) {
         super(delegate);
@@ -73,7 +76,8 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
             this.valueEnumerationRef = copyOf.valueEnumerationRef;
             this.delegate = copyOf.delegate;
             this.alwaysUseForEquals = copyOf.alwaysUseForEquals;
-            this.merge = copyOf.merge;
+            this.merger = copyOf.merger;
+            this.naturalKey = copyOf.naturalKey;
         } else {
             this.delegate = new DelegatedItem.FullySerializable<>(delegate);
         }
@@ -188,14 +192,26 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     }
 
+    @Nullable
     @Override
-    public @Nullable Merge getMerge() {
-        return merge;
+    public String getMerger() {
+        return merger;
     }
 
     @Override
-    public void setMerge(Merge merge) {
-        this.merge = merge;
+    public void setMerger(String merger) {
+        this.merger = merger;
+    }
+
+    @Nullable
+    @Override
+    public List<QName> getNaturalKey() {
+        return naturalKey;
+    }
+
+    @Override
+    public void setNaturalKey(List<QName> naturalKey) {
+        this.naturalKey = naturalKey;
     }
 
     @Override

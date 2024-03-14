@@ -107,8 +107,13 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public @Nullable Merge getMerge() {
-        return metadataValueWrapper.getMerge();
+    public @Nullable String getMerger() {
+        return metadataValueWrapper.getMerger();
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKey() {
+        return metadataValueWrapper.getNaturalKey();
     }
 
     @Override

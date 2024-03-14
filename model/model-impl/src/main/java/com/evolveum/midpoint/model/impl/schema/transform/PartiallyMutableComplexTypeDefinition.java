@@ -67,7 +67,12 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
     }
 
     @Override
-    default void setMerge(Merge merge) {
+    default void setMerger(String merger) {
+        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+    }
+
+    @Override
+    default void setNaturalKey(List<QName> naturalKey) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 

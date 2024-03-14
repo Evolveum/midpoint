@@ -472,7 +472,12 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public void setMerge(Merge merge) {
+    public void setMerger(String merger) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setNaturalKey(List<QName> naturalKey) {
         throw new UnsupportedOperationException();
     }
 
