@@ -3,6 +3,7 @@
 :page-display-order: 2800
 :page-toc: top
 :page-keywords: [ 'rest', 'rpc', 'endpoint' ]
+:page-upkeep-status: green
 
 == Description
 

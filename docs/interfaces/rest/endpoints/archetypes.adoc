@@ -3,6 +3,7 @@
 :page-display-order: 1200
 :page-toc: top
 :page-keywords: [ 'rest', 'archetype' ,'endpoint' ]
+:page-upkeep-status: green
 
 == Description
 

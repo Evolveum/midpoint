@@ -3,6 +3,7 @@
 :page-display-order: 1400
 :page-toc: top
 :page-keywords: [ 'rest', 'connector', 'host', 'endpoint' ]
+:page-upkeep-status: green
 
 == Description
 

@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 *Usage of Operation Options*
 
 To use a boolean based operation option with your request, append a question

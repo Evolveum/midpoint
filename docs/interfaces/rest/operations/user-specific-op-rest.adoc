@@ -3,6 +3,7 @@
 :page-display-order: 1000
 :page-toc: top
 :page-keywords: [ 'rest', 'user', 'operation' ]
+:page-upkeep-status: green
 
 == Description
 A set of operations which are specific for objects of the "User" type residing on the "users" endpoint.
