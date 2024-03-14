@@ -3,6 +3,7 @@
 :page-display-order: 900
 :page-toc: top
 :page-keywords: [ 'rest', 'task', 'suspend', 'resume', 'run', 'operation' ]
+:page-upkeep-status: green
 
 == Description
 A set of operations which are specific for objects of the "Task" type residing on the "tasks" endpoint.
@@ -85,6 +86,7 @@ include::../operations/raw/a-auth.adoc[]
 include::../operations/raw/m-auth.adoc[]
 
 For the "run" task operation please use:
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#runTaskImmediately+`
 
 For the "suspend" operation please use:

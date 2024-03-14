@@ -3,6 +3,7 @@
 :page-display-order: 1600
 :page-toc: top
 :page-keywords: [ 'rest', 'dashboard' ,'endpoint' ]
+:page-upkeep-status: green
 
 == Description
 

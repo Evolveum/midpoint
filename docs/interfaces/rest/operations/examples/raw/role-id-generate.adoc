@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 .*Generate Identifier for Role Type Object*
 [source,bash]
 ----

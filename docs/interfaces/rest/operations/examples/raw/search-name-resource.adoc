@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 .*Search for All Resources With Name That Starts With 'a'*
 [source,bash]
 ----

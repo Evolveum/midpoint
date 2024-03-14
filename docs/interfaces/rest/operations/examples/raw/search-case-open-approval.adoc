@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 .*Search For Open Cases For Specific Approver*
 [source,bash]
 ----
