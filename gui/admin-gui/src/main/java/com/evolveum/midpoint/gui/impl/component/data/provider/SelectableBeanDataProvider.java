@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
@@ -204,13 +206,17 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
 
         if (options == null) {
-            if (ResourceType.class.equals(getType())) {
+            if (ResourceType.class.equals(getType()) || ShadowType.class.equals(getType())) {
                 options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
             }
         } else {
-            if (ResourceType.class.equals(getType())) {
+            if (ResourceType.class.equals(getType()) || ShadowType.class.equals(getType())) {
                 GetOperationOptions root = SelectorOptions.findRootOptions(options);
-                root.setNoFetch(Boolean.TRUE);
+                if (root == null) {
+                    options.add(new SelectorOptions<>(GetOperationOptions.createNoFetch()));
+                } else {
+                    root.setNoFetch(Boolean.TRUE);
+                }
             }
         }
         return options;

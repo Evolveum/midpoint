@@ -367,7 +367,7 @@ public class WebModelServiceUtils {
         return count;
     }
 
-    public static <T extends ObjectType> int countObjectsByQueryFromSearchPanel(
+    public static <T extends ObjectType> Integer countObjectsByQueryFromSearchPanel(
             Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions,
             Task task, OperationResult result, ModelService modelService) throws CommonException{
         checkExpressionInFilter(query);
