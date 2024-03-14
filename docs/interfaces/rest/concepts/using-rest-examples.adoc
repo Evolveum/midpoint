@@ -135,6 +135,8 @@ permit only specific actions, please have a look at this xref:/midpoint/referenc
 
 === Troubleshooting
 
+Errors happen, here we list some frequent issues and also how to debug even those less frequent ones.
+
 ==== Client Error
 
 When the client sends a request which cannot be processed, midPoint often responds with a structure called *OperationResult*.
@@ -168,6 +170,8 @@ The example is in the JSON format:
 ====
 
 ==== Frequent Issues
+
+Frequent issues on which we stumbled upon related to the usage of the REST api examples.
 
 ===== Missing '@' Character In Data Content File Path
 
