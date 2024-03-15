@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
@@ -153,7 +154,7 @@ public class ProgressBarForm extends BasePanel<String> {
         }
 
         if (totalBars > maxVisibleBars) {
-            AjaxButton showAllButton = new AjaxButton("showAllButton", Model.of("...")) {
+            AjaxLinkPanel showAllButton = new AjaxLinkPanel("showAllButton", Model.of("...")) {
                 @Override
                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                     int counter = 0;
