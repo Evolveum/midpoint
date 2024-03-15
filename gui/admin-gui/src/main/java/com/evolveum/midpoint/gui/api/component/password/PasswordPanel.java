@@ -139,7 +139,7 @@ public class PasswordPanel extends InputPanel {
         validationPanel.setOutputMarkupId(true);
         inputContainer.add(validationPanel);
 
-        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new ProtectedStringModel(passwordModel)) {
+        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new ProtectedStringClearPasswordModel(passwordModel)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -168,7 +168,7 @@ public class PasswordPanel extends InputPanel {
         inputContainer.add(validationProgressBar);
 
         final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO,
-                new ProtectedStringModel(Model.of(new ProtectedStringType()))) {
+                new ProtectedStringClearPasswordModel(Model.of(new ProtectedStringType()))) {
 
             private static final long serialVersionUID = 1L;
 
