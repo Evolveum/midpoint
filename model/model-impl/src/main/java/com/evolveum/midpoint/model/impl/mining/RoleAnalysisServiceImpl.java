@@ -30,7 +30,11 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -682,6 +686,42 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull Task task) {
         return new CompressedMiningStructure().executeOperation(this,
                 cluster, fullProcess, processMode, result, task);
+    }
+
+    @Override
+    public @NotNull MiningOperationChunk prepareMiningStructure(@NotNull RoleAnalysisClusterType cluster,
+            @NotNull DisplayValueOption option,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull OperationResult result,
+            @NotNull Task task) {
+
+        RoleAnalysisChunkMode chunkMode = option.getChunkMode();
+        List<MiningUserTypeChunk> miningUserTypeChunks;
+        List<MiningRoleTypeChunk> miningRoleTypeChunks;
+
+        if (chunkMode.equals(RoleAnalysisChunkMode.EXPAND_ROLE)) {
+            miningRoleTypeChunks = new ExpandedMiningStructure()
+                    .executeOperation(this, cluster, true, processMode, result, task, option)
+                    .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
+            miningUserTypeChunks = new CompressedMiningStructure()
+                    .executeOperation(this, cluster, true, processMode, result, task)
+                    .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
+        } else if (chunkMode.equals(RoleAnalysisChunkMode.EXPAND_USER)) {
+            miningRoleTypeChunks = new CompressedMiningStructure()
+                    .executeOperation(this, cluster, true, processMode, result, task)
+                    .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
+            miningUserTypeChunks = new ExpandedMiningStructure()
+                    .executeOperation(this, cluster, true, processMode, result, task, option)
+                    .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
+        } else if (chunkMode.equals(RoleAnalysisChunkMode.COMPRESS)) {
+            return new CompressedMiningStructure()
+                    .executeOperation(this, cluster, true, processMode, result, task);
+        } else {
+            return new ExpandedMiningStructure()
+                    .executeOperation(this, cluster, true, processMode, result, task, option);
+        }
+
+        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
     }
 
     @Override

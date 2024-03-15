@@ -568,8 +568,12 @@ public class RoleAnalysisAlgorithmUtils {
                 RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
                 roleAnalysisAttributeAnalysis.setDensity(density);
                 roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPath());
+                roleAnalysisAttributeAnalysis.setIsMultiValue(roleAttributeAnalysisStructure.isMultiValue());
                 roleAnalysisAttributeAnalysis.setDescription(roleAttributeAnalysisStructure.getDescription());
-                roleAnalysisAttributeAnalysis.setJsonDescription(roleAttributeAnalysisStructure.getJsonDescription());
+                List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAttributeAnalysisStructure.getAttributeStatistics();
+                for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                    roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
+                }
                 roleAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
             }
             roleAnalysisClusterStatisticType.setRoleAttributeAnalysisResult(roleAnalysis);
@@ -585,8 +589,13 @@ public class RoleAnalysisAlgorithmUtils {
                 RoleAnalysisAttributeAnalysis userAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
                 userAnalysisAttributeAnalysis.setDensity(density);
                 userAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
+                userAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
+
                 userAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
-                userAnalysisAttributeAnalysis.setJsonDescription(userAttributeAnalysisStructure.getJsonDescription());
+                List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
+                for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                    userAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
+                }
                 userAnalysis.getAttributeAnalysis().add(userAnalysisAttributeAnalysis);
             }
             roleAnalysisClusterStatisticType.setUserAttributeAnalysisResult(userAnalysis);

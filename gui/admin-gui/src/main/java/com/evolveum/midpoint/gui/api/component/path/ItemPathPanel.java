@@ -303,6 +303,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 ItemPathDto newPath = new ItemPathDto();
+                newPath.setObjectType(getRequaredObjectType());
                 ItemPathPanel.this.getModel().setObject(newPath);
                 target.add(ItemPathPanel.this);
                 onUpdate(newPath);
@@ -310,7 +311,16 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         };
 
         change.setOutputMarkupId(true);
+        change.add(new VisibleBehaviour(this::isResetButtonVisible));
         itemPathLabel.add(change);
+    }
+
+    protected boolean isResetButtonVisible() {
+        return true;
+    }
+
+    protected QName getRequaredObjectType() {
+        return null;
     }
 
     private void refreshItemPathPanel(ItemPathDto itemPathDto, boolean isAdd, AjaxRequestTarget target) {

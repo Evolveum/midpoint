@@ -1,5 +1,9 @@
 package com.evolveum.midpoint.model.impl.mining.analysis;
 
+import java.util.*;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.Item;
@@ -12,12 +16,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
 
 // TODO - this class is just fast experiment
 
@@ -126,9 +124,11 @@ public class AttributeAnalysisUtilNew {
 
             AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
                     frequencyMap.size(), prismUsers.size(), totalRelations, itemPath.toString());
+            attributeAnalysisStructure.setComplexType(UserType.COMPLEX_TYPE);
 
             attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMap, maximumFrequency));
-            transformToJsonDescriptionSingleObjects(frequencyMap, itemPath.toString(), attributeAnalysisStructure, usersCount);
+            generateAttributeStatisticsSingleValue(
+                    frequencyMap, attributeAnalysisStructure, usersCount);
 
             attributeAnalysisStructures.add(attributeAnalysisStructure);
         }
@@ -163,8 +163,10 @@ public class AttributeAnalysisUtilNew {
 
             AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
                     frequencyMap.size(), prismRolesSet.size(), totalRelations, itemPath.toString());
+            attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
             attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMap, maximumFrequency));
-            transformToJsonDescriptionSingleObjects(frequencyMap, itemPath.toString(), attributeAnalysisStructure, roleCount);
+            generateAttributeStatisticsSingleValue(
+                    frequencyMap, attributeAnalysisStructure, roleCount);
 
             attributeAnalysisStructures.add(attributeAnalysisStructure);
         }
@@ -214,97 +216,12 @@ public class AttributeAnalysisUtilNew {
         String itemPath = "roleMembershipRef";
         AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMap.size(), prismUsers.size(), totalRelations, itemPath);
-        transformToJsonDescriptionMultiObjects(frequencyMap, itemPath, attributeAnalysisStructure, usersCount);
+        attributeAnalysisStructure.setComplexType(UserType.COMPLEX_TYPE);
+
+        generateAttributeStatisticsMultiValue(frequencyMap, attributeAnalysisStructure, usersCount);
 
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMap, maximumFrequency));
         attributeAnalysisStructures.add(attributeAnalysisStructure);
-    }
-
-    public static void transformToJsonDescriptionMultiObjects(
-            @NotNull Map<String, Integer> frequencyMap,
-            @NotNull String itemPath,
-            @NotNull AttributeAnalysisStructure attributeAnalysisStructure,
-            int prismObjectsCount) {
-
-        Map<Integer, List<String>> frequencyMapMerged = new HashMap<>();
-        for (Map.Entry<String, Integer> entry : frequencyMap.entrySet()) {
-            String key = entry.getKey();
-            Integer value = entry.getValue();
-            List<String> list = frequencyMapMerged.getOrDefault(value, new ArrayList<>());
-            list.add(key);
-            frequencyMapMerged.put(value, list);
-        }
-
-        List<JSONObject> jsonObjectList = new ArrayList<>();
-
-        if (!frequencyMap.isEmpty()) {
-            for (Map.Entry<Integer, List<String>> entry : frequencyMapMerged.entrySet()) {
-                List<String> value = entry.getValue();
-                double percentageFrequency = (double) entry.getKey() / prismObjectsCount * 100;
-                JSONObject jsonObject = new JSONObject();
-                int size = value.size();
-
-                if (size == 1) {
-                    jsonObject.put("value", value.get(0));
-                } else {
-                    String joinedValue = String.join(";", value);
-                    jsonObject.put("value", joinedValue);
-                }
-
-                jsonObject.put("frequency", percentageFrequency);
-                jsonObjectList.add(jsonObject);
-            }
-
-            jsonObjectList.sort((o1, o2) -> {
-                double frequency1 = o1.getDouble("frequency");
-                double frequency2 = o2.getDouble("frequency");
-                return Double.compare(frequency2, frequency1);
-            });
-        }
-
-        JSONObject jsonDescription = new JSONObject();
-        jsonDescription.put(itemPath, new JSONArray());
-
-        JSONArray jsonArray = jsonDescription.getJSONArray(itemPath);
-        for (JSONObject jsonObject : jsonObjectList) {
-            jsonArray.put(jsonObject);
-        }
-
-        attributeAnalysisStructure.setJsonDescription(jsonDescription.toString(4));
-    }
-
-    public static void transformToJsonDescriptionSingleObjects(
-            @NotNull Map<String, Integer> frequencyMap,
-            @NotNull String itemPath,
-            @NotNull AttributeAnalysisStructure attributeAnalysisStructure,
-            int prismObjects) {
-
-        List<JSONObject> jsonObjectList = new ArrayList<>();
-        if (!frequencyMap.isEmpty()) {
-            for (Map.Entry<String, Integer> entry : frequencyMap.entrySet()) {
-                int value = entry.getValue();
-                double percentageFrequency = (double) value / prismObjects * 100;
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("value", entry.getKey());
-                jsonObject.put("frequency", percentageFrequency);
-                jsonObjectList.add(jsonObject);
-            }
-            jsonObjectList.sort((o1, o2) -> {
-                double frequency1 = o1.getDouble("frequency");
-                double frequency2 = o2.getDouble("frequency");
-                return Double.compare(frequency2, frequency1);
-            });
-        }
-
-        JSONObject jsonDescription = new JSONObject();
-        jsonDescription.put(itemPath, new JSONArray());
-
-        JSONArray jsonArray = jsonDescription.getJSONArray(itemPath);
-        for (JSONObject jsonObject : jsonObjectList) {
-            jsonArray.put(jsonObject);
-        }
-
-        attributeAnalysisStructure.setJsonDescription(jsonDescription.toString(4));
     }
 
     public static void processUserTypeAssignment(
@@ -382,34 +299,40 @@ public class AttributeAnalysisUtilNew {
 
         AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapService.size(), prismUsers.size(), totalRelationsService, "assignment/service");
+        attributeAnalysisStructure.setComplexType(UserType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapService, maximumFrequencyService));
-        transformToJsonDescriptionMultiObjects(frequencyMapService, "assignment/service", attributeAnalysisStructure, prismUsers.size());
+        generateAttributeStatisticsMultiValue(
+                frequencyMapService, attributeAnalysisStructure, prismUsers.size());
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
         attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapOrg.size(), prismUsers.size(), totalRelationsOrg, "assignment/org");
+        attributeAnalysisStructure.setComplexType(UserType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapOrg, maximumFrequencyOrg));
-        transformToJsonDescriptionMultiObjects(frequencyMapOrg, "assignment/org", attributeAnalysisStructure, prismUsers.size());
+        generateAttributeStatisticsMultiValue(frequencyMapOrg, attributeAnalysisStructure, prismUsers.size());
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
         if (membershipDensity == null) {
             attributeAnalysisStructure = new AttributeAnalysisStructure(
                     frequencyMapRole.size(), prismUsers.size(), totalRelationsRole, "assignment/role");
+            attributeAnalysisStructure.setComplexType(UserType.COMPLEX_TYPE);
             attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapRole, maximumFrequencyRole));
-            transformToJsonDescriptionMultiObjects(frequencyMapRole, "assignment/role", attributeAnalysisStructure, prismUsers.size());
+            generateAttributeStatisticsMultiValue(frequencyMapRole, attributeAnalysisStructure, prismUsers.size());
             attributeAnalysisStructures.add(attributeAnalysisStructure);
         }
 
         attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapUser.size(), prismUsers.size(), totalRelationsUser, "assignment/user");
+        attributeAnalysisStructure.setComplexType(UserType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapUser, maximumFrequencyUser));
-        transformToJsonDescriptionMultiObjects(frequencyMapUser, "assignment/user", attributeAnalysisStructure, prismUsers.size());
+        generateAttributeStatisticsMultiValue(frequencyMapUser, attributeAnalysisStructure, prismUsers.size());
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
         attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapResource.size(), prismUsers.size(), totalRelationsResource, "assignment/resource");
+        attributeAnalysisStructure.setComplexType(UserType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapResource, maximumFrequencyResource));
-        transformToJsonDescriptionMultiObjects(frequencyMapResource, "assignment/resource", attributeAnalysisStructure, prismUsers.size());
+        generateAttributeStatisticsMultiValue(frequencyMapResource, attributeAnalysisStructure, prismUsers.size());
         attributeAnalysisStructures.add(attributeAnalysisStructure);
     }
 
@@ -423,7 +346,9 @@ public class AttributeAnalysisUtilNew {
         processRoleTypeInducements(prismRolesSet, attributeAnalysisStructures);
 
         if (membershipDensity != null) {
-            attributeAnalysisStructures.add(new AttributeAnalysisStructure(membershipDensity, "member/user"));
+            AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(membershipDensity, "member/user");
+            attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
+            attributeAnalysisStructures.add(attributeAnalysisStructure);
         }
     }
 
@@ -449,8 +374,9 @@ public class AttributeAnalysisUtilNew {
         }
         AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMap.size(), prismRole.size(), totalRelations, "archetypeRef");
+        attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMap, maximumFrequency));
-        transformToJsonDescriptionMultiObjects(frequencyMap, "archetypeRef", attributeAnalysisStructure, prismRole.size());
+        generateAttributeStatisticsMultiValue(frequencyMap, attributeAnalysisStructure, prismRole.size());
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
     }
@@ -477,8 +403,9 @@ public class AttributeAnalysisUtilNew {
         }
         AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMap.size(), prismRole.size(), totalRelations, "roleMembershipRef");
+        attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMap, maximumFrequency));
-        transformToJsonDescriptionMultiObjects(frequencyMap, "roleMembershipRef", attributeAnalysisStructure, prismRole.size());
+        generateAttributeStatisticsMultiValue(frequencyMap, attributeAnalysisStructure, prismRole.size());
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
     }
@@ -552,30 +479,35 @@ public class AttributeAnalysisUtilNew {
 
         AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapService.size(), prismRolesSet.size(), totalRelationsService, "assignment/service");
+        attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapService, maximumFrequencyService));
-        transformToJsonDescriptionMultiObjects(frequencyMapService, "assignment/service", attributeAnalysisStructure, prismRolesSet.size());
+        generateAttributeStatisticsMultiValue(frequencyMapService, attributeAnalysisStructure, prismRolesSet.size());
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
         attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapOrg.size(), prismRolesSet.size(), totalRelationsOrg, "assignment/org");
+        attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapOrg, maximumFrequencyOrg));
-        transformToJsonDescriptionMultiObjects(frequencyMapOrg, "assignment/org", attributeAnalysisStructure, prismRolesSet.size());
+        generateAttributeStatisticsMultiValue(frequencyMapOrg, attributeAnalysisStructure, prismRolesSet.size());
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
         attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapRole.size(), prismRolesSet.size(), totalRelationsRole, "assignment/role");
+        attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapRole, maximumFrequencyRole));
-        transformToJsonDescriptionMultiObjects(frequencyMapRole, "assignment/role", attributeAnalysisStructure, prismRolesSet.size());
+        generateAttributeStatisticsMultiValue(frequencyMapRole, attributeAnalysisStructure, prismRolesSet.size());
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
         attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapUser.size(), prismRolesSet.size(), totalRelationsUser, "assignment/user");
+        attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapUser, maximumFrequencyUser));
-        transformToJsonDescriptionMultiObjects(frequencyMapUser, "assignment/user", attributeAnalysisStructure, prismRolesSet.size());
+        generateAttributeStatisticsMultiValue(frequencyMapUser, attributeAnalysisStructure, prismRolesSet.size());
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
         attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapResource.size(), prismRolesSet.size(), totalRelationsResource, "assignment/resource");
+        attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapResource, maximumFrequencyResource));
 
         attributeAnalysisStructures.add(attributeAnalysisStructure);
@@ -651,26 +583,31 @@ public class AttributeAnalysisUtilNew {
 
         AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapService.size(), prismRolesSet.size(), totalRelationsService, "inducement/service");
+        attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapService, maximumFrequencyService));
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
         attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapOrg.size(), prismRolesSet.size(), totalRelationsOrg, "inducement/org");
+        attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapOrg, maximumFrequencyOrg));
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
         attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapRole.size(), prismRolesSet.size(), totalRelationsRole, "inducement/role");
+        attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapRole, maximumFrequencyRole));
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
         attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapUser.size(), prismRolesSet.size(), totalRelationsUser, "inducement/user");
+        attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapUser, maximumFrequencyUser));
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
         attributeAnalysisStructure = new AttributeAnalysisStructure(
                 frequencyMapResource.size(), prismRolesSet.size(), totalRelationsResource, "inducement/resource");
+        attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
         attributeAnalysisStructure.setDescription(generateFrequencyMapDescription(frequencyMapResource, maximumFrequencyResource));
         attributeAnalysisStructures.add(attributeAnalysisStructure);
 
@@ -744,4 +681,36 @@ public class AttributeAnalysisUtilNew {
         return description.toString();
     }
 
+    public static void generateAttributeStatisticsSingleValue(
+            @NotNull Map<String, Integer> frequencyMap,
+            @NotNull AttributeAnalysisStructure attributeAnalysisStructure,
+            int prismObjectsCount) {
+
+        attributeAnalysisStructure.setAttributeStatistics(new ArrayList<>());
+        frequencyMap.forEach((key, value) -> {
+            RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
+            double percentageFrequency = (double) value / prismObjectsCount * 100;
+            attributeStatistic.setAttributeValue(key);
+            attributeStatistic.setFrequency(percentageFrequency);
+            attributeAnalysisStructure.getAttributeStatistics().add(attributeStatistic);
+        });
+
+        attributeAnalysisStructure.setMultiValue(false);
+    }
+
+    public static void generateAttributeStatisticsMultiValue(
+            @NotNull Map<String, Integer> frequencyMap,
+            @NotNull AttributeAnalysisStructure attributeAnalysisStructure,
+            int prismObjectsCount) {
+
+        attributeAnalysisStructure.setAttributeStatistics(new ArrayList<>());
+        frequencyMap.forEach((key, value) -> {
+            RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
+            double percentageFrequency = (double) value / prismObjectsCount * 100;
+            attributeStatistic.setAttributeValue(key);
+            attributeStatistic.setFrequency(percentageFrequency);
+            attributeAnalysisStructure.getAttributeStatistics().add(attributeStatistic);
+        });
+        attributeAnalysisStructure.setMultiValue(true);
+    }
 }

@@ -280,7 +280,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
         add(table);
     }
 
-    private List<DetectedPattern> getTopPatterns(RoleAnalysisSessionType session) {
+    private @NotNull List<DetectedPattern> getTopPatterns(RoleAnalysisSessionType session) {
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
         Task task = getPageBase().createSimpleTask("getTopPatterns");
@@ -498,7 +498,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                     };
                     objectButton.titleAsLabel(true);
-                    objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                    objectButton.add(AttributeAppender.append("class", "btn btn-outline-success btn-sm"));
                     objectButton.add(AttributeAppender.append("style", "width:150px"));
 
                     if (isPopup) {
@@ -514,7 +514,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
             @Override
             public Component getHeader(String componentId) {
                 return new Label(
-                        componentId, createStringResource("RoleMining.cluster.table.column.header.role.occupation"));
+                        componentId, createStringResource("RoleMining.cluster.table.column.header.role.analysis"));
             }
 
         });
@@ -552,7 +552,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                     };
                     objectButton.titleAsLabel(true);
-                    objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                    objectButton.add(AttributeAppender.append("class", "btn btn-outline-danger btn-sm"));
                     objectButton.add(AttributeAppender.append("style", "width:150px"));
 
                     if (isPopup) {
@@ -569,7 +569,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
             @Override
             public Component getHeader(String componentId) {
                 return new Label(
-                        componentId, createStringResource("RoleMining.cluster.table.column.header.user.occupation"));
+                        componentId, createStringResource("RoleMining.cluster.table.column.header.user.analysis"));
             }
 
         });

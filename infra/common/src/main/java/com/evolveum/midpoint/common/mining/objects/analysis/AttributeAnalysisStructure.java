@@ -1,8 +1,13 @@
 package com.evolveum.midpoint.common.mining.objects.analysis;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents an attribute analysis structure.
@@ -17,7 +22,9 @@ public class AttributeAnalysisStructure implements Serializable {
     String itemPath;
     double density;
     String description;
-    String jsonDescription;
+    List<RoleAnalysisAttributeStatistics> attributeStatistics = new ArrayList<>();
+    boolean isMultiValue;
+    QName complexType;
 
     public AttributeAnalysisStructure(int uniqueValues, int objectCount, int totalValues, String itemPath) {
         this.uniqueValues = uniqueValues;
@@ -30,6 +37,43 @@ public class AttributeAnalysisStructure implements Serializable {
     public AttributeAnalysisStructure(double density, String itemPath) {
         this.density = density;
         this.itemPath = itemPath;
+    }
+
+    public AttributeAnalysisStructure(double density, String itemPath, QName complexType) {
+        this.density = density;
+        this.itemPath = itemPath;
+        this.complexType = complexType;
+    }
+
+    public static @NotNull List<AttributeAnalysisStructure> extractAttributeAnalysis(@NotNull RoleAnalysisClusterType cluster) {
+        List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
+
+        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
+        if (clusterStatistics == null) {
+            return attributeAnalysisStructures;
+        }
+
+        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
+
+        attributeAnalysisStructures.addAll(
+                extractAttributeAnalysis(userAttributeAnalysisResult.getAttributeAnalysis(), UserType.COMPLEX_TYPE));
+        attributeAnalysisStructures.addAll(
+                extractAttributeAnalysis(roleAttributeAnalysisResult.getAttributeAnalysis(), RoleType.COMPLEX_TYPE));
+
+        return attributeAnalysisStructures;
+    }
+
+    private static @NotNull List<AttributeAnalysisStructure> extractAttributeAnalysis(
+            @NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList,
+            @NotNull QName complexType) {
+        List<AttributeAnalysisStructure> analysisStructures = new ArrayList<>();
+        for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysisList) {
+            Double density = attribute.getDensity();
+            String itemPath = attribute.getItemPath();
+            analysisStructures.add(new AttributeAnalysisStructure(density, itemPath, complexType));
+        }
+        return analysisStructures;
     }
 
     public AttributeAnalysisStructure(RoleAnalysisAttributeAnalysis attributeAnalysis) {
@@ -80,11 +124,27 @@ public class AttributeAnalysisStructure implements Serializable {
         this.description = description;
     }
 
-    public String getJsonDescription() {
-        return jsonDescription;
+    public List<RoleAnalysisAttributeStatistics> getAttributeStatistics() {
+        return attributeStatistics;
     }
 
-    public void setJsonDescription(String jsonDescription) {
-        this.jsonDescription = jsonDescription;
+    public void setAttributeStatistics(List<RoleAnalysisAttributeStatistics> attributeStatistics) {
+        this.attributeStatistics = attributeStatistics;
+    }
+
+    public boolean isMultiValue() {
+        return isMultiValue;
+    }
+
+    public void setMultiValue(boolean multiValue) {
+        isMultiValue = multiValue;
+    }
+
+    public QName getComplexType() {
+        return complexType;
+    }
+
+    public void setComplexType(QName complexType) {
+        this.complexType = complexType;
     }
 }

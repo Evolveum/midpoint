@@ -7,29 +7,31 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPopupPanel;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a progress bar component used for visualizing progress in the user interface.
@@ -85,43 +87,47 @@ public class ProgressBar extends BasePanel<String> {
     }
 
     private void resolveTitleLabel() {
-        String title = getBarTitle();
-        String[] split = title.split(";");
-        Task task = getPageBase().createSimpleTask("loadObject");
+        List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeResult = getRoleAnalysisAttributeResult();
+        barTitle = getBarTitle();
+        Task task = getPageBase().createSimpleTask("resolveTitleLabel");
         OperationResult result = task.getResult();
 
-        if (split.length > 1) {
-            barTitle = split.length + " Objects";
-            List<PrismObject<FocusType>> objects = Arrays.stream(split)
-                    .map(objectOid -> getPageBase().getRoleAnalysisService().getFocusTypeObject(objectOid, task, result))
+        if (roleAnalysisAttributeResult != null) {
+            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+            List<PrismObject<FocusType>> objects = roleAnalysisAttributeResult.stream()
+                    .map(analysisResult -> roleAnalysisService.getFocusTypeObject(
+                            analysisResult.getAttributeValue(), task, result))
                     .collect(Collectors.toList());
+            if (objects.size() == 1 && objects.get(0) != null) {
+                PolyString name = objects.get(0).getName();
+                barTitle = name != null && name.getOrig() != null ? name.getOrig() : barTitle;
+            }
             addAjaxLinkPanel(barTitle, objects);
         } else {
-            barTitle = split[0];
-            UUID uuid = null;
-            try {
-                uuid = UUID.fromString(barTitle);
-            } catch (IllegalArgumentException ignored) {
-            }
-
-            PrismObject<FocusType> focusTypeObject;
-            if (uuid != null) {
-                focusTypeObject = getPageBase().getRoleAnalysisService().getFocusTypeObject(barTitle, task, result);
-            } else {
-                focusTypeObject = null;
-            }
-
+            PrismObject<FocusType> focusTypeObject = resolveFocusTypeObject(barTitle, task, result);
             if (focusTypeObject != null) {
-                if (focusTypeObject.getName() != null) {
-                    barTitle = focusTypeObject.getName().getOrig();
-                }
+                barTitle = focusTypeObject.getName() != null ? focusTypeObject.getName().getOrig() : barTitle;
                 addAjaxLinkPanel(barTitle, Collections.singletonList(focusTypeObject));
             } else {
-                Label progressBarTitle = new Label(ID_BAR_TITLE, barTitle);
-                progressBarTitle.setOutputMarkupId(true);
-                add(progressBarTitle);
+                addProgressBarTitleLabel(barTitle);
             }
         }
+    }
+
+    private PrismObject<FocusType> resolveFocusTypeObject(String barTitle, Task task, OperationResult result) {
+        PrismObject<FocusType> focusTypeObject = null;
+        try {
+            UUID uuid = UUID.fromString(barTitle);
+            focusTypeObject = getPageBase().getRoleAnalysisService().getFocusTypeObject(uuid.toString(), task, result);
+        } catch (IllegalArgumentException ignored) {
+        }
+        return focusTypeObject;
+    }
+
+    private void addProgressBarTitleLabel(String barTitle) {
+        Label progressBarTitle = new Label(ID_BAR_TITLE, barTitle);
+        progressBarTitle.setOutputMarkupId(true);
+        add(progressBarTitle);
     }
 
     private void addAjaxLinkPanel(@NotNull String barTitle, @NotNull List<PrismObject<FocusType>> objects) {
@@ -164,5 +170,9 @@ public class ProgressBar extends BasePanel<String> {
 
     public String getBarTitle() {
         return barTitle;
+    }
+
+    public List<RoleAnalysisAttributeStatistics> getRoleAnalysisAttributeResult() {
+        return null;
     }
 }

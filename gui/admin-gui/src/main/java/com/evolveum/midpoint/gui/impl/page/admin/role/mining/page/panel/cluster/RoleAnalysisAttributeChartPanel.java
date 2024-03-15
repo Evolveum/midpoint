@@ -138,7 +138,7 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
         super.onInitialize();
 
         com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPanel roleAnalysisUserChartPanel = new com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPanel(
-                ID_CHART_PANEL_USER, attributeAnalysisUserStructureList) {
+                ID_CHART_PANEL_USER, attributeAnalysisUserStructureList, clusterModel.getObject().getObjectType()) {
             @Override
             public StringResourceModel getChartTitle() {
                 return getPageBase().createStringResource("RoleAnalysisAttributeChartPopupPanel.userChartTitle");
@@ -153,7 +153,7 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
         add(roleAnalysisUserChartPanel);
 
         com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPanel roleAnalysisRoleChartPanel = new com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPanel(
-                ID_CHART_PANEL_ROLE, attributeAnalysisRoleStructureList) {
+                ID_CHART_PANEL_ROLE, attributeAnalysisRoleStructureList,clusterModel.getObject().getObjectType()) {
             @Override
             public StringResourceModel getChartTitle() {
                 return getPageBase().createStringResource("RoleAnalysisAttributeChartPopupPanel.roleChartTitle");

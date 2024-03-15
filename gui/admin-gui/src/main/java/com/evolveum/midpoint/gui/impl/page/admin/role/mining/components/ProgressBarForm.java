@@ -7,15 +7,23 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
 
 /**
  * Represents a form containing multiple progress bars, each visualizing the frequency of certain values.
@@ -34,11 +42,11 @@ public class ProgressBarForm extends BasePanel<String> {
     private static final String ID_FORM_TITLE = "progressFormTitle";
     private static final String ID_REPEATING_VIEW = "repeatingProgressBar";
 
-    String jsonInformation;
+    transient RoleAnalysisAttributeAnalysis analysisResult;
 
-    public ProgressBarForm(String id, String jsonInformation) {
+    public ProgressBarForm(String id, RoleAnalysisAttributeAnalysis analysisResult) {
         super(id);
-        this.jsonInformation = jsonInformation;
+        this.analysisResult = analysisResult;
     }
 
     @Override
@@ -49,16 +57,8 @@ public class ProgressBarForm extends BasePanel<String> {
         container.setOutputMarkupId(true);
         add(container);
 
-        JSONObject jsonObject = new JSONObject(jsonInformation);
-        String title = getPageBase().createStringResource("Title.unknown").getString();
-        for (String key : jsonObject.keySet()) {
-            title = key;
-            break;
-        }
-
-        JSONArray jsonArray = jsonObject.getJSONArray(title);
-        int valuesCount = jsonArray.length();
-
+        String title = analysisResult.getItemPath();
+        int valuesCount = analysisResult.getAttributeStatistics().size();
         String attribute = getPageBase().createStringResource("Attribute.item.name").getString();
         Label titleForm = new Label(ID_FORM_TITLE, attribute + ": " + title + " (" + valuesCount + ")");
         titleForm.setOutputMarkupId(true);
@@ -68,31 +68,114 @@ public class ProgressBarForm extends BasePanel<String> {
         repeatingProgressBar.setOutputMarkupId(true);
         container.add(repeatingProgressBar);
 
-        initProgressBars(jsonArray, repeatingProgressBar);
+        initProgressBars(analysisResult, repeatingProgressBar, container);
 
     }
 
-    private static void initProgressBars(@NotNull JSONArray jsonArray, @NotNull RepeatingView repeatingProgressBar) {
-        jsonArray.forEach((item) -> {
-            JSONObject jsonItem = (JSONObject) item;
-            String jsonValue = jsonItem.getString("value");
-            String jsonFrequency = jsonItem.getString("frequency");
-            double frequency = Double.parseDouble(jsonFrequency);
+    private static void initProgressBars(@NotNull RoleAnalysisAttributeAnalysis analysisResult,
+            @NotNull RepeatingView repeatingProgressBar, WebMarkupContainer container) {
+        List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeStructures = new ArrayList<>(analysisResult.getAttributeStatistics());
+        roleAnalysisAttributeStructures.sort(Comparator.comparingDouble(RoleAnalysisAttributeStatistics::getFrequency).reversed());
 
-            ProgressBar progressBar = new ProgressBar(repeatingProgressBar.newChildId()) {
-                @Override
-                public double getActualValue() {
-                    return frequency;
+        int maxVisibleBars = 3;
+        int totalBars = 0;
+        int size = roleAnalysisAttributeStructures.size();
+        Map<Double, List<RoleAnalysisAttributeStatistics>> map = new TreeMap<>(Comparator.reverseOrder());
+        if (size > 5 && analysisResult.isIsMultiValue()) {
+            roleAnalysisAttributeStructures.forEach((item) -> {
+                double frequency = item.getFrequency();
+                List<RoleAnalysisAttributeStatistics> list = map.getOrDefault(frequency, new ArrayList<>());
+                list.add(item);
+                map.put(frequency, list);
+            });
+
+            totalBars = map.size();
+            int counter = 0;
+            for (Map.Entry<Double, List<RoleAnalysisAttributeStatistics>> entry : map.entrySet()) {
+                Double key = entry.getKey();
+                List<RoleAnalysisAttributeStatistics> value = entry.getValue();
+                counter++;
+                ProgressBar progressBar = new ProgressBar(repeatingProgressBar.newChildId()) {
+                    @Override
+                    public double getActualValue() {
+                        return key;
+                    }
+
+                    @Override
+                    public String getBarTitle() {
+                        int size = value.size();
+                        if (size == 1) {
+                            return value.get(0).getAttributeValue();
+                        }
+                        return "Objects (" + size + ")";
+                    }
+
+                    @Override
+                    public List<RoleAnalysisAttributeStatistics> getRoleAnalysisAttributeResult() {
+                        return value;
+                    }
+                };
+                progressBar.setOutputMarkupId(true);
+
+                if (counter > maxVisibleBars) {
+                    progressBar.setVisible(false);
                 }
 
+                repeatingProgressBar.add(progressBar);
+            }
+
+        } else {
+            totalBars = roleAnalysisAttributeStructures.size();
+            for (int i = 0; i < roleAnalysisAttributeStructures.size(); i++) {
+                RoleAnalysisAttributeStatistics item = roleAnalysisAttributeStructures.get(i);
+                String jsonValue = item.getAttributeValue();
+                double frequency = item.getFrequency();
+
+                ProgressBar progressBar = new ProgressBar(repeatingProgressBar.newChildId()) {
+                    @Override
+                    public double getActualValue() {
+                        return frequency;
+                    }
+
+                    @Override
+                    public String getBarTitle() {
+                        return jsonValue;
+                    }
+                };
+                progressBar.setOutputMarkupId(true);
+
+                if (i >= maxVisibleBars) {
+                    progressBar.setVisible(false);
+                }
+
+                repeatingProgressBar.add(progressBar);
+            }
+        }
+
+        if (totalBars > maxVisibleBars) {
+            AjaxButton showAllButton = new AjaxButton("showAllButton", Model.of("...")) {
                 @Override
-                public String getBarTitle() {
-                    return jsonValue;
+                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                    int counter = 0;
+                    for (Component component : repeatingProgressBar) {
+                        counter++;
+                        if (!component.isVisible()) {
+                            component.setVisible(true);
+                        } else if (counter > maxVisibleBars) {
+                            if (component.isVisible()) {
+                                component.setVisible(false);
+                            }
+                        }
+                    }
+                    ajaxRequestTarget.add(container);
                 }
             };
-            progressBar.setOutputMarkupId(true);
-            repeatingProgressBar.add(progressBar);
-        });
-    }
+            container.add(showAllButton);
+        } else {
+            WebMarkupContainer showAllButton = new WebMarkupContainer("showAllButton");
+            showAllButton.setVisible(false);
+            container.add(showAllButton);
+        }
 
+    }
 }

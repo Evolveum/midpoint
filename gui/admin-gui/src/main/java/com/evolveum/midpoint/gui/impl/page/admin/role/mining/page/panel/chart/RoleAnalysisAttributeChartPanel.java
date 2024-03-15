@@ -7,9 +7,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart;
 
+import java.util.HashSet;
 import java.util.List;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RepeatingAttributeForm;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisClusterStatisticType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -25,6 +32,10 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
 
+import static com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure.extractAttributeAnalysis;
+import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
+import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.ID_COLLAPSABLE_CONTENT;
+
 /**
  * Represents the role analysis attribute chart panel.
  * Used for displaying the role analysis cluster attribute chart.
@@ -37,9 +48,12 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
     private static final String ID_CHART = "chart";
     private static final String ID_CARD_TITLE = "cardTitle";
     List<AttributeAnalysisStructure> attributeAnalysisStructureList;
+    RoleAnalysisClusterType cluster;
 
-    public RoleAnalysisAttributeChartPanel(String id, @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructureList) {
+    public RoleAnalysisAttributeChartPanel(String id, @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructureList,
+            @NotNull RoleAnalysisClusterType cluster) {
         super(id);
+        this.cluster = cluster;
         this.attributeAnalysisStructureList = attributeAnalysisStructureList;
         this.attributeAnalysisStructureList.sort((model1, model2) -> Double.compare(model2.getDensity(), model1.getDensity()));
     }
@@ -48,6 +62,8 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
     protected void onInitialize() {
         super.onInitialize();
         initChartPart();
+
+        initAttributeStatisticsPanel(cluster);
     }
 
     private void initChartPart() {
@@ -98,6 +114,68 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
 
     public String getColor() {
         return "#206F9D";
+    }
+
+    public void initAttributeStatisticsPanel(@NotNull RoleAnalysisClusterType cluster) {
+
+        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = null;
+        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = null;
+
+        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
+        if (clusterStatistics != null) {
+            roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
+            userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
+        }
+
+        WebMarkupContainer webMarkupContainerUser = new WebMarkupContainer(ID_FIRST_COLLAPSABLE_CONTAINER);
+        webMarkupContainerUser.setOutputMarkupId(true);
+        add(webMarkupContainerUser);
+
+        if (userAttributeAnalysisResult != null) {
+            RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
+                    ID_COLLAPSABLE_CONTENT, userAttributeAnalysisResult, new HashSet<>(), RoleAnalysisProcessModeType.USER) {
+                @Override
+                protected boolean isTableSupported() {
+                    return false;
+                }
+
+                @Override
+                public boolean isHide() {
+                    return true;
+                }
+            };
+            repeatingAttributeForm.setOutputMarkupId(true);
+            webMarkupContainerUser.add(repeatingAttributeForm);
+        } else {
+            Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
+            label.setOutputMarkupId(true);
+            webMarkupContainerUser.add(label);
+        }
+
+        WebMarkupContainer webMarkupContainerRole = new WebMarkupContainer(ID_SECOND_COLLAPSABLE_CONTAINER);
+        webMarkupContainerRole.setOutputMarkupId(true);
+        add(webMarkupContainerRole);
+
+        if (roleAttributeAnalysisResult != null) {
+            RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
+                    ID_COLLAPSABLE_CONTENT, roleAttributeAnalysisResult, new HashSet<>(), RoleAnalysisProcessModeType.ROLE) {
+                @Override
+                protected boolean isTableSupported() {
+                    return false;
+                }
+
+                @Override
+                public boolean isHide() {
+                    return true;
+                }
+            };
+            repeatingAttributeForm.setOutputMarkupId(true);
+            webMarkupContainerRole.add(repeatingAttributeForm);
+        } else {
+            Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
+            label.setOutputMarkupId(true);
+            webMarkupContainerRole.add(label);
+        }
     }
 
 }

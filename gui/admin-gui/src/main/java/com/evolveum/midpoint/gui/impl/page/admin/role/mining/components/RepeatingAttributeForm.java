@@ -7,8 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -72,33 +73,52 @@ public class RepeatingAttributeForm extends BasePanel<String> {
         secondGroupCard.add(collapseIconTable);
 
         WebMarkupContainer containerFirstGroup = createContainer(ID_CONTAINER_FIRST_GROUP);
-        containerFirstGroup.add(AttributeModifier.replace("class", "row card-body collapse show"));
+        if (isHide()) {
+            containerFirstGroup.add(AttributeModifier.replace("class", "row card-body collapse"));
+        } else {
+            containerFirstGroup.add(AttributeModifier.replace("class", "row card-body collapse show"));
+        }
         firstGroupCard.add(containerFirstGroup);
 
         RepeatingView repeatingProgressBar = new RepeatingView(ID_REPEATING_VIEW_FIRST_GROUP);
         repeatingProgressBar.setOutputMarkupId(true);
         containerFirstGroup.add(repeatingProgressBar);
 
-        initTablePanel(attributeAnalysisResult, objectsOid, processMode, repeatingProgressBar, secondGroupCard);
+        initProgressBars(attributeAnalysisResult, repeatingProgressBar);
+
+        initTablePanel(objectsOid, processMode, secondGroupCard);
+    }
+
+    public boolean isHide() {
+        return false;
+    }
+
+    private static void initProgressBars(
+            @NotNull RoleAnalysisAttributeAnalysisResult attributeAnalysisResult,
+            @NotNull RepeatingView repeatingProgressBar) {
+        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = attributeAnalysisResult.getAttributeAnalysis();
+
+        attributeAnalysis.stream()
+                .filter(analysis -> {
+                    List<RoleAnalysisAttributeStatistics> attributeStatistics = analysis.getAttributeStatistics();
+                    return attributeStatistics != null && !attributeStatistics.isEmpty();
+                })
+                .sorted((analysis1, analysis2) -> {
+                    Double density1 = analysis1.getDensity();
+                    Double density2 = analysis2.getDensity();
+                    return Double.compare(density2, density1);
+                })
+                .forEach(analysis -> {
+                    ProgressBarForm progressBarForm = new ProgressBarForm(repeatingProgressBar.newChildId(), analysis);
+                    progressBarForm.setOutputMarkupId(true);
+                    repeatingProgressBar.add(progressBarForm);
+                });
     }
 
     private void initTablePanel(
-            @NotNull RoleAnalysisAttributeAnalysisResult attributeAnalysisResult,
             @NotNull Set<String> objectsOid,
             @NotNull RoleAnalysisProcessModeType processMode,
-            @NotNull RepeatingView repeatingProgressBar,
             @NotNull WebMarkupContainer secondGroupCard) {
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = attributeAnalysisResult.getAttributeAnalysis();
-        for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
-            String jsonDescription = analysis.getJsonDescription();
-            if (jsonDescription == null) {
-                continue;
-            }
-
-            ProgressBarForm progressBarForm = new ProgressBarForm(repeatingProgressBar.newChildId(), jsonDescription);
-            progressBarForm.setOutputMarkupId(true);
-            repeatingProgressBar.add(progressBarForm);
-        }
 
         if (isTableSupported()) {
             MembersDetailsPanel detailsPanel = new MembersDetailsPanel(ID_OBJECT_TABLE,
@@ -151,7 +171,11 @@ public class RepeatingAttributeForm extends BasePanel<String> {
                 target.appendJavaScript(getCollapseIconScript(this.getParent().get(collapseContainerId), this));
             }
         };
-        collapseIconAttribute.add(new AttributeAppender("class", " fas fa-chevron-up"));
+        if(isHide()) {
+            collapseIconAttribute.add(new AttributeAppender("class", " fas fa-chevron-down"));
+        } else {
+            collapseIconAttribute.add(new AttributeAppender("class", " fas fa-chevron-up"));
+        }
         collapseIconAttribute.setOutputMarkupId(true);
         return collapseIconAttribute;
     }

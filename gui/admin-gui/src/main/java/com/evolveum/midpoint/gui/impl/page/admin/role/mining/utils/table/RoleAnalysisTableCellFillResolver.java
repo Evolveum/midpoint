@@ -73,7 +73,7 @@ public class RoleAnalysisTableCellFillResolver {
      * @param rowModel The row model (properties to compare).
      * @param colModel The column model (members to compare).
      */
-    public static <T extends MiningBaseTypeChunk> void resolveCellTypeUserTable(@NotNull String componentId,
+    public static <T extends MiningBaseTypeChunk> boolean resolveCellTypeUserTable(@NotNull String componentId,
             Item<ICellPopulator<MiningRoleTypeChunk>> cellItem,
             MiningRoleTypeChunk rowModel,
             MiningUserTypeChunk colModel,
@@ -105,10 +105,10 @@ public class RoleAnalysisTableCellFillResolver {
         if (rowStatus.isDisable() || colStatus.isDisable()) {
             if (isCandidate) {
                 disabledCell(componentId, cellItem);
-                return;
+                return false;
             }
             emptyCell(componentId, cellItem);
-            return;
+            return false;
         }
         int size = duplicatedElements.size();
 
@@ -116,23 +116,23 @@ public class RoleAnalysisTableCellFillResolver {
             if (isCandidate) {
                 if (size > 1) {
                     reducedDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return;
+                    return false;
                 } else if (size == 1) {
                     reducedCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return;
+                    return true;
                 }
                 reducedCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return;
+                return true;
             } else if (secondStage) {
                 if (size > 1) {
                     additionalDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return;
+                    return false;
                 } else if (size == 1) {
                     additionalCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return;
+                    return true;
                 }
                 additionalCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return;
+                return true;
             }
         }
 
@@ -141,9 +141,10 @@ public class RoleAnalysisTableCellFillResolver {
         } else {
             emptyCell(componentId, cellItem);
         }
+        return false;
     }
 
-    public static <T extends MiningBaseTypeChunk> void resolveCellTypeRoleTable(@NotNull String componentId,
+    public static <T extends MiningBaseTypeChunk> boolean resolveCellTypeRoleTable(@NotNull String componentId,
             Item<ICellPopulator<MiningUserTypeChunk>> cellItem,
             @NotNull T rowModel,
             @NotNull T colModel,
@@ -173,10 +174,10 @@ public class RoleAnalysisTableCellFillResolver {
         if (rowStatus.isDisable() || colStatus.isDisable()) {
             if (isCandidate) {
                 disabledCell(componentId, cellItem);
-                return;
+                return false;
             }
             emptyCell(componentId, cellItem);
-            return;
+            return false;
         }
         int size = duplicatedElements.size();
 
@@ -184,23 +185,24 @@ public class RoleAnalysisTableCellFillResolver {
             if (isCandidate) {
                 if (size > 1) {
                     reducedDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return;
+                    return false;
                 } else if (size == 1) {
+
                     reducedCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return;
+                    return true;
                 }
                 reducedCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return;
+                return true;
             } else if (secondStage) {
                 if (size > 1) {
                     additionalDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return;
+                    return false;
                 } else if (size == 1) {
                     additionalCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return;
+                    return true;
                 }
                 additionalCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return;
+                return true;
             }
         }
 
@@ -209,6 +211,7 @@ public class RoleAnalysisTableCellFillResolver {
         } else {
             emptyCell(componentId, cellItem);
         }
+        return false;
     }
 
     /**

@@ -870,15 +870,26 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="jsonDescription" type="xsd:string" minOccurs="0">
+            <xsd:element name="attributeStatistics" type="c:RoleAnalysisAttributeStatistics" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            JSON description of the object.
+                            Attribute statistics analysis information.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisAttributeAnalysis.jsonDescription</a:displayName>
+                        <a:displayName>RoleAnalysisAttributeAnalysis.attributeStatistics</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="isMultiValue" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>If true, the matching rule is applied to each value of the property.</p>
+                        <p>Also, there must be specified a matchSimilarity value. If not default 100% is used.</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisMatchingRuleType.isMultiValue</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -908,6 +919,44 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="roleAnalysisAttributeAnalysis" type="tns:RoleAnalysisAttributeAnalysis"/>
+
+
+    <xsd:complexType name="RoleAnalysisAttributeStatistics">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains information about...
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="attributeValue" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attribute value.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeStatistics.attributeValue</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="frequency" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Frequency of the attribute value.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeStatistics.frequency</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisAttributeStatistics" type="tns:RoleAnalysisAttributeStatistics"/>
 
     <xsd:complexType name="RoleAnalysisDetectionOptionType">
         <xsd:annotation>

@@ -83,15 +83,13 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     private String additionalBoxCssClasses = null;
     int columnCount;
     static boolean isRoleMining = false;
-    RoleAnalysisSortMode roleAnalysisSortModeMode;
 
     public RoleAnalysisTable(String id, ISortableDataProvider<T, ?> provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId, boolean isRoleMining, int columnCount, RoleAnalysisSortMode roleAnalysisSortModeMode) {
+            UserProfileStorage.TableId tableId, boolean isRoleMining, int columnCount) {
         super(id);
         this.tableId = tableId;
         RoleAnalysisTable.isRoleMining = isRoleMining;
         this.columnCount = columnCount;
-        this.roleAnalysisSortModeMode = roleAnalysisSortModeMode;
         initLayout(columns, provider, columnCount);
     }
 
@@ -447,23 +445,6 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
             formBsProcess.add(editButton);
 
-            Form<?> formSortMode = new MidpointForm<>("form_sort_model");
-            footerContainer.add(formSortMode);
-
-            ChoiceRenderer<RoleAnalysisSortMode> renderer = new ChoiceRenderer<>("displayString");
-
-            DropDownChoice<RoleAnalysisSortMode> sortModeSelector = new DropDownChoice<>(
-                    "modeSelector", Model.of(roleAnalysisSortModeMode),
-                    new ArrayList<>(EnumSet.allOf(RoleAnalysisSortMode.class)), renderer);
-            sortModeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    onChangeSortMode(sortModeSelector.getModelObject(), target);
-                }
-            });
-            sortModeSelector.setOutputMarkupId(true);
-            formSortMode.add(sortModeSelector);
-
             Form<?> formCurrentPage = new MidpointForm<>("form_current_page");
             footerContainer.add(formCurrentPage);
             List<Integer> integers = List.of(new Integer[] { 100, 200, 400 });
@@ -552,9 +533,6 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     }
 
     public void onChange(String value, AjaxRequestTarget target, int currentPage) {
-    }
-
-    public void onChangeSortMode(RoleAnalysisSortMode roleAnalysisSortModeMode, AjaxRequestTarget target) {
     }
 
     protected void onChangeSize(int value, AjaxRequestTarget target) {

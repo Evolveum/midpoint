@@ -341,6 +341,23 @@ public interface RoleAnalysisService {
             @NotNull Task task);
 
     /**
+     * Method for preparing a mining structure for role analysis.
+     *
+     * @param cluster The cluster for which the mining structure is prepared.
+     * @param option The display value option.
+     * @param processMode The process mode.
+     * @param result The operation result.
+     * @param task The task associated with this operation.
+     * @return A MiningOperationChunk containing user and role chunks for further processing.
+     */
+    @NotNull MiningOperationChunk prepareMiningStructure(
+            @NotNull RoleAnalysisClusterType cluster,
+            DisplayValueOption option,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull OperationResult result,
+            @NotNull Task task);
+
+    /**
      * Method for preparing an expanded mining structure for role analysis.
      *
      * @param cluster The cluster for which the mining structure is prepared.

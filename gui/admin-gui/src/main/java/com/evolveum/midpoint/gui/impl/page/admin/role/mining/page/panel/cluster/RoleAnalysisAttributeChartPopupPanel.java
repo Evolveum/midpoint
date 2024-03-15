@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -37,15 +39,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
 
 public class RoleAnalysisAttributeChartPopupPanel extends BasePanel<String> implements Popupable {
 
-    private static final String ID_CHART_PANEL_USER = "chartPanelUser";
-    private static final String ID_CHART_PANEL_ROLE = "chartPanelRole";
+    private static final String ID_CHART_PANEL_ROLE = "chartPanel";
 
     List<AttributeAnalysisStructure> attributeAnalysisUserStructureList = new ArrayList<>();
     List<AttributeAnalysisStructure> attributeAnalysisRoleStructureList = new ArrayList<>();
@@ -76,14 +73,7 @@ public class RoleAnalysisAttributeChartPopupPanel extends BasePanel<String> impl
             for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
                 AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(analysis);
                 rolePathLabels.remove(analysis.getItemPath());
-                attributeAnalysisRoleStructureList.add(attributeAnalysisStructure);
-            }
-
-            for (String path : rolePathLabels) {
-                RoleAnalysisAttributeAnalysis analysis = new RoleAnalysisAttributeAnalysis();
-                analysis.setItemPath(path);
-                analysis.setDensity(0.0);
-                AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(analysis);
+                attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
                 attributeAnalysisRoleStructureList.add(attributeAnalysisStructure);
             }
         }
@@ -95,14 +85,7 @@ public class RoleAnalysisAttributeChartPopupPanel extends BasePanel<String> impl
             for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
                 userPathLabels.remove(analysis.getItemPath());
                 AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(analysis);
-                attributeAnalysisUserStructureList.add(attributeAnalysisStructure);
-            }
-
-            for (String path : userPathLabels) {
-                RoleAnalysisAttributeAnalysis analysis = new RoleAnalysisAttributeAnalysis();
-                analysis.setItemPath(path);
-                analysis.setDensity(0.0);
-                AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(analysis);
+                attributeAnalysisStructure.setComplexType(UserType.COMPLEX_TYPE);
                 attributeAnalysisUserStructureList.add(attributeAnalysisStructure);
             }
         }
@@ -139,23 +122,11 @@ public class RoleAnalysisAttributeChartPopupPanel extends BasePanel<String> impl
     protected void onInitialize() {
         super.onInitialize();
 
-        RoleAnalysisAttributeChartPanel roleAnalysisUserChartPanel = new RoleAnalysisAttributeChartPanel(
-                ID_CHART_PANEL_USER, attributeAnalysisUserStructureList) {
-            @Override
-            public StringResourceModel getChartTitle() {
-                return getPageBase().createStringResource("RoleAnalysisAttributeChartPopupPanel.userChartTitle");
-            }
-
-            @Override
-            public String getColor() {
-                return "#dd4b39";
-            }
-        };
-        roleAnalysisUserChartPanel.setOutputMarkupId(true);
-        add(roleAnalysisUserChartPanel);
-
+        List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
+        attributeAnalysisStructures.addAll(attributeAnalysisRoleStructureList);
+        attributeAnalysisStructures.addAll(attributeAnalysisUserStructureList);
         RoleAnalysisAttributeChartPanel roleAnalysisRoleChartPanel = new RoleAnalysisAttributeChartPanel(
-                ID_CHART_PANEL_ROLE, attributeAnalysisRoleStructureList) {
+                ID_CHART_PANEL_ROLE, attributeAnalysisStructures, clusterModel.getObject().getObjectType()) {
             @Override
             public StringResourceModel getChartTitle() {
                 return getPageBase().createStringResource("RoleAnalysisAttributeChartPopupPanel.roleChartTitle");
