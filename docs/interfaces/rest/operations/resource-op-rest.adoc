@@ -3,6 +3,7 @@
 :page-display-order: 600
 :page-toc: top
 :page-keywords: [ 'rest', 'resource', 'test', 'import', 'operation' ]
+:page-upkeep-status: green
 
 == Description
 A set of operations which are specific for objects of the "Resource" type residing on the "resources" endpoint.
@@ -66,8 +67,22 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
+include::../operations/raw/a-auth.adoc[]
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#testResource+`
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#importFromResource+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+For the test operation:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#test+`
+
+For the import operation:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#importFromResource+`
 
 == Examples
 

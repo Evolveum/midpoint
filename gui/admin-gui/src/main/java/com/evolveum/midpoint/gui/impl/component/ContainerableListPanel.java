@@ -587,15 +587,16 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         List<IColumn<PO, String>> columns = collectColumns();
 
         if (!isPreview()) {
+            List<InlineMenuItem> allItems = new ArrayList<>();
             List<InlineMenuItem> menuItems = createInlineMenu();
-            if (menuItems == null) {
-                menuItems = new ArrayList<>();
+            if (menuItems != null) {
+                allItems.addAll(menuItems);
             }
-            addBasicActions(menuItems);
-            addCustomActions(menuItems, this::getSelectedRealObjects);
+            addBasicActions(allItems);
+            addCustomActions(allItems, this::getSelectedRealObjects);
 
-            if (!menuItems.isEmpty()) {
-                InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()) {
+            if (!allItems.isEmpty()) {
+                InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(allItems, getPageBase()) {
                     @Override
                     public String getCssClass() {
                         return getInlineMenuCssClass();

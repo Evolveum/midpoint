@@ -1,3 +1,7 @@
+---
+midpoint-feature: expression-constant
+doc-type: intro
+---
 = Constants
 :page-wiki-name: Constants
 :page-wiki-id: 24086076
@@ -5,8 +9,6 @@
 :page-wiki-metadata-create-date: 2017-05-16T10:28:58.038+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-05-16T10:37:25.198+02:00
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 MidPoint is often deployed in several environments: development environment, testing environment, production environment.

@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 .*Get Users Value Policy*
 [source,bash]
 ----

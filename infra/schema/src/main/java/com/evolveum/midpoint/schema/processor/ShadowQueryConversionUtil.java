@@ -41,11 +41,7 @@ public class ShadowQueryConversionUtil {
         if (filterBean == null) {
             return null;
         }
-
-        var rawShadowDef = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-        var preciseShadowDef = ShadowUtil.applyObjectDefinition(rawShadowDef, definition);
-
         // Note that we don't need to re-apply the definitions to the parsed filter, as the definitions are set during parsing.
-        return PrismContext.get().getQueryConverter().createObjectFilter(preciseShadowDef, filterBean);
+        return PrismContext.get().getQueryConverter().createObjectFilter(definition.getPrismObjectDefinition(), filterBean);
     }
 }

@@ -1,3 +1,7 @@
+---
+midpoint-feature: reporting
+doc-type: config
+---
 = Report Configuration
 :page-since: "4.4"
 :page-toc: top

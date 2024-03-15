@@ -1,3 +1,7 @@
+---
+midpoint-feature: identity-repository-cleanup
+doc-type: config
+---
 = Removing obsolete information
 :page-wiki-name: Removing obsolete information
 :page-wiki-id: 11075722

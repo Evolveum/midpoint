@@ -79,6 +79,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
+                onExitPreProcessing(target);
                 onExitPerformed(target);
             }
         };
@@ -136,6 +137,9 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
         Label nextLabel = new Label(ID_NEXT_LABEL, getNextLabelModel());
         next.add(nextLabel);
+    }
+
+    protected void onExitPreProcessing(AjaxRequestTarget target) {
     }
 
     protected void initCustomButtons(RepeatingView customButtons) {

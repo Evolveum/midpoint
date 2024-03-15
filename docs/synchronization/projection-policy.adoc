@@ -1,3 +1,7 @@
+---
+midpoint-feature: projection-policy
+doc-type: config
+---
 = Projection Policy
 :page-wiki-name: Projection Policy
 :page-wiki-id: 4882509

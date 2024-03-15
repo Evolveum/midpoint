@@ -1,3 +1,7 @@
+---
+midpoint-feature: role-autoassignment
+doc-type: intro
+---
 = Role Autoassignment
 :page-wiki-name: Role Autoassignment
 :page-wiki-id: 24675794
@@ -7,8 +11,6 @@
 :page-wiki-metadata-modify-date: 2020-06-10T10:38:42.679+02:00
 :page-since: "3.7"
 :page-since-improved: [ "4.2" ]
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 == Introduction

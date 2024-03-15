@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.ButtonBar;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
@@ -203,67 +204,6 @@ import java.util.List;
         type = "EventMarkInformationType",
         expanded = true
 )
-@PanelInstance(
-        identifier = "secretsProvidersDocker",
-        applicableForType = SecretsProvidersType.class,
-        display = @PanelDisplay(
-                label = "SecretsProvidersType.docker",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 10
-        ),
-        containerPath = "secretsProviders/docker",
-        type = "SecretsProvidersType",
-        expanded = true
-)
-@PanelInstance(
-        identifier = "secretsProvidersFile",
-        applicableForType = SecretsProvidersType.class,
-        display = @PanelDisplay(
-                label = "SecretsProvidersType.file",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 20
-        ),
-        containerPath = "secretsProviders/file",
-        type = "SecretsProvidersType",
-        expanded = true
-)
-@PanelInstance(
-        identifier = "secretsProvidersEnvironmentVariables",
-        applicableForType = SecretsProvidersType.class,
-        display = @PanelDisplay(
-                label = "SecretsProvidersType.environmentVariables",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 30
-        ),
-        containerPath = "secretsProviders/environmentVariables",
-        type = "SecretsProvidersType",
-        expanded = true
-)
-@PanelInstance(
-        identifier = "secretsProvidersProperties",
-        applicableForType = SecretsProvidersType.class,
-        display = @PanelDisplay(
-                label = "SecretsProvidersType.properties",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 40
-        ),
-        containerPath = "secretsProviders/properties",
-        type = "SecretsProvidersType",
-        expanded = true
-)
-@PanelInstance(
-        identifier = "secretsProvidersCustom",
-        applicableForType = SecretsProvidersType.class,
-        display = @PanelDisplay(
-                label = "SecretsProvidersType.custom",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 50
-        ),
-        containerPath = "secretsProviders/custom",
-        type = "SecretsProvidersType",
-        expanded = true
-)
-
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
@@ -329,6 +269,15 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
 
                 return wrapper -> false;
             }
+
+            @Override
+            protected ItemMandatoryHandler getMandatoryHandler() {
+                return createMandatoryHandler();
+            }
         };
+    }
+
+    protected ItemMandatoryHandler createMandatoryHandler() {
+        return null;
     }
 }

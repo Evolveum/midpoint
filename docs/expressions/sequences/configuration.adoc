@@ -1,3 +1,7 @@
+---
+midpoint-feature: sequence
+doc-type: config
+---
 = Using Sequences
 :page-nav-title: Configuration
 :page-wiki-name: Using Sequences

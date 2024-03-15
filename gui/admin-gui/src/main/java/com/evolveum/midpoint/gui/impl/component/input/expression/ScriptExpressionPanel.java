@@ -29,6 +29,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
@@ -38,6 +39,8 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_CODE_LABEL = "codeLabel";
     private static final String ID_LANGUAGE_INPUT = "languageInput";
     private static final String ID_LANGUAGE_LABEL = "languageLabel";
+    private static final String C_DATA_START = "<![CDATA[ " + System.lineSeparator();
+    private static final String C_DATA_END = System.lineSeparator() + " ]]>";
 
     public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
         super(id, model);
@@ -90,7 +93,21 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         IModel<String> model = new IModel<>() {
             @Override
             public String getObject() {
-                return getEvaluatorValue().code;
+
+                ScriptExpressionWrapper evaluatorWrapper = getEvaluatorValue();
+
+                String ret = evaluatorWrapper.code;
+
+                if (ExpressionUtil.Language.VELOCITY.equals(evaluatorWrapper.language)) {
+                    if (ret.startsWith(C_DATA_START)) {
+                        ret = ret.substring(C_DATA_START.length());
+                    }
+
+                    if (ret.endsWith(C_DATA_END)) {
+                        ret = ret.substring(0, ret.length() - C_DATA_END.length());
+                    }
+                }
+                return ret;
             }
 
             @Override
@@ -146,13 +163,59 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private void updateEvaluatorValue(String code) {
         ExpressionType expressionType = getModelObject();
         try {
-            ScriptExpressionEvaluatorType evaluator = getEvaluatorValue().code(code).toEvaluator();
+            ScriptExpressionWrapper evaluatorWrapper = getEvaluatorValue();
+
+            if (ExpressionUtil.Language.VELOCITY.equals(evaluatorWrapper.language)) {
+                code = processVelocityInHTML(code);
+            }
+            ScriptExpressionEvaluatorType evaluator = evaluatorWrapper.code(code).toEvaluator();
             expressionType = ExpressionUtil.updateScriptExpressionValue(expressionType, evaluator);
             getModel().setObject(expressionType);
         } catch (SchemaException ex) {
             LOGGER.error("Couldn't update generate expression values: {}", ex.getLocalizedMessage());
             getPageBase().error("Couldn't update generate expression values: " + ex.getLocalizedMessage());
         }
+    }
+
+    private String processVelocityInHTML(String code) {
+        if (StringUtils.isBlank(code)) {
+            return code;
+        }
+
+        List<String> lines = code.lines().filter(line -> !line.trim().startsWith("#") || !line.isBlank()).toList();
+
+        if (lines.isEmpty()) {
+            return code;
+        }
+
+        if (lines.size() == 1) {
+            String line = lines.get(0);
+            String tag = "</";
+            if (!(line.startsWith("<") || !line.contains(">"))) {
+                return code;
+            } else {
+                tag += line.substring(1, line.indexOf(">") + 1);
+            }
+
+            if (!line.endsWith(tag)) {
+                return code;
+            }
+        } else {
+            String tag = "</";
+            String firstLine = lines.get(0);
+            if (!firstLine.startsWith("<") || !firstLine.contains(">")) {
+                return code;
+            } else {
+                tag += firstLine.substring(1, firstLine.indexOf(">") + 1);
+            }
+
+            String lastLine = lines.get(lines.size() - 1);
+            if (!lastLine.endsWith(tag)) {
+                return code;
+            }
+        }
+
+        return C_DATA_START + code + C_DATA_END;
     }
 
     //don't remove it, used by class and method name

@@ -7,19 +7,21 @@
 
 package com.evolveum.midpoint.model.common.expression.evaluator.caching;
 
-import com.evolveum.midpoint.prism.PrismValue;
-
+import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator.ObjectFound;
+import com.evolveum.midpoint.prism.PrismValue;
 
 public class QueryResult<V extends PrismValue> {
 
-    private List<V> resultingList;
+    private final Collection<? extends ObjectFound<?, V>> resultingList;
 
-    public QueryResult(List<V> resultingList) {
+    public QueryResult(Collection<? extends ObjectFound<?, V>> resultingList) {
         this.resultingList = resultingList;
     }
 
     public List<V> getResultingList() {
-        return resultingList;
+        return ObjectFound.unwrap(resultingList);
     }
 }

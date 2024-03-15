@@ -1,3 +1,7 @@
+---
+midpoint-feature: expression-groovy
+doc-type: intro
+---
 = Groovy Expressions
 :page-nav-title: Groovy
 :page-wiki-name: Groovy Expressions

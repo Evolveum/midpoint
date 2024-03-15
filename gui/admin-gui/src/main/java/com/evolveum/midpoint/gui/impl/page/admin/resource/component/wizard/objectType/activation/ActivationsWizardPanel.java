@@ -95,7 +95,6 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
         steps.add(new PredefinedMappingStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showActivationTablePanel(target, direction);
             }
         });
@@ -119,14 +118,12 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
         steps.add(new InboundActivationMappingMainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showActivationTablePanel(target, MappingDirection.INBOUND);
             }
         });
         steps.add(new InboundActivationMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showActivationTablePanel(target, MappingDirection.INBOUND);
             }
         });
@@ -146,14 +143,12 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
         steps.add(new OutboundActivationMappingMainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showActivationTablePanel(target, MappingDirection.OUTBOUND);
             }
         });
         steps.add(new OutboundActivationMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showActivationTablePanel(target, MappingDirection.OUTBOUND);
             }
         });

@@ -3,6 +3,7 @@
 :page-display-order: 220
 :page-toc: top
 :page-keywords: [ 'rest', 'generate', 'validate', 'operation' ]
+:page-upkeep-status: green
 
 == Description
 
@@ -68,8 +69,16 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
+include::../operations/raw/a-auth.adoc[]
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#rpcGenerateValue+`
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#rpcValidateValue+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+No model authorizations needed in this case.
 
 == Examples
 
@@ -80,6 +89,8 @@ For some help regarding the REST examples please see this link:
 xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
 
 include::../../rest/operations/examples/raw/validate-value-rpc.adoc[]
+
+include::../../rest/operations/examples/raw/generate-value-rpc.adoc[]
 
 == See Also
 

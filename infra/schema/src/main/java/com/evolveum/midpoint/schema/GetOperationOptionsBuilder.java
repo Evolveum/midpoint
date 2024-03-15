@@ -12,6 +12,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowClassificationModeType;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -73,6 +75,7 @@ public interface GetOperationOptionsBuilder {
     GetOperationOptionsBuilder executionPhase(Boolean value);
     GetOperationOptionsBuilder errorHandling(FetchErrorHandlingType errorHandling);
     GetOperationOptionsBuilder errorReportingMethod(FetchErrorReportingMethodType method);
+    GetOperationOptionsBuilder shadowClassificationMode(ShadowClassificationModeType mode);
 
     GetOperationOptionsBuilder setFrom(Collection<SelectorOptions<GetOperationOptions>> options);
     GetOperationOptionsBuilder mergeFrom(Collection<SelectorOptions<GetOperationOptions>> options);

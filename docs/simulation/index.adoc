@@ -1,8 +1,10 @@
+---
+midpoint-feature: simulation
+doc-type: intro
+---
 = Simulations
 :page-toc: top
 :page-since: "4.7"
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 == Introduction

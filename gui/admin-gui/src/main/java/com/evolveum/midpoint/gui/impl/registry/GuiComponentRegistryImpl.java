@@ -90,7 +90,15 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
     public <T extends ItemPanelContext<?, ?>> GuiComponentFactory<T> findValuePanelFactory(
             ItemWrapper<?, ?> parentItemWrapper, PrismValueWrapper<?> valueWrapper) {
         Optional<GuiComponentFactory<?>> opt = guiComponentFactories.stream()
-                .filter(f -> f.match(parentItemWrapper, valueWrapper))
+                .filter(f -> {
+                    try {
+                        return f.match(parentItemWrapper, valueWrapper);
+                    } catch (Exception e) {
+                        LOGGER.error("Couldn't call match method for factory: " + f.getClass().getSimpleName(), e);
+                        return false;
+                    }
+
+                })
                 .findFirst();
         if (!opt.isPresent()) {
             if (LOGGER.isTraceEnabled()) {

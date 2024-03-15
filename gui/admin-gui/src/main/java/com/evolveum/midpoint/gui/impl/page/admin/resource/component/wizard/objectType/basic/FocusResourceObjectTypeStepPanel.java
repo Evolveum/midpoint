@@ -32,7 +32,7 @@ public class FocusResourceObjectTypeStepPanel
 
     public FocusResourceObjectTypeStepPanel(ResourceDetailsModel model,
                                             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
-        super(model, null);
+        super(model, null, null);
         this.valueModel = createNewValueModel(newValueModel, ResourceObjectTypeDefinitionType.F_FOCUS);
     }
 
