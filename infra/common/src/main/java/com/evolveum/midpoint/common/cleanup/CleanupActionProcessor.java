@@ -30,7 +30,17 @@ public class CleanupActionProcessor {
 
     private boolean ignoreNamespaces;
 
+    private boolean removeContainerIds;
+
     private final Map<QName, Map<ItemPath, CleanupPathAction>> paths = new HashMap<>();
+
+    public boolean isRemoveContainerIds() {
+        return removeContainerIds;
+    }
+
+    public void setRemoveContainerIds(boolean removeContainerIds) {
+        this.removeContainerIds = removeContainerIds;
+    }
 
     public void setListener(CleanupListener listener) {
         this.listener = listener;
@@ -134,6 +144,10 @@ public class CleanupActionProcessor {
             final List<Item<?, ?>> toBeRemoved = new ArrayList<>();
 
             for (PrismContainerValue<?> value : pc.getValues()) {
+                if (removeContainerIds) {
+                    value.setId(null);
+                }
+
                 Collection<Item<?, ?>> items = value.getItems();
                 for (Item<?, ?> i : items) {
                     if (processItemRecursively(i, currentPath.append(i.getElementName()), customItemActions, object, result)) {
