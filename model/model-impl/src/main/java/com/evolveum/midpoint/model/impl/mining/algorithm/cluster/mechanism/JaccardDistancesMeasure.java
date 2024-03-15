@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.Extensio
  */
 public class JaccardDistancesMeasure implements DistanceMeasure {
     private final int minIntersection;
+    private final int minIntersectionAttributes;
     Set<AttributeMatch> attributesMatch;
 
     /**
@@ -29,9 +30,13 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
      */
     public JaccardDistancesMeasure(int minIntersection) {
         this.minIntersection = minIntersection;
+        this.minIntersectionAttributes = 0;
     }
 
-    public JaccardDistancesMeasure(int minIntersection, Set<AttributeMatch> attributesMatch) {
+    public JaccardDistancesMeasure(int minIntersection,
+            @NotNull Set<AttributeMatch> attributesMatch,
+            int minIntersectionAttributes) {
+        this.minIntersectionAttributes = minIntersectionAttributes;
         this.minIntersection = minIntersection;
         this.attributesMatch = attributesMatch;
     }
@@ -44,7 +49,9 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
      * @return The computed Jaccard distance between the sets.
      */
     @Override
-    public double compute(@NotNull Set<String> valueA, @NotNull Set<String> valueB) {
+    public double compute(
+            @NotNull Set<String> valueA,
+            @NotNull Set<String> valueB) {
         int intersectionCount = 0;
         int setBunique = 0;
 
@@ -84,7 +91,52 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
     }
 
     @Override
-    public double compute(ExtensionProperties valueA, ExtensionProperties valueB, Set<ClusterExplanation> explanation) {
+    public double computeMultiValueAttributes(
+            @NotNull Set<String> valueA,
+            @NotNull Set<String> valueB) {
+        int intersectionCount = 0;
+        int setBunique = 0;
+
+        if (valueA.size() > valueB.size()) {
+            for (String num : valueB) {
+                if (valueA.contains(num)) {
+                    intersectionCount++;
+                } else {
+                    setBunique++;
+                }
+            }
+
+            if (intersectionCount < minIntersectionAttributes) {
+                return 1;
+            }
+
+            return 1 - (double) intersectionCount / (valueA.size() + setBunique);
+
+        } else {
+
+            for (String num : valueA) {
+                if (valueB.contains(num)) {
+                    intersectionCount++;
+                } else {
+                    setBunique++;
+                }
+            }
+
+            if (intersectionCount < minIntersectionAttributes) {
+                return 1;
+            }
+
+            return 1 - (double) intersectionCount / (valueB.size() + setBunique);
+
+        }
+
+    }
+
+    @Override
+    public double compute(
+            @NotNull ExtensionProperties valueA,
+            @NotNull ExtensionProperties valueB,
+            @NotNull Set<ClusterExplanation> explanation) {
 
         double weightSum = 0;
 
@@ -124,11 +176,10 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
         return 1;
     }
 
-    private double calculateConfidence(double weightSum) {
-        return weightSum / attributesMatch.size();
-    }
-
-    private double computeSingleValue(ExtensionProperties valueA, ExtensionProperties valueB, AttributeMatch attributeMatch) {
+    private double computeSingleValue(
+            @NotNull ExtensionProperties valueA,
+            @NotNull ExtensionProperties valueB,
+            @NotNull AttributeMatch attributeMatch) {
         String valuesForKeyA = valueA.getSingleValueForKey(attributeMatch);
         String valuesForKeyB = valueB.getSingleValueForKey(attributeMatch);
 
@@ -140,7 +191,10 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
         return 0;
     }
 
-    private double computeMultiValue(ExtensionProperties valueA, ExtensionProperties valueB, AttributeMatch attributeMatch) {
+    private double computeMultiValue(
+            @NotNull ExtensionProperties valueA,
+            @NotNull ExtensionProperties valueB,
+            @NotNull AttributeMatch attributeMatch) {
         Set<String> valuesForKeyA = valueA.getSetValuesForKeys(attributeMatch);
         Set<String> valuesForKeyB = valueB.getSetValuesForKeys(attributeMatch);
         double percentage = attributeMatch.getSimilarity();
@@ -149,7 +203,7 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
                 && valuesForKeyB != null
                 && !valuesForKeyA.isEmpty()
                 && !valuesForKeyB.isEmpty()) {
-            double compute = compute(valuesForKeyA, valuesForKeyB);
+            double compute = computeMultiValueAttributes(valuesForKeyA, valuesForKeyB);
 
             if ((1 - compute) >= percentage) {
                 return attributeMatch.getWeight();

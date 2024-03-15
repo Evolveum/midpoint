@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.util.Set;
 
@@ -26,7 +28,16 @@ public interface DistanceMeasure extends Serializable {
      * @param valueB The second set of values.
      * @return The computed distance or similarity between the sets.
      */
-    double compute(Set<String> valueA, Set<String> valueB);
+    double compute(
+            @NotNull Set<String> valueA,
+            @NotNull Set<String> valueB);
 
-    double compute(ExtensionProperties valueA, ExtensionProperties valueB, Set<ClusterExplanation> explanation);
+    double computeMultiValueAttributes(
+            @NotNull Set<String> valueA,
+            @NotNull Set<String> valueB);
+
+    double compute(
+            @NotNull ExtensionProperties valueA,
+            @NotNull ExtensionProperties valueB,
+            @NotNull Set<ClusterExplanation> explanation);
 }

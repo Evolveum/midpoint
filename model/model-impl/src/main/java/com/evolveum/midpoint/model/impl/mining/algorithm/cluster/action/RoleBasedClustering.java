@@ -95,7 +95,7 @@ public class RoleBasedClustering implements Clusterable {
                 dataPoints = prepareDataPoints(chunkMap);
             } else {
                 rule = true;
-                dataPoints = prepareDataPointsRoleModerRules(chunkMap, roleAnalysisService, task, attributeMatches);
+                dataPoints = prepareDataPointsRoleModeRules(chunkMap, roleAnalysisService, task, attributeMatches);
             }
         } else {
             dataPoints = prepareDataPoints(chunkMap);
@@ -106,6 +106,7 @@ public class RoleBasedClustering implements Clusterable {
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
         double similarityDifference = 1 - (similarityThreshold / 100);
 
+        //TODO exact match
 //        if (similarityDifference == 0.00) {
 //            return new RoleAnalysisAlgorithmUtils().processExactMatch(
 //                    roleAnalysisService, dataPoints, session, handler, task, result);
@@ -116,8 +117,9 @@ public class RoleBasedClustering implements Clusterable {
 
         DistanceMeasure distanceMeasure;
 
+        //TODO min attributes intersection
         if (rule) {
-            distanceMeasure = new JaccardDistancesMeasure(minUsersOverlap, new HashSet<>(attributeMatches));
+            distanceMeasure = new JaccardDistancesMeasure(minUsersOverlap, new HashSet<>(attributeMatches),0);
         } else {
             distanceMeasure = new JaccardDistancesMeasure(minUsersOverlap);
         }

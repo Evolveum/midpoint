@@ -307,7 +307,7 @@ public class ClusteringUtils {
                 || def.getTypeName().getLocalPart().equals("PolyString");
     }
 
-    public static List<DataPoint> prepareDataPointsRoleModerRules(@NotNull ListMultimap<List<String>, String> chunkMap,
+    public static List<DataPoint> prepareDataPointsRoleModeRules(@NotNull ListMultimap<List<String>, String> chunkMap,
             RoleAnalysisService roleAnalysisService, Task task, List<AttributeMatch> attributeMatches) {
         List<DataPoint> dataPoints = new ArrayList<>();
 

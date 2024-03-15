@@ -104,6 +104,7 @@ public class UserBasedClustering implements Clusterable {
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
         double similarityDifference = 1 - (similarityThreshold / 100);
 
+        //TODO exact match
 //        if (similarityDifference == 0.00) {
 //            return new RoleAnalysisAlgorithmUtils().processExactMatch(roleAnalysisService, dataPoints, session,
 //                    handler, task, result);
@@ -113,8 +114,9 @@ public class UserBasedClustering implements Clusterable {
         int minUsersCount = sessionOptionType.getMinMembersCount();
         DistanceMeasure distanceMeasure;
 
+        //TODO min attributes intersection
         if (rule) {
-            distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap, new HashSet<>(attributeMatches));
+            distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap, new HashSet<>(attributeMatches),0);
         } else {
             distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap);
         }
