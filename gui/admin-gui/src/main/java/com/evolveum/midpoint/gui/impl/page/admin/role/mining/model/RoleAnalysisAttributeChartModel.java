@@ -7,24 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.model;
 
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
 import org.apache.wicket.model.LoadableDetachableModel;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.wicket.chartjs.*;
-
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.wicket.chartjs.*;
 
 /**
  * The model for the role analysis attribute chart.
@@ -87,7 +81,25 @@ public class RoleAnalysisAttributeChartModel extends LoadableModel<ChartConfigur
         Map<String, List<AttributeAnalysisStructure>> itemPathMap = objects.stream()
                 .collect(Collectors.groupingBy(AttributeAnalysisStructure::getItemPath));
 
-        for (Map.Entry<String, List<AttributeAnalysisStructure>> entry : itemPathMap.entrySet()) {
+        Map<String, List<AttributeAnalysisStructure>> sortedItemPathMap = itemPathMap.entrySet().stream()
+                .sorted((entry1, entry2) -> {
+                    double totalDensity1 = entry1.getValue().stream()
+                            .mapToDouble(AttributeAnalysisStructure::getDensity)
+                            .sum();
+
+                    double totalDensity2 = entry2.getValue().stream()
+                            .mapToDouble(AttributeAnalysisStructure::getDensity)
+                            .sum();
+
+                    double averageDensity1 = totalDensity1 / 2;
+                    double averageDensity2 = totalDensity2 / 2;
+
+                    return Double.compare(averageDensity2, averageDensity1);
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+
+        for (Map.Entry<String, List<AttributeAnalysisStructure>> entry : sortedItemPathMap.entrySet()) {
             String itemPath = entry.getKey();
             List<AttributeAnalysisStructure> filteredObjects = entry.getValue();
 
