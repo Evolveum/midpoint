@@ -104,10 +104,10 @@ public class UserBasedClustering implements Clusterable {
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
         double similarityDifference = 1 - (similarityThreshold / 100);
 
-        if (similarityDifference == 0.00) {
-            return new RoleAnalysisAlgorithmUtils().processExactMatch(roleAnalysisService, dataPoints, session,
-                    handler, task, result);
-        }
+//        if (similarityDifference == 0.00) {
+//            return new RoleAnalysisAlgorithmUtils().processExactMatch(roleAnalysisService, dataPoints, session,
+//                    handler, task, result);
+//        }
 
         int minRolesOverlap = sessionOptionType.getMinPropertiesOverlap();
         int minUsersCount = sessionOptionType.getMinMembersCount();
