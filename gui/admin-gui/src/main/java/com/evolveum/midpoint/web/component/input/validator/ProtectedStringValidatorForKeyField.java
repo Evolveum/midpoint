@@ -12,6 +12,8 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.prism.xml.ns._public.types_3.ExternalDataType;
@@ -29,6 +31,8 @@ import org.apache.wicket.validation.ValidationError;
 import java.util.Optional;
 
 public class ProtectedStringValidatorForKeyField implements INullAcceptingValidator<String> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ProtectedStringValidatorForKeyField.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -52,21 +56,28 @@ public class ProtectedStringValidatorForKeyField implements INullAcceptingValida
         }
 
         ProtectedStringType protectedType = protectedValueWrapperModel.getObject().getRealValue().clone();
-        if (protectedType.getExternalData() == null) {
-            protectedType.setExternalData(new ExternalDataType());
+
+        ExternalDataType externalData = protectedType.getExternalData();
+        protectedType.clear();
+
+        if (externalData == null) {
+            externalData = new ExternalDataType();
         }
-        protectedType.getExternalData().setKey(validatable.getValue());
 
-
+        externalData.setKey(validatable.getValue());
+        protectedType.setExternalData(externalData);
 
         try {
             getProtector().decrypt(protectedType);
         } catch (Exception e) {
+            LOGGER.debug("Couldn't process secret provider.", e);
             ValidationError err = new ValidationError();
             if (e instanceof CommonException commonException) {
                 LocalizableMessage friendlyMessage = commonException.getUserFriendlyMessage();
                 if (friendlyMessage != null) {
                     err.setMessage(LocalizationUtil.translateMessage(friendlyMessage));
+                } else {
+                    err.addKey("ProtectedStringValidator.incorrectValueError");
                 }
             } else {
                 err.addKey("ProtectedStringValidator.incorrectValueError");

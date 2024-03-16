@@ -18,13 +18,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.wicket.Application;
 import org.apache.wicket.model.IModel;
 
-public class ProtectedStringModel implements IModel<String> {
+public class ProtectedStringClearPasswordModel implements IModel<String> {
     private static final long serialVersionUID = 1L;
-    private static final Trace LOGGER = TraceManager.getTrace(ProtectedStringModel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ProtectedStringClearPasswordModel.class);
 
     IModel<ProtectedStringType> psModel;
 
-    public ProtectedStringModel(IModel<ProtectedStringType> psModel) {
+    public ProtectedStringClearPasswordModel(IModel<ProtectedStringType> psModel) {
         this.psModel = psModel;
     }
 
@@ -39,14 +39,15 @@ public class ProtectedStringModel implements IModel<String> {
 
     @Override
     public String getObject() {
-        ProtectedStringType ps = psModel.getObject();
+        ProtectedStringType ps = psModel.getObject().clone();
         if (ps == null) {
             return null;
         } else {
             try {
+                ps.setExternalData(null);
                 return getProtector().decryptString(ps);
             } catch (EncryptionException e) {
-                LOGGER.error("Couldn't get the object of the protected string model", e);
+                LOGGER.debug("Couldn't get the object of the protected string model", e);
                 return null;
 //                throw new SystemException(e.getMessage(), e);
             }
