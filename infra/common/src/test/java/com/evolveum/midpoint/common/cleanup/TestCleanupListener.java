@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-public class TestCleanupListener implements CleanupListener {
+public class TestCleanupListener implements CleanupHandler {
 
     private List<CleanupEvent<Item<?, ?>>> optionalCleanupEvents = new ArrayList<>();
 
