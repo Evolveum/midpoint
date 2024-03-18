@@ -279,6 +279,10 @@ This is a general best practice in all cases that application roles are used.
 The roles must have inducement to applications, even if applications are "empty", not containing any construction statements.
 The applications are the objects that link the classifications and the roles, therefore it is essential to maintain the link.
 
+== Further Tips
+
+* As classifications (labels) and clearances are assigned to relevant objects using ordinary feature:assignment[assignments], feature:access-certification[access certification] features can be used to regularly re-certify the classifications and clearances. Furthermore, the feature:schema-activation[activation mechanisms] of the assignment can be used to assign clearances for a limited time period.
+
 == Limitations
 
 The concept of classifications and clearances is based on existing stable midPoint functionality of xref:../policy-rules/[policy rules] and xref:../metaroles/[meta-roles], therefore the policy enforcement is fully supported.
