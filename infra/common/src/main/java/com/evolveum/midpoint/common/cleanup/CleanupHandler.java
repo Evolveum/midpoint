@@ -16,7 +16,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * Listener that can be used to react on cleanup events created for items that are marked
  * with action {@link CleanupPathAction#ASK}.
  */
-public interface CleanupListener {
+public interface CleanupHandler {
 
     /**
      * Method that allows consumers to react on cleanup event marked with action {@link CleanupPathAction#ASK}.

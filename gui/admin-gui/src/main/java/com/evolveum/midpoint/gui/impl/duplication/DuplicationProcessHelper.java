@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.gui.impl.duplication;
 
 import com.evolveum.midpoint.common.cleanup.CleanupActionProcessor;
+import com.evolveum.midpoint.common.cleanup.Source;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -128,7 +129,7 @@ public class DuplicationProcessHelper {
     public static <O extends ObjectType> PrismObject<O> duplicateObjectDefault(PrismObject<O> object) {
         PrismObject<O> duplicate = object.cloneComplex(CloneStrategy.REUSE);
         CleanupActionProcessor cleanupProcessor = new CleanupActionProcessor();
-        cleanupProcessor.process(duplicate);
+        cleanupProcessor.process(duplicate, Source.EMPTY);
         duplicate.setOid(null);
         return duplicate;
     }
@@ -143,7 +144,7 @@ public class DuplicationProcessHelper {
                 .iterator().next();
         duplicate.setParent(container.getParent());
         CleanupActionProcessor cleanupProcessor = new CleanupActionProcessor();
-        cleanupProcessor.process(duplicate);
+        cleanupProcessor.process(duplicate, Source.EMPTY);
         return duplicate;
     }
 
