@@ -13,9 +13,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 public record CleanupEvent<I>(
-        @NotNull CleanupResult result,
         @NotNull PrismObject<?> object,
         @NotNull ItemPath path,
-        @NotNull I value) {
-
+        @NotNull I value,
+        @NotNull Source source,
+        @NotNull CleanupResult result) {
 }
