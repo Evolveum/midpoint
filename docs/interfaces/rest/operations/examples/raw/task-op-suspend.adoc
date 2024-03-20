@@ -1,6 +1,7 @@
 :page-visibility: hidden
+:page-upkeep-status: green
 
-.Suspend a running task
+.*Suspend a Running Task*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

@@ -1,4 +1,7 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
+.*Modify Attribute Access Certification Campaigns*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

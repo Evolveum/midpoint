@@ -1,0 +1,7 @@
+= Upgrade installation
+
+Upgrade installation command will copy and replace files in midPoint installation directory using files from distribution.
+By default, installation directory is computed as a parent of midpoint-home directory.
+This behaviour can be changed using `--installation-directory <PATH>` option.
+
+All files that would be replaced can be backed up if necessary using `--backup-installation-directory <path>` option.

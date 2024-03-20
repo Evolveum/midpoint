@@ -1,5 +1,7 @@
 :page-visibility: hidden
-.Get Users Value Policy
+:page-upkeep-status: green
+
+.*Get Users Value Policy*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

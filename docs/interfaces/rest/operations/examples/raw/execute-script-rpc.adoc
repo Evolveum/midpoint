@@ -1,6 +1,7 @@
 :page-visibility: hidden
+:page-upkeep-status: green
 
-.Execute script with procedure call to recompute object on input
+.*Execute script with procedure call to recompute object on input*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

@@ -6,8 +6,6 @@
 :page-wiki-metadata-modify-user: katkav
 :page-wiki-metadata-modify-date: 2017-01-30T11:42:47.269+01:00
 :page-since: "3.6"
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-toc: top
 :page-upkeep-status: yellow
 

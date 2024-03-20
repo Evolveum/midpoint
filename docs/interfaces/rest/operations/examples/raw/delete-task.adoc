@@ -1,5 +1,7 @@
 :page-visibility: hidden
-.Delete a Task type object
+:page-upkeep-status: green
+
+.*Delete a Task type object*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

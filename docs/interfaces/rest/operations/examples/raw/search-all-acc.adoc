@@ -1,5 +1,7 @@
 :page-visibility: hidden
-.Search all Access Certification Campaign Type
+:page-upkeep-status: green
+
+.*Search all Access Certification Campaign Type*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

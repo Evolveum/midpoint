@@ -1,0 +1,30 @@
+= Download distribution
+
+Download distribution is simple step that helps you download specific version of distribution of midPoint.
+Midpoint distribution is downloaded from https://download.evolveum.com/midpoint/[download.evolveum.com].
+
+By default, next version of midPoint is downloaded based on current version.
+E.g. for feature release 4.7.1, next version is 4.8 and for LTS upgrade from 4.4.6 ninja will download 4.8 as well.
+
+Version which should be downloaded can be specified using `--distribution-version` option.
+Use `latest` to specify latest build to be downloaded (at the time of writing it's `4.8-SNAPSHOT`).
+
+User can also provide custom build downloaded or built separately (e.g. using maven overlay) using switch `--distribution-archive <PATH_TO_ZIP>`.
+This switch is useful mainly in compound command `upgrade-distribution` where user can use distribution located on filesystem without need to download it.
+
+.Example of how to download distribution (default next version based on the current midPoint)
+[source,bash]
+----
+./bin/ninja.sh download-distribution \
+  --temp-dir .upgrade \
+  --distribution-directory .upgrade/new-distribution
+----
+
+.Example on how to download specific version of distribution (latest snapshot)
+[source,bash]
+----
+./bin/ninja.sh download-distribution \
+  --temp-dir .upgrade \
+  --distribution-directory .upgrade/latest-distribution \
+  --distribution-version latest
+----

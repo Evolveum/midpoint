@@ -1,0 +1,24 @@
+= Export
+
+Export command allows users to export objects.
+Object can be exported to `SYSOUT` or to file (`-o`, `--output`) and compressed using ZIP if needed (`-z`, `--zip`).
+Export also support multi-threading (`-l`, `--multi-thread`).
+Use `-O`, `--overwrite` switch if you wish to overwrite an existing output file.
+Objects exported from midPoint can be filtered in several ways:
+
+* by oid (`--oid`)
+* by type (`-t, --type`) and filter (`-f, --filter`)
+
+[WARNING]
+====
+When creating export from midPoint `-r (--raw)` option must be used to export data correctly.
+It's mandatory mainly for shadow objects. Raw option will add schema for shadow attributes (to be used in import later on).
+
+Without `--raw` option, ninja will export shadow attributes without schema because of backward compatibility.
+====
+
+.Example of export to compressed zip file using 4 threads:
+[source,bash]
+----
+./bin/ninja.sh export -O export.zip -r -z -l 4
+----

@@ -1,4 +1,7 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
+.*Get Access Certification Campaign Type object*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

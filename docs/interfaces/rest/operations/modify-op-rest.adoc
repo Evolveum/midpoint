@@ -3,6 +3,7 @@
 :page-display-order: 500
 :page-toc: top
 :page-keywords: [ 'rest', 'modify', 'operation' ]
+:page-upkeep-status: green
 
 == Description
 
@@ -75,11 +76,23 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
+include::../operations/raw/a-auth.adoc[]
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#modifyObject+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify+`
 
 == Examples
 
 include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
 
 include::../../rest/operations/examples/raw/modify-attr-user.adoc[]
 include::../../rest/operations/examples/raw/modify-attr.adoc[]

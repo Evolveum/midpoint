@@ -1,4 +1,8 @@
-= Consistency mechanism
+---
+midpoint-feature: provisioning-consistency
+doc-type: intro
+---
+= Provisioning consistency
 :page-wiki-name: Consistency mechanism
 :page-wiki-id: 6881282
 :page-wiki-metadata-create-user: katkav
@@ -7,8 +11,6 @@
 :page-wiki-metadata-modify-date: 2019-12-06T10:13:14.361+01:00
 :page-since: "3.9"
 :page-toc: top
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 == Introduction

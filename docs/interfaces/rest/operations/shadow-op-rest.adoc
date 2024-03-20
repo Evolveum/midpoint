@@ -3,6 +3,7 @@
 :page-display-order: 200
 :page-toc: top
 :page-keywords: [ 'rest', 'shadow', 'owner' ,'operation' ]
+:page-upkeep-status: green
 
 == Description
 
@@ -67,12 +68,30 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
+include::../operations/raw/a-auth.adoc[]
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#findShadowOwner+`
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#importShadow+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+For the find shadow owner authorization:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read+`
+
+For the import shadow owner authorization:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#importFromResource+`
 
 == Examples
 
 include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
 
 include::../../rest/operations/examples/raw/get-shadow-owner.adoc[]
 

@@ -1,0 +1,25 @@
+= Pre-upgrade check
+
+Pre-upgrade check is a simple check that verifies that current midPoint version matches version of distribution that is going to be upgraded.
+There are two items being checked:
+
+* database schema version
+* midPoint cluster nodes version
+
+== Database schema version check
+
+This check verifies that database schema version matches supported version.
+Database schema version is stored in `m_global_metadata` table and separate version is stored for midPoint repository and audit.
+Schema version check can be skipped if necessary using option `--skip-database-version-check`.
+
+== Nodes version check
+
+This check verifies that all nodes in midPoint cluster have the same version and that version is eligible for upgrade.
+Nodes version check can be skipped if necessary using option `--skip-nodes-version-check`.
+
+.Example of how to do pre-upgrade check
+[source,bash]
+----
+./bin/ninja.sh pre-upgrade-check \
+  --skip-nodes-version-check
+----

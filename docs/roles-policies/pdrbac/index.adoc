@@ -1,8 +1,10 @@
+---
+midpoint-feature: pdrbac
+doc-type: intro
+---
 = Policy-Driven Role-Based Access Control
 :page-nav-title: Policy-Driven RBAC
 :page-toc: top
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 == Introduction

@@ -3,6 +3,7 @@
 :page-display-order: 200
 :page-toc: top
 :page-keywords: [ 'rest', 'user', 'endpoint' ]
+:page-upkeep-status: green
 
 == User Type REST Endpoint
 
@@ -87,8 +88,10 @@ include::../operations/examples/raw/user-pwd-generate.adoc[]
 == Common Use-case Examples
 
 1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-user/[Create User]
-2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get user based on his unique identificator]
-3. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get Users Data with Direct and Indirect assignments]
+2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get User Based on his unique identificator]
+3. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get Users data with direct and indirect assignments]
+4. xref:/midpoint/reference/interfaces/rest/operations/examples/access-request/[User access request]
+5. xref:/midpoint/reference/interfaces/rest/operations/examples/access-request-review/[Access request review]
 
 == UserType JSON Example
 

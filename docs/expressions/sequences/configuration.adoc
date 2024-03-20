@@ -1,3 +1,7 @@
+---
+midpoint-feature: sequence
+doc-type: config
+---
 = Using Sequences
 :page-nav-title: Configuration
 :page-wiki-name: Using Sequences
@@ -36,18 +40,18 @@ It is `sequentialValue` evaluator:
 
 [source,xml]
 ----
-            <mapping>
-                <name>sequenceUID</name>
-                <strength>weak</strength>
-                <expression>
-                    <sequentialValue>
-                        <sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
-                    </sequentialValue>
-                </expression>
-                <target>
-                    <path>extension/uidNumber</path>
-                </target>
-            </mapping>
+<mapping>
+    <name>sequenceUID</name>
+    <strength>weak</strength>
+    <expression>
+        <sequentialValue>
+            <sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
+        </sequentialValue>
+    </expression>
+    <target>
+        <path>extension/uidNumber</path>
+    </target>
+</mapping>
 ----
 
 This mapping will take a counter from the sequence and place it in the target property.
@@ -61,20 +65,20 @@ There is also library function `getSequenceCounter` that can be used to retrieve
 
 [source,xml]
 ----
-            <mapping>
-                <name>sequenceGID</name>
-                <strength>weak</strength>
-                <expression>
-                    <script>
-                        <code>
-                            1000 - midpoint.getSequenceCounter("02cb7caa-6618-11e5-87a5-7b6c6776a63e")
-                        </code>
-                    </script>
-                </expression>
-                <target>
-                    <path>extension/gidNumber</path>
-                </target>
-            </mapping>
+<mapping>
+    <name>sequenceGID</name>
+    <strength>weak</strength>
+    <expression>
+        <script>
+            <code>
+                1000 - midpoint.getSequenceCounter("02cb7caa-6618-11e5-87a5-7b6c6776a63e")
+            </code>
+        </script>
+    </expression>
+    <target>
+        <path>extension/gidNumber</path>
+    </target>
+</mapping>
 ----
 
 This method gives better control over how the sequence value is computed or formatted.

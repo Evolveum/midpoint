@@ -1,3 +1,7 @@
+---
+midpoint-feature: service-concept
+doc-type: intro
+---
 = Services
 :page-wiki-name: Services
 :page-wiki-id: 23167084
@@ -5,8 +9,6 @@
 :page-wiki-metadata-create-date: 2016-08-16T11:51:42.847+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2016-08-18T19:10:33.466+02:00
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 :page-toc: top
 

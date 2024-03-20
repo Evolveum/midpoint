@@ -1,6 +1,8 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
+.*Modification of an attribute for specific user*
 [source,bash]
-.Modification of an attribute for specific user
 ----
 curl --user administrator:y0uR_P455woR*d \
 -H "Content-Type: application/json" \

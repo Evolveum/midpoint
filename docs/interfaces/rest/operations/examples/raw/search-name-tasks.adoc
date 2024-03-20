@@ -1,5 +1,7 @@
 :page-visibility: hidden
-.Search for all Tasks with name that starts with 'a'
+:page-upkeep-status: green
+
+.*Search for All Tasks With Name That Starts With 'a'*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

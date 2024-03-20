@@ -1,5 +1,7 @@
 :page-visibility: hidden
-.Search for all Reports with name that starts with upper case 'A'
+:page-upkeep-status: green
+
+.*Search for All Reports With Name That Starts With Upper Case 'A'*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

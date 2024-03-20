@@ -1,0 +1,37 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Entitlement Self Request*
+[source,bash]
+----
+curl --user Jack:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X PATCH http://localhost:8080/midpoint/ws/rest/users/a9885c61-c442-42d8-af34-8182a8653e3c \
+-v \
+--data-binary @./samples/rest/modify-attribute-assign-entitlement.json
+----
+
+.*Show* data source example for *"Entitlement Self Request"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/modify-attribute-assign-entitlement.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "objectModification": {
+    "itemDelta": {
+      "modificationType": "add",
+      "path": "assignment",
+      "value": {
+      "targetRef": {
+        "oid": "96262f4f-053a-4b0b-8901-b3ec01e3509c",
+        "type": "RoleType"
+      }
+      }
+      }
+    }
+  }
+----
+====
+
+The response is an HTTP 204 code in case of success *without* a response body.
+

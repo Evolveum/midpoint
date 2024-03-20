@@ -3,6 +3,7 @@
 :page-display-order: 100
 :page-toc: top
 :page-keywords: [ 'rest', 'get', 'operation' ]
+:page-upkeep-status: green
 
 == Description
 
@@ -166,59 +167,26 @@ had some technical information and metadata related to the environment removed b
 ----
 ====
 
-== Operation Authorizations
-This section refers specifically to *midPoint authorization* configuration,
-it represents a set of permissions which is needed for the account accessing the REST interface.
-This way midPoint know what actions on which objects is the user permitted to execute.
-For more information on midPoint authorizations please see this link.
-
-
-[NOTE]
-====
-MidPoint application authorizations may sound similar to the authorization header used in
-REST authentication, but they are two distinct topics.
-====
-
-For following is a simple authorization configuration example.
-
-.Show Authorization Example
-[%collapsible]
-====
-[source, xml]
-----
-<role>
-    <name>Rest Read All</name>
-    <activation/>
-    <authorization>
-        <name>rest-interface-access</name>
-        <description>Permits access to the REST interface</description>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#all</action>
-    </authorization>
-
-    <authorization>
-        <name>read-all</name>
-        <description>Authorized object is able to read data of all object</description>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    </authorization>
-</role>
-----
-====
-
-[WARNING]
-====
-We do not recommend to use solely the authorization configuration in this example, it is not meant
-for production use! Authorization configuration should be more *fine-grained* and *specific
-for your use case*.
-====
-
 == Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
 
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getObject+`
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getSelf+`
 
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get+`
+
 == Examples
 
 include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
 
 include::../operations/examples/raw/get-user-administrator.adoc[]
 

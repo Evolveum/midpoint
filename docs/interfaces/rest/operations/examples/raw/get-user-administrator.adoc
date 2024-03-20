@@ -1,6 +1,7 @@
 :page-visibility: hidden
+:page-upkeep-status: green
 
-.Get Object in JSON format with the Raw option set to true
+.*Get Object in JSON format with the Raw option set to true*
 
 [source,bash]
 ----

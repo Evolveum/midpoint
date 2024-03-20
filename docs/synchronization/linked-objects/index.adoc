@@ -1,3 +1,7 @@
+---
+midpoint-feature: linked-objects
+doc-type: config
+---
 = Linked Objects
 :page-wiki-name: Linked objects
 :page-wiki-id: 48824585
@@ -7,8 +11,6 @@
 :page-wiki-metadata-modify-date: 2020-10-26T18:10:54.988+01:00
 :page-since: "4.2"
 :page-toc: top
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 == Introduction

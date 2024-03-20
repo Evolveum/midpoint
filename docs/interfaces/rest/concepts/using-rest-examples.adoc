@@ -3,6 +3,7 @@
 :page-display-order: 500
 :page-keywords: [ 'rest', 'examples', 'samples' ]
 :page-toc: top
+:page-upkeep-status: green
 
 == Introduction
 
@@ -100,7 +101,7 @@ The "Accept" header.
 -H "Accept: application/json"
 ----
 
-Similar to the request header, the accept header has the same set of media types provided as the content header.
+Similar to the request header, the "Accept" header has the same set of media types provided as the content header.
 
 Here is a list of the  xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[supported *Media Types*].
 
@@ -125,7 +126,7 @@ authorization which can be used. For a list of operations please see the followi
 
 === Model Authorizations
 
-The examples which we use imply the usage of the administrator user. The administrator
+As mentioned above the examples which we use imply the usage of the administrator user. The administrator
 user has the *"superuser"* authorization role assigned by default this permits the user
 complete access to the interface and also model.
 
@@ -134,7 +135,43 @@ permit only specific actions, please have a look at this xref:/midpoint/referenc
 
 === Troubleshooting
 
+Errors happen, here we list some frequent issues and also how to debug even those less frequent ones.
+
+==== Client Error
+
+When the client sends a request which cannot be processed, midPoint often responds with a structure called *OperationResult*.
+OperationResult contains more information, quite often a large amount of detail on the situation.
+
+In the following example we have an operation result object returned in the case when midPoint was provided a task which should execute some action on a non-existing object.
+The example is in the JSON format:
+
+.*Example of OperationResult Returned in Case of Client Error.*
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "c:OperationResultType",
+    "operation" : "addObject",
+    "status" : "handled_error",
+    "importance" : "normal",
+    "start" : "2024-03-08T15:42:05.727+01:00",
+    "end" : "2024-03-08T15:42:05.762+01:00",
+    "microseconds" : 35816,
+    "invocationId" : 5374,
+    "token" : 1000000000000001288,
+    "message" : "Reference reportRef refers to a non-existing object dad5370f-6132-496d-8faa-6c1d3daac2b1: Object of type 'ReportType' with OID 'dad5370f-6132-496d-8faa-6c1d3daac2b1' was not found.: Reference reportRef refers to a non-existing object dad5370f-6132-496d-8faa-6c1d3daac2b1: Object of type 'ReportType' with OID 'dad5370f-6132-496d-8faa-6c1d3daac2b1' was not found.",
+    "partialResults" : [ ]
+  }
+}
+----
+====
+
 ==== Frequent Issues
+
+Frequent issues on which we stumbled upon related to the usage of the REST api examples.
 
 ===== Missing '@' Character In Data Content File Path
 
@@ -150,8 +187,9 @@ If '@' is appended before a string in the "--data-binary" property value, CURL k
 === Troubleshooting Tips
 
 - An error reply quite often has data in the body.
-- Additionally check midPoint log for further information
-- Unauthorized messages point to lacking authorizations of the user invoking the request
+- Check midPoint log for further information.
+- A reply of "Unauthorized",  points to lacking authorizations of the user invoking the request, these can be
+either model or access authorizations.
 
 == See Also
 

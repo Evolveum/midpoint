@@ -1,3 +1,7 @@
+---
+midpoint-feature: overlay-project
+doc-type: config
+---
 = MidPoint Customization With Maven Overlay Project
 :page-nav-title: Overlay Project
 :page-wiki-name: Customization With Overlay Project

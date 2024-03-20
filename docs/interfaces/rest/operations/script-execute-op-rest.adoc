@@ -3,6 +3,7 @@
 :page-display-order: 700
 :page-toc: top
 :page-keywords: [ 'rest', 'script', 'rpc', 'operation' ]
+:page-upkeep-status: green
 
 == Description
 
@@ -71,11 +72,25 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
+include::../operations/raw/a-auth.adoc[]
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#executeScript+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+The following authorization is a buld authorization which is quite broad, please see the following xref:/midpoint/reference/security/authorization/bulk-actions/[documentation] for how to specify a more concrete authorization.
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#all+`
 
 == Examples
 
 include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
 
 include::../../rest/operations/examples/raw/execute-script-rpc.adoc[]
 

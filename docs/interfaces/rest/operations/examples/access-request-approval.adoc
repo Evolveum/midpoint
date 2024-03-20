@@ -1,0 +1,84 @@
+= Access Request Approval
+:page-nav-title: Access Request Approval
+:page-display-order: 800
+:page-toc: top
+:page-upkeep-status: green
+
+== Description
+
+[NOTE]
+====
+This use-case is only *partially* supported in the current state of the REST api. A "piece of the puzzle" is still missing.
+Please endorse the development of the link:https://support.evolveum.com/projects/midpoint/work_packages/6067/activity[missing functionality] with your midPoint subscription.
+====
+
+The example represents a use-case where an authorized user requested for access (e.g. role assignment request). Now as
+an approver we are capable of listing all open work items assigned to us and choose an approval action.
+The workflow is based on the default "approval" mechanism of midPoint where a specific user is assigned with the 'approver' relation to a role which assignment should be approved by him.
+
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+== Example
+
+include::../../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+We are following up to the example described in xref:../examples/access-request.adoc[this] documentation article.
+
+1. To be able to read the created work items the user needs to have a set of authorizations approving these actions. (See example)
+2. Execute the search request as the user which wants to execute approval action on his cases.
+3. Select a specific case and *execute the action* which you would like to take with this case. #not yet implemented, please endorse this bug:MID-6067[] improvement#
+
+[NOTE]
+====
+
+Additionally, to the *REST Search Objects* role seen bellow, in out example we also used the
+out-of-the-box "Approver" role which is a part of every midPoint distribution package. The first one supplies
+us with UI authorizations the second with the Model authorizations
+
+====
+
+.*Show* example authorization for *"Search for Open Cases For Specific Approval"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/roles/role-authz-search-get-rest.xml[GitHub]
+[%collapsible]
+====
+[source, xml]
+----
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="04f5680a-b400-45c1-8522-946f39b6389d"
+        version="1">
+
+    <name>REST Search Objects</name>
+    <description></description>
+    <activation/>
+    <authorization>
+        <name>rest-search</name>
+        <description></description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#searchObjects</action>
+    </authorization>
+    <authorization>
+        <name>rest-search</name>
+        <description></description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getObject</action>
+    </authorization>
+</role>
+
+----
+====
+
+include::../examples/raw/search-case-open-approval.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

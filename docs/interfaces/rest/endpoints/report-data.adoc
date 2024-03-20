@@ -3,6 +3,7 @@
 :page-display-order: 2500
 :page-toc: top
 :page-keywords: [ 'rest', 'report', 'endpoint' ]
+:page-upkeep-status: green
 
 == Description
 
@@ -36,7 +37,7 @@ Get operation for fetching a single specific object.
 
 Search operation usable for fetching the full list of objects or a list based on filter.
 
-include::../operations/examples/raw/search-all.adoc[]
+include::../operations/examples/raw/search-report-data-from-report-def.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
 

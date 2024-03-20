@@ -607,6 +607,8 @@ Please review logs of midPoint containers to make sure there are no errors.
 
 
 
+
+
 == Upgrade procedure details
 
 === Upgrade tasks to use activities
@@ -630,239 +632,48 @@ There are two items being checked:
 * database schema version
 * midPoint cluster nodes version
 
-==== Database schema version check
-
-This check verifies that database schema version matches supported version.
-Database schema version is stored in `m_global_metadata` table and separate version is stored for midPoint repository and audit.
-Schema version check can be skipped if necessary using option `--skip-database-version-check`.
-
-==== Nodes version check
-
-This check verifies that all nodes in midPoint cluster have the same version and that version is eligible for upgrade.
-Nodes version check can be skipped if necessary using option `--skip-nodes-version-check`.
-
-.Example of how to do pre-upgrade check
-[source,bash]
-----
-./bin/ninja.sh pre-upgrade-check \
-  --skip-nodes-version-check
-----
+For more information see xref:../command/pre-upgrade-check.adoc[] command documentation.
 
 === Verification & upgrade objects
 
 Verification is a process that reads objects from midPoint repository and checks whether they are compatible with new version of midPoint.
 Verification checks for deprecated, removed elements or other issues that can cause problems during or after upgrade.
 
-Different categories for verification can be set turned on via switch `--verification-category [DEPRECATED|REMOVED|PLANNED_REMOVAL|INCORRECT_OIDS]`.
-By default, all categories are checked.
+Command `upgrade-objects` can be used to _upgrade_ objects to get rid of deprecated or obsolete data and configuration found by verification.
 
-Verification can run while midPoint is running.
-The whole verification can be split into multiple parts, each part verifying a subset of similar objects using `-f, --filter` and `-t, --type` options.
-This way verification reports can be simpler to read and easier to understand, since they should contain smaller set of issues.
-
-Verification results can be reported in two styles plain and CSV.
-The switch for report style is `--report-style [plain|csv]`.
-Plain style is set as default option, while CSV is better for further processing and review.
-CSV report style creates two files - CSV and XML.
-XML will contain list of deltas for each object, describing what ninja wants to change on object to _upgrade_ it.
-
-The CSV report contain three sets of columns:
-
-* Object identification (oid, name, type)
-* Verification item information (status, path, message)
-* Upgrade information
-
-==== Upgrade information
-
-Upgrade information consists of following columns:
-
-* *Identifier* - unique identifier of verification/upgrade item which can be used to group similar items together when processing reports.
-* *Phase* - upgrade phase in which item should be updated (before or after midPoint is upgraded).
-* *Priority*
-** *Critical* - midPoint may fail to start or work properly if such verification item is not fixed (updated).
-Critical item would also halt upgrade procedure in next phase, unless this check is explicitly skipped using `--skip-verification` option.
-** *Necessary* - verification item should be fixed, midPoint should not fail to start, but some features might not work properly.
-** *Optional* - this item doesn't have to be necessarily fixed, but it's recommended to do so.
-E.g. deprecated configuration which might be removed in version after next one.
-* *Type*
-** *Seamless* - such item can be handled by ninja automatically without any user interaction.
-E.g. there's clear migration path without any change in functionality.
-** *Preview* - ninja can provide new configuration for such item, but it's recommended to review it before applying.
-** *Manual* - ninja can't provide any configuration for such item, user has to fix it manually.
-Reason can be that there's currently no migration path (removed feature) or there are multiple possible solutions that doesn't map configuration 1:1.
-* *Description* - contains more information, mainly on how to upgrade/update such item.
-* *Skip* - last column in CSV report, can be used to mark items that should be skipped during object upgrade.
-Such CSV report has to be used as input for upgrade objects command with option `--verification-file`.
-
-Objects can be upgraded by using CSV report from verify:
-//Report only needed if there are objects/items to be skipped:
-
-[source,bash]
-----
-./bin/ninja.sh upgrade-objects \
-  --verification-file verify-output.csv --report-style csv
-----
-
-
+See more information about verification in xref:../command/verify.adoc[] and xref:../command/upgrade-objects.adoc[] command documentation.
 
 === Download distribution
 
 Download distribution is simple step that helps you download specific version of distribution of midPoint.
 Midpoint distribution is downloaded from https://download.evolveum.com/midpoint/[download.evolveum.com].
 
-By default, next version of midPoint is downloaded based on current version.
-E.g. for feature release 4.7.1, next version is 4.8 and for LTS upgrade from 4.4.6 ninja will download 4.8 as well.
-
-Version which should be downloaded can be specified using `--distribution-version` option.
-Use `latest` to specify latest build to be downloaded (at the time of writing it's `4.8-SNAPSHOT`).
-
-User can also provide custom build downloaded or built separately (e.g. using maven overlay) using switch `--distribution-archive <PATH_TO_ZIP>`.
-This switch is useful mainly in compound command `upgrade-distribution` where user can use distribution located on filesystem without need to download it.
-
-.Example of how to download distribution (default next version based on the current midPoint)
-[source,bash]
-----
-./bin/ninja.sh download-distribution \
-  --temp-dir $SCRIPT_DIR/.upgrade \
-  --distribution-directory $SCRIPT_DIR/.upgrade/new-distribution
-----
-
-.Example on how to download specific version of distribution (latest snapshot)
-[source,bash]
-----
-./bin/ninja.sh download-distribution \
-  --temp-dir ./tmp \
-  --distribution-version latest \
-  --distribution-directory ./tmp/latest-distribution
-----
+For more information see xref:../command/download-distribution.adoc[] command documentation.
 
 === Upgrade DB schema
 
 Database schema changes are handled by SQL scripts that are bundled with distribution in folder `doc/config/sql/native/*.sql`.
 These changes can be applied using ninja command `run-sql`.
-User can use `--mode [repository|audit]` switch together with `--upgrade` to run proper scripts automatically or use `--scripts` option to specify custom set of scripts.
+For more information see xref:../index.adoc#run-sql[run-sql] command documentation.
 
-Run-sql command can be used also to create database schema from scratch using switch `--create`.
-
-Ninja by default uses repository/audit configuration from _midpoint-home/config.xml_ to connect to database.
-This behaviour can be changed via `--jdbc-url`, `--jdbc-username` and `--jdbc-password` options.
-With these options, ninja will switch to _raw_ mode, create custom JDBC connection and execute scripts on it.
-
-If `--result` switch is used, ninja will print results for each query in script to SYSOUT, otherwise results are ignored.
-
-.Example uses of run-sql command
-[source,bash]
-----
-# runs custom-upgrade-database.sql script on JDBC connection specified by url/username/password
-./bin/ninja.sh run-sql \
-  --jdbc-url jdbc:postgresql://localhost:5432/postgres \
-  --jdbc-username postgres \
-  --jdbc-password postgres \
-  --scripts ./custom-upgrade-database.sql
-
-# runs upgrade scripts for repository on database defined in midpoint-home/config.xml
-./bin/ninja.sh run-sql \
-  --mode repository \
-  --upgrade
-
-# runs upgrade scripts for repository on database defined in midpoint-home/config.xml
-./bin/ninja.sh run-sql \
-  --mode audit \
-  --upgrade
-
-# runs custom defined scripts for audit on database defined in midpoint-home/config.xml
-./bin/ninja.sh run-sql \
-  --mode repository \
-  --scripts ./upgrade/new-distribution/doc/config/sql/native/postgres-upgrade.sql
-----
+// TODO TODO TODO what if I was using other than Default Security Policy?
+// TODO TODO TODO GUI auth works, but REST (Studio) will not work
 
 === Upgrade installation
 
-Upgrade installation step will copy and replace files in midPoint installation directory using files from distribution.
+Upgrade installation command will copy and replace files in midPoint installation directory using files from distribution.
 By default, installation directory is computed as a parent of midpoint-home directory.
-This behavoiour can be changed using `--installation-directory <PATH>` option.
 
-All files that would be replaced can be backed up if necessary using `--backup-installation-directory <path>` option.
+This command is useful only in non-container environments.
+
+To learn more about this command see xref:../command/upgrade-installation.adoc[].
 
 === Initial objects
 
 This is the last step of upgrade procedure while midPoint is still down.
 It is necessary to update initial objects to make sure that they are compatible with new version of midPoint and midPoint can start and work properly.
 
-IMPORTANT: When upgrading LTS (from 4.4 -> 4.8) it is necessary to upgrade at least securityPolicy object.
-Reason for this is that there were changes in authentication/authorization processing for different channels and configuration related to it, hence securityPolicy.
-See <<Important updates>> for more details.
-
-Ninja contains command `initial-objects` to help you update set of initial objects (see `ninja.sh help initial-objects` for more details).
-Initial objects command will help add, update or replace existing objects in repository.
-
-All necessary objects are bundled in directly in ninja, however, it is possible to use custom set of new initial objects using `--file` option.
-`--file` options can be used multiple times or have multiple values separated by comma to specify multiple directories/files.
-
-Ninja also supports filtered processing using `--type`, `--oid` and `--reverse-oid-filter`/`--reverse-type-filter`.
-Such options give you possibility to process only subset of objects using this command.
-E.g. replace objects without custom changes without any merge, reports or dry-run while reviewing merged objects with custom changes.
-
-This command also supports dry-run mode and reporting.
-Dry-run mode can be used to see what changes will be done in repository without actually doing them (option `--dry-run`).
-Reporting can be turned on using `-r, --report` options.
-Report option can be coupled with `--report-style [DELTA|FULL_OBJECT]` to specify whether XML output should contain only deltas or full objects after update.
-There's also standard set of options to send output to file (`-o, --output`) and overwrite (`-O, --overwrite`).
-
-NOTE: Initial objects that are new in upgraded version of midPoint are not added to repository by ninja automatically.
-By default, these objects will be properly imported during first start of upgraded midPoint.
-If one wants to import them before first start, it is possible to use `--force-add` option.
-
-WARNING: Merging algorithm used in this ninja command is experimental and might not work properly in all cases.
-Please review all changes proposed by ninja using `--dry-run` before applying them to repository.
-
-There are two main scenarios that can be followed:
-
-* <<No changes in initial objects>>
-* <<Custom changes in initial objects>>
-
-==== No changes in initial objects
-
-This one is the simplest case.
-If there are no custom changes in initial objects made by users, then ninja can update initial objects automatically.
-Update can be done by overwriting existing ones without merge.
-Following command can be used (please use `--dry-run` if you want to see what will be done without actually doing it):
-
-[source,bash]
-----
-./bin/ninja.sh initial-objects --no-merge
-----
-
-==== Custom changes in initial objects
-
-If there are custom changes in initial objects made by users, then ninja can help you merge them.
-First, dry run is recommended to see what needs to be done, optionally with report of changes:
-
-[source,bash]
-----
-./bin/ninja.sh initial-objects --dry-run --report --report-style FULL_OBJECT -o report-initial-objects.xml
-----
-
-If you're satisfied with changes proposed by ninja, you can execute command without `--dry-run` and report related options.
-If there are objects (filtered by types or oids) that can be handled without merge, you can run:
-
-[source,bash]
-----
-./bin/ninja.sh initial-objects --no-merge [--type securityPolicy,valuePolicy,...] [--oid 93ae3cd3-b34d-4093-ad49-adba573a95ba]
-----
-
-==== Important updates
-
-There is at least one object - securityPolicy that needs to be updated when upgrading LTS from 4.4 to 4.8.
-If there are no custom changes in securityPolicy, following command can be used:
-
-[source,bash]
-----
-./bin/ninja.sh initial-objects --no-merge --type securityPolicy
-----
-
-// TODO TODO TODO what if I was using other than Default Security Policy?
-// TODO TODO TODO GUI auth works, but REST (Studio) will not work
+For more information see xref:../command/initial-objects.adoc[] command documentation.
 
 === Verify connector references in resources
 

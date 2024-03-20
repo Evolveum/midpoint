@@ -3,6 +3,7 @@
 :page-display-order: 800
 :page-toc: top
 :page-keywords: [ 'rest', 'search', 'operation' ]
+:page-upkeep-status: green
 
 == Description
 As the name implies, the Search operation is used to search for specific objects. This is done with a filter query. In our case
@@ -71,11 +72,23 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
+include::../operations/raw/a-auth.adoc[]
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#searchObjects+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read+`
 
 == Examples
 
 include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
 
 include::../../rest/operations/examples/raw/search-all-users.adoc[]
 include::../../rest/operations/examples/raw/search-all.adoc[]

@@ -1,0 +1,24 @@
+= Ninja commands
+:page-nav-title: Commands
+
+Ninja currently supports these operations:
+
+* xref:./count.adoc[]
+* xref:./delete.adoc[]
+* xref:./download-distribution.adoc[]
+* xref:./export.adoc[]
+* xref:./export-audit.adoc[]
+* xref:./export-mining.adoc[]
+* xref:./help.adoc[]
+* xref:./import.adoc[]
+* xref:./import-audit.adoc[]
+* xref:./info.adoc[]
+* xref:./initial-objects.adoc[]
+* xref:./keys.adoc[]
+* xref:./pre-upgrade-check.adoc[]
+* xref:./run-sql.adoc[]
+* xref:./trace.adoc[]
+* xref:./upgrade-distribution.adoc[]
+* xref:./upgrade-installation.adoc[]
+* xref:./upgrade-objects.adoc[]
+* xref:./verify.adoc[]

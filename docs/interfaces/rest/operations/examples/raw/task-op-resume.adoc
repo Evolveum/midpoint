@@ -1,6 +1,7 @@
 :page-visibility: hidden
+:page-upkeep-status: green
 
-.Resume a suspended task
+.*Resume a Suspended Task*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

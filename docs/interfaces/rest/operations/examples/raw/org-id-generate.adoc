@@ -1,5 +1,7 @@
 :page-visibility: hidden
-.Generate identifier for Role type object
+:page-upkeep-status: green
+
+.*Generate Identifier for Role Type Object*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \

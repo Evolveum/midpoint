@@ -1,3 +1,7 @@
+---
+midpoint-feature: expression-javascript
+doc-type: intro
+---
 = JavaScript Expressions
 :page-nav-title: JavaScript
 :page-wiki-name: ECMAScript Expressions
@@ -20,12 +24,11 @@ ECMAScript support is provided by https://github.com/openjdk/nashorn[Nashorn] en
 This engine fully supports ECMAScript 5.1 and many features from version 6.
 It was shipped with JDK 11, *but it is not available in JDK 15 and later*.
 If you want to run JDK 17, read on for instructions how to enable it.
-Note, that midPoint is supported only on LTS Java versions 11 and 17.
 ====
 
 == Activation for version 4.4 and JDK 17
 
-Noramlly, to enable Nashorn we would need to download the `nashorn-core.jar` with the dependencies it relies on.
+Normally, to enable Nashorn we would need to download the `nashorn-core.jar` with the dependencies it relies on.
 There are options how to download the whole package, but the provided versions of ASM dependency are older than the one used in midPoint.
 But midPoint doesn't contain all the ASM JARs necessary for Nashorn, so some ASM JARs are still needed.
 To avoid version confusion we provided a convenient download for you in the table below.
@@ -60,7 +63,7 @@ If the engine is not initialized, following warning is emitted - this does not p
 
 Following code returns a `name` property of a user.
 It is using ternary operator (`?` and `:`) to make sure this code works as expected even if user is `null`. User can be `null` is some situations, such as when evaluating outbound expression for a deleted user.
-Therefore the use of similar safe constructs is advised in almost all situations.
+Therefore, the use of similar safe constructs is advised in almost all situations.
 
 [source,javascript]
 ----

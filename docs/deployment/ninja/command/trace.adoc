@@ -1,0 +1,13 @@
+= Trace
+
+`trace` command can  print details about trace `zip` file defined by `--input` options and using `--print-stat` option or more detailed information using `--print-stat-extra` option.
+
+This command can also modify trace file and filter out (remove) operation results.
+`--keep` options will keep specified operation results.
+Asterisk is allowed.
+All above them will be removed.
+`--kill` to remove operation results (with their children).
+Asterisk is allowed.
+
+Use `--output` option to specify the output file name.
+Default value is `output.zip`.

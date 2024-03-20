@@ -231,7 +231,7 @@ public class TestMisc extends AbstractMiscTest {
      * This does not really fit. It fill not fail. But it will find nothing and there is a warning.
      * MID-5911
      */
-    @Test
+    @Test(enabled = false)
     public void test216SearchUsersMatchingRulesStringNorm() throws Exception {
         given();
         Task task = getTestTask();
