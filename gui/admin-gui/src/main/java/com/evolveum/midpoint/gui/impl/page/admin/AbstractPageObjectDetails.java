@@ -292,6 +292,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
         }
 
+        if (previewOnly && getExecuteChangesOptionsDto() != null && getExecuteChangesOptionsDto().getTaskMode() != null) {
+            task.setExecutionMode(getExecuteChangesOptionsDto().getTaskMode());
+        }
+
         ExecuteChangeOptionsDto options = getExecuteChangesOptionsDto();
 
         Collection<ExecutedDeltaPostProcessor> preconditionDeltas;

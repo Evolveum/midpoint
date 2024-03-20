@@ -53,6 +53,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
 
     private static final String ID_CAPABILITIES = "capabilities";
     private static final String ID_CAPABILITY_BUTTON = "capabilityButton";
+    private static final String ID_ICON_BACKGROUND = "iconBackground";
     private static final String ID_ICON = "icon";
     private static final String ID_LABEL = "label";
 
@@ -117,6 +118,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
         ListView<PrismContainerWrapper<CapabilityType>> capabilities = new ListView<>(ID_CAPABILITIES, containers) {
             @Override
             protected void populateItem(ListItem<PrismContainerWrapper<CapabilityType>> item) {
+                item.setOutputMarkupId(true);
 
                 AjaxButton button = new AjaxButton(ID_CAPABILITY_BUTTON) {
 
@@ -153,16 +155,20 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
                     }
                 };
 
+                button.setOutputMarkupId(true);
+                button.add(new Label(ID_LABEL, getLabelModel(item.getModelObject())));
+                item.add(button);
+
+                WebComponent iconBg = new WebComponent(ID_ICON_BACKGROUND);
                 IModel<String> enabled = getActiveCss(item.getModel());
-                button.add(AttributeAppender.append("class", enabled));
+                iconBg.add(AttributeAppender.append("class", enabled));
+                button.add(iconBg);
+
                 WebComponent icon = new WebComponent(ID_ICON);
                 icon.add(AttributeAppender.append("class", getIcon(item.getModelObject())));
-                button.setOutputMarkupId(true);
+                IModel<String> color = getActiveIconCssColor(item.getModel());
+                icon.add(AttributeAppender.append("class", color));
                 button.add(icon);
-                button.add(new Label(ID_LABEL, getLabelModel(item.getModelObject())));
-
-                item.add(button);
-                item.setOutputMarkupId(true);
             }
         };
         capabilities.setOutputMarkupId(true);
@@ -285,11 +291,18 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
         if (SchemaCapabilityType.class.isAssignableFrom(capability)) {
             return "fa fa-table-cells";
         }
+        if (AssociationsCapabilityType.class.isAssignableFrom(capability)) {
+            return "fa fa-shield";
+        }
         return "fa fa-circle";
     }
 
     private IModel<String> getActiveCss(IModel<PrismContainerWrapper<CapabilityType>> model) {
-        return () -> isCapabilityEnabled(model.getObject()) ? "bg-primary" : "";
+        return () -> isCapabilityEnabled(model.getObject()) ? "text-success" : "icon-background";
+    }
+
+    private IModel<String> getActiveIconCssColor(IModel<PrismContainerWrapper<CapabilityType>> model) {
+        return () -> isCapabilityEnabled(model.getObject()) ? "" : "text-body";
     }
 
     private boolean isCapabilityEnabled(PrismContainerWrapper<CapabilityType> modelObject) {

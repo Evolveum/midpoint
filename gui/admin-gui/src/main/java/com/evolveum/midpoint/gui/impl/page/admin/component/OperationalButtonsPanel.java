@@ -15,6 +15,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -99,22 +100,26 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                                 getPageBase().createStringResource("OperationalButtonsPanel.buttons.main.label", title)));
                     }
 
-                    button.add(new Behavior() {
+                    if (button instanceof AbstractLink) {
+                        button.add(new Behavior() {
 
-                        private static final long serialVersionUID = 1L;
+                            private static final long serialVersionUID = 1L;
 
-                        @Override
-                        public void bind(Component component) {
-                            super.bind(component);
+                            @Override
+                            public void bind(Component component) {
+                                super.bind(component);
 
-                            component.add(AttributeModifier.replace("onkeydown",
-                                    Model.of(
-                                            "if (event.keyCode == 32){"
-                                                    + "this.click();"
-                                                    + "}"
-                                    )));
-                        }
-                    });
+                                component.add(AttributeModifier.replace("onkeydown",
+                                        Model.of(
+                                                "if (event.keyCode == 32 || event.keyCode == 13){"
+                                                        + "this.click();"
+                                                        + "}"
+                                        )));
+                            }
+                        });
+                        button.add(AttributeAppender.append("role", "button"));
+                        button.add(AttributeAppender.append("tabindex", "0"));
+                    }
                 });
 
         RepeatingView stateButtonsView = new RepeatingView(ID_STATE_BUTTONS);

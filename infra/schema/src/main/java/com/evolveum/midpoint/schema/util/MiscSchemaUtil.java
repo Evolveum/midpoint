@@ -432,6 +432,10 @@ public class MiscSchemaUtil {
         if (viewDisplay.getPluralLabel() == null) {
             viewDisplay.setPluralLabel(archetypeDisplay.getPluralLabel());
         }
+        if (viewDisplay.getHelp() == null) {
+            viewDisplay.setHelp(archetypeDisplay.getHelp());
+        }
+
         IconType archetypeIcon = archetypeDisplay.getIcon();
         if (archetypeIcon != null) {
             IconType viewIcon = viewDisplay.getIcon();
