@@ -190,12 +190,12 @@ public class CleanupActionProcessor {
             return false;
         }
 
-        if (def.isOperational()) {
-            return true;
-        }
-
         if (def.isOptionalCleanup()) {
             return fireConfirmOptionalCleanup(createEvent(object, currentPath, item, source, result));
+        }
+
+        if (def.isOperational()) {
+            return true;
         }
 
         return false;

@@ -109,7 +109,6 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
         add(createSchemaStatusInfo());
 
-//        CapabilitiesPanel capabilities = new CapabilitiesPanel(PANEL_CAPABILITIES, capabilitiesModel);
         CapabilitiesPanel capabilities = new CapabilitiesPanel(PANEL_CAPABILITIES, getObjectDetailsModels());
         add(capabilities);
 
