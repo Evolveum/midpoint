@@ -49,13 +49,13 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
 
     @Override
     protected List<C> searchObjects(Class<C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {
-        return WebModelServiceUtils.searchContainersByQueryFromSearchPanel(type, query, options, task, result, getModelService());
+        return getModelService().searchContainers(type, query, options, task, result);
     }
 
     protected Integer countObjects(Class<C> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
             throws CommonException {
-        return WebModelServiceUtils.countContainersByQueryFromSearchPanel(type, getQuery(), currentOptions, task, result, getModelService());
+        return getModelService().countContainers(type, getQuery(), currentOptions, task, result);
     }
 
     @Override

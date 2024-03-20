@@ -12,11 +12,14 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.prism.impl.query.OrFilterImpl;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import groovyjarjarpicocli.CommandLine;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -206,9 +209,13 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         StringBuilder sb = new StringBuilder();
 
         Throwable t = ex;
-        while (t != null && t.getMessage() != null) {
-            sb.append(t.getMessage()).append('\n');
-            t = t.getCause();
+        if (t instanceof CommonException commonException && commonException.getUserFriendlyMessage() != null) {
+            sb.append(LocalizationUtil.translateMessage(commonException.getUserFriendlyMessage()));
+        } else {
+            while (t != null && t.getMessage() != null) {
+                sb.append(t.getMessage()).append('\n');
+                t = t.getCause();
+            }
         }
         if (StringUtils.isBlank(sb.toString())) {
             sb.append(PageBase.createStringResourceStatic("SearchPanel.unexpectedQuery").getString());

@@ -128,8 +128,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
         InOidFilter inOidFilter = prismContext.queryFactory().createOwnerHasOidIn(campaignOid);
         ObjectQuery query = createFinalQuery(inOidFilter, prismContext);
         query.setPaging(paging);
-        return WebModelServiceUtils.searchContainersByQueryFromSearchPanel(
-                AccessCertificationCaseType.class, query, options, task, result, getModelService());
+        return getModelService().searchContainers(AccessCertificationCaseType.class, query, options, task, result);
     }
 
     private int countCases(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options,
@@ -137,7 +136,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
             throws CommonException {
         InOidFilter inOidFilter = prismContext.queryFactory().createOwnerHasOidIn(campaignOid);
         ObjectQuery query = createFinalQuery(inOidFilter, prismContext);
-        return WebModelServiceUtils.countContainersByQueryFromSearchPanel(AccessCertificationCaseType.class, query, options, task, result, getModelService());
+        return getModelService().countContainers(AccessCertificationCaseType.class, query, options, task, result);
     }
 
     @NotNull
