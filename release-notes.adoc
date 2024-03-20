@@ -30,6 +30,9 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 == Changes with Respect To Version 4.8.2
 
 ** Fixed issue with Asynchronous Messaging Connector not working. See bug:MID-9512[].
+** Fixed issue with reporting of errors during search objects in table by axiom query. See bug:MID-9499[] and bug:MID-9400[].
+
+To see full list of fixes see https://support.evolveum.com/projects/midpoint/work_packages?query_props=%7B%22c%22%3A%5B%22id%22%2C%22subject%22%2C%22type%22%2C%22status%22%2C%22priority%22%2C%22assignee%22%2C%22customField6%22%5D%2C%22hi%22%3Afalse%2C%22g%22%3A%22%22%2C%22is%22%3Atrue%2C%22tv%22%3Afalse%2C%22hla%22%3A%5B%22status%22%2C%22priority%22%5D%2C%22t%22%3A%22priority%3Adesc%2Cid%3Aasc%22%2C%22f%22%3A%5B%7B%22n%22%3A%22customField6%22%2C%22o%22%3A%22%3D%22%2C%22v%22%3A%5B%2281%22%5D%7D%5D%2C%22ts%22%3A%22PT0S%22%2C%22pp%22%3A20%2C%22pa%22%3A1%7D[Evolveum Issue Tracker]
 
 == Changes With Respect To Version 4.8.1
 
