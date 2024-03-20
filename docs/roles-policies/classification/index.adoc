@@ -1,6 +1,14 @@
 ---
 midpoint-feature: information-classification
 doc-type: intro
+compliance:
+    iso27001:
+        '5.12':
+            description: 'Introduction of classification schemes, example of classification scheme based on EU NIS1'
+        '5.13':
+            description: 'Example demonstrating use of policy rules to enforce classification requirements'
+        '5.14':
+            description: 'Description of an idea for limiting access to internal information using classification scheme'
 ---
 = Information Classification and Clearances
 :page-toc: top
@@ -278,6 +286,24 @@ NOTE: Application roles must have inducement to applications for the policy to w
 This is a general best practice in all cases that application roles are used.
 The roles must have inducement to applications, even if applications are "empty", not containing any construction statements.
 The applications are the objects that link the classifications and the roles, therefore it is essential to maintain the link.
+
+== Further Tips
+
+* Classifications can be used to place requirements on users that have access to classified systems.
+E.g. Category III classification can be used to make sure that the users accessing category III systems have enrolled in multi-factor authentication.
+However, the details how the multi-factor authentication is set up is specific to authentication (access mamanegement) system used in conjunction with midPoint.
+MidPoint cannot enforce multi-factor authentication alone.
+// TODO: create an example for this: Add new clearance "access to internal information", which will be required by cat.III. This clearance will be included in "Employee" archetype and in "NDA" clearance.
+// TODO: Refer from ISO 27001 5.14
+
+* Classifications (labels) can be used to set up certification policies.
+E.g. certify access to category III systems every 6 months, certify access to category II annually and category I is certified bi-annually.
+// TODO: create an example for this, after 4.9 when new certification settles in.
+// TODO: Refer from ISO 27001 5.13
+
+* As classifications (labels) and clearances are assigned to relevant objects using ordinary feature:assignment[assignments], feature:access-certification[access certification] features can be used to regularly re-certify the classifications and clearances. Furthermore, the feature:schema-activation[activation mechanisms] of the assignment can be used to assign clearances for a limited time period.
+// TODO: create an example for this, after 4.9 when new certification settles in.
+// TODO: Refer from ISO 27001 5.12
 
 == Limitations
 
