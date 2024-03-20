@@ -90,8 +90,8 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     protected Integer countObjects(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> currentOptions,
             Task task, OperationResult result) throws CommonException {
-        return WebModelServiceUtils.countObjectsByQueryFromSearchPanel(
-                type, getQuery(), currentOptions, task, result, getModelService());
+        return getModelService().countObjects(
+                type, getQuery(), currentOptions, task, result);
     }
 
     protected boolean isMemberPanel() {
@@ -108,7 +108,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
         if (taskConsumer != null) {
             taskConsumer.accept(task);
         }
-        return WebModelServiceUtils.searchObjectsByQueryFromSearchPanel(type, query, options, task, result, getModelService())
+        return getModelService().searchObjects(type, query, options, task, result)
                 .map(prismObject -> prismObject.asObjectable());
     }
 

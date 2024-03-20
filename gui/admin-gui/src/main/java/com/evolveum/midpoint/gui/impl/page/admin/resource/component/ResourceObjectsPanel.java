@@ -376,8 +376,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         try {
             ObjectQuery query = PrismContext.get().queryFactory().createQuery(
                     PrismContext.get().queryFactory().createAnd(filter, situationFilter));
-            return WebModelServiceUtils.countObjectsByQueryFromSearchPanel(
-                    ShadowType.class, query, options, task, result, getPageBase().getModelService());
+            return getPageBase().getModelService().countObjects(ShadowType.class, query, options, task, result);
         } catch (CommonException | RuntimeException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count shadows", ex);
         }
