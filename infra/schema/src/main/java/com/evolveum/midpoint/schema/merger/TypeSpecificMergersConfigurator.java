@@ -61,13 +61,6 @@ class TypeSpecificMergersConfigurator {
                         GuiObjectDetailsPageType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(GuiObjectDetailsPageType.F_TYPE))),
                 entry(
-                        VirtualContainersSpecificationType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(
-                                        VirtualContainersSpecificationType.F_IDENTIFIER,
-                                        VirtualContainersSpecificationType.F_PATH))),
-                entry(
                         GuiResourceDetailsPageType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
                                 GuiResourceDetailsPageType.F_TYPE,
@@ -88,10 +81,6 @@ class TypeSpecificMergersConfigurator {
                 entry(
                         ClassLoggerLevelOverrideType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ClassLoggerLevelOverrideType.F_LOGGER))),
-                entry(
-                        AuthorizationType.class,
-                        () -> new GenericItemMerger(
-                                marker, DefaultNaturalKeyImpl.of(AuthorizationType.F_NAME, AuthorizationType.F_ACTION))),
                 entry(
                         ObjectSelectorType.class,
                         () -> new GenericItemMerger(
@@ -128,28 +117,6 @@ class TypeSpecificMergersConfigurator {
                                 DefaultNaturalKeyImpl.of(
                                         ModificationPolicyConstraintType.F_NAME,
                                         ModificationPolicyConstraintType.F_OPERATION))),
-                entry(
-                        AuthenticationSequenceModuleType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AuthenticationSequenceModuleType.F_IDENTIFIER))),
-                entry(
-                        CredentialPolicyType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(CredentialPolicyType.F_NAME))),
-                entry(
-                        SecurityQuestionDefinitionType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SecurityQuestionDefinitionType.F_IDENTIFIER))),
-                entry(
-                        GuiObjectListViewType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
-                                GuiObjectListViewType.F_IDENTIFIER,
-                                GuiObjectListViewType.F_TYPE))),
-                entry(
-                        GuiShadowListViewType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
-                                GuiShadowListViewType.F_IDENTIFIER,
-                                GuiShadowListViewType.F_TYPE,
-                                GuiShadowListViewType.F_RESOURCE_REF,
-                                GuiShadowListViewType.F_KIND,
-                                GuiShadowListViewType.F_INTENT))),
                 entry(
                         AbstractObjectTypeConfigurationType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractObjectTypeConfigurationType.F_TYPE))),

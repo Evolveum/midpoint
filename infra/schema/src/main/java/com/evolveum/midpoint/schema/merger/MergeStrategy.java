@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.schema.merger;
 
-/**
- * TODO better strategy names
- */
 public enum MergeStrategy {
 
     /**

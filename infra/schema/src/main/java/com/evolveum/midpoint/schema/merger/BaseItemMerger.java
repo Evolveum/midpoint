@@ -38,24 +38,22 @@ public abstract class BaseItemMerger<T extends Item<?, ?>> implements ItemMerger
     /** Marks any values inherited from "source" to "target" with appropriate (presumably source-related) origin. */
     @Nullable protected final OriginMarker originMarker;
 
-    /**
-     * TODO: rename
-     *
-     * If fullMerge is true, item/values that don't exist in source will be removed from target.
-     * IF fullMerge is false then, item/values that don't exist in source will be left untouched in target.
-     */
-    private boolean fullMerge;
+    private MergeStrategy strategy;
 
     protected BaseItemMerger(@Nullable OriginMarker originMarker) {
         this.originMarker = originMarker;
     }
 
-    public boolean isFullMerge() {
-        return fullMerge;
+    protected boolean isFullMerge() {
+        return strategy == MergeStrategy.FULL;
     }
 
-    public void setFullMerge(boolean fullMerge) {
-        this.fullMerge = fullMerge;
+    public MergeStrategy getStrategy() {
+        return strategy;
+    }
+
+    public void setStrategy(MergeStrategy strategy) {
+        this.strategy = strategy;
     }
 
     @Override
@@ -71,7 +69,7 @@ public abstract class BaseItemMerger<T extends Item<?, ?>> implements ItemMerger
         T sourceItem = (T) sourceParent.findItem(itemName);
         // some shortcuts first
         if (sourceItem == null || sourceItem.hasNoValues()) {
-            if (fullMerge) {
+            if (isFullMerge()) {
                 LOGGER.trace(" -> Nothing found at source; removing target item");
                 targetParent.removePaths(Arrays.asList(itemName));
             } else {

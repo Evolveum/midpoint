@@ -2050,6 +2050,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
+                <a:naturalKey>identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2564,6 +2565,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3150,6 +3152,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:naturalKey>identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
