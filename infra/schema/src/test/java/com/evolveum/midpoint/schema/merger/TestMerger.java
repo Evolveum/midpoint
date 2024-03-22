@@ -95,6 +95,25 @@ public class TestMerger extends AbstractSchemaTest {
         testMergeOperation("value-policy/value-policy");
     }
 
+    @Test
+    public void test140Archetype() throws Exception {
+        PrismObject<ArchetypeType> target = getPrismContext().parseObject(new File(TEST_ROOT_DIR,  "archetype/archetype.xml"));
+        PrismObject<ArchetypeType> source= target.cloneComplex(CloneStrategy.REUSE);
+        PrismObject<ArchetypeType> result = target.clone();
+
+        SimpleObjectMergeOperation.merge(target, source);
+
+        LOGGER.trace("Merged object:\n{}", target.debugDump());
+        LOGGER.trace("Result object:\n{}", result.debugDump());
+
+        ObjectDelta<ArchetypeType> delta = target.diff(result);
+
+        Assertions.assertThat(target)
+                .matches(
+                        t -> t.equivalent(result),
+                        "Merged object is not equivalent to expected result\n" + delta.debugDump());
+    }
+
     private <O extends ObjectType> void testMergeOperation(String fileNamePrefix) throws IOException, SchemaException, ConfigurationException {
         PrismObject<O> source = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-source.xml"));
         PrismObject<O> target = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-target.xml"));

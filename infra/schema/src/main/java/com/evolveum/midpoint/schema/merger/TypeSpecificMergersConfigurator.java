@@ -46,6 +46,19 @@ class TypeSpecificMergersConfigurator {
                                 AssignmentType.class,
                                 () -> new AssignmentMerger(marker))),
 
+                // todo this entry is incorrect since naturalKey is probably only "identifier" item (which is already defined
+                //  in XSD in parent type UserInterfaceFeatureType, however for 4.8 both identifier and path were used.
+                //  This should be reviewed and fixed in 4.9
+                entry(
+                        "VirtualContainersSpecificationType",
+                        new TypedMergerSupplier(
+                        VirtualContainersSpecificationType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(
+                                        VirtualContainersSpecificationType.F_IDENTIFIER,
+                                        VirtualContainersSpecificationType.F_PATH)))),
+
                 // todo entries below this should be removed and should be handled by annotations in xsd,
                 //  natural keys should be reviewed and most probably changed
 
