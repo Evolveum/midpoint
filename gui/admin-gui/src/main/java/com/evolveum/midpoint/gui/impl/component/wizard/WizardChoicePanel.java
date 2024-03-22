@@ -30,6 +30,10 @@ public abstract class WizardChoicePanel<T extends Serializable, AHD extends Assi
         super(id, resourceModel);
     }
 
+    public WizardChoicePanel(String id) {
+        this(id, null);
+    }
+
     @Override
     protected void onInitialize() {
         super.onInitialize();
