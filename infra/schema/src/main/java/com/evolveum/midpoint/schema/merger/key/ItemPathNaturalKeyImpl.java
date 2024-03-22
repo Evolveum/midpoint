@@ -10,6 +10,8 @@ package com.evolveum.midpoint.schema.merger.key;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -96,7 +98,7 @@ public class ItemPathNaturalKeyImpl implements NaturalKey {
                     .replace(
                             PrismContext.get().itemFactory().createPropertyValue(
                                     new ItemPathType(
-                                            ItemPath.create(combinedPathSegments))));
+                                            UniformItemPath.create(combinedPathSegments))));
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "when updating '" + keyItemName + "'");
         }

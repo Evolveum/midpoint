@@ -38,7 +38,7 @@ public abstract class BaseItemMerger<T extends Item<?, ?>> implements ItemMerger
     /** Marks any values inherited from "source" to "target" with appropriate (presumably source-related) origin. */
     @Nullable protected final OriginMarker originMarker;
 
-    private MergeStrategy strategy;
+    @NotNull private MergeStrategy strategy = MergeStrategy.OVERLAY;
 
     protected BaseItemMerger(@Nullable OriginMarker originMarker) {
         this.originMarker = originMarker;
@@ -52,7 +52,7 @@ public abstract class BaseItemMerger<T extends Item<?, ?>> implements ItemMerger
         return strategy;
     }
 
-    public void setStrategy(MergeStrategy strategy) {
+    public void setStrategy(@NotNull MergeStrategy strategy) {
         this.strategy = strategy;
     }
 

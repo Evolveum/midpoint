@@ -44,96 +44,123 @@ class TypeSpecificMergersConfigurator {
                         "AssignmentType",
                         new TypedMergerSupplier(
                                 AssignmentType.class,
-                                () -> new AssignmentMerger(marker)))
-        );
-    }
+                                () -> new AssignmentMerger(marker))),
 
-    @Deprecated
-    static Map<Class<?>, Supplier<ItemMerger>> createStandardTypeSpecificMergersMap(@Nullable OriginMarker marker) {
-        return Map.ofEntries(
+                // todo entries below this should be removed and should be handled by annotations in xsd,
+                //  natural keys should be reviewed and most probably changed
+
                 entry(
-                        SearchItemType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(
-                                        SearchItemType.F_PATH, SearchItemType.F_FILTER, SearchItemType.F_FILTER_EXPRESSION))),
+                        "SearchItemType",
+                        new TypedMergerSupplier(
+                                SearchItemType.class,
+                                () -> new GenericItemMerger(
+                                        marker,
+                                        DefaultNaturalKeyImpl.of(
+                                                SearchItemType.F_PATH, SearchItemType.F_FILTER, SearchItemType.F_FILTER_EXPRESSION)))),
                 entry(
-                        GuiObjectDetailsPageType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(GuiObjectDetailsPageType.F_TYPE))),
+                        "GuiObjectDetailsPageType",
+                        new TypedMergerSupplier(
+                                GuiObjectDetailsPageType.class,
+                                () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(GuiObjectDetailsPageType.F_TYPE)))),
                 entry(
-                        GuiResourceDetailsPageType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
-                                GuiResourceDetailsPageType.F_TYPE,
-                                GuiResourceDetailsPageType.F_CONNECTOR_REF))),
+                        "GuiResourceDetailsPageType",
+                        new TypedMergerSupplier(
+                                GuiResourceDetailsPageType.class,
+                                () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
+                                        GuiResourceDetailsPageType.F_TYPE,
+                                        GuiResourceDetailsPageType.F_CONNECTOR_REF)))),
                 entry(
-                        ExpressionEvaluatorProfileType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ExpressionEvaluatorProfileType.F_TYPE))),
+                        "ExpressionEvaluatorProfileType",
+                        new TypedMergerSupplier(
+                                ExpressionEvaluatorProfileType.class,
+                                () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ExpressionEvaluatorProfileType.F_TYPE)))),
                 entry(
-                        ScriptLanguageExpressionProfileType.class,
-                        () -> new GenericItemMerger(
-                                marker, DefaultNaturalKeyImpl.of(ScriptLanguageExpressionProfileType.F_LANGUAGE))),
+                        "ScriptLanguageExpressionProfileType",
+                        new TypedMergerSupplier(
+                                ScriptLanguageExpressionProfileType.class,
+                                () -> new GenericItemMerger(
+                                        marker, DefaultNaturalKeyImpl.of(ScriptLanguageExpressionProfileType.F_LANGUAGE)))),
                 entry(
-                        TracingTypeProfileType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(
-                                        TracingTypeProfileType.F_LEVEL, TracingTypeProfileType.F_OPERATION_TYPE))),
+                        "ClassLoggerLevelOverrideType",
+                        new TypedMergerSupplier(
+                                ClassLoggerLevelOverrideType.class,
+                                () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ClassLoggerLevelOverrideType.F_LOGGER)))),
                 entry(
-                        ClassLoggerLevelOverrideType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ClassLoggerLevelOverrideType.F_LOGGER))),
+                        "ObjectSelectorType",
+                        new TypedMergerSupplier(
+                                ObjectSelectorType.class,
+                                () -> new GenericItemMerger(
+                                        marker,
+                                        DefaultNaturalKeyImpl.of(ObjectSelectorType.F_NAME, ObjectSelectorType.F_TYPE)))),
                 entry(
-                        ObjectSelectorType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(ObjectSelectorType.F_NAME, ObjectSelectorType.F_TYPE))),
+                        "CollectionSpecificationType",
+                        new TypedMergerSupplier(
+                                CollectionSpecificationType.class,
+                                () -> new GenericItemMerger(
+                                        marker, DefaultNaturalKeyImpl.of(CollectionSpecificationType.F_INTERPRETATION)))),
                 entry(
-                        CollectionSpecificationType.class,
-                        () -> new GenericItemMerger(
-                                marker, DefaultNaturalKeyImpl.of(CollectionSpecificationType.F_INTERPRETATION))),
+                        "DashboardWidgetDataFieldType",
+                        new TypedMergerSupplier(
+                                DashboardWidgetDataFieldType.class,
+                                () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(DashboardWidgetDataFieldType.F_FIELD_TYPE)))),
                 entry(
-                        DashboardWidgetDataFieldType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(DashboardWidgetDataFieldType.F_FIELD_TYPE))),
+                        "DashboardWidgetVariationType",
+                        new TypedMergerSupplier(
+                                DashboardWidgetVariationType.class,
+                                () -> new GenericItemMerger(
+                                        marker,
+                                        DefaultNaturalKeyImpl.of(
+                                                DashboardWidgetVariationType.F_DISPLAY, DashboardWidgetVariationType.F_CONDITION)))),
                 entry(
-                        DashboardWidgetVariationType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(
-                                        DashboardWidgetVariationType.F_DISPLAY, DashboardWidgetVariationType.F_CONDITION))),
+                        "AssignmentRelationType",
+                        new TypedMergerSupplier(
+                                AssignmentRelationType.class,
+                                () -> new GenericItemMerger(
+                                        marker,
+                                        DefaultNaturalKeyImpl.of(
+                                                AssignmentRelationType.F_HOLDER_TYPE,
+                                                AssignmentRelationType.F_RELATION,
+                                                AssignmentRelationType.F_HOLDER_ARCHETYPE_REF)))),
                 entry(
-                        AssignmentRelationType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(
-                                        AssignmentRelationType.F_HOLDER_TYPE,
-                                        AssignmentRelationType.F_RELATION,
-                                        AssignmentRelationType.F_HOLDER_ARCHETYPE_REF))),
+                        "ItemConstraintType",
+                        new TypedMergerSupplier(
+                                ItemConstraintType.class,
+                                () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ItemConstraintType.F_PATH)))),
                 entry(
-                        ItemConstraintType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ItemConstraintType.F_PATH))),
+                        "ModificationPolicyConstraintType",
+                        new TypedMergerSupplier(
+                                ModificationPolicyConstraintType.class,
+                                () -> new GenericItemMerger(
+                                        marker,
+                                        DefaultNaturalKeyImpl.of(
+                                                ModificationPolicyConstraintType.F_NAME,
+                                                ModificationPolicyConstraintType.F_OPERATION)))),
                 entry(
-                        ModificationPolicyConstraintType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(
-                                        ModificationPolicyConstraintType.F_NAME,
-                                        ModificationPolicyConstraintType.F_OPERATION))),
+                        "AbstractObjectTypeConfigurationType",
+                        new TypedMergerSupplier(
+                                AbstractObjectTypeConfigurationType.class,
+                                () -> new GenericItemMerger(
+                                        marker,
+                                        DefaultNaturalKeyImpl.of(AbstractObjectTypeConfigurationType.F_TYPE)))),
                 entry(
-                        AbstractObjectTypeConfigurationType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractObjectTypeConfigurationType.F_TYPE))),
+                        "GuiShadowDetailsPageType",
+                        new TypedMergerSupplier(
+                                GuiShadowDetailsPageType.class,
+                                () -> new GenericItemMerger(
+                                        marker, DefaultNaturalKeyImpl.of(
+                                        GuiShadowDetailsPageType.F_TYPE,
+                                        GuiShadowDetailsPageType.F_RESOURCE_REF,
+                                        GuiShadowDetailsPageType.F_KIND,
+                                        GuiShadowDetailsPageType.F_INTENT)))),
                 entry(
-                        GuiShadowDetailsPageType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
-                                GuiShadowDetailsPageType.F_TYPE,
-                                GuiShadowDetailsPageType.F_RESOURCE_REF,
-                                GuiShadowDetailsPageType.F_KIND,
-                                GuiShadowDetailsPageType.F_INTENT))),
-                entry(
-                        SelectorQualifiedGetOptionType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(
-                                        SelectorQualifiedGetOptionType.F_OPTIONS,
-                                        SelectorQualifiedGetOptionType.F_SELECTOR)))
+                        "SelectorQualifiedGetOptionType",
+                        new TypedMergerSupplier(
+                                SelectorQualifiedGetOptionType.class,
+                                () -> new GenericItemMerger(
+                                        marker,
+                                        DefaultNaturalKeyImpl.of(
+                                                SelectorQualifiedGetOptionType.F_OPTIONS,
+                                                SelectorQualifiedGetOptionType.F_SELECTOR))))
         );
     }
 }

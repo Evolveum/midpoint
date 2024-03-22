@@ -66,10 +66,13 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
     private GenericItemMerger(
             @Nullable OriginMarker originMarker,
             @Nullable NaturalKey naturalKey,
-            @NotNull PathKeyedMap<ItemMerger> childrenMergers) {
+            @NotNull PathKeyedMap<ItemMerger> childrenMergers,
+            @NotNull MergeStrategy strategy) {
         super(originMarker);
         this.naturalKey = naturalKey;
         this.childrenMergers = childrenMergers;
+
+        setStrategy(strategy);
 
         // In the future this may be parameterized on instance creation.
         this.identifierSpecificMergers = TypeSpecificMergersConfigurator.createMergersMap(originMarker);
@@ -82,14 +85,21 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
     public GenericItemMerger(
             @Nullable OriginMarker originMarker,
             @NotNull PathKeyedMap<ItemMerger> childrenMergers) {
-        this(originMarker, null, childrenMergers);
+        this(originMarker, childrenMergers, MergeStrategy.OVERLAY);
+    }
+
+    public GenericItemMerger(
+            @Nullable OriginMarker originMarker,
+            @NotNull PathKeyedMap<ItemMerger> childrenMergers,
+            @NotNull MergeStrategy strategy) {
+        this(originMarker, null, childrenMergers, strategy);
     }
 
     @SuppressWarnings("WeakerAccess")
     public GenericItemMerger(
             @Nullable OriginMarker originMarker,
             NaturalKey naturalKey) {
-        this(originMarker, naturalKey, new PathKeyedMap<>());
+        this(originMarker, naturalKey, new PathKeyedMap<>(), MergeStrategy.OVERLAY);
     }
 
     void mergeContainerValues(@NotNull PrismContainerValue<?> targetPcv, @NotNull PrismContainerValue<?> sourcePcv)
@@ -168,7 +178,7 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
         }
 
         ItemMerger merger = findMergerByAnnotation(ctd);
-        if (merger != null ) {
+        if (merger != null) {
             return merger;
         }
 
