@@ -39,18 +39,18 @@ public class ProtectedStringClearPasswordModel implements IModel<String> {
 
     @Override
     public String getObject() {
-        ProtectedStringType ps = psModel.getObject().clone();
-        if (ps == null) {
+        ProtectedStringType actualPs = psModel.getObject();
+        if (actualPs == null) {
             return null;
-        } else {
-            try {
-                ps.setExternalData(null);
-                return getProtector().decryptString(ps);
-            } catch (EncryptionException e) {
-                LOGGER.debug("Couldn't get the object of the protected string model", e);
-                return null;
-//                throw new SystemException(e.getMessage(), e);
-            }
+        }
+
+        ProtectedStringType ps = actualPs.clone();
+        try {
+            ps.setExternalData(null);
+            return getProtector().decryptString(ps);
+        } catch (EncryptionException e) {
+            LOGGER.debug("Couldn't get the object of the protected string model", e);
+            return null;
         }
     }
 
