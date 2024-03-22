@@ -6,31 +6,32 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
-import static com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure.extractAttributeAnalysis;
-import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
+import java.io.Serial;
 
-import java.util.HashSet;
-import java.util.List;
-
-import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPanel;
-
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RepeatingAttributeForm;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPopupPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisClusterStatisticType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 @PanelType(name = "roleAnalysisStatisticsPanel")
 @PanelInstance(
@@ -95,15 +96,44 @@ public class RoleAnalysisClusterStatisticsPanel extends AbstractObjectMainPanel<
         webMarkupContainer.setOutputMarkupId(true);
         add(webMarkupContainer);
 
+
         if (getObjectWrapperModel() != null) {
+
             RoleAnalysisClusterType cluster = getObjectWrapperModel().getObject().getObject().getRealValue();
 
-            List<AttributeAnalysisStructure> attributeAnalysisStructures = extractAttributeAnalysis(cluster);
-            RoleAnalysisAttributeChartPanel roleAnalysisChartPanel = new RoleAnalysisAttributeChartPanel(ID_CHART_PANEL, attributeAnalysisStructures, cluster);
-            roleAnalysisChartPanel.setOutputMarkupId(true);
-            webMarkupContainer.add(roleAnalysisChartPanel);
+            CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
+                    .setBasicIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
 
+            AjaxCompositedIconButton objectButton = new AjaxCompositedIconButton(ID_CHART_PANEL, iconBuilder.build(),
+                    Model.of(createStringResource("RoleMining.button.title.chart").getString())) {
+
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+
+                    RoleAnalysisAttributeChartPopupPanel detailsPanel = new RoleAnalysisAttributeChartPopupPanel(
+                            ((PageBase) getPage()).getMainPopupBodyId(),
+                            Model.of("Analyzed members details panel"),
+                            cluster) {
+                        @Override
+                        public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                            super.onClose(ajaxRequestTarget);
+                        }
+                    };
+                    ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                }
+
+            };
+            objectButton.titleAsLabel(true);
+            objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm col-10"));
+            webMarkupContainer.add(objectButton);
+        }else {
+            WebMarkupContainer empty = new WebMarkupContainer(ID_CHART_PANEL);
+            empty.setOutputMarkupId(true);
+            webMarkupContainer.add(empty);
         }
+
     }
 
 }

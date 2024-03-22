@@ -215,7 +215,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
         return table;
     }
 
-    private ObjectQuery getQuery(RoleAnalysisClusterType cluster) {
+     ObjectQuery getQuery(RoleAnalysisClusterType cluster) {
 
         List<ObjectReferenceType> member = cluster.getMember();
         Set<String> membersOid = new HashSet<>();

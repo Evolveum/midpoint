@@ -62,25 +62,4 @@ public class RoleAnalysisOutlierPanel extends AbstractObjectMainPanel<RoleAnalys
         return (RoleAnalysisOutlierTable) get(((PageBase) getPage()).createComponentPath(ID_CONTAINER, ID_PANEL));
     }
 
-//    @Override
-//    public ContainerPanelConfigurationType getPanelConfiguration() {
-//        Task task = getPageBase().createSimpleTask("Resolving cluster option type");
-//
-//        ContainerPanelConfigurationType panelConfiguration = super.getPanelConfiguration();
-//        RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
-//
-//        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-//
-//        RoleAnalysisOptionType roleAnalysisOptionType = roleAnalysisService
-//                .resolveClusterOptionType(cluster.asPrismObject(), task, task.getResult());
-//
-//        RoleAnalysisCategoryType analysisCategory = roleAnalysisOptionType.getAnalysisCategory();
-//
-//        if (!analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-//            panelConfiguration.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-//        }
-//
-//        return panelConfiguration;
-//    }
-
 }

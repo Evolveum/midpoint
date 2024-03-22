@@ -77,7 +77,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         for (ObjectReferenceType member : members) {
             handler.iterateActualStatus();
             String memberOid = member.getOid();
-            PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, memberOid, task, result);
+            PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, memberOid, task, result, getRoleCacheOption());
 
             if (role != null) {
                 RoleType roleObject = role.asObjectable();
@@ -152,7 +152,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
             roleIds.retainAll(membersOidSet);
             double frequency = Math.min(roleIds.size() / (double) memberCount, 1);
             PrismObject<UserType> user = roleAnalysisService
-                    .cacheUserTypeObject(userExistCache, key, task, result);
+                    .cacheUserTypeObject(userExistCache, key, task, result, null);
 
             String chunkName = "unknown";
             String iconColor = null;
@@ -212,7 +212,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
             handler.iterateActualStatus();
 
             String userOid = member.getOid();
-            PrismObject<UserType> user = roleAnalysisService.cacheUserTypeObject(userExistCache, userOid, task, result);
+            PrismObject<UserType> user = roleAnalysisService.cacheUserTypeObject(userExistCache, userOid, task, result, null);
             if (user == null) {
                 continue;
             }
@@ -235,7 +235,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
             List<String> rolesOidAssignment = getRolesOidAssignment(user.asObjectable());
             List<String> existingRolesAssignment = new ArrayList<>();
             for (String roleId : rolesOidAssignment) {
-                PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, roleId, task, result);
+                PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, roleId, task, result, getRoleCacheOption());
                 if (role == null) {
                     continue;
                 }
@@ -281,7 +281,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
             double frequency = Math.min(usersOidList.size() / (double) memberCount, 1);
 
             PrismObject<RoleType> role = roleAnalysisService
-                    .cacheRoleTypeObject(roleExistCache, key, task, result);
+                    .cacheRoleTypeObject(roleExistCache, key, task, result, getRoleCacheOption());
             String chunkName = "unknown";
             String iconColor = null;
             if (role != null) {

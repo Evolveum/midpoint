@@ -150,7 +150,7 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
                 double weight = computeSingleValue(valueA, valueB, attributeMatch);
                 if (weight > 0) {
                     AttributeMatchExplanation attributeMatchExplanation = new AttributeMatchExplanation(
-                            attributeMatch.getKey().toString(),
+                            attributeMatch.getAttributeDisplayValue().toString(),
                             valueA.getSingleValueForKey(attributeMatch));
                     attributeMatchExplanations.add(attributeMatchExplanation);
                     weightSum += weight;
@@ -159,7 +159,7 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
                 double weight = computeMultiValue(valueA, valueB, attributeMatch);
                 if (weight > 0) {
                     AttributeMatchExplanation attributeMatchExplanation = new AttributeMatchExplanation(
-                            attributeMatch.getKey().toString(),
+                            attributeMatch.getAttributeDisplayValue().toString(),
                             "multiValue");
                     attributeMatchExplanations.add(attributeMatchExplanation);
                     weightSum += weight;

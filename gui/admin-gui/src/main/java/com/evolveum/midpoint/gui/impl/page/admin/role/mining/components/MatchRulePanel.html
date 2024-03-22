@@ -9,15 +9,14 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div wicket:id="container" class="d-flex ">
+    <div wicket:id="match_rule_container" class="d-flex ">
 
         <div class="input-group">
 
             <div class="col">
                 <div class="d-flex align-items-center">
-                    <input class="" type="checkbox" wicket:id="check_box"/>
-                    <input class="ml-3 col-sm-10" wicket:id="slider" type="range"/>
-                    <input class="ml-3 col-sm-1" type="text" wicket:id="slider_label"/>
+                    <input class="mr-2" style="width:45px; text-align: center;" type="text" wicket:id="slider_label"/>
+                    <input class="col" wicket:id="slider" type="range"/>
                 </div>
             </div>
 

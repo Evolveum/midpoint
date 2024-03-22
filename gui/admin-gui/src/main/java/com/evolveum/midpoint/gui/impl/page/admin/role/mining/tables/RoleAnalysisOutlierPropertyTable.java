@@ -7,18 +7,25 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPopupPanel;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -53,16 +60,23 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.NotNull;
+
 public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
 
     private static final String ID_DATATABLE = "datatable";
 
-    public RoleAnalysisOutlierPropertyTable(String id,
-            LoadableDetachableModel<List<RoleAnalysisOutlierDescriptionType>> outlierResults) {
+    String targetObjectOid;
+
+    public RoleAnalysisOutlierPropertyTable(
+            @NotNull String id,
+            @NotNull RoleAnalysisOutlierType outlierType) {
         super(id);
 
+        this.targetObjectOid = outlierType.getTargetObjectRef().getOid();
+
         RoleMiningProvider<RoleAnalysisOutlierDescriptionType> provider = new RoleMiningProvider<>(
-                this, new ListModel<>(outlierResults.getObject()) {
+                this, new ListModel<>(outlierType.getResult()) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -108,6 +122,12 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
 
             @Override
             protected DisplayType getIconDisplayType(IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
+
+                RoleAnalysisOutlierDescriptionType result = rowModel.getObject();
+                ObjectReferenceType object = result.getObject();
+                if (object.getType().equals(UserType.COMPLEX_TYPE)) {
+                    return createDisplayType(GuiStyleConstants.CLASS_OBJECT_USER_ICON, "black", "");
+                }
 
                 return createDisplayType(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, "black", "");
             }
@@ -289,6 +309,197 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                 return new Label(
                         componentId, createStringResource("RoleAnalysisOutlierPropertyTable.confidence.header"));
 
+            }
+
+        });
+
+        columns.add(new AbstractColumn<>(createStringResource("Cluster analysis")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
+                    IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
+
+                Task task = getPageBase().createSimpleTask("Load object");
+                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+
+                RoleAnalysisOutlierDescriptionType result = rowModel.getObject();
+                ObjectReferenceType clusterRef = result.getCluster();
+
+                PrismObject<RoleAnalysisClusterType> object = roleAnalysisService
+                        .getObject(RoleAnalysisClusterType.class, clusterRef.getOid(), task, task.getResult());
+
+                RoleAnalysisClusterType cluster = object.asObjectable();
+
+                item.add(new AjaxLinkPanel(componentId, Model.of("Cluster attributes")) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+
+                        ObjectReferenceType propertyObjectRef = result.getObject();
+                        QName type = propertyObjectRef.getType();
+
+                        PrismObject<UserType> userTypeObject;
+                        PrismObject<RoleType> roleTypeObject;
+                        if (type.equals(RoleType.COMPLEX_TYPE)) {
+                            userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectOid, task, task.getResult());
+                            roleTypeObject = roleAnalysisService.getRoleTypeObject(propertyObjectRef.getOid(), task, task.getResult());
+                        } else {
+                            userTypeObject = roleAnalysisService.getUserTypeObject(propertyObjectRef.getOid(), task, task.getResult());
+                            roleTypeObject = roleAnalysisService.getRoleTypeObject(targetObjectOid, task, task.getResult());
+
+                        }
+
+                        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
+                        Set<String> userPathToMark = roleAnalysisService.resolveUserValueToMark(userTypeObject, attributesForUserAnalysis);
+
+                        List<RoleAnalysisAttributeDef> attributesForRoleAnalysis = getAttributesForRoleAnalysis();
+                        Set<String> rolePathToMark = roleAnalysisService.resolveRoleValueToMark(roleTypeObject, attributesForRoleAnalysis);
+
+                        RoleAnalysisAttributeChartPopupPanel detailsPanel = new RoleAnalysisAttributeChartPopupPanel(
+                                ((PageBase) getPage()).getMainPopupBodyId(),
+                                Model.of("Analyzed members details panel"),
+                                cluster) {
+                            @Override
+                            public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                super.onClose(ajaxRequestTarget);
+                            }
+
+                            @Override
+                            protected Set<String> getRolePathToMark() {
+                                return rolePathToMark;
+                            }
+
+                            @Override
+                            protected Set<String> getUserPathToMark() {
+                                return userPathToMark;
+                            }
+                        };
+                        ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+
+                    }
+                });
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(
+                        componentId, Model.of("Cluster analysis"));
+            }
+
+        });
+
+        columns.add(new AbstractColumn<>(createStringResource("Member analysis")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
+                    IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
+
+                RoleAnalysisOutlierDescriptionType result = rowModel.getObject();
+                ObjectReferenceType ref = result.getObject();
+                QName type = ref.getType();
+
+                if (type.equals(RoleType.COMPLEX_TYPE)) {
+                    roleAnalysisPanel(item, componentId, ref);
+                } else {
+                    userAnalysisPanel(item, componentId, ref);
+                }
+
+            }
+
+            private void roleAnalysisPanel(
+                    @NotNull Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item,
+                    @NotNull String componentId,
+                    @NotNull ObjectReferenceType ref) {
+                Task task = getPageBase().createSimpleTask("Load object");
+                OperationResult operationResult = task.getResult();
+                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                String title = "Member attributes";
+                PrismObject<RoleType> object = roleAnalysisService
+                        .getRoleTypeObject(ref.getOid(), task, operationResult);
+
+                List<AttributeAnalysisStructure> attributeAnalysisStructures = roleAnalysisService
+                        .roleMembersAttributeAnalysis(object.getOid(), task, operationResult);
+
+                item.add(new AjaxLinkPanel(componentId, Model.of(title)) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+
+                        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectOid, task, task.getResult());
+                        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
+                        Set<String> userPathToMark = roleAnalysisService.resolveUserValueToMark(userTypeObject, attributesForUserAnalysis);
+
+                        RoleAnalysisAttributeChartPopupPanel detailsPanel = new RoleAnalysisAttributeChartPopupPanel(
+                                ((PageBase) getPage()).getMainPopupBodyId(),
+                                Model.of("Analyzed members details panel"),
+                                attributeAnalysisStructures, RoleAnalysisProcessModeType.USER) {
+                            @Override
+                            public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                super.onClose(ajaxRequestTarget);
+                            }
+
+                            @Override
+                            protected Set<String> getUserPathToMark() {
+                                return userPathToMark;
+                            }
+                        };
+                        ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+
+                    }
+                });
+            }
+
+            private void userAnalysisPanel(@NotNull Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item,
+                    @NotNull String componentId,
+                    @NotNull ObjectReferenceType ref) {
+                Task task = getPageBase().createSimpleTask("Load object");
+                OperationResult operationResult = task.getResult();
+                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                String title = "Member attributes";
+
+                List<AttributeAnalysisStructure> attributeAnalysisStructures = roleAnalysisService
+                        .userRolesAttributeAnalysis(ref.getOid(), task, operationResult);
+
+                item.add(new AjaxLinkPanel(componentId, Model.of(title)) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+
+                        PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(targetObjectOid, task, task.getResult());
+                        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForRoleAnalysis();
+                        Set<String> rolePathToMark = roleAnalysisService.resolveRoleValueToMark(roleTypeObject, attributesForUserAnalysis);
+
+                        RoleAnalysisAttributeChartPopupPanel detailsPanel = new RoleAnalysisAttributeChartPopupPanel(
+                                ((PageBase) getPage()).getMainPopupBodyId(),
+                                Model.of("Analyzed members details panel"),
+                                attributeAnalysisStructures, RoleAnalysisProcessModeType.ROLE) {
+                            @Override
+                            public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                super.onClose(ajaxRequestTarget);
+                            }
+
+                            @Override
+                            protected Set<String> getRolePathToMark() {
+                                return rolePathToMark;
+                            }
+                        };
+                        ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+
+                    }
+                });
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(
+                        componentId, Model.of("Member analysis"));
             }
 
         });

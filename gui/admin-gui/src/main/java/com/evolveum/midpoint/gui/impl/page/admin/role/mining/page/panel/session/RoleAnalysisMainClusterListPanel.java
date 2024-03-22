@@ -14,6 +14,11 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import com.evolveum.midpoint.model.api.ModelService;
+
+import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -249,6 +254,9 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
             @Override
             protected List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> createDefaultColumns() {
 
+                RoleAnalysisSessionType session = getObjectWrapperObject().asObjectable();
+                RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+
                 List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> columns = new ArrayList<>();
 
                 IColumn<SelectableBean<RoleAnalysisClusterType>, String> column;
@@ -282,9 +290,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                             public void onClick(AjaxRequestTarget target) {
                                 Component collapseContainer = cellItem.findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
                                 Component collapseContainerRole = cellItem.findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
-
                                 target.appendJavaScript(getCollapseScript(collapseContainer, collapseContainerRole));
-
                             }
 
                         };
@@ -413,37 +419,94 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(
-                        createStringResource("AnalysisClusterStatisticType.detectedReductionMetric")) {
+                if (!analysisOption.getAnalysisCategory().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                    column = new AbstractExportableColumn<>(
+                            createStringResource("AnalysisClusterStatisticType.detectedReductionMetric")) {
 
-                    @Override
-                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
-                        return extractReductionMetric(iModel);
-                    }
+                        @Override
+                        public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
+                            return extractReductionMetric(iModel);
+                        }
 
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return createModeBasedColumnHeader(componentId, AnalysisClusterStatisticType.F_DETECTED_REDUCTION_METRIC);
-                    }
+                        @Override
+                        public Component getHeader(String componentId) {
+                            return createModeBasedColumnHeader(componentId, AnalysisClusterStatisticType.F_DETECTED_REDUCTION_METRIC);
+                        }
 
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+                        @Override
+                        public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+                                String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
 
-                        cellItem.add(new Label(componentId, extractReductionMetric(model)));
-                    }
+                            cellItem.add(new Label(componentId, extractReductionMetric(model)));
+                        }
 
-                    @Override
-                    public boolean isSortable() {
-                        return false;
-                    }
+                        @Override
+                        public boolean isSortable() {
+                            return false;
+                        }
 
-                    @Override
-                    public String getSortProperty() {
-                        return AnalysisClusterStatisticType.F_DETECTED_REDUCTION_METRIC.getLocalPart();
-                    }
-                };
-                columns.add(column);
+                        @Override
+                        public String getSortProperty() {
+                            return AnalysisClusterStatisticType.F_DETECTED_REDUCTION_METRIC.getLocalPart();
+                        }
+                    };
+                    columns.add(column);
+                } else {
+                    column = new AbstractExportableColumn<>(Model.of("Outliers count")) {
+
+                        @Override
+                        public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
+                            return Model.of("");
+                        }
+
+                        @Override
+                        public Component getHeader(String componentId) {
+                            return new Label(componentId, "Outliers count");
+                        }
+
+                        @Override
+                        public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+                                String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+
+                            RoleAnalysisClusterType cluster = model.getObject().getValue();
+                            List<ObjectReferenceType> member = cluster.getMember();
+
+                            Set<String> membersOid = new HashSet<>();
+                            for (ObjectReferenceType objectReferenceType : member) {
+                                membersOid.add(objectReferenceType.getOid());
+                            }
+
+                            ObjectQuery query = getPrismContext().queryFor(RoleAnalysisOutlierType.class)
+                                    .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF).ref(membersOid.toArray(new String[0]))
+                                    .build();
+
+                            ModelService modelService = getPageBase().getModelService();
+                            Task task = getPageBase().createSimpleTask("countObjects");
+                            OperationResult result = task.getResult();
+
+                            int count = 0;
+                            try {
+                                count = modelService.countObjects(RoleAnalysisOutlierType.class, query, null, task, result);
+                            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException |
+                                    ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
+                                throw new RuntimeException("Couldn't count outliers", e);
+                            }
+
+                            cellItem.add(new Label(componentId, Model.of(count)));
+                        }
+
+                        @Override
+                        public boolean isSortable() {
+                            return false;
+                        }
+
+                        @Override
+                        public String getSortProperty() {
+                            return AnalysisClusterStatisticType.F_DETECTED_REDUCTION_METRIC.getLocalPart();
+                        }
+                    };
+                    columns.add(column);
+                }
 
                 column = new AbstractExportableColumn<>(
                         createStringResource("AnalysisClusterStatisticType.membershipDensity")) {

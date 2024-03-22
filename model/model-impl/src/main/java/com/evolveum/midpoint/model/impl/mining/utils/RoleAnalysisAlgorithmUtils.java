@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.mining.utils;
 
-import static com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributePathResolver.getRoleSingleValuePaths;
-import static com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributePathResolver.getUserSingleValuePaths;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.OutliersDetectionUtil.executeOutliersAnalysis;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.ClusterExplanation.getClusterExplanationDescription;
@@ -19,12 +17,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
-import com.evolveum.midpoint.model.impl.mining.algorithm.detection.PatternConfidenceCalculator;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.common.mining.objects.statistic.ClusterStatistic;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -32,8 +28,8 @@ import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.Clust
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.ClusterExplanation;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.DataPoint;
 import com.evolveum.midpoint.model.impl.mining.algorithm.detection.DefaultPatternResolver;
+import com.evolveum.midpoint.model.impl.mining.algorithm.detection.PatternConfidenceCalculator;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -263,29 +259,26 @@ public class RoleAnalysisAlgorithmUtils {
         if (isRoleMode) {
             roleDensity = density;
             users = propertiesOidsSet.stream().map(oid -> roleAnalysisService
-                            .cacheUserTypeObject(new HashMap<>(), oid, task, result))
+                            .cacheUserTypeObject(new HashMap<>(), oid, task, result, null))
                     .filter(Objects::nonNull).collect(Collectors.toSet());
             roles = membersOidsSet.stream().map(oid -> roleAnalysisService
-                            .cacheRoleTypeObject(new HashMap<>(), oid, task, result))
+                            .cacheRoleTypeObject(new HashMap<>(), oid, task, result, null))
                     .filter(Objects::nonNull).collect(Collectors.toSet());
         } else {
             userDensity = density;
             users = membersOidsSet.stream().map(oid -> roleAnalysisService
-                            .cacheUserTypeObject(new HashMap<>(), oid, task, result))
+                            .cacheUserTypeObject(new HashMap<>(), oid, task, result, null))
                     .filter(Objects::nonNull).collect(Collectors.toSet());
 
             roles = propertiesOidsSet.stream().map(oid -> roleAnalysisService
-                            .cacheRoleTypeObject(new HashMap<>(), oid, task, result))
+                            .cacheRoleTypeObject(new HashMap<>(), oid, task, result, null))
                     .filter(Objects::nonNull).collect(Collectors.toSet());
         }
 
-        List<ItemPath> userValuePaths = getUserSingleValuePaths();
-        List<ItemPath> roleValuePaths = getRoleSingleValuePaths();
-
         List<AttributeAnalysisStructure> userAttributeAnalysisStructures = roleAnalysisService
-                .userTypeAttributeAnalysis(users, userValuePaths, userDensity);
+                .userTypeAttributeAnalysis(users, userDensity);
         List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = roleAnalysisService
-                .roleTypeAttributeAnalysis(roles, roleValuePaths, roleDensity);
+                .roleTypeAttributeAnalysis(roles, roleDensity);
 
         clusterStatistic.setUserAttributeAnalysisStructures(userAttributeAnalysisStructures);
         clusterStatistic.setRoleAttributeAnalysisStructures(roleAttributeAnalysisStructures);
@@ -367,9 +360,9 @@ public class RoleAnalysisAlgorithmUtils {
         } else {return null;}
     }
 
-    private PrismObject<RoleAnalysisClusterType> prepareClusters(
+    private @Nullable PrismObject<RoleAnalysisClusterType> prepareClusters(
             @NotNull RoleAnalysisService roleAnalysisService,
-            Cluster<DataPoint> cluster,
+            @NotNull Cluster<DataPoint> cluster,
             @NotNull String clusterIndex,
             @NotNull List<DataPoint> dataPoints,
             @NotNull RoleAnalysisSessionType session,
@@ -659,11 +652,7 @@ public class RoleAnalysisAlgorithmUtils {
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
 
-        List<ItemPath> userValuePaths = getUserSingleValuePaths();
-        List<ItemPath> roleValuePaths = getRoleSingleValuePaths();
-
-        roleAnalysisService.processAttributeAnalysis(detectedPatterns, userExistCache, roleExistCache,
-                userValuePaths, roleValuePaths, task, result);
+        roleAnalysisService.processAttributeAnalysis(detectedPatterns, userExistCache, roleExistCache, task, result);
 
         return detectedPatterns;
     }

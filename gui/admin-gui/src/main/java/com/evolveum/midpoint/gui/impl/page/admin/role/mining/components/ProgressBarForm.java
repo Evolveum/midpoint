@@ -7,24 +7,20 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
+import java.util.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
-
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
 
 /**
  * Represents a form containing multiple progress bars, each visualizing the frequency of certain values.
@@ -42,11 +38,12 @@ public class ProgressBarForm extends BasePanel<String> {
     private static final String ID_CONTAINER = "container";
     private static final String ID_FORM_TITLE = "progressFormTitle";
     private static final String ID_REPEATING_VIEW = "repeatingProgressBar";
-
     transient RoleAnalysisAttributeAnalysis analysisResult;
+    Set<String> pathToMark;
 
-    public ProgressBarForm(String id, RoleAnalysisAttributeAnalysis analysisResult) {
+    public ProgressBarForm(String id, RoleAnalysisAttributeAnalysis analysisResult, Set<String> pathToMark) {
         super(id);
+        this.pathToMark = pathToMark;
         this.analysisResult = analysisResult;
     }
 
@@ -73,7 +70,7 @@ public class ProgressBarForm extends BasePanel<String> {
 
     }
 
-    private static void initProgressBars(@NotNull RoleAnalysisAttributeAnalysis analysisResult,
+    private void initProgressBars(@NotNull RoleAnalysisAttributeAnalysis analysisResult,
             @NotNull RepeatingView repeatingProgressBar, WebMarkupContainer container) {
         List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeStructures = new ArrayList<>(analysisResult.getAttributeStatistics());
         roleAnalysisAttributeStructures.sort(Comparator.comparingDouble(RoleAnalysisAttributeStatistics::getFrequency).reversed());
@@ -96,6 +93,19 @@ public class ProgressBarForm extends BasePanel<String> {
                 Double key = entry.getKey();
                 List<RoleAnalysisAttributeStatistics> value = entry.getValue();
                 counter++;
+
+                int valuesCount = value.size();
+
+                String identifier = null;
+                if(valuesCount == 1){
+                    if (pathToMark != null) {
+                        if (pathToMark.contains(value.get(0).getAttributeValue())) {
+                            identifier = "red";
+                        }
+                    }
+                }
+
+                String finalIdentifier = identifier;
                 ProgressBar progressBar = new ProgressBar(repeatingProgressBar.newChildId()) {
                     @Override
                     public double getActualValue() {
@@ -103,9 +113,16 @@ public class ProgressBarForm extends BasePanel<String> {
                     }
 
                     @Override
+                    public String getProgressBarColor() {
+                        if (finalIdentifier != null) {
+                            return "red";
+                        }
+                        return super.getProgressBarColor();
+                    }
+
+                    @Override
                     public String getBarTitle() {
-                        int size = value.size();
-                        if (size == 1) {
+                        if (valuesCount == 1) {
                             return value.get(0).getAttributeValue();
                         }
                         return "Objects (" + size + ")";
@@ -129,9 +146,16 @@ public class ProgressBarForm extends BasePanel<String> {
             totalBars = roleAnalysisAttributeStructures.size();
             for (int i = 0; i < roleAnalysisAttributeStructures.size(); i++) {
                 RoleAnalysisAttributeStatistics item = roleAnalysisAttributeStructures.get(i);
-                String jsonValue = item.getAttributeValue();
+                String attributeValue = item.getAttributeValue();
                 double frequency = item.getFrequency();
+                String identifier = null;
+                if (pathToMark != null) {
+                    if (pathToMark.contains(attributeValue)) {
+                        identifier = "red";
+                    }
+                }
 
+                String finalIdentifier = identifier;
                 ProgressBar progressBar = new ProgressBar(repeatingProgressBar.newChildId()) {
                     @Override
                     public double getActualValue() {
@@ -140,7 +164,15 @@ public class ProgressBarForm extends BasePanel<String> {
 
                     @Override
                     public String getBarTitle() {
-                        return jsonValue;
+                        return attributeValue;
+                    }
+
+                    @Override
+                    public String getProgressBarColor() {
+                        if (finalIdentifier != null) {
+                            return "red";
+                        }
+                        return super.getProgressBarColor();
                     }
                 };
                 progressBar.setOutputMarkupId(true);

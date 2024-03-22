@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
 
 import org.apache.wicket.AttributeModifier;
@@ -51,6 +52,8 @@ public class RepeatingAttributeForm extends BasePanel<String> {
     private static final String ID_SECOND_GROUP_CARD = "secondGroupCard";
     private static final String ID_SHOW_MORE_PROGRESS_BAR = "showMoreProgressForm";
 
+    boolean isResultExpanded = false;
+
     public RepeatingAttributeForm(String id,
             @NotNull RoleAnalysisAttributeAnalysisResult attributeAnalysisResult,
             @NotNull Set<String> objectsOid,
@@ -85,19 +88,23 @@ public class RepeatingAttributeForm extends BasePanel<String> {
         repeatingProgressBar.setOutputMarkupId(true);
         containerFirstGroup.add(repeatingProgressBar);
 
-        initProgressBars(attributeAnalysisResult, repeatingProgressBar, containerFirstGroup);
+        initProgressBars(attributeAnalysisResult, repeatingProgressBar, containerFirstGroup, getPathToMark());
 
         initTablePanel(objectsOid, processMode, secondGroupCard);
+    }
+
+    protected Set<String> getPathToMark() {
+        return null;
     }
 
     public boolean isHide() {
         return false;
     }
 
-    private static void initProgressBars(
+    private void initProgressBars(
             @NotNull RoleAnalysisAttributeAnalysisResult attributeAnalysisResult,
             @NotNull RepeatingView repeatingProgressBar,
-            @NotNull WebMarkupContainer containerFirstGroup) {
+            @NotNull WebMarkupContainer containerFirstGroup, Set<String> pathToMark) {
         int maxVisibleBars = 3;
         int totalBars = 0;
 
@@ -116,7 +123,12 @@ public class RepeatingAttributeForm extends BasePanel<String> {
         });
 
         for (RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis : toSort) {
-            ProgressBarForm progressBarForm = new ProgressBarForm(repeatingProgressBar.newChildId(), roleAnalysisAttributeAnalysis);
+
+            ProgressBarForm progressBarForm = new ProgressBarForm(
+                    repeatingProgressBar.newChildId(),
+                    roleAnalysisAttributeAnalysis,
+                    pathToMark);
+
             progressBarForm.setOutputMarkupId(true);
 
             if (totalBars >= maxVisibleBars) {
@@ -128,9 +140,19 @@ public class RepeatingAttributeForm extends BasePanel<String> {
         }
 
         if (totalBars > maxVisibleBars) {
-            AjaxLinkPanel showAllButton = new AjaxLinkPanel(ID_SHOW_MORE_PROGRESS_BAR, Model.of("Show more results")) {
+            AjaxLinkPanel showAllButton = new AjaxLinkPanel(ID_SHOW_MORE_PROGRESS_BAR, new LoadableModel() {
+                @Override
+                protected Object load() {
+                    if (!isResultExpanded) {
+                        return Model.of("Show more results");
+                    }
+                    return Model.of("Collapse results");
+                }
+            }) {
+
                 @Override
                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                    isResultExpanded = !isResultExpanded;
                     int counter = 0;
                     for (Component component : repeatingProgressBar) {
                         counter++;

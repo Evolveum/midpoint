@@ -89,17 +89,18 @@ public class UserBasedClustering implements Clusterable {
         boolean rule = false;
         if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
             List<RoleAnalysisMatchingRuleType> matchingRule = session.getMatchingRule();
-            attributeMatches = generateMatchingRulesList(matchingRule);
+            attributeMatches = generateMatchingRulesList(matchingRule, RoleAnalysisProcessModeType.USER);
             if (attributeMatches.isEmpty()) {
                 dataPoints = prepareDataPoints(chunkMap);
             } else {
                 rule = true;
-                dataPoints = prepareDataPointsUserModerRules(chunkMap, roleAnalysisService, task, attributeMatches);
+                dataPoints = prepareDataPointsUserModeRules(chunkMap, roleAnalysisService, attributeMatches, task);
             }
         } else {
             dataPoints = prepareDataPoints(chunkMap);
         }
         handler.iterateActualStatus();
+        chunkMap.clear();
 
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
         double similarityDifference = 1 - (similarityThreshold / 100);
@@ -116,7 +117,7 @@ public class UserBasedClustering implements Clusterable {
 
         //TODO min attributes intersection
         if (rule) {
-            distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap, new HashSet<>(attributeMatches),0);
+            distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap, new HashSet<>(attributeMatches), 0);
         } else {
             distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap);
         }

@@ -1395,14 +1395,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0">
+            <xsd:element name="attributeIdentifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>Path to the property used for comparison.</p>
                         <p>It is necessary that the output be a simple object convertible to a String type</p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisMatchingRuleType.itemPath</a:displayName>
+                        <a:displayName>RoleAnalysisMatchingRuleType.attributeIdentifier</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1417,28 +1417,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!--<xsd:element name="isMultiValue" type="xsd:boolean" minOccurs="0">-->
-            <!--    <xsd:annotation>-->
-            <!--        <xsd:documentation>-->
-            <!--            <p>If true, the matching rule is applied to each value of the property.</p>-->
-            <!--            <p>Also, there must be specified a matchSimilarity value. If not default 100% is used.</p>-->
-            <!--        </xsd:documentation>-->
-            <!--        <xsd:appinfo>-->
-            <!--            <a:displayName>RoleAnalysisMatchingRuleType.isMultiValue</a:displayName>-->
-            <!--        </xsd:appinfo>-->
-            <!--    </xsd:annotation>-->
-            <!--</xsd:element>-->
-            <!--<xsd:element name="matchSimilarity" type="xsd:double" minOccurs="0">-->
-            <!--    <xsd:annotation>-->
-            <!--        <xsd:documentation>-->
-            <!--            <p>Similarity threshold used for comparison (Jaccard metric).</p>-->
-            <!--            <p>If the condition is not met, then the objects are excluded.</p>-->
-            <!--        </xsd:documentation>-->
-            <!--        <xsd:appinfo>-->
-            <!--            <a:displayName>RoleAnalysisMatchingRuleType.matchSimilarity</a:displayName>-->
-            <!--        </xsd:appinfo>-->
-            <!--    </xsd:annotation>-->
-            <!--</xsd:element>-->
             <xsd:element name="weight" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

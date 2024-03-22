@@ -4,31 +4,53 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisMatchingRuleType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+
+import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
 
 /**
  * Represents an attribute match with associated extension properties.
  */
 public class AttributeMatch implements Serializable {
 
-    private ItemPathType key;
+    RoleAnalysisAttributeDef roleAnalysisAttributeDef;
+    private String attributeDisplayValue;
     boolean isMultiValue;
     double similarity;
     double weight;
 
-    public AttributeMatch(RoleAnalysisMatchingRuleType rule) {
+    public AttributeMatch(RoleAnalysisMatchingRuleType rule, @NotNull RoleAnalysisProcessModeType processMode) {
         if (rule == null
                 || rule.getMatchRule() == null
-                || rule.getWeight() == null
-                || rule.getItemPath() == null) {
+                || rule.getWeight() == null) {
             return;
         }
 
-        this.key = rule.getItemPath();
         this.isMultiValue = rule.getMatchRule().isIsMultiValue();
         this.similarity = rule.getMatchRule().getMatchSimilarity();
         this.weight = rule.getWeight();
+
+
+        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            for (RoleAnalysisAttributeDef attributesForRoleAnalysis : getAttributesForRoleAnalysis()) {
+                if (attributesForRoleAnalysis.getDisplayValue().equals(rule.getAttributeIdentifier())) {
+                    this.roleAnalysisAttributeDef = attributesForRoleAnalysis;
+                    this.attributeDisplayValue = attributesForRoleAnalysis.getDisplayValue();
+                }
+            }
+        } else {
+            for (RoleAnalysisAttributeDef attributesForRoleAnalysis : getAttributesForUserAnalysis()) {
+                if (attributesForRoleAnalysis.getDisplayValue().equals(rule.getAttributeIdentifier())) {
+                    this.roleAnalysisAttributeDef = attributesForRoleAnalysis;
+                    this.attributeDisplayValue = attributesForRoleAnalysis.getDisplayValue();
+                }
+            }
+        }
 
         if (rule.getMatchRule().getMatchSimilarity() != null) {
             Double matchSimilarity = rule.getMatchRule().getMatchSimilarity();
@@ -36,23 +58,15 @@ public class AttributeMatch implements Serializable {
         }
     }
 
-    public static List<AttributeMatch> generateMatchingRulesList(List<RoleAnalysisMatchingRuleType> matchingRule) {
+    public static @NotNull List<AttributeMatch> generateMatchingRulesList(
+            @NotNull List<RoleAnalysisMatchingRuleType> matchingRule,
+            @NotNull RoleAnalysisProcessModeType processMode) {
         List<AttributeMatch> attributeMatches = new ArrayList<>();
         for (RoleAnalysisMatchingRuleType rule : matchingRule) {
-
-            if (rule.getMatchRule() == null ||
-                    rule.getMatchRule().getMatchSimilarity() == null
-                    || rule.getWeight() == null
-                    || rule.getItemPath() == null) {
-                continue;
-            }
-            attributeMatches.add(new AttributeMatch(rule));
+            AttributeMatch attributeMatch = new AttributeMatch(rule, processMode);
+            attributeMatches.add(attributeMatch);
         }
         return attributeMatches;
-    }
-
-    public ItemPathType getKey() {
-        return key;
     }
 
     public boolean isMultiValue() {
@@ -79,4 +93,19 @@ public class AttributeMatch implements Serializable {
         this.weight = weight;
     }
 
+    public RoleAnalysisAttributeDef getRoleAnalysisItemDef() {
+        return roleAnalysisAttributeDef;
+    }
+
+    public void setRoleAnalysisItemDef(RoleAnalysisAttributeDef roleAnalysisAttributeDef) {
+        this.roleAnalysisAttributeDef = roleAnalysisAttributeDef;
+    }
+
+    public String getAttributeDisplayValue() {
+        return attributeDisplayValue;
+    }
+
+    public void setAttributeDisplayValue(String attributeDisplayValue) {
+        this.attributeDisplayValue = attributeDisplayValue;
+    }
 }

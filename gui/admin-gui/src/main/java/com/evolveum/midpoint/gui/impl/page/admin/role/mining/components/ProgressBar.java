@@ -84,6 +84,9 @@ public class ProgressBar extends BasePanel<String> {
                 getActualValue()));
         progressBar.add(AttributeModifier.replace("style", "width: " +
                 getActualValue() + "%"));
+        //set color
+        progressBar.add(AttributeModifier.append("style", "; background-color: " +
+                getProgressBarColor()));
     }
 
     private void resolveTitleLabel() {
@@ -170,6 +173,10 @@ public class ProgressBar extends BasePanel<String> {
 
     public String getBarTitle() {
         return barTitle;
+    }
+
+    public String getProgressBarColor(){
+        return "blue";
     }
 
     public List<RoleAnalysisAttributeStatistics> getRoleAnalysisAttributeResult() {

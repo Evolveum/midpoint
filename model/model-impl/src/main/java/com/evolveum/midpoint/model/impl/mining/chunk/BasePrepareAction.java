@@ -12,7 +12,11 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 import java.util.*;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
+import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -35,6 +39,73 @@ public abstract class BasePrepareAction implements MiningStructure {
     RoleAnalysisProgressIncrement handler;
     Task task;
     OperationResult result;
+
+    DisplayValueOption option;
+
+    public RoleAnalysisCacheOption getUserCacheOption() {
+        return userCacheOption;
+    }
+
+    public RoleAnalysisCacheOption getRoleCacheOption() {
+        return roleCacheOption;
+    }
+    //TODO - add the correct path for the attributes
+    RoleAnalysisCacheOption userCacheOption = generateUserCacheOption();
+    RoleAnalysisCacheOption roleCacheOption = generateRoleCacheOption();
+
+    public RoleAnalysisCacheOption generateUserCacheOption() {
+        List<RoleAnalysisAttributeDef> itemDef = new ArrayList<>();
+
+        //TODO only for expanded structure
+//        if (option != null){
+//            ItemPath userItemValuePath = option.getUserItemValuePath();
+//            if(userItemValuePath != null){
+//                RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(userItemValuePath, false);
+//                itemDef.add(roleAnalysisAttributeDef);
+//            }
+//        }
+
+        ItemPath path = ItemPath.create(UserType.F_NAME);
+        RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false);
+        itemDef.add(roleAnalysisAttributeDef);
+
+        path = ItemPath.create(UserType.F_ASSIGNMENT);
+        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, true);
+        itemDef.add(roleAnalysisAttributeDef);
+
+        path = ItemPath.create(UserType.F_ARCHETYPE_REF);
+        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false);
+        itemDef.add(roleAnalysisAttributeDef);
+
+        return new RoleAnalysisCacheOption(itemDef);
+    }
+
+    public RoleAnalysisCacheOption generateRoleCacheOption() {
+        List<RoleAnalysisAttributeDef> itemDef = new ArrayList<>();
+
+        //TODO only for expanded structure
+//        if (option != null){
+//            ItemPath roleItemValuePath = option.getRoleItemValuePath();
+//            if(roleItemValuePath != null){
+//                RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(roleItemValuePath, false);
+//                itemDef.add(roleAnalysisAttributeDef);
+//            }
+//        }
+
+        ItemPath path = ItemPath.create(RoleType.F_NAME);
+        RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false);
+        itemDef.add(roleAnalysisAttributeDef);
+
+        path = ItemPath.create(RoleType.F_LIFECYCLE_STATE);
+        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false);
+        itemDef.add(roleAnalysisAttributeDef);
+
+        path = ItemPath.create(RoleType.F_ARCHETYPE_REF);
+        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false);
+        itemDef.add(roleAnalysisAttributeDef);
+
+        return new RoleAnalysisCacheOption(itemDef);
+    }
 
     /**
      * Executes the action for preparing the mining structure based on the specified cluster and mode.
@@ -63,6 +134,7 @@ public abstract class BasePrepareAction implements MiningStructure {
         this.handler = handler;
         this.task = task;
         this.result = result;
+        this.option = option;
 
         if (fullProcess) {
             return resolveFullChunkStructures(roleAnalysisService, cluster, mode, option);
@@ -118,7 +190,7 @@ public abstract class BasePrepareAction implements MiningStructure {
             handler.iterateActualStatus();
 
             String membersOid = member.getOid();
-            PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, membersOid, task, result);
+            PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, membersOid, task, result, getRoleCacheOption());
             if (role != null) {
                 RoleType roleObject = role.asObjectable();
                 String lifecycleState = roleObject.getLifecycleState();
@@ -176,7 +248,7 @@ public abstract class BasePrepareAction implements MiningStructure {
             String iconColor = null;
             if (rolesSize == 1) {
                 PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(
-                        roleExistCache, roles.get(0), task, result);
+                        roleExistCache, roles.get(0), task, result, getRoleCacheOption());
                 chunkName = "NOT FOUND";
                 if (role != null) {
                     chunkName = role.getName().toString();
@@ -188,7 +260,7 @@ public abstract class BasePrepareAction implements MiningStructure {
 
             MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(roles, key, chunkName, frequency, RoleAnalysisOperationMode.EXCLUDE);
 
-            if(iconColor != null) {
+            if (iconColor != null) {
                 miningRoleTypeChunk.setIconColor(iconColor);
             }
 
@@ -220,7 +292,7 @@ public abstract class BasePrepareAction implements MiningStructure {
             String iconColor = null;
             if (userSize == 1) {
                 PrismObject<UserType> user = roleAnalysisService.cacheUserTypeObject(
-                        userExistCache, users.get(0), task, result);
+                        userExistCache, users.get(0), task, result, getUserCacheOption());
                 chunkName = "NOT FOUND";
                 if (user != null) {
                     chunkName = user.getName().toString();
@@ -230,7 +302,7 @@ public abstract class BasePrepareAction implements MiningStructure {
 
             MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(users, key, chunkName, frequency, RoleAnalysisOperationMode.EXCLUDE);
 
-            if(iconColor != null) {
+            if (iconColor != null) {
                 miningUserTypeChunk.setIconColor(iconColor);
             }
 
@@ -256,7 +328,7 @@ public abstract class BasePrepareAction implements MiningStructure {
 
             String membersOid = member.getOid();
             PrismObject<UserType> user = roleAnalysisService
-                    .cacheUserTypeObject(userExistCache, membersOid, task, result);
+                    .cacheUserTypeObject(userExistCache, membersOid, task, result, getUserCacheOption());
             if (user == null) {continue;}
             membersOidSet.add(membersOid);
             List<String> rolesOid = getRolesOidAssignment(user.asObjectable());
@@ -264,7 +336,7 @@ public abstract class BasePrepareAction implements MiningStructure {
             List<String> existingRolesAssignment = new ArrayList<>();
             for (String roleId : rolesOid) {
                 PrismObject<RoleType> role = roleAnalysisService
-                        .cacheRoleTypeObject(roleExistCache, roleId, task, result);
+                        .cacheRoleTypeObject(roleExistCache, roleId, task, result, getRoleCacheOption());
                 if (role == null) {continue;}
                 RoleType roleObject = role.asObjectable();
                 String lifecycleState = roleObject.getLifecycleState();
@@ -298,7 +370,7 @@ public abstract class BasePrepareAction implements MiningStructure {
             handler.iterateActualStatus();
 
             String oid = member.getOid();
-            PrismObject<UserType> user = roleAnalysisService.cacheUserTypeObject(userExistCache, oid, task, result);
+            PrismObject<UserType> user = roleAnalysisService.cacheUserTypeObject(userExistCache, oid, task, result, getUserCacheOption());
             if (user == null) {
                 continue;
             }
@@ -306,7 +378,7 @@ public abstract class BasePrepareAction implements MiningStructure {
             List<String> rolesOid = getRolesOidAssignment(user.asObjectable());
 
             for (String roleId : rolesOid) {
-                PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, roleId, task, result);
+                PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, roleId, task, result, getRoleCacheOption());
                 if (role == null) {continue;}
 
                 RoleType roleObject = role.asObjectable();

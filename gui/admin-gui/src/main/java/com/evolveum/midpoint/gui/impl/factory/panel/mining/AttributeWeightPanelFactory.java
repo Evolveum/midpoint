@@ -4,9 +4,12 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.factory.panel;
+package com.evolveum.midpoint.gui.impl.factory.panel.mining;
 
 import java.io.Serializable;
+
+import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFactory;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
@@ -21,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
 
 //TODO check serializable
 @Component
-public class RoleAnalysisWeightPanelFactory extends AbstractInputGuiComponentFactory<Double> implements Serializable {
+public class AttributeWeightPanelFactory extends AbstractInputGuiComponentFactory<Double> implements Serializable {
 
     @PostConstruct
     public void register() {
@@ -40,8 +43,11 @@ public class RoleAnalysisWeightPanelFactory extends AbstractInputGuiComponentFac
         if (panelCtx.getRealValueModel().getObject() == null) {
             panelCtx.getRealValueModel().setObject(1.0);
         }
+
         return new TextPanel<>(panelCtx.getComponentId(),
                 panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false);
+
+
     }
 
     @Override

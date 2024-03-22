@@ -11,52 +11,59 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.util.convert.ConversionException;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MatchType;
 
 public class MatchRulePanel extends BasePanel<String> {
 
-    private static final String ID_CONTAINER = "container";
+    private static final String ID_CONTAINER = "match_rule_container";
     private static final String ID_SLIDER_LABEL = "slider_label";
     private static final String ID_SLIDER = "slider";
-    private static final String ID_CHECK_BOX = "check_box";
-
-    Integer sliderSimilarityValue;
 
     public MatchRulePanel(String id, ItemRealValueModel<MatchType> realValueModel, boolean isMultiValue) {
         super(id);
 
         if (getMatchTypeObject(realValueModel) == null) {
-            realValueModel.setObject(new MatchType().matchSimilarity(getDefaultValue()).isMultiValue(isMultiValue));
-            sliderSimilarityValue = (int) getDefaultValue();
-        } else {
-            sliderSimilarityValue = realValueModel.getObject().getMatchSimilarity().intValue();
-        }
+            MatchType matchType = new MatchType()
+                    .matchSimilarity(getDefaultValue())
+                    .isMultiValue(isMultiValue);
 
+            realValueModel.setObject(matchType);
+        }
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
-        TextField<String> sliderLabel = new TextField<>(ID_SLIDER_LABEL, new LoadableModel<>() {
+        add(container);
+
+        initSliderPanel(realValueModel, container);
+    }
+
+    private void initSliderPanel(
+            @NotNull ItemRealValueModel<MatchType> realValueModel,
+            @NotNull WebMarkupContainer container) {
+
+        LoadableDetachableModel<String> sliderSimilarityValue = new LoadableDetachableModel<>() {
             @Override
-            protected String load() {
-                return sliderSimilarityValue + "%";
+            protected @NotNull String load() {
+                return realValueModel.getObject().getMatchSimilarity().intValue() + "%";
             }
-        });
+        };
+
+        TextField<String> sliderLabel = new TextField<>(ID_SLIDER_LABEL, sliderSimilarityValue);
         sliderLabel.setOutputMarkupId(true);
         sliderLabel.setEnabled(false);
         container.add(sliderLabel);
 
         FormComponent<MatchType> slider = new FormComponent<>(ID_SLIDER, realValueModel) {
             @Override
-            protected MatchType convertValue(String[] value) throws ConversionException {
+            protected @NotNull MatchType convertValue(String @NotNull [] value) throws ConversionException {
                 MatchType object = getModel().getObject();
                 object.setMatchSimilarity(Double.valueOf(value[0]));
                 return object;
@@ -68,7 +75,6 @@ public class MatchRulePanel extends BasePanel<String> {
                 add(new AjaxFormComponentUpdatingBehavior("input") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
-                        sliderSimilarityValue = getModel().getObject().getMatchSimilarity().intValue();
                         target.add(sliderLabel);
                     }
                 });
@@ -82,36 +88,14 @@ public class MatchRulePanel extends BasePanel<String> {
         if (!realValueModel.getObject().isIsMultiValue()) {
             slider.setEnabled(false);
         }
+
+        realValueModel.getObject().isIsMultiValue();
+        slider.add(new EnableBehaviour(() -> realValueModel.getObject().isIsMultiValue()));
         container.add(slider);
+    }
 
-        IModel<Boolean> iModel = new IModel<>() {
-            @Override
-            public Boolean getObject() {
-                return realValueModel.getObject().isIsMultiValue();
-            }
-
-            @Override
-            public void setObject(Boolean object) {
-                realValueModel.getObject().setIsMultiValue(object);
-
-            }
-        };
-
-        CheckBox components = new CheckBox(ID_CHECK_BOX, iModel);
-        components.setOutputMarkupId(true);
-
-        components.add(new AjaxFormComponentUpdatingBehavior("change") {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                FormComponent<MatchType> sliderFormComponent = MatchRulePanel.this.getSliderFormComponent();
-                MatchType object = realValueModel.getObject();
-                sliderFormComponent.setEnabled(object.isIsMultiValue());
-                target.add(sliderFormComponent);
-            }
-        });
-        container.add(components);
-        add(container);
-
+    public boolean isMultiValue() {
+        return false;
     }
 
     public MatchType getMatchTypeObject(@NotNull ItemRealValueModel<MatchType> realValueModel) {
@@ -125,10 +109,6 @@ public class MatchRulePanel extends BasePanel<String> {
             }
         }
         return getDefaultValue();
-    }
-
-    private FormComponent<MatchType> getSliderFormComponent() {
-        return (FormComponent<MatchType>) get(getPageBase().createComponentPath(ID_CONTAINER, ID_SLIDER));
     }
 
     @Override

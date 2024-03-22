@@ -7,16 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart;
 
+import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
+
 import java.util.HashSet;
 import java.util.List;
-
-import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RepeatingAttributeForm;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisClusterStatisticType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+import java.util.Set;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -24,17 +19,17 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RepeatingAttributeForm;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisAttributeChartModel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
-
-import static com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure.extractAttributeAnalysis;
-import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
-import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.ID_COLLAPSABLE_CONTENT;
 
 /**
  * Represents the role analysis attribute chart panel.
@@ -51,7 +46,7 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
     RoleAnalysisClusterType cluster;
 
     public RoleAnalysisAttributeChartPanel(String id, @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructureList,
-            @NotNull RoleAnalysisClusterType cluster) {
+            @Nullable RoleAnalysisClusterType cluster) {
         super(id);
         this.cluster = cluster;
         this.attributeAnalysisStructureList = attributeAnalysisStructureList;
@@ -63,7 +58,11 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
         super.onInitialize();
         initChartPart();
 
-        initAttributeStatisticsPanel(cluster);
+        if (cluster != null) {
+            initAttributeStatisticsPanel(cluster);
+        } else {
+            initTargetedAttributeStatisticsPanel(attributeAnalysisStructureList);
+        }
     }
 
     private void initChartPart() {
@@ -140,6 +139,11 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
                 }
 
                 @Override
+                protected Set<String> getPathToMark() {
+                    return getUserPathToMark();
+                }
+
+                @Override
                 public boolean isHide() {
                     return true;
                 }
@@ -165,6 +169,11 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
                 }
 
                 @Override
+                protected Set<String> getPathToMark() {
+                    return getRolePathToMark();
+                }
+
+                @Override
                 public boolean isHide() {
                     return true;
                 }
@@ -176,6 +185,77 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
             label.setOutputMarkupId(true);
             webMarkupContainerRole.add(label);
         }
+    }
+
+    public void initTargetedAttributeStatisticsPanel(@NotNull List<AttributeAnalysisStructure> attributeAnalysisStructureList) {
+
+        RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
+        for (AttributeAnalysisStructure attributeAnalysisStructure : attributeAnalysisStructureList) {
+            double density = attributeAnalysisStructure.getDensity();
+            if (density == 0) {
+                continue;
+            }
+            RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+            roleAnalysisAttributeAnalysis.setDensity(density);
+            roleAnalysisAttributeAnalysis.setItemPath(attributeAnalysisStructure.getItemPath());
+            roleAnalysisAttributeAnalysis.setIsMultiValue(attributeAnalysisStructure.isMultiValue());
+            roleAnalysisAttributeAnalysis.setDescription(attributeAnalysisStructure.getDescription());
+            List<RoleAnalysisAttributeStatistics> attributeStatistics = attributeAnalysisStructure.getAttributeStatistics();
+            for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic.clone());
+            }
+
+            userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis.clone());
+        }
+
+        WebMarkupContainer webMarkupContainerUser = new WebMarkupContainer(ID_FIRST_COLLAPSABLE_CONTAINER);
+        webMarkupContainerUser.setOutputMarkupId(true);
+        add(webMarkupContainerUser);
+
+        RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
+                ID_COLLAPSABLE_CONTENT, userAnalysis, new HashSet<>(), getProcessMode()) {
+            @Override
+            protected boolean isTableSupported() {
+                return false;
+            }
+
+            @Override
+            protected Set<String> getPathToMark() {
+                if (getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
+                    return getRolePathToMark();
+                } else {
+                    return getUserPathToMark();
+                }
+            }
+
+            @Override
+            public boolean isHide() {
+                return true;
+            }
+        };
+        repeatingAttributeForm.setOutputMarkupId(true);
+        webMarkupContainerUser.add(repeatingAttributeForm);
+
+        WebMarkupContainer webMarkupContainerRole = new WebMarkupContainer(ID_SECOND_COLLAPSABLE_CONTAINER);
+        webMarkupContainerRole.setOutputMarkupId(true);
+        add(webMarkupContainerRole);
+
+        WebMarkupContainer label = new WebMarkupContainer(ID_COLLAPSABLE_CONTENT);
+        label.setOutputMarkupId(true);
+        webMarkupContainerRole.add(label);
+
+    }
+
+    protected Set<String> getRolePathToMark() {
+        return null;
+    }
+
+    protected Set<String> getUserPathToMark() {
+        return null;
+    }
+
+    protected RoleAnalysisProcessModeType getProcessMode() {
+        return RoleAnalysisProcessModeType.USER;
     }
 
 }

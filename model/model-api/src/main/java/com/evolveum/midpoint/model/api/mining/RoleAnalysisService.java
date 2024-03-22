@@ -10,10 +10,11 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
+import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -386,6 +387,7 @@ public interface RoleAnalysisService {
      * @param roleOid The OID of the RoleType PrismObject to retrieve.
      * @param task The task associated with the operation.
      * @param result The operation result.
+     * @param option
      * @return The RoleType PrismObject fetched from the cache or ModelService, or null if not found.
      */
     @Nullable
@@ -393,7 +395,8 @@ public interface RoleAnalysisService {
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
             @NotNull String roleOid,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @Nullable RoleAnalysisCacheOption option);
 
     /**
      * Retrieves a UserType PrismObject from a cache or, if not present,
@@ -403,6 +406,7 @@ public interface RoleAnalysisService {
      * @param userOid The OID of the UserType PrismObject to retrieve.
      * @param task The task associated with the operation.
      * @param result The operation result.
+     * @param option
      * @return The UserType PrismObject fetched from the cache or ModelService, or null if not found.
      */
     @Nullable
@@ -410,7 +414,8 @@ public interface RoleAnalysisService {
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
             @NotNull String userOid,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @Nullable RoleAnalysisCacheOption option);
 
     /**
      * This method is used to execute a migration task.
@@ -658,7 +663,6 @@ public interface RoleAnalysisService {
      *
      * @param objectOid Set of object OIDs for which attribute analysis will be performed.
      * @param mode RoleAnalysisProcessModeType indicating the type of objects being analyzed (USER or ROLE).
-     * @param itemPathSet List of ItemPath specifying attributes to include in the analysis.
      * @param membershipDensity Density value used for membership calculation in the analysis.
      * @param task Task used for processing the attribute analysis.
      * @param result OperationResult containing the result of the operation.
@@ -668,7 +672,6 @@ public interface RoleAnalysisService {
     List<AttributeAnalysisStructure> attributeAnalysis(
             @NotNull Set<String> objectOid,
             @NotNull RoleAnalysisProcessModeType mode,
-            @NotNull List<ItemPath> itemPathSet,
             Double membershipDensity,
             @NotNull Task task,
             @NotNull OperationResult result);
@@ -677,27 +680,41 @@ public interface RoleAnalysisService {
      * Performs attribute analysis for user objects.
      *
      * @param prismUsers Set of PrismObject representing user objects to analyze.
-     * @param itemPathSet List of ItemPath specifying which attributes to include in the analysis.
      * @param membershipDensity The density of membership.
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
      */
     List<AttributeAnalysisStructure> userTypeAttributeAnalysis(
             @NotNull Set<PrismObject<UserType>> prismUsers,
-            @NotNull List<ItemPath> itemPathSet,
             Double membershipDensity);
 
     /**
      * Performs attribute analysis for role objects.
      *
      * @param prismRoles Set of PrismObject representing role objects to analyze.
-     * @param itemPathSet List of ItemPath specifying which attributes to include in the analysis.
      * @param membershipDensity The density of membership.
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
      */
     List<AttributeAnalysisStructure> roleTypeAttributeAnalysis(
             @NotNull Set<PrismObject<RoleType>> prismRoles,
-            @NotNull List<ItemPath> itemPathSet,
             Double membershipDensity);
+
+    /**
+     * Performs attribute analysis for role members.
+     *
+     * @param objectOid The OID of the object to analyze.
+     * @param targetObjectOid
+     * @param task Task used for processing the attribute analysis.
+     * @param result OperationResult containing the result of the operation.
+     * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
+     */
+    List<AttributeAnalysisStructure> roleMembersAttributeAnalysis(
+            @NotNull String objectOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+    List<AttributeAnalysisStructure> userRolesAttributeAnalysis(
+            @NotNull String objectOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 
     /**
      * Processes attribute analysis for the detected patterns.
@@ -708,8 +725,6 @@ public interface RoleAnalysisService {
      * @param detectedPatterns List of detected patterns to process.
      * @param userExistCache Map containing cached PrismObject of UserType for efficient retrieval.
      * @param roleExistCache Map containing cached PrismObject of RoleType for efficient retrieval.
-     * @param userValuePaths List of ItemPath specifying attributes to include in user analysis.
-     * @param roleValuePaths List of ItemPath specifying attributes to include in role analysis.
      * @param task Task used for processing the attribute analysis.
      * @param result OperationResult containing the result of the operation.
      * Any errors or status information will be recorded here.
@@ -718,8 +733,6 @@ public interface RoleAnalysisService {
             @NotNull List<RoleAnalysisDetectionPatternType> detectedPatterns,
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
-            @NotNull List<ItemPath> userValuePaths,
-            @NotNull List<ItemPath> roleValuePaths,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -739,4 +752,14 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result);
 
     String resolveFocusObjectIconColor(@NotNull FocusType focusObject, @NotNull Task task, @NotNull OperationResult result);
+
+
+    @Nullable Set<String> resolveUserValueToMark(
+            @NotNull PrismObject<UserType> prismUser,
+            @NotNull List<RoleAnalysisAttributeDef> itemDef);
+
+    @Nullable Set<String> resolveRoleValueToMark(
+            @NotNull PrismObject<RoleType> prismUser,
+            @NotNull List<RoleAnalysisAttributeDef> itemDef);
+
 }

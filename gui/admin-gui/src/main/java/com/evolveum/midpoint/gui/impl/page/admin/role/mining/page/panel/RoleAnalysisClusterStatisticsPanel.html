@@ -10,15 +10,18 @@
         xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
+
     <div class="row">
+
         <div class="col-md-12">
             <div wicket:id="main"/>
-
-            <div wicket:id="container">
-                <div wicket:id="chartPanel"></div>
-            </div>
-
         </div>
+    </div>
+
+    <div style="margin-bottom: 30px;"></div>
+
+    <div wicket:id="container" class="row d-flex justify-content-center">
+        <div wicket:id="chartPanel"></div>
     </div>
 
 </wicket:panel>

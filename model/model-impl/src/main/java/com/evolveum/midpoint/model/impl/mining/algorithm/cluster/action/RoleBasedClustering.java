@@ -90,17 +90,18 @@ public class RoleBasedClustering implements Clusterable {
         boolean rule = false;
         if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
             List<RoleAnalysisMatchingRuleType> matchingRule = session.getMatchingRule();
-            attributeMatches = generateMatchingRulesList(matchingRule);
+            attributeMatches = generateMatchingRulesList(matchingRule, RoleAnalysisProcessModeType.ROLE);
             if (attributeMatches.isEmpty()) {
                 dataPoints = prepareDataPoints(chunkMap);
             } else {
                 rule = true;
-                dataPoints = prepareDataPointsRoleModeRules(chunkMap, roleAnalysisService, task, attributeMatches);
+                dataPoints = prepareDataPointsRoleModeRules(chunkMap, roleAnalysisService, attributeMatches, task);
             }
         } else {
             dataPoints = prepareDataPoints(chunkMap);
         }
         handler.iterateActualStatus();
+        chunkMap.clear();
 
 
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();

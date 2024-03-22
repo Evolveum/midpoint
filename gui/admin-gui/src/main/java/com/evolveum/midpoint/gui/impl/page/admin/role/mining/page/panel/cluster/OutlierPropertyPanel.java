@@ -57,14 +57,7 @@ public class OutlierPropertyPanel extends AbstractObjectMainPanel<RoleAnalysisOu
         add(container);
 
         RoleAnalysisOutlierType objectType = getObjectDetailsModels().getObjectType();
-        List<RoleAnalysisOutlierDescriptionType> result = objectType.getResult();
-        RoleAnalysisOutlierPropertyTable components = new RoleAnalysisOutlierPropertyTable(ID_PANEL,
-                new LoadableDetachableModel<>() {
-                    @Override
-                    protected List<RoleAnalysisOutlierDescriptionType> load() {
-                        return result;
-                    }
-                });
+        RoleAnalysisOutlierPropertyTable components = new RoleAnalysisOutlierPropertyTable(ID_PANEL, objectType);
         container.add(components);
     }
 
