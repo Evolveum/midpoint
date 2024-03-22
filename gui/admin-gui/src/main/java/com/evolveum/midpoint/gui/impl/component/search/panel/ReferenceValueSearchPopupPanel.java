@@ -15,7 +15,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.component.form.ReferenceAutocompletePanel;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -26,11 +25,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -148,7 +145,7 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                ObjectReferenceType ref = nameField.getAutoCompleteField().getConverter(ObjectReferenceType.class)
+                ObjectReferenceType ref = nameField.getConverter()
                         .convertToObject(nameField.getBaseFormComponent().getValue(), WebComponentUtil.getCurrentLocale());
                 updateModel(ref, midpointForm, target);
                 target.add(oidField);
