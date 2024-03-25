@@ -316,6 +316,8 @@ public abstract class AbstractResourceObjectDefinitionImpl
         if (prismObjectDefinition == null) {
             PrismObjectDefinition<ShadowType> definition = toPrismObjectDefinition();
             definition.freeze();
+            // We could also consider not caching the definition if this object is still mutable. That would be perhaps safer.
+            // Currently, it is solved by invalidation this definition when attributes/associations are added. See also MID-9535.
             this.prismObjectDefinition = definition;
         }
         return prismObjectDefinition;
@@ -767,6 +769,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         }
 
         attributeDefinitions.add(definitionToAdd);
+        invalidatePrismObjectDefinition();
         return definitionToAdd;
     }
 
@@ -824,6 +827,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     void addAssociationDefinition(@NotNull ShadowAssociationDefinition associationDef) {
         checkMutable();
         associationDefinitions.add(associationDef);
+        invalidatePrismObjectDefinition();
     }
 
     void addAuxiliaryObjectClassDefinition(@NotNull ResourceObjectDefinition definition) {
