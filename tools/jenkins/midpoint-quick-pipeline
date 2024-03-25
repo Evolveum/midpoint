@@ -30,8 +30,8 @@ podTemplate(
                         command: 'cat',
                         resourceRequestCpu: params.BUILDER_CPU ?: '4',
                         resourceLimitCpu: params.BUILDER_CPU ?: '4',
-                        resourceRequestMemory: '6Gi',
-                        resourceLimitMemory: '6Gi') // by default -Xmx4g is set in main POM
+                        resourceRequestMemory: '8Gi',
+                        resourceLimitMemory: '8Gi') // by default -Xmx4g is set in main POM
         ]
 ) {
     node(POD_LABEL) {
