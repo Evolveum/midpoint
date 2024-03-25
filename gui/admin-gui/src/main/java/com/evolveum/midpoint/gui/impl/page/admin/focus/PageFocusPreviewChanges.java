@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -122,8 +124,17 @@ public class PageFocusPreviewChanges<O extends ObjectType> extends PageBase {
         };
         //save.add(new EnableBehaviour(() -> violationsEmpty()));           // does not work as expected (MID-4252)
 
-        save.add(new VisibleBehaviour(() -> violationsEmpty()));            // so hiding the button altogether
+        save.add(new VisibleBehaviour(() -> violationsEmpty() && isWithProductionConfiguration()));            // so hiding the button altogether
         mainForm.add(save);
+    }
+
+    private boolean isWithProductionConfiguration() {
+        for (ModelContext<O> modelContext : modelContextMap.values()) {
+            if (modelContext != null && TaskExecutionMode.SIMULATED_PRODUCTION.equals(modelContext.getTaskExecutionMode())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     //TODO relocate the logic from the loop to some util method, code repeats in PreviewChangesTabPanel

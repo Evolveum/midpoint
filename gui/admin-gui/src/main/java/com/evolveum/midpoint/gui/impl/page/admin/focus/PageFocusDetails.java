@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.focus;
 import java.time.Duration;
 import java.util.*;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Session;
@@ -139,7 +141,13 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     public void previewPerformed(AjaxRequestTarget target) {
         previewRequested = true;
-        OperationResult result = new OperationResult(OPERATION_PREVIEW_CHANGES);
+        OperationResult result;
+        if (getExecuteChangesOptionsDto() != null
+                && TaskExecutionMode.SIMULATED_DEVELOPMENT.equals(getExecuteChangesOptionsDto().getTaskMode())) {
+            result = new OperationResult(OPERATION_PREVIEW_CHANGES_WITH_DEV_CONFIG);
+        } else {
+            result = new OperationResult(OPERATION_PREVIEW_CHANGES);
+        }
         saveOrPreviewPerformed(target, result, true);
     }
 
