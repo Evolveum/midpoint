@@ -156,5 +156,10 @@ public class ResourceObjectAssociationConfigItem
         public QName getMatchingRule() {
             return value().getMatchingRule();
         }
+
+        @Override
+        public @NotNull String localDescription() {
+            return "legacy resource association definition for '" + value().getRef() + "'";
+        }
     }
 }
