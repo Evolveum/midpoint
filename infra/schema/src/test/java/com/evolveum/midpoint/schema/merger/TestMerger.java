@@ -12,6 +12,9 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.CloneStrategy;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
@@ -22,7 +25,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class TestMerger extends AbstractSchemaTest {
 
