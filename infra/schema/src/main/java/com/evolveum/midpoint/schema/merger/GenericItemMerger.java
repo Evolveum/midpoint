@@ -363,9 +363,10 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
     private PrismValue addIfNotThere(Item<?, ?> targetItem, PrismValue sourceValue) throws SchemaException {
         //noinspection unchecked
         Item<PrismValue, ?> target = (Item<PrismValue, ?>) targetItem;
-        if (target.contains(sourceValue, VALUE_COMPARISON_STRATEGY)) {
+        PrismValue existing = target.findValue(sourceValue, VALUE_COMPARISON_STRATEGY);
+        if (existing != null) {
             LOGGER.trace("     (but target contains the corresponding value - not adding)");
-            return null;
+            return existing ;
         }
 
         PrismValue cloned = createMarkedClone(sourceValue);
