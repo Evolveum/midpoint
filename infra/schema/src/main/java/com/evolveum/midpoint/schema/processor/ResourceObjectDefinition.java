@@ -12,6 +12,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -74,7 +75,7 @@ public interface ResourceObjectDefinition
         ComplexTypeDefinition,
         IdentifiersDefinitionStore,
         AttributeDefinitionStore,
-        AssociationDefinitionStore, // no-op for object class definitions
+        AssociationDefinitionStore,
         LayeredDefinition,
         FrameworkNameResolver {
 
@@ -357,30 +358,36 @@ public interface ResourceObjectDefinition
     //  The reason is that the first two are called from the context where there should be no kind/intent present.
     //  But that stinks. Something is broken here. We should define what "blank shadow" is. E.g., should aux OCs be there?
 
-    /** Creates a blank, empty {@link ShadowType} object. It contains only the object class name. Kind/intent are not set. */
-    default PrismObject<ShadowType> createBlankShadow() {
+    /**
+     * Creates a blank, empty {@link ShadowType} object.
+     * It contains only the object class name and resource OID.
+     * Kind/intent are not set.
+     */
+    default AbstractShadow createBlankShadow() {
         try {
-            var shadow = getPrismObjectDefinition().instantiate();
-            shadow.asObjectable().setObjectClass(getObjectClassName());
-            return shadow;
+            var shadowBean = getPrismObjectDefinition().instantiate().asObjectable();
+            shadowBean.setObjectClass(getObjectClassName());
+            var resourceOid = getResourceOid();
+            if (resourceOid != null) {
+                shadowBean.resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
+            }
+            return AbstractShadow.of(shadowBean);
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "while instantiating shadow from " + this);
         }
     }
 
     /** As {@link #createBlankShadow()} but with the specified primary identifier. */
-    default PrismObject<ShadowType> createBlankShadow(@NotNull Object primaryIdentifierValue) throws SchemaException {
+    default AbstractShadow createBlankShadowWithPrimaryId(@NotNull Object primaryIdentifierValue) throws SchemaException {
         var shadow = createBlankShadow();
-        ShadowUtil.addPrimaryIdentifierValue(shadow.asObjectable(), primaryIdentifierValue);
+        ShadowUtil.addPrimaryIdentifierValue(shadow.getBean(), primaryIdentifierValue);
         return shadow;
     }
 
     /** As {@link #createBlankShadow()} but having the correct resource OID, kind/intent (if applicable), and tag set.  */
-    default PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
-        PrismObject<ShadowType> shadow = createBlankShadow();
-        shadow.asObjectable()
-                .tag(tag)
-                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
+    default AbstractShadow createBlankShadowWithTag(String tag) {
+        var shadow = createBlankShadow();
+        shadow.getBean().tag(tag);
         return shadow;
     }
 
@@ -588,4 +595,7 @@ public interface ResourceObjectDefinition
             throw new SchemaException("Unknown attribute/association '%s' in '%s'; %s".formatted(itemName, this, errorCtx));
         }
     }
+
+    /** Returns both attribute and association definitions. */
+    @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions();
 }

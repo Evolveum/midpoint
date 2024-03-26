@@ -539,11 +539,16 @@ public abstract class AbstractResourceObjectDefinitionImpl
         }
     }
 
-    @NotNull
     private List<ItemDefinition<?>> getMergedDefinitions() {
         List<ItemDefinition<?>> allDefinitions = new ArrayList<>(attributeDefinitions);
         allDefinitions.addAll(associationDefinitions);
         return allDefinitions;
+    }
+
+    @Override
+    public @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions() {
+        //noinspection unchecked
+        return (Collection<? extends ShadowItemDefinition<?, ?>>) getDefinitions();
     }
 
     @Override
@@ -815,7 +820,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         return definitionBean;
     }
 
-    public void addAssociationDefinition(@NotNull ShadowAssociationDefinition associationDef) {
+    void addAssociationDefinition(@NotNull ShadowAssociationDefinition associationDef) {
         checkMutable();
         associationDefinitions.add(associationDef);
     }

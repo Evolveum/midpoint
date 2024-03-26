@@ -113,7 +113,10 @@ class ConnIdToUcfObjectConversion {
             return UcfResourceObject.of(conversion.convertedObject, uidValue, errorState);
         } else {
             // Something is seriously broken, so let's return just the empty object.
-            return UcfResourceObject.of(originalResourceObjectDefinition.createBlankShadow(uidValue), uidValue, errorState);
+            return UcfResourceObject.of(
+                    originalResourceObjectDefinition.createBlankShadowWithPrimaryId(uidValue).getBean(),
+                    uidValue,
+                    errorState);
         }
     }
 
@@ -144,7 +147,7 @@ class ConnIdToUcfObjectConversion {
         private Conversion() throws SchemaException {
             var auxiliaryClassesDefinitions = resolveAuxiliaryObjectClasses();
             this.resourceObjectDefinition = originalResourceObjectDefinition.composite(auxiliaryClassesDefinitions);
-            this.convertedObject = resourceObjectDefinition.createBlankShadow().asObjectable();
+            this.convertedObject = resourceObjectDefinition.createBlankShadow().getBean();
             auxiliaryClassesDefinitions.forEach(
                     def -> convertedObject.getAuxiliaryObjectClass().add(def.getTypeName()));
         }
@@ -309,8 +312,7 @@ class ConnIdToUcfObjectConversion {
                 return ps != null ? itemFactory.createPropertyValue(ps) : null;
             }
             if (connIdValue instanceof ConnectorObjectReference reference) {
-                return ShadowAssociationValue.of(
-                        convertReferenceToAssociationValue(reference));
+                return convertReferenceToAssociationValue(reference);
             }
             return itemFactory.createPropertyValue(connIdValue);
         }
@@ -396,7 +398,7 @@ class ConnIdToUcfObjectConversion {
             }
         }
 
-        private @NotNull UcfResourceObjectFragment convertReferenceToAssociationValue(ConnectorObjectReference reference)
+        private @NotNull ShadowAssociationValue convertReferenceToAssociationValue(ConnectorObjectReference reference)
                 throws SchemaException {
             BaseConnectorObject targetObjectOrIdentification = reference.getReferencedValue();
             var targetObjectClassName =
@@ -409,7 +411,9 @@ class ConnIdToUcfObjectConversion {
             embeddedConversion.execute();
             // If the conversion is not successful, the conversion of the particular association - as a whole - fails
             // (and the error is handled just as if any attribute conversion failed).
-            return embeddedConversion.getUcfResourceObjectFragmentIfSuccess();
+            return ShadowAssociationValue.of(
+                    embeddedConversion.getUcfResourceObjectFragmentIfSuccess(),
+                    targetObjectOrIdentification instanceof ConnectorObjectIdentification);
         }
 
         @NotNull UcfResourceObjectFragment getResourceObjectFragmentIfSuccess() throws SchemaException {

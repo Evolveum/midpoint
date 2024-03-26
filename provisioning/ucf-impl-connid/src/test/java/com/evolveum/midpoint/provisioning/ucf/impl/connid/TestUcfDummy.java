@@ -668,13 +668,13 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertThat(associations).as("john's associations").hasSize(1);
         var contractItem = associations.iterator().next();
         assertThat(contractItem.getElementName()).as("association name").isEqualTo(Person.LinkNames.CONTRACT.q());
-        var contracts = contractItem.getAssociationValues();
+        List<? extends ShadowAssociationValue> contracts = contractItem.getAssociationValues();
         assertThat(contracts).as("john's contracts").hasSize(2);
-        for (var contract : contracts) {
+        for (ShadowAssociationValue contract : contracts) {
             assertThat(contract.getTargetObjectClassName())
                     .as("target class name")
                     .isEqualTo(Contract.OBJECT_CLASS_NAME.xsd());
-            var contractAttrContainer = contract.getAttributesContainer();
+            var contractAttrContainer = contract.getAttributesContainerRequired();
             assertThat(contractAttrContainer.getAttributes()).as("contract attributes").hasSize(2);
             var contractAssocContainer = contract.getAssociationsContainer();
             assertThat(contractAssocContainer.getAssociations()).as("contract associations").hasSize(1);
@@ -683,7 +683,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
             var orgs = orgAssociation.getAssociationValues();
             assertThat(orgs).as("contract's orgs").hasSize(1);
             var org = orgs.iterator().next();
-            var orgAttrContainer = org.getAttributesContainer();
+            var orgAttrContainer = org.getAttributesContainerRequired();
             assertThat(orgAttrContainer.getAttributes()).as("org attributes in contract").hasSize(1);
             ResourceAttribute<?> orgAttribute = orgAttrContainer.getAttributes().iterator().next();
             assertThat(orgAttribute.getElementName()).as("org attribute name").isEqualTo(ICFS_NAME);

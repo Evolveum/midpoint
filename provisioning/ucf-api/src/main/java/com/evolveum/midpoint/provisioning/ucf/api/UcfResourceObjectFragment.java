@@ -9,8 +9,6 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -42,11 +40,6 @@ public abstract class UcfResourceObjectFragment
         this.bean = bean;
         this.errorState = errorState;
         // Not doing consistency check here; the subclasses are responsible for that.
-    }
-
-    @Override
-    public boolean canHaveNoResourceOid() {
-        return true;
     }
 
     public @NotNull ShadowType getBean() {

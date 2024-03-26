@@ -2649,7 +2649,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                         ShadowKindType.ACCOUNT,
                         SchemaConstants.INTENT_DEFAULT,
                         dummyResourceCtl.getAttributeFullnamePath(),
-                        prismContext,
                         "Cpt. Jack Sparrow");
         accountDelta.addModificationAddProperty(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH, "smell");
         deltas.add(accountDelta);

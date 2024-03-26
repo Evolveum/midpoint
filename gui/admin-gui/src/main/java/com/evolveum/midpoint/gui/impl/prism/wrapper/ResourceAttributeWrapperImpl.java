@@ -142,7 +142,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public AttributeFetchStrategyType getFetchStrategy() {
+    public @NotNull AttributeFetchStrategyType getFetchStrategy() {
         return getRefinedAttributeDefinition().getFetchStrategy();
     }
 
@@ -257,6 +257,11 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     @Override
     public String getHumanReadableDescription() {
         return getRefinedAttributeDefinition().getHumanReadableDescription();
+    }
+
+    @Override
+    public boolean isSimulated() {
+        return getRefinedAttributeDefinition().isSimulated();
     }
 
     @Override

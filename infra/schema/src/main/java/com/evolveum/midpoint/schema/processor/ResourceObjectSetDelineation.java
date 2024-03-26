@@ -78,4 +78,14 @@ public class ResourceObjectSetDelineation implements DebugDumpable, Serializable
 
     void extendDebugDump(StringBuilder sb, int indent) {
     }
+
+    @Override
+    public String toString() {
+        return "ResourceObjectSetDelineation{" +
+                "objectClassName=" + objectClassName +
+                ", baseContext=" + baseContext +
+                ", searchHierarchyScope=" + searchHierarchyScope +
+                ", filterClauses=" + filterClauses +
+                '}';
+    }
 }

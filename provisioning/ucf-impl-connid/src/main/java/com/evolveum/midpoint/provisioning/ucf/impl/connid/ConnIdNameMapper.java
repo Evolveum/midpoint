@@ -97,13 +97,13 @@ public class ConnIdNameMapper {
                 ocDef.findAttributeDefinitionRequired(attributeName, () -> " " + desc));
     }
 
-    static String ucfAttributeNameToConnId(ResourceAttributeDefinition<?> attrDef) throws SchemaException {
-        if (attrDef.getFrameworkAttributeName() != null) {
+    static String ucfAttributeNameToConnId(ShadowItemDefinition<?, ?> itemDef) throws SchemaException {
+        if (itemDef.getFrameworkAttributeName() != null) {
             // This is the special name, as registered in the schema.
-            return attrDef.getFrameworkAttributeName();
+            return itemDef.getFrameworkAttributeName();
         }
 
-        QName ucfAttrName = attrDef.getItemName();
+        QName ucfAttrName = itemDef.getItemName();
 
         if (SpecialItemNameMapper.isUcfNameSpecial(ucfAttrName)) {
             // This is the special name, as determined by static mappings.

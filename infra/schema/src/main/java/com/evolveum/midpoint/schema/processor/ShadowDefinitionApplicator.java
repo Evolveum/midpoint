@@ -189,26 +189,21 @@ public class ShadowDefinitionApplicator {
         }
     }
 
-    /** Applies the correct definitions to identifier containers in association values. Assumes known shadow type. */
-    public void applyToAssociationIdentifiers(ShadowType shadow) throws SchemaException {
+    /** Applies the correct definitions to objects embedded in association values. Assumes known shadow type. */
+    public void applyToAssociationValues(ShadowType shadow) throws SchemaException {
         for (ShadowAssociation association : ShadowUtil.getAssociations(shadow)) {
             for (var associationValue : association.getValues()) {
-                // Identifiers are ShadowIdentifiersType but to make compiler happy let's pretend it's ShadowAttributesType.
-                PrismContainer<ShadowAttributesType> identifiersContainer =
-                        associationValue.findContainer(ShadowAssociationValueType.F_IDENTIFIERS);
-                if (identifiersContainer == null) {
+                var shadowRef = associationValue.asContainerable().getShadowRef();
+                ShadowType embeddedShadow = shadowRef != null ? (ShadowType) shadowRef.getObjectable() : null;
+                if (embeddedShadow == null) {
                     continue;
                 }
-
-                QName associationName = association.getElementName();
-                ShadowAssociationDefinition assocDef = definition.findAssociationDefinition(associationName);
-                if (assocDef == null) {
-                    continue;
-                }
-
-                ResourceObjectDefinition assocObjectDef = assocDef.getTargetObjectDefinition();
-                applyAttributesDefinitionToContainer(
-                        assocObjectDef, identifiersContainer, associationValue, "");
+                var embeddedShadowDef = definition
+                        .findAssociationDefinitionRequired(association.getElementName())
+                        .getTargetObjectDefinition();
+                // TODO what if we don't have the correct object definition here?!
+                new ShadowDefinitionApplicator(embeddedShadowDef)
+                        .applyTo(embeddedShadow);
             }
         }
     }

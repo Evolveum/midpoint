@@ -22,7 +22,7 @@ import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
 import com.evolveum.midpoint.provisioning.api.ExternalResourceEventListener;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfChange;
 import com.evolveum.midpoint.provisioning.util.ErrorState;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
@@ -184,16 +184,16 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
             }
         }
 
-        AttributesToReturn actualAttributesToReturn = determineAttributesToReturn();
+        ShadowItemsToReturn actualShadowItemsToReturn = determineAttributesToReturn();
         if (ucfResourceObject == null) {
             getLogger().trace("Trying to fetch object {} because it is not in the change", identifiers);
-            return fetchResourceObject(actualAttributesToReturn, result);
+            return fetchResourceObject(actualShadowItemsToReturn, result);
         }
 
         // This is a specialty of live synchronization
-        if (originalCtx.isWildcard() && attributesToReturnAreDifferent(actualAttributesToReturn)) {
+        if (originalCtx.isWildcard() && attributesToReturnAreDifferent(actualShadowItemsToReturn)) {
             getLogger().trace("Trying to re-fetch object {} because mismatching attributesToReturn", identifiers);
-            return fetchResourceObject(actualAttributesToReturn, result);
+            return fetchResourceObject(actualShadowItemsToReturn, result);
         }
 
         // effectiveCtx is already related to the shadow
@@ -202,15 +202,15 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
         return ResourceObjectCompleter.completeResourceObject(effectiveCtx, resourceObject, fetchAssociations, result);
     }
 
-    @Nullable AttributesToReturn determineAttributesToReturn() {
+    @Nullable ShadowItemsToReturn determineAttributesToReturn() {
         return effectiveCtx.createAttributesToReturn();
     }
 
-    boolean attributesToReturnAreDifferent(AttributesToReturn actualAttributesToReturn) {
+    boolean attributesToReturnAreDifferent(ShadowItemsToReturn actualShadowItemsToReturn) {
         return false;
     }
 
-    private @Nullable CompleteResourceObject fetchResourceObject(AttributesToReturn attributesToReturn, OperationResult result)
+    private @Nullable CompleteResourceObject fetchResourceObject(ShadowItemsToReturn shadowItemsToReturn, OperationResult result)
             throws CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, NotApplicableException {
         if (!effectiveCtx.hasRealReadCapability()) {
@@ -226,7 +226,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
                     .fetchResourceObject(
                             effectiveCtx,
                             primaryIdentification,
-                            attributesToReturn,
+                            shadowItemsToReturn,
                             true,
                             result);
         } catch (ObjectNotFoundException ex) {

@@ -283,7 +283,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         OperationResult result = createOperationResult("checkUniqueness");
         var nameAttr = object.getAttributeRequired(SchemaConstants.ICFS_NAME);
         var q = prismContext.queryFor(ShadowType.class)
-                .item(ShadowType.F_RESOURCE_REF).ref(object.getResourceOid())
+                .item(ShadowType.F_RESOURCE_REF).ref(object.getResourceOidRequired())
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(object.getObjectClass())
                 .and().filter(nameAttr.normalizationAwareEqFilter());
         if (liveOnly) {

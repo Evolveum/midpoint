@@ -458,7 +458,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
     @Override
     public UcfResourceObject fetchObject(
             ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
-            AttributesToReturn attributesToReturn,
+            ShadowItemsToReturn shadowItemsToReturn,
             UcfExecutionContext ctx,
             OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
@@ -479,7 +479,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             ObjectClass icfObjectClass = objectClassToConnId(objectDefinition);
 
             OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-            convertToIcfAttrsToGet(objectDefinition, attributesToReturn, optionsBuilder);
+            convertToIcfAttrsToGet(objectDefinition, shadowItemsToReturn, optionsBuilder);
             optionsBuilder.setAllowPartialResults(true);
             OperationOptions options = optionsBuilder.build();
 
@@ -585,95 +585,89 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
 
     void convertToIcfAttrsToGet(
             ResourceObjectDefinition resourceObjectDefinition,
-            AttributesToReturn attributesToReturn,
+            ShadowItemsToReturn shadowItemsToReturn,
             OperationOptionsBuilder optionsBuilder) throws SchemaException {
-        if (attributesToReturn == null) {
+        if (shadowItemsToReturn == null) {
             return;
         }
-        Collection<? extends ResourceAttributeDefinition<?>> attrs = attributesToReturn.getAttributesToReturn();
-        if (attributesToReturn.isReturnDefaultAttributes() && !attributesToReturn.isReturnPasswordExplicit()
-                && (attrs == null || attrs.isEmpty())) {
+        if (shadowItemsToReturn.isAllDefault()) {
             return;
         }
-        List<String> icfAttrsToGet = new ArrayList<>();
-        if (attributesToReturn.isReturnDefaultAttributes()) {
+        Set<String> icfAttrsToGet = new HashSet<>();
+        if (shadowItemsToReturn.isReturnDefaultAttributes()) {
             if (supportsReturnDefaultAttributes()) {
                 optionsBuilder.setReturnDefaultAttributes(true);
             } else {
                 // Add all the attributes that are defined as "returned by default" by the schema
-                for (var attributeDef: resourceObjectDefinition.getAttributeDefinitions()) {
-                    if (attributeDef.isReturnedByDefault()) {
+                for (var itemDef : resourceObjectDefinition.getShadowItemDefinitions()) {
+                    if (itemDef.isReturnedByDefault()) {
                         icfAttrsToGet.add(
-                                ucfAttributeNameToConnId(attributeDef));
+                                ucfAttributeNameToConnId(itemDef));
                     }
                 }
             }
         }
-        if (attributesToReturn.isReturnPasswordExplicit()
-                || (attributesToReturn.isReturnDefaultAttributes() && passwordReturnedByDefault())) {
+        if (shadowItemsToReturn.isReturnPasswordExplicit()
+                || (shadowItemsToReturn.isReturnDefaultAttributes() && passwordReturnedByDefault())) {
             icfAttrsToGet.add(OperationalAttributes.PASSWORD_NAME);
         }
-        if (attributesToReturn.isReturnAdministrativeStatusExplicit()
-                || (attributesToReturn.isReturnDefaultAttributes() && enabledReturnedByDefault())) {
+        if (shadowItemsToReturn.isReturnAdministrativeStatusExplicit()
+                || (shadowItemsToReturn.isReturnDefaultAttributes() && enabledReturnedByDefault())) {
             icfAttrsToGet.add(OperationalAttributes.ENABLE_NAME);
         }
-        if (attributesToReturn.isReturnLockoutStatusExplicit()
-                || (attributesToReturn.isReturnDefaultAttributes() && lockoutReturnedByDefault())) {
+        if (shadowItemsToReturn.isReturnLockoutStatusExplicit()
+                || (shadowItemsToReturn.isReturnDefaultAttributes() && lockoutReturnedByDefault())) {
             icfAttrsToGet.add(OperationalAttributes.LOCK_OUT_NAME);
         }
-        if (attributesToReturn.isReturnValidFromExplicit()
-                || (attributesToReturn.isReturnDefaultAttributes() && validFromReturnedByDefault())) {
+        if (shadowItemsToReturn.isReturnValidFromExplicit()
+                || (shadowItemsToReturn.isReturnDefaultAttributes() && validFromReturnedByDefault())) {
             icfAttrsToGet.add(OperationalAttributes.ENABLE_DATE_NAME);
         }
-        if (attributesToReturn.isReturnValidToExplicit()
-                || (attributesToReturn.isReturnDefaultAttributes() && validToReturnedByDefault())) {
+        if (shadowItemsToReturn.isReturnValidToExplicit()
+                || (shadowItemsToReturn.isReturnDefaultAttributes() && validToReturnedByDefault())) {
             icfAttrsToGet.add(OperationalAttributes.DISABLE_DATE_NAME);
         }
-
-        if (attrs != null) {
-            for (var attrDef: attrs) {
-                String attrName = ucfAttributeNameToConnId(attrDef);
-                if (!icfAttrsToGet.contains(attrName)) {
-                    icfAttrsToGet.add(attrName);
-                }
+        var explicitItemsToReturn = shadowItemsToReturn.getItemsToReturn();
+        if (explicitItemsToReturn != null) {
+            for (var itemDef : explicitItemsToReturn) {
+                icfAttrsToGet.add(
+                        ucfAttributeNameToConnId(itemDef));
             }
         }
         // Log full list here. ConnId is shortening it and it cannot be seen in logs.
-        LOGGER.trace("Converted attributes to return: {}\n to ConnId attributesToGet: {}", attributesToReturn, icfAttrsToGet);
+        LOGGER.trace("Converted attributes to return: {}\n to ConnId attributesToGet: {}", shadowItemsToReturn, icfAttrsToGet);
         optionsBuilder.setAttributesToGet(icfAttrsToGet);
     }
 
     private synchronized boolean supportsReturnDefaultAttributes() {
         ReadCapabilityType capability = CapabilityUtil.getCapability(capabilities, ReadCapabilityType.class);
-        if (capability == null) {
-            return false;
-        }
-        return Boolean.TRUE.equals(capability.isReturnDefaultAttributesOption());
+        return capability != null
+                && Boolean.TRUE.equals(capability.isReturnDefaultAttributesOption());
     }
 
     private synchronized boolean passwordReturnedByDefault() {
-        CredentialsCapabilityType capability = CapabilityUtil.getCapability(capabilities, CredentialsCapabilityType.class);
-        return CapabilityUtil.isPasswordReturnedByDefault(capability);
+        return CapabilityUtil.isPasswordReturnedByDefault(
+                CapabilityUtil.getCapability(capabilities, CredentialsCapabilityType.class));
     }
 
     private synchronized boolean enabledReturnedByDefault() {
-        ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
-        return CapabilityUtil.isActivationStatusReturnedByDefault(capability);
+        return CapabilityUtil.isActivationStatusReturnedByDefault(
+                CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class));
     }
 
     private synchronized boolean lockoutReturnedByDefault() {
-        ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
-        return CapabilityUtil.isActivationLockoutStatusReturnedByDefault(capability);
+        return CapabilityUtil.isActivationLockoutStatusReturnedByDefault(
+                CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class));
     }
 
     private synchronized boolean validFromReturnedByDefault() {
-        ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
-        return CapabilityUtil.isActivationValidFromReturnedByDefault(capability);
+        return CapabilityUtil.isActivationValidFromReturnedByDefault(
+                CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class));
     }
 
     private synchronized boolean validToReturnedByDefault() {
-        ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
-        return CapabilityUtil.isActivationValidToReturnedByDefault(capability);
+        return CapabilityUtil.isActivationValidToReturnedByDefault(
+                CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class));
     }
 
     private synchronized boolean supportsDeltaUpdateOp() {
@@ -1524,7 +1518,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
     public UcfFetchChangesResult fetchChanges(
             ResourceObjectDefinition objectDefinition,
             UcfSyncToken initialTokenValue,
-            AttributesToReturn attrsToReturn,
+            ShadowItemsToReturn attrsToReturn,
             Integer maxChanges,
             UcfExecutionContext ctx,
             @NotNull UcfLiveSyncChangeListener changeListener,
@@ -1777,7 +1771,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             @NotNull ResourceObjectDefinition objectDefinition,
             ObjectQuery query,
             @NotNull UcfObjectHandler handler,
-            @Nullable AttributesToReturn attributesToReturn,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
             @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod ucfErrorReportingMethod,
@@ -1798,7 +1792,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             }
 
             return new SearchExecutor(
-                    objectDefinition, query, handler, attributesToReturn,
+                    objectDefinition, query, handler, shadowItemsToReturn,
                     pagedSearchConfiguration, searchHierarchyConstraints,
                     ucfErrorReportingMethod, ctx, this)
                     .execute(result);

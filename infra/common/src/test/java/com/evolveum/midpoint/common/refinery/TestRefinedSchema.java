@@ -422,7 +422,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         ResourceObjectTypeDefinition rAccount = findObjectTypeDefinitionRequired(rSchema, ShadowKindType.ACCOUNT, null);
 
         // WHEN
-        PrismObject<ShadowType> blankShadow = rAccount.createBlankShadow(resource.getOid(), "foo");
+        PrismObject<ShadowType> blankShadow = rAccount.createBlankShadowWithTag("foo").getPrismObject();
 
         // THEN
         assertNotNull("No blank shadow", blankShadow);

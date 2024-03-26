@@ -37,15 +37,13 @@ public interface AttributeDefinitionStore
      *
      * The returned value is a {@link List} because of the contract of {@link ComplexTypeDefinition#getDefinitions()}.
      */
-    @NotNull
-    List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions();
+    @NotNull List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions();
 
     /**
      * Returns all attribute definitions of given type as an unmodifiable collection.
      *
      */
-    @NotNull
-    default <AD extends ResourceAttributeDefinition<?>> Collection<AD> getAttributeDefinitions(Class<AD> type) {
+    default @NotNull <AD extends ResourceAttributeDefinition<?>> Collection<AD> getAttributeDefinitions(Class<AD> type) {
         //noinspection unchecked
         return getAttributeDefinitions().stream()
                 .filter(def -> type.isAssignableFrom(def.getClass()))
@@ -56,16 +54,14 @@ public interface AttributeDefinitionStore
     /**
      * Finds a definition of an attribute with a given name. Returns null if nothing is found.
      */
-    @Nullable
-    default <T> ResourceAttributeDefinition<T> findAttributeDefinition(QName name) {
+    default @Nullable <T> ResourceAttributeDefinition<T> findAttributeDefinition(QName name) {
         return findAttributeDefinition(name, false);
     }
 
     /**
      * Finds a definition of an attribute with a given name. Throws {@link SchemaException} if it's not there.
      */
-    @NotNull
-    default <T> ResourceAttributeDefinition<T> findAttributeDefinitionRequired(@NotNull QName name)
+    default @NotNull <T> ResourceAttributeDefinition<T> findAttributeDefinitionRequired(@NotNull QName name)
             throws SchemaException {
         return findAttributeDefinitionRequired(name, () -> "");
     }
@@ -73,16 +69,14 @@ public interface AttributeDefinitionStore
     /**
      * Finds a definition of an attribute with a given name. Throws {@link IllegalStateException} if it's not there.
      */
-    @NotNull
-    default ResourceAttributeDefinition<?> findAttributeDefinitionStrictlyRequired(@NotNull QName name) {
+    default @NotNull ResourceAttributeDefinition<?> findAttributeDefinitionStrictlyRequired(@NotNull QName name) {
         return findAttributeDefinitionStrictlyRequired(name, () -> "");
     }
 
     /**
      * Finds a definition of an attribute with a given name. Throws {@link SchemaException} if it's not there.
      */
-    @NotNull
-    default <T> ResourceAttributeDefinition<T> findAttributeDefinitionRequired(
+    default @NotNull <T> ResourceAttributeDefinition<T> findAttributeDefinitionRequired(
             @NotNull QName name, @NotNull Supplier<String> contextSupplier)
             throws SchemaException {
         return MiscUtil.requireNonNull(
@@ -93,8 +87,7 @@ public interface AttributeDefinitionStore
     /**
      * Finds a definition of an attribute with a given name. Throws {@link IllegalStateException} if it's not there.
      */
-    @NotNull
-    default ResourceAttributeDefinition<?> findAttributeDefinitionStrictlyRequired(
+    default @NotNull ResourceAttributeDefinition<?> findAttributeDefinitionStrictlyRequired(
             @NotNull QName name, @NotNull Supplier<String> contextSupplier) {
         return MiscUtil.requireNonNull(
                 findAttributeDefinition(name),

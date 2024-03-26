@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
@@ -95,7 +94,7 @@ public class ShadowAssociation
     protected boolean addInternalExecution(@NotNull PrismContainerValue<ShadowAssociationValueType> newValue) {
 //        argCheck(newValue instanceof ShadowAssociationValue,
 //                "Trying to add a value which is not a ShadowAssociationValue: %s", newValue);
-        if (newValue instanceof ShadowAssociationValue shadowAssociationValue) {
+        if (newValue instanceof ShadowAssociationValue) {
             return super.addInternalExecution(newValue);
         } else {
             // FIXME we should have resolved this (for deltas) in applyDefinition call, but that's not possible now
@@ -124,30 +123,27 @@ public class ShadowAssociation
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public @NotNull PrismContainerValue<ShadowAssociationValueType> createNewValueWithIdentifiers(
-            @NotNull ResourceAttributeContainer identifiers) throws SchemaException {
-        var value = createNewValue();
-        value.add(identifiers);
+    public @NotNull ShadowAssociationValue createNewValueWithIdentifiers(@NotNull AbstractShadow shadow) throws SchemaException {
+        var value = ShadowAssociationValue.of(shadow, true);
+        add(value);
         return value;
     }
 
-    public @NotNull PrismContainerValue<ShadowAssociationValueType> createNewValueWithIdentifier(
-            @NotNull ResourceAttribute<?> identifier) throws SchemaException {
-        var identifiersContainer = getDefinitionRequired()
+    public @NotNull ShadowAssociationValue createNewValueWithIdentifier(@NotNull ResourceAttribute<?> identifier) throws SchemaException {
+        var blankShadow = getDefinitionRequired()
                 .getTargetObjectDefinition()
-                .toResourceAttributeContainerDefinition()
-                .instantiate(ShadowAssociationValueType.F_IDENTIFIERS);
-        identifiersContainer.add(identifier);
-        return createNewValueWithIdentifiers(identifiersContainer);
+                .createBlankShadow();
+        blankShadow.getAttributesContainer().add(identifier);
+        return createNewValueWithIdentifiers(blankShadow);
     }
 
-    /** Adds both target shadow ref and identifiers. */
+    /** Creates a value holding the full object. Its definition must correspond to the one of the association. */
     @SuppressWarnings("UnusedReturnValue")
-    public @NotNull ShadowAssociationValue createNewValueForTarget(@NotNull AbstractShadow target)
+    public @NotNull ShadowAssociationValue createNewValueWithFullObject(@NotNull AbstractShadow target)
             throws SchemaException {
-        var value = createNewValue();
-        value.getValue().setShadowRef(target.getRef());
-        value.add(target.getIdentifiersAsContainer());
+        // TODO check the definition
+        var value = ShadowAssociationValue.of(target, false);
+        add(value);
         return value;
     }
 
@@ -161,7 +157,7 @@ public class ShadowAssociation
 
     public @NotNull List<? extends ShadowAssociationValue> getAssociationValues() {
         // IDE accepts the version without cast to List, but the compiler doesn't.
-        //noinspection unchecked,RedundantCast,rawtypes
+        //noinspection unchecked,rawtypes,RedundantCast
         return Collections.unmodifiableList(
                 (List<? extends ShadowAssociationValue>) (List) getValues());
     }

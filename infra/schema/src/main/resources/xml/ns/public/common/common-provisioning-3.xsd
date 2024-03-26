@@ -5123,16 +5123,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="identifiers" type="tns:ShadowIdentifiersType" minOccurs="0">
+            <xsd:element name="identifiersOnly" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Set of identifiers (names and values) that identify the association target.
-                        May or may not be known, depending on the processing state.
-                        At least one of "shadowRef" and "identifiers" should be known, though.
+                        If we have (some) attributes, are they identifiers only, or the full shadow?
+                        Not applicable if there are no attributes.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- attributes/parameters -->
             <!-- others, last usage timestamp -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>

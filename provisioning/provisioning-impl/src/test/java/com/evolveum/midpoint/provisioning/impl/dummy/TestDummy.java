@@ -2838,7 +2838,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = createEntitleDeltaIdentifiers(
-                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
+                ACCOUNT_WILL_OID, getAccountDefaultDefinition(),
+                DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2865,7 +2866,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = createDetitleDeltaIdentifiers(
-                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
+                ACCOUNT_WILL_OID, getAccountDefaultDefinition(),
+                DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2892,7 +2894,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = createEntitleDeltaIdentifiers(
-                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_UID, piratesIcfUid);
+                ACCOUNT_WILL_OID, getAccountDefaultDefinition(),
+                DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_UID, piratesIcfUid);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2919,7 +2922,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = createDetitleDeltaIdentifiers(
-                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_UID, piratesIcfUid);
+                ACCOUNT_WILL_OID, getAccountDefaultDefinition(),
+                DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_UID, piratesIcfUid);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -4531,11 +4535,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         and("the association has correct definition");
         var associationValues = ShadowAssociationsCollection.ofShadow(accountAfter.asObjectable()).getAllValues();
         assertThat(associationValues).as("associations").hasSize(1);
-        PrismContainerDefinition<?> identifiersDefinition =
-                associationValues.iterator().next().value().getIdentifiers().asPrismContainerValue().getParent().getDefinition();
-        assertThat(identifiersDefinition)
-                .as("definition of identifiers")
-                .isInstanceOf(ResourceAttributeContainerDefinition.class);
+        associationValues.iterator().next().associationValue().getAttributesContainerRequired().getDefinitionRequired();
 
         and("the title has correct definition");
         PrismPropertyDefinition<Object> titleDefinition =

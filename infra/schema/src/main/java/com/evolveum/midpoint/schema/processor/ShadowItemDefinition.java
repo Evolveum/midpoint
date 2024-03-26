@@ -60,7 +60,7 @@ public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
      *
      * @see ResourceItemDefinitionType#getFetchStrategy()
      */
-    AttributeFetchStrategyType getFetchStrategy();
+    @NotNull AttributeFetchStrategyType getFetchStrategy();
 
     /**
      * Returns configured storage strategy.
@@ -239,4 +239,7 @@ public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
     String getHumanReadableDescription();
 
     ItemPath getStandardPath();
+
+    /** If `true`, the item does not exist on the resource, but is simulated by midPoint. */
+    boolean isSimulated();
 }

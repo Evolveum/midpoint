@@ -197,7 +197,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public UcfResourceObject fetchObject(
-            ResourceObjectIdentification.WithPrimary resourceObjectIdentification, AttributesToReturn attributesToReturn,
+            ResourceObjectIdentification.WithPrimary resourceObjectIdentification, ShadowItemsToReturn shadowItemsToReturn,
             UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.
@@ -209,7 +209,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
             @NotNull ResourceObjectDefinition objectDefinition,
             @Nullable ObjectQuery query,
             @NotNull UcfObjectHandler handler,
-            @Nullable AttributesToReturn attributesToReturn,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
             @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod errorReportingMethod,
@@ -245,7 +245,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
-            AttributesToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
+            ShadowItemsToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
             @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
         // not supported
         return null;

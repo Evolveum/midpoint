@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 public class CompositeObjectDefinitionImpl
         extends AbstractFreezable
         implements CompositeObjectDefinition {
+
     @Serial private static final long serialVersionUID = 1L;
 
     private static final LayerType DEFAULT_LAYER = LayerType.MODEL;
@@ -52,6 +55,9 @@ public class CompositeObjectDefinitionImpl
 
     /** Lazily computed, but only when this instance is immutable. */
     private volatile List<ResourceAttributeDefinition<?>> allAttributeDefinitions;
+
+    /** Same as {@link #allAttributeDefinitions} but also for associations. */
+    private volatile List<ShadowItemDefinition<?, ?>> allShadowItemDefinitions;
 
     private PrismObjectDefinition<ShadowType> prismObjectDefinition;
 
@@ -349,9 +355,8 @@ public class CompositeObjectDefinitionImpl
         }
     }
 
-    @NotNull
     @Override
-    public synchronized List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
+    public @NotNull synchronized List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
         if (auxiliaryDefinitions.isEmpty()) {
             return structuralDefinition.getAttributeDefinitions();
         }
@@ -360,7 +365,7 @@ public class CompositeObjectDefinitionImpl
             return allAttributeDefinitions;
         }
 
-        List<ResourceAttributeDefinition<?>> collectedDefinitions = collectDefinitions();
+        List<ResourceAttributeDefinition<?>> collectedDefinitions = collectAttributeDefinitions();
         if (isImmutable()) {
             allAttributeDefinitions = collectedDefinitions;
         } else {
@@ -370,7 +375,7 @@ public class CompositeObjectDefinitionImpl
         return collectedDefinitions;
     }
 
-    private @NotNull List<ResourceAttributeDefinition<?>> collectDefinitions() {
+    private @NotNull List<ResourceAttributeDefinition<?>> collectAttributeDefinitions() {
         // Adds all attribute definitions from aux OCs that are not already known.
         ArrayList<ResourceAttributeDefinition<?>> collectedDefinitions =
                 new ArrayList<>(structuralDefinition.getAttributeDefinitions());
@@ -378,13 +383,54 @@ public class CompositeObjectDefinitionImpl
             for (ResourceAttributeDefinition<?> auxRAttrDef : auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
                 boolean shouldAdd = true;
                 for (ResourceAttributeDefinition<?> def : collectedDefinitions) {
-                    if (def.getItemName().equals(auxRAttrDef.getItemName())) { // FIXME what about case insensitiveness?
+                    if (def.getItemName().equals(auxRAttrDef.getItemName())) { // FIXME what about case in-sensitiveness?
                         shouldAdd = false;
                         break;
                     }
                 }
                 if (shouldAdd) {
                     collectedDefinitions.add(auxRAttrDef);
+                }
+            }
+        }
+        return collectedDefinitions;
+    }
+
+    @Override
+    public @NotNull synchronized Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions() {
+        if (auxiliaryDefinitions.isEmpty()) {
+            return structuralDefinition.getShadowItemDefinitions();
+        }
+
+        if (allShadowItemDefinitions != null) {
+            return allShadowItemDefinitions;
+        }
+
+        List<ShadowItemDefinition<?, ?>> collectedDefinitions = collectShadowItemDefinitions();
+        if (isImmutable()) {
+            allShadowItemDefinitions = collectedDefinitions;
+        } else {
+            // it's not safe to cache the definitions if this instance is mutable
+        }
+
+        return collectedDefinitions;
+    }
+
+    private @NotNull List<ShadowItemDefinition<?, ?>> collectShadowItemDefinitions() {
+        // Adds all definitions from aux OCs that are not already known.
+        ArrayList<ShadowItemDefinition<?, ?>> collectedDefinitions =
+                new ArrayList<>(structuralDefinition.getShadowItemDefinitions());
+        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
+            for (ShadowItemDefinition<?, ?> auxDef : auxiliaryObjectClassDefinition.getShadowItemDefinitions()) {
+                boolean shouldAdd = true;
+                for (var def : collectedDefinitions) {
+                    if (def.getItemName().equals(auxDef.getItemName())) { // FIXME what about case in-sensitiveness?
+                        shouldAdd = false;
+                        break;
+                    }
+                }
+                if (shouldAdd) {
+                    collectedDefinitions.add(auxDef);
                 }
             }
         }
@@ -458,8 +504,8 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
-        return structuralDefinition.createBlankShadow(resourceOid, tag);
+    public AbstractShadow createBlankShadowWithTag(String tag) {
+        return structuralDefinition.createBlankShadowWithTag(tag);
     }
 
     @Override

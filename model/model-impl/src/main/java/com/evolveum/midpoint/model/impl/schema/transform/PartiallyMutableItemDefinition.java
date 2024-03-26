@@ -252,6 +252,11 @@ public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends Ite
         }
 
         @Override
+        default void setTargetObjectDefinition(PrismObjectDefinition<?> definition) {
+            throw new IllegalStateException("Item Definition is not modifiable");
+        }
+
+        @Override
         default void setComposite(boolean value) {
             throw new IllegalStateException("Item Definition is not modifiable");
         }

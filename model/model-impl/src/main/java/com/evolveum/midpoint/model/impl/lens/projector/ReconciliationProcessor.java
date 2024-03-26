@@ -598,9 +598,9 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                 }
             }
 
-            PrismObject<ShadowType> shadowNew = projCtx.getObjectNewRequired();
-            Collection<PrismContainerValue<ShadowAssociationValueType>> areCValues =
-                    new HashSet<>(ShadowUtil.getAssociationPrismValues(shadowNew, assocName));
+            var shadowNew = projCtx.getObjectNewRequired();
+            Collection<ShadowAssociationValue> areCValues =
+                    new HashSet<>(ShadowUtil.getAdoptedAssociationValues(shadowNew, assocName));
 
             for (var shouldBeCvwo : shouldBeCValues) {
                 PrismValueDeltaSetTripleProducer<?, ?> shouldBeMapping = shouldBeCvwo.getMapping();
@@ -665,7 +665,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     private void decideIfTolerateAssociation(
             LensProjectionContext accCtx,
             ShadowAssociationDefinition assocDef,
-            Collection<PrismContainerValue<ShadowAssociationValueType>> areCValues,
+            Collection<ShadowAssociationValue> areCValues,
             Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> shouldBeCValues,
             Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
@@ -675,7 +675,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         MatchingRule<Object> matchingRule = evaluatePatterns ? getMatchingRuleForTargetNamingIdentifier(assocDef) : null;
 
         // for each existing value we decide whether to keep it or delete it
-        for (PrismContainerValue<ShadowAssociationValueType> isCValue : areCValues) {
+        for (var isCValue : areCValues) {
             ResourceAttribute<String> targetNamingIdentifier = null;
             if (evaluatePatterns) {
                 targetNamingIdentifier = getTargetNamingIdentifier(isCValue, task, result);
@@ -729,7 +729,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     }
 
     private ResourceAttribute<String> getTargetNamingIdentifier(
-            PrismContainerValue<ShadowAssociationValueType> associationValue, Task task, OperationResult result)
+            ShadowAssociationValue associationValue, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
         return getIdentifiersForAssociationTarget(associationValue, task, result).getNamingAttribute();
@@ -737,13 +737,13 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     @NotNull
     private ResourceAttributeContainer getIdentifiersForAssociationTarget(
-            PrismContainerValue<ShadowAssociationValueType> isCValue,
+            ShadowAssociationValue isCValue,
             Task task, OperationResult result) throws CommunicationException,
             SchemaException, ConfigurationException,
             SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
-        var identifiersInAssociation = ShadowUtil.getIdentifiersContainer(isCValue);
-        if (identifiersInAssociation != null) {
-            return identifiersInAssociation;
+        var attributesContainer = isCValue.getAttributesContainerIfPresent();
+        if (attributesContainer != null) {
+            return attributesContainer;
         }
         String oid = isCValue.asContainerable().getShadowRef() != null ? isCValue.asContainerable().getShadowRef().getOid() : null;
         if (oid == null) {
@@ -890,7 +890,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     // todo deduplicate; this was copied not to broke what works now [mederly]
     private boolean isNotInAssociationsValue(
             PrismContainerValue<ShadowAssociationValueType> shouldBeCValue,
-            Collection<PrismContainerValue<ShadowAssociationValueType>> areCValues) {
+            Collection<ShadowAssociationValue> areCValues) {
         for (PrismContainerValue<ShadowAssociationValueType> isCValue : emptyIfNull(areCValues)) {
             if (matchPrismValue(isCValue, shouldBeCValue, shadowRefBasedPcvEqualsChecker())) {
                 return false;

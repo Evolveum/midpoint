@@ -10,23 +10,36 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowItemDefinition;
 
 /**
- * @author semancik
+ * This is something that maps to the "attributes to return" (or to get) in the underlying framework.
  *
+ * @author semancik
  */
-public class AttributesToReturn implements Serializable {
+public class ShadowItemsToReturn implements Serializable {
     @Serial private static final long serialVersionUID = 157146351122133667L;
 
-    // TODO consider adding "fetchEntitlements" flag here
+    /** We request that all default attributes should be returned. */
     private boolean returnDefaultAttributes = true;
+
+    /** We request that the password be returned. */
     private boolean returnPasswordExplicit = false;
+
+    /** We request that the administrative status be returned. */
     private boolean returnAdministrativeStatusExplicit = false;
+
+    /** We request that the lockout status be returned. */
     private boolean returnLockoutStatusExplicit = false;
+
+    /** We request that the "valid form" be returned. */
     private boolean returnValidFromExplicit = false;
+
+    /** We request that the "valid to" be returned. */
     private boolean returnValidToExplicit = false;
-    private Collection<? extends ResourceAttributeDefinition<?>> attributesToReturn = null;
+
+    /** The list of items that we explicitly request to be returned. */
+    private Collection<? extends ShadowItemDefinition<?, ?>> itemsToReturn = null;
 
     public boolean isReturnDefaultAttributes() {
         return returnDefaultAttributes;
@@ -36,12 +49,12 @@ public class AttributesToReturn implements Serializable {
         this.returnDefaultAttributes = returnDefaultAttributes;
     }
 
-    public Collection<? extends ResourceAttributeDefinition<?>> getAttributesToReturn() {
-        return attributesToReturn;
+    public Collection<? extends ShadowItemDefinition<?, ?>> getItemsToReturn() {
+        return itemsToReturn;
     }
 
-    public void setAttributesToReturn(Collection<? extends ResourceAttributeDefinition<?>> attributesToReturn) {
-        this.attributesToReturn = attributesToReturn;
+    public void setItemsToReturn(Collection<? extends ShadowItemDefinition<?, ?>> itemsToReturn) {
+        this.itemsToReturn = itemsToReturn;
     }
 
     public boolean isReturnPasswordExplicit() {
@@ -84,14 +97,24 @@ public class AttributesToReturn implements Serializable {
         this.returnValidToExplicit = returnValidToExplicit;
     }
 
-    @Override
-    public String toString() {
-        return "AttributesToReturn(returnDefaultAttributes=" + returnDefaultAttributes + ", returnPasswordExplicit="
-                + returnPasswordExplicit
-                + ", returnAdministrativeStatusExplicit="+ returnAdministrativeStatusExplicit
-                + ", returnValidFromExplicit="+ returnValidFromExplicit
-                + ", returnValidToExplicit="+ returnValidToExplicit
-                + ", attributesToReturn=" + attributesToReturn + ")";
+    public boolean isAllDefault() {
+        return returnDefaultAttributes
+                && !returnPasswordExplicit
+                && !returnAdministrativeStatusExplicit
+                && !returnLockoutStatusExplicit
+                && !returnValidFromExplicit
+                && !returnValidToExplicit
+                && (itemsToReturn == null || itemsToReturn.isEmpty());
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(returnDefaultAttributes=" + returnDefaultAttributes
+                + ", returnPasswordExplicit=" + returnPasswordExplicit
+                + ", returnAdministrativeStatusExplicit=" + returnAdministrativeStatusExplicit
+                + ", returnLockoutStatusExplicit=" + returnLockoutStatusExplicit
+                + ", returnValidFromExplicit=" + returnValidFromExplicit
+                + ", returnValidToExplicit=" + returnValidToExplicit
+                + ", itemsToReturn=" + itemsToReturn + ")";
+    }
 }

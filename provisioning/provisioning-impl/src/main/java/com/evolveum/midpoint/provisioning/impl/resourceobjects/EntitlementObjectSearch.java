@@ -9,8 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
-import com.evolveum.midpoint.provisioning.util.AttributesToReturnProvider;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
+import com.evolveum.midpoint.provisioning.util.ShadowItemsToReturnProvider;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationClassSimulationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -122,8 +122,8 @@ class EntitlementObjectSearch<T> {
         return subjectAttrValue;
     }
 
-    private AttributesToReturn getDefaultAttributesToReturn(ResourceObjectDefinition objectDefinition) {
-        return new AttributesToReturnProvider(subjectCtx.getResource(), objectDefinition, null)
+    private ShadowItemsToReturn getDefaultAttributesToReturn(ResourceObjectDefinition objectDefinition) {
+        return new ShadowItemsToReturnProvider(subjectCtx.getResource(), objectDefinition, null)
                 .createAttributesToReturn();
     }
 

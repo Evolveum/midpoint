@@ -299,18 +299,15 @@ class EntitlementConverter {
     }
 
     private ResourceObjectDiscriminator getEntitlementDiscriminator(
-            IterableAssociationValue associationValue,
+            IterableAssociationValue iterableAssociationValue,
             ProvisioningContext entitlementCtx,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
         // this identification may be secondary-only
-        var rawEntitlementIdentification =
-                ResourceObjectIdentification.fromAssociationValue(
-                        entitlementCtx.getObjectDefinitionRequired(),
-                        associationValue.associationPcv());
-        var identification =
-                b.resourceObjectReferenceResolver.resolvePrimaryIdentifier(entitlementCtx, rawEntitlementIdentification, result);
-        return ResourceObjectDiscriminator.of(identification);
+        var providedEntitlementIdentification = iterableAssociationValue.associationValue().getIdentification();
+        var primaryIdentification =
+                b.resourceObjectReferenceResolver.resolvePrimaryIdentifier(entitlementCtx, providedEntitlementIdentification, result);
+        return ResourceObjectDiscriminator.of(primaryIdentification);
     }
 
     /**

@@ -14,6 +14,8 @@ import java.io.Serializable;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsType;
 
@@ -121,14 +123,18 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
             return value.asPrismContainerValue();
         }
 
+        public @NotNull ShadowAssociationValue associationValue() {
+            return (ShadowAssociationValue) value.asPrismContainerValue();
+        }
+
         public @NotNull PrismPropertyValue<?> getSingleIdentifierValueRequired(@NotNull QName attrName, Object errorCtx)
                 throws SchemaException {
-            PrismContainer<?> identifiersContainer =
+            ResourceAttributeContainer attributesContainer =
                     MiscUtil.requireNonNull(
-                            associationPcv().findContainer(ShadowAssociationValueType.F_IDENTIFIERS),
-                            "No identifiers container in %s in %s", this, errorCtx);
+                            associationValue().getAttributesContainerIfPresent(),
+                            "No attributes container in %s in %s", this, errorCtx);
 
-            PrismProperty<?> valueAttr = identifiersContainer.findProperty(ItemName.fromQName(attrName));
+            PrismProperty<?> valueAttr = attributesContainer.findProperty(ItemName.fromQName(attrName));
             if (valueAttr == null || valueAttr.isEmpty()) {
                 throw new SchemaException(
                         "No value of attribute %s present in %s in %s".formatted(

@@ -22,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -31,13 +30,11 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.config.ResourceObjectAssociationConfigItem;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AssociationsCapabilityType;
 
 /**
  * Definition of a shadow association item, e.g., `ri:group`.
@@ -136,7 +133,7 @@ public class ShadowAssociationDefinitionImpl
     }
 
     public @NotNull ShadowAssociationClassDefinition getAssociationClassDefinition() {
-        return stateNonNull(associationClassDefinition, "The association definition is raw: %s", this);
+        return associationClassDefinition;
     }
 
     public @NotNull ResourceObjectDefinition getTargetObjectDefinition() {
@@ -172,22 +169,23 @@ public class ShadowAssociationDefinitionImpl
     }
 
     private @NotNull ComplexTypeDefinition createComplexTypeDefinition() {
-        var rawDef = MiscUtil.stateNonNull(
+        var genericDefinition = stateNonNull(
                 PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByType(ShadowAssociationValueType.COMPLEX_TYPE),
                 "No definition for %s", ShadowAssociationValueType.COMPLEX_TYPE);
 
-        if (associationClassDefinition != null) {
-            ComplexTypeDefinition def = rawDef.clone();
-            // TODO optimize this by keeping only "important" definitions (e.g. the ones that are actually used by the association)
-            def.mutator().replaceDefinition(
-                    ShadowAssociationValueType.F_IDENTIFIERS,
-                    getTargetObjectDefinition()
-                            .toResourceAttributeContainerDefinition(ShadowAssociationValueType.F_IDENTIFIERS));
-            def.freeze();
-            return def;
-        } else {
-            return rawDef; // FIXME
-        }
+        ComplexTypeDefinition def = genericDefinition.clone();
+
+        // We apply the prism shadow definition for (representative) target object to the shadowRef definition.
+        var shadowRefDef = Objects.requireNonNull(def.findReferenceDefinition(ShadowAssociationValueType.F_SHADOW_REF)).clone();
+        shadowRefDef.mutator().setTargetObjectDefinition(
+                getTargetObjectDefinition().toPrismObjectDefinition());
+        def.mutator().replaceDefinition(
+                ShadowAssociationValueType.F_SHADOW_REF,
+                shadowRefDef);
+        def.mutator().setRuntimeSchema(true);
+
+        def.freeze();
+        return def;
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -198,6 +196,7 @@ public class ShadowAssociationDefinitionImpl
 
     @Override
     public int getMaxOccurs() {
+        //noinspection ReplaceNullCheck
         if (maxOccurs != null) {
             return maxOccurs;
         } else {
@@ -283,8 +282,18 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
-    public PrismContainerValue<ShadowAssociationValueType> createValue() {
-        return new PrismContainerValueImpl<>();
+    public ShadowAssociationValue createValue() {
+        return ShadowAssociationValue.empty();
+    }
+
+    @Override
+    public ShadowAssociationValue instantiateFromIdentifierRealValue(@NotNull QName identifierName, @NotNull Object realValue)
+            throws SchemaException {
+        ResourceObjectDefinition targetObjectDefinition = getTargetObjectDefinition();
+        var blankShadow = targetObjectDefinition.createBlankShadow();
+        blankShadow.getAttributesContainer().add(
+                targetObjectDefinition.instantiateAttribute(identifierName, realValue));
+        return ShadowAssociationValue.of(blankShadow, true);
     }
 
     @Override

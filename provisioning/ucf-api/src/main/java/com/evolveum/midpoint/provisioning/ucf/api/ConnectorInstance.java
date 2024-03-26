@@ -10,7 +10,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.*;
@@ -172,7 +171,7 @@ public interface ConnectorInstance {
      */
     UcfResourceObject fetchObject(
             ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
-            AttributesToReturn attributesToReturn,
+            ShadowItemsToReturn shadowItemsToReturn,
             UcfExecutionContext ctx,
             OperationResult result)
         throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
@@ -199,7 +198,7 @@ public interface ConnectorInstance {
      * @param objectDefinition Definition of the object class of the objects being searched for. May be class or type scoped.
      * @param query Object query to be used.
      * @param handler Handler that is called for each object found.
-     * @param attributesToReturn Attributes that are to be returned; TODO describe exact semantics
+     * @param shadowItemsToReturn Attributes that are to be returned; TODO describe exact semantics
      * @param pagedSearchConfiguration Configuration (capability) describing how paged searches are to be done.
      * @param searchHierarchyConstraints Specifies in what parts of hierarchy the search should be executed.
      * @param errorReportingMethod How should errors during processing individual objects be reported.
@@ -214,7 +213,7 @@ public interface ConnectorInstance {
             @NotNull ResourceObjectDefinition objectDefinition,
             @Nullable ObjectQuery query,
             @NotNull UcfObjectHandler handler,
-            @Nullable AttributesToReturn attributesToReturn,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
             @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod errorReportingMethod,
@@ -331,7 +330,7 @@ public interface ConnectorInstance {
      * Token may be null. That means "from the beginning of history".
      */
     UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
-            AttributesToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
+            ShadowItemsToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
             @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult result)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;

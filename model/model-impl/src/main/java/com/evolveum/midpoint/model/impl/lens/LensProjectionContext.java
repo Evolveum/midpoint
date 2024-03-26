@@ -444,7 +444,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             } else if (shouldCreateObjectCurrent()) {
                 ResourceObjectDefinition rOCD = getCompositeObjectDefinition();
                 if (rOCD != null) {
-                    return rOCD.createBlankShadow(getResourceOid(), key.getTag());
+                    return rOCD
+                            .createBlankShadowWithTag(key.getTag())
+                            .getPrismObject();
                 } else {
                     return null;
                 }
@@ -1177,11 +1179,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 // We need to convert modify delta to ADD
                 ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(getObjectTypeClass(),
                     ChangeType.ADD);
-                ResourceObjectDefinition objectTypeDef = getCompositeObjectDefinitionRequired();
-                PrismObject<ShadowType> newAccount = objectTypeDef.createBlankShadow(
-                        getResourceOid(), key.getTag());
-                addDelta.setObjectToAdd(newAccount);
-
+                addDelta.setObjectToAdd(
+                        getCompositeObjectDefinitionRequired()
+                                .createBlankShadowWithTag(key.getTag())
+                                .getPrismObject());
                 if (origDelta != null) {
                     addDelta.merge(origDelta);
                 }

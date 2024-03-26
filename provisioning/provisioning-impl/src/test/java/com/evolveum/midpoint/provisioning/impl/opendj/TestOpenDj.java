@@ -21,10 +21,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -188,7 +185,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNotNull("No retrievalTimestamp", cachingMetadata.getRetrievalTimestamp());
         assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
-        Element xsdElement = ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeRepoAfter);
+        Element xsdElement = Objects.requireNonNull(ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeRepoAfter));
         ResourceSchema parsedSchema = ResourceSchemaFactory.parseNativeSchemaAsBare(xsdElement);
         assertNotNull("No schema after parsing", parsedSchema);
 
@@ -592,7 +589,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No ds-pwp-account-disabled read", dsDef.canRead());
         // TODO: MID-2358
 //        assertTrue("ds-pwp-account-disabled is NOT operational", dsDef.isOperational());
-        //noinspection deprecation
         assertTrue("ds-pwp-account-disabled is NOT ignored", dsDef.isIgnored());
 
         assertNull("The _PASSWORD_ attribute sneaked into schema",
@@ -898,6 +894,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         try {
+            //noinspection DataFlowIssue
             provisioningService.addObject(null, null, null, task, result);
         } catch (NullPointerException e) {
             displayExpectedException(e);
@@ -1506,10 +1503,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         openDJController.executeLdifChange(
-                "dn: uid=will123,ou=People,dc=example,dc=com\n" +
-                        "changetype: modify\n" +
-                        "replace: pager\n" +
-                        "pager: 1"
+                """
+                        dn: uid=will123,ou=People,dc=example,dc=com
+                        changetype: modify
+                        replace: pager
+                        pager: 1"""
         );
 
         when();
@@ -3480,11 +3478,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         }
     }
 
-    protected void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
-        ShadowAssociationValueType associationType = IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
-        PrismContainerValue<?> identifiersCVal = associationType.getIdentifiers().asPrismContainerValue();
-        PrismProperty<String> dnProp = identifiersCVal.findProperty(getSecondaryIdentifierQName());
-        assertNotNull("No DN identifier in group association in " + account + ", got " + identifiersCVal, dnProp);
+    private void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
+        var associationValue = IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
+        var dnProp = associationValue.getAttributesContainerRequired().findAttribute(getSecondaryIdentifierQName());
+        assertNotNull("No DN identifier in group association in " + account, dnProp);
     }
 
     @SuppressWarnings("SameParameterValue")

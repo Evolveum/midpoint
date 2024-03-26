@@ -242,4 +242,9 @@ public class ResourceAttributeDefinitionImpl<T>
     public String getHumanReadableDescription() {
         return toString(); // FIXME
     }
+
+    @Override
+    public boolean isSimulated() {
+        return false; // currently, all attributes are "real"; only associations can be simulated
+    }
 }

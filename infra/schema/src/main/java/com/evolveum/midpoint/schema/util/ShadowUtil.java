@@ -195,10 +195,6 @@ public class ShadowUtil {
         }
     }
 
-    public static ResourceAttributeContainer getIdentifiersContainer(PrismContainerValue<ShadowAssociationValueType> cval) {
-        return castShadowContainer(cval, ShadowAssociationValueType.F_IDENTIFIERS, ResourceAttributeContainer.class);
-    }
-
     /** Assuming the shadow has the correct definition. */
     public static @NotNull ResourceAttributeContainer getOrCreateAttributesContainer(ShadowType shadow) {
         try {
@@ -961,19 +957,6 @@ public class ShadowUtil {
         }
     }
 
-    public static void removeAllAttributesExceptPrimaryIdentifier(ShadowType shadow, ResourceObjectDefinition objDef) {
-        ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
-        if (attributesContainer != null) {
-            List<ItemName> attributesToDelete = attributesContainer.getAttributes().stream()
-                    .map(Item::getElementName)
-                    .filter(attrName -> !objDef.isPrimaryIdentifier(attrName))
-                    .toList();
-            for (ItemName attrName : attributesToDelete) {
-                attributesContainer.getValue().removeProperty(attrName);
-            }
-        }
-    }
-
     /**
      * Returns true if the shadow state indicates that it is 'gone', i.e. no longer on the resource.
      * This could be determined from the `dead` property or from the `shadowLifecycleState`. The latter is
@@ -1075,13 +1058,6 @@ public class ShadowUtil {
                 .orElse(null);
     }
 
-    public static @NotNull ResourceAttributeContainer getIdentifiersContainerRequired(
-            @NotNull PrismContainerValue<ShadowAssociationValueType> associationValue) throws SchemaException {
-        return MiscUtil.requireNonNull(
-                getIdentifiersContainer(associationValue),
-                () -> "No identifiers in " + associationValue);
-    }
-
     public static List<PendingOperationType> sortPendingOperations(List<PendingOperationType> pendingOperations) {
         // Copy to mutable list that is not bound to the prism
         List<PendingOperationType> sortedList = new ArrayList<>(pendingOperations.size());
@@ -1106,22 +1082,6 @@ public class ShadowUtil {
      *
      * Does not assume that shadow has a definition.
      */
-    public static @NotNull Collection<PrismContainerValue<ShadowAssociationValueType>> getAssociationPrismValues(
-            @NotNull PrismObject<ShadowType> shadow, QName assocName) {
-        PrismContainer<ShadowAssociationValueType> association =
-                shadow.findContainer(ItemPath.create(ShadowType.F_ASSOCIATIONS, assocName));
-        if (association == null) {
-            return List.of();
-        } else {
-            return association.getValues();
-        }
-    }
-
-    /**
-     * Returns the values of given association. The values are connected to the shadow. The list itself is not.
-     *
-     * Does not assume that shadow has a definition.
-     */
     public static @NotNull Collection<ShadowAssociationValueType> getAssociationValues(
             @NotNull PrismObject<ShadowType> shadow, QName assocName) {
         PrismContainer<ShadowAssociationValueType> association =
@@ -1130,6 +1090,25 @@ public class ShadowUtil {
             return List.of();
         } else {
             return association.getRealValues();
+        }
+    }
+
+    /**
+     * TODO better name ... the idea is that the shadow has the correct definition, but currently we cannot use
+     *  AbstractShadow, because there are some differences in definitions ... to be researched.
+     *
+     * It seems that the wrong definition came from primary delta fed to the model.
+     * Unlike in provisioning, we don't apply definitions to such deltas thoroughly.
+     *
+     * TEMPORARY
+     */
+    public static @NotNull Collection<? extends ShadowAssociationValue> getAdoptedAssociationValues(
+            @NotNull PrismObject<ShadowType> shadow, QName assocName) {
+        var association = ShadowUtil.getAssociation(shadow, assocName);
+        if (association == null) {
+            return List.of();
+        } else {
+            return association.getAssociationValues();
         }
     }
 
@@ -1174,7 +1153,7 @@ public class ShadowUtil {
         getOrCreateAssociationsContainer(shadow).add(association);
     }
 
-    public static void addShadowItem(ShadowType shadow, ShadowItem item) throws SchemaException {
+    public static void addShadowItem(ShadowType shadow, ShadowItem<?, ?> item) throws SchemaException {
         if (item instanceof ResourceAttribute<?> attribute) {
             addAttribute(shadow, attribute);
         } else if (item instanceof ShadowAssociation association) {

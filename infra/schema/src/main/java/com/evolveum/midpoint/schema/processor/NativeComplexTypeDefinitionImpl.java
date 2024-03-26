@@ -323,17 +323,20 @@ public class NativeComplexTypeDefinitionImpl
 
     @Override
     public String toString() {
-        return "NativeObjectClassDefinitionImpl{" +
-                "name='" + name + '\'' +
-                ", association=" + association +
-                "}";
+        StringBuilder sb = new StringBuilder(humanReadableName());
+        sb.append("{");
+        if (association) {
+            sb.append(subjects).append(" <-> ").append(objects);
+        } else {
+            sb.append(itemDefinitions.size()).append(" item definitions");
+        }
+        sb.append("}");
+        return sb.toString();
     }
 
     @Override
     public String debugDump(int indent) {
-        var sb = DebugUtil.createTitleStringBuilder(
-                "Native " + (association ? "association" : "object") + " class " + name + "\n",
-                indent);
+        var sb = DebugUtil.createTitleStringBuilder(humanReadableName() + "\n", indent);
         if (!association) {
             DebugUtil.debugDumpWithLabelLn(sb, "UCF data", ucfData, indent + 1);
             DebugUtil.debugDumpLabelLn(sb, "Items", indent + 1);
@@ -346,6 +349,11 @@ public class NativeComplexTypeDefinitionImpl
             sb.append(DebugUtil.debugDump(objects, indent + 1));
         }
         return sb.toString();
+    }
+
+    @NotNull
+    private String humanReadableName() {
+        return "Native " + (association ? "association" : "object") + " class '" + name + "'";
     }
 
     @Override

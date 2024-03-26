@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -17,8 +18,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +43,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * . the definition is known ({@link #getObjectDefinition()})
  * . the bean has the definitions applied
- * . the resource OID is filled-in (unless {@link #canHaveNoResourceOid()} is `true`).
+ * . the bean has attributes container (which can be empty)
  *
  * See {@link #checkConsistence()}.
  */
@@ -114,15 +113,6 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return ShadowUtil.getAllIdentifiers(getBean());
     }
 
-    /** Returns the identifiers as a (detached) container, suitable e.g. for including into association value. */
-    default @NotNull ResourceAttributeContainer getIdentifiersAsContainer() throws SchemaException {
-        ResourceAttributeContainer identifiersContainer = ObjectFactory.createResourceAttributeContainer(
-                ShadowAssociationValueType.F_IDENTIFIERS, getAttributesContainerDefinition());
-        identifiersContainer.getValue().addAll(
-                Item.cloneCollection(getAllIdentifiers()));
-        return identifiersContainer;
-    }
-
     default boolean hasPrimaryIdentifier() throws SchemaException {
         return getIdentifiers() instanceof ResourceObjectIdentifiers.WithPrimary;
     }
@@ -140,6 +130,10 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
     default <T> @Nullable ResourceAttribute<T> getPrimaryIdentifierAttribute() {
         //noinspection unchecked
         return (ResourceAttribute<T>) getAttributesContainer().getPrimaryIdentifier();
+    }
+
+    default <T> @NotNull ResourceAttribute<T> getPrimaryIdentifierAttributeRequired() {
+        return stateNonNull(getPrimaryIdentifierAttribute(), "No primary identifier in %s", this);
     }
 
     default @Nullable ResourceObjectIdentification.WithPrimary getPrimaryIdentification() throws SchemaException {
@@ -176,11 +170,14 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
     /** Replaces the in-memory representation with the new content but the same definition. Returns a new instance. */
     @NotNull AbstractShadow withNewContent(@NotNull ShadowType newBean);
 
-    /** Do not call if {@link #canHaveNoResourceOid()} is `true`. */
-    default @NotNull String getResourceOid() {
+    default @NotNull String getResourceOidRequired() {
         return MiscUtil.stateNonNull(
-                Referencable.getOid(getBean().getResourceRef()),
+                getResourceOid(),
                 "No resource OID in %s", this);
+    }
+
+    default @Nullable String getResourceOid() {
+        return Referencable.getOid(getBean().getResourceRef());
     }
 
     default @NotNull QName getObjectClassName() throws SchemaException {
@@ -221,7 +218,6 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
 
     /** These checks are to be executed even in production (at least when creating the object). */
     default void checkConsistence() {
-        getResourceOid(); // checks the presence
         stateCheck(getObjectDefinition() != null, "No object definition in %s", this);
         if (InternalsConfig.consistencyChecks) {
             getAttributesContainer().checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
@@ -326,8 +322,9 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return ShadowUtil.getHumanReadableNameLazily(getPrismObject());
     }
 
-    default boolean canHaveNoResourceOid() {
-        return false;
+    default @NotNull Collection<? extends ShadowAssociationValue> getAssociationValues(QName assocName) {
+        var associationsContainer = getAssociationsContainer();
+        return associationsContainer != null ? associationsContainer.getAssociationValues(assocName) : List.of();
     }
 
     /**
@@ -340,6 +337,7 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
 
         private Impl(@NotNull ShadowType bean) {
             this.bean = bean;
+            ShadowUtil.getOrCreateAttributesContainer(bean);
             checkConsistence();
         }
 

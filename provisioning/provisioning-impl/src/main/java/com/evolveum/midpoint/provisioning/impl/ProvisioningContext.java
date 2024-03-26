@@ -19,7 +19,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.provisioning.util.AttributesToReturnProvider;
+import com.evolveum.midpoint.provisioning.util.ShadowItemsToReturnProvider;
 import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -707,8 +707,8 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
      * It's more logical to call this method right on {@link ProvisioningContext}. The exact placement of the implementation
      * is to be decided yet.
      */
-    public AttributesToReturn createAttributesToReturn() {
-        return new AttributesToReturnProvider(resource, getObjectDefinitionRequired(), getOperationOptions)
+    public ShadowItemsToReturn createAttributesToReturn() {
+        return new ShadowItemsToReturnProvider(resource, getObjectDefinitionRequired(), getOperationOptions)
                 .createAttributesToReturn();
     }
 

@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.TokenUtil;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -37,32 +37,32 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
     @NotNull private final LiveSyncToken token;
 
     /** The value provided by original caller of the `synchronize` method. */
-    private final AttributesToReturn originalAttributesToReturn;
+    private final ShadowItemsToReturn originalShadowItemsToReturn;
 
     /**
      * @param originalContext Provisioning context determined from the parameters of the synchronize method. It can be wildcard.
-     * @param originalAttributesToReturn Attributes to return determined from the parameters of the synchronize method. It can be null.
+     * @param originalShadowItemsToReturn Attributes to return determined from the parameters of the synchronize method. It can be null.
      */
     ResourceObjectLiveSyncChange(
             UcfLiveSyncChange ucfLiveSyncChange,
             ProvisioningContext originalContext,
-            AttributesToReturn originalAttributesToReturn) {
+            ShadowItemsToReturn originalShadowItemsToReturn) {
         super(ucfLiveSyncChange, originalContext);
         this.token = TokenUtil.fromUcf(ucfLiveSyncChange.getToken());
-        this.originalAttributesToReturn = originalAttributesToReturn;
+        this.originalShadowItemsToReturn = originalShadowItemsToReturn;
     }
 
-    AttributesToReturn determineAttributesToReturn() {
+    ShadowItemsToReturn determineAttributesToReturn() {
         if (effectiveCtx == originalCtx) {
-            return originalAttributesToReturn;
+            return originalShadowItemsToReturn;
         } else {
             return effectiveCtx.createAttributesToReturn();
         }
     }
 
     @Override
-    boolean attributesToReturnAreDifferent(AttributesToReturn actualAttributesToReturn) {
-        return !Objects.equals(actualAttributesToReturn, originalAttributesToReturn);
+    boolean attributesToReturnAreDifferent(ShadowItemsToReturn actualShadowItemsToReturn) {
+        return !Objects.equals(actualShadowItemsToReturn, originalShadowItemsToReturn);
     }
 
     public @NotNull LiveSyncToken getToken() {

@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -373,12 +374,12 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
-    public PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
-        return super.createBlankShadow(resourceOid, tag)
-                .asObjectable()
+    public AbstractShadow createBlankShadowWithTag(String tag) {
+        var shadow = super.createBlankShadowWithTag(tag);
+        shadow.getBean()
                 .kind(getKind())
-                .intent(getIntent())
-                .asPrismObject();
+                .intent(getIntent());
+        return shadow;
     }
 
     @Override

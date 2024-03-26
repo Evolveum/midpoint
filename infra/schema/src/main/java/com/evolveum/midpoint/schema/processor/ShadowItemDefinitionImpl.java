@@ -393,8 +393,8 @@ public abstract class ShadowItemDefinitionImpl<
     }
 
     @Override
-    public AttributeFetchStrategyType getFetchStrategy() {
-        return customizationBean.getFetchStrategy();
+    public @NotNull AttributeFetchStrategyType getFetchStrategy() {
+        return Objects.requireNonNullElse(customizationBean.getFetchStrategy(), AttributeFetchStrategyType.IMPLICIT);
     }
 
     @Override

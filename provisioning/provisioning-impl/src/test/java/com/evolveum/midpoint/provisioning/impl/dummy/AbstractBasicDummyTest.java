@@ -6,19 +6,18 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_PASSWORD;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertProvisioningAccountShadow;
 import static com.evolveum.midpoint.test.asserter.predicates.StringAssertionPredicates.startsWith;
 import static com.evolveum.midpoint.test.asserter.predicates.TimeAssertionPredicates.approximatelyCurrent;
 import static com.evolveum.midpoint.test.util.TestUtil.getAttrQName;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +49,7 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -1291,17 +1290,16 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         ProvisioningContext ctx = provisioningContextFactory.createForShadowCoordinates(coords, task, result);
 
         // WHEN
-        AttributesToReturn attributesToReturn = ctx.createAttributesToReturn();
+        ShadowItemsToReturn shadowItemsToReturn = ctx.createAttributesToReturn();
 
         // THEN
-        displayValue("attributesToReturn", attributesToReturn);
-        assertFalse("wrong isReturnDefaultAttributes", attributesToReturn.isReturnDefaultAttributes());
-        Collection<String> attrs = new ArrayList<>();
-        for (ResourceAttributeDefinition<?> attributeToReturnDef : attributesToReturn.getAttributesToReturn()) {
-            attrs.add(attributeToReturnDef.getItemName().getLocalPart());
-        }
+        displayValue("attributesToReturn", shadowItemsToReturn);
+        assertFalse("wrong isReturnDefaultAttributes", shadowItemsToReturn.isReturnDefaultAttributes());
+        var attrsToGet = shadowItemsToReturn.getItemsToReturn().stream()
+                .map(itemDef -> itemDef.getItemName().getLocalPart())
+                .toList();
         // No "members" attribute here
-        PrismAsserts.assertSets("Wrong attribute to return", attrs, "uid", "name", "description", "cc");
+        PrismAsserts.assertSets("Wrong attribute to return", attrsToGet, "uid", "name", "description", "cc");
 
         assertSteadyResource();
     }
@@ -1703,7 +1701,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                     }
                 }
 
-                assertProvisioningAccountShadow(shadow.asPrismObject(), resourceBean, ResourceAttributeDefinition.class);
+                assertProvisioningAccountShadow(shadow.asPrismObject(), ResourceAttributeDefinition.class);
             }
         };
     }

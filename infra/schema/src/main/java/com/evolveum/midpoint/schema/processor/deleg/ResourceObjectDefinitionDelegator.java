@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +34,11 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     @Override
     default @NotNull List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
         return delegate().getAttributeDefinitions();
+    }
+
+    @Override
+    default @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions() {
+        return delegate().getShadowItemDefinitions();
     }
 
     @Override
@@ -129,8 +136,8 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
-        return delegate().createBlankShadow(resourceOid, tag);
+    default AbstractShadow createBlankShadowWithTag(String tag) {
+        return delegate().createBlankShadowWithTag(tag);
     }
 
     @Override

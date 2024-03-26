@@ -65,7 +65,7 @@ public interface ResourceAttributeDefinitionDelegator<T>
     }
 
     @Override
-    default AttributeFetchStrategyType getFetchStrategy() {
+    default @NotNull AttributeFetchStrategyType getFetchStrategy() {
         return delegate().getFetchStrategy();
     }
 
@@ -264,5 +264,10 @@ public interface ResourceAttributeDefinitionDelegator<T>
     @Override
     default String getHumanReadableDescription() {
         return delegate().getHumanReadableDescription();
+    }
+
+    @Override
+    default boolean isSimulated() {
+        return delegate().isSimulated();
     }
 }

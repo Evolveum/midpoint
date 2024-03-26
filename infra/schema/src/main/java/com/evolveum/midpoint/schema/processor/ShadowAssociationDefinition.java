@@ -10,7 +10,12 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
 
 /**
  * Definition of an association item, e.g., `ri:group`.
@@ -27,15 +32,16 @@ public interface ShadowAssociationDefinition
 
     ResourceObjectDefinition getTargetObjectDefinition();
 
-    ContainerDelta<ShadowAssociationValueType> createEmptyDelta();
+    ShadowAssociationValue instantiateFromIdentifierRealValue(@NotNull QName identifierName, @NotNull Object realValue)
+            throws SchemaException;
 
-    boolean isSimulated();
+    ContainerDelta<ShadowAssociationValueType> createEmptyDelta();
 
     ShadowAssociationClassSimulationDefinition getSimulationDefinition();
 
     ShadowAssociationClassSimulationDefinition getSimulationDefinitionRequired();
 
-    ShadowAssociationClassDefinition getAssociationClassDefinition();
+    @NotNull ShadowAssociationClassDefinition getAssociationClassDefinition();
 
     boolean isEntitlement();
 }

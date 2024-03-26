@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,5 +122,18 @@ public class ResourceObjectTypeDelineation
         DebugUtil.debugDumpWithLabelLn(sb, "auxiliaryObjectClassNames", auxiliaryObjectClassNames, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "condition", String.valueOf(condition), indent + 1); // TODO
         DebugUtil.debugDumpWithLabel(sb, "classificationOrder", getClassificationOrder(), indent + 1);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("auxiliaryObjectClassNames", auxiliaryObjectClassNames)
+                .add("condition", condition)
+                .add("delineationBean", delineationBean)
+                .add("objectClassName", objectClassName)
+                .add("baseContext", baseContext)
+                .add("searchHierarchyScope", searchHierarchyScope)
+                .add("filterClauses", filterClauses)
+                .toString();
     }
 }

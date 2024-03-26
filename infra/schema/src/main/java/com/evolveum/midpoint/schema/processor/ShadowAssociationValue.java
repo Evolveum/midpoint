@@ -10,6 +10,9 @@ package com.evolveum.midpoint.schema.processor;
 import java.io.Serial;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
@@ -17,12 +20,16 @@ import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * Represents a specific shadow association value - i.e. something that is put into {@link ShadowAssociation}.
@@ -33,6 +40,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * We will simply not allow creating a non-compliant association object. At least we'll try to do this.
  * The exception are situations where the object exists between instantiation and providing the data.
  *
+ * *Instantiation*
+ *
+ * In particular, we must provide reasonable CTD when instantiating this object.
+ * Otherwise, {@link PrismContainerValue#asContainerable()} will fail.
+ *
  * TODO check if it's possible to implement this approach regarding createNewValue in ShadowAssociation
  */
 @Experimental
@@ -41,7 +53,11 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     @Serial private static final long serialVersionUID = 0L;
 
     private ShadowAssociationValue() {
-        super();
+        this(null, null, null, null,
+                stateNonNull(
+                        PrismContext.get().getSchemaRegistry()
+                                .findComplexTypeDefinitionByCompileTimeClass(ShadowAssociationValueType.class),
+                        "No CTD for ShadowAssociationValueType"));
     }
 
     private ShadowAssociationValue(
@@ -69,11 +85,12 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         }
         newValue.setParent(pcv.getParent()); // TODO maybe temporary?
         newValue.setId(pcv.getId());
+
         return newValue;
     }
 
     /** Creates a new value from the full or ID-only shadow. No cloning here. */
-    public static @NotNull ShadowAssociationValue of(@NotNull AbstractShadow shadow) {
+    public static @NotNull ShadowAssociationValue of(@NotNull AbstractShadow shadow, boolean identifiersOnly) {
         var newValue = empty();
         var shadowRef = PrismContext.get().getSchemaRegistry()
                 .findComplexTypeDefinitionByCompileTimeClass(ShadowAssociationValueType.class)
@@ -86,7 +103,20 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "when adding shadowRef to a SAV");
         }
+        newValue.setIdentifiersOnly(identifiersOnly);
         return newValue;
+    }
+
+    public void setIdentifiersOnly(boolean value) {
+        asContainerable().setIdentifiersOnly(value);
+    }
+
+    public boolean hasIdentifiersOnly() {
+        return Boolean.TRUE.equals(asContainerable().isIdentifiersOnly());
+    }
+
+    public boolean hasFullObject() {
+        return !hasIdentifiersOnly();
     }
 
     public static ShadowAssociationValue empty() {
@@ -107,7 +137,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return clone;
     }
 
-    public @NotNull ResourceAttributeContainer getAttributesContainer() {
+    public @NotNull ResourceAttributeContainer getAttributesContainerRequired() {
         return ShadowUtil.getAttributesContainerRequired(getShadowBean());
     }
 
@@ -117,103 +147,62 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
 
     /** Target object or its reference. TODO better name. */
     public ShadowType getShadowBean() {
-        var shadowRef = MiscUtil.stateNonNull(asContainerable().getShadowRef(), "No shadowRef in %s", this);
-        return (ShadowType) MiscUtil.stateNonNull(shadowRef.getObjectable(), "No shadow in %s", this);
+        var shadowRef = stateNonNull(asContainerable().getShadowRef(), "No shadowRef in %s", this);
+        return (ShadowType) stateNonNull(shadowRef.getObjectable(), "No shadow in %s", this);
     }
 
     public QName getTargetObjectClassName() {
-        return getAttributesContainer().getDefinitionRequired().getTypeName();
+        return getAttributesContainerRequired().getDefinitionRequired().getTypeName();
     }
 
-    //    public ShadowAssociationValue(QName name, ShadowAssociationDefinition definition) {
-//        super(name, definition, PrismContext.get());
-//    }
-//
-//    /** TODO shouldn't be the definition always required? */
-//    @Override
-//    public ShadowAssociationDefinition getDefinition() {
-//        return (ShadowAssociationDefinition) super.getDefinition();
-//    }
-//
-//    public @NotNull ShadowAssociationDefinition getDefinitionRequired() {
-//        return stateNonNull(
-//                getDefinition(), "No definition in %s", this);
-//    }
-//
-//    @Override
-//    public ShadowAssociationValue cloneComplex(CloneStrategy strategy) {
-//        ShadowAssociationValue clone = new ShadowAssociationValue(getElementName(), getDefinition());
-//        copyValues(strategy, clone);
-//        return clone;
-//    }
-//
-//    /**
-//     * This method will clone the item and convert it to a {@link ShadowAssociationValue}.
-//     * (A typical use case is that the provided item is not a {@link ShadowAssociationValue}.)
-//     *
-//     * Currently, this method ignores the identifiers: they are used "as is". No eventual definition application,
-//     * and conversion to resource attributes is done.
-//     */
-//    public static ShadowAssociationValue convertFromPrismItem(
-//            @NotNull Item<?, ?> item, @NotNull ShadowAssociationDefinition associationDef) {
-//        var association = new ShadowAssociationValue(item.getElementName(), associationDef);
-//        for (PrismValue value : item.getValues()) {
-//            if (value instanceof PrismContainerValue<?> pcv) {
-//                try {
-//                    //noinspection unchecked
-//                    association.addIgnoringEquivalents((PrismContainerValue<ShadowAssociationValueType>) pcv.clone());
-//                } catch (SchemaException e) {
-//                    throw new IllegalArgumentException("Couldn't add PCV: " + value, e);
-//                }
-//            } else {
-//                throw new IllegalArgumentException("Not a PCV: " + value);
-//            }
-//        }
-//        return association;
-//    }
-//
-//    public int size() {
-//        return values.size();
-//    }
-//
-//    @Override
-//    protected String getDebugDumpClassName() {
-//        return "SA";
-//    }
-//
-//    @SuppressWarnings("UnusedReturnValue")
-//    public @NotNull PrismContainerValue<ShadowAssociationValueType> createNewValueWithIdentifiers(
-//            @NotNull ResourceAttributeContainer identifiers) throws SchemaException {
-//        var value = createNewValue();
-//        value.add(identifiers);
-//        return value;
-//    }
-//
-//    public @NotNull PrismContainerValue<ShadowAssociationValueType> createNewValueWithIdentifier(
-//            @NotNull ResourceAttribute<?> identifier) throws SchemaException {
-//        var identifiersContainer = getDefinitionRequired()
-//                .getTargetObjectDefinition()
-//                .toResourceAttributeContainerDefinition()
-//                .instantiate(ShadowAssociationValueType.F_IDENTIFIERS);
-//        identifiersContainer.add(identifier);
-//        return createNewValueWithIdentifiers(identifiersContainer);
-//    }
-//
-//    /** Adds both target shadow ref and identifiers. */
-//    @SuppressWarnings("UnusedReturnValue")
-//    public @NotNull PrismContainerValue<ShadowAssociationValueType> createNewValueForTarget(@NotNull AbstractShadow target)
-//            throws SchemaException {
-//        var value = createNewValue();
-//        value.getValue().setShadowRef(target.getRef());
-//        value.add(target.getIdentifiersAsContainer());
-//        return value;
-//    }
-//
-//    /** Adds only the target shadow ref. */
-//    @SuppressWarnings("UnusedReturnValue")
-//    public @NotNull PrismContainerValue<ShadowAssociationValueType> createNewValueForTargetRef(@NotNull ObjectReferenceType ref) {
-//        var value = createNewValue();
-//        value.getValue().setShadowRef(ref);
-//        return value;
-//    }
+    /** Returns the identifiers of the referenced object. */
+    public @NotNull ResourceAttributeContainer getIdentifiersContainerRequired() {
+        return getAttributesContainerRequired();
+    }
+
+    public @NotNull ShadowAssociationClassDefinition getAssociationClassDefinition() {
+        return stateNonNull((ShadowAssociationDefinition) getDefinition(), "No definition in %s", this)
+                .getAssociationClassDefinition();
+    }
+
+    public @NotNull ResourceObjectIdentification<?> getIdentification() {
+        return ResourceObjectIdentification.fromAttributes(
+                getAssociatedObjectDefinition(), getShadowRequired().getAttributes());
+    }
+
+    public @NotNull ObjectReferenceType getShadowRef() {
+        return stateNonNull(
+                asContainerable().getShadowRef(),
+                "No shadowRef in %s", this);
+    }
+
+    public @Nullable AbstractShadow getShadowIfPresent() {
+        var shadow = getShadowRef().getObjectable();
+        if (shadow != null) {
+            stateCheck(shadow instanceof ShadowType, "Not a shadow in %s: %s", this, shadow);
+            return AbstractShadow.of((ShadowType) shadow);
+        } else {
+            return null;
+        }
+    }
+
+    public @NotNull AbstractShadow getShadowRequired() {
+        return stateNonNull(getShadowIfPresent(), "No shadow in %s", this);
+    }
+
+    private @NotNull ResourceObjectDefinition getAssociatedObjectDefinition() {
+        return getShadowRequired().getObjectDefinition();
+    }
+
+    public ResourceAttributeContainer getAttributesContainerIfPresent() {
+        var shadow = getShadowIfPresent();
+        return shadow != null ? shadow.getAttributesContainer() : null;
+    }
+
+    public void setShadow(@NotNull AbstractShadow shadow) {
+        asContainerable()
+                .shadowRef(ObjectTypeUtil.createObjectRefWithFullObject(shadow.getBean()))
+                .identifiersOnly(false);
+        // TODO check consistence
+    }
 }

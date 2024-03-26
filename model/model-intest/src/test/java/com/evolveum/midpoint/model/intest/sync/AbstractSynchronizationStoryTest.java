@@ -827,8 +827,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertEquals("Wrong resourceRef in wally account (" + resourceDesc + ")", resource.getOid(),
                 accountShadowWally.asObjectable().getResourceRef().getOid());
         if (expectedFullName != null) {
-            IntegrationTestTools.assertAttribute(accountShadowWally.asObjectable(), resource.asObjectable(),
-                    DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expectedFullName);
+            IntegrationTestTools.assertAttribute(
+                    accountShadowWally.asObjectable(), DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expectedFullName);
         }
 
         DummyAccount dummyAccount = dummy.getAccountByName(ACCOUNT_WALLY_DUMMY_USERNAME);
