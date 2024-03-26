@@ -694,20 +694,20 @@ public class DummyResource implements DebugDumpable {
 
         Class<? extends DummyObject> type = objectToAdd.getClass();
 
+        // This is "resource-generated" attribute, used to simulate resources which - by default - generate attributes
+        // which we need to sync. Intentionally before "setResource" to avoid spurious sync deltas.
+        if (generateDefaultValues) {
+            objectToAdd.addAttributeValue(DummyAccount.ATTR_INTERNAL_ID, new Random().nextInt());
+        }
+
         objectToAdd.setResource(this);
 
-        String normalizedName = objectToAdd.getNormalizedName();
+        String normalizedName = objectToAdd.getNormalizedName(); // requires the object being on the resource already
         if (normalizedName != null && forbiddenNames != null && forbiddenNames.contains(normalizedName)) {
             throw new ObjectAlreadyExistsException(normalizedName + " is forbidden to use as an object name");
         }
 
         checkOrGenerateObjectId(objectToAdd);
-
-        // This is "resource-generated" attribute, used to simulate resources which - by default - generate attributes
-        // which we need to sync.
-        if (generateDefaultValues) {
-            objectToAdd.addAttributeValue(DummyAccount.ATTR_INTERNAL_ID, new Random().nextInt());
-        }
 
         updateNormalizedHierarchicalName(objectToAdd);
         hierarchySupport.checkHasContainingOrg(objectToAdd.getName());
