@@ -389,7 +389,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
         // object instance is returned
-        assertSame("Broken caching", resourceSchema, ResourceSchemaFactory.getBareSchema(resourceType));
+        assertSame("Broken caching",
+                resourceSchema.getNativeSchema(),
+                ResourceSchemaFactory.getBareSchema(resourceType).getNativeSchema());
 
         ResourceObjectClassDefinition accountDef =
                 resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
