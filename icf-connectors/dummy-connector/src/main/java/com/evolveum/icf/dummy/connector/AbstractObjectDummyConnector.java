@@ -354,12 +354,20 @@ public abstract class AbstractObjectDummyConnector
     }
 
     private void buildLinks(ObjectClassInfoBuilder classBuilder, DummyObjectClass dummyObjectClass) {
-        for (var linkDefinition : dummyObjectClass.getVisibleLinkDefinitions()) {
-            var attrBuilder = new AttributeInfoBuilder(linkDefinition.getLinkNameRequired(), ConnectorObjectReference.class);
+        for (var linkDefinition : dummyObjectClass.getLinkDefinitions()) {
             var participant = linkDefinition.getParticipant();
-            attrBuilder.setMultiValued(participant.getMaxOccurs() < 0 || participant.getMaxOccurs() > 1);
-            attrBuilder.setRequired(participant.getMinOccurs() > 0);
-            attrBuilder.setReturnedByDefault(participant.isReturnedByDefault());
+            var attrBuilder = new AttributeInfoBuilder(linkDefinition.getLinkName(), ConnectorObjectReference.class)
+                    .setMultiValued(participant.getMaxOccurs() < 0 || participant.getMaxOccurs() > 1)
+                    .setRequired(participant.getMinOccurs() > 0)
+                    .setReturnedByDefault(participant.isReturnedByDefault());
+            if (!participant.isVisible()) {
+                attrBuilder
+                        .setReadable(false)
+                        .setUpdateable(false)
+                        .setCreateable(false);
+            }
+            attrBuilder.setSubtype(
+                    linkDefinition.getLinkClassDefinition().getName() + "#" + linkDefinition.getParticipantIndex().getOrder());
             classBuilder.addAttributeInfo(attrBuilder.build());
         }
     }
@@ -804,12 +812,12 @@ public abstract class AbstractObjectDummyConnector
                 if (objectClass.is(ObjectClass.ALL_NAME)) {
                     // take all changes
                 } else if (objectClass.is(ObjectClass.ACCOUNT_NAME)) {
-                    if (deltaObjectClass != DummyAccount.class) {
+                    if (!DummyAccount.class.equals(deltaObjectClass)) {
                         LOG.ok("Skipping delta {0} because of objectclass mismatch", delta);
                         continue;
                     }
                 } else if (objectClass.is(ObjectClass.GROUP_NAME)) {
-                    if (deltaObjectClass != DummyGroup.class) {
+                    if (!DummyGroup.class.equals(deltaObjectClass)) {
                         LOG.ok("Skipping delta {0} because of objectclass mismatch", delta);
                         continue;
                     }
@@ -1014,7 +1022,10 @@ public abstract class AbstractObjectDummyConnector
     }
 
     private void addLinks(ConnectorObjectBuilder builder, DummyObject dummyObject) throws SchemaViolationException {
-        for (LinkDefinition linkDefinition : dummyObject.getStructuralObjectClass().getVisibleLinkDefinitions()) {
+        for (LinkDefinition linkDefinition : dummyObject.getStructuralObjectClass().getLinkDefinitions()) {
+            if (!linkDefinition.isVisible()) {
+                continue;
+            }
             LOG.info("Processing link definition: {0}", linkDefinition);
             var participant = linkDefinition.getParticipant();
             // in the future, returned/expanded-by-default will be overridable by "get options"
@@ -1022,12 +1033,12 @@ public abstract class AbstractObjectDummyConnector
                 continue;
             }
             Set<Object> convertedLinkValues = new HashSet<>();
-            for (DummyObject linkedObject : dummyObject.getLinkedObjects(linkDefinition.getLinkNameRequired())) {
+            for (DummyObject linkedObject : dummyObject.getLinkedObjects(linkDefinition.getLinkName())) {
                 var convertedLinkedObject = convertToConnectorObject(linkedObject, null);
                 convertedLinkValues.add(new ConnectorObjectReference(
                         participant.isExpandedByDefault() ? convertedLinkedObject : convertedLinkedObject.getIdentification()));
             }
-            builder.addAttribute(linkDefinition.getLinkNameRequired(), convertedLinkValues);
+            builder.addAttribute(linkDefinition.getLinkName(), convertedLinkValues);
         }
     }
 

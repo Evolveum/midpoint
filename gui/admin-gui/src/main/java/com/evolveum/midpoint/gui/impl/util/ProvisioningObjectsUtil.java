@@ -297,7 +297,7 @@ public class ProvisioningObjectsUtil {
         if (oc == null) {
             return null;
         }
-        Collection<ShadowAssociationDefinition> shadowAssociationDefinitions = oc.getAssociationDefinitions();
+        var shadowAssociationDefinitions = oc.getAssociationDefinitions();
 
         for (ShadowAssociationDefinition shadowAssociationDefinition : shadowAssociationDefinitions) {
             if (association != null && !shadowAssociationDefinition.getItemName().equivalent(association)) {
@@ -527,11 +527,11 @@ public class ProvisioningObjectsUtil {
 
     public static Collection<QName> loadResourceObjectClassValues(ResourceType resource, PageBase pageBase) {
         try {
-            ResourceSchema schema = ResourceSchemaFactory.getRawSchema(resource);
+            ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
             if (schema != null) {
                 return schema.getObjectClassNames();
             }
-        } catch (SchemaException | RuntimeException e) {
+        } catch (SchemaException | ConfigurationException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
             pageBase.error("Couldn't load object class list from resource.");
         }

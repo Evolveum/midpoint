@@ -305,8 +305,8 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
                         () -> "No definition for target item " + declaredTargetPath + " in " + mapping.getContextDescription());
         target.addItemDefinition(declaredTargetPath, outputDefinition);
         if (targetPathOverride != null) {
-            MutableItemDefinition<?> clone = outputDefinition.clone().toMutable();
-            clone.setDynamic(true); // To serialize xsi:type along with the values.
+            ItemDefinition<?> clone = outputDefinition.clone();
+            clone.mutator().setDynamic(true); // To serialize xsi:type along with the values.
             target.addItemDefinition(targetPathOverride, clone);
         }
     }

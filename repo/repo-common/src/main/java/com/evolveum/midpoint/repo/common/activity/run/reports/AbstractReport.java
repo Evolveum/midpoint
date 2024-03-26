@@ -108,7 +108,7 @@ public abstract class AbstractReport {
             PrismContext prismContext = PrismContext.get();
             // This fake PCD creation can be removed after query converter will stop requiring it.
             PrismContainerDefinition<?> fakePcd = prismContext.definitionFactory()
-                    .createContainerDefinition(new QName("dummy"), recordDefinition);
+                    .newContainerDefinition(new QName("dummy"), recordDefinition);
             try {
                 return prismContext.getQueryConverter().parseFilter(filterBean, fakePcd);
             } catch (SchemaException e) {

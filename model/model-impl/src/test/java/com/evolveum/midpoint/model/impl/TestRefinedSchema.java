@@ -13,6 +13,8 @@ import java.io.File;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,10 +25,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -55,8 +53,8 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
             "task-reconcile-dummy-kind-intent-objectclass.xml");
     private static final String TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID = "3f2a1140-e60e-11e5-adb7-776abfbb2227";
 
-    private ResourceSchema refinedSchema;
-    private ResourceSchema refinedSchemaModel;
+    private CompleteResourceSchema refinedSchema;
+    private CompleteResourceSchema refinedSchemaModel;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -72,7 +70,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         displayDumpable("Dummy refined schema", refinedSchema);
 
         // THEN
-        getDummyResourceController().assertRefinedSchemaSanity(refinedSchema);
+        getDummyResourceController().assertCompleteSchemaSanity(refinedSchema);
     }
 
     @Test
@@ -83,7 +81,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         displayDumpable("Dummy refined schema (MODEL)", refinedSchemaModel);
 
         // THEN
-        getDummyResourceController().assertRefinedSchemaSanity(refinedSchemaModel);
+        getDummyResourceController().assertCompleteSchemaSanity(refinedSchemaModel);
 
         assertEquals("Wrong layer", LayerType.MODEL, refinedSchemaModel.getCurrentLayer());
     }

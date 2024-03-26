@@ -3,7 +3,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.AbstractOptions;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -111,9 +111,10 @@ public class ConnectorConfigurationOptions extends AbstractOptions implements Cl
         }
     }
 
+    /** TODO we will probably remove this */
     public interface CompleteSchemaProvider extends Serializable {
 
-        CompleteResourceSchema completeSchema(ResourceSchema rawSchema)
+        CompleteResourceSchema completeSchema(NativeResourceSchema nativeSchema)
                 throws SchemaException, ConfigurationException;
 
         static @NotNull CompleteSchemaProvider forResource(@NotNull ResourceType resource) {

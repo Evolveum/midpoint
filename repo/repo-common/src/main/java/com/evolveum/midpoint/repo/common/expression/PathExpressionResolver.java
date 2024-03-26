@@ -186,7 +186,7 @@ class PathExpressionResolver {
         } else {
             // this must be something dynamic, e.g. assignment extension. Just assume string here. Not completely correct. But what can we do?
             resultDefinition = PrismContext.get().definitionFactory()
-                    .createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+                    .newPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
         }
         return new TypedValue<>(null, resultDefinition);
     }
@@ -268,7 +268,7 @@ class PathExpressionResolver {
                 // Those may not have a definition. In that case just assume strings.
                 // In fact, this is a HACK. All such schemas should have a definition.
                 // Otherwise there may be problems with parameter types for caching compiles scripts and so on.
-                return PrismContext.get().definitionFactory().createPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
+                return PrismContext.get().definitionFactory().newPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
             }
             return null;
         };
@@ -306,12 +306,12 @@ class PathExpressionResolver {
             if (parentDef.isDynamic() && ((PrismContainerDefinition<?>)parentDef).isEmpty()) {
                 // The case of dynamic schema for which there are no definitions
                 // E.g. assignment extension just default to single-value strings. Better than nothing. At least for now.
-                return PrismContext.get().definitionFactory().createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+                return PrismContext.get().definitionFactory().newPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
             }
         } else if (parentDef instanceof PrismPropertyDefinition) {
             if (PrismUtil.isStructuredType(parentDef.getTypeName())) {
                 // All "sub-properties" are hardcoded as single value strings
-                return PrismContext.get().definitionFactory().createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+                return PrismContext.get().definitionFactory().newPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
             }
         }
         return null;

@@ -167,7 +167,6 @@ class ResourceExpansionOperation {
                     MiscUtil.requireNonNull(
                             connectorConfigurationDefinitions.get(connectorName),
                             () -> new IllegalStateException("No connector schema for '" + connectorName + "' in " + resource));
-            definitionFromConnector.adoptElementDefinitionFrom(configurationContainer.getDefinition());
             configurationContainer.applyDefinition(definitionFromConnector);
         }
     }

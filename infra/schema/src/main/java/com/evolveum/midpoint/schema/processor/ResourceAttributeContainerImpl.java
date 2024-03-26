@@ -117,14 +117,6 @@ public final class ResourceAttributeContainerImpl
     }
 
     @Override
-    public ResourceAttribute<String> getDescriptionAttribute() {
-        if (getDefinition() == null) {
-            return null;
-        }
-        return findAttribute(getDefinition().getDescriptionAttribute());
-    }
-
-    @Override
     public ResourceAttribute<String> getNamingAttribute() {
         ResourceAttributeContainerDefinition containerDef = getDefinition();
         if (containerDef == null) {
@@ -135,25 +127,6 @@ public final class ResourceAttributeContainerImpl
             return null;
         }
         return findAttribute(namingAttrDef);
-    }
-
-    @Override
-    public ResourceAttribute getDisplayNameAttribute() {
-        if (getDefinition() == null) {
-            return null;
-        }
-        return findAttribute(getDefinition().getDisplayNameAttribute());
-    }
-
-    @Override
-    public String getNativeObjectClass() {
-        return getDefinition() == null ? null : getDefinition().getNativeObjectClass();
-    }
-
-    @Override
-    public boolean isDefaultInAKind() {
-        ResourceAttributeContainerDefinition definition = getDefinition();
-        return definition != null && definition.isDefaultAccountDefinition();
     }
 
     @Override

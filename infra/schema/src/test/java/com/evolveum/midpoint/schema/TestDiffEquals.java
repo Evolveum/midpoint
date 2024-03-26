@@ -364,14 +364,14 @@ public class TestDiffEquals extends AbstractSchemaTest {
         PrismContainer<Containerable> shadow2Attrs = shadow2.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 
         PrismProperty<String> attrEntryUuid = prismContext.itemFactory().createProperty(new QName(NS_TEST_RI, "entryUuid"));
-        PrismPropertyDefinition<String> attrEntryUuidDef = prismContext.definitionFactory().createPropertyDefinition(new QName(NS_TEST_RI, "entryUuid"),
+        PrismPropertyDefinition<String> attrEntryUuidDef = prismContext.definitionFactory().newPropertyDefinition(new QName(NS_TEST_RI, "entryUuid"),
                 DOMUtil.XSD_STRING);
         attrEntryUuid.setDefinition(attrEntryUuidDef);
         shadow2Attrs.add(attrEntryUuid);
         attrEntryUuid.addRealValue("1234-5678-8765-4321");
 
         PrismProperty<String> attrDn = prismContext.itemFactory().createProperty(new QName(NS_TEST_RI, "dn"));
-        PrismPropertyDefinition<String> attrDnDef = prismContext.definitionFactory().createPropertyDefinition(new QName(NS_TEST_RI, "dn"),
+        PrismPropertyDefinition<String> attrDnDef = prismContext.definitionFactory().newPropertyDefinition(new QName(NS_TEST_RI, "dn"),
                 DOMUtil.XSD_STRING);
         attrDn.setDefinition(attrDnDef);
         shadow2Attrs.add(attrDn);
@@ -496,9 +496,9 @@ public class TestDiffEquals extends AbstractSchemaTest {
 
         QName extensionPropertyName = new QName(NS_TEST_RI, "extensionProperty");
 
-        MutablePrismPropertyDefinition<String> extensionPropertyDef = prismContext.definitionFactory()
-                .createPropertyDefinition(extensionPropertyName, DOMUtil.XSD_STRING);
-        extensionPropertyDef.setRuntimeSchema(true);
+        PrismPropertyDefinition<String> extensionPropertyDef = prismContext.definitionFactory()
+                .newPropertyDefinition(extensionPropertyName, DOMUtil.XSD_STRING);
+        extensionPropertyDef.mutator().setRuntimeSchema(true);
 
         PrismProperty<String> propertyParsed = extensionPropertyDef.instantiate();
         PrismProperty<String> propertyRaw = extensionPropertyDef.instantiate();

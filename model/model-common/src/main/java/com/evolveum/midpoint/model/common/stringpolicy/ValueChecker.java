@@ -353,13 +353,13 @@ class ValueChecker {
         }
 
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-        private <O extends ObjectType> boolean checkExpression(
+        private boolean checkExpression(
                 ExpressionType expression, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
             VariablesMap variables = new VariablesMap();
 
-            MutablePrismPropertyDefinition<Object> inputDef = PrismContext.get().definitionFactory().createPropertyDefinition(
+            PrismPropertyDefinition<Object> inputDef = PrismContext.get().definitionFactory().newPropertyDefinition(
                     new ItemName(SchemaConstants.NS_C, ExpressionConstants.VAR_INPUT),
                     PrimitiveType.STRING.getQname());
             variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value, inputDef);
@@ -373,9 +373,7 @@ class ValueChecker {
                 }
             }
             if (objectDef == null) {
-                //noinspection unchecked
-                objectDef = PrismContext.get().getSchemaRegistry()
-                        .findObjectDefinitionByCompileTimeClass(ObjectType.class);
+                objectDef = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
             }
             variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object, objectDef);
 

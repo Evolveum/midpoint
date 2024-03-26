@@ -6,17 +6,23 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+
+import com.evolveum.midpoint.schema.util.Resource;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
@@ -51,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Introduced as part of providing "index-only" extension values (MID-5558)
  * and related refactoring of ObjectDeltaUpdater.
  */
+@SuppressWarnings("deprecation")
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ExtensionTest extends BaseSQLRepoTest {
@@ -58,6 +65,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
     private static final File TEST_DIR = new File("src/test/resources/extension");
     private static final File USER_RUMCAJS_FILE = new File(TEST_DIR, "user-rumcajs.xml");
     private static final File USER_MANKA_FILE = new File(TEST_DIR, "user-manka.xml");
+    private static final File RESOURCE_TEST_FILE = new File(TEST_DIR, "resource-test.xml");
 
     private PrismObject<UserType> expectedUser;
     private String userOid;
@@ -101,24 +109,18 @@ public class ExtensionTest extends BaseSQLRepoTest {
         createShadowDefinition();
     }
 
-    private void createShadowDefinition() {
-        ResourceObjectClassDefinitionImpl ctd = ResourceObjectClassDefinitionImpl.raw(RI_ACCOUNT_OBJECT_CLASS);
-        attrGroupNameDefinition = ctd.createAttributeDefinition(
-                ATTR_GROUP_NAME, DOMUtil.XSD_STRING,
-                def -> def.setMaxOccurs(1));
-        attrMemberDefinition = ctd.createAttributeDefinition(
-                ATTR_MEMBER, DOMUtil.XSD_STRING,
-                def -> {
-                    def.setMaxOccurs(-1);
-                    def.setIndexOnly(true);
-                });
-        attrManagerDefinition = ctd.createAttributeDefinition(
-                ATTR_MANAGER, DOMUtil.XSD_STRING,
-                def -> def.setMaxOccurs(-1));
+    private void createShadowDefinition() throws SchemaException, IOException, ConfigurationException {
+        var classDef =
+                Resource.of(PrismTestUtil.<ResourceType>parseObjectable(RESOURCE_TEST_FILE))
+                        .getCompleteSchemaRequired()
+                        .findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS);
 
-        shadowAttributesDefinition = new ResourceAttributeContainerDefinitionImpl(ShadowType.F_ATTRIBUTES, ctd);
-        shadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class)
-                .cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, shadowAttributesDefinition);
+        attrGroupNameDefinition = classDef.findAttributeDefinitionRequired(new ItemName(NS_RI, "groupName"));
+        attrMemberDefinition = classDef.findAttributeDefinitionRequired(new ItemName(NS_RI, "member"));
+        attrManagerDefinition = classDef.findAttributeDefinitionRequired(new ItemName(NS_RI, "manager"));
+
+        shadowAttributesDefinition = classDef.toResourceAttributeContainerDefinition();
+        shadowDefinition = classDef.toPrismObjectDefinition();
         itemGroupName = extItemDictionary.createOrFindItemDefinition(attrGroupNameDefinition, false);
         itemMember = extItemDictionary.createOrFindItemDefinition(attrMemberDefinition, false);
         itemManager = extItemDictionary.createOrFindItemDefinition(attrManagerDefinition, false);
@@ -1800,11 +1802,12 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.addObject(user, null, result);
         String userOid = user.getOid();
 
-        QName SHIP_NAME_QNAME = new QName("http://example.com/p", "shipName");
-        PrismPropertyDefinition<String> def1 = prismContext.definitionFactory().createPropertyDefinition(SHIP_NAME_QNAME, DOMUtil.XSD_STRING);
-        ExtensionType extension = new ExtensionType(prismContext);
+        QName shipNameQName = new QName("http://example.com/p", "shipName");
+        PrismPropertyDefinition<String> def1 = prismContext.definitionFactory().newPropertyDefinition(shipNameQName, DOMUtil.XSD_STRING);
+        ExtensionType extension = new ExtensionType();
         PrismProperty<String> loot = def1.instantiate();
         loot.setRealValue("otherString");
+        //noinspection unchecked
         extension.asPrismContainerValue().add(loot);
 
         List<ItemDelta<?, ?>> deltas = prismContext.deltaFor(UserType.class)
@@ -1815,9 +1818,9 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, deltas, getOptions(), result);
 
         ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, SHIP_NAME_QNAME), def1).eq("otherString")
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, shipNameQName), def1).eq("otherString")
                 .build();
-        List list = repositoryService.searchObjects(UserType.class, query, null, result);
+        List<?> list = repositoryService.searchObjects(UserType.class, query, null, result);
         assertEquals("Wrong # of query1 results", 1, list.size());
 
         Session session = open();
@@ -2610,6 +2613,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
     }
 
     // toInclude == null means "ALL"
+    @SuppressWarnings("SameParameterValue")
     private void assertGetShadowInclude(String oid, Collection<ItemName> toInclude, PrismObject<ShadowType> expected, OperationResult result) throws SchemaException,
             ObjectNotFoundException {
         checkShadow(oid, expected, true, true, toInclude, result);

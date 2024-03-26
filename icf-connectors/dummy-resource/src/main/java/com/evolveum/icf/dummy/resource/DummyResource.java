@@ -893,7 +893,7 @@ public class DummyResource implements DebugDumpable {
         if (syncStyle != DummySyncStyle.NONE) {
             int syncToken = nextSyncToken();
             deltas.add(
-                    new DummyDelta(syncToken, type, id, object.getObjectClassName(), object.getName(), DummyDeltaType.DELETE));
+                    new DummyDelta(syncToken, type, object.getObjectClassName(), id, object.getName(), DummyDeltaType.DELETE));
         }
     }
 
@@ -1333,19 +1333,19 @@ public class DummyResource implements DebugDumpable {
 
     public synchronized void addLinkClassDef(LinkClassDefinition linkClassDefinition) {
         String name = linkClassDefinition.getName();
+
         stateCheck(!linkClassDefinitionMap.containsKey(name), "Link class %s already exists", name);
         linkClassDefinitionMap.put(name, linkClassDefinition);
 
-        linkStoreMap.put(name, new LinkStore(linkClassDefinition));
-
+        // Put the links into respective object classes (for both participants).
         for (LinkDefinition linkDefinition : linkClassDefinition.getLinkDefinitions()) {
-            if (linkDefinition.isVisible()) {
-                for (String objectClassName : linkDefinition.getObjectClassNames()) {
-                    getStructuralObjectClass(objectClassName)
-                            .addLinkDefinition(linkDefinition);
-                }
+            for (String objectClassName : linkDefinition.getObjectClassNames()) {
+                getStructuralObjectClass(objectClassName)
+                        .addLinkDefinition(linkDefinition);
             }
         }
+
+        linkStoreMap.put(name, new LinkStore(linkClassDefinition));
     }
 
     private LinkStore getLinkStore(String linkClassName) {
@@ -1357,7 +1357,7 @@ public class DummyResource implements DebugDumpable {
     public LinkDefinition getLinkDefinition(String objectClassName, String linkName) {
         return argNonNull(
                 getStructuralObjectClass(objectClassName)
-                        .getVisibleLinkDefinition(linkName),
+                        .getLinkDefinition(linkName),
                 "No link '%s' definition in object class '%s'", linkName, objectClassName);
     }
 

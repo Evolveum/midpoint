@@ -89,11 +89,6 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull BasicResourceInformation getBasicResourceInformation() {
-        return Objects.requireNonNull(basicResourceInformation);
-    }
-
-    @Override
     public @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
         return identification;
     }
@@ -120,8 +115,8 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition() {
-        return refinedObjectClassDefinition.getRawObjectClassDefinition();
+    public @NotNull NativeObjectClassDefinition getNativeObjectClassDefinition() {
+        return refinedObjectClassDefinition.getNativeObjectClassDefinition();
     }
 
     @Override
@@ -285,7 +280,7 @@ public final class ResourceObjectTypeDefinitionImpl
     //endregion
 
     @Override
-    public MutableResourceObjectClassDefinition toMutable() {
+    public ResourceObjectClassDefinition.ResourceObjectClassDefinitionMutator mutator() {
         throw new UnsupportedOperationException();
     }
 
@@ -394,13 +389,13 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     protected void addDebugDumpHeaderExtension(StringBuilder sb) {
         if (isDefaultForKind()) {
-            sb.append(",default-for-kind");
+            sb.append(", default-for-kind");
         }
         if (isDefaultForObjectClass()) {
-            sb.append(",default-for-class");
+            sb.append(", default-for-class");
         }
-        sb.append(",kind=").append(getKind().value());
-        sb.append(",intent=").append(getIntent());
+        sb.append(", kind=").append(getKind().value());
+        sb.append(", intent=").append(getIntent());
     }
 
     @Override

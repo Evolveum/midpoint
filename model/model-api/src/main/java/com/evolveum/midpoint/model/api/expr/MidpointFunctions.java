@@ -1472,12 +1472,14 @@ public interface MidpointFunctions {
     OptimizingTriggerCreator getOptimizingTriggerCreator(long fireAfter, long safetyMargin);
 
     @NotNull
-    <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, QName objectClassName,
-            QName attributeName) throws SchemaException;
+    <T> ResourceAttributeDefinition<T> getAttributeDefinition(
+            PrismObject<ResourceType> resource, QName objectClassName, QName attributeName)
+            throws SchemaException, ConfigurationException;
 
     @NotNull
-    <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, String objectClassName,
-            String attributeName) throws SchemaException;
+    <T> ResourceAttributeDefinition<T> getAttributeDefinition(
+            PrismObject<ResourceType> resource, String objectClassName, String attributeName)
+            throws SchemaException, ConfigurationException;
 
     /**
      * Goes directly to repository service.

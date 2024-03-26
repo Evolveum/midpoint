@@ -406,7 +406,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         }
 
         InternalMonitor.recordCount(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
-        PrismSchema connectorSchema =
+        var connectorSchema =
                 MiscUtil.requireNonNull(
                         ConnectorTypeUtil.parseConnectorSchema(connectorBean),
                         () -> "No connector schema in " + connectorBean);
@@ -699,9 +699,9 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     }
 
     public String getConnIdFrameworkVersion() {
-        ConnectorFactory connIdConnectorFactory = MiscUtil.requireNonNull(
+        ConnectorFactory connIdConnectorFactory = MiscUtil.stateNonNull(
                 determineConnectorFactory(SchemaConstants.ICF_FRAMEWORK_URI),
-                () -> new IllegalStateException("ConnId connector factory not present"));
+                "ConnId connector factory not present");
         return connIdConnectorFactory.getFrameworkVersion();
     }
 

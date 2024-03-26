@@ -56,7 +56,7 @@ public interface AutocompleteConfigurationMixin {
 
         try {
             ExpressionFactory factory = locator.getExpressionFactory();
-            PrismPropertyDefinition<String> outputDefinition = PrismContext.get().definitionFactory().createPropertyDefinition(
+            PrismPropertyDefinition<String> outputDefinition = PrismContext.get().definitionFactory().newPropertyDefinition(
                     ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
 
             Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =

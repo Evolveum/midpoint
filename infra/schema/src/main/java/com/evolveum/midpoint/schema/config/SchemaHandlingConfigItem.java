@@ -7,11 +7,16 @@
 
 package com.evolveum.midpoint.schema.config;
 
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 
 /** This is intended to help with refined resource definition parsing process. */
@@ -57,6 +62,19 @@ public class SchemaHandlingConfigItem
         for (var objectTypeDefCI : getObjectTypes()) {
             objectTypeDefCI.checkAttributeNames();
         }
+    }
+
+    public @Nullable ShadowAssociationTypeDefinitionConfigItem findAssociationTypeCI(@NotNull QName name)
+            throws ConfigurationException {
+        List<ShadowAssociationTypeDefinitionConfigItem> matching = new ArrayList<>();
+        for (ShadowAssociationTypeDefinitionConfigItem ci : getAssociationTypes()) {
+            if (QNameUtil.match(name, ci.getAssociationClassName())) {
+                matching.add(ci);
+            }
+        }
+        return MiscUtil.extractSingleton(
+                matching,
+                () -> new ConfigurationException("Multiple association type with class name " + name));
     }
 
     @Override

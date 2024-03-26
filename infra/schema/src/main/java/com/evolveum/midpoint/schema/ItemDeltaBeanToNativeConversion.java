@@ -12,12 +12,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
-import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -32,7 +29,6 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
 
 import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
 
@@ -101,8 +97,8 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
                 // checks are made on it's content.
                 // This allows for GUI to visualize JSON form of data
                 var replacementDef = PrismContext.get().definitionFactory()
-                        .createPropertyDefinition(itemDefinition.getItemName(), T_RAW_TYPE);
-                replacementDef.setAnnotation(DeltaConvertor.LEGACY_DELTA, DeltaConvertor.LEGACY_DELTA);
+                        .newPropertyDefinition(itemDefinition.getItemName(), T_RAW_TYPE);
+                replacementDef.mutator().setAnnotation(DeltaConvertor.LEGACY_DELTA, DeltaConvertor.LEGACY_DELTA);
                 itemDefinition = replacementDef;
             }
         }

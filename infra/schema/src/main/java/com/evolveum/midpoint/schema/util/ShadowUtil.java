@@ -417,9 +417,9 @@ public class ShadowUtil {
             PrismObjectDefinition<ShadowType> shadowDefinition,
             ResourceObjectDefinition objectClassDefinition) throws SchemaException {
         // FIXME eliminate double cloning!
-        return shadowDefinition.cloneWithReplacedDefinition(
+        return shadowDefinition.cloneWithNewDefinition(
                         ShadowType.F_ATTRIBUTES, objectClassDefinition.toResourceAttributeContainerDefinition())
-                .cloneWithReplacedDefinition(
+                .cloneWithNewDefinition(
                         ShadowType.F_ASSOCIATIONS, objectClassDefinition.toShadowAssociationsContainerDefinition());
     }
 

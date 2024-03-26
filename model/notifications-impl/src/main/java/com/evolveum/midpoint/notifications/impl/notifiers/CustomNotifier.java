@@ -149,7 +149,7 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
         var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<NotificationMessageType> resultDef =
-                prismContext.definitionFactory().createPropertyDefinition(resultName, NotificationMessageType.COMPLEX_TYPE);
+                prismContext.definitionFactory().newPropertyDefinition(resultName, NotificationMessageType.COMPLEX_TYPE);
 
         Expression<PrismPropertyValue<NotificationMessageType>, PrismPropertyDefinition<NotificationMessageType>> expression =
                 expressionFactory.makeExpression(

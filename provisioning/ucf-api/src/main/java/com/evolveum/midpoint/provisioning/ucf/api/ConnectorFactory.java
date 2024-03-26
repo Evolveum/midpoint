@@ -6,16 +6,16 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
@@ -43,7 +43,12 @@ public interface ConnectorFactory {
 
     String OPERATION_LIST_CONNECTORS = ConnectorFactory.class.getName()+".listConnectors";
 
-    PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException;
+    /**
+     * Generates a {@link ConnectorSchema} for the connector configuration (mainly holding connector-specific properties).
+     * Returns `null` if there is no schema provided by ConnId.
+     */
+    @Nullable ConnectorSchema generateConnectorConfigurationSchema(@NotNull ConnectorType connectorBean)
+            throws ObjectNotFoundException, SchemaException;
 
     /**
      * Creates new unconfigured instance of the connector.

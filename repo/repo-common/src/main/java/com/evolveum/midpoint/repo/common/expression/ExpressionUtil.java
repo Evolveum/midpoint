@@ -40,7 +40,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -300,7 +299,7 @@ public class ExpressionUtil {
                 }
             } else {
                 // Guess, but we may be wrong
-                PrismPropertyDefinition<?> fakeDef = PrismContext.get().definitionFactory().createPropertyDefinition(
+                PrismPropertyDefinition<?> fakeDef = PrismContext.get().definitionFactory().newPropertyDefinition(
                         prop.getElementName(), PrimitiveType.STRING.getQname());
                 return new TypedValue<>(prop.getRealValues(), fakeDef);
             }
@@ -313,7 +312,7 @@ public class ExpressionUtil {
                     return new TypedValue<>(ref.getRealValues(), def);
                 }
             } else {
-                PrismReferenceDefinition fakeDef = PrismContext.get().definitionFactory().createReferenceDefinition(
+                PrismReferenceDefinition fakeDef = PrismContext.get().definitionFactory().newReferenceDefinition(
                         ref.getElementName(), ObjectType.COMPLEX_TYPE);
                 return new TypedValue<>(ref.getRealValues(), fakeDef);
             }
@@ -708,7 +707,7 @@ public class ExpressionUtil {
                 ItemDefinition<?> outputDefinition = ((ValueFilter<?, ?>) filter).getDefinition();
                 if (outputDefinition == null) {
                     outputDefinition =
-                            PrismContext.get().definitionFactory().createPropertyDefinition(
+                            PrismContext.get().definitionFactory().newPropertyDefinition(
                                     ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
                 }
                 Collection<PrismValue> expressionResults = evaluateExpressionNative(null, variables, outputDefinition,
@@ -906,10 +905,10 @@ public class ExpressionUtil {
             String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        MutablePrismPropertyDefinition<String> outputDefinition =
-                PrismContext.get().definitionFactory().createPropertyDefinition(
+        PrismPropertyDefinition<String> outputDefinition =
+                PrismContext.get().definitionFactory().newPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
-        outputDefinition.setMaxOccurs(-1);
+        outputDefinition.mutator().setMaxOccurs(-1);
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
                 .makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, parentResult);
 
@@ -936,7 +935,7 @@ public class ExpressionUtil {
             ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory().createPropertyDefinition(
+        ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
         outputDefinition.freeze();
         return evaluateExpression(variables, outputDefinition, expressionType, expressionProfile,
@@ -1223,32 +1222,7 @@ public class ExpressionUtil {
 
     public static PrismPropertyDefinition<Boolean> createConditionOutputDefinition() {
         return PrismContext.get().definitionFactory()
-                .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
-    }
-
-    /**
-     * Used in cases when we do not have a definition.
-     */
-    public static ItemDefinition<?> determineDefinitionFromValueClass(PrismContext prismContext, String name, Class<?> valueClass, QName typeQName) {
-        if (valueClass == null) {
-            return null;
-        }
-        if (ObjectType.class.isAssignableFrom(valueClass)) {
-            return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass((Class<? extends ObjectType>) valueClass);
-        }
-        if (PrismObject.class.isAssignableFrom(valueClass)) {
-            return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
-        }
-        if (Containerable.class.isAssignableFrom(valueClass)) {
-            PrismContainerDefinition<? extends Containerable> def = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass((Class<? extends Containerable>) valueClass);
-            if (def == null) {
-                ComplexTypeDefinition ctd = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass((Class<? extends Containerable>) valueClass);
-                return prismContext.definitionFactory().createContainerDefinition(new QName(SchemaConstants.NS_C, name), ctd);
-            } else {
-                return def;
-            }
-        }
-        return prismContext.definitionFactory().createPropertyDefinition(new QName(SchemaConstants.NS_C, name), typeQName);
+                .newPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
     }
 
     /**

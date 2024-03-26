@@ -280,7 +280,7 @@ public class TestUnix extends AbstractStoryTest {
 
         IntegrationTestTools.displayXml("Initialized resource", resourceOpenDj);
 
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resourceOpenDj.asObjectable());
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getBareSchema(resourceOpenDj);
         displayDumpable("OpenDJ schema (resource)", resourceSchema);
 
         ResourceObjectClassDefinition ocDefPosixAccount =

@@ -44,6 +44,7 @@ public class AbstractDummyScenario {
         return controller.getDummyResource();
     }
 
+    /** Attaches the resource schema to this scenario, allowing the retrieval of attribute/association definitions. */
     public void attachResourceSchema(CompleteResourceSchema schema) {
         this.resourceSchema = schema;
     }
@@ -103,6 +104,7 @@ public class AbstractDummyScenario {
             }
         }
 
+        /** Requires the schema be attached first; see {@link #attachResourceSchema(CompleteResourceSchema)}. */
         public @NotNull ResourceObjectDefinition getObjectClassDefinition() {
             try {
                 return getResourceSchemaRequired()
@@ -117,10 +119,10 @@ public class AbstractDummyScenario {
 
         /** Creates the respective link on the resource. */
         public void add(DummyObject first, DummyObject second) {
-            controller.getDummyResource().addLink(getLinkClassName(), first, second);
+            controller.getDummyResource().addLink(getLinkClassName().local(), first, second);
         }
 
-        public abstract @NotNull String getLinkClassName();
+        public abstract @NotNull ObjectClassName getLinkClassName();
 
     }
 }

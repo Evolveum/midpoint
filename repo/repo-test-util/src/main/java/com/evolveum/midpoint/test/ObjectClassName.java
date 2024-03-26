@@ -13,7 +13,9 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 /**
- * The internal/ConnId/midPoint form of object class name.
+ * The internal/ConnId/midPoint form of object or association class name.
+ *
+ * TODO consider renaming this class
  */
 public class ObjectClassName {
 
@@ -33,6 +35,10 @@ public class ObjectClassName {
 
     public static ObjectClassName legacyCustom(String localName) {
         return new ObjectClassName(localName, localName, new QName(NS_RI, "Custom" + localName + "ObjectClass"));
+    }
+
+    public static ObjectClassName custom(String localName) {
+        return new ObjectClassName(localName, localName, new QName(NS_RI, localName));
     }
 
     public String local() {

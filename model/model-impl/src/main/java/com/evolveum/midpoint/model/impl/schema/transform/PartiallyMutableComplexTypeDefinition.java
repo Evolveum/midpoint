@@ -8,37 +8,23 @@
 package com.evolveum.midpoint.model.impl.schema.transform;
 
 import java.util.List;
-import java.util.function.Consumer;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
-
-import com.evolveum.midpoint.schema.processor.MutableRawResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.processor.MutableResourceObjectClassDefinition;
-import com.google.common.annotations.VisibleForTesting;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition.ComplexTypeDefinitionMutator;
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 
-interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefinition {
+interface PartiallyMutableComplexTypeDefinition extends ComplexTypeDefinitionMutator {
 
     @Override
     default void setOptionalCleanup(boolean optionalCleanup) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 
-    @Override
     default void setInstantiationOrder(Integer order) {
-        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-
-    }
-
-    @Override
-    default void setProcessing(ItemProcessing processing) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 
     }
@@ -55,6 +41,16 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
 
     @Override
     default void setRemovedSince(String removedSince) {
+        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+    }
+
+    @Override
+    default void setPlannedRemoval(String plannedRemoval) {
+        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+    }
+
+    @Override
+    default void setDeprecatedSince(String deprecatedSince) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 
@@ -99,21 +95,18 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
     }
 
     @Override
-    default void setTypeName(QName typeName) {
-        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-
-    }
-
-    @Override
     default void setDocumentation(String value) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-
     }
 
     @Override
     default void addSchemaMigration(SchemaMigration schemaMigration) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+    }
 
+    @Override
+    default void setSchemaMigrations(List<SchemaMigration> value) {
+        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 
     @Override
@@ -128,12 +121,12 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
     }
 
     @Override
-    default MutablePrismPropertyDefinition<?> createPropertyDefinition(QName name, QName typeName) {
+    default PrismPropertyDefinition.PrismPropertyDefinitionMutator<?> createPropertyDefinition(QName name, QName typeName) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 
     @Override
-    default MutablePrismPropertyDefinition<?> createPropertyDefinition(String name, QName typeName) {
+    default PrismPropertyDefinition.PrismPropertyDefinitionMutator<?> createPropertyDefinition(String name, QName typeName) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 
@@ -142,67 +135,56 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 
-    @Override
     default void setExtensionForType(QName type) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 
     }
 
-    @Override
     default void setAbstract(boolean value) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 
     }
 
-    @Override
     default void setSuperType(QName superType) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 
     }
 
-    @Override
     default void setObjectMarker(boolean value) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 
     }
 
-    @Override
     default void setContainerMarker(boolean value) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 
     }
 
-    @Override
     default void setReferenceMarker(boolean value) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 
     }
 
-    @Override
     default void setDefaultNamespace(String namespace) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 
     }
 
-    @Override
     default void setIgnoredNamespaces(@NotNull List<String> ignoredNamespaces) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 
     }
 
-    @Override
     default void setXsdAnyMarker(boolean value) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 
     }
 
-    @Override
     default void setListMarker(boolean value) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 
     }
 
-    @Override
     default void setCompileTimeClass(Class<?> compileTimeClass) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
 
@@ -220,11 +202,11 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
     }
 
     @Override
-    default void addDiagram(ItemDiagramSpecification diagram) {
+    default void setDiagrams(List<ItemDiagramSpecification> value) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 
-    interface ObjectClassDefinition extends PartiallyMutableComplexTypeDefinition, MutableResourceObjectClassDefinition {
+    interface ObjectClassDefinition extends PartiallyMutableComplexTypeDefinition, ResourceObjectClassDefinition.ResourceObjectClassDefinitionMutator {
 
         @Override
         default void add(ItemDefinition<?> definition) {
@@ -232,60 +214,6 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
         }
 
         @Override
-        default void addAssociationDefinition(ShadowAssociationDefinition definition) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        default void addPrimaryIdentifierName(QName name) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        default void addSecondaryIdentifierName(QName name) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        default void setDescriptionAttributeName(QName name) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        default void setNamingAttributeName(QName namingAttribute) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        default void setNativeObjectClass(String nativeObjectClass) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        default void setAuxiliary(boolean auxiliary) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        default void setDefaultAccountDefinition(boolean defaultAccountType) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        default void setDisplayNameAttributeName(QName name) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        @VisibleForTesting
-        default <X> ResourceAttributeDefinition<X> createAttributeDefinition(
-                @NotNull QName name,
-                @NotNull QName typeName,
-                @NotNull Consumer<MutableRawResourceAttributeDefinition<?>> customizer) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        @NotNull MutableResourceObjectClassDefinition clone();
+        @NotNull ResourceObjectClassDefinition clone();
     }
 }

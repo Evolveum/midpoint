@@ -243,11 +243,11 @@ public class VariablesMap implements Map<String, TypedValue<?>>, DebugDumpable {
             Object defObj = parameters[i + 2];
             ItemDefinition<?> def;
             if (defObj instanceof QName) {
-                def = prismContext.definitionFactory().createPropertyDefinition(
+                def = prismContext.definitionFactory().newPropertyDefinition(
                         new QName(SchemaConstants.NS_C, name), (QName) defObj, null, null);
                 put(name, value, def);
             } else if (defObj instanceof PrimitiveType) {
-                def = prismContext.definitionFactory().createPropertyDefinition(
+                def = prismContext.definitionFactory().newPropertyDefinition(
                         new QName(SchemaConstants.NS_C, name), ((PrimitiveType) defObj).getQname(), null, null);
                 put(name, value, def);
             } else if (defObj instanceof ItemDefinition) {

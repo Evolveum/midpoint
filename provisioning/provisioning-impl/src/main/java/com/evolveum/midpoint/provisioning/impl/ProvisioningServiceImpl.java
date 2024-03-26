@@ -433,20 +433,19 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             ItemDeltaCollectionsUtil.checkConsistence(modifications);
         }
 
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".modifyObject");
-        result.addArbitraryObjectCollectionAsParam("modifications", modifications);
-        result.addParam(OperationResult.PARAM_OID, oid);
-        result.addArbitraryObjectAsParam("scripts", scripts);
-        result.addArbitraryObjectAsParam("options", options);
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+        OperationResult result = parentResult.subresult(ProvisioningService.class.getName() + ".modifyObject")
+                .addArbitraryObjectCollectionAsParam("modifications", modifications)
+                .addParam(OperationResult.PARAM_OID, oid)
+                .addArbitraryObjectAsParam("scripts", scripts)
+                .addArbitraryObjectAsParam("options", options)
+                .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
+                .build();
 
         try {
 
             LOGGER.trace("modifyObject: object modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
 
-            // getting object to modify
             T repoShadow = operationsHelper.getRepoObject(type, oid, null, result);
-
             LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDumpLazily());
 
             if (ShadowType.class.isAssignableFrom(type)) {

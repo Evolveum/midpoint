@@ -2307,8 +2307,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @NotNull
     @Override
     public <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, QName objectClassName,
-            QName attributeName) throws SchemaException {
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+            QName attributeName) throws SchemaException, ConfigurationException {
+        var resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         if (resourceSchema == null) {
             throw new SchemaException("No resource schema in " + resource);
         }
@@ -2328,7 +2328,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @NotNull
     @Override
     public <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, String objectClassName,
-            String attributeName) throws SchemaException {
+            String attributeName) throws SchemaException, ConfigurationException {
         return getAttributeDefinition(resource, new QName(objectClassName), new QName(attributeName));
     }
 

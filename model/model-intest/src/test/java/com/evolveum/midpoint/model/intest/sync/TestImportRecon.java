@@ -322,8 +322,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         displayDumpable("Dummy resource azure", dummyResourceAzure);
 
         // WHEN
-        ResourceSchema resourceSchemaAzure = ResourceSchemaFactory.getRawSchema(resourceDummyAzureType);
-
+        var resourceSchemaAzure = ResourceSchemaFactory.getBareSchema(resourceDummyAzureType);
         displayDumpable("Dummy azure resource schema", resourceSchemaAzure);
 
         // THEN
@@ -337,16 +336,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test002SanityAzureRefined() throws Exception {
         // WHEN
-        ResourceSchema refinedSchemaAzure = ResourceSchemaFactory.getCompleteSchema(resourceDummyAzureType);
-
-        displayDumpable("Dummy azure refined schema", refinedSchemaAzure);
+        var completeSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resourceDummyAzureType);
+        displayDumpable("Dummy azure refined schema", completeSchema);
 
         // THEN
-        dummyResourceCtlAzure.assertRefinedSchemaSanity(refinedSchemaAzure);
+        dummyResourceCtlAzure.assertCompleteSchemaSanity(completeSchema);
 
-        ResourceObjectClassDefinition orgOcDef =
-                refinedSchemaAzure.findObjectClassDefinition(dummyResourceCtlAzure.getOrgObjectClassQName());
-        assertNotNull("No org object class def in azure refined schema", orgOcDef);
+        completeSchema.findObjectClassDefinitionRequired(dummyResourceCtlAzure.getOrgObjectClassQName());
     }
 
     /**

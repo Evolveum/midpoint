@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.ParticipantIndex.FIRST;
@@ -26,7 +27,7 @@ import static com.evolveum.icf.dummy.resource.LinkClassDefinition.ParticipantInd
  * That is, a group can contain objects of many classes.
  * - "Manager-subordinate" link between accounts.
  *
- * Hence, the "set" in the definition above consists of one or more object classes. Smaller sets, covering e.g. only a port
+ * Hence, the "set" in the definition above consists of one or more object classes. Smaller sets, covering e.g. only a part
  * of an object class, are not supported.
  *
  * Individual participants are equal. We call them simply "first" and "second".
@@ -58,17 +59,17 @@ public class LinkClassDefinition {
         return name;
     }
 
-    public @NotNull List<LinkDefinition> getLinkDefinitions() {
+    @NotNull List<LinkDefinition> getLinkDefinitions() {
         return List.of(
                 new LinkDefinition(this, FIRST),
                 new LinkDefinition(this, SECOND));
     }
 
-    public @NotNull Participant getFirstParticipant() {
+    @NotNull Participant getFirstParticipant() {
         return firstParticipant;
     }
 
-    public @NotNull Participant getSecondParticipant() {
+    @NotNull Participant getSecondParticipant() {
         return secondParticipant;
     }
 
@@ -95,9 +96,12 @@ public class LinkClassDefinition {
 
         /**
          * Name of the link (~ attribute) under which this link is presented in the participating objects.
-         * Null if the link class is not visible in this participant.
+         * Always not null, as we use even invisible links to define an association class.
          */
-        @Nullable private final String linkName;
+        @NotNull private final String linkName;
+
+        /** If false, the link is not visible on this participant. */
+        private final boolean visible;
 
         /** Is the link updatable from this side? Requires {@link #linkName} to be non-null. */
         private final boolean updatable;
@@ -119,14 +123,16 @@ public class LinkClassDefinition {
 
         Participant(
                 @NotNull Set<String> objectClassNames,
-                @Nullable String linkName,
+                @NotNull String linkName,
+                boolean visible,
                 boolean updatable,
                 boolean returnedByDefault,
                 boolean expandedByDefault,
                 int minOccurs,
                 int maxOccurs) {
-            this.objectClassNames = objectClassNames;
-            this.linkName = linkName;
+            this.objectClassNames = Objects.requireNonNull(objectClassNames, "object class name");
+            this.linkName = Objects.requireNonNull(linkName, "link name");
+            this.visible = visible;
             this.updatable = updatable;
             this.returnedByDefault = returnedByDefault;
             this.expandedByDefault = expandedByDefault;
@@ -134,14 +140,15 @@ public class LinkClassDefinition {
             this.maxOccurs = maxOccurs;
         }
 
-        public @NotNull Set<String> getObjectClassNames() {
+        @NotNull Set<String> getObjectClassNames() {
             return objectClassNames;
         }
 
-        public @Nullable String getLinkName() {
+        public @NotNull String getLinkName() {
             return linkName;
         }
 
+        @SuppressWarnings("unused")
         public boolean isUpdatable() {
             return updatable;
         }
@@ -166,7 +173,6 @@ public class LinkClassDefinition {
                 String objectClassName, String linkName,
                 LinkClassDefinition classDefinition, ParticipantIndex participantIndex) {
             if (objectClassNames.contains(objectClassName)
-                    && this.linkName != null
                     && this.linkName.equals(linkName)) {
                 return new LinkDefinition(classDefinition, participantIndex);
             } else {
@@ -180,12 +186,13 @@ public class LinkClassDefinition {
         }
 
         public boolean isVisible() {
-            return linkName != null;
+            return visible;
         }
 
         public static final class ParticipantBuilder {
             private Set<String> objectClassNames;
             private String attributeName;
+            private boolean visible;
             private boolean updatable;
             private boolean returnedByDefault;
             private boolean expandedByDefault;
@@ -199,6 +206,7 @@ public class LinkClassDefinition {
                 return new ParticipantBuilder();
             }
 
+            @SuppressWarnings("unused")
             public ParticipantBuilder withObjectClassNames(Set<String> objectClassNames) {
                 this.objectClassNames = objectClassNames;
                 return this;
@@ -211,9 +219,17 @@ public class LinkClassDefinition {
 
             public ParticipantBuilder withLinkAttributeName(String name) {
                 this.attributeName = name;
+                this.visible = true;
                 return this;
             }
 
+            public ParticipantBuilder withInvisibleLinkAttributeName(String name) {
+                this.attributeName = name;
+                this.visible = false;
+                return this;
+            }
+
+            @SuppressWarnings("unused")
             public ParticipantBuilder withUpdatable(boolean updatable) {
                 this.updatable = updatable;
                 return this;
@@ -241,7 +257,8 @@ public class LinkClassDefinition {
 
             public Participant build() {
                 return new Participant(
-                        objectClassNames, attributeName, updatable, returnedByDefault, expandedByDefault, minOccurs, maxOccurs);
+                        objectClassNames, attributeName, visible, updatable,
+                        returnedByDefault, expandedByDefault, minOccurs, maxOccurs);
             }
         }
     }
@@ -279,6 +296,16 @@ public class LinkClassDefinition {
     }
 
     public enum ParticipantIndex {
-        FIRST, SECOND
+        FIRST(1), SECOND(2);
+
+        private final int order;
+
+        ParticipantIndex(int order) {
+            this.order = order;
+        }
+
+        public int getOrder() {
+            return order;
+        }
     }
 }

@@ -117,7 +117,7 @@ public class TestParseTask extends AbstractSchemaTest {
 
         QueryType queryType = getPrismContext().getQueryConverter().createQueryType(query);
 
-        PrismPropertyDefinition queryDef = getPrismContext().definitionFactory().createPropertyDefinition(
+        PrismPropertyDefinition<QueryType> queryDef = getPrismContext().definitionFactory().newPropertyDefinition(
                 SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE);
         PrismProperty<QueryType> queryProp = queryDef.instantiate();
         queryProp.setRealValue(queryType);

@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,7 +81,7 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @Nullable BasicResourceInformation getBasicResourceInformation() {
+    public @NotNull BasicResourceInformation getBasicResourceInformation() {
         return structuralDefinition.getBasicResourceInformation();
     }
 
@@ -121,11 +123,6 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public ItemProcessing getProcessing() {
-        return structuralDefinition.getProcessing();
-    }
-
-    @Override
     public List<SchemaMigration> getSchemaMigrations() {
         return structuralDefinition.getSchemaMigrations();
     }
@@ -149,7 +146,7 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public QName getSuperType() {
+    public @Nullable QName getSuperType() {
         return structuralDefinition.getSuperType();
     }
 
@@ -254,7 +251,7 @@ public class CompositeObjectDefinitionImpl
     // TODO - ok???
     @NotNull
     @Override
-    public Collection<ShadowAssociationDefinition> getAssociationDefinitions() {
+    public Collection<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
         return structuralDefinition.getAssociationDefinitions();
     }
 
@@ -285,8 +282,8 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition() {
-        return structuralDefinition.getRawObjectClassDefinition();
+    public @NotNull NativeObjectClassDefinition getNativeObjectClassDefinition() {
+        return structuralDefinition.getNativeObjectClassDefinition();
     }
 
     @Override
@@ -700,7 +697,7 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public MutableResourceObjectClassDefinition toMutable() {
+    public ResourceObjectClassDefinition.ResourceObjectClassDefinitionMutator mutator() {
         throw new UnsupportedOperationException();
     }
 
@@ -718,11 +715,6 @@ public class CompositeObjectDefinitionImpl
     @Override
     public <A> A getAnnotation(QName qname) {
         return structuralDefinition.getAnnotation(qname);
-    }
-
-    @Override
-    public <A> void setAnnotation(QName qname, A value) {
-        structuralDefinition.setAnnotation(qname, value);
     }
 
     @Override
@@ -812,5 +804,10 @@ public class CompositeObjectDefinitionImpl
     @Override
     public @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy() {
         return structuralDefinition.getEffectiveShadowCachingPolicy();
+    }
+
+    @Override
+    public @Nullable ItemName resolveFrameworkName(@NotNull String frameworkName) {
+        return FrameworkNameResolver.findInObjectDefinition(this, frameworkName);
     }
 }

@@ -12,6 +12,7 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
@@ -156,6 +157,16 @@ public class TransformableContainerDefinition<C extends Containerable>
     }
 
     @Override
+    public @NotNull PrismContainerDefinition<?> cloneWithNewType(@NotNull QName newTypeName, @NotNull ComplexTypeDefinition newCtd) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public @NotNull ItemDefinition<PrismContainer<C>> cloneWithNewName(@NotNull ItemName itemName) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
     public ItemDefinition<PrismContainer<C>> deepClone(@NotNull DeepCloneOperation operation) {
         ComplexTypeDefinition ctd = getComplexTypeDefinition();
         if (ctd != null) {
@@ -169,9 +180,9 @@ public class TransformableContainerDefinition<C extends Containerable>
     }
 
     @Override
-    public PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition<?> newDefinition) {
+    public PrismContainerDefinition<C> cloneWithNewDefinition(QName newItemName, ItemDefinition<?> newDefinition) {
         TransformableComplexTypeDefinition typeDefCopy = complexTypeDefinition.copy();
-        typeDefCopy.replaceDefinition(itemName, newDefinition);
+        typeDefCopy.replaceDefinition(newItemName, newDefinition);
         return copy(typeDefCopy);
     }
 
@@ -182,7 +193,7 @@ public class TransformableContainerDefinition<C extends Containerable>
 
 
     @Override
-    public MutablePrismContainerDefinition<C> toMutable() {
+    public PrismContainerDefinitionMutator<C> mutator() {
         return this;
     }
 
@@ -263,10 +274,10 @@ public class TransformableContainerDefinition<C extends Containerable>
         }
 
         @Override
-        public PrismContainerDefinition<ShadowAttributesType> cloneWithReplacedDefinition(
-                QName itemName, ItemDefinition<?> newDefinition) {
+        public PrismContainerDefinition<ShadowAttributesType> cloneWithNewDefinition(
+                QName newItemName, ItemDefinition<?> newDefinition) {
             TransformableComplexTypeDefinition typeDefCopy = complexTypeDefinition.copy();
-            typeDefCopy.replaceDefinition(itemName, newDefinition);
+            typeDefCopy.replaceDefinition(newItemName, newDefinition);
             return new ResourceAttributeContainer(this, typeDefCopy);
         }
 

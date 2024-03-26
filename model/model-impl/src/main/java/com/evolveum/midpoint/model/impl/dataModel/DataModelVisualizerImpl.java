@@ -127,8 +127,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                     }
                     processInboundMappings(model, attrItem, attributeDefinition.getInboundMappingBeans());
                 }
-                Collection<ShadowAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
-                for (ShadowAssociationDefinition associationDefinition : associationDefinitions) {
+                for (ShadowAssociationDefinition associationDefinition : refinedDefinition.getAssociationDefinitions()) {
                     if (associationDefinition.isIgnored()) {
                         continue;
                     }
@@ -195,7 +194,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
             throws SchemaException, ConfigurationException {
         LOGGER.debug("createDataItems starting");
         for (PrismObject<ResourceType> resource : resources) {
-            final ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+            final ResourceSchema resourceSchema = ResourceSchemaFactory.getBareSchema(resource);
             if (resourceSchema == null) {
                 LOGGER.debug("Resource schema is null, skipping the resource.");
                 continue;
@@ -226,8 +225,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                     model.registerDataItem(attrItem);
                 }
                 // TODO check attributes not mentioned in schema handling
-                Collection<ShadowAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
-                for (ShadowAssociationDefinition associationDefinition : associationDefinitions) {
+                for (ShadowAssociationDefinition associationDefinition : refinedDefinition.getAssociationDefinitions()) {
                     if (associationDefinition.isIgnored()) {
                         continue;
                     }

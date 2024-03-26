@@ -13,6 +13,8 @@ import java.util.List;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import jakarta.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.schema.util.SimulationUtil;
@@ -191,7 +193,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         return mapping;
     }
 
-    abstract ResourceObjectTypeDefinition getAssociationTargetObjectDefinition();
+    abstract ResourceObjectDefinition getAssociationTargetObjectDefinition();
 
     private ConfigurableValuePolicySupplier createValuePolicySupplier() {
         return new ConfigurableValuePolicySupplier() {

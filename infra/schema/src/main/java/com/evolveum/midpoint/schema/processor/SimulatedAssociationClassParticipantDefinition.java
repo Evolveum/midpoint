@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -17,10 +19,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.List;
 
-/** Draws the boundaries of simulated association class subject or object. Only partially supported for now! */
-public class SimulatedAssociationClassParticipantDelineation extends ResourceObjectSetDelineation {
+/** Defines the simulated association class subject or object. Only partially supported for now! */
+public class SimulatedAssociationClassParticipantDefinition implements Serializable, DebugDumpable {
+
+    /** What resource objects may participate in the association as the subject or object? */
+    @NotNull private final ResourceObjectSetDelineation delineation;
 
     /** Resolved definition of the participant (object / subject) resource object. */
     @NotNull private final ResourceObjectDefinition objectDefinition;
@@ -28,26 +34,36 @@ public class SimulatedAssociationClassParticipantDelineation extends ResourceObj
     /** Supported only for subject. */
     @Nullable private final QName auxiliaryObjectClassName;
 
-    public SimulatedAssociationClassParticipantDelineation(
+    /**
+     * Under what name is this association visible in the participant? (If it's visible at all.)
+     * Currently supported only for subjects, and it's obligatory there.
+     */
+    @Nullable private final ItemName associationItemName;
+
+    SimulatedAssociationClassParticipantDefinition(
             @NotNull QName objectClassName,
             @Nullable ResourceObjectReferenceType baseContext,
             @Nullable SearchHierarchyScope searchHierarchyScope,
             @NotNull ResourceObjectDefinition objectDefinition,
-            @Nullable QName auxiliaryObjectClassName) {
-        super(objectClassName, baseContext, searchHierarchyScope, List.of());
+            @Nullable QName auxiliaryObjectClassName,
+            @Nullable QName associationItemName) {
+        this.delineation = new ResourceObjectSetDelineation(objectClassName, baseContext, searchHierarchyScope, List.of());
         this.objectDefinition = objectDefinition;
         this.auxiliaryObjectClassName = auxiliaryObjectClassName;
+        this.associationItemName = ItemName.fromQName(associationItemName);
     }
 
-    public static SimulatedAssociationClassParticipantDelineation fromObjectTypeDefinition(
+    static SimulatedAssociationClassParticipantDefinition fromObjectTypeDefinition(
             @NotNull ResourceObjectTypeDefinition typeDefinition,
-            @Nullable QName auxiliaryObjectClassName) {
-        return new SimulatedAssociationClassParticipantDelineation(
+            @Nullable QName auxiliaryObjectClassName,
+            @Nullable ItemName associationItemName) {
+        return new SimulatedAssociationClassParticipantDefinition(
                 typeDefinition.getTypeName(),
                 typeDefinition.getDelineation().getBaseContext(),
                 typeDefinition.getDelineation().getSearchHierarchyScope(),
                 typeDefinition,
-                auxiliaryObjectClassName);
+                auxiliaryObjectClassName,
+                associationItemName);
     }
 
     public @Nullable QName getAuxiliaryObjectClassName() {
@@ -62,6 +78,10 @@ public class SimulatedAssociationClassParticipantDelineation extends ResourceObj
         return getObjectAttributeDefinition(binding.objectSide());
     }
 
+    public @NotNull ResourceObjectSetDelineation getDelineation() {
+        return delineation;
+    }
+
     private <T> ResourceAttributeDefinition<T> getObjectAttributeDefinition(QName attrName) {
         try {
             return objectDefinition.findAttributeDefinitionRequired(attrName);
@@ -70,9 +90,17 @@ public class SimulatedAssociationClassParticipantDelineation extends ResourceObj
         }
     }
 
+    public @Nullable ItemName getAssociationItemName() {
+        return associationItemName;
+    }
+
     @Override
-    void extendDebugDump(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "objectDefinition", objectDefinition, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "auxiliaryObjectClassName", auxiliaryObjectClassName, indent + 1);
+    public String debugDump(int indent) {
+        var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "delineation", delineation, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "auxiliaryObjectClassName", auxiliaryObjectClassName, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectDefinition", String.valueOf(objectDefinition), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "associationItemName", associationItemName, indent + 1);
+        return sb.toString();
     }
 }

@@ -146,13 +146,10 @@ public interface ConnectorInstance {
      * The method may return a schema that was fetched previously, e.g. if the fetch operation was executed
      * during connector initialization.
      *
-     * @see PrismSchema
-     *
      * @return Up-to-date resource schema. Only raw information should be there, no refinements. May be immutable.
-     * @throws CommunicationException error in communication to the resource
-     *                - nothing was fetched.
+     * @throws CommunicationException error in communication to the resource - nothing was fetched.
      */
-    ResourceSchema fetchResourceSchema(OperationResult result)
+    NativeResourceSchema fetchResourceSchema(OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**

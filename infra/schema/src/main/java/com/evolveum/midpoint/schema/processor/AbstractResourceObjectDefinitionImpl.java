@@ -58,7 +58,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @NotNull final LayerType currentLayer;
 
     /** See {@link ResourceObjectDefinition#getBasicResourceInformation()}. */
-    @Nullable final BasicResourceInformation basicResourceInformation;
+    @NotNull final BasicResourceInformation basicResourceInformation;
 
     /**
      * Effective shadow caching policy determined from resource and object type/class level.
@@ -123,14 +123,13 @@ public abstract class AbstractResourceObjectDefinitionImpl
             new DeeplyFreezableList<>();
 
     /**
-     * Definition of associations.
-     *
-     * They are not present in the "raw" object class definition, as they do not exist in this form on the resource.
-     *
-     * Immutable.
+     * Definition of associations. Immutable.
      */
     @NotNull final DeeplyFreezableList<ShadowAssociationDefinition> associationDefinitions =
             new DeeplyFreezableList<>();
+
+    /** Definitions of attributes + associations. Created when freezing. */
+    @NotNull private final FreezableList<ShadowItemDefinition<?, ?>> itemDefinitions = new FreezableList<>();
 
     /**
      * The "source" bean for this definition.
@@ -171,7 +170,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     AbstractResourceObjectDefinitionImpl(
             @NotNull LayerType currentLayer,
-            @Nullable BasicResourceInformation basicResourceInformation,
+            @NotNull BasicResourceInformation basicResourceInformation,
             @NotNull ResourceObjectTypeDefinitionType definitionBean)
             throws SchemaException, ConfigurationException {
         this.currentLayer = currentLayer;
@@ -182,7 +181,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public @Nullable BasicResourceInformation getBasicResourceInformation() {
+    public @NotNull BasicResourceInformation getBasicResourceInformation() {
         return basicResourceInformation;
     }
 
@@ -193,7 +192,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<ShadowAssociationDefinition> getAssociationDefinitions() {
+    public @NotNull Collection<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
         return associationDefinitions;
     }
 
@@ -450,6 +449,12 @@ public abstract class AbstractResourceObjectDefinitionImpl
         attributeDefinitions.freeze();
         createAttributeDefinitionMap();
         associationDefinitions.freeze();
+
+        stateCheck(itemDefinitions.isEmpty(), "Any item definitions in %s", this);
+        //noinspection unchecked,rawtypes
+        itemDefinitions.addAll((Collection) getMergedDefinitions());
+        itemDefinitions.freeze();
+
         primaryIdentifiersNames.freeze();
         secondaryIdentifiersNames.freeze();
         auxiliaryObjectClassDefinitions.freeze();
@@ -497,15 +502,17 @@ public abstract class AbstractResourceObjectDefinitionImpl
         sb.append(SchemaDebugUtil.prettyPrint(_this.getTypeName()));
         _this.addDebugDumpHeaderExtension(sb);
         if (layer != null) {
-            sb.append(",layer=").append(layer);
+            sb.append(", layer=").append(layer);
         }
-        sb.append(")");
-        for (ResourceAttributeDefinition<?> rAttrDef : _this.getAttributeDefinitions()) {
+        var attributeDefinitions = _this.getAttributeDefinitions();
+        var associationDefinitions = _this.getAssociationDefinitions();
+        sb.append(") with ").append(attributeDefinitions.size()).append(" attribute");
+        sb.append(" and ").append(associationDefinitions.size()).append(" association definitions");
+        for (ResourceAttributeDefinition<?> rAttrDef : attributeDefinitions) {
             sb.append("\n");
             sb.append(rAttrDef.debugDump(indent + 1, layer));
         }
-        sb.append("\n");
-        for (ShadowAssociationDefinition assocDef : _this.getAssociationDefinitions()) {
+        for (ShadowAssociationDefinition assocDef : associationDefinitions) {
             sb.append("\n");
             sb.append(assocDef.debugDump(indent + 1));
         }
@@ -523,7 +530,20 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @Override
     public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
-        return getAttributeDefinitions();
+        if (isMutable()) {
+            return getMergedDefinitions(); // inefficient but flexible
+        } else {
+            // Currently not possible to write in type-safe manner, but all of these are item definitions.
+            //noinspection unchecked,rawtypes
+            return (List) itemDefinitions;
+        }
+    }
+
+    @NotNull
+    private List<ItemDefinition<?>> getMergedDefinitions() {
+        List<ItemDefinition<?>> allDefinitions = new ArrayList<>(attributeDefinitions);
+        allDefinitions.addAll(associationDefinitions);
+        return allDefinitions;
     }
 
     @Override
@@ -669,11 +689,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public <A> void setAnnotation(QName qname, A value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public @Nullable Map<QName, Object> getAnnotations() {
         return null;
     }
@@ -740,33 +755,22 @@ public abstract class AbstractResourceObjectDefinitionImpl
         addInternal(definition);
     }
 
-    @NotNull ResourceAttributeDefinition<?> addInternal(@NotNull ItemDefinition<?> definition) {
-        ResourceAttributeDefinition<?> definitionToAdd;
+    private void addInternal(@NotNull ItemDefinition<?> definition) {
         if (definition instanceof ResourceAttributeDefinition<?> resourceAttributeDefinition) {
             // Can occur during definition replacement.
-            definitionToAdd = resourceAttributeDefinition;
-//        } else if (definition instanceof RawResourceAttributeDefinition<?>) {
-//            // This is the case during parsing. We get the really raw (and mutable) definition.
-//            // The following call will convert it into usable form, including freezing.
-//            definitionToAdd = ResourceAttributeDefinitionImpl.create((RawResourceAttributeDefinition<?>) definition);
+            attributeDefinitions.add(resourceAttributeDefinition);
+        } else if (definition instanceof ShadowAssociationDefinitionImpl associationDefinition) {
+            associationDefinitions.add(associationDefinition);
         } else {
             throw new IllegalArgumentException(
-                    "Only ResourceAttributeDefinitions should be put into a ResourceObjectClassDefinition. "
-                            + "Item definition = " + definition + " (" + definition.getClass() + "), "
-                            + "ResourceObjectClassDefinition = " + this);
+                    ("Only attribute and association definitions should be put into a resource object definition. "
+                            + "Item definition = %s (%s), object definition = %s").formatted(
+                                    definition, definition.getClass(), this));
         }
-
-        attributeDefinitions.add(definitionToAdd);
-        return definitionToAdd;
     }
 
     @Override
-    public ItemProcessing getProcessing() {
-        return null; // No information at the level of object class
-    }
-
-    @Override
-    public Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
+    public @NotNull Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
         // TODO keep the names, not the resolved definitions
         return getAuxiliaryDefinitions().stream()
                 .map(Definition::getTypeName)
@@ -821,7 +825,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         auxiliaryObjectClassDefinitions.add(definition);
     }
 
-    public void setDisplayNameAttributeName(QName name) {
+    void setDisplayNameAttributeName(QName name) {
         checkMutable();
         this.displayNameAttributeName = name;
     }
@@ -834,12 +838,14 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     private ShadowCachingPolicyType computeEffectiveShadowCachingPolicy() throws SchemaException, ConfigurationException {
-        if (basicResourceInformation == null) {
-            return null;
-        }
         var merged = BaseMergeOperation.merge(
                 definitionBean.getCaching(),
                 basicResourceInformation.cachingPolicy());
         return Objects.requireNonNullElseGet(merged, ShadowCachingPolicyType::new);
+    }
+
+    @Override
+    public @Nullable ItemName resolveFrameworkName(@NotNull String frameworkName) {
+        return FrameworkNameResolver.findInObjectDefinition(this, frameworkName);
     }
 }

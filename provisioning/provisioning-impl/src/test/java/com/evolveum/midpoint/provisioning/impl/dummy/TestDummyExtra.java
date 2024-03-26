@@ -14,12 +14,13 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.createEntitleDelta
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import org.jetbrains.annotations.NotNull;
@@ -34,10 +35,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -72,7 +69,7 @@ public class TestDummyExtra extends TestDummy {
 
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME = "mate";
 
-    private static final QName ASSOCIATION_CREW_NAME = new QName(RESOURCE_DUMMY_NS, "crew");
+    private static final QName ASSOCIATION_CREW_NAME = new QName(MidPointConstants.NS_RI, "crew");
 
     @Override
     protected File getResourceDummyFile() {
@@ -91,14 +88,14 @@ public class TestDummyExtra extends TestDummy {
     }
 
     @Override
-    protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
+    protected void assertBareSchemaSanity(BareResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
         // schema is extended, displayOrders are changed
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 20);
 
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource); // TODO for this resource, or the one obtained as argument?
         ResourceObjectDefinition accountRDef = refinedSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
 
-        Collection<ShadowAssociationDefinition> associationDefinitions = accountRDef.getAssociationDefinitions();
+        var associationDefinitions = accountRDef.getAssociationDefinitions();
         assertEquals("Wrong number of association defs", 3, associationDefinitions.size());
         ShadowAssociationDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
         assertNotNull("No definition for crew association", crewAssociationDef);
@@ -281,10 +278,12 @@ public class TestDummyExtra extends TestDummy {
                             latch.await();
                             long time = System.nanoTime();
                             ConnectorType connector = getCsvConnector(result);
-                            var hasSchema = ConnectorTypeUtil.parseConnectorSchema(connector) != null;
-                            Element elem = ConnectorTypeUtil.getConnectorXsdSchema(connector);
+                            Element elem = ConnectorTypeUtil.getConnectorXsdSchemaElement(connector);
+                            if (elem != null) {
+                                ConnectorTypeUtil.parseConnectorSchema(connector);
+                            }
                             System.out.println(time + ": " + Thread.currentThread().getId() + ": " + System.identityHashCode(elem));
-                            return hasSchema;
+                            return elem != null;
                         } catch (SchemaException e) {
                             throw new AssertionError(e);
                         }

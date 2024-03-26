@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions.CompleteSchemaProvider;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -68,7 +69,7 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest
     protected ResourceType resourceBean;
     ConnectorType connectorBean;
     protected ConnectorInstance cc;
-    protected ResourceSchema resourceSchema;
+    protected BareResourceSchema resourceSchema;
     protected static DummyResource dummyResource;
     protected static DummyResourceContoller dummyResourceCtl;
 

@@ -150,7 +150,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         TestUtil.assertSuccess(testResult);
 
         ResourceType resourceType = getDummyResourceType(RESOURCE_DUMMY_TEA_GREEN.name);
-        ResourceSchema returnedSchema = ResourceSchemaFactory.getRawSchema(resourceType);
+        ResourceSchema returnedSchema = ResourceSchemaFactory.getBareSchema(resourceType);
         displayDumpable("Parsed resource schema (tea-green)", returnedSchema);
         ResourceObjectDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN.name)
                 .assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,

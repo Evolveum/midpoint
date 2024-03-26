@@ -289,19 +289,19 @@ public abstract class AbstractMappingBuilder<
     }
 
     public RT addVariableDefinition(String name, String value) {
-        MutablePrismPropertyDefinition<Object> def = beans.prismContext.definitionFactory().createPropertyDefinition(
+        var def = beans.prismContext.definitionFactory().newPropertyDefinition(
                 new QName(SchemaConstants.NS_C, name), PrimitiveType.STRING.getQname());
         return addVariableDefinition(name, value, def);
     }
 
     public RT addVariableDefinition(String name, Boolean value) {
-        MutablePrismPropertyDefinition<Object> def = beans.prismContext.definitionFactory().createPropertyDefinition(
+        var def = beans.prismContext.definitionFactory().newPropertyDefinition(
                 new QName(SchemaConstants.NS_C, name), PrimitiveType.BOOLEAN.getQname());
         return addVariableDefinition(name, value, def);
     }
 
     public RT addVariableDefinition(String name, Integer value) {
-        MutablePrismPropertyDefinition<Object> def = beans.prismContext.definitionFactory().createPropertyDefinition(
+        var def = beans.prismContext.definitionFactory().newPropertyDefinition(
                 new QName(SchemaConstants.NS_C, name), PrimitiveType.INT.getQname());
         return addVariableDefinition(name, value, def);
     }

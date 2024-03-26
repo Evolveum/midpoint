@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
 
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -529,7 +528,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // get weapon attribute definition
         PrismObject<ResourceType> dummyResource =
                 repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(dummyResource.asObjectable());
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(dummyResource.asObjectable());
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
 
         QName accountObjectClassQName = dummyResourceCtl.getAccountObjectClassQName();
@@ -562,7 +561,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         QName accountObjectClassQName = dummyResourceCtl.getAccountObjectClassQName();
         QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
         PrismPropertyDefinition<String> weaponFakeDef =
-                prismContext.definitionFactory().createPropertyDefinition(weaponQName, DOMUtil.XSD_STRING);
+                prismContext.definitionFactory().newPropertyDefinition(weaponQName, DOMUtil.XSD_STRING);
 
         ObjectQuery q = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)

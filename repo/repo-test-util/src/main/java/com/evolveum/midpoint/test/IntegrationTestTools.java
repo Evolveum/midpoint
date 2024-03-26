@@ -39,7 +39,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -49,7 +48,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -783,8 +781,9 @@ public class IntegrationTestTools {
                 .build();
     }
 
-    public static void applyResourceSchema(ShadowType accountType, ResourceType resourceType) throws SchemaException {
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resourceType);
+    public static void applyResourceSchema(ShadowType accountType, ResourceType resourceType)
+            throws SchemaException, ConfigurationException {
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resourceType);
         ShadowUtil.applyResourceSchema(accountType.asPrismObject(), resourceSchema);
     }
 
@@ -857,8 +856,6 @@ public class IntegrationTestTools {
         assertNotNull("No object class definition " + RI_ACCOUNT_OBJECT_CLASS, accountDefinition);
         assertTrue("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is not default account", accountDefinition.isDefaultAccountDefinition());
         assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.isEmpty());
-        //noinspection deprecation
-        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.isIgnored());
 
         Collection<? extends ResourceAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
         assertNotNull("Null identifiers for " + RI_ACCOUNT_OBJECT_CLASS, identifiers);
@@ -890,7 +887,7 @@ public class IntegrationTestTools {
         assertNotNull("Null secondary identifiers in account", accountDefinition.getSecondaryIdentifiers());
         assertFalse("Empty secondary identifiers in account", accountDefinition.getSecondaryIdentifiers().isEmpty());
         assertNotNull("No naming attribute in account", accountDefinition.getNamingAttribute());
-        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDefinition.getNativeObjectClass()));
+        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDefinition.getNativeObjectClassName()));
 
         ResourceAttributeDefinition<?> uidDef = accountDefinition.findAttributeDefinitionRequired(SchemaConstants.ICFS_UID);
         assertEquals(1, uidDef.getMaxOccurs());
@@ -925,24 +922,18 @@ public class IntegrationTestTools {
 
     public static ObjectDelta<ShadowType> createEntitleDelta(
             String accountOid, QName associationName, String groupOid) throws SchemaException {
-        var association = new ShadowAssociationValueType();
-        ObjectReferenceType shadowRefType = new ObjectReferenceType();
-        shadowRefType.setOid(groupOid);
-        shadowRefType.setType(ShadowType.COMPLEX_TYPE);
-        association.setShadowRef(shadowRefType);
         return PrismContext.get().deltaFactory().object().createModificationAddContainer(
-                ShadowType.class, accountOid, ShadowType.F_ASSOCIATIONS.append(associationName), association);
+                ShadowType.class, accountOid,
+                ShadowType.F_ASSOCIATIONS.append(associationName),
+                ShadowAssociationValue.withReferenceTo(groupOid));
     }
 
     public static ObjectDelta<ShadowType> createDetitleDelta(
             String accountOid, QName associationName, String groupOid) throws SchemaException {
-        var association = new ShadowAssociationValueType();
-        ObjectReferenceType shadowRefType = new ObjectReferenceType();
-        shadowRefType.setOid(groupOid);
-        shadowRefType.setType(ShadowType.COMPLEX_TYPE);
-        association.setShadowRef(shadowRefType);
         return PrismContext.get().deltaFactory().object().createModificationDeleteContainer(
-                ShadowType.class, accountOid, ShadowType.F_ASSOCIATIONS.append(associationName), association);
+                ShadowType.class, accountOid,
+                ShadowType.F_ASSOCIATIONS.append(associationName),
+                ShadowAssociationValue.withReferenceTo(groupOid));
     }
 
     public static ObjectDelta<ShadowType> createEntitleDeltaIdentifiers(
@@ -1028,7 +1019,7 @@ public class IntegrationTestTools {
     }
 
     public static void assertNoSchema(String message, ResourceType resourceType) {
-        Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resourceType);
+        Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchemaElement(resourceType);
         AssertJUnit.assertNull(message, resourceXsdSchema);
     }
 
@@ -1044,29 +1035,25 @@ public class IntegrationTestTools {
     public static void assertConnectorSchemaSanity(ConnectorType conn) throws SchemaException {
         XmlSchemaType xmlSchemaType = conn.getSchema();
         assertNotNull("xmlSchemaType is null", xmlSchemaType);
-        Element connectorXsdSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(conn);
-        assertNotNull("No schema", connectorXsdSchemaElement);
+        Element connectorXsdSchemaElement = ConnectorTypeUtil.getConnectorXsdSchemaElementRequired(conn);
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaType);
         assertNotNull("No xsd:schema element in xmlSchemaType", xsdElement);
         display("XSD schema of " + conn, DOMUtil.serializeDOMToString(xsdElement));
         // Try to parse the schema
-        PrismSchema schema;
-        try {
-            schema = PrismSchemaImpl.parse(xsdElement, true, "schema of " + conn);
-        } catch (SchemaException e) {
-            throw new SchemaException("Error parsing schema of " + conn + ": " + e.getMessage(), e);
-        }
+        ConnectorSchema schema = ConnectorSchemaFactory.parse(xsdElement, "schema of " + conn);
         assertConnectorSchemaSanity(schema, conn.toString(), SchemaConstants.ICF_FRAMEWORK_URI.equals(conn.getFramework()));
     }
 
-    public static void assertConnectorSchemaSanity(PrismSchema schema, String connectorDescription, boolean expectConnIdSchema) {
+    public static void assertConnectorSchemaSanity(ConnectorSchema schema, String connectorDescription, boolean expectConnIdSchema)
+            throws SchemaException {
         assertNotNull("Cannot parse connector schema of " + connectorDescription, schema);
         assertFalse("Empty connector schema in " + connectorDescription, schema.isEmpty());
         PrismTestUtil.display("Parsed connector schema of " + connectorDescription, schema);
 
         // Local schema namespace is used here.
-        PrismContainerDefinition configurationDefinition =
-                schema.findItemDefinitionByElementName(new QName(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart()),
+        PrismContainerDefinition<?> configurationDefinition = schema.getConnectorConfigurationContainerDefinition();
+                schema.findItemDefinitionByElementName(
+                        new QName(ConnectorSchema.CONNECTOR_CONFIGURATION_LOCAL_NAME),
                         PrismContainerDefinition.class);
         assertNotNull("Definition of <configuration> property container not found in connector schema of " + connectorDescription,
                 configurationDefinition);
@@ -1076,7 +1063,7 @@ public class IntegrationTestTools {
         if (expectConnIdSchema) {
             // ICFC schema is used on other elements
             PrismContainerDefinition configurationPropertiesDefinition =
-                    configurationDefinition.findContainerDefinition(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+                    configurationDefinition.findContainerDefinition(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
             assertNotNull("Definition of <configurationProperties> property container not found in connector schema of " + connectorDescription,
                     configurationPropertiesDefinition);
             assertFalse("Empty definition of <configurationProperties> property container in connector schema of " + connectorDescription,

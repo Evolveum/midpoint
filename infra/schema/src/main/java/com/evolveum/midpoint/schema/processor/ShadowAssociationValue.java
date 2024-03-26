@@ -8,25 +8,21 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serial;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Represents a specific shadow association value - i.e. something that is put into {@link ShadowAssociation}.
@@ -55,6 +51,12 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         super(type, source, container, id, complexTypeDefinition);
     }
 
+    /**
+     * Converts association value bean to wrapped {@link ShadowAssociationValue} basically by cloning its content
+     * and selected properties (e.g., parent and ID).
+     *
+     * We should not use the original value any more, e.g. because of the copied "parent" value.
+     */
     public static @NotNull ShadowAssociationValue of(@NotNull ShadowAssociationValueType bean) {
         PrismContainerValue<?> pcv = bean.asPrismContainerValue();
         var newValue = new ShadowAssociationValue();
@@ -65,6 +67,8 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "when transferring association value items to a SAV");
         }
+        newValue.setParent(pcv.getParent()); // TODO maybe temporary?
+        newValue.setId(pcv.getId());
         return newValue;
     }
 
@@ -87,6 +91,12 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
 
     public static ShadowAssociationValue empty() {
         return new ShadowAssociationValue();
+    }
+
+    public static ShadowAssociationValue withReferenceTo(@NotNull String targetOid) {
+        return of(
+                new ShadowAssociationValueType()
+                        .shadowRef(targetOid, ShadowType.COMPLEX_TYPE));
     }
 
     @Override

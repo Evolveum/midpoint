@@ -11,6 +11,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
@@ -58,7 +60,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
     }
 
     @Override
-    public @NotNull PrismPropertyDefinition<T> clone() {
+    public @NotNull TransformablePropertyDefinition<T> clone() {
         throw new UnsupportedOperationException();
     }
 
@@ -68,7 +70,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
     }
 
     @Override
-    public MutablePrismPropertyDefinition<T> toMutable() {
+    public PrismPropertyDefinitionMutator<T> mutator() {
         return this;
     }
 
@@ -116,7 +118,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public @NotNull ResourceAttributeDefinition<T> clone() {
+        public @NotNull ResourceAttribute<T> clone() {
             return copy();
         }
 
@@ -131,7 +133,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public @NotNull MutableRawResourceAttributeDefinition<T> toMutable() {
+        public @NotNull MutableRawResourceAttributeDefinition<T> mutator() {
             return this;
         }
 
@@ -186,7 +188,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public @NotNull ResourceAttributeDefinition<T> clone() {
+        public @NotNull RefinedAttribute<T> clone() {
             return copy();
         }
 
@@ -230,6 +232,11 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         @Override
         public void shortDump(StringBuilder sb) {
             delegate().shortDump(sb);
+        }
+
+        @Override
+        public @NotNull ItemDefinition<PrismProperty<T>> cloneWithNewName(@NotNull ItemName itemName) {
+            throw new UnsupportedOperationException();
         }
     }
 }

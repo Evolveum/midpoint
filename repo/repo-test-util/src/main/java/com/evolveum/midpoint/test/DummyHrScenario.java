@@ -16,6 +16,7 @@ import java.time.ZonedDateTime;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
 import static com.evolveum.midpoint.test.AttrName.ri;
+import static com.evolveum.midpoint.test.ObjectClassName.custom;
 import static com.evolveum.midpoint.test.ObjectClassName.legacyCustom;
 
 /** Represents the HR scenario residing on given dummy resource. */
@@ -84,6 +85,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
         }
 
         public static class LinkNames {
+            public static final AssocName PERSON = AssocName.ri("person"); // invisible
             public static final AssocName ORG = AssocName.ri("org");
         }
 
@@ -127,12 +129,12 @@ public class DummyHrScenario extends AbstractDummyScenario {
 
     public class PersonContract extends ScenarioLinkClass {
 
-        public static final String NAME = "personContract";
+        public static final ObjectClassName NAME = custom("personContract");
 
         void initialize() {
             controller.addLinkClassDefinition(
                     aLinkClassDefinition()
-                            .withName(NAME)
+                            .withName(NAME.local())
                             .withFirstParticipant(aParticipant()
                                     .withObjectClassNames(Person.OBJECT_CLASS_NAME.local())
                                     .withLinkAttributeName(Person.LinkNames.CONTRACT.local())
@@ -142,27 +144,27 @@ public class DummyHrScenario extends AbstractDummyScenario {
                                     .build())
                             .withSecondParticipant(aParticipant()
                                     .withObjectClassNames(Contract.OBJECT_CLASS_NAME.local())
+                                    .withInvisibleLinkAttributeName(Contract.LinkNames.PERSON.local())
                                     .withMinOccurs(1)
                                     .withMaxOccurs(1)
-                                    // invisible on contract side
                                     .build())
                             .build());
         }
 
         @Override
-        public @NotNull String getLinkClassName() {
+        public @NotNull ObjectClassName getLinkClassName() {
             return NAME;
         }
     }
 
     public class ContractOrgUnit extends ScenarioLinkClass {
 
-        public static final String NAME = "contractOrg";
+        public static final ObjectClassName NAME = custom("contractOrg");
 
         void initialize() {
             controller.addLinkClassDefinition(
                     aLinkClassDefinition()
-                            .withName(NAME)
+                            .withName(NAME.local())
                             .withFirstParticipant(aParticipant()
                                     .withObjectClassNames(Contract.OBJECT_CLASS_NAME.local())
                                     .withLinkAttributeName(Contract.LinkNames.ORG.local())
@@ -182,7 +184,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
         }
 
         @Override
-        public @NotNull String getLinkClassName() {
+        public @NotNull ObjectClassName getLinkClassName() {
             return NAME;
         }
     }

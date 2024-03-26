@@ -18,8 +18,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -352,7 +350,7 @@ public class SchemaListPanel extends BasePanel<PrismObjectWrapper<ResourceType>>
         try {
             PrismObject<ResourceType> resource = getModel().getObject().getObjectApplyDelta();
 
-            Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
+            Element xsdSchema = ResourceTypeUtil.getResourceXsdSchemaElement(resource);
             if (xsdSchema == null) {
                 return null;
             }

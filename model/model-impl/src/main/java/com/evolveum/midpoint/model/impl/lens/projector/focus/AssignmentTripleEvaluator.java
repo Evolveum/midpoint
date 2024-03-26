@@ -523,7 +523,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                     .findItemDefinition(AssignmentHolderType.F_ASSIGNMENT);
         }
         definition = definition.clone();
-        definition.toMutable().setMaxOccurs(1);
+        definition.mutator().setMaxOccurs(1);
         return beans.prismContext.deltaFor(AssignmentHolderType.class)
                 .item(AssignmentHolderType.F_ASSIGNMENT, definition);
     }

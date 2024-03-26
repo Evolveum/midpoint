@@ -72,7 +72,7 @@ public class TransformableReferenceDefinition extends TransformableItemDefinitio
     }
 
     @Override
-    public MutablePrismReferenceDefinition toMutable() {
+    public PrismReferenceDefinitionMutator mutator() {
         return this;
     }
 

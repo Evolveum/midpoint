@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutableItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -92,17 +91,17 @@ public class ExtUtils {
     /** Creates definition from {@link MExtItem}. */
     public static @NotNull ItemDefinition<?> createDefinition(QName name, MExtItem itemInfo, boolean indexOnly) {
         QName typeName = ExtUtils.getSupportedTypeName(itemInfo.valueType);
-        final MutableItemDefinition<?> def;
+        final ItemDefinition<?> def;
         if (ObjectReferenceType.COMPLEX_TYPE.equals(typeName)) {
-            def = PrismContext.get().definitionFactory().createReferenceDefinition(name, typeName);
+            def = PrismContext.get().definitionFactory().newReferenceDefinition(name, typeName);
         } else {
-            def = PrismContext.get().definitionFactory().createPropertyDefinition(name, typeName);
+            def = PrismContext.get().definitionFactory().newPropertyDefinition(name, typeName);
         }
-        def.setMinOccurs(0);
-        def.setMaxOccurs(-1);
-        def.setRuntimeSchema(true);
-        def.setDynamic(true);
-        def.setIndexOnly(indexOnly);
+        def.mutator().setMinOccurs(0);
+        def.mutator().setMaxOccurs(-1);
+        def.mutator().setRuntimeSchema(true);
+        def.mutator().setDynamic(true);
+        def.mutator().setIndexOnly(indexOnly);
         return def;
     }
 

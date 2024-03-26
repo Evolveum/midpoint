@@ -338,11 +338,11 @@ class ShadowedObjectConstruction {
         ResourceAttributeContainer identifierContainer = ShadowUtil.getIdentifiersContainerRequired(associationValuePcv);
 
         ShadowAssociationDefinition associationDef = getAssociationDefinition(associationName);
-        ShadowAssociationTypeDefinition associationTypeDef = associationDef.getAssociationTypeDefinition();
+        ShadowAssociationClassDefinition associationTypeDef = associationDef.getAssociationClassDefinition();
 
         boolean potentialMatch = false;
         // FIXME reconsider this process especially for multiple intents
-        for (var targetObjectDefinition : associationTypeDef.getObjectTypeDefinitions()) {
+        for (var targetObjectDefinition : associationTypeDef.getObjectObjectDefinitions()) {
             LOGGER.trace("Processing target object definition: {}", targetObjectDefinition);
             ProvisioningContext ctxEntitlement = ctx.spawnForDefinition(targetObjectDefinition);
 

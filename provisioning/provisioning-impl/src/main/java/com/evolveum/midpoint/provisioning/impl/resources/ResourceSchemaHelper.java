@@ -14,9 +14,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +26,6 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -37,12 +33,13 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
+import com.evolveum.midpoint.schema.processor.ConnectorSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -65,7 +62,6 @@ class ResourceSchemaHelper {
     @Autowired private ConnectorManager connectorManager;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-    @Autowired private PrismContext prismContext;
 
     /**
      * Applies a definition on a resource we know nothing about - i.e. it may be unexpanded.
@@ -136,18 +132,7 @@ class ResourceSchemaHelper {
             ConfigurationException, SecurityViolationException {
 
         var connectorWithSchema = connectorManager.getConnectorWithSchema(sourceConnectorSpec, result);
-        PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition =
-                connectorWithSchema.getConfigurationContainerDefinition().clone();
-
-        PrismContainer<ConnectorConfigurationType> sourceConfigurationContainer = sourceConnectorSpec.getConnectorConfiguration();
-        // We want element name, minOccurs/maxOccurs and similar definition to be taken from the original, not the schema
-        // the element is global in the connector schema. therefore it does not have correct maxOccurs
-        if (sourceConfigurationContainer != null) {
-            configurationContainerDefinition.adoptElementDefinitionFrom(sourceConfigurationContainer.getDefinition());
-        } else if (sourceConnectorSpec.isMain()) {
-            configurationContainerDefinition.adoptElementDefinitionFrom(
-                    targetDefinition.findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION));
-        }
+        var configurationContainerDefinition = connectorWithSchema.getConfigurationContainerDefinition();
 
         PrismContainer<ConnectorConfigurationType> targetConfigurationContainer =
                 targetConnectorSpec != null ? targetConnectorSpec.getConnectorConfiguration() : null;
@@ -427,32 +412,22 @@ class ResourceSchemaHelper {
             // Probably a malformed connector.
             result.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource "
                     + "has schema problems: " + e.getMessage(), e);
-            LOGGER.error("Connector (OID:{}) has schema problems: {}-{}", connectorOid, e.getMessage(), e);
+            LOGGER.error("Connector (OID:{}) has schema problems: {}", connectorOid, e.getMessage(), e);
             return null;
         }
 
-        Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
+        Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchemaElement(connector);
         if (connectorSchemaElement == null) {
             // No schema to apply to
             return null;
         }
-        MutablePrismSchema connectorSchema;
         try {
-            connectorSchema = prismContext.schemaFactory().createPrismSchema(
-                    DOMUtil.getSchemaTargetNamespace(connectorSchemaElement));
-            connectorSchema.parseThis(
-                    connectorSchemaElement, true, "schema for " + connector);
+            return ConnectorSchemaFactory
+                    .parse(connectorSchemaElement, "schema for " + connector)
+                    .getConnectorConfigurationContainerDefinition();
         } catch (SchemaException e) {
             throw new SchemaException("Error parsing connector schema for " + connector + ": " + e.getMessage(), e);
         }
-        QName configContainerQName = new QName(connector.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
-        PrismContainerDefinition<ConnectorConfigurationType> configContainerDef =
-                connectorSchema.findContainerDefinitionByElementName(configContainerQName);
-        if (configContainerDef == null) {
-            throw new SchemaException("Definition of configuration container " + configContainerQName
-                    + " not found in the schema of of " + connector);
-        }
-        return configContainerDef;
     }
 
     private String getConnectorOid(ObjectDelta<ResourceType> delta, ConnectorSpec connectorSpec) throws SchemaException {

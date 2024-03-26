@@ -75,44 +75,26 @@ public interface ResourceObjectDefinition
         IdentifiersDefinitionStore,
         AttributeDefinitionStore,
         AssociationDefinitionStore, // no-op for object class definitions
-        LayeredDefinition {
+        LayeredDefinition,
+        FrameworkNameResolver {
 
     /**
      * The basic information about the resource (like name, OID, selected configuration beans).
      * Replaces the hard-coded resource OID; necessary also for determination of default values for some features,
      * e.g., shadow caching, and useful for diagnostics.
-     *
-     * May or may not be null for raw object class definitions.
-     * Must be non-null for refined definitions.
-     *
-     * Note: The nullity for raw object class definitions is because such definitions are created (among other places)
-     * deep in UCF code, where we know nothing about the resources. Fortunately, we do not need such information
-     * for raw definitions, at least not for now.
-     *
-     * Definitions that have this information are called _attached_.
-     *
-     * @see #assertAttached()
      */
-    @Nullable BasicResourceInformation getBasicResourceInformation();
+    @NotNull BasicResourceInformation getBasicResourceInformation();
 
     /** The resource OID, if known. */
     default String getResourceOid() {
-        var info = getBasicResourceInformation();
-        return info != null ? info.oid() : null;
+        return getBasicResourceInformation().oid();
     }
 
-    /**
-     * Returns the (raw or refined) object class definition.
-     *
-     * It is either this object itself (for object classes), or the linked object class definition (for object types).
-     */
+    /** Returns the [structural] object class definition. */
     @NotNull ResourceObjectClassDefinition getObjectClassDefinition();
 
-    /**
-     * Returns the raw object class definition. It is either this object itself (if it represents the raw class definition),
-     * or the linked raw object class definition (for object types and refined object class definitions).
-     */
-    @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition();
+    /** Returns the [structural] native object class definition, typically obtained from the connector. */
+    @NotNull NativeObjectClassDefinition getNativeObjectClassDefinition();
 
     /**
      * Returns the name of the object class.
@@ -126,8 +108,7 @@ public interface ResourceObjectDefinition
      * For dynamically composed definitions ({@link CompositeObjectDefinition} only the statically-defined ones
      * (i.e. those from the structural definition) are returned.
      */
-    @Experimental
-    Collection<QName> getConfiguredAuxiliaryObjectClassNames();
+    @NotNull Collection<QName> getConfiguredAuxiliaryObjectClassNames();
 
     /**
      * TODO define semantics (it's different for {@link CompositeObjectDefinition} and the others!
@@ -210,8 +191,6 @@ public interface ResourceObjectDefinition
 
     /**
      * Returns name of the display name attribute.
-     *
-     * @see #getDisplayNameAttribute()
      */
     @Nullable QName getDisplayNameAttributeName();
     //endregion
@@ -431,7 +410,7 @@ public interface ResourceObjectDefinition
 
     default @NotNull ComplexTypeDefinition toAssociationsComplexTypeDefinition() {
         var ctd = new ComplexTypeDefinitionImpl(ShadowAssociationsType.COMPLEX_TYPE);
-        for (ShadowAssociationDefinition associationDefinition : getAssociationDefinitions()) {
+        for (var associationDefinition : getAssociationDefinitions()) {
             ctd.add(associationDefinition);
         }
         return ctd;
@@ -592,7 +571,7 @@ public interface ResourceObjectDefinition
     }
 
     /** TODO ... ignoreCase will be part of the schema, soon ... */
-    default ShadowItemDefinition<?> findShadowItemDefinitionRequired(
+    default ShadowItemDefinition<?, ?> findShadowItemDefinitionRequired(
             @NotNull ItemName itemName, boolean ignoreCase, Object errorCtx) throws SchemaException {
 
         var attributeDefinition = findAttributeDefinition(itemName, ignoreCase);

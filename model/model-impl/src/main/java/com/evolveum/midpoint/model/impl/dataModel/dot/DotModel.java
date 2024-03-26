@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.dataModel.dot;
 
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.model.impl.dataModel.DataModel;
 import com.evolveum.midpoint.model.impl.dataModel.DataModelVisualizerImpl;
 import com.evolveum.midpoint.model.impl.dataModel.model.*;
@@ -105,7 +104,7 @@ public class DotModel {
                     ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def), attrDef.getItemName());
                     previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
                 }
-                for (ShadowAssociationDefinition assocDef : def.getAssociationDefinitions()) {
+                for (var assocDef : def.getAssociationDefinitions()) {
                     if (assocDef.isIgnored()) {
                         continue;
                     }

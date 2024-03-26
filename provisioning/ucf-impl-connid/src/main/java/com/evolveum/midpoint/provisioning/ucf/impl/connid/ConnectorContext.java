@@ -18,7 +18,8 @@ import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
  */
 interface ConnectorContext {
 
-    /** See {@link ConnectorInstanceConnIdImpl#legacySchema}. */
+    Boolean getConfiguredLegacySchema();
+
     boolean isLegacySchema();
 
     default CompleteResourceSchema getResourceSchemaRequired() {
@@ -26,4 +27,6 @@ interface ConnectorContext {
     }
 
     CompleteResourceSchema getResourceSchema();
+
+    String getHumanReadableName();
 }

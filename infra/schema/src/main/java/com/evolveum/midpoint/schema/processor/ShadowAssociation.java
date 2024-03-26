@@ -79,8 +79,8 @@ public class ShadowAssociation
         for (PrismValue value : item.getValues()) {
             if (value instanceof PrismContainerValue<?> pcv) {
                 try {
-                    //noinspection unchecked
-                    association.addIgnoringEquivalents((PrismContainerValue<ShadowAssociationValueType>) pcv.clone());
+                    association.addIgnoringEquivalents(
+                            ShadowAssociationValue.of(((ShadowAssociationValueType) pcv.asContainerable()).clone()));
                 } catch (SchemaException e) {
                     throw new IllegalArgumentException("Couldn't add PCV: " + value, e);
                 }
@@ -93,9 +93,14 @@ public class ShadowAssociation
 
     @Override
     protected boolean addInternalExecution(@NotNull PrismContainerValue<ShadowAssociationValueType> newValue) {
-        argCheck(newValue instanceof ShadowAssociationValue,
-                "Trying to add a value which is not a ShadowAssociationValue: %s", newValue);
-        return super.addInternalExecution(newValue);
+//        argCheck(newValue instanceof ShadowAssociationValue,
+//                "Trying to add a value which is not a ShadowAssociationValue: %s", newValue);
+        if (newValue instanceof ShadowAssociationValue shadowAssociationValue) {
+            return super.addInternalExecution(newValue);
+        } else {
+            // FIXME we should have resolved this (for deltas) in applyDefinition call, but that's not possible now
+            return super.addInternalExecution(ShadowAssociationValue.of(newValue.asContainerable()));
+        }
     }
 
     @Override

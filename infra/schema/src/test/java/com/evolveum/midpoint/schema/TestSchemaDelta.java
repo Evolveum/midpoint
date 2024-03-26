@@ -307,7 +307,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         // WHEN
         PrismContainerDefinition<AssignmentType> assignmentDef = PrismTestUtil.getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(AssignmentType.class).clone();
-        assignmentDef.toMutable().setMaxOccurs(1);
+        assignmentDef.mutator().setMaxOccurs(1);
         PrismContainer<AssignmentType> assignmentContainer = assignmentDef.instantiate();
 
         PrismContainerValue<AssignmentType> assignmentValue = ObjectTypeUtil
@@ -342,7 +342,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         // WHEN
         PrismContainerDefinition<AssignmentType> assignmentDef = PrismTestUtil.getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(AssignmentType.class).clone();
-        assignmentDef.toMutable().setMaxOccurs(1);
+        assignmentDef.mutator().setMaxOccurs(1);
         PrismContainer<AssignmentType> assignmentContainer = assignmentDef.instantiate();
 
         PrismContainerValue<AssignmentType> assignmentValue =

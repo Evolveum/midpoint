@@ -285,7 +285,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
         VariablesMap variablesMap = new VariablesMap();
         variablesMap.put(ExpressionConstants.VAR_CANDIDATE, new TypedValue<>(candidate, String.class));
         PrismPropertyDefinition<Double> outputDefinition =
-                PrismContext.get().definitionFactory().createPropertyDefinition(
+                PrismContext.get().definitionFactory().newPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_DOUBLE);
         PrismValue output = ExpressionUtil.evaluateExpression(
                 variablesMap,

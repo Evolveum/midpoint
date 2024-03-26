@@ -39,7 +39,7 @@ public class ObjectClassDetailsDto implements Serializable{
             description = definition.getDescription() != null ? definition.getDescription() : VALUE_NOT_SPECIFIED;
             kind = definition.getKind().value();
             intent = definition.getIntent();
-            String nativeObjectClassName = definition.getObjectClassDefinition().getNativeObjectClass();
+            String nativeObjectClassName = definition.getObjectClassDefinition().getNativeObjectClassName();
             this.nativeObjectClass = nativeObjectClassName != null ? nativeObjectClassName : VALUE_NOT_SPECIFIED;
             isDefault = definition.isDefaultForKind();
         }

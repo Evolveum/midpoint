@@ -10,14 +10,11 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 
@@ -25,7 +22,6 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,13 +50,13 @@ public class ReportParamWrapperFactoryImpl extends PrismContainerWrapperFactoryI
                 if (item.getDefinition() == null && item.getRealValue() instanceof RawType) {
                     try {
                         ((RawType) item.getRealValue()).getParsedRealValue(ObjectReferenceType.class);
-                        MutablePrismReferenceDefinition def = getPrismContext().definitionFactory().createReferenceDefinition(
+                        var def = getPrismContext().definitionFactory().newReferenceDefinition(
                                 item.getElementName(), ObjectReferenceType.COMPLEX_TYPE);
-                        def.setDynamic(true);
-                        def.setRuntimeSchema(true);
-                        def.setMaxOccurs(1);
-                        def.setMinOccurs(0);
-                        def.setReadOnly();
+                        def.mutator().setDynamic(true);
+                        def.mutator().setRuntimeSchema(true);
+                        def.mutator().setMaxOccurs(1);
+                        def.mutator().setMinOccurs(0);
+                        def.mutator().setReadOnly();
                         defs.add(def);
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't parse ObjectReferenceType from raw type. " + item.getRealValue());

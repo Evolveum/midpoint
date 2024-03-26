@@ -24,7 +24,9 @@ import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectClassDefinitio
 import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectDefinitionDelegator;
 import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectTypeDefinitionDelegator;
 
-public class TransformableComplexTypeDefinition extends TransformableDefinition implements ComplexTypeDefinitionDelegator, PartiallyMutableComplexTypeDefinition {
+public class TransformableComplexTypeDefinition
+        extends TransformableDefinition
+        implements ComplexTypeDefinitionDelegator, PartiallyMutableComplexTypeDefinition {
 
     private static final long serialVersionUID = 1L;
     private static final TransformableItemDefinition<?, ?> REMOVED = new Removed();
@@ -174,7 +176,6 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
         throw new UnsupportedOperationException();
     }
 
-    @Override
     public void setDefaultItemTypeName(QName value) {
         throw new UnsupportedOperationException();
     }
@@ -205,7 +206,7 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
     }
 
     @Override
-    public MutableComplexTypeDefinition toMutable() {
+    public ComplexTypeDefinitionMutator mutator() {
         return this;
     }
 
@@ -245,8 +246,7 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
             ItemPath itemPath = itemDef.getItemName();
             if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(paths, itemPath)) {
                 delete(itemDef.getItemName());
-            } else if (itemDef instanceof PrismContainerDefinition) {
-                PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) itemDef;
+            } else if (itemDef instanceof PrismContainerDefinition<?> itemPcd) {
                 if (itemPcd.getComplexTypeDefinition() != null) {
                     itemPcd.getComplexTypeDefinition().trimTo(ItemPathCollectionsUtil.remainder(paths, itemPath, false));
                 }
@@ -305,7 +305,7 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
         }
 
         @Override
-        public MutableResourceObjectClassDefinition toMutable() {
+        public ResourceObjectClassDefinitionMutator mutator() {
             return this;
         }
 
@@ -385,12 +385,6 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
         @Override
         protected TransformableItemDefinition copy() {
             return this;
-        }
-
-        // TODO why is this needed?
-        @Override
-        public boolean canBeDefinitionOf(Item item) {
-            return false;
         }
     }
 }

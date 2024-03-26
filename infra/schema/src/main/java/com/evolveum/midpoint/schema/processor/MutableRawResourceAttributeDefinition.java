@@ -7,17 +7,17 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 
 /**
  * Mutable interface to (some of) {@link ResourceAttributeDefinition} implementations.
  *
- * TODO consider removing
+ * TODO remove this
  */
 public interface MutableRawResourceAttributeDefinition<T>
 
-        extends ResourceItemUcfDefinition.Mutable,
+        extends ShadowItemUcfDefinition.Mutable,
         ResourceItemPrismDefinition.Mutable,
-        MutablePrismPropertyDefinition<T> {
+        PrismPropertyDefinition.PrismPropertyDefinitionMutator<T> {
 
 }

@@ -81,4 +81,15 @@ public class AbstractResourceObjectDefinitionConfigItem
         }
         return single(matching, "Duplicate definition of attribute '%s' in %s", attrName, DESC);
     }
+
+    public @Nullable ResourceObjectAssociationConfigItem getAssociationDefinitionIfPresent(ItemName assocName)
+            throws ConfigurationException {
+        List<ResourceObjectAssociationConfigItem> matching = new ArrayList<>();
+        for (var attrDef : getAssociations()) {
+            if (QNameUtil.match(attrDef.getAssociationName(), assocName)) {
+                matching.add(attrDef);
+            }
+        }
+        return single(matching, "Duplicate definition of association '%s' in %s", assocName, DESC);
+    }
 }

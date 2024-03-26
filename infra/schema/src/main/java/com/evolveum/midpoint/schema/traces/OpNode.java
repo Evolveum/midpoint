@@ -27,6 +27,8 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getEmbeddedObjectBean;
+
 @Experimental
 public class OpNode {
 
@@ -393,9 +395,9 @@ public class OpNode {
         List<ViewedObject> rv = new ArrayList<>();
         if (ctx != null && ctx.getFocusContext() != null) {
             LensFocusContextType fctx = ctx.getFocusContext();
-            ObjectType objectOld = fctx.getObjectOld();
-            ObjectType objectCurrent = fctx.getObjectCurrent();
-            ObjectType objectNew = fctx.getObjectNew();
+            ObjectType objectOld = getEmbeddedObjectBean(fctx.getObjectOldRef());
+            ObjectType objectCurrent = getEmbeddedObjectBean(fctx.getObjectCurrentRef());
+            ObjectType objectNew = getEmbeddedObjectBean(fctx.getObjectNewRef());
             if (objectOld != null) {
                 rv.add(new ViewedObject("old", objectOld.asPrismObject()));
             }

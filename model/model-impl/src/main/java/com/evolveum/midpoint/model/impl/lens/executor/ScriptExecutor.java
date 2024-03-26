@@ -218,7 +218,7 @@ class ScriptExecutor<O extends ObjectType> {
 
         final QName fakeScriptArgumentName = new QName(SchemaConstants.NS_C, "arg");
 
-        PrismPropertyDefinition<String> scriptArgumentDefinition = b.prismContext.definitionFactory().createPropertyDefinition(
+        PrismPropertyDefinition<String> scriptArgumentDefinition = b.prismContext.definitionFactory().newPropertyDefinition(
                 fakeScriptArgumentName, DOMUtil.XSD_STRING);
         scriptArgumentDefinition.freeze();
         String shortDesc = "Provisioning script argument expression";

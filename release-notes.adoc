@@ -524,6 +524,19 @@ In particular, even if the required auxiliary object class is not present for th
 (They were hidden before.)
 #TODO reconsider this#
 
+* "<a:indexed/>" and "<a:indexOnly/>" annotations - when present but without any value - was interpreted as "false".
+This was now changed to a more intuitive interpretation (similar to a:object, a:container, etc), where annotation present but without value means "true".
+Also, "a:container" and other markers were interpreted as "true", even if the value was actually "false".
+This is now fixed as well.
+
+* Years-old ref-style schema annotations like <r:identifier ref="icfs:uid"/> are no longer supported.
+They are not used since midPoint 2.0.
+If you happen to use them in your manually configured resource XSD schemas, please replace them with the supported <r:identifier>icfs:uid</r:identifier> style.
+
+* Support for getting/setting objects embedded in references marked as `a:objectReference` directly, like `LensElementContext.getObjectOld()`.
+This feature was used only internally by midPoint.
+
+* #TODO# Either bring back the support of <xsd:documentation> in resource schemas (not used by ConnId, but may be used for manually entered schemas), or document the feature drop here.
 === Java and REST API Changes Since 4.8
 
 NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.
@@ -553,6 +566,9 @@ Now it was definitely removed from methods' signatures.
 However, if you use some of the unofficial or undocumented APIs, please make sure you migrate your code appropriately.*
 +
 The change itself is very simple: basically, the `PrismContext` parameter was removed from methods' signatures.
+
+* Likewise, the internals of prism definitions were changed in https://github.com/Evolveum/prism/commit/12808dc91f4ea358dda3666cd0b01eba7d08300c[12808d].
+You should not be affected by this; however, if you use some of the unofficial/undocumented APIs, please check your code.
 
 // * The post-processing of retrieved objects in the IDM Model subsystem (sometimes called "apply schemas and security") was xref:/midpoint/devel/design/apply-schemas-and-security-4.8/summary.adoc[simplified].
 //

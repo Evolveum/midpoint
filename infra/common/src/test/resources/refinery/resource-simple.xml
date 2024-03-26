@@ -73,9 +73,9 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <r:resourceObject />
-                        <r:identifier ref="icfs:uid" />
-                        <r:displayNameAttribute ref="icfs:name" />
-                        <r:namingAttribute ref="icfs:name" />
+                        <r:identifier>icfs:uid</r:identifier>
+                        <r:displayNameAttribute>icfs:name</r:displayNameAttribute>
+                        <r:namingAttribute>icfs:name</r:namingAttribute>
                         <r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -98,9 +98,9 @@
                     <xsd:appinfo>
                         <r:resourceObject />
                         <r:kind>account</r:kind>
-                        <r:identifier ref="icfs:uid" />
-                        <r:displayNameAttribute ref="ri:uid" />
-                        <r:namingAttribute ref="icfs:name" />
+                        <r:identifier>icfs:uid</r:identifier>
+                        <r:displayNameAttribute>ri:uid</r:displayNameAttribute>
+                        <r:namingAttribute>icfs:name</r:namingAttribute>
                         <r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
                         <r:default/>
                     </xsd:appinfo>

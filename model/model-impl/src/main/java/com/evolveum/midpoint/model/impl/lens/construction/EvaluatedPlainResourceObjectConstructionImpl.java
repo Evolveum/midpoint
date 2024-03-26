@@ -13,7 +13,6 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.jetbrains.annotations.NotNull;
@@ -101,7 +100,7 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
         List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
-        for (ShadowAssociationDefinition associationDefinition : objectDefinition.getAssociationDefinitions()) {
+        for (var associationDefinition : objectDefinition.getAssociationDefinitions()) {
             var outboundMapping = associationDefinition.getOutboundMapping();
             if (outboundMapping == null) {
                 continue;

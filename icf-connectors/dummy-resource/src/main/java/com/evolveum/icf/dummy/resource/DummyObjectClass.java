@@ -25,7 +25,7 @@ public class DummyObjectClass {
     @NotNull private final Collection<DummyAttributeDefinition> attributeDefinitions = new ArrayList<>();
 
     /** Links relevant to this object class. Maintained by the resource itself. Indexed by (non-null) local link name.*/
-    @NotNull private final Map<String, LinkDefinition> visibleLinkDefinitionMap = new ConcurrentHashMap<>();
+    @NotNull private final Map<String, LinkDefinition> linkDefinitionsMap = new ConcurrentHashMap<>();
 
     public @NotNull Collection<DummyAttributeDefinition> getAttributeDefinitions() {
         return attributeDefinitions;
@@ -46,39 +46,30 @@ public class DummyObjectClass {
 
     public void clear() {
         attributeDefinitions.clear();
-        visibleLinkDefinitionMap.clear();
+        linkDefinitionsMap.clear();
     }
 
     public void addAttributeDefinition(String attributeName) {
-        addAttributeDefinition(attributeName,String.class,false,false);
-    }
-
-    public void addAttributeDefinition(String attributeName, Class<?> attributeType) {
-        addAttributeDefinition(attributeName,attributeType,false,false);
-    }
-
-    public void addAttributeDefinition(String attributeName, Class<?> attributeType, boolean isOptional) {
-        addAttributeDefinition(attributeName,attributeType,isOptional,false);
+        addAttributeDefinition(attributeName, String.class, false, false);
     }
 
     public void addAttributeDefinition(
             String attributeName, Class<?> attributeType, boolean isRequired, boolean isMulti) {
-        DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attributeName,attributeType,isRequired,isMulti);
-        add(attrDef);
+        add(new DummyAttributeDefinition(attributeName, attributeType, isRequired, isMulti));
     }
 
-    public Collection<LinkDefinition> getVisibleLinkDefinitions() {
+    public Collection<LinkDefinition> getLinkDefinitions() {
         return Collections.unmodifiableCollection(
-                visibleLinkDefinitionMap.values());
+                linkDefinitionsMap.values());
     }
 
-    public LinkDefinition getVisibleLinkDefinition(@NotNull String linkName) {
-        return visibleLinkDefinitionMap.get(linkName);
+    LinkDefinition getLinkDefinition(@NotNull String linkName) {
+        return linkDefinitionsMap.get(linkName);
     }
 
     synchronized void addLinkDefinition(LinkDefinition definition) {
         var name = argNonNull(definition.getLinkName(), "No link name in %s", definition);
-        stateCheck(!visibleLinkDefinitionMap.containsKey(name), "Link definition for %s already exists", name);
-        visibleLinkDefinitionMap.put(name, definition);
+        stateCheck(!linkDefinitionsMap.containsKey(name), "Link definition for %s already exists", name);
+        linkDefinitionsMap.put(name, definition);
     }
 }

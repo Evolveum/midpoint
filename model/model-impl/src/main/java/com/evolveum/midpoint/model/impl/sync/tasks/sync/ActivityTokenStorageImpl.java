@@ -11,7 +11,6 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -82,10 +81,10 @@ public class ActivityTokenStorageImpl implements LiveSyncTokenStorage {
     private static <T> @NotNull PrismPropertyDefinition<T> createDefinition(@NotNull T realValue) {
         QName type = XsdTypeMapper.toXsdType(realValue.getClass());
 
-        MutablePrismPropertyDefinition<T> propDef = PrismContext.get().definitionFactory()
-                .createPropertyDefinition(LiveSyncWorkStateType.F_TOKEN, type);
-        propDef.setDynamic(true);
-        propDef.setMaxOccurs(1);
+        PrismPropertyDefinition<T> propDef =
+                PrismContext.get().definitionFactory().newPropertyDefinition(
+                        LiveSyncWorkStateType.F_TOKEN, type, 0, 1);
+        propDef.mutator().setDynamic(true);
         return propDef;
     }
 }

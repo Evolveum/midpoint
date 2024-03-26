@@ -184,12 +184,9 @@ public abstract class ResourceObjectConstruction<
     }
 
     @NotNull
-    private MutablePrismPropertyDefinition<String> createTagDefinition() {
-        MutablePrismPropertyDefinition<String> outputDefinition =
-                PrismContext.get().definitionFactory()
-                        .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
-        outputDefinition.setMaxOccurs(-1);
-        return outputDefinition;
+    private PrismPropertyDefinition<String> createTagDefinition() {
+        return PrismContext.get().definitionFactory().newPropertyDefinition(
+                ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname(), 0, -1);
     }
 
     private EC createEvaluatedConstruction(String tag) {
@@ -255,7 +252,7 @@ public abstract class ResourceObjectConstruction<
             ItemPath implicitTargetPath,
             QName mappingQName,
             D outputDefinition,
-            ResourceObjectTypeDefinition assocTargetObjectClassDefinition,
+            ResourceObjectDefinition assocTargetObjectDefinition,
             Task task) throws SchemaException {
 
         if (!builder.isApplicableToChannel(lensContext.getChannel())) {
@@ -288,9 +285,9 @@ public abstract class ResourceObjectConstruction<
                 .addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT,
                         assignmentPath != null ? assignmentPath.getConstructionThisObject() : null, ObjectType.class);
 
-        if (assocTargetObjectClassDefinition != null) {
+        if (assocTargetObjectDefinition != null) {
             builder = builder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
-                    assocTargetObjectClassDefinition, ResourceObjectTypeDefinition.class);
+                    assocTargetObjectDefinition, ResourceObjectTypeDefinition.class);
         }
         builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, getResource(), ResourceType.class);
         builder = LensUtil.addAssignmentPathVariables(builder, getAssignmentPathVariables());

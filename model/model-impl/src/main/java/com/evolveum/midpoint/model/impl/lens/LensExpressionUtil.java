@@ -107,7 +107,7 @@ public class LensExpressionUtil {
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         PrismPropertyDefinition<T> resultDef =
-                PrismContext.get().definitionFactory().createPropertyDefinition(
+                PrismContext.get().definitionFactory().newPropertyDefinition(
                         new QName(SchemaConstants.NS_C, "result"), typeName);
         ExpressionFactory expressionFactory = ModelCommonBeans.get().expressionFactory;
         Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =

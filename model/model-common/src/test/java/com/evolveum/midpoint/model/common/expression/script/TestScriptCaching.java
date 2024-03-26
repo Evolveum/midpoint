@@ -49,7 +49,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
@@ -133,7 +132,7 @@ public class TestScriptCaching extends AbstractUnitTest
         OperationResult result = createOperationResult(desc);
         ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
         ItemDefinition<?> outputDefinition =
-                getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
+                getPrismContext().definitionFactory().newPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
 
         ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition);
 

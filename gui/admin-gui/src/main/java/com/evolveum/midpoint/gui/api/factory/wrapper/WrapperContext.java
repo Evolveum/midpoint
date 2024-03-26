@@ -47,7 +47,7 @@ public class WrapperContext {
     private ResourceShadowCoordinates coordinates;
 
     //Association related attributes
-    private Collection<ShadowAssociationDefinition> shadowAssociationDefinitions;
+    private Collection<? extends ShadowAssociationDefinition> shadowAssociationDefinitions;
 
     //used e.g. for metadata - opertionsla attributes but want to create wrappers for them
     private boolean createOperational;
@@ -122,11 +122,11 @@ public class WrapperContext {
         this.resource = resource;
     }
 
-    public Collection<ShadowAssociationDefinition> getRefinedAssociationDefinitions() {
+    public Collection<? extends ShadowAssociationDefinition> getRefinedAssociationDefinitions() {
         return shadowAssociationDefinitions;
     }
 
-    public void setRefinedAssociationDefinitions(Collection<ShadowAssociationDefinition> shadowAssociationDefinitions) {
+    public void setRefinedAssociationDefinitions(Collection<? extends ShadowAssociationDefinition> shadowAssociationDefinitions) {
         this.shadowAssociationDefinitions = shadowAssociationDefinitions;
     }
 

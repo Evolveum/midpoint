@@ -43,7 +43,7 @@ public class LinkDefinition {
         return isFirst() ? linkClassDefinition.getFirstParticipant() : linkClassDefinition.getSecondParticipant();
     }
 
-    @NotNull ParticipantIndex getParticipantIndex() {
+    public @NotNull ParticipantIndex getParticipantIndex() {
         return participantIndex;
     }
 
@@ -60,15 +60,11 @@ public class LinkDefinition {
         return getParticipant().isVisible();
     }
 
-    public @Nullable String getLinkName() {
+    public @NotNull String getLinkName() {
         return getParticipant().getLinkName();
     }
 
-    public @NotNull String getLinkNameRequired() {
-        return stateNonNull(getParticipant().getLinkName(), "Link %s is not visible", this);
-    }
-
-    public @NotNull Set<String> getObjectClassNames() {
+    @NotNull Set<String> getObjectClassNames() {
         return getParticipant().getObjectClassNames();
     }
 }

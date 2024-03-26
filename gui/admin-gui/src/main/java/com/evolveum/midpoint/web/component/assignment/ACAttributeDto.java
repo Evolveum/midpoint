@@ -30,7 +30,7 @@ public class ACAttributeDto implements Serializable {
     public static final String F_VALUES = "values";
 
     // construction.getRef should point to the same attribute as definition
-    private final PrismPropertyDefinition definition;
+    private final PrismPropertyDefinition<?> definition;
     private final ResourceAttributeDefinitionType construction;
     private List<ACValueConstructionDto> values;
 

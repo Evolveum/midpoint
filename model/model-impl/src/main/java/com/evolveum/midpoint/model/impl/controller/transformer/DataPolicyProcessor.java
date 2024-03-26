@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.controller.transformer;
 import com.evolveum.midpoint.model.impl.controller.SchemaTransformer;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableItemDefinition;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition.ComplexTypeDefinitionMutator;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
@@ -174,7 +175,7 @@ public class DataPolicyProcessor {
 
         FormItemValidationType templateValidation = templateItemDefType.getValidation();
         if (templateValidation != null) {
-            itemDef.setAnnotation(ItemRefinedDefinitionType.F_VALIDATION, templateValidation.clone());
+            itemDef.mutator().setAnnotation(ItemRefinedDefinitionType.F_VALIDATION, templateValidation.clone());
         }
     }
 
@@ -222,7 +223,7 @@ public class DataPolicyProcessor {
             // Use item visibility to select individual items
             itemsToDelete = selectItemsToDelete(containerDefinition, containerPath, visibilityPolicy);
         }
-        MutableComplexTypeDefinition mutableContainerCtDef = containerDefinition.getComplexTypeDefinition().toMutable();
+        ComplexTypeDefinitionMutator mutableContainerCtDef = containerDefinition.getComplexTypeDefinition().mutator();
         for (ItemName itemName : itemsToDelete) {
             LOGGER.trace("Removing item {}/{} due to visibility constraint", containerPath, itemName.getLocalPart());
             mutableContainerCtDef.delete(itemName);

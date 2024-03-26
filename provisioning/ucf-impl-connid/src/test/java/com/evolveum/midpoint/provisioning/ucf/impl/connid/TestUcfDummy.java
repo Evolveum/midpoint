@@ -8,6 +8,10 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
+import static com.evolveum.midpoint.schema.processor.ResourceSchemaFactory.*;
+import static com.evolveum.midpoint.schema.processor.ShadowAssociationParticipantRole.OBJECT;
+import static com.evolveum.midpoint.schema.processor.ShadowAssociationParticipantRole.SUBJECT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -20,7 +24,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.test.DummyHrScenario.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -30,7 +36,6 @@ import org.w3c.dom.Document;
 import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -45,9 +50,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.test.DummyHrScenario;
-import com.evolveum.midpoint.test.DummyHrScenario.Contract;
-import com.evolveum.midpoint.test.DummyHrScenario.OrgUnit;
-import com.evolveum.midpoint.test.DummyHrScenario.Person;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -66,8 +68,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public class TestUcfDummy extends AbstractUcfDummyTest {
 
-    private static final File HR_RESOURCE_DUMMY_FILE =
-            new File(UcfTestUtil.TEST_DIR, "hr-resource-dummy.xml");
+    private static final File HR_RESOURCE_DUMMY_FILE = new File(UcfTestUtil.TEST_DIR, "hr-resource-dummy.xml");
 
     /** Dummy resource with the support of hierarchical (LDAP-like) object names. Used for 2xx tests. */
     private DummyResource hierarchicalResource;
@@ -82,14 +83,15 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     @Test
     public void test000PrismContextSanity() {
         SchemaRegistry schemaRegistry = PrismTestUtil.getPrismContext().getSchemaRegistry();
-        PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
-        assertNotNull("ICFC schema not found in the context (" + SchemaConstants.NS_ICF_CONFIGURATION + ")", schemaIcfc);
+
+        PrismSchema icfcSchema = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
+        assertNotNull("ICFC schema not found in the context", icfcSchema);
         PrismContainerDefinition<ConnectorConfigurationType> configurationPropertiesDef =
-                schemaIcfc.findContainerDefinitionByElementName(CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
-        assertNotNull("icfc:configurationProperties not found in icfc schema (" +
-                CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME + ")", configurationPropertiesDef);
-        PrismSchema schemaIcfs = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_SCHEMA);
-        assertNotNull("ICFS schema not found in the context (" + SchemaConstants.NS_ICF_SCHEMA + ")", schemaIcfs);
+                icfcSchema.findContainerDefinitionByElementName(ICF_CONFIGURATION_PROPERTIES_NAME);
+        assertNotNull("icfc:configurationProperties container definition not found", configurationPropertiesDef);
+
+        PrismSchema icfsSchema = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_SCHEMA);
+        assertNotNull("ICFS schema not found in the context (" + SchemaConstants.NS_ICF_SCHEMA + ")", icfsSchema);
     }
 
     @Test
@@ -99,8 +101,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertEquals("Wrong oid", "ef2bc95b-76e0-59e2-86d6-9999dddddddd", resource.getOid());
         PrismObjectDefinition<ResourceType> resourceDefinition = resource.getDefinition();
         assertNotNull("No resource definition", resourceDefinition);
-        PrismAsserts.assertObjectDefinition(resourceDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "resource"),
-                ResourceType.COMPLEX_TYPE, ResourceType.class);
+        PrismAsserts.assertObjectDefinition(
+                resourceDefinition, SchemaConstantsGenerated.C_RESOURCE, ResourceType.COMPLEX_TYPE, ResourceType.class);
         assertEquals("Wrong class in resource", ResourceType.class, resource.getCompileTimeClass());
         ResourceType resourceType = resource.asObjectable();
         assertNotNull("asObjectable resulted in null", resourceType);
@@ -115,7 +117,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertEquals("Wrong number of config items", 2, configItems.size());
 
         PrismContainer<?> dummyConfigPropertiesContainer =
-                configurationContainer.findContainer(CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+                configurationContainer.findContainer(ICF_CONFIGURATION_PROPERTIES_NAME);
         assertNotNull("No icfc:configurationProperties container", dummyConfigPropertiesContainer);
         Collection<Item<?, ?>> dummyConfigPropItems = dummyConfigPropertiesContainer.getValue().getItems();
         assertEquals("Wrong number of dummy ConfigPropItems items", 4, dummyConfigPropItems.size());
@@ -123,19 +125,19 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test002ConnectorSchema() throws Exception {
-        PrismSchema connectorSchema = connectorFactory.generateConnectorConfigurationSchema(connectorBean);
+        var connectorSchema = connectorFactory.generateConnectorConfigurationSchema(connectorBean);
+        assertThat(connectorSchema).isNotNull();
+
         IntegrationTestTools.assertConnectorSchemaSanity(connectorSchema, "generated", true);
-        assertEquals("Unexpected number of definitions", 3, connectorSchema.getDefinitions().size());
+        assertEquals("Unexpected number of definitions", 3, connectorSchema.size());
 
         Document xsdSchemaDom = connectorSchema.serializeToXsd();
         displayValue("Serialized XSD connector schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
 
         // Try to re-parse
-        PrismSchema reparsedConnectorSchema =
-                PrismSchemaImpl.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), true, "");
+        var reparsedConnectorSchema = ConnectorSchemaFactory.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), "");
         IntegrationTestTools.assertConnectorSchemaSanity(reparsedConnectorSchema, "re-parsed", true);
-        // TODO: 3 definitions would be cleaner. But we can live with this
-        assertEquals("Unexpected number of definitions in re-parsed schema", 6, reparsedConnectorSchema.getDefinitions().size());
+        assertEquals("Unexpected number of definitions in re-parsed schema", 3, reparsedConnectorSchema.size());
     }
 
     /**
@@ -217,22 +219,22 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 result);
 
         // WHEN
-        resourceSchema = cc.fetchResourceSchema(result);
+        resourceSchema = nativeToBare(cc.fetchResourceSchema(result));
 
         // THEN
         displayDumpable("Generated resource schema", resourceSchema);
-        assertEquals("Unexpected number of definitions", 4, resourceSchema.getDefinitions().size());
+        assertEquals("Unexpected number of definitions", 4, resourceSchema.size());
 
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceBean, true);
 
-        Document xsdSchemaDom = resourceSchema.serializeToXsd();
+        Document xsdSchemaDom = resourceSchema.serializeNativeToXsd();
         assertNotNull("No serialized resource schema", xsdSchemaDom);
         displayValue("Serialized XSD resource schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
 
         // Try to re-parse
-        ResourceSchema reparsedResourceSchema = ResourceSchemaParser.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), "serialized schema");
+        var reparsedResourceSchema = ResourceSchemaFactory.parseNativeSchemaAsBare(xsdSchemaDom);
         displayDumpable("Re-parsed resource schema", reparsedResourceSchema);
-        assertEquals("Unexpected number of definitions in re-parsed schema", 4, reparsedResourceSchema.getDefinitions().size());
+        assertEquals("Unexpected number of definitions in re-parsed schema", 4, reparsedResourceSchema.size());
 
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(reparsedResourceSchema, resourceBean, true);
     }
@@ -255,15 +257,15 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 result);
 
         // WHEN
-        resourceSchema = cc.fetchResourceSchema(result);
+        resourceSchema = ResourceSchemaFactory.nativeToBare(cc.fetchResourceSchema(result));
 
         // THEN
         displayDumpable("Generated resource schema", resourceSchema);
-        assertEquals("Unexpected number of definitions", 1, resourceSchema.getDefinitions().size());
 
+        var definitions = resourceSchema.getDefinitions();
+        assertEquals("Unexpected number of definitions", 1, definitions.size());
         assertEquals("Unexpected number of object class definitions", 1, resourceSchema.getObjectClassDefinitions().size());
-
-        display("RESOURCE SCHEMA DEFINITION" + resourceSchema.getDefinitions().iterator().next().getTypeName());
+        display("RESOURCE SCHEMA DEFINITION" + definitions.iterator().next().getTypeName());
     }
 
     @Test
@@ -528,9 +530,63 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertThat(account).as("account named '" + name + "'").isNotNull();
     }
 
+    /** Checks whether the schema related to associations is fetched, serialized, and parsed correctly. */
+    @Test
+    public void test300AssociationsSchema() throws Exception {
+        initializeHrScenarioIfNeeded();
+
+        var completeSchema = hrScenario.getResourceSchemaRequired();
+        checkHrSchema(completeSchema);
+
+        when("native schema is serialized to XSD and reparsed");
+        var schemaDocument = completeSchema.serializeNativeToXsd();
+        displayValue("Native XML schema", DOMUtil.serializeDOMToString(schemaDocument));
+
+        var reparsedNativeSchema = parseNativeSchema(schemaDocument.getDocumentElement(), "");
+        displayDumpable("Reparsed native schema", reparsedNativeSchema);
+
+        var reparsedCompleteSchema = parseCompleteSchema(hrScenario.getResourceBean(), reparsedNativeSchema);
+        displayDumpable("Reparsed complete schema", reparsedCompleteSchema);
+
+        checkHrSchema(reparsedCompleteSchema);
+    }
+
+    private void checkHrSchema(CompleteResourceSchema completeSchema) throws SchemaException {
+        then("native object class definitions are OK");
+        var nativeSchema = completeSchema.getNativeSchema();
+        assertThat(nativeSchema.getObjectClassDefinitions()).as("object class definitions").hasSize(7);
+
+        and("native 'contract' class definition is OK");
+        var contractClassDefN = nativeSchema.findObjectClassDefinition(Contract.OBJECT_CLASS_NAME.xsd());
+        assertThat(contractClassDefN).as("contract definition").isNotNull();
+
+        and("native 'contract <-> org' and 'contract <-> person' associations definitions are OK");
+        // contract-org
+        var orgDefN = contractClassDefN.findAssociationDefinition(Contract.LinkNames.ORG.q());
+        assertThat(orgDefN).as("contract.org association definition").isNotNull();
+        assertThat(orgDefN.getTypeName()).as("contract.org association type").isEqualTo(ContractOrgUnit.NAME.xsd());
+        assertThat(orgDefN.getAssociationParticipantRole()).as("role of contract in contract-org association").isEqualTo(SUBJECT);
+        // contract-person; The item on the contract side is invisible, and serves just a information holder
+        // for the association participant. This may change in the future, if we find a different way of represent that info.
+        var personItemDefN = contractClassDefN.findAssociationDefinition(Contract.LinkNames.PERSON.q());
+        assertThat(personItemDefN).as("contract.person definition").isNotNull();
+        assertThat(personItemDefN.getTypeName()).as("contract.person association type").isEqualTo(PersonContract.NAME.xsd());
+        assertThat(personItemDefN.getAssociationParticipantRole()).as("role of contract in contract-org association").isEqualTo(OBJECT);
+        assertThat(personItemDefN.canRead()).isFalse();
+        assertThat(personItemDefN.canModify()).isFalse();
+        assertThat(personItemDefN.canAdd()).isFalse();
+
+        and("complete schema is OK");
+        var contractClassDefCS = completeSchema.findDefinitionForObjectClassRequired(Contract.OBJECT_CLASS_NAME.xsd());
+        var orgDefCS = contractClassDefCS.findAssociationDefinitionRequired(Contract.LinkNames.ORG.q());
+        var assocTypeDef = orgDefCS.getAssociationClassDefinition();
+        assertThat(assocTypeDef).as("association type definition").isNotNull();
+        assertThat(assocTypeDef.getClassName()).as("association type name").isEqualTo(ContractOrgUnit.NAME.xsd());
+    }
+
     /** Creates some associations manually, and then queries them via UCF. */
     @Test
-    public void test300QueryAssociations() throws Exception {
+    public void test310QueryAssociations() throws Exception {
         initializeHrScenarioIfNeeded();
 
         given("some objects and links are created");
@@ -670,11 +726,12 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                         result)
                 .initialize(null, null, result);
 
-        var rawResourceSchema = hrConnectorInstance.fetchResourceSchema(result);
-        assertThat(rawResourceSchema).as("raw HR resource schema").isNotNull();
+        var nativeSchema = hrConnectorInstance.fetchResourceSchema(result);
+        displayDumpable("HR resource schema (native)", nativeSchema);
+        assertThat(nativeSchema).as("native HR resource schema").isNotNull();
 
         hrScenario.attachResourceSchema(
-                ResourceSchemaFactory.parseCompleteSchema(resourceDef, rawResourceSchema));
+                parseCompleteSchema(resourceDef, nativeSchema));
 
         displayDumpable("HR resource schema", hrScenario.getResourceSchemaRequired());
     }

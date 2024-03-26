@@ -722,7 +722,7 @@ public class BasicExpressionFunctions {
         if (connectorConfiguration == null) {
             return null;
         }
-        return connectorConfiguration.findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES);
+        return connectorConfiguration.findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
     }
 
     public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Collection<String> values) throws NamingException {

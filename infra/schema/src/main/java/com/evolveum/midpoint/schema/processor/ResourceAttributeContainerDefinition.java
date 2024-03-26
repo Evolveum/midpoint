@@ -11,19 +11,12 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Definition;
-
-import com.evolveum.midpoint.prism.PrismContainer;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
-
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * TODO review docs
@@ -90,26 +83,6 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
     /**
      * TODO review docs
      *
-     * Returns the definition of description attribute of a resource object.
-     *
-     * Returns null if there is no description attribute.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return definition of secondary identifier attributes
-     * @throws IllegalStateException
-     *             if there is more than one description attribute. But this
-     *             should never happen.
-     * @throws IllegalStateException
-     *             if there is no definition for the referenced attributed
-     */
-    ResourceAttributeDefinition<?> getDescriptionAttribute();
-
-    /**
-     * TODO review docs
-     *
      * Specifies which resource attribute should be used as a "technical" name
      * for the account. This name will appear in log files and other troubleshooting
      * tools. The name should be a form of unique identifier that can be used to
@@ -125,78 +98,6 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
      */
     ResourceAttributeDefinition<?> getNamingAttribute();
 
-    /**
-     * TODO review docs
-     *
-     * Returns the native object class string for the resource object.
-     *
-     * Native object class is the name of the Resource Object Definition (Object
-     * Class) as it is seen by the resource itself. The name of the Resource
-     * Object Definition may be constrained by XSD or other syntax and therefore
-     * may be "mangled" to conform to such syntax. The <i>native object
-     * class</i> value will contain un-mangled name (if available).
-     *
-     * Returns null if there is no native object class.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return native object class
-     * @throws IllegalStateException
-     *             if there is more than one description attribute.
-     */
-    String getNativeObjectClass();
-
-    /**
-     * TODO review docs
-     *
-     * Indicates whether definition is should be used as default account type.
-     *
-     * If true value is returned then the definition should be used as a default
-     * account type definition. This is a way how a resource connector may
-     * suggest applicable object classes (resource object definitions) for
-     * accounts.
-     *
-     * If no information about account type is present, false should be
-     * returned. This method must return true only if isAccountType() returns
-     * true.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of at-most-one value should be done at the time of
-     * schema parsing. The exception may not even be thrown at all if the
-     * implementation is not able to determine duplicity.
-     *
-     * @return true if the definition should be used as account type.
-     * @throws IllegalStateException
-     *             if more than one default account is suggested in the schema.
-     */
-    boolean isDefaultAccountDefinition();
-
-    /**
-     * TODO review docs
-     *
-     * Returns the definition of display name attribute.
-     *
-     * Display name attribute specifies which resource attribute should be used
-     * as title when displaying objects of a specific resource object class. It
-     * must point to an attribute of String type. If not present, primary
-     * identifier should be used instead (but this method does not handle this
-     * default behavior).
-     *
-     * Returns null if there is no display name attribute.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return native object class
-     * @throws IllegalStateException
-     *             if there is more than one display name attribute or the
-     *             definition of the referenced attribute does not exist.
-     */
-    ResourceAttributeDefinition<?> getDisplayNameAttribute();
-
     @NotNull
     ResourceAttributeContainer instantiate();
 
@@ -208,10 +109,11 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
 
     <T> ResourceAttributeDefinition<T> findAttributeDefinition(QName elementQName, boolean caseInsensitive);
 
-    ResourceAttributeDefinition<?> findAttributeDefinition(ItemPath elementPath);
+    <T> ResourceAttributeDefinition<T> findAttributeDefinition(ItemPath elementPath);
 
     ResourceAttributeDefinition<?> findAttributeDefinition(String localName);
 
+    // TODO consider removing
     List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions();
 
     // Only attribute definitions should be here.

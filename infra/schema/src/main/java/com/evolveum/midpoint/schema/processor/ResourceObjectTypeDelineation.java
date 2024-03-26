@@ -9,7 +9,6 @@ package com.evolveum.midpoint.schema.processor;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.BaseContextClassificationUseType.IF_APPLICABLE;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -31,8 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @see ResourceObjectTypeDelineationType
  */
 public class ResourceObjectTypeDelineation
-        extends ResourceObjectSetDelineation
-        implements Serializable {
+        extends ResourceObjectSetDelineation {
 
     @NotNull private final Collection<QName> auxiliaryObjectClassNames;
     @Nullable private final ExpressionType condition;

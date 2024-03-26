@@ -24,6 +24,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.GROUP_OBJECT_CLASS_LOCAL_NAME;
+
 /**
  * Converts (maps) ConnId names to midPoint names and vice versa - for object classes, attributes, and so on.
  * Tightly bound to {@link ConnectorInstanceConnIdImpl}.
@@ -43,33 +46,29 @@ public class ConnIdNameMapper {
      *
      * @param connIdAttrName ConnId attribute name (either native or ConnId-style e.g.  __NAME__)
      * @param nativeAttrName Native attribute name (if known), e.g. "dn" for __NAME__ in LDAP
-     * @param ocDef Relevant object definition. It may contain the definition of the special attribute we are asking about.
+     * @param frameworkNameResolver Provides "reasonable" attribute names for special `icfs:xyz` (framework) attribute names.
      */
     static ItemName connIdAttributeNameToUcf(
-            @NotNull String connIdAttrName, @Nullable String nativeAttrName, @NotNull ResourceObjectDefinition ocDef) {
+            @NotNull String connIdAttrName,
+            @Nullable String nativeAttrName,
+            @NotNull FrameworkNameResolver frameworkNameResolver) {
 
         if (SpecialItemNameMapper.isConnIdNameSpecial(connIdAttrName)) {
             if (nativeAttrName != null) {
                 // native name is explicitly provided
-                return nameInRiNamespace(nativeAttrName);
+                return itemNameInRi(nativeAttrName);
             }
-            for (ResourceAttributeDefinition<?> attributeDefinition : ocDef.getAttributeDefinitions()) {
-                if (connIdAttrName.equals(attributeDefinition.getFrameworkAttributeName())) {
-                    // the definition is found in the object class -> use the official name
-                    return attributeDefinition.getItemName();
-                }
+            var resolved = frameworkNameResolver.resolveFrameworkName(connIdAttrName);
+            if (resolved != null) {
+                return resolved;
+            } else {
+                // not found -> use automatic translation (fallback, compatibility)
+                return SpecialItemNameMapper.toUcfFormat(connIdAttrName);
             }
-            // not found -> use automatic translation (fallback, compatibility)
-            return SpecialItemNameMapper.toUcfFormat(connIdAttrName);
         } else {
             // This is not a special name, just use it as is.
-            return nameInRiNamespace(connIdAttrName);
+            return itemNameInRi(connIdAttrName);
         }
-    }
-
-    /** Name should NOT be in `+__NAME__+` format. */
-    private static ItemName nameInRiNamespace(String name) {
-        return new ItemName(MidPointConstants.NS_RI, QNameUtil.escapeElementName(name), MidPointConstants.PREFIX_NS_RI);
     }
 
     static String ucfAttributeNameToConnId(PropertyDelta<?> attributeDelta, ResourceObjectDefinition ocDef) throws SchemaException {
@@ -120,43 +119,43 @@ public class ConnIdNameMapper {
         throw new SchemaException("No mapping from QName " + ucfAttrName + " to ConnId attribute name");
     }
 
+    static QName connIdObjectClassNameToUcf(String connIdName, boolean legacySchema) {
+        var local = connIdObjectClassNameToUcfLocal(connIdName, legacySchema);
+        return local != null ? typeNameInRi(local) : null;
+    }
+
+    /** A convenience variant of the above. */
+    static QName connIdObjectClassNameToUcf(@Nullable ObjectClass connIdObjectClass, boolean legacySchema) {
+        return connIdObjectClass != null ?
+                connIdObjectClassNameToUcf(connIdObjectClass.getObjectClassValue(), legacySchema) : null;
+    }
+
     /**
-     * Maps ICF native objectclass name to a midPoint QName objectclass name.
+     * Maps ICF native objectclass name to a midPoint QName objectclass name (local part of).
      *
-     * The mapping is "stateless" - it does not keep any mapping database or any
-     * other state. There is a bi-directional mapping algorithm.
+     * The mapping is "stateless" - it does not keep any mapping database or any other state.
+     * There is a bi-directional mapping algorithm.
      *
-     * TODO: mind the special characters in the ICF objectclass names.
+     * Note that ConnId class names are case-insensitive.
      */
-    static QName connIdObjectClassNameToUcf(ObjectClass icfObjectClass, boolean legacySchema) {
-        if (icfObjectClass == null) {
+    static String connIdObjectClassNameToUcfLocal(String connIdName, boolean legacySchema) {
+        if (connIdName == null) {
             return null;
         }
-        if (icfObjectClass.is(ObjectClass.ALL_NAME)) {
+        if (connIdName.equalsIgnoreCase(ObjectClass.ALL_NAME)) {
             return null;
         }
         if (legacySchema) {
-            if (icfObjectClass.is(ObjectClass.ACCOUNT_NAME)) {
-                return SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-            } else if (icfObjectClass.is(ObjectClass.GROUP_NAME)) {
-                return SchemaConstants.RI_GROUP_OBJECT_CLASS;
+            if (connIdName.equalsIgnoreCase(ObjectClass.ACCOUNT_NAME)) {
+                return ACCOUNT_OBJECT_CLASS_LOCAL_NAME;
+            } else if (connIdName.equalsIgnoreCase(ObjectClass.GROUP_NAME)) {
+                return GROUP_OBJECT_CLASS_LOCAL_NAME;
             } else {
-                return new QName(
-                        MidPointConstants.NS_RI,
-                        CUSTOM_OBJECTCLASS_PREFIX + icfObjectClass.getObjectClassValue() + CUSTOM_OBJECTCLASS_SUFFIX,
-                        MidPointConstants.PREFIX_NS_RI);
+                return CUSTOM_OBJECTCLASS_PREFIX + connIdName + CUSTOM_OBJECTCLASS_SUFFIX;
             }
         } else {
-            return new QName(
-                    MidPointConstants.NS_RI,
-                    icfObjectClass.getObjectClassValue(),
-                    MidPointConstants.PREFIX_NS_RI);
+            return connIdName;
         }
-    }
-
-    /** A convenience variant. */
-    static QName connIdObjectClassNameToUcf(String connIdObjectClassName, boolean legacySchema) {
-        return connIdObjectClassNameToUcf(new ObjectClass(connIdObjectClassName), legacySchema);
     }
 
     /**
@@ -179,7 +178,7 @@ public class ConnIdNameMapper {
 
         String localName = ucfClassName.getLocalPart();
         if (legacySchema) {
-            if (SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME.equals(localName)) {
+            if (ACCOUNT_OBJECT_CLASS_LOCAL_NAME.equals(localName)) {
                 return ObjectClass.ACCOUNT;
             } else if (SchemaConstants.GROUP_OBJECT_CLASS_LOCAL_NAME.equals(localName)) {
                 return ObjectClass.GROUP;
@@ -194,5 +193,15 @@ public class ConnIdNameMapper {
         } else {
             return new ObjectClass(localName);
         }
+    }
+
+    /** Name should NOT be in `+__NAME__+` format. */
+    private static @NotNull ItemName itemNameInRi(@NotNull String name) {
+        return new ItemName(MidPointConstants.NS_RI, QNameUtil.escapeElementName(name), MidPointConstants.PREFIX_NS_RI);
+    }
+
+    /** Used for type names. Most probably we don't need to escape special characters here. */
+    public static @NotNull QName typeNameInRi(@NotNull String name) {
+        return new QName(MidPointConstants.NS_RI, name, MidPointConstants.PREFIX_NS_RI);
     }
 }

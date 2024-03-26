@@ -114,7 +114,8 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>
                         // Those may not have a definition. In that case just assume strings.
                         // In fact, this is a HACK. All such schemas should have a definition.
                         // Otherwise there may be problems with parameter types for caching compiles scripts and so on.
-                        return evaluator.getPrismContext().definitionFactory().createPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
+                        return evaluator.getPrismContext().definitionFactory()
+                                .newPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
                     } else {
                         return null;
                     }

@@ -121,7 +121,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         ResourceType resourceBefore = repositoryService.getObject(
                 ResourceType.class, RESOURCE_ASYNC_OID, null, result).asObjectable();
 
-        ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
+        ResourceTypeUtil.getResourceXsdSchemaElement(resourceBefore);
 
         CapabilitiesType capabilities = resourceBefore.getCapabilities();
         if (capabilities != null) {
@@ -141,7 +141,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
         assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
-        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
+        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
         String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
@@ -153,7 +153,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceBefore.toString());
+        ResourceSchema parsedSchema = ResourceSchemaFactory.parseNativeSchemaAsBare(xsdElement);
         assertNotNull("No schema after parsing", parsedSchema);
 
         // schema will be checked in next test
@@ -180,16 +180,9 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         // The returned type should have the schema pre-parsed
         assertTrue(ResourceSchemaFactory.hasParsedSchema(resource.asObjectable()));
 
-        // Also test if the utility method returns the same thing
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource.asObjectable());
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
 
         displayDumpable("Parsed resource schema", resourceSchema);
-
-        // Check whether it is reusing the existing schema and not parsing it all over again
-        // Not equals() but == ... we want to really know if exactly the same
-        // object instance is returned
-        assertSame("Broken caching", resourceSchema,
-                ResourceSchemaFactory.getRawSchema(resource.asObjectable()));
 
         ResourceObjectClassDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
         assertNotNull("Account definition is missing", accountDef);

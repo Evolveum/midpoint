@@ -306,20 +306,20 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
     @Test
     @Override
     public void test020Schema() throws Exception {
-        //        IntegrationTestTools.displayXml("Resource XML", resource);
         accountDefinition = assertAdResourceSchema(resource, getAccountObjectClass());
         assertAdRefinedSchema(resource, getAccountObjectClass());
         if (hasExchange()) {
             assertExchangeSchema(resource, getAccountObjectClass());
         }
 
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        var resourceSchema = ResourceSchemaFactory.getNativeSchemaRequired(resource);
 
         int expectedDefinitions = 4;
         if (hasExchange()) {
             expectedDefinitions = 5;
         }
-        assertEquals("Unexpected number of schema definitions (limited by generation constraints)", expectedDefinitions, resourceSchema.getDefinitions().size());
+        assertEquals("Unexpected number of definitions in schema (limited by generation constraints)",
+                expectedDefinitions, resourceSchema.size());
 
         // Not checking the number of connector instances: the previous operation might have been "test partial configuration"
         // that leaves no cached connector instances.

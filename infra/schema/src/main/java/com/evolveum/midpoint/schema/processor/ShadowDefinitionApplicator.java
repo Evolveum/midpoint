@@ -180,9 +180,9 @@ public class ShadowDefinitionApplicator {
             // FIXME eliminate double cloning!
             var clonedDefinition =
                     prismShadowDefinition
-                            .cloneWithReplacedDefinition(
+                            .cloneWithNewDefinition(
                                     ShadowType.F_ATTRIBUTES, definition.toResourceAttributeContainerDefinition())
-                            .cloneWithReplacedDefinition(
+                            .cloneWithNewDefinition(
                                     ShadowType.F_ASSOCIATIONS, definition.toShadowAssociationsContainerDefinition());
             shadowObject.setDefinition(clonedDefinition);
             clonedDefinition.freeze();

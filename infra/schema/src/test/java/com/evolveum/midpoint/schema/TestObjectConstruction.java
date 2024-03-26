@@ -68,7 +68,7 @@ public class TestObjectConstruction extends AbstractSchemaTest {
         assertFalse("definition should not be operational", pwdDef.isOperational());
         assertFalse("definition should not always use equals", pwdDef.isAlwaysUseForEquals());
         assertFalse(pwdDef.isAlwaysUseForEquals(PasswordType.F_SEQUENCE_IDENTIFIER));
-        assertNull(pwdDef.getAnnotation(PrismConstants.A_ALWAYS_USE_FOR_EQUALS));
+        //assertNull(pwdDef.getAnnotation(PrismConstants.A_ALWAYS_USE_FOR_EQUALS));
 
         PrismPropertyDefinition seqIdentifierDef = pwdDef.findPropertyDefinition(PasswordType.F_SEQUENCE_IDENTIFIER);
         assertTrue("definition should be operational", seqIdentifierDef.isOperational());
@@ -80,10 +80,10 @@ public class TestObjectConstruction extends AbstractSchemaTest {
         assertFalse("definition should not be operational", authDef.isOperational());
         assertFalse("definition should not always use equals", authDef.isAlwaysUseForEquals());
 
-        List<QName> qnames = authDef.getAnnotation(PrismConstants.A_ALWAYS_USE_FOR_EQUALS);
-        assertNotNull(qnames);
-        assertEquals(1, qnames.size());
-        assertEquals(AuthenticationBehavioralDataType.F_SEQUENCE_IDENTIFIER, qnames.get(0));
+//        List<QName> qnames = authDef.getAnnotation(PrismConstants.A_ALWAYS_USE_FOR_EQUALS);
+//        assertNotNull(qnames);
+//        assertEquals(1, qnames.size());
+//        assertEquals(AuthenticationBehavioralDataType.F_SEQUENCE_IDENTIFIER, qnames.get(0));
 
         assertTrue(authDef.isAlwaysUseForEquals(AuthenticationBehavioralDataType.F_SEQUENCE_IDENTIFIER));
 

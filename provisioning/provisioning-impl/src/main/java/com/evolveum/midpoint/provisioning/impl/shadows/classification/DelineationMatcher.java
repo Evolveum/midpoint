@@ -185,7 +185,7 @@ class DelineationMatcher {
             return null;
         }
         ResourceObjectDefinition scopeObjectClassDefinition = Resource.of(context.getResource())
-                .getRawSchemaRequired()
+                .getCompleteSchemaRequired()
                 .findObjectClassDefinitionRequired(rootObjectClassName);
         ObjectFilter filter = ShadowQueryConversionUtil.parseFilter(filterBean, scopeObjectClassDefinition);
         if (!(filter instanceof EqualFilter<?> equalFilter)) {

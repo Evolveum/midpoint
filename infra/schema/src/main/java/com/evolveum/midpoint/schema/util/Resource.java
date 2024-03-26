@@ -31,7 +31,6 @@ import org.jetbrains.annotations.VisibleForTesting;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
@@ -73,14 +72,6 @@ public class Resource {
 
     public @NotNull ResourceType getBean() {
         return resourceBean;
-    }
-
-    public @Nullable ResourceSchema getRawSchema() throws SchemaException {
-        return ResourceSchemaFactory.getRawSchema(resourceBean);
-    }
-
-    public @NotNull ResourceSchema getRawSchemaRequired() throws SchemaException, ConfigurationException {
-        return ResourceSchemaFactory.getRawSchemaRequired(resourceBean);
     }
 
     public @Nullable ResourceSchema getCompleteSchema() throws SchemaException, ConfigurationException {
@@ -151,6 +142,7 @@ public class Resource {
         return resourceBean.toString();
     }
 
+    @SuppressWarnings("ClassCanBeRecord")
     private static class ResourceItemDefinitionResolver implements ItemDefinitionResolver {
 
         @NotNull private final ResourceObjectDefinition definition;

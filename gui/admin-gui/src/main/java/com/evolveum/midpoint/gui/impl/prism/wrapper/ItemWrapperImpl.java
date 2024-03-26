@@ -440,11 +440,6 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
         return getItemDefinition().isValidFor(elementQName, clazz, caseInsensitive);
     }
 
-    @Override
-    public void adoptElementDefinitionFrom(ItemDefinition otherDef) {
-        getItemDefinition().adoptElementDefinitionFrom(otherDef);
-    }
-
     @NotNull
     @Override
     public I instantiate() throws SchemaException {
@@ -489,18 +484,8 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     }
 
     @Override
-    public boolean canBeDefinitionOf(I item) {
-        return getItemDefinition().canBeDefinitionOf(item);
-    }
-
-    @Override
-    public boolean canBeDefinitionOf(@NotNull PrismValue pvalue) {
-        return getItemDefinition().canBeDefinitionOf(pvalue);
-    }
-
-    @Override
-    public MutableItemDefinition<I> toMutable() {
-        return getItemDefinition().toMutable();
+    public ItemDefinitionMutator mutator() {
+        return getItemDefinition().mutator();
     }
 
     @Override
@@ -584,11 +569,6 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     @Override
     public <A> A getAnnotation(QName qname) {
         return getItemDefinition().getAnnotation(qname);
-    }
-
-    @Override
-    public <A> void setAnnotation(QName qname, A value) {
-        getItemDefinition().setAnnotation(qname, value);
     }
 
     @Override

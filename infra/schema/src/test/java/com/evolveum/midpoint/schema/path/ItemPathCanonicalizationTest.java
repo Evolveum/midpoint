@@ -120,7 +120,7 @@ public class ItemPathCanonicalizationTest extends AbstractSchemaTest {
 
     @Test
     public void testCanonicalizationLong() {
-        ItemPath path = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+        ItemPath path = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
                 RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME);
         assertCanonical(path, null, "\\" + COMMON + "#connectorConfiguration",
                 "\\" + COMMON + "#connectorConfiguration\\" + ICFS + "#configurationProperties",

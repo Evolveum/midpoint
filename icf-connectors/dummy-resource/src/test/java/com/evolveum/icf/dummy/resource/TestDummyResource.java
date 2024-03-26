@@ -28,6 +28,8 @@ public class TestDummyResource {
     private static final String ATTR_CONTRACT = "contract";
 
     private static final String OC_CONTRACT = "contract";
+    private static final String ATTR_PERSON = "person";
+    private static final String ATTR_ORG = "org";
 
     private static final String LC_PERSON_CONTRACT = "personContract";
     private static final String LC_CONTRACT_ORG = "contractOrg";
@@ -58,6 +60,7 @@ public class TestDummyResource {
                                 .build())
                         .withSecondParticipant(aParticipant()
                                 .withObjectClassNames(OC_CONTRACT)
+                                .withInvisibleLinkAttributeName(ATTR_PERSON)
                                 .withMinOccurs(1)
                                 .withMaxOccurs(1)
                                 .build())
@@ -67,6 +70,7 @@ public class TestDummyResource {
                         .withName(LC_CONTRACT_ORG)
                         .withFirstParticipant(aParticipant()
                                 .withObjectClassNames(OC_CONTRACT)
+                                .withInvisibleLinkAttributeName(ATTR_ORG)
                                 .withMinOccurs(1)
                                 .withMaxOccurs(1)
                                 .build())
@@ -81,8 +85,8 @@ public class TestDummyResource {
     @SuppressWarnings("SameParameterValue")
     private void addAttrDef(
             DummyObjectClass objectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {
-        DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attrName, type, isRequired, isMulti);
-        objectClass.add(attrDef);
+        objectClass.add(
+                new DummyAttributeDefinition(attrName, type, isRequired, isMulti));
     }
 
     @Test

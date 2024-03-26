@@ -1419,4 +1419,12 @@ public class ObjectTypeUtil {
                 .map(ref -> ref.getOid())
                 .collect(Collectors.toSet());
     }
+
+    public static ObjectType getEmbeddedObjectBean(ObjectReferenceType ref) {
+        if (ref == null) {
+            return null;
+        } else {
+            return asObjectable(ref.getObject());
+        }
+    }
 }

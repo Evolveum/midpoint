@@ -323,7 +323,7 @@ public class TestVillage extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resourceBefore = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
-        ResourceSchema resourceSchemaBefore = ResourceSchemaFactory.getRawSchema(resourceBefore);
+        ResourceSchema resourceSchemaBefore = ResourceSchemaFactory.getBareSchema(resourceBefore);
         ResourceSchema refinedSchemaBefore = ResourceSchemaFactory.getCompleteSchema(resourceBefore);
 
         rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
@@ -346,7 +346,7 @@ public class TestVillage extends AbstractStoryTest {
         TestUtil.assertSuccess(result);
 
         long t2 = System.currentTimeMillis();
-        ResourceSchema resourceSchemaAfter = ResourceSchemaFactory.getRawSchema(resourceAfter);
+        ResourceSchema resourceSchemaAfter = ResourceSchemaFactory.getBareSchema(resourceAfter);
         long t3 = System.currentTimeMillis();
         ResourceSchema refinedSchemaAfter = ResourceSchemaFactory.getCompleteSchema(resourceAfter);
         long t4 = System.currentTimeMillis();
@@ -779,7 +779,7 @@ public class TestVillage extends AbstractStoryTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_OPENDJ_OID, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_QNAME)
                 .and().itemWithDef(
-                        prismContext.definitionFactory().createPropertyDefinition(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING),
+                        prismContext.definitionFactory().newPropertyDefinition(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING),
                         ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, "cn")).eq("admins")
                 .build();
 

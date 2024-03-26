@@ -102,11 +102,6 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public RawResourceAttributeDefinition<T> getRawAttributeDefinition() {
-        return getRefinedAttributeDefinition().getRawAttributeDefinition();
-    }
-
-    @Override
     public @Nullable MappingType getOutboundMappingBean() {
         return getRefinedAttributeDefinition().getOutboundMappingBean();
     }
@@ -260,8 +255,8 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public @NotNull MutableRawResourceAttributeDefinition<T> toMutable() {
-        return getRefinedAttributeDefinition().toMutable();
+    public String getHumanReadableDescription() {
+        return getRefinedAttributeDefinition().getHumanReadableDescription();
     }
 
     @Override

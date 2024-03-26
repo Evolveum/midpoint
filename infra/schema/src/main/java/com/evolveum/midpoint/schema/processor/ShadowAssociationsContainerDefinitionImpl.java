@@ -23,7 +23,7 @@ public class ShadowAssociationsContainerDefinitionImpl
         extends PrismContainerDefinitionImpl<ShadowAssociationsType>
         implements ShadowAssociationsContainerDefinition {
 
-    ShadowAssociationsContainerDefinitionImpl(QName name, ComplexTypeDefinition complexTypeDefinition) {
+    ShadowAssociationsContainerDefinitionImpl(QName name, @NotNull ComplexTypeDefinition complexTypeDefinition) {
         super(name, complexTypeDefinition);
         super.setCompileTimeClass(ShadowAssociationsType.class);
         isRuntimeSchema = true;

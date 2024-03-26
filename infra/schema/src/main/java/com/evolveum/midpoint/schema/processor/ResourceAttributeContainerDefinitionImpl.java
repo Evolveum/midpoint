@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,10 +18,11 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.schema.SerializableComplexTypeDefinition;
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -44,9 +46,9 @@ public class ResourceAttributeContainerDefinitionImpl
         extends PrismContainerDefinitionImpl<ShadowAttributesType>
         implements ResourceAttributeContainerDefinition {
 
-    private static final long serialVersionUID = 3943909626639924429L;
+    @Serial private static final long serialVersionUID = 3943909626639924429L;
 
-    public ResourceAttributeContainerDefinitionImpl(QName name, ComplexTypeDefinition complexTypeDefinition) {
+    public ResourceAttributeContainerDefinitionImpl(QName name, @NotNull ComplexTypeDefinition complexTypeDefinition) {
         super(name, complexTypeDefinition);
         super.setCompileTimeClass(ShadowAttributesType.class);
         isRuntimeSchema = true;
@@ -55,6 +57,11 @@ public class ResourceAttributeContainerDefinitionImpl
     @Override
     public ResourceObjectDefinition getComplexTypeDefinition() {
         return (ResourceObjectDefinition) super.getComplexTypeDefinition();
+    }
+
+    @Override
+    public SerializableComplexTypeDefinition getComplexTypeDefinitionToSerialize() {
+        return null; // We won't serialize this
     }
 
     @Override
@@ -73,18 +80,6 @@ public class ResourceAttributeContainerDefinitionImpl
     }
 
     @Override
-    public ResourceAttributeDefinition<?> getDescriptionAttribute() {
-        return getComplexTypeDefinition().getDescriptionAttribute();
-    }
-
-    public void setDescriptionAttribute(QName name) {
-        // We can afford to delegate a set here as we know that there is one-to-one correspondence between
-        // object class definition and attribute container
-        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition())
-                .setDescriptionAttributeName(name);
-    }
-
-    @Override
     public ResourceAttributeDefinition<?> getNamingAttribute() {
         return getComplexTypeDefinition().getNamingAttribute();
     }
@@ -98,31 +93,6 @@ public class ResourceAttributeContainerDefinitionImpl
 //    public void setNamingAttribute(QName namingAttribute) {
 //        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setNamingAttributeName(namingAttribute);
 //    }
-
-    @Override
-    public String getNativeObjectClass() {
-        return getComplexTypeDefinition()
-                .getObjectClassDefinition()
-                .getNativeObjectClass();
-    }
-
-    public void setNativeObjectClass(String nativeObjectClass) {
-        // We can afford to delegate a set here as we know that there is one-to-one correspondence between
-        // object class definition and attribute container
-        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setNativeObjectClass(nativeObjectClass);
-    }
-
-    @Override
-    public boolean isDefaultAccountDefinition() {
-        return getComplexTypeDefinition()
-                .getObjectClassDefinition()
-                .isDefaultAccountDefinition();
-    }
-
-    @Override
-    public ResourceAttributeDefinition<?> getDisplayNameAttribute() {
-        return getComplexTypeDefinition().getDisplayNameAttribute();
-    }
 
     public void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName) {
         ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setDisplayNameAttributeName(displayName.getItemName());
@@ -196,15 +166,7 @@ public class ResourceAttributeContainerDefinitionImpl
 
     @Override
     public List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
-        List<ResourceAttributeDefinition<?>> attrs = new ArrayList<>();
-        for (ItemDefinition<?> def: complexTypeDefinition.getDefinitions()) {
-            if (def instanceof ResourceAttributeDefinition) {
-                attrs.add((ResourceAttributeDefinition<?>)def);
-            } else {
-                throw new IllegalStateException("Found "+def+" in resource attribute container, only attribute definitions are expected here");
-            }
-        }
-        return attrs;
+        return getComplexTypeDefinition().getAttributeDefinitions();
     }
 
     @Override
@@ -228,13 +190,6 @@ public class ResourceAttributeContainerDefinitionImpl
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(getClass().getSimpleName()).append(":").append(getItemName()).append(" (").append(getTypeName()).append(")");
-        if (isDefaultAccountDefinition()) {
-            sb.append(" def");
-        }
-        if (getNativeObjectClass()!=null) {
-            sb.append(" native=");
-            sb.append(getNativeObjectClass());
-        }
         return sb.toString();
     }
 

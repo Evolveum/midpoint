@@ -371,10 +371,10 @@ public class CorrelationItem implements DebugDumpable {
             ConfigurationException, SecurityViolationException {
         QName inputTypeName = DOMUtil.XSD_DOUBLE;
         PrismPropertyDefinition<Double> inputPropertyDef =
-                PrismContext.get().definitionFactory().createPropertyDefinition(
+                PrismContext.get().definitionFactory().newPropertyDefinition(
                         ExpressionConstants.VAR_INPUT_QNAME, inputTypeName);
         PrismPropertyDefinition<Double> outputPropertyDef =
-                PrismContext.get().definitionFactory().createPropertyDefinition(
+                PrismContext.get().definitionFactory().newPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_DOUBLE);
         PrismProperty<Double> inputProperty = inputPropertyDef.instantiate();
         new HashSet<>(matchMetricValues) // To avoid "Adding value to property input that already exists (overwriting)" warnings

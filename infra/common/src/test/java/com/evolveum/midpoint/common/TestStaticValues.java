@@ -24,10 +24,8 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -47,8 +45,8 @@ public class TestStaticValues extends AbstractUnitTest {
     @Test
     public void testValueElementsRoundtripString() throws Exception {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
-        MutablePrismPropertyDefinition propDef = prismContext.definitionFactory().createPropertyDefinition(PROP_NAME, DOMUtil.XSD_STRING);
-        propDef.setMaxOccurs(-1);
+        PrismPropertyDefinition<String> propDef = prismContext.definitionFactory().newPropertyDefinition(PROP_NAME, DOMUtil.XSD_STRING);
+        propDef.mutator().setMaxOccurs(-1);
         PrismProperty<String> origProperty = propDef.instantiate();
         origProperty.addRealValue("FOO");
         origProperty.addRealValue("BAR");
@@ -59,8 +57,8 @@ public class TestStaticValues extends AbstractUnitTest {
     @Test
     public void testValueElementsRoundtripInt() throws Exception {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
-        MutablePrismPropertyDefinition propDef = prismContext.definitionFactory().createPropertyDefinition(PROP_NAME, DOMUtil.XSD_INT);
-        propDef.setMaxOccurs(-1);
+        PrismPropertyDefinition<Integer> propDef = prismContext.definitionFactory().newPropertyDefinition(PROP_NAME, DOMUtil.XSD_INT);
+        propDef.mutator().setMaxOccurs(-1);
         PrismProperty<Integer> origProperty = propDef.instantiate();
         origProperty.addRealValue(42);
         origProperty.addRealValue(123);

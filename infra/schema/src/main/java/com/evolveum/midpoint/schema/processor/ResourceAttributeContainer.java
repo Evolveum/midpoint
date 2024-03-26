@@ -155,24 +155,6 @@ public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismC
     /**
      * TODO review docs
      *
-     * Returns description attribute of a resource object.
-     *
-     * Returns null if there is no description attribute or the attribute is not
-     * known.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return description attribute of a resource object.
-     * @throws IllegalStateException
-     *             if there is no definition for the referenced attributed
-     */
-    ResourceAttribute<String> getDescriptionAttribute();
-
-    /**
-     * TODO review docs
-     *
      * Specifies which resource attribute should be used as a "technical" name
      * for the account. This name will appear in log files and other troubleshooting
      * tools. The name should be a form of unique identifier that can be used to
@@ -187,74 +169,6 @@ public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismC
      *                 for the account.
      */
     ResourceAttribute<String> getNamingAttribute();
-
-    /**
-     * TODO review docs
-     *
-     * Returns display name attribute of a resource object.
-     *
-     * Returns null if there is no display name attribute or the attribute is
-     * not known.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return display name attribute of a resource object.
-     * @throws IllegalStateException
-     *             if there is no definition for the referenced attributed
-     */
-    ResourceAttribute getDisplayNameAttribute();
-
-    /**
-     * TODO review docs
-     *
-     * Returns the native object class string for the resource object.
-     *
-     * Native object class is the name of the Resource Object Definition (Object
-     * Class) as it is seen by the resource itself. The name of the Resource
-     * Object Definition may be constrained by XSD or other syntax and therefore
-     * may be "mangled" to conform to such syntax. The <i>native object
-     * class</i> value will contain unmangled name (if available).
-     *
-     * Returns null if there is no native object class or the native object
-     * class is not known.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of model consistency should be done at the time of
-     * schema parsing.
-     *
-     * @return native object class
-     * @throws IllegalStateException
-     *             if there is more than one description attribute.
-     */
-    String getNativeObjectClass();
-
-    /**
-     * TODO review docs
-     * TODO consider removal
-     *
-     * Indicates whether definition is should be used as default account type.
-     *
-     * If true value is returned then the definition should be used as a default
-     * account type definition. This is a way how a resource connector may
-     * suggest applicable object classes (resource object definitions) for
-     * accounts.
-     *
-     * If no information about account type is present, false should be
-     * returned. This method must return true only if isAccountType() returns
-     * true.
-     *
-     * The exception should be never thrown unless there is some bug in the
-     * code. The validation of at-most-one value should be done at the time of
-     * schema parsing. The exception may not even be thrown at all if the
-     * implementation is not able to determine duplicity.
-     *
-     * @return true if the definition should be used as account type.
-     * @throws IllegalStateException
-     *             if more than one default account is suggested in the schema.
-     */
-    boolean isDefaultInAKind();
 
     /**
      * Finds a specific attribute in the resource object by name.

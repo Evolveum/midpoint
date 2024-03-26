@@ -23,7 +23,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.TestConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaParser;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -154,7 +154,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
     private void parseResourceSchema(PrismObject<ResourceType> resource) throws SchemaException {
         Element schemaElement = resource.asObjectable().getSchema().getDefinition().getSchema();
-        ResourceSchemaParser.parse(schemaElement, getTestNameShort());
+        ResourceSchemaFactory.parseNativeSchema(schemaElement, getTestNameShort());
         System.out.println("Schema parsed OK");
     }
 
@@ -200,8 +200,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
         XmlSchemaType defType = (XmlSchemaType) reparsedSchemaContainer.getValue().asContainerable();
         Element reparsedXsdSchemaElement = defType.getDefinition().getSchema();
-        ResourceSchema reparsedSchema = ResourceSchemaParser.parse(reparsedXsdSchemaElement, "reparsed schema");
-
+        ResourceSchemaFactory.parseNativeSchema(reparsedXsdSchemaElement, "reparsed schema");
     }
 
     @Test
@@ -251,19 +250,19 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         if (checkExpressions) {
             PrismProperty<String> hostProp = findProp(ldapConfigPropItems, "host");
             assertRaw(hostProp);
-            hostProp.applyDefinition(PrismContext.get().definitionFactory().createPropertyDefinition(new QName("whatever","host"), DOMUtil.XSD_STRING));
+            hostProp.applyDefinition(PrismContext.get().definitionFactory().newPropertyDefinition(new QName("whatever","host"), DOMUtil.XSD_STRING));
             assertNotRaw(hostProp);
             assertExpression(hostProp, "const");
 
             PrismProperty<String> baseContextsProp = findProp(ldapConfigPropItems, "baseContexts");
             assertRaw(baseContextsProp);
-            baseContextsProp.applyDefinition(PrismContext.get().definitionFactory().createPropertyDefinition(new QName("whatever","baseContexts"), DOMUtil.XSD_STRING));
+            baseContextsProp.applyDefinition(PrismContext.get().definitionFactory().newPropertyDefinition(new QName("whatever","baseContexts"), DOMUtil.XSD_STRING));
             assertNotRaw(baseContextsProp);
             assertExpression(baseContextsProp, "script");
 
             PrismProperty<ProtectedStringType> credentialsProp = findProp(ldapConfigPropItems, "credentials");
             assertRaw(credentialsProp);
-            credentialsProp.applyDefinition(PrismContext.get().definitionFactory().createPropertyDefinition(new QName("whatever","credentials"), ProtectedStringType.COMPLEX_TYPE));
+            credentialsProp.applyDefinition(PrismContext.get().definitionFactory().newPropertyDefinition(new QName("whatever","credentials"), ProtectedStringType.COMPLEX_TYPE));
             assertNotRaw(credentialsProp);
             assertExpression(credentialsProp, "const");
         }

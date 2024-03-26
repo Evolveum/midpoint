@@ -339,7 +339,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         display("Initialized OpenDJ resource (repository)", resourceTypeOpenDjrepo);
         assertNotNull("Resource schema was not generated", resourceTypeOpenDjrepo.getSchema());
         Element resourceOpenDjXsdSchemaElement = ResourceTypeUtil
-                .getResourceXsdSchema(resourceTypeOpenDjrepo);
+                .getResourceXsdSchemaElement(resourceTypeOpenDjrepo);
         assertNotNull("Resource schema was not generated", resourceOpenDjXsdSchemaElement);
 
         PrismObject<ResourceType> openDjResourceProvisioning = provisioningService.getObject(
@@ -354,7 +354,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         System.out.println("------------------------------------------------------------------");
         displayValue("OpenDJ resource schema (repo XML)",
-                DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resourceTypeOpenDjrepo)));
+                DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeOpenDjrepo)));
         System.out.println("------------------------------------------------------------------");
 
         checkOpenDjResource(openDjResourceProvisioning.asObjectable(), "provisioning");
@@ -3070,7 +3070,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     }
 
-    private void checkRepoOpenDjResource() throws ObjectNotFoundException, SchemaException {
+    private void checkRepoOpenDjResource() throws ObjectNotFoundException, SchemaException, ConfigurationException {
         OperationResult result = new OperationResult(TestConsistencyMechanism.class.getName()
                 + ".checkRepoOpenDjResource");
         PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class,
@@ -3082,7 +3082,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
      * Checks if the resource is internally consistent, if it has everything it
      * should have.
      */
-    private void checkOpenDjResource(ResourceType resource, String source) throws SchemaException {
+    private void checkOpenDjResource(ResourceType resource, String source) throws SchemaException, ConfigurationException {
         assertNotNull("Resource from " + source + " is null", resource);
         assertNotNull("Resource from " + source + " has null configuration", resource.getConnectorConfiguration());
         assertNotNull("Resource from " + source + " has null schema", resource.getSchema());
@@ -3103,8 +3103,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         checkOpenDjConfiguration(resource.asPrismObject(), source);
     }
 
-    private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
-        ResourceSchema schema = ResourceSchemaFactory.getRawSchema(resource);
+    private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException, ConfigurationException {
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         ResourceObjectClassDefinition accountDefinition = schema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
         Collection<? extends ResourceAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();

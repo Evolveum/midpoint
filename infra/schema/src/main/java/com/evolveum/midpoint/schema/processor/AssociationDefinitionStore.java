@@ -29,7 +29,7 @@ public interface AssociationDefinitionStore {
      * Note: these items are _not_ included in getDefinitions.
      * (BTW, ResourceAssociationDefinition is not a subtype of ItemDefinition, not even of Definition.)
      */
-    @NotNull Collection<ShadowAssociationDefinition> getAssociationDefinitions();
+    @NotNull Collection<? extends ShadowAssociationDefinition> getAssociationDefinitions();
 
     default ShadowAssociationDefinition findAssociationDefinition(QName name) {
         return getAssociationDefinitions().stream()

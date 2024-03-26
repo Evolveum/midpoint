@@ -171,7 +171,7 @@ public class LegacyCustomTransport implements Transport<GeneralTransportConfigur
 
         var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
+        PrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().newPropertyDefinition(resultName, DOMUtil.XSD_STRING);
 
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(

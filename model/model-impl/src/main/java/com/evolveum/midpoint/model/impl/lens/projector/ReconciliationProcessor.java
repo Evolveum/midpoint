@@ -566,7 +566,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 //                }
 //            }
 
-            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>,ShadowAssociationDefinition>> shouldBeCValues;
+            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> shouldBeCValues;
             if (cvwoTriple == null) {
                 shouldBeCValues = new HashSet<>();
             } else {
@@ -671,7 +671,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException, ExpressionEvaluationException {
 
-        boolean evaluatePatterns = !assocDef.getTolerantValuePattern().isEmpty() || !assocDef.getIntolerantValuePattern().isEmpty();
+        boolean evaluatePatterns = !assocDef.getTolerantValuePatterns().isEmpty() || !assocDef.getIntolerantValuePatterns().isEmpty();
         MatchingRule<Object> matchingRule = evaluatePatterns ? getMatchingRuleForTargetNamingIdentifier(assocDef) : null;
 
         // for each existing value we decide whether to keep it or delete it
@@ -686,7 +686,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             }
 
             String assocNameLocal = assocDef.getItemName().getLocalPart();
-            if (evaluatePatterns && matchesAssociationPattern(assocDef.getTolerantValuePattern(), targetNamingIdentifier, matchingRule)) {
+            if (evaluatePatterns && matchesAssociationPattern(assocDef.getTolerantValuePatterns(), targetNamingIdentifier, matchingRule)) {
                 LOGGER.trace("Reconciliation: KEEPING value {} of association {}: identifier {} matches with tolerant value pattern.",
                         isCValue, assocNameLocal, targetNamingIdentifier);
                 continue;
@@ -697,7 +697,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                 continue;
             }
 
-            if (evaluatePatterns && matchesAssociationPattern(assocDef.getIntolerantValuePattern(), targetNamingIdentifier, matchingRule)) {
+            if (evaluatePatterns && matchesAssociationPattern(assocDef.getIntolerantValuePatterns(), targetNamingIdentifier, matchingRule)) {
                 swallowAssociationDelta(accCtx, assocDef, ModificationType.DELETE,
                         isCValue, null, "identifier " + targetNamingIdentifier + " matches with intolerant pattern");
                 continue;
@@ -715,7 +715,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     @NotNull
     private MatchingRule<Object> getMatchingRuleForTargetNamingIdentifier(ShadowAssociationDefinition associationDefinition) throws SchemaException {
-        ResourceObjectTypeDefinition targetObjectDefinition = associationDefinition.getTargetObjectDefinition();
+        var targetObjectDefinition = associationDefinition.getTargetObjectDefinition();
         // TODO why naming attribute? Why not valueAttribute from the association definition?
         ResourceAttributeDefinition<?> targetNamingAttributeDef = targetObjectDefinition.getNamingAttribute();
         if (targetNamingAttributeDef != null) {
@@ -920,9 +920,9 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     private boolean isInCvwoAssociationValues(
             PrismContainerValue<ShadowAssociationValueType> value,
-            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>,ShadowAssociationDefinition>> shouldBeCvwos) {
+            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> shouldBeCvwos) {
 
-        for (ItemValueWithOrigin<? extends PrismContainerValue<ShadowAssociationValueType>,ShadowAssociationDefinition> shouldBeCvwo : emptyIfNull(shouldBeCvwos)) {
+        for (ItemValueWithOrigin<? extends PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition> shouldBeCvwo : emptyIfNull(shouldBeCvwos)) {
             if (!shouldBeCvwo.isValid()) {
                 continue;
             }

@@ -18,7 +18,6 @@ import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
-import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.impl.schema.axiom.AxiomEnabledSchemaRegistry;
 import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
@@ -29,7 +28,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
 import com.evolveum.midpoint.schema.metadata.MidpointValueMetadataFactory;
-import com.evolveum.midpoint.schema.processor.MidPointSchemaDefinitionFactory;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
@@ -60,7 +58,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
     public PrismContext createPrismContext() throws SchemaException, IOException {
         SchemaRegistryImpl schemaRegistry = createSchemaRegistry();
         PrismContextImpl context = PrismContextImpl.create(schemaRegistry);
-        context.setDefinitionFactory(createDefinitionFactory());
         context.setDefaultRelation(SchemaConstants.ORG_DEFAULT);
         context.setDefaultReferenceTargetType(SchemaConstants.C_OBJECT_TYPE);
         context.setObjectsElementName(SchemaConstants.C_OBJECTS);
@@ -74,10 +71,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         context.setProvenanceEquivalenceStrategy(MidpointProvenanceEquivalenceStrategy.INSTANCE);
         context.registerQueryExpressionFactory(new PrismQueryExpressionSupport());
         return context;
-    }
-
-    private SchemaDefinitionFactory createDefinitionFactory() {
-        return new MidPointSchemaDefinitionFactory();
     }
 
     public PrismContext createInitializedPrismContext() throws SchemaException, SAXException, IOException {

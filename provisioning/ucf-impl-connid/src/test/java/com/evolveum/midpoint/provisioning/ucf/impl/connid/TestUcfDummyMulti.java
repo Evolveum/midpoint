@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.context.ContextConfiguration;
@@ -27,7 +28,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -66,9 +66,9 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
         assertNotNull("ICFC schema not found in the context (" + SchemaConstants.NS_ICF_CONFIGURATION + ")", schemaIcfc);
         PrismContainerDefinition<ConnectorConfigurationType> configurationPropertiesDef =
-                schemaIcfc.findContainerDefinitionByElementName(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+                schemaIcfc.findContainerDefinitionByElementName(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
         assertNotNull("icfc:configurationProperties not found in icfc schema (" +
-                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME + ")", configurationPropertiesDef);
+                SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME + ")", configurationPropertiesDef);
         PrismSchema schemaIcfs = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_SCHEMA);
         assertNotNull("ICFS schema not found in the context (" + SchemaConstants.NS_ICF_SCHEMA + ")", schemaIcfs);
     }
@@ -91,7 +91,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        resourceSchema = cc.fetchResourceSchema(result);
+        resourceSchema = ResourceSchemaFactory.nativeToBare(cc.fetchResourceSchema(result));
         assertNotNull("No resource schema", resourceSchema);
     }
 
@@ -342,7 +342,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             assertTrue(connectorsAfter.size() > connectorsBefore.size());
 
         } finally {
-            targetFile.delete();
+            var deleted = targetFile.delete(); // may fail e.g. on Windows (as the file is open?)
+            System.out.println(targetFile + " deleted: " + deleted);
         }
     }
 

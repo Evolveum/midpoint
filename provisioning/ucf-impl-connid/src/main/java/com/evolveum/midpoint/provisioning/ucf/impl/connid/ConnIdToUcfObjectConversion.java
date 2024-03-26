@@ -7,19 +7,18 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.connIdAttributeNameToUcf;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.connIdObjectClassNameToUcf;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.ItemFactory;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObjectFragment;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -154,10 +153,10 @@ class ConnIdToUcfObjectConversion {
             List<ResourceObjectDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
             for (Object connIdAuxiliaryObjectClassName : getConnIdAuxiliaryObjectClasses()) {
                 QName auxiliaryObjectClassQname =
-                        connIdObjectClassNameToUcf(new ObjectClass((String) connIdAuxiliaryObjectClassName), isLegacySchema());
+                        connIdObjectClassNameToUcf((String) connIdAuxiliaryObjectClassName, isLegacySchema());
                 auxiliaryObjectClassDefinitions.add(
                         getResourceSchema().findObjectClassDefinitionRequired(
-                                auxiliaryObjectClassQname,
+                                Objects.requireNonNull(auxiliaryObjectClassQname),
                                 () -> " (auxiliary object class in " + connectorObjectFragment + ")"));
             }
             return auxiliaryObjectClassDefinitions;
@@ -208,7 +207,7 @@ class ConnIdToUcfObjectConversion {
         }
 
         private void convertPassword(Attribute connIdAttr) throws SchemaException {
-            ProtectedStringType password = getSingleValue(connIdAttr, ProtectedStringType.class);
+            ProtectedStringType password = getSingleConvertedValue(connIdAttr, ProtectedStringType.class);
             if (password != null) {
                 ShadowUtil.setPassword(convertedObject, password);
                 LOGGER.trace("Converted password: {}", password);
@@ -222,7 +221,7 @@ class ConnIdToUcfObjectConversion {
         }
 
         private void convertEnable(Attribute connIdAttr) throws SchemaException {
-            Boolean enabled = getSingleValue(connIdAttr, Boolean.class);
+            Boolean enabled = getSingleConvertedValue(connIdAttr, Boolean.class);
             if (enabled == null) {
                 return;
             }
@@ -234,7 +233,7 @@ class ConnIdToUcfObjectConversion {
         }
 
         private void convertEnableDate(Attribute connIdAttr) throws SchemaException {
-            Long millis = getSingleValue(connIdAttr, Long.class);
+            Long millis = getSingleConvertedValue(connIdAttr, Long.class);
             if (millis == null) {
                 return;
             }
@@ -243,7 +242,7 @@ class ConnIdToUcfObjectConversion {
         }
 
         private void convertDisableDate(Attribute connIdAttr) throws SchemaException {
-            Long millis = getSingleValue(connIdAttr, Long.class);
+            Long millis = getSingleConvertedValue(connIdAttr, Long.class);
             if (millis == null) {
                 return;
             }
@@ -252,7 +251,7 @@ class ConnIdToUcfObjectConversion {
         }
 
         private void convertLockOut(Attribute connIdAttr) throws SchemaException {
-            Boolean lockOut = getSingleValue(connIdAttr, Boolean.class);
+            Boolean lockOut = getSingleConvertedValue(connIdAttr, Boolean.class);
             if (lockOut == null) {
                 return;
             }
@@ -284,9 +283,10 @@ class ConnIdToUcfObjectConversion {
             }
         }
 
-        private <T> T getSingleValue(Attribute connIdAttribute, Class<T> type) throws SchemaException {
+        // Assuming this is a genuine attribute, not an association.
+        private <T> T getSingleConvertedValue(Attribute connIdAttribute, Class<T> type) throws SchemaException {
             Object valueInConnId = ConnIdAttributeUtil.getSingleValue(connIdAttribute);
-            Object valueInUcf = convertAttributeValueFromConnId(valueInConnId);
+            Object valueInUcf = getRealValue((PrismPropertyValue<?>) convertAttributeValueFromConnId(valueInConnId));
             return MiscUtil.castSafely(valueInUcf, type, lazy(() -> " in attribute " + connIdAttribute.getName()));
         }
 
@@ -368,6 +368,7 @@ class ConnIdToUcfObjectConversion {
                             connIdAttrName, connectorObjectFragment.getIdentification())));
 
             ShadowItem<?, ?> convertedItem = mpDefinition.instantiate();
+            var expectedClass = resolvePrimitiveIfNecessary(mpDefinition.getTypeClass());
 
             // Note: we skip uniqueness checks here because the attribute in the resource object is created from scratch.
             // I.e. its values will be unique (assuming that values coming from the resource are unique, and no two values
@@ -376,6 +377,13 @@ class ConnIdToUcfObjectConversion {
                 // Convert the value. While most values do not need conversions, some of them may need it (e.g. GuardedString)
                 var convertedValue = convertAttributeValueFromConnId(connIdValue);
                 if (convertedValue != null) {
+                    // Note that the type compatibility is also checked in ResourceAttribute#checkConsistenceInternal.
+                    // But that is usually turned off in production; and produces IllegalStateException. We need the
+                    // SchemaException instead.
+                    Class<?> realClass = resolvePrimitiveIfNecessary(convertedValue.getRealClass());
+                    schemaCheck(realClass == null || expectedClass.isAssignableFrom(realClass),
+                            "The value '%s' does not conform to the definition %s: expected type: %s, actual type: %s",
+                            convertedValue, mpDefinition, expectedClass, realClass);
                     //noinspection unchecked,rawtypes
                     ((ShadowItem) convertedItem).addValueSkipUniquenessCheck(convertedValue);
                 }

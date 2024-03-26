@@ -1653,24 +1653,23 @@
 
                         Should they be here, or right in the subject objectType? To be decided.
                     -->
-
-                    <xsd:element ref="tns:displayName" minOccurs="0"/>
-                    <xsd:element name="help" type="xsd:string" minOccurs="0"/>
-                    <xsd:element ref="tns:description" minOccurs="0"/>
-                    <xsd:element ref="tns:documentation" minOccurs="0"/>
-                    <xsd:element name="displayOrder" type="xsd:int" minOccurs="0"/>
-                    <!-- limitations? -->
-                    <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0" default="true"/>
-                    <xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                    <xsd:element name="intolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                    <xsd:element name="displayHint" type="tns:DisplayHintType" minOccurs="0"/>
-                    <xsd:element name="deprecated" type="xsd:boolean" minOccurs="0"/>
-                    <!-- experimental? -->
-                    <!-- validation? -->
-                    <!-- fetch strategy? -->
-                    <xsd:element name="cached" type="xsd:boolean" minOccurs="0"/>
-                    <xsd:element name="outbound" type="tns:MappingType" minOccurs="0"/>
-                    <xsd:element name="inbound" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded"/>
+                    <!--<xsd:element ref="tns:displayName" minOccurs="0"/>-->
+                    <!--<xsd:element name="help" type="xsd:string" minOccurs="0"/>-->
+                    <!--<xsd:element ref="tns:description" minOccurs="0"/>-->
+                    <!--<xsd:element ref="tns:documentation" minOccurs="0"/>-->
+                    <!--<xsd:element name="displayOrder" type="xsd:int" minOccurs="0"/>-->
+                    <!--&lt;!&ndash; limitations? &ndash;&gt;-->
+                    <!--<xsd:element name="tolerant" type="xsd:boolean" minOccurs="0" default="true"/>-->
+                    <!--<xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>-->
+                    <!--<xsd:element name="intolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>-->
+                    <!--<xsd:element name="displayHint" type="tns:DisplayHintType" minOccurs="0"/>-->
+                    <!--<xsd:element name="deprecated" type="xsd:boolean" minOccurs="0"/>-->
+                    <!--&lt;!&ndash; experimental? &ndash;&gt;-->
+                    <!--&lt;!&ndash; validation? &ndash;&gt;-->
+                    <!--&lt;!&ndash; fetch strategy? &ndash;&gt;-->
+                    <!--<xsd:element name="cached" type="xsd:boolean" minOccurs="0"/>-->
+                    <!--<xsd:element name="outbound" type="tns:MappingType" minOccurs="0"/>-->
+                    <!--<xsd:element name="inbound" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded"/>-->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
