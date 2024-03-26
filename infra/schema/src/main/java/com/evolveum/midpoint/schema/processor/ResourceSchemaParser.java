@@ -284,14 +284,6 @@ class ResourceSchemaParser {
                 "No definition found for object class '%s' referenced in %s", objectClassName, DESC);
     }
 
-    private @NotNull ResourceObjectTypeDefinition getObjectTypeDefinitionRequired(
-            @NotNull ResourceObjectTypeIdentification identification, @NotNull ConfigurationItem<?> contextCI)
-            throws ConfigurationException {
-        return contextCI.configNonNull(
-                resourceSchema.getObjectTypeDefinition(identification),
-                "No definition found for object type '%s' referenced in %s", identification, DESC);
-    }
-
     /** Merges "source" (super-type) into "target" (sub-type). */
     private void merge(
             @NotNull ResourceObjectTypeDefinitionType target,

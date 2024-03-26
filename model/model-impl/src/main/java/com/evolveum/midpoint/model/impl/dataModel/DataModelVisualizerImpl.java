@@ -134,9 +134,9 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                     LOGGER.debug("Processing refined association definition for {}", associationDefinition.getItemName());
                     ResourceDataItem assocItem = model.findResourceItem(resource.getOid(), kind, intent, getObjectClassName(refinedDefinition),
                             ItemPath.create(associationDefinition.getItemName()));
-                    var outboundMapping = associationDefinition.getOutboundMapping();
+                    var outboundMapping = associationDefinition.getOutboundMappingBean();
                     if (outboundMapping != null) {
-                        processOutboundMapping(model, assocItem, outboundMapping.value(), null);
+                        processOutboundMapping(model, assocItem, outboundMapping, null);
                     }
 //                    if (associationDefinition.getAssociationTarget() != null) {
 //                        ResourceObjectTypeDefinition target = associationDefinition.getAssociationTarget();

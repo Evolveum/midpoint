@@ -7,18 +7,10 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import java.util.List;
-
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-
-import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
-import com.evolveum.midpoint.schema.config.MappingConfigItem;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 
 /**
  * Definition of an association item, e.g., `ri:group`.
@@ -46,8 +38,4 @@ public interface ShadowAssociationDefinition
     ShadowAssociationClassDefinition getAssociationClassDefinition();
 
     boolean isEntitlement();
-
-    // TODO move the following methods to ShadowItemDefinition
-    MappingConfigItem getOutboundMapping() throws ConfigurationException;
-    List<InboundMappingConfigItem> getInboundMappings() throws ConfigurationException;
 }

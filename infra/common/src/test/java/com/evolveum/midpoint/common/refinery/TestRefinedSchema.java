@@ -517,7 +517,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
                 assertEquals("Attribute " + name + " (" + sourceLayer + ") maxOccurs mismatch", maxOccurs, def.getMaxOccurs());
                 if (validationLayer == LayerType.MODEL || validationLayer == LayerType.PRESENTATION) {
                     assertEquals("Attribute " + name + " (" + sourceLayer + ") displayOrder mismatch", displayOrder, def.getDisplayOrder());
-                    assertEquals("Attribute " + name + " (" + sourceLayer + ") outbound mismatch", hasOutbound, def.getOutboundMappingBean() != null);
+                    assertEquals("Attribute " + name + " (" + sourceLayer + ") outbound mismatch", hasOutbound, def.hasOutboundMapping());
                 }
                 assertEquals("Attribute " + name + " (" + sourceLayer + ") ignored flag mismatch", ignore, def.isIgnored());
                 assertEquals("Attribute " + name + " (" + sourceLayer + ") canCreate mismatch", canCreate, def.canAdd());

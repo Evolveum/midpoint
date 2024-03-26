@@ -477,7 +477,7 @@ public abstract class ShadowItemDefinitionImpl<
         if (getDescription() != null) {
             sb.append(",Desc");
         }
-        if (getOutboundMappingBean() != null) {
+        if (hasOutboundMapping()) {
             sb.append(",OUT");
         }
         if (!getInboundMappingBeans().isEmpty()) {

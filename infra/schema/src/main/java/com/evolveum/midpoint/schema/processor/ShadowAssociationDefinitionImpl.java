@@ -30,10 +30,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
-import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.config.ResourceObjectAssociationConfigItem;
-import com.evolveum.midpoint.schema.config.ShadowAssociationTypeDefinitionConfigItem;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -83,25 +80,12 @@ public class ShadowAssociationDefinitionImpl
             @NotNull ResourceObjectAssociationType customizationBean,
             @NotNull Map<LayerType, PropertyLimitations> limitationsMap,
             @NotNull PropertyAccessType accessOverride,
-            @Nullable ShadowAssociationClassDefinition associationClassDefinition,
+            @NotNull ShadowAssociationClassDefinition associationClassDefinition,
             Integer maxOccurs) {
         super(layer, nativeDefinition, customizationBean, limitationsMap, accessOverride);
         this.associationClassDefinition = associationClassDefinition;
         this.complexTypeDefinition = getComplexTypeDefinition();
         this.maxOccurs = maxOccurs;
-    }
-
-    static ShadowAssociationDefinitionImpl parseAssociationType(
-            @NotNull ItemName associationItemName,
-            @NotNull ShadowAssociationClassDefinition associationTypeDefinition,
-            @Nullable NativeShadowAssociationDefinition rawDefinition,
-            @NotNull ShadowAssociationTypeDefinitionConfigItem definitionCI) {
-//        try {
-//            return new ShadowAssociationDefinitionImpl(associationItemName, associationTypeDefinition, rawDefinition, definitionCI);
-//        } catch (SchemaException e) {
-//            throw SystemException.unexpected(e, "TEMPORARY");
-//        }
-        throw new UnsupportedOperationException();
     }
 
     static ShadowAssociationDefinitionImpl parseLegacy(
@@ -163,17 +147,6 @@ public class ShadowAssociationDefinitionImpl
         return getAssociationClassDefinition().isEntitlement();
     }
 
-    public @Nullable MappingConfigItem getOutboundMapping() throws ConfigurationException {
-//        return configItem.getOutboundMapping();
-        throw new UnsupportedOperationException();
-    }
-
-    public @NotNull List<InboundMappingConfigItem> getInboundMappings() throws ConfigurationException {
-//        return configItem.getInboundMappings();
-        throw new UnsupportedOperationException();
-
-    }
-
     @Override
     public @NotNull ShadowAssociationDefinitionImpl forLayer(@NotNull LayerType layer) {
         if (layer == currentLayer) {
@@ -189,19 +162,6 @@ public class ShadowAssociationDefinitionImpl
                     maxOccurs);
         }
     }
-
-//    public boolean isExclusiveStrong() {
-//        return configItem.isExclusiveStrong();
-//    }
-
-//    @Override
-//    public boolean isDeprecated() {
-//        try {
-//            return configItem.isDeprecated();
-//        } catch (ConfigurationException e) {
-//            throw alreadyChecked(e);
-//        }
-//    }
 
     /**
      * We assume that the checks during the definition parsing were good enough to discover any problems

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 
 /**
  * Getter interface to "UCF" part of resource object class definition.
@@ -198,7 +199,7 @@ public interface NativeObjectClassUcfDefinition {
 
     class Data
             extends AbstractFreezable
-            implements NativeObjectClassUcfDefinition, NativeObjectClassUcfDefinition.Mutable, DebugDumpable {
+            implements NativeObjectClassUcfDefinition, NativeObjectClassUcfDefinition.Mutable, Serializable, DebugDumpable {
 
         private String nativeObjectClassName;
         private boolean auxiliary;

@@ -115,15 +115,10 @@ class MappedItems<F extends FocusType> {
             return;
         }
 
-        var inboundMappings = InboundMappingConfigItem.ofList(
-                inboundMappingBeans,
-                item -> ConfigurationItemOrigin.inResourceOrAncestor(source.getResource()),
-                InboundMappingConfigItem.class);
-
         var attributeName = attributeDefinition.getItemName();
         List<InboundMappingConfigItem> applicableMappings = // [EP:M:IM] DONE beans are really from the resource
                 source.selectMappingBeansForEvaluationPhase(
-                        inboundMappings,
+                        createMappingCIs(inboundMappingBeans),
                         attributeDefinition.getCorrelatorDefinition() != null,
                         context.getCorrelationItemPaths());
         if (applicableMappings.isEmpty()) {
@@ -182,8 +177,8 @@ class MappedItems<F extends FocusType> {
 
         // 1. Definitions
 
-        List<InboundMappingConfigItem> inboundMappings = associationDefinition.getInboundMappings();
-        if (inboundMappings.isEmpty()) {
+        var inboundMappingBeans = associationDefinition.getInboundMappingBeans();
+        if (inboundMappingBeans.isEmpty()) {
             return;
         }
 
@@ -192,7 +187,7 @@ class MappedItems<F extends FocusType> {
         String itemDescription = "association " + associationName;
         List<InboundMappingConfigItem> applicableMappings =
                 source.selectMappingBeansForEvaluationPhase(
-                        inboundMappings,
+                        createMappingCIs(inboundMappingBeans),
                         false,
                         Set.of()); // Associations are not evaluated before clockwork anyway
         if (applicableMappings.isEmpty()) {
@@ -247,6 +242,13 @@ class MappedItems<F extends FocusType> {
                         associationPostProcessor,
                         source::getEntitlementVariableProducer, // so-called variable producer
                         processingMode));
+    }
+
+    private List<InboundMappingConfigItem> createMappingCIs(List<InboundMappingType> inboundMappingBeans) {
+        return InboundMappingConfigItem.ofList(
+                inboundMappingBeans,
+                item -> ConfigurationItemOrigin.inResourceOrAncestor(source.getResource()),
+                InboundMappingConfigItem.class);
     }
 
     /**
