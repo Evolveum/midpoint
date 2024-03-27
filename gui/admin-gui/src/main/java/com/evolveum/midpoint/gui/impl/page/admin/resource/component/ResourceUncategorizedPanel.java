@@ -148,7 +148,14 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
             protected SearchContext createAdditionalSearchContext() {
                 SearchContext searchContext = new SearchContext();
                 searchContext.setPanelType(CollectionPanelType.RESOURCE_SHADOW);
-                searchContext.setResourceObjectDefinition(getObjectDetailsModels().findResourceObjectClassDefinition(getSelectedObjectClass()));
+                var objClassDef = getObjectDetailsModels().findResourceObjectClassDefinition(getSelectedObjectClass());
+                searchContext.setResourceObjectDefinition(objClassDef);
+                // MID-9569: selectedObjectDefinition has knowledge about detailed shadow type, so we can provide it
+                // directly to search (since we are also adding coordinates to filter) so Axiom Query can access
+                // additional attributes
+                if (objClassDef != null) {
+                    searchContext.setDefinitionOverride(objClassDef.getPrismObjectDefinition());
+                }
                 return searchContext;
             }
 
