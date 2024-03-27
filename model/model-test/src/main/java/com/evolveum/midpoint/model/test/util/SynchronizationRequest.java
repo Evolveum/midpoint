@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.model.test.util;
 
-import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.IMPORT;
-import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.RECONCILIATION;
+import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.*;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
 
@@ -113,6 +112,10 @@ public class SynchronizationRequest {
         if (synchronizationStyle == IMPORT) {
             work = new WorkDefinitionsType()
                     ._import(new ImportWorkDefinitionType()
+                            .resourceObjects(resourceObjectSet));
+        } else if (synchronizationStyle == SHADOW_RECLASSIFICATION) {
+            work = new WorkDefinitionsType()
+                    .shadowReclassification(new ShadowReclassificationWorkDefinitionType()
                             .resourceObjects(resourceObjectSet));
         } else {
             work = new WorkDefinitionsType()
@@ -414,6 +417,10 @@ public class SynchronizationRequest {
             return withSynchronizationStyle(RECONCILIATION);
         }
 
+        public SynchronizationRequestBuilder withUsingShadowReclassification() {
+            return withSynchronizationStyle(SHADOW_RECLASSIFICATION);
+        }
+
         @SuppressWarnings("SameParameterValue")
         SynchronizationRequestBuilder withSynchronizationStyle(SynchronizationStyle value) {
             this.synchronizationStyle = value;
@@ -514,7 +521,7 @@ public class SynchronizationRequest {
     }
 
     public enum SynchronizationStyle {
-        IMPORT("import"), RECONCILIATION("reconciliation");
+        IMPORT("import"), RECONCILIATION("reconciliation"), SHADOW_RECLASSIFICATION("shadowReclassification");
 
         private final String taskName;
 

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceSetTaskWorkDefinition;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
@@ -17,10 +19,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LiveSyncWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
-public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
+public class LiveSyncWorkDefinition extends ResourceSetTaskWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
-    /** Mutable, disconnected from the source. */
-    @NotNull private final ResourceObjectSetType resourceObjects;
     private final Integer batchSize;
     private final boolean updateLiveSyncTokenInDryRun;
     private final boolean updateLiveSyncTokenInPreviewMode;
@@ -28,16 +28,10 @@ public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements Re
     LiveSyncWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
         super(info);
         var typedDefinition = (LiveSyncWorkDefinitionType) info.getBean();
-        resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
         batchSize = typedDefinition.getBatchSize();
         updateLiveSyncTokenInPreviewMode = Boolean.TRUE.equals(typedDefinition.isUpdateLiveSyncTokenInPreviewMode());
-        ResourceObjectSetUtil.removeQuery(resourceObjects);
+        ResourceObjectSetUtil.removeQuery(getResourceObjectSetSpecification());
         updateLiveSyncTokenInDryRun = Boolean.TRUE.equals(typedDefinition.isUpdateLiveSyncTokenInDryRun());
-    }
-
-    @Override
-    public @NotNull ResourceObjectSetType getResourceObjectSetSpecification() {
-        return resourceObjects;
     }
 
     Integer getBatchSize() {
@@ -54,7 +48,7 @@ public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements Re
 
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObjects", resourceObjects, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObjects", getResourceObjectSetSpecification(), indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "batchSize", batchSize, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "updateLiveSyncTokenInDryRun", updateLiveSyncTokenInDryRun, indent+1);
         DebugUtil.debugDumpWithLabel(sb, "updateLiveSyncTokenInPreviewMode", updateLiveSyncTokenInPreviewMode, indent+1);
