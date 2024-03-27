@@ -131,7 +131,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
                 mutableConfiguration = configuration;
             }
 
-            mutableConfiguration.applyDefinition(getConfigurationContainerDefinition());
+            mutableConfiguration = mutableConfiguration.applyDefinition(getConfigurationContainerDefinition());
             setConnectorConfiguration(mutableConfiguration);
             applyConfigurationToConfigurationClass(mutableConfiguration);
 

@@ -198,8 +198,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
 
             // Make sure that the proper configuration schema is applied. This
             // will cause that all the "raw" elements are parsed
-            PrismContainerValue<?> configurationCloned = configurationOriginal.clone();
-            configurationCloned.applyDefinition(getConfigurationContainerDefinition());
+            PrismContainerValue<?> configurationCloned =
+                    configurationOriginal.clone().applyDefinition(getConfigurationContainerDefinition());
 
             ConnIdConfigurationTransformer configTransformer =
                     new ConnIdConfigurationTransformer(connectorBean, connectorInfo, b.protector, options);

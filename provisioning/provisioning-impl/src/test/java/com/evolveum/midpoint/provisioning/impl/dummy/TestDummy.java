@@ -4545,6 +4545,78 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .isInstanceOf(ResourceAttributeDefinition.class);
     }
 
+    /**
+     * Checks that the "apply definition" for association deltas works well, for various degrees of "rawness" of input deltas.
+     */
+    @Test
+    public void test930AssociationDeltaAdaptation() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("a testing account and some groups");
+
+        initializeResourceIfNeeded();
+
+        var accountName = "account930";
+        var accountOid = provisioningService.addObject(
+                ShadowBuilder.withDefinition(getAccountDefaultDefinition())
+                        .withAttribute(SchemaConstants.ICFS_NAME, accountName)
+                        .asPrismObject(),
+                null, null, task, result);
+
+        String groupName = "group930";
+        var groupOid = provisioningService.addObject(
+                ShadowBuilder.withDefinition(getGroupDefaultDefinition())
+                        .withAttribute(SchemaConstants.ICFS_NAME, groupName)
+                        .asPrismObject(),
+                null, null, task, result);
+
+        var assocDef = getAccountDefaultDefinition().findAssociationDefinitionRequired(ASSOCIATION_GROUP_NAME);
+
+        when("account is entitled/detitled in the most raw way (raw value, raw definition)");
+        var rawValue = new ShadowAssociationValueType().shadowRef(groupOid, ShadowType.COMPLEX_TYPE);
+        var rawDef = prismContext.definitionFactory().newContainerDefinition(
+                assocDef.getItemName(),
+                prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowAssociationValueType.class));
+
+        testEntitleDetitle(accountOid, rawValue, rawDef, task, result);
+    }
+
+    private void testEntitleDetitle(
+            String accountOid,
+            ShadowAssociationValueType assocValue, PrismContainerDefinition<?> assocDef,
+            Task task, OperationResult result) throws CommonException {
+
+        var path = ItemPath.create(ShadowType.F_ASSOCIATIONS, assocDef.getItemName());
+        when("association is added");
+        provisioningService.modifyObject(
+                ShadowType.class, accountOid,
+                deltaFor(ShadowType.class)
+                        .item(path, assocDef)
+                        .add(assocValue.clone())
+                        .asItemDeltas(),
+                null, null, task, result);
+
+        then("the association is there");
+        assertShadowProvisioning(accountOid)
+                .associations()
+                .assertValuesCount(1);
+
+        when("association is deleted");
+        provisioningService.modifyObject(
+                ShadowType.class, accountOid,
+                deltaFor(ShadowType.class)
+                        .item(path, assocDef)
+                        .delete(assocValue.clone())
+                        .asItemDeltas(),
+                null, null, task, result);
+
+        then("the association is not there");
+        assertShadowProvisioning(accountOid)
+                .associations()
+                .assertValuesCount(0);
+    }
+
     // test999 shutdown in the superclass
 
     @SuppressWarnings("SameParameterValue")

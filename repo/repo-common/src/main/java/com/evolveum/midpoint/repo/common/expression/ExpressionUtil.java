@@ -1163,19 +1163,17 @@ public class ExpressionUtil {
             if (object instanceof Containerable) {
                 try {
                     PrismContext.get().adopt((Containerable) object);
-                    ((Containerable) object).asPrismContainerValue().applyDefinition(definition);
+                    return ((Containerable) object).asPrismContainerValue().applyDefinition(definition);
                 } catch (SchemaException e) {
                     throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
                 }
-                return ((Containerable) object).asPrismContainerValue();
             } else if (object instanceof PrismContainerValue<?>) {
                 try {
                     PrismContext.get().adopt((PrismContainerValue<?>) object);
-                    ((PrismContainerValue<?>) object).applyDefinition(definition);
+                    return ((PrismContainerValue<?>) object).applyDefinition(definition);
                 } catch (SchemaException e) {
                     throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
                 }
-                return (PrismContainerValue<?>) object;
             } else {
                 throw new ExpressionEvaluationException(
                         "Expected Containerable or PrismContainerValue as expression output, got " + object.getClass());

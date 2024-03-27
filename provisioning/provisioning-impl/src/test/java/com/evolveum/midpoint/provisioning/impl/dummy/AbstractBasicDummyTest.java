@@ -90,10 +90,10 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class AbstractBasicDummyTest extends AbstractDummyTest {
 
-    protected CachingMetadataType capabilitiesCachingMetadataType;
-    protected String willIcfUid;
-    protected XMLGregorianCalendar lastPasswordModifyStart;
-    protected XMLGregorianCalendar lastPasswordModifyEnd;
+    private CachingMetadataType capabilitiesCachingMetadataType;
+    String willIcfUid;
+    private XMLGregorianCalendar lastPasswordModifyStart;
+    private XMLGregorianCalendar lastPasswordModifyEnd;
 
     protected MatchingRule<String> getUidMatchingRule() {
         return null;
@@ -113,7 +113,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
     @AfterClass
     public static void assertCleanShutdown() {
-        dummyResource.assertNoConnections();
+        if (resourceShutDown) {
+            dummyResource.assertNoConnections();
+        }
     }
 
     @Test
@@ -175,11 +177,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             displayDumpable("Parsed connector schema " + conn, schema);
 
             QName configurationElementQname = new QName(conn.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
-            PrismContainerDefinition configurationContainer = schema
-                    .findContainerDefinitionByElementName(configurationElementQname);
+            var configurationContainer = schema.findContainerDefinitionByElementName(configurationElementQname);
             assertNotNull("No " + configurationElementQname + " element in schema of " + conn, configurationContainer);
-            PrismContainerDefinition definition = schema
-                    .findItemDefinitionByElementName(new QName(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart()),
+            var definition =
+                    schema.findItemDefinitionByElementName(
+                            new QName(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart()),
                             PrismContainerDefinition.class);
             assertNotNull("Definition of <configuration> property container not found", definition);
             assertFalse("Empty definition", definition.isEmpty());
@@ -314,8 +316,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     }
 
     private int getSizeOfConnectorCache() {
-        return connectorManager.getStateInformation().stream().filter(
-                state -> ConnectorManager.CONNECTOR_INSTANCE_CACHE_NAME.equals(state.getName())).findFirst().get().getSize();
+        return connectorManager.getStateInformation().stream()
+                .filter(state -> ConnectorManager.CONNECTOR_INSTANCE_CACHE_NAME.equals(state.getName()))
+                .findFirst()
+                .orElseThrow()
+                .getSize();
     }
 
     @Test
@@ -571,9 +576,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 .as("suggested properties")
                 .hasSize(1);
         suggestions.forEach(suggestion -> {
-            Collection<?> suggestionValues = suggestion.getDefinition().getSuggestedValues().stream()
-                    .map(displayVal -> displayVal.getValue()).collect(Collectors.toList());
-            assertTrue("Unexpected value of suggestion " + suggestion.getDefinition().getSuggestedValues() + ", expected: " + expectedSuggestions,
+            Collection<?> suggestionValues = requireNonNull(suggestion.getDefinition().getSuggestedValues()).stream()
+                    .map(displayVal -> displayVal.getValue())
+                    .toList();
+            //noinspection SuspiciousMethodCalls
+            assertTrue(
+                    "Unexpected value of suggestion " + suggestion.getDefinition().getSuggestedValues() + ", expected: " + expectedSuggestions,
                     expectedSuggestions.containsAll(suggestionValues));
         });
 
@@ -598,8 +606,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 return  ((RawType) property.getRealValue()).getValue();
             } catch (SchemaException e) {
                 //ignore exception
-                PrimitiveXNode primitiveXNode = ((PrimitiveXNode)((MapXNode) ((RawType) property.getRealValue())
-                        .getXnode()).get(new QName("clearValue")));
+                var primitiveXNode = ((PrimitiveXNode<?>)
+                        ((MapXNode) ((RawType) property.getRealValue()).getXnode())
+                                .get(new QName("clearValue")));
                 if (primitiveXNode != null) {
                     return primitiveXNode.getStringValue();
                 }
@@ -632,6 +641,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         when();
         resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
         resourceBean = resource.asObjectable();
+        resourceInitialized = true;
 
         then();
         assertSuccess(result);
@@ -642,20 +652,19 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertNotNull("No configuration container", configurationContainer);
-        PrismContainerDefinition confContDef = configurationContainer.getDefinition();
+        var confContDef = configurationContainer.getDefinition();
         assertNotNull("No configuration container definition", confContDef);
-        PrismContainer configurationPropertiesContainer = configurationContainer
-                .findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
+        var configurationPropertiesContainer = configurationContainer.findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
         assertNotNull("No configuration properties container", configurationPropertiesContainer);
-        PrismContainerDefinition confPropsDef = configurationPropertiesContainer.getDefinition();
+        var confPropsDef = configurationPropertiesContainer.getDefinition();
         assertNotNull("No configuration properties container definition", confPropsDef);
-        Collection<PrismProperty<?>> configurationProperties = configurationPropertiesContainer.getValue().getItems();
+        var configurationProperties = configurationPropertiesContainer.getValue().getItems();
         assertFalse("No configuration properties", configurationProperties.isEmpty());
-        for (PrismProperty<?> confProp : configurationProperties) {
-            PrismPropertyDefinition confPropDef = confProp.getDefinition();
+        for (var confProp : configurationProperties) {
+            var confPropDef = confProp.getDefinition();
             assertNotNull("No definition for configuration property " + confProp, confPropDef);
             assertFalse("Configuration property " + confProp + " is raw", confProp.isRaw());
-            assertConfigurationProperty(confProp);
+            assertConfigurationProperty((PrismProperty<?>) confProp);
         }
 
         // The useless configuration variables should be reflected to the resource now
@@ -929,7 +938,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test029CapabilitiesRepo() throws Exception {
         // GIVEN
-        Task task = getTestTask();
         OperationResult result = createOperationResult();
 
         // WHEN
@@ -1631,6 +1639,14 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 "No account/default definition in %s", resourceBean);
     }
 
+    @NotNull ResourceObjectDefinition getGroupDefaultDefinition() throws SchemaException, ConfigurationException {
+        return MiscUtil.stateNonNull(
+                Resource.of(resourceBean)
+                        .getCompleteSchemaRequired()
+                        .findDefinitionForObjectClass(RI_GROUP_OBJECT_CLASS),
+                "No group definition in %s", resourceBean);
+    }
+
     protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
         return getAccountDefaultDefinition().getAllIdentifiersNames();
     }
@@ -1642,6 +1658,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         then();
         dummyResource.assertNoConnections();
+
+        resourceShutDown = true;
     }
 
     protected void checkAccountWill(

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AssociationsCapabilityType;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -185,6 +186,31 @@ public class ShadowAssociationDefinitionImpl
                 ShadowAssociationValueType.F_SHADOW_REF,
                 shadowRefDef);
         def.mutator().setRuntimeSchema(true);
+
+        def.mutator().setValueMigrator(new ComplexTypeDefinition.ValueMigrator() {
+            @Override
+            public @NotNull <C extends Containerable> PrismContainerValue<C> migrateIfNeeded(@NotNull PrismContainerValue<C> value) {
+                if (value instanceof ShadowAssociationValue) {
+                    return value;
+                } else {
+                    ShadowAssociationValueType bean = (ShadowAssociationValueType) value.asContainerable();
+                    var shadowRef = bean.getShadowRef();
+                    if (shadowRef != null) {
+                        var shadow = (ShadowType) shadowRef.getObjectable();
+                        if (shadow != null) {
+                            try {
+                                new ShadowDefinitionApplicator(getTargetObjectDefinition())
+                                        .applyTo(shadow);
+                            } catch (SchemaException e) {
+                                throw SystemException.unexpected(e); // FIXME
+                            }
+                        }
+                    }
+                    //noinspection unchecked
+                    return (PrismContainerValue<C>) ShadowAssociationValue.of(bean);
+                }
+            }
+        });
 
         def.freeze();
         return def;
@@ -424,7 +450,6 @@ public class ShadowAssociationDefinitionImpl
     public @NotNull Class<ShadowAssociationValueType> getTypeClass() {
         return ShadowAssociationValueType.class;
     }
-
 
     @Override
     public @NotNull ItemDefinition<PrismContainer<ShadowAssociationValueType>> cloneWithNewName(@NotNull ItemName itemName) {

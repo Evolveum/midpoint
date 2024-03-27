@@ -231,7 +231,7 @@ public class TransformableContainerDefinition<C extends Containerable>
             return;
         }
         try {
-            pcv.applyDefinition(new TransformableContainerDefinition<>(origDef, complexTypeDef), true);
+            pcv.applyDefinitionLegacy(new TransformableContainerDefinition<>(origDef, complexTypeDef), true);
         } catch (SchemaException e) {
             throw new IllegalStateException("Can not apply wrapped definition", e);
         }

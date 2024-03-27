@@ -30,14 +30,11 @@ public class ShadowBuilder {
     }
 
     public static ShadowBuilder withDefinition(@NotNull ResourceObjectDefinition objectDefinition) {
-        try {
-            return new ShadowBuilder(
-                    objectDefinition.toPrismObjectDefinition().instantiate().asObjectable());
-        } catch (SchemaException e) {
-            throw SystemException.unexpected(e, "while creating shadow builder (instantiating object definition)");
-        }
+        return new ShadowBuilder(
+                objectDefinition.createBlankShadow().getBean());
     }
 
+    // TODO consider removing
     public ShadowBuilder onResource(@Nullable String oid) {
         shadow.setResourceRef(oid != null ? ObjectTypeUtil.createObjectRef(oid, ObjectTypes.RESOURCE) : null);
         return this;

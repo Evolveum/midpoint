@@ -295,7 +295,6 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         var accountClassDefinition = resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
 
         var shadow = ShadowBuilder.withDefinition(accountClassDefinition)
-                .onResource(resource.getOid())
                 .withAttribute(SchemaConstants.ICFS_NAME, ACCOUNT_JACK_USERNAME)
                 .asPrismObject();
 

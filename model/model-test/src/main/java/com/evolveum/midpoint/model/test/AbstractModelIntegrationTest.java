@@ -1528,7 +1528,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
 
         PrismContainerDefinition<AssignmentType> assignmentDef = getUserDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-        assignmentDelta.applyDefinition(assignmentDef);
+        if (assignmentDef != null) {
+            assignmentDelta.applyDefinition(assignmentDef);
+        }
 
         return assignmentDelta;
     }

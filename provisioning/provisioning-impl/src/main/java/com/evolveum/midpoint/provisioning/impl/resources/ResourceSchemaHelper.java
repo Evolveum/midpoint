@@ -358,8 +358,8 @@ class ResourceSchemaHelper {
                 connectorConfiguration.applyDefinition(configurationContainerDef);
             }
 
-            for (ItemDelta<?,?> itemDelta : delta.getModifications()){
-                applyItemDefinition((ItemDelta) itemDelta, connectorSpec, configurationContainerDef, result);
+            for (ItemDelta<?, ?> itemDelta : delta.getModifications()) {
+                applyItemDefinition((ItemDelta<?, ?>) itemDelta, connectorSpec, configurationContainerDef, result);
             }
 
         } catch (Throwable t) {
@@ -388,7 +388,7 @@ class ResourceSchemaHelper {
             }
             ConnectorConfigurationType connectorConfiguration = newConnector.getConnectorConfiguration();
             if (connectorConfiguration != null) {
-                connectorConfiguration.asPrismContainerValue().applyDefinition(configurationContainerDef);
+                connectorConfiguration.asPrismContainerValue().applyDefinitionLegacy(configurationContainerDef);
             }
         }
     }
@@ -459,7 +459,7 @@ class ResourceSchemaHelper {
     private <V extends PrismValue, D extends ItemDefinition<?>> void applyItemDefinition(
             ItemDelta<V,D> itemDelta,
             ConnectorSpec connectorSpec,
-            PrismContainerDefinition<ConnectorConfigurationType> configContainerDef,
+            @NotNull PrismContainerDefinition<ConnectorConfigurationType> configContainerDef,
             OperationResult result) throws SchemaException {
         if (itemDelta.getDefinition() != null) {
             return;

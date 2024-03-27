@@ -136,6 +136,9 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     protected PrismObject<ResourceType> resource;
     protected ResourceType resourceBean;
+    /** True if the resource was successfully tested and {@link #resource} and {@link #resourceBean} contain complete schema. */
+    protected boolean resourceInitialized;
+    protected static boolean resourceShutDown;
     protected static DummyResource dummyResource;
     protected static DummyResourceContoller dummyResourceCtl;
 
@@ -483,5 +486,17 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     @NotNull
     protected ObjectQuery getAllAccountsQuery(DummyTestResource resource) {
         return ObjectQueryUtil.createResourceAndObjectClassQuery(resource.oid, RI_ACCOUNT_OBJECT_CLASS);
+    }
+
+    /** Useful for standalone running of supported tests. */
+    void initializeResourceIfNeeded() throws CommonException {
+        if (!resourceInitialized) {
+            var task = getTestTask();
+            var result = task.getResult();
+            provisioningService.testResource(RESOURCE_DUMMY_OID, task, result);
+            resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+            resourceBean = resource.asObjectable();
+            resourceInitialized = true;
+        }
     }
 }

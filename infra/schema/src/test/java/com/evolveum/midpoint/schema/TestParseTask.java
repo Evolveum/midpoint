@@ -55,7 +55,7 @@ public class TestParseTask extends AbstractSchemaTest {
 
         PrismObjectDefinition<TaskType> taskDef = getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
         task.applyDefinition(taskDef);
-        task.getValue().applyDefinition(taskDef);
+        task.getValue().applyDefinitionLegacy(taskDef);
     }
 
     private void assertTask(PrismObject<TaskType> task) {
