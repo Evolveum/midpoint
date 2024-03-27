@@ -77,7 +77,7 @@ public class NativeShadowItemDefinitionImpl<T>
     }
 
     @SuppressWarnings("SameParameterValue") // The participant role is always SUBJECT for simulated associations (as of today)
-    static NativeShadowItemDefinitionImpl<?> simulatedAssociation(
+    static NativeShadowItemDefinitionImpl<?> forSimulatedAssociation(
             @NotNull ItemName itemName, @NotNull QName typeName, @NotNull ShadowAssociationParticipantRole participantRole) {
         // Simulated associations cannot be connected to raw definitions (for now), so we can create our own definition
         var simulatedNativeDef = new NativeShadowItemDefinitionImpl<>(itemName, typeName);

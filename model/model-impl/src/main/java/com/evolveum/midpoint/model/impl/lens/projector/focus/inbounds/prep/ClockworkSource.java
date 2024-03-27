@@ -274,6 +274,9 @@ class ClockworkSource extends MSource {
     void resolveInputEntitlements(
             ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
             ShadowAssociation currentAssociation) {
+
+        // FIXME rework this!
+
         Collection<PrismContainerValue<ShadowAssociationValueType>> associationsToResolve = new ArrayList<>();
         if (currentAssociation != null) {
             associationsToResolve.addAll(currentAssociation.getValues());
@@ -285,21 +288,30 @@ class ClockworkSource extends MSource {
         }
 
         for (PrismContainerValue<ShadowAssociationValueType> associationToResolve : associationsToResolve) {
-            PrismReference shadowRef = associationToResolve.findReference(ShadowAssociationValueType.F_SHADOW_REF);
-            if (shadowRef != null) {
-                resolveEntitlementFromResource(shadowRef);
-            }
+            resolveEntitlementFromResource(associationToResolve);
         }
     }
 
-    private void resolveEntitlementFromResource(PrismReference shadowRef) {
-        PrismReferenceValue value = shadowRef.getValue();
-        if (value == null || value.getObject() != null) {
+    private void resolveEntitlementFromResource(PrismContainerValue<ShadowAssociationValueType> associationToResolve) {
+        var associationValue = associationToResolve.asContainerable();
+
+        ObjectReferenceType shadowRef = associationValue.getShadowRef();
+        if (shadowRef == null) {
             return;
         }
 
-        PrismObject<ShadowType> object;
         Map<String, PrismObject<ShadowType>> entitlementMap = projectionContext.getEntitlementMap();
+
+        if (!Boolean.TRUE.equals(associationValue.isIdentifiersOnly())) {
+            // If there's a full object (not ID only), we can use the embedded object directly
+            PrismObject<Objectable> existingObject = shadowRef.getObject();
+            if (existingObject != null && existingObject.getOid() != null) {
+                entitlementMap.put(existingObject.getOid(), PrismObject.cast(existingObject, ShadowType.class));
+                return;
+            }
+        }
+
+        PrismObject<ShadowType> object;
         String oid = shadowRef.getOid();
         if (entitlementMap.containsKey(oid)) {
             object = entitlementMap.get(oid);
@@ -322,7 +334,7 @@ class ClockworkSource extends MSource {
                 subResult.close();
             }
         }
-        value.setObject(object);
+        shadowRef.asReferenceValue().setObject(object);
     }
 
     @Override
@@ -331,12 +343,13 @@ class ClockworkSource extends MSource {
 
         LOGGER.trace("getEntitlementVariableProducer: processing value {} in {}", value, source);
 
-        // We act on the default source that should contain the association value.
-        // So some safety checks first.
+        // We act on the default source that should contain the association value. So some safety checks first.
         if (!ExpressionConstants.VAR_INPUT_QNAME.matches(source.getName())) {
             LOGGER.trace("Source other than 'input', exiting");
             return;
         }
+
+        // FIXME rework this!
 
         LOGGER.trace("Trying to resolve the entitlement object from association value {}", value);
         PrismObject<ShadowType> entitlement;

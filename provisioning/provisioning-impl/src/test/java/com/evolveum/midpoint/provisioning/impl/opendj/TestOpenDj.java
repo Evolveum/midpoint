@@ -323,43 +323,47 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test006Schema() throws Exception {
         when();
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getBareSchema(resourceBean);
-        displayDumpable("Resource schema", resourceSchema);
 
-        ResourceObjectClassDefinition accountClassDef =
-                resourceSchema.findObjectClassDefinitionRequired(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
-        assertNotNull("Account definition is missing", accountClassDef);
-        assertNotNull("Null identifiers in account", accountClassDef.getPrimaryIdentifiers());
-        assertFalse("Empty identifiers in account", accountClassDef.getPrimaryIdentifiers().isEmpty());
-        assertNotNull("Null secondary identifiers in account", accountClassDef.getSecondaryIdentifiers());
-        assertFalse("Empty secondary identifiers in account", accountClassDef.getSecondaryIdentifiers().isEmpty());
-        assertNotNull("No naming attribute in account", accountClassDef.getNamingAttribute());
-        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountClassDef.getNativeObjectClassName()));
+        var bareSchema = ResourceSchemaFactory.getBareSchema(resourceBean);
+        displayDumpable("Resource schema (bare)", bareSchema);
+
+        var completeSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resourceBean);
+        displayDumpable("Resource schema (complete)", completeSchema);
+
+        ResourceObjectClassDefinition accountClassDefBare =
+                bareSchema.findObjectClassDefinitionRequired(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+        assertNotNull("Account definition is missing", accountClassDefBare);
+        assertNotNull("Null identifiers in account", accountClassDefBare.getPrimaryIdentifiers());
+        assertFalse("Empty identifiers in account", accountClassDefBare.getPrimaryIdentifiers().isEmpty());
+        assertNotNull("Null secondary identifiers in account", accountClassDefBare.getSecondaryIdentifiers());
+        assertFalse("Empty secondary identifiers in account", accountClassDefBare.getSecondaryIdentifiers().isEmpty());
+        assertNotNull("No naming attribute in account", accountClassDefBare.getNamingAttribute());
+        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountClassDefBare.getNativeObjectClassName()));
 
         ResourceAttributeDefinition<?> idPrimaryDef =
-                accountClassDef.findAttributeDefinitionRequired(getPrimaryIdentifierQName());
+                accountClassDefBare.findAttributeDefinitionRequired(getPrimaryIdentifierQName());
         assertEquals(1, idPrimaryDef.getMaxOccurs());
         assertEquals(0, idPrimaryDef.getMinOccurs());
         assertFalse("UID has create", idPrimaryDef.canAdd());
         assertFalse("UID has update", idPrimaryDef.canModify());
         assertTrue("No UID read", idPrimaryDef.canRead());
-        assertTrue("UID definition not in identifiers", accountClassDef.getPrimaryIdentifiers().contains(idPrimaryDef));
+        assertTrue("UID definition not in identifiers", accountClassDefBare.getPrimaryIdentifiers().contains(idPrimaryDef));
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName",
                 ProvisioningTestUtil.CONNID_UID_NAME, idPrimaryDef.getFrameworkAttributeName());
         assertEquals("Wrong primary identifier matching rule", PrismConstants.UUID_MATCHING_RULE_NAME, idPrimaryDef.getMatchingRuleQName());
 
         ResourceAttributeDefinition<?> idSecondaryDef =
-                accountClassDef.findAttributeDefinitionRequired(getSecondaryIdentifierQName());
+                accountClassDefBare.findAttributeDefinitionRequired(getSecondaryIdentifierQName());
         assertEquals(1, idSecondaryDef.getMaxOccurs());
         assertEquals(1, idSecondaryDef.getMinOccurs());
         assertTrue("No NAME create", idSecondaryDef.canAdd());
         assertTrue("No NAME update", idSecondaryDef.canModify());
         assertTrue("No NAME read", idSecondaryDef.canRead());
-        assertTrue("NAME definition not in secondary identifiers", accountClassDef.getSecondaryIdentifiers().contains(idSecondaryDef));
+        assertTrue("NAME definition not in secondary identifiers", accountClassDefBare.getSecondaryIdentifiers().contains(idSecondaryDef));
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
         assertEquals("Wrong secondary identifier matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, idSecondaryDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> cnDef = accountClassDef.findAttributeDefinition("cn");
+        ResourceAttributeDefinition<?> cnDef = accountClassDefBare.findAttributeDefinition("cn");
         assertNotNull("No definition for cn", cnDef);
         assertEquals(-1, cnDef.getMaxOccurs());
         assertEquals(1, cnDef.getMinOccurs());
@@ -368,7 +372,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No cn read", cnDef.canRead());
         assertEquals("Wrong cn matching rule", PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, cnDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> jpegPhoto = accountClassDef.findAttributeDefinition("jpegPhoto");
+        ResourceAttributeDefinition<?> jpegPhoto = accountClassDefBare.findAttributeDefinition("jpegPhoto");
         assertNotNull("No definition for jpegPhoto", jpegPhoto);
         assertEquals(-1, jpegPhoto.getMaxOccurs());
         assertEquals(0, jpegPhoto.getMinOccurs());
@@ -377,7 +381,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No jpegPhoto read", jpegPhoto.canRead());
         assertNull("Wrong jpegPhoto matching rule", jpegPhoto.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> dsDef = accountClassDef.findAttributeDefinition("ds-pwp-account-disabled");
+        ResourceAttributeDefinition<?> dsDef = accountClassDefBare.findAttributeDefinition("ds-pwp-account-disabled");
         assertNotNull("No definition for ds-pwp-account-disabled", dsDef);
         assertEquals(1, dsDef.getMaxOccurs());
         assertEquals(0, dsDef.getMinOccurs());
@@ -387,7 +391,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // TODO: MID-2358
 //        assertTrue("ds-pwp-account-disabled is NOT operational", dsDef.isOperational());
 
-        ResourceAttributeDefinition<?> memberOfDef = accountClassDef.findAttributeDefinition("isMemberOf");
+        ResourceAttributeDefinition<?> memberOfDef = accountClassDefBare.findAttributeDefinition("isMemberOf");
         assertNotNull("No definition for isMemberOf", memberOfDef);
         assertEquals(-1, memberOfDef.getMaxOccurs());
         assertEquals(0, memberOfDef.getMinOccurs());
@@ -396,7 +400,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No isMemberOf read", memberOfDef.canRead());
         assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> labeledUriDef = accountClassDef.findAttributeDefinition("labeledURI");
+        ResourceAttributeDefinition<?> labeledUriDef = accountClassDefBare.findAttributeDefinition("labeledURI");
         assertNotNull("No definition for labeledUri", labeledUriDef);
         assertEquals(-1, labeledUriDef.getMaxOccurs());
         assertEquals(0, labeledUriDef.getMinOccurs());
@@ -405,7 +409,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No labeledUri read", labeledUriDef.canRead());
         assertNull("Wrong labeledUri matching rule", labeledUriDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> secretaryDef = accountClassDef.findAttributeDefinition("secretary");
+        ResourceAttributeDefinition<?> secretaryDef = accountClassDefBare.findAttributeDefinition("secretary");
         assertNotNull("No definition for secretary", secretaryDef);
         assertEquals(-1, secretaryDef.getMaxOccurs());
         assertEquals(0, secretaryDef.getMinOccurs());
@@ -414,7 +418,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No secretary read", secretaryDef.canRead());
         assertEquals("Wrong secretary matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, secretaryDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> createTimestampDef = accountClassDef.findAttributeDefinition("createTimestamp");
+        ResourceAttributeDefinition<?> createTimestampDef = accountClassDefBare.findAttributeDefinition("createTimestamp");
         assertNotNull("No definition for createTimestamp", createTimestampDef);
         assertTimestampType("createTimestamp", createTimestampDef);
         assertEquals(1, createTimestampDef.getMaxOccurs());
@@ -425,7 +429,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNull("Wrong createTimestamp matching rule", createTimestampDef.getMatchingRuleQName());
 
         // MID-5210
-        ResourceAttributeDefinition<?> descriptionDef = accountClassDef.findAttributeDefinition(ATTRIBUTE_DESCRIPTION_NAME);
+        ResourceAttributeDefinition<?> descriptionDef = accountClassDefBare.findAttributeDefinition(ATTRIBUTE_DESCRIPTION_NAME);
         assertNotNull("No definition for description", descriptionDef);
         assertPolyStringType("description", descriptionDef);
         assertEquals(-1, descriptionDef.getMaxOccurs());
@@ -436,60 +440,60 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNull("Wrong description matching rule", descriptionDef.getMatchingRuleQName());
 
         assertNull("The _PASSWORD_ attribute sneaked into schema",
-                accountClassDef.findAttributeDefinition(ICFS_PASSWORD));
+                accountClassDefBare.findAttributeDefinition(ICFS_PASSWORD));
 
         assertNull("The userPassword attribute sneaked into schema",
-                accountClassDef.findAttributeDefinition(new QName(accountClassDef.getTypeName().getNamespaceURI(), "userPassword")));
+                accountClassDefBare.findAttributeDefinition(new QName(NS_RI, "userPassword")));
 
         assertNull("The objectClass attribute sneaked into schema",
-                accountClassDef.findAttributeDefinition(new QName(accountClassDef.getTypeName().getNamespaceURI(), "objectClass")));
+                accountClassDefBare.findAttributeDefinition(new QName(NS_RI, "objectClass")));
 
         assertNull("The objectclass attribute sneaked into schema",
-                accountClassDef.findAttributeDefinition(new QName(accountClassDef.getTypeName().getNamespaceURI(), "objectclass")));
+                accountClassDefBare.findAttributeDefinition(new QName(NS_RI, "objectclass")));
 
-        ResourceObjectClassDefinition posixAccountDef =
-                resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
-        assertNotNull("posixAccount definition is missing", posixAccountDef);
-        assertNotNull("Null identifiers in posixAccount", posixAccountDef.getPrimaryIdentifiers());
-        assertFalse("Empty identifiers in posixAccount", posixAccountDef.getPrimaryIdentifiers().isEmpty());
-        assertNotNull("Null secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers());
-        assertFalse("Empty secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers().isEmpty());
-        assertNotNull("No naming attribute in posixAccount", posixAccountDef.getNamingAttribute());
-        assertFalse("No nativeObjectClass in posixAccount", StringUtils.isEmpty(posixAccountDef.getNativeObjectClassName()));
-        assertTrue("posixAccount is not auxiliary", posixAccountDef.isAuxiliary());
+        ResourceObjectClassDefinition posixAccountDefBare =
+                bareSchema.findObjectClassDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
+        assertNotNull("posixAccount definition is missing", posixAccountDefBare);
+        assertNotNull("Null identifiers in posixAccount", posixAccountDefBare.getPrimaryIdentifiers());
+        assertFalse("Empty identifiers in posixAccount", posixAccountDefBare.getPrimaryIdentifiers().isEmpty());
+        assertNotNull("Null secondary identifiers in posixAccount", posixAccountDefBare.getSecondaryIdentifiers());
+        assertFalse("Empty secondary identifiers in posixAccount", posixAccountDefBare.getSecondaryIdentifiers().isEmpty());
+        assertNotNull("No naming attribute in posixAccount", posixAccountDefBare.getNamingAttribute());
+        assertFalse("No nativeObjectClass in posixAccount", StringUtils.isEmpty(posixAccountDefBare.getNativeObjectClassName()));
+        assertTrue("posixAccount is not auxiliary", posixAccountDefBare.isAuxiliary());
 
         ResourceAttributeDefinition<?> posixIdPrimaryDef =
-                posixAccountDef.findAttributeDefinitionRequired(getPrimaryIdentifierQName());
+                posixAccountDefBare.findAttributeDefinitionRequired(getPrimaryIdentifierQName());
         assertEquals(1, posixIdPrimaryDef.getMaxOccurs());
         assertEquals(0, posixIdPrimaryDef.getMinOccurs());
         assertFalse("UID has create", posixIdPrimaryDef.canAdd());
         assertFalse("UID has update", posixIdPrimaryDef.canModify());
         assertTrue("No UID read", posixIdPrimaryDef.canRead());
-        assertTrue("UID definition not in identifiers", accountClassDef.getPrimaryIdentifiers().contains(posixIdPrimaryDef));
+        assertTrue("UID definition not in identifiers", accountClassDefBare.getPrimaryIdentifiers().contains(posixIdPrimaryDef));
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName",
                 ProvisioningTestUtil.CONNID_UID_NAME, posixIdPrimaryDef.getFrameworkAttributeName());
 
         ResourceAttributeDefinition<?> posixIdSecondaryDef =
-                posixAccountDef.findAttributeDefinitionRequired(getSecondaryIdentifierQName());
+                posixAccountDefBare.findAttributeDefinitionRequired(getSecondaryIdentifierQName());
         assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
         assertEquals(1, posixIdSecondaryDef.getMinOccurs());
         assertTrue("No NAME create", posixIdSecondaryDef.canAdd());
         assertTrue("No NAME update", posixIdSecondaryDef.canModify());
         assertTrue("No NAME read", posixIdSecondaryDef.canRead());
         assertTrue("NAME definition not in secondary identifiers",
-                accountClassDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
+                accountClassDefBare.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME +
                 " frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, posixIdSecondaryDef.getFrameworkAttributeName());
 
         ResourceObjectClassDefinition normalDef =
-                resourceSchema.findObjectClassDefinition(new QName(NS_RI, "normalTestingObjectClass"));
+                bareSchema.findObjectClassDefinition(new QName(NS_RI, "normalTestingObjectClass"));
         displayDumpable("normalTestingObjectClass object class def", normalDef);
         assertNotNull("No definition for normalTestingObjectClass", normalDef);
         assertNotNull("The cn attribute missing in normalTestingObjectClass",
                 normalDef.findAttributeDefinition(new QName(normalDef.getTypeName().getNamespaceURI(), "cn")));
 
         ResourceObjectClassDefinition hybridDef =
-                resourceSchema.findObjectClassDefinition(new QName(NS_RI, "hybridTestingObjectClass"));
+                bareSchema.findObjectClassDefinition(new QName(NS_RI, "hybridTestingObjectClass"));
         displayDumpable("Hybrid object class def", hybridDef);
         assertNotNull("No definition for hybridTestingObjectClass", hybridDef);
         assertNotNull("The cn attribute missing in hybridTestingObjectClass",
@@ -498,11 +502,24 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 hybridDef.findAttributeDefinition(new QName(hybridDef.getTypeName().getNamespaceURI(), "uuidIdentifiedAttribute")));
 
         ResourceObjectClassDefinition uuidDef =
-                resourceSchema.findObjectClassDefinition(new QName(NS_RI, "uuidIdentifiedObjectClass"));
+                bareSchema.findObjectClassDefinition(new QName(NS_RI, "uuidIdentifiedObjectClass"));
         displayDumpable("uuidIdentifiedObjectClass object class def", uuidDef);
         assertNotNull("No definition for uuidIdentifiedObjectClass", uuidDef);
         assertNotNull("The uuidIdentifiedAttribute attribute missing in uuidIdentifiedObjectClass",
                 uuidDef.findAttributeDefinition(new QName(uuidDef.getTypeName().getNamespaceURI(), "uuidIdentifiedAttribute")));
+
+        ResourceObjectDefinition accountDef =
+                completeSchema.findDefinitionForObjectClassRequired(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+        var accountTypeDef = accountDef.getTypeDefinition();
+        assertThat(accountTypeDef).as("account type definition").isNotNull();
+        assertThat(accountTypeDef.getTypeDefinition().getKind()).as("kind").isEqualTo(ShadowKindType.ACCOUNT);
+        assertThat(accountTypeDef.getTypeDefinition().getIntent()).as("intent").isEqualTo("default");
+
+        var groupAssocDef = accountTypeDef.findAssociationDefinitionRequired(new QName(NS_RI, "group"));
+        assertThat(groupAssocDef.canRead()).as("group association read").isTrue();
+        assertThat(groupAssocDef.canAdd()).as("group association add").isTrue();
+        assertThat(groupAssocDef.canModify()).as("group association modify").isTrue();
+
 
         assertShadows(1);
     }

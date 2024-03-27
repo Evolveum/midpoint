@@ -141,7 +141,8 @@ public class ResourceAttributeDefinitionImpl<T>
 
     @Override
     public @NotNull Class<T> getTypeClass() {
-        return XsdTypeMapper.toJavaType(getTypeName()); // FIXME
+        // TODO cache this somehow
+        return PrismContext.get().getSchemaRegistry().determineClassForType(getTypeName());
     }
 
     @Override

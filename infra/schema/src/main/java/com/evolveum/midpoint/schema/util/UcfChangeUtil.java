@@ -53,8 +53,8 @@ public class UcfChangeUtil {
             throws SchemaException {
         for (Map.Entry<QName, Object> entry : attributes.entrySet()) {
             PrismProperty<Object> attribute = PrismContext.get().itemFactory().createProperty(entry.getKey());
-            if (entry.getValue() instanceof Collection) {
-                for (Object value : (Collection) entry.getValue()) {
+            if (entry.getValue() instanceof Collection<?> collection) {
+                for (Object value : collection) {
                     attribute.addValue(PrismContext.get().itemFactory().createPropertyValue(value));
                 }
             } else {

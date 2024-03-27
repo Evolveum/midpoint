@@ -91,11 +91,13 @@ public class ShadowAssociationDefinitionImpl
         try {
             return new ShadowAssociationDefinitionImpl(
                     associationTypeDefinition,
-                    NativeShadowItemDefinitionImpl.simulatedAssociation(
-                            definitionCI.getAssociationName(), associationTypeDefinition.getClassName(), ShadowAssociationParticipantRole.SUBJECT),
+                    NativeShadowItemDefinitionImpl.forSimulatedAssociation(
+                            definitionCI.getAssociationName(),
+                            associationTypeDefinition.getClassName(),
+                            ShadowAssociationParticipantRole.SUBJECT),
                     definitionCI.value());
         } catch (SchemaException e) {
-            throw SystemException.unexpected(e, "TEMPORARY");
+            throw new ConfigurationException(e);
         }
     }
 
@@ -120,7 +122,7 @@ public class ShadowAssociationDefinitionImpl
         try {
             return new ShadowAssociationDefinitionImpl(
                     associationTypeDefinition,
-                    NativeShadowItemDefinitionImpl.simulatedAssociation(
+                    NativeShadowItemDefinitionImpl.forSimulatedAssociation(
                             simulationDefinition.getLocalSubjectItemName(), simulationDefinition.getQName(), ShadowAssociationParticipantRole.SUBJECT),
                     toExistingImmutable(assocDefBean));
         } catch (SchemaException e) {
