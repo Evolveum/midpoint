@@ -32,7 +32,7 @@ public class VerticalFormPasswordPropertyPanel extends ProtectedStringPropertyPa
 
     @Override
     protected ItemHeaderPanel createHeaderPanel() {
-        return new VerticalFormPrismPropertyHeaderPanel<ProtectedStringType>(ID_HEADER, getModel()) {
+        return new VerticalFormPrismPropertyHeaderPanel<>(ID_HEADER, getModel()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(VerticalFormPasswordPropertyPanel.this);

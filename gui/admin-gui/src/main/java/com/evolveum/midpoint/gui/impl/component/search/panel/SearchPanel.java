@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -520,7 +521,8 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
             return;
         }
         try {
-            ObjectFilter objectFilter = getPageBase().getQueryConverter().createObjectFilter(getModelObject().getTypeClass(), axiomSearchItem.getFilter());
+            ObjectFilter objectFilter = getPageBase().getQueryConverter().createObjectFilter(
+                    getModelObject().getTypeClass(), axiomSearchItem.getFilter());
             PrismQuerySerialization serializer = PrismContext.get().querySerializer().serialize(objectFilter);
             getModelObject().setDslQuery(serializer.filterText());
         } catch (SchemaException | PrismQuerySerialization.NotSupportedException e) {

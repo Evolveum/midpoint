@@ -177,19 +177,18 @@ public class ExpressionUtil {
     }
 
     @Nullable
-    public static Language converLanguage(String language) {
-        if (StringUtils.isEmpty(language)) {
+    public static Language converLanguage(String languageValue) {
+        if (StringUtils.isEmpty(languageValue)) {
             return null;
         }
-        if (language.equals(Language.VELOCITY.getLanguage())) {
-            return Language.VELOCITY;
-        } else if (language.equals(Language.PYTHON.getLanguage())) {
-            return Language.PYTHON;
-        } else if (language.equals(Language.JAVASCRIPT.getLanguage())) {
-            return Language.JAVASCRIPT;
-        } else {
-            return Language.GROOVY;
+
+        for (Language language : Language.values()) {
+            if (languageValue.equals(language.getLanguage()) || languageValue.equalsIgnoreCase(language.name())) {
+                return language;
+            }
         }
+
+        return Language.GROOVY;
     }
 
     public static String loadExpression(ExpressionType expression, PrismContext prismContext, Trace LOGGER) {

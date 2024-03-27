@@ -50,6 +50,10 @@ public class TaskExecutionMode implements Serializable {
         this.productionConfiguration = productionConfiguration;
     }
 
+    public String getName() {
+        return name;
+    }
+
     /** TODO */
     public boolean isFullyPersistent() {
         return persistenceMode == FULL;
