@@ -11,6 +11,7 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -21,6 +22,7 @@ public class DataPoint implements Clusterable, Serializable {
 
     Set<String> members;
     Set<String> properties;
+    Set<String> closeNeighbors = new HashSet<>();
     int membersCount;
     ExtensionProperties extensionProperties;
 
@@ -46,6 +48,16 @@ public class DataPoint implements Clusterable, Serializable {
     @Override
     public Set<String> getPoint() {
         return properties;
+    }
+
+    @Override
+    public Set<String> getCloseNeighbors() {
+        return null;
+    }
+
+    @Override
+    public void addCloseNeighbor(String neighbor) {
+        this.closeNeighbors.add(neighbor);
     }
 
     @Override

@@ -176,7 +176,7 @@ public class ProgressBar extends BasePanel<String> {
     }
 
     public String getProgressBarColor(){
-        return "blue";
+        return "#206f9d";
     }
 
     public List<RoleAnalysisAttributeStatistics> getRoleAnalysisAttributeResult() {

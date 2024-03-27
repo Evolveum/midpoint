@@ -7,17 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
-import java.util.List;
-
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.task.api.Task;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -28,6 +18,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysis
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 @PanelType(name = "outlierProperty")
 @PanelInstance(

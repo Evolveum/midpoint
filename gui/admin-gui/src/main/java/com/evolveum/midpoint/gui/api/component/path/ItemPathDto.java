@@ -99,14 +99,6 @@ public class ItemPathDto implements Serializable {
         return (path != null && !path.isEmpty() && itemDef == null && parentPath == null);
     }
 
-    public String getPathStringValue() {
-        return pathStringValue;
-    }
-
-    public void setPathStringValue(String pathStringValue) {
-        this.pathStringValue = pathStringValue;
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

@@ -5,8 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
+package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRoleMembershipRefAssignment;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 
 import java.util.*;
@@ -46,6 +47,9 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 public class ClusteringUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClusteringUtils.class);
+    public static final String LOAD_DATA_STEP = "Loading data";
+    public static final String PREPARING_DATA_POINTS_STEP = "Preparing data points";
+
     static Collection<SelectorOptions<GetOperationOptions>> defaultOptions = GetOperationOptionsBuilder.create().raw().build();
 
     /**
@@ -57,7 +61,7 @@ public class ClusteringUtils {
      * @return A set of existing role OIDs.
      */
     @NotNull
-    protected static Set<String> getExistingActiveRolesOidsSet(@NotNull ModelService modelService,
+    private static Set<String> getExistingActiveRolesOidsSet(@NotNull ModelService modelService,
             @NotNull Task task,
             @NotNull OperationResult result) {
         Set<String> existingRolesOidsSet = new HashSet<>();
@@ -99,7 +103,7 @@ public class ClusteringUtils {
      * @return A list multimap mapping roles to users.
      */
     @NotNull
-    protected static ListMultimap<List<String>, String> getUserBasedRoleToUserMap(@NotNull ModelService modelService,
+    private static ListMultimap<List<String>, String> getUserBasedRoleToUserMap(@NotNull ModelService modelService,
             int minProperties,
             int maxProperties,
             @Nullable SearchFilterType userQuery,
@@ -151,7 +155,7 @@ public class ClusteringUtils {
      * @return A list multimap mapping role to users.
      */
     @NotNull
-    protected static ListMultimap<String, String> getRoleBasedRoleToUserMap(@NotNull ModelService modelService,
+    private static ListMultimap<String, String> getRoleBasedRoleToUserMap(@NotNull ModelService modelService,
             @Nullable SearchFilterType userQuery,
             @NotNull Set<String> existingRolesOidsSet,
             @NotNull Task task,
@@ -198,7 +202,7 @@ public class ClusteringUtils {
      * @return A list multimap mapping users to roles.
      */
     @NotNull
-    protected static ListMultimap<List<String>, String> getRoleBasedUserToRoleMap(int minProperties,
+    private static ListMultimap<List<String>, String> getRoleBasedUserToRoleMap(int minProperties,
             int maxProperties,
             @NotNull ListMultimap<String, String> roleToUserMap) {
         ListMultimap<List<String>, String> userToRoleMap = ArrayListMultimap.create();
@@ -212,13 +216,94 @@ public class ClusteringUtils {
         return userToRoleMap;
     }
 
+    @NotNull
+    private static ListMultimap<List<String>, String> getUserBasedMembershipToUserMap(@NotNull ModelService modelService,
+            int minProperties,
+            int maxProperties,
+            @Nullable SearchFilterType userQuery,
+            @NotNull Set<String> existingRolesOidsSet,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        ListMultimap<List<String>, String> roleToUserMap = ArrayListMultimap.create();
+
+        ResultHandler<UserType> resultHandler = (object, parentResult) -> {
+            try {
+                List<String> properties = getRoleMembershipRefAssignment(object.asObjectable(), RoleType.COMPLEX_TYPE);
+                int propertiesCount = properties.size();
+                if (minProperties <= propertiesCount && maxProperties >= propertiesCount) {
+                    properties.retainAll(existingRolesOidsSet);
+                    Collections.sort(properties);
+                    roleToUserMap.putAll(properties, Collections.singletonList(object.asObjectable().getOid()));
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            return true;
+        };
+
+        ObjectQuery objectQuery;
+        try {
+            objectQuery = PrismContext.get().getQueryConverter().createObjectQuery(UserType.class, userQuery);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            modelService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, defaultOptions,
+                    task, result);
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't search UserType ", e);
+        }
+
+        return roleToUserMap;
+    }
+
+    @NotNull
+    private static ListMultimap<String, String> getRoleBasedMembershipToUserMap(@NotNull ModelService modelService,
+            @Nullable SearchFilterType userQuery,
+            @NotNull Set<String> existingRolesOidsSet,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        ListMultimap<String, String> roleToUserMap = ArrayListMultimap.create();
+
+        ResultHandler<UserType> resultHandler = (object, parentResult) -> {
+            try {
+                UserType properties = object.asObjectable();
+                List<String> members = getRoleMembershipRefAssignment(properties, RoleType.COMPLEX_TYPE);
+                members.retainAll(existingRolesOidsSet);
+                for (String roleId : members) {
+                    roleToUserMap.putAll(roleId, Collections.singletonList(properties.getOid()));
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            return true;
+        };
+
+        ObjectQuery objectQuery;
+        try {
+            objectQuery = PrismContext.get().getQueryConverter().createObjectQuery(UserType.class, userQuery);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            modelService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, defaultOptions,
+                    task, result);
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't search UserType ", e);
+        }
+        return roleToUserMap;
+    }
+
     /**
      * Prepares data points based on the provided chunk map.
      *
      * @param chunkMap A list multimap mapping roles to users.
      * @return A list of DataPoint instances.
      */
-    public static List<DataPoint> prepareDataPoints(@NotNull ListMultimap<List<String>, String> chunkMap) {
+    public static @NotNull List<DataPoint> prepareDataPoints(@NotNull ListMultimap<List<String>, String> chunkMap) {
         List<DataPoint> dataPoints = new ArrayList<>();
 
         for (List<String> points : chunkMap.keySet()) {
@@ -311,6 +396,74 @@ public class ClusteringUtils {
             }
         }
         return dataPoints;
+    }
+
+    @NotNull
+    public static ListMultimap<List<String>, String> loadRoleBasedMultimapData(@NotNull ModelService modelService,
+            int minProperties,
+            int maxProperties,
+            @Nullable SearchFilterType userQuery,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        Set<String> existingRolesOidsSet = getExistingActiveRolesOidsSet(modelService, task, result);
+
+        //role //user
+        ListMultimap<String, String> roleToUserMap = getRoleBasedRoleToUserMap(
+                modelService, userQuery, existingRolesOidsSet, task, result);
+
+        //user //role
+        return getRoleBasedUserToRoleMap(minProperties, maxProperties, roleToUserMap);
+    }
+
+    @NotNull
+    public static ListMultimap<List<String>, String> loadRoleBasedMembershipMultimapData(@NotNull ModelService modelService,
+            int minProperties,
+            int maxProperties,
+            @Nullable SearchFilterType userQuery,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        Set<String> existingRolesOidsSet = getExistingActiveRolesOidsSet(modelService, task, result);
+
+        //role //user
+        ListMultimap<String, String> roleToUserMap = getRoleBasedMembershipToUserMap(
+                modelService, userQuery, existingRolesOidsSet, task, result);
+
+        //user //role
+        return getRoleBasedUserToRoleMap(minProperties, maxProperties, roleToUserMap);
+    }
+
+    @NotNull
+    public static ListMultimap<List<String>, String> loadUserBasedMultimapData(@NotNull ModelService modelService,
+            int minProperties,
+            int maxProperties,
+            @Nullable SearchFilterType userQuery,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        Set<String> existingRolesOidsSet = ClusteringUtils.getExistingActiveRolesOidsSet(modelService, task, result);
+
+        //role //user
+        return ClusteringUtils.getUserBasedRoleToUserMap(modelService, minProperties, maxProperties,
+                userQuery, existingRolesOidsSet, task, result
+        );
+    }
+
+    @NotNull
+    public static ListMultimap<List<String>, String> loadUserBasedMembershipMultimapData(@NotNull ModelService modelService,
+            int minProperties,
+            int maxProperties,
+            @Nullable SearchFilterType userQuery,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        Set<String> existingRolesOidsSet = ClusteringUtils.getExistingActiveRolesOidsSet(modelService, task, result);
+
+        //role //user
+        return ClusteringUtils.getUserBasedMembershipToUserMap(modelService, minProperties, maxProperties,
+                userQuery, existingRolesOidsSet, task, result
+        );
     }
 
 }

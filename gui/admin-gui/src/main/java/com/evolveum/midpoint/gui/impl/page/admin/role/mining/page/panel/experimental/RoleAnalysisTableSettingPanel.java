@@ -8,11 +8,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experimental;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.*;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -32,15 +31,17 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathSegmentPanel;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import javax.xml.namespace.QName;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements Popupable {
 
@@ -183,8 +184,20 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
             }
 
             @Override
-            protected ItemPathSegmentPanel getItemPathSegmentPanel() {
-                return super.getItemPathSegmentPanel();
+            public boolean collectItems(Collection<? extends ItemDefinition> definitions,
+                    String input, Map<String,
+                    ItemDefinition<?>> toSelect) {
+                if (definitions == null) {
+                    return true;
+                }
+
+                for (ItemDefinition<?> def : definitions) {
+                    if (isEligibleItemDefinition(def)) {
+                        putDefinition(def, input, toSelect);
+                    }
+                }
+
+                return true;
             }
 
             @Override
@@ -193,8 +206,13 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
             }
 
             @Override
-            protected boolean isRoleAnalysisSimple() {
-                return true;
+            public boolean isPlusButtonVisible() {
+                return false;
+            }
+
+            @Override
+            public boolean isMinusButtonVisible() {
+                return false;
             }
 
             @Override
@@ -259,8 +277,31 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
             }
 
             @Override
-            protected boolean isRoleAnalysisSimple() {
+            public boolean collectItems(
+                    Collection<? extends ItemDefinition> definitions,
+                    String input,
+                    Map<String, ItemDefinition<?>> toSelect) {
+                if (definitions == null) {
+                    return true;
+                }
+
+                for (ItemDefinition<?> def : definitions) {
+                    if (isEligibleItemDefinition(def)) {
+                        putDefinition(def, input, toSelect);
+                    }
+                }
+
                 return true;
+            }
+
+            @Override
+            public boolean isPlusButtonVisible() {
+                return false;
+            }
+
+            @Override
+            public boolean isMinusButtonVisible() {
+                return false;
             }
 
             @Override
@@ -363,6 +404,30 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         });
         tableModeSelector.setOutputMarkupId(true);
         add(tableModeSelector);
+    }
+
+    public void putDefinition(ItemDefinition<?> def, String input, Map<String, ItemDefinition<?>> toSelect) {
+        if (StringUtils.isBlank(input)) {
+            toSelect.put(def.getItemName().getLocalPart(), def);
+        } else {
+            if (def.getItemName().getLocalPart().startsWith(input)) {
+                toSelect.put(def.getItemName().getLocalPart(), def);
+            }
+        }
+    }
+
+    private boolean isEligibleItemDefinition(@NotNull ItemDefinition<?> def) {
+        return def.isSingleValue() && (isPolyStringOrString(def) || isReference(def));
+    }
+
+    private boolean isPolyStringOrString(@NotNull ItemDefinition<?> def) {
+        return def.getTypeName().getLocalPart().equals(PolyStringType.COMPLEX_TYPE.getLocalPart())
+                || def.getTypeName().getLocalPart().equals("string")
+                || def.getTypeName().getLocalPart().equals("PolyString");
+    }
+
+    private boolean isReference(@NotNull ItemDefinition<?> def) {
+        return def.getTypeName().getLocalPart().equals(ObjectReferenceType.COMPLEX_TYPE.getLocalPart());
     }
 
     public void performAfterFinish(AjaxRequestTarget target) {

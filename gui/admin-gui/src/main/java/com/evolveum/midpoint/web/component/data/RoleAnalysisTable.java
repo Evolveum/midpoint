@@ -11,15 +11,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 
 import java.io.Serial;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCandidateRoleType;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -33,17 +26,17 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
@@ -57,8 +50,8 @@ import com.evolveum.midpoint.web.component.util.RoleAnalysisTablePageable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCandidateRoleType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 

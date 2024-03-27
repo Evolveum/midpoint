@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
+package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering;
 
 import java.util.List;
 

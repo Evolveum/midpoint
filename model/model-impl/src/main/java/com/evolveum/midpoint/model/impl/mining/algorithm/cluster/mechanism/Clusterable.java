@@ -17,6 +17,8 @@ import java.util.Set;
  */
 public interface Clusterable {
     Set<String> getPoint();
+    Set<String> getCloseNeighbors();
+    void addCloseNeighbor(String neighbor);
     ExtensionProperties getExtensionProperties();
     int getMembersCount();
 }

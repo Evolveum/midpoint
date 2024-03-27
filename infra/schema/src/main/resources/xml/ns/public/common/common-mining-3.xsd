@@ -587,6 +587,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="isIndirect" type="xsd:boolean" minOccurs="0">
+            <xsd:annotation>
+                <xsd:documentation>
+                    <p>
+                        Specifies whether the clustering runs in indirect mode.
+                    </p>
+                </xsd:documentation>
+                <xsd:appinfo>
+                    <a:displayName>AbstractAnalysisSessionOptionType.isIndirect</a:displayName>
+                </xsd:appinfo>
+            </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

@@ -146,13 +146,11 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
             }
 
             @Override
-            protected boolean isRoleAnalysis() {
-                return ItemPathPanel.this.isRoleAnalysis();
-            }
-
-            @Override
-            protected boolean isRoleAnalysisSimple() {
-                return ItemPathPanel.this.isRoleAnalysisSimple();
+            public void collectItems(Collection<? extends ItemDefinition> definitions, String input, Map<String, ItemDefinition<?>> toSelect) {
+                boolean isApply = ItemPathPanel.this.collectItems(definitions, input, toSelect);
+                if (!isApply) {
+                    super.collectItems(definitions, input, toSelect);
+                }
             }
         };
         itemDefPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -173,13 +171,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
             @Override
             public boolean isVisible() {
-                if (isRoleAnalysisSimple()) {
-                    return false;
-                }
-                if (getModelObject().getParentPath() == null || getModelObject().getParentPath().toItemPath() == null) {
-                    return true;
-                }
-                return (getModelObject().getParentPath().getItemDef() instanceof PrismContainerDefinition);
+                return isPlusButtonVisible();
             }
         });
         plusButton.setOutputMarkupId(true);
@@ -200,11 +192,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
             @Override
             public boolean isVisible() {
-
-                if (isRoleAnalysisSimple()) {
-                    return false;
-                }
-                return getModelObject().getParentPath() != null && getModelObject().getParentPath().toItemPath() != null;
+                return isMinusButtonVisible();
             }
         });
         minusButton.setOutputMarkupId(true);
@@ -270,6 +258,17 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         switchButton.add(new VisibleBehaviour(() -> switchToTextFieldEnabled));
         itemPathPanel.add(switchButton);
 
+    }
+
+    public boolean isPlusButtonVisible() {
+        if (getModelObject().getParentPath() == null || getModelObject().getParentPath().toItemPath() == null) {
+            return true;
+        }
+        return (getModelObject().getParentPath().getItemDef() instanceof PrismContainerDefinition);
+    }
+
+    public boolean isMinusButtonVisible() {
+        return getModelObject().getParentPath() != null && getModelObject().getParentPath().toItemPath() != null;
     }
 
     protected boolean isTextFieldVisible() {
@@ -410,19 +409,15 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         target.add(ItemPathPanel.this);
     }
 
+    public boolean collectItems(Collection<? extends ItemDefinition> definitions, String input, Map<String, ItemDefinition<?>> toSelect) {
+        return false;
+    }
+
     public boolean isTextMode() {
         return ItemPathPanelMode.TEXT_MODE.equals(panelMode);
     }
 
     protected ItemPathPanelMode getPanelMode() {
         return panelMode;
-    }
-
-    protected boolean isRoleAnalysis() {
-        return false;
-    }
-
-    protected boolean isRoleAnalysisSimple() {
-        return false;
     }
 }

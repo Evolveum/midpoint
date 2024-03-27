@@ -42,6 +42,7 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
             LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
             RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
             RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
+            RoleAnalysisCategoryType analysisCategory = processModeObject.getAnalysisCategory();
 
             PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType = getContainerFormModel().getObject()
                     .getValue();
@@ -71,6 +72,11 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
 
             double minMembersObject = maxMembersObjects < 10 ? 2.0 : 10;
             double minObject = maxPropertiesObjects < 10 ? 1.0 : 10;
+            boolean isIndirect = analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS);
+
+            if (sessionType.getNewValue().getValue().isIsIndirect() == null) {
+                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);
+            }
 
             if (sessionType.getNewValue().getValue().getSimilarityThreshold() == null) {
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD, 80.0);

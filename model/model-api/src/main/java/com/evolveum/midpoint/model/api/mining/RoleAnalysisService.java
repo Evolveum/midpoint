@@ -702,7 +702,6 @@ public interface RoleAnalysisService {
      * Performs attribute analysis for role members.
      *
      * @param objectOid The OID of the object to analyze.
-     * @param targetObjectOid
      * @param task Task used for processing the attribute analysis.
      * @param result OperationResult containing the result of the operation.
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
@@ -751,15 +750,36 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
+
+    /**
+     * Resolves the focus object icon color based on the provided focus object archetype.
+     *
+     * @param focusObject FocusType representing the focus object for which the icon color is being resolved.
+     * @param task Task used for resolving the icon color.
+     * @param result OperationResult containing the result of the operation.
+     * Any errors or status information will be recorded here.
+     * @return String representing the icon color of the focus object.
+     */
     String resolveFocusObjectIconColor(@NotNull FocusType focusObject, @NotNull Task task, @NotNull OperationResult result);
 
-
+    /**
+     * Resolve object attribute value.
+     * @param prismUser The user object.
+     * @param itemDef The attribute definition.
+     * @return Set of attribute values that user has.
+     */
     @Nullable Set<String> resolveUserValueToMark(
             @NotNull PrismObject<UserType> prismUser,
             @NotNull List<RoleAnalysisAttributeDef> itemDef);
 
+    /**
+     * Resolve object attribute value.
+     * @param prismRole The role object.
+     * @param itemDef The attribute definition.
+     * @return Set of attribute values that role has.
+     */
     @Nullable Set<String> resolveRoleValueToMark(
-            @NotNull PrismObject<RoleType> prismUser,
+            @NotNull PrismObject<RoleType> prismRole,
             @NotNull List<RoleAnalysisAttributeDef> itemDef);
 
 }

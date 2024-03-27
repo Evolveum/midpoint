@@ -5,10 +5,12 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
+package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context;
 
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering.Clusterable;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -63,16 +65,9 @@ public class ClusteringActionExecutor extends BaseAction {
         if (prismSession != null) {
 
             RoleAnalysisSessionType session = prismSession.asObjectable();
-            RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-
             roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result);
 
-            RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-            if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-                this.clusterable = new UserBasedClustering();
-            } else if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-                this.clusterable = new RoleBasedClustering();
-            }
+            this.clusterable = new ClusteringBehavioralResolver();
 
             List<PrismObject<RoleAnalysisClusterType>> clusterObjects =
                     clusterable.executeClustering(roleAnalysisService, modelService, session, handler, task, result);

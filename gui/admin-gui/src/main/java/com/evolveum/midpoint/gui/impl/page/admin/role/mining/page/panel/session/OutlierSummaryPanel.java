@@ -10,13 +10,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session
 import java.io.Serial;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
-
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
 
 public class OutlierSummaryPanel extends FocusSummaryPanel<RoleAnalysisOutlierType> {

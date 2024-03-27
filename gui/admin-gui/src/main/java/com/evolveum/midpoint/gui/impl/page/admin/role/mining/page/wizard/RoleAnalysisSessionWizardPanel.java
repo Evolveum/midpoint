@@ -122,7 +122,7 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
 
-        if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
+        if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED) || analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
             steps.add(new RoleAnalysisMatchingRulesWizardPanel(getHelper().getDetailsModel()) {
                 @Override
                 public VisibleEnableBehaviour getBackBehaviour() {

@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.mining.utils;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.OutliersDetectionUtil.executeOutliersAnalysis;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.OutliersDetectionUtil.executeOutliersAnalysis;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.ClusterExplanation.getClusterExplanationDescription;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.ClusterExplanation.resolveClusterName;
 
@@ -59,7 +59,7 @@ public class RoleAnalysisAlgorithmUtils {
     public List<PrismObject<RoleAnalysisClusterType>> processClusters(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull List<DataPoint> dataPoints,
-            List<Cluster<DataPoint>> clusters,
+            @NotNull List<Cluster<DataPoint>> clusters,
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
