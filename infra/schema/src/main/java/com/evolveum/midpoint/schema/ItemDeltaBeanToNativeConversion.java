@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -196,6 +197,11 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
         if (explicitTypeName == null) {
             return false;
         }
+        // Supported XSD types do not have type definition as of 4.9-M3
+        if (XmlTypeConverter.canConvert(explicitTypeName)) {
+            return false;
+        }
+
         var typeDef = PrismContext.get().getSchemaRegistry().findTypeDefinitionByType(explicitTypeName);
         return typeDef == null;
     }

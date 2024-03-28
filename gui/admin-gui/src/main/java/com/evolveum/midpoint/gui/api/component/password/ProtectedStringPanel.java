@@ -231,7 +231,7 @@ public class ProtectedStringPanel extends BasePanel<PrismPropertyValueWrapper<Pr
     private void addRadio(RadioGroup<Integer> radioGroup, String checkId, String labelId, int state, String labelKey) {
         Radio<Integer> radio = new Radio<>(checkId, Model.of(state), radioGroup);
         radioGroup.add(radio);
-        radioGroup.add(new Label(labelId, getPageBase().createStringResource(labelKey)));
+        radioGroup.add(new Label(labelId, getParentPage().createStringResource(labelKey)));
 
     }
 
