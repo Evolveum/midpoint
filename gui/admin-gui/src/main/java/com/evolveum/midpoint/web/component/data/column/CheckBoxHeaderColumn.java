@@ -108,6 +108,10 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         for (IModel<T> object : objects) {
             T modelObject = object.getObject();
 
+            if (shouldBeUnchangeable(modelObject)) {
+                continue;
+            }
+
             if (modelObject instanceof SelectableRow) {
                 ((SelectableRow<?>) modelObject).setSelected(selected);
             } else if (modelObject instanceof SelectableObjectModel) {  //TODO is this needed?
@@ -190,5 +194,9 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         });
 
         return ret;
+    }
+
+    protected boolean shouldBeUnchangeable(T modelObject) {
+        return false;
     }
 }

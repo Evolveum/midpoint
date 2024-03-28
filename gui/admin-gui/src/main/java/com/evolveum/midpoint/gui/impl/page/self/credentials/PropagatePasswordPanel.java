@@ -241,7 +241,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     private List<IColumn<PasswordAccountDto, String>> initColumns() {
         List<IColumn<PasswordAccountDto, String>> columns = new ArrayList<>();
 
-        columns.add(new CheckBoxHeaderColumn<>() {
+        columns.add(new CheckBoxHeaderColumn<PasswordAccountDto>() {
             @Override
             protected IModel<Boolean> getEnabled(IModel<PasswordAccountDto> rowModel) {
                 return () -> {
@@ -300,6 +300,14 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                                 target.add(panel);
                             });
                 }
+            }
+
+            @Override
+            protected boolean shouldBeUnchangeable(PasswordAccountDto obj) {
+                if (obj == null) {
+                    return super.shouldBeUnchangeable(obj);
+                }
+                return isMandatoryPropagation(obj);
             }
         });
 
@@ -617,7 +625,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                 });
     }
 
-    protected CredentialsPropagationUserControlType getCredentialsPropagationUserControl() {
+    private CredentialsPropagationUserControlType getCredentialsPropagationUserControl() {
         CredentialsPolicyType credentialsPolicy = credentialsPolicyModel.getObject();
         return credentialsPolicy != null && credentialsPolicy.getPassword() != null ?
                 credentialsPolicy.getPassword().getPropagationUserControl() : null;
@@ -643,5 +651,11 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     @Override
     protected boolean isHintPanelVisible() {
         return getPasswordHintConfigurability() == PasswordHintConfigurabilityType.ALWAYS_CONFIGURE;
+    }
+
+    private boolean isMandatoryPropagation(PasswordAccountDto passwordAccountDto) {
+        CredentialsPropagationUserControlType propagationUserControl = getCredentialsPropagationUserControl();
+        return passwordAccountDto.isMidpoint()
+                && CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(propagationUserControl);
     }
 }
