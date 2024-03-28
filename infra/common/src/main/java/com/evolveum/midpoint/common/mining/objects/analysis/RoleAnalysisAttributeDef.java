@@ -96,7 +96,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
         return null;
     }
 
-    public ObjectQuery getQuery() {
+    public ObjectQuery getQuery(String value) {
         return query;
     }
 

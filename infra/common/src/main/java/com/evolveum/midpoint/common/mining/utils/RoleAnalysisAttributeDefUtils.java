@@ -11,6 +11,7 @@ import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttribut
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -62,6 +63,14 @@ public class RoleAnalysisAttributeDefUtils {
             ItemPath.create(FocusType.F_ARCHETYPE_REF),
             false,
             "archetypeRef") {
+
+        @Override
+        public ObjectQuery getQuery(String value) {
+            return PrismContext.get().queryFor(FocusType.class)
+                    .item(getPath()).ref(value)
+                    .build();
+        }
+
         @Override
         public String resolveSingleValueItem(PrismObject<?> prismObject, ItemPath itemPath) {
             Item<PrismValue, ItemDefinition<?>> property = prismObject.findItem(itemPath);
@@ -81,32 +90,74 @@ public class RoleAnalysisAttributeDefUtils {
     public static RoleAnalysisAttributeDef title = new RoleAnalysisAttributeDef(
             F_TITLE,
             false,
-            "title");
+            "title") {
+        @Override
+        public ObjectQuery getQuery(String value) {
+            return PrismContext.get().queryFor(UserType.class)
+                    .item(getPath()).eq(value)
+                    .build();
+        }
+    };
 
     public static RoleAnalysisAttributeDef locale = new RoleAnalysisAttributeDef(
             F_LOCALE,
             false,
-            "locale");
+            "locale") {
+        @Override
+        public ObjectQuery getQuery(String value) {
+            return PrismContext.get().queryFor(FocusType.class)
+                    .item(getPath()).eq(value)
+                    .build();
+        }
+    };
 
     public static RoleAnalysisAttributeDef locality = new RoleAnalysisAttributeDef(
             F_LOCALITY,
             false,
-            "locality");
+            "locality") {
+        @Override
+        public ObjectQuery getQuery(String value) {
+            return PrismContext.get().queryFor(FocusType.class)
+                    .item(getPath()).eq(value)
+                    .build();
+        }
+    };
 
     public static RoleAnalysisAttributeDef costCenter = new RoleAnalysisAttributeDef(
             F_COST_CENTER,
             false,
-            "costCenter");
+            "costCenter") {
+        @Override
+        public ObjectQuery getQuery(String value) {
+            return PrismContext.get().queryFor(FocusType.class)
+                    .item(getPath()).eq(value)
+                    .build();
+        }
+    };
 
     public static RoleAnalysisAttributeDef lifecycleState = new RoleAnalysisAttributeDef(
             F_LIFECYCLE_STATE,
             false,
-            "lifecycleState");
+            "lifecycleState") {
+        @Override
+        public ObjectQuery getQuery(String value) {
+            return PrismContext.get().queryFor(FocusType.class)
+                    .item(getPath()).eq(value)
+                    .build();
+        }
+    };
 
     public static RoleAnalysisAttributeDef riskLevel = new RoleAnalysisAttributeDef(
             F_RISK_LEVEL,
             false,
-            "riskLevel");
+            "riskLevel") {
+        @Override
+        public ObjectQuery getQuery(String value) {
+            return PrismContext.get().queryFor(RoleType.class)
+                    .item(getPath()).eq(value)
+                    .build();
+        }
+    };
 
     @Contract(pure = true)
     public static @Unmodifiable @NotNull List<RoleAnalysisAttributeDef> getAttributesForRoleAnalysis() {
@@ -164,6 +215,28 @@ public class RoleAnalysisAttributeDefUtils {
                     @NotNull PrismObject<?> prismObject,
                     @NotNull ItemPath itemPath) {
                 return resolveAssignment(prismObject, itemPath, targetType);
+            }
+
+            @Override
+            public ObjectQuery getQuery(String value) {
+
+                Class<? extends ObjectType> objectClass = null;
+                if (targetType.equals(OrgType.COMPLEX_TYPE)) {
+                    objectClass = OrgType.class;
+
+                } else if (targetType.equals(RoleType.COMPLEX_TYPE)) {
+                    objectClass = RoleType.class;
+                } else if (targetType.equals(ServiceType.COMPLEX_TYPE)) {
+                    objectClass = ServiceType.class;
+                } else if (targetType.equals(ArchetypeType.COMPLEX_TYPE)) {
+                    objectClass = ArchetypeType.class;
+                } else if (targetType.equals(ResourceType.COMPLEX_TYPE)) {
+                    objectClass = ResourceType.class;
+                }
+
+                return PrismContext.get().queryFor(objectClass)
+                        .item(getPath()).ref(value)
+                        .build();
             }
         };
     }
@@ -236,7 +309,14 @@ public class RoleAnalysisAttributeDefUtils {
                 RoleAnalysisAttributeDef attribute = new RoleAnalysisAttributeDef(
                         ItemPath.create(UserType.F_EXTENSION, itemName),
                         false,
-                        itemName + " extension");
+                        itemName + " extension"){
+                    @Override
+                    public ObjectQuery getQuery(String value) {
+                        return PrismContext.get().queryFor(UserType.class)
+                                .item(getPath()).eq(value)
+                                .build();
+                    }
+                };
                 attributes.add(attribute);
 
             }

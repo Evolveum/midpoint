@@ -588,16 +588,16 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="isIndirect" type="xsd:boolean" minOccurs="0">
-            <xsd:annotation>
-                <xsd:documentation>
-                    <p>
-                        Specifies whether the clustering runs in indirect mode.
-                    </p>
-                </xsd:documentation>
-                <xsd:appinfo>
-                    <a:displayName>AbstractAnalysisSessionOptionType.isIndirect</a:displayName>
-                </xsd:appinfo>
-            </xsd:annotation>
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies whether the clustering runs in indirect mode.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractAnalysisSessionOptionType.isIndirect</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -962,6 +962,30 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>RoleAnalysisAttributeStatistics.frequency</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inRepo" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Count of the attribute value in the repository.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeStatistics.inRepo</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inGroup" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Count of the attribute value in the group.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeStatistics.inGroup</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

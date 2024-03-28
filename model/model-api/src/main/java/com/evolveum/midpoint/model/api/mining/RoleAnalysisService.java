@@ -681,22 +681,26 @@ public interface RoleAnalysisService {
      *
      * @param prismUsers Set of PrismObject representing user objects to analyze.
      * @param membershipDensity The density of membership.
+     * @param task
+     * @param result
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
      */
     List<AttributeAnalysisStructure> userTypeAttributeAnalysis(
             @NotNull Set<PrismObject<UserType>> prismUsers,
-            Double membershipDensity);
+            Double membershipDensity, @NotNull Task task, @NotNull OperationResult result);
 
     /**
      * Performs attribute analysis for role objects.
      *
      * @param prismRoles Set of PrismObject representing role objects to analyze.
      * @param membershipDensity The density of membership.
+     * @param task
+     * @param result
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
      */
     List<AttributeAnalysisStructure> roleTypeAttributeAnalysis(
             @NotNull Set<PrismObject<RoleType>> prismRoles,
-            Double membershipDensity);
+            Double membershipDensity, @NotNull Task task, @NotNull OperationResult result);
 
     /**
      * Performs attribute analysis for role members.
@@ -781,5 +785,13 @@ public interface RoleAnalysisService {
     @Nullable Set<String> resolveRoleValueToMark(
             @NotNull PrismObject<RoleType> prismRole,
             @NotNull List<RoleAnalysisAttributeDef> itemDef);
+
+    <T extends ObjectType> Integer countObjects(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult);
+
 
 }

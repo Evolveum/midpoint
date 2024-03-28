@@ -7,12 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
-import static com.evolveum.midpoint.model.impl.mining.analysis.AttributeAnalysisUtil.*;
-
 import static java.util.Collections.singleton;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
+import static com.evolveum.midpoint.model.impl.mining.analysis.AttributeAnalysisUtil.*;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
@@ -33,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
@@ -40,7 +39,6 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
@@ -1474,7 +1472,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             for (String inducementForAdd : inducementsOid) {
                 ObjectDelta<RoleType> roleD = PrismContext.get().deltaFor(RoleType.class)
                         .item(RoleType.F_INDUCEMENT)
-                        .add(createAssignmentTo(inducementForAdd, ObjectTypes.ROLE, PrismContext.get()))
+                        .add(getAssignmentTo(inducementForAdd))
                         .asObjectDelta(candidateRoleOid);
                 Collection<ObjectDelta<? extends ObjectType>> deltas2 = MiscSchemaUtil.createCollection(roleD);
                 modelService.executeChanges(deltas2, null, task, result);
@@ -1484,7 +1482,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             for (String unassignedRole : unassignedRoles) {
                 ObjectDelta<RoleType> roleD = PrismContext.get().deltaFor(RoleType.class)
                         .item(RoleType.F_INDUCEMENT)
-                        .delete(createAssignmentTo(unassignedRole, ObjectTypes.ROLE, PrismContext.get()))
+                        .delete(getAssignmentTo(unassignedRole))
                         .asObjectDelta(candidateRoleOid);
                 Collection<ObjectDelta<? extends ObjectType>> deltas2 = MiscSchemaUtil.createCollection(roleD);
                 modelService.executeChanges(deltas2, null, task, result);
@@ -1503,6 +1501,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("Couldn't modify candidate role container {}", cluster.getOid(), e);
         }
+    }
+
+    @NotNull
+    private static AssignmentType getAssignmentTo(String unassignedRole) {
+        return createAssignmentTo(unassignedRole, ObjectTypes.ROLE);
     }
 
     public <T extends ObjectType> void loadSearchObjectIterative(
@@ -1609,29 +1612,34 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             Set<PrismObject<UserType>> prismUsers = fetchPrismUsers(this, objectOid, task, result);
-            runUserAttributeAnalysis(prismUsers, attributeAnalysisStructures);
+            runUserAttributeAnalysis(this, prismUsers, attributeAnalysisStructures, task, result);
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
             Set<PrismObject<RoleType>> prismRolesSet = fetchPrismRoles(this, objectOid, task, result);
-            runRoleAttributeAnalysis(prismRolesSet, attributeAnalysisStructures);
+            runRoleAttributeAnalysis(this, prismRolesSet, attributeAnalysisStructures, task, result);
         }
         return attributeAnalysisStructures;
     }
 
     @Override
-    public List<AttributeAnalysisStructure> userTypeAttributeAnalysis(@NotNull Set<PrismObject<UserType>> prismUsers,
-            Double membershipDensity) {
+    public List<AttributeAnalysisStructure> userTypeAttributeAnalysis(
+            @NotNull Set<PrismObject<UserType>> prismUsers,
+            Double membershipDensity,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
-        runUserAttributeAnalysis(prismUsers, attributeAnalysisStructures);
+        runUserAttributeAnalysis(this, prismUsers, attributeAnalysisStructures, task, result);
         return attributeAnalysisStructures;
     }
 
     @Override
     public List<AttributeAnalysisStructure> roleTypeAttributeAnalysis(
             @NotNull Set<PrismObject<RoleType>> prismRoles,
-            Double membershipDensity) {
+            Double membershipDensity,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
 
-        runRoleAttributeAnalysis(prismRoles, attributeAnalysisStructures);
+        runRoleAttributeAnalysis(this, prismRoles, attributeAnalysisStructures, task, result);
         return attributeAnalysisStructures;
     }
 
@@ -1650,7 +1658,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         Set<PrismObject<UserType>> prismUsers = new HashSet<>(userExistCache.values());
         userExistCache.clear();
 
-        return userTypeAttributeAnalysis(prismUsers, 100.0);
+        return userTypeAttributeAnalysis(prismUsers, 100.0, task, result);
     }
 
     @Override
@@ -1660,9 +1668,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull OperationResult result) {
 
         PrismObject<UserType> userTypeObject = getUserTypeObject(objectOid, task, result);
+        if (userTypeObject == null) {
+            return Collections.emptyList();
+        }
         List<String> rolesOidAssignment = getRolesOidAssignment(userTypeObject.asObjectable());
         Set<PrismObject<RoleType>> prismRolesSet = fetchPrismRoles(this, new HashSet<>(rolesOidAssignment), task, result);
-        return roleTypeAttributeAnalysis(prismRolesSet, 100.0);
+        return roleTypeAttributeAnalysis(prismRolesSet, 100.0, task, result);
     }
 
     public void processAttributeAnalysis(
@@ -1688,9 +1699,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                     .filter(Objects::nonNull).collect(Collectors.toSet());
 
             List<AttributeAnalysisStructure> userAttributeAnalysisStructures = this
-                    .userTypeAttributeAnalysis(users, 100.0);
+                    .userTypeAttributeAnalysis(users, 100.0, task, result);
             List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = this
-                    .roleTypeAttributeAnalysis(roles, 100.0);
+                    .roleTypeAttributeAnalysis(roles, 100.0, task, result);
 
             RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
             for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
@@ -1840,4 +1851,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
     }
 
+    @Override
+    public <T extends ObjectType> Integer countObjects(@NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) {
+        try {
+            return modelService.countObjects(type, query, options, task, parentResult);
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException |
+                CommunicationException | ExpressionEvaluationException e) {
+            throw new RuntimeException("Couldn't count objects of type " + type + ": " + e.getMessage(), e);
+        }
+    }
 }

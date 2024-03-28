@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
 
@@ -33,6 +30,8 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Represents a progress bar component used for visualizing progress in the user interface.
  * The progress bar displays a title, actual progress value, and a text representation of the progress percentage.
@@ -45,6 +44,7 @@ public class ProgressBar extends BasePanel<String> {
     private static final String ID_BAR = "progressBar";
     private static final String ID_BAR_PERCENTAGE = "progressBarPercentage";
     private static final String ID_BAR_TITLE = "progressBarTitle";
+    private static final String ID_BAR_TITTLE_DATA = "progressBarDetails";
 
     double minValue = 0;
     double maxValue = 100;
@@ -65,6 +65,8 @@ public class ProgressBar extends BasePanel<String> {
 
         resolveTitleLabel();
 
+        resolveTitleDataLabel();
+
         WebMarkupContainer progressBar = new WebMarkupContainer(ID_BAR);
         container.add(progressBar);
 
@@ -73,6 +75,19 @@ public class ProgressBar extends BasePanel<String> {
         Label progressBarText = new Label(ID_BAR_PERCENTAGE, () -> String.format("%.2f%%", getActualValue()));
         progressBarText.setOutputMarkupId(true);
         add(progressBarText);
+    }
+
+    private void resolveTitleDataLabel() {
+        String value;
+        if (getInClusterCount() == null || getInRepoCount() == null) {
+            value = "";
+        } else {
+            value = " (in-group=" + getInClusterCount()
+                    + ", in-repo=" + getInRepoCount() + ")";
+        }
+        Label label = new Label(ID_BAR_TITTLE_DATA, value);
+        label.setOutputMarkupId(true);
+        add(label);
     }
 
     private void setProgressBarParameters(@NotNull WebMarkupContainer progressBar) {
@@ -97,20 +112,27 @@ public class ProgressBar extends BasePanel<String> {
 
         if (roleAnalysisAttributeResult != null) {
             RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-            List<PrismObject<FocusType>> objects = roleAnalysisAttributeResult.stream()
-                    .map(analysisResult -> roleAnalysisService.getFocusTypeObject(
-                            analysisResult.getAttributeValue(), task, result))
-                    .collect(Collectors.toList());
+            List<PrismObject<FocusType>> objects = new ArrayList<>();
+            Map<String, RoleAnalysisAttributeStatistics> objectsMap = new HashMap<>();
+            for (RoleAnalysisAttributeStatistics analysisResult : roleAnalysisAttributeResult) {
+                PrismObject<FocusType> focusTypeObject = roleAnalysisService.getFocusTypeObject(
+                        analysisResult.getAttributeValue(), task, result);
+                if (focusTypeObject == null) {
+                    continue;
+                }
+                objectsMap.put(focusTypeObject.getOid(), analysisResult);
+                objects.add(focusTypeObject);
+            }
             if (objects.size() == 1 && objects.get(0) != null) {
                 PolyString name = objects.get(0).getName();
                 barTitle = name != null && name.getOrig() != null ? name.getOrig() : barTitle;
             }
-            addAjaxLinkPanel(barTitle, objects);
+            addAjaxLinkPanel(barTitle, objects, objectsMap);
         } else {
             PrismObject<FocusType> focusTypeObject = resolveFocusTypeObject(barTitle, task, result);
             if (focusTypeObject != null) {
                 barTitle = focusTypeObject.getName() != null ? focusTypeObject.getName().getOrig() : barTitle;
-                addAjaxLinkPanel(barTitle, Collections.singletonList(focusTypeObject));
+                addAjaxLinkPanel(barTitle, Collections.singletonList(focusTypeObject), null);
             } else {
                 addProgressBarTitleLabel(barTitle);
             }
@@ -133,7 +155,8 @@ public class ProgressBar extends BasePanel<String> {
         add(progressBarTitle);
     }
 
-    private void addAjaxLinkPanel(@NotNull String barTitle, @NotNull List<PrismObject<FocusType>> objects) {
+    private void addAjaxLinkPanel(@NotNull String barTitle, @NotNull List<PrismObject<FocusType>> objects,
+            @Nullable Map<String, RoleAnalysisAttributeStatistics> objectsMap) {
         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(ID_BAR_TITLE, Model.of(barTitle)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -144,6 +167,8 @@ public class ProgressBar extends BasePanel<String> {
                         super.onClose(ajaxRequestTarget);
                     }
                 };
+
+                detailsPanel.setMap(objectsMap);
                 ((PageBase) getPage()).showMainPopup(detailsPanel, target);
             }
         };
@@ -175,11 +200,19 @@ public class ProgressBar extends BasePanel<String> {
         return barTitle;
     }
 
-    public String getProgressBarColor(){
+    public String getProgressBarColor() {
         return "#206f9d";
     }
 
     public List<RoleAnalysisAttributeStatistics> getRoleAnalysisAttributeResult() {
+        return null;
+    }
+
+    public String getInRepoCount() {
+        return null;
+    }
+
+    public String getInClusterCount() {
         return null;
     }
 }

@@ -97,7 +97,7 @@ public class ProgressBarForm extends BasePanel<String> {
                 int valuesCount = value.size();
 
                 String identifier = null;
-                if(valuesCount == 1){
+                if (valuesCount == 1) {
                     if (pathToMark != null) {
                         if (pathToMark.contains(value.get(0).getAttributeValue())) {
                             identifier = "red";
@@ -129,6 +129,22 @@ public class ProgressBarForm extends BasePanel<String> {
                     }
 
                     @Override
+                    public String getInRepoCount() {
+                        if (valuesCount == 1) {
+                            return value.get(0).getInRepo().toString();
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    public String getInClusterCount() {
+                        if (valuesCount == 1) {
+                            return value.get(0).getInGroup().toString();
+                        }
+                        return null;
+                    }
+
+                    @Override
                     public List<RoleAnalysisAttributeStatistics> getRoleAnalysisAttributeResult() {
                         return value;
                     }
@@ -148,6 +164,15 @@ public class ProgressBarForm extends BasePanel<String> {
                 RoleAnalysisAttributeStatistics item = roleAnalysisAttributeStructures.get(i);
                 String attributeValue = item.getAttributeValue();
                 double frequency = item.getFrequency();
+                Integer inGroup = item.getInGroup();
+                Integer inRepo = item.getInRepo();
+                if (inGroup == null) {
+                    inGroup = 0;
+                }
+                if (inRepo == null) {
+                    inRepo = 0;
+                }
+
                 String identifier = null;
                 if (pathToMark != null) {
                     if (pathToMark.contains(attributeValue)) {
@@ -156,6 +181,8 @@ public class ProgressBarForm extends BasePanel<String> {
                 }
 
                 String finalIdentifier = identifier;
+                Integer finalInRepo = inRepo;
+                Integer finalInGroup = inGroup;
                 ProgressBar progressBar = new ProgressBar(repeatingProgressBar.newChildId()) {
                     @Override
                     public double getActualValue() {
@@ -165,6 +192,16 @@ public class ProgressBarForm extends BasePanel<String> {
                     @Override
                     public String getBarTitle() {
                         return attributeValue;
+                    }
+
+                    @Override
+                    public String getInRepoCount() {
+                        return finalInRepo.toString();
+                    }
+
+                    @Override
+                    public String getInClusterCount() {
+                        return finalInGroup.toString();
                     }
 
                     @Override

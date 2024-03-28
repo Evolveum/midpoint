@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.mining.analysis;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Map;
@@ -19,6 +21,7 @@ public class AttributePathResult implements Serializable {
     int totalRelation = 0;
     int maximumFrequency = 0;
     boolean isMultiValue;
+    RoleAnalysisAttributeDef itemDefinition;
     public AttributePathResult(Map<String, Integer> frequencyMap, int totalRelation) {
         this.frequencyMap = frequencyMap;
         this.totalRelation = totalRelation;
@@ -71,11 +74,11 @@ public class AttributePathResult implements Serializable {
         isMultiValue = multiValue;
     }
 
-    public Set<String> getTargetIdentifierValue() {
-        return targetIdentifierValue;
+    public RoleAnalysisAttributeDef getItemDefinition() {
+        return itemDefinition;
     }
 
-    public void setTargetIdentifierValue(Set<String> targetIdentifierPaths) {
-        this.targetIdentifierValue = targetIdentifierPaths;
+    public void setItemDefinition(RoleAnalysisAttributeDef itemDefinition) {
+        this.itemDefinition = itemDefinition;
     }
 }

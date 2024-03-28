@@ -9,11 +9,18 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -31,15 +38,14 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import org.jetbrains.annotations.Nullable;
 
 public class MembersDetailsPopupPanel extends BasePanel<String> implements Popupable {
 
     List<PrismObject<FocusType>> elements;
     RoleAnalysisProcessModeType processModeType;
+    Map<String, RoleAnalysisAttributeStatistics> map;
 
     public MembersDetailsPopupPanel(String id, IModel<String> messageModel, List<PrismObject<FocusType>> members,
             RoleAnalysisProcessModeType processModeType) {
@@ -87,6 +93,55 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
             @Override
             protected UserProfileStorage.TableId getTableId() {
                 return null;
+            }
+
+            @Override
+            protected List<IColumn<SelectableBean<FocusType>, String>> createDefaultColumns() {
+                List<IColumn<SelectableBean<FocusType>, String>> defaultColumns = super.createDefaultColumns();
+
+                if (map == null) {
+                    return defaultColumns;
+                }
+
+                defaultColumns.add(new AbstractColumn<>(createStringResource("MembersDetailsPopupPanel.inGroup")) {
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<FocusType>>> cellItem, String componentId,
+                            IModel<SelectableBean<FocusType>> rowModel) {
+                        String object = rowModel.getObject().getValue().getOid();
+                        RoleAnalysisAttributeStatistics roleAnalysisAttributeStatistics = map.get(object);
+                        Integer inGroup;
+                        if (roleAnalysisAttributeStatistics == null) {
+                            inGroup = 0;
+                        } else {
+                            inGroup = roleAnalysisAttributeStatistics.getInGroup();
+                            if (inGroup == null) {
+                                inGroup = 0;
+                            }
+                        }
+                        cellItem.add(new Label(componentId, inGroup));
+                    }
+                });
+
+                defaultColumns.add(new AbstractColumn<>(createStringResource("MembersDetailsPopupPanel.inRepo")) {
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<FocusType>>> cellItem, String componentId,
+                            IModel<SelectableBean<FocusType>> rowModel) {
+                        String object = rowModel.getObject().getValue().getOid();
+                        RoleAnalysisAttributeStatistics roleAnalysisAttributeStatistics = map.get(object);
+                        Integer inRepo;
+                        if (roleAnalysisAttributeStatistics == null) {
+                            inRepo = 0;
+                        } else {
+                            inRepo = roleAnalysisAttributeStatistics.getInRepo();
+                            if (inRepo == null) {
+                                inRepo = 0;
+                            }
+                        }
+                        cellItem.add(new Label(componentId, inRepo));
+                    }
+                });
+
+                return defaultColumns;
             }
 
             @Override
@@ -156,5 +211,13 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
 //        }
 //        return new StringResourceModel("RoleMining.members.details.panel.title.users");
         return null;
+    }
+
+    public Map<String, RoleAnalysisAttributeStatistics> getMap() {
+        return map;
+    }
+
+    public void setMap(@Nullable Map<String, RoleAnalysisAttributeStatistics> map) {
+        this.map = map;
     }
 }

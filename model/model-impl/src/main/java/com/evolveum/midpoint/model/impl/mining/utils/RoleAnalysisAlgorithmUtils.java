@@ -130,58 +130,7 @@ public class RoleAnalysisAlgorithmUtils {
         return clusterTypeObjectWithStatistic;
     }
 
-    @NotNull
-    public List<PrismObject<RoleAnalysisClusterType>> processExactMatch(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull List<DataPoint> dataPoints,
-            @NotNull RoleAnalysisSessionType session,
-            @NotNull RoleAnalysisProgressIncrement handler,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        Integer sessionTypeObjectCount = roleAnalysisService.countSessionTypeObjects(task, result);
-
-        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        QName processedObjectComplexType = analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
-                ? RoleType.COMPLEX_TYPE
-                : UserType.COMPLEX_TYPE;
-
-        QName propertiesComplexType = processedObjectComplexType.equals(RoleType.COMPLEX_TYPE)
-                ? UserType.COMPLEX_TYPE
-                : RoleType.COMPLEX_TYPE;
-
-        List<DataPoint> dataPointsOutliers = new ArrayList<>();
-        int size = dataPoints.size();
-
-        handler.enterNewStep("Generate Cluster Statistics model");
-        handler.setOperationCountToProcess(size);
-        List<PrismObject<RoleAnalysisClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, size)
-                .mapToObj(i -> {
-                    handler.iterateActualStatus();
-
-                    return exactPrepareDataPoints(roleAnalysisService, dataPoints.get(i), String.valueOf(i), session,
-                            dataPointsOutliers, processedObjectComplexType, propertiesComplexType, sessionTypeObjectCount,
-                            task, result);
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        handler.enterNewStep("Skip pattern detection step");
-
-        handler.enterNewStep("Prepare Outliers");
-        handler.setOperationCountToProcess(dataPoints.size());
-
-        if (!dataPoints.isEmpty()) {
-            PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(roleAnalysisService, dataPoints,
-                    processedObjectComplexType, analysisOption, sessionTypeObjectCount, handler,
-                    task, result);
-            clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
-        }
-
-        return clusterTypeObjectWithStatistic;
-    }
-
-    private ClusterStatistic statisticLoad(
+    private @Nullable ClusterStatistic statisticLoad(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull List<DataPoint> clusterDataPoints,
             @NotNull List<DataPoint> allDataPoints,
@@ -276,15 +225,15 @@ public class RoleAnalysisAlgorithmUtils {
         }
 
         List<AttributeAnalysisStructure> userAttributeAnalysisStructures = roleAnalysisService
-                .userTypeAttributeAnalysis(users, userDensity);
+                .userTypeAttributeAnalysis(users, userDensity, task, result);
         List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = roleAnalysisService
-                .roleTypeAttributeAnalysis(roles, roleDensity);
+                .roleTypeAttributeAnalysis(roles, roleDensity, task, result);
 
         clusterStatistic.setUserAttributeAnalysisStructures(userAttributeAnalysisStructures);
         clusterStatistic.setRoleAttributeAnalysisStructures(roleAttributeAnalysisStructures);
     }
 
-    private ClusterStatistic exactStatisticLoad(
+    private @Nullable ClusterStatistic exactStatisticLoad(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull DataPoint clusterDataPoints,
             @NotNull String clusterIndex,
@@ -327,7 +276,7 @@ public class RoleAnalysisAlgorithmUtils {
                 propertiesCount, propertiesCount, propertiesCount, density);
     }
 
-    private PrismObject<RoleAnalysisClusterType> exactPrepareDataPoints(
+    private @Nullable PrismObject<RoleAnalysisClusterType> exactPrepareDataPoints(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull DataPoint dataPointCluster,
             @NotNull String clusterIndex,
@@ -690,4 +639,54 @@ public class RoleAnalysisAlgorithmUtils {
         }
     }
 
+    @NotNull
+    public List<PrismObject<RoleAnalysisClusterType>> processExactMatch(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull List<DataPoint> dataPoints,
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull RoleAnalysisProgressIncrement handler,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        Integer sessionTypeObjectCount = roleAnalysisService.countSessionTypeObjects(task, result);
+
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        QName processedObjectComplexType = analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
+                ? RoleType.COMPLEX_TYPE
+                : UserType.COMPLEX_TYPE;
+
+        QName propertiesComplexType = processedObjectComplexType.equals(RoleType.COMPLEX_TYPE)
+                ? UserType.COMPLEX_TYPE
+                : RoleType.COMPLEX_TYPE;
+
+        List<DataPoint> dataPointsOutliers = new ArrayList<>();
+        int size = dataPoints.size();
+
+        handler.enterNewStep("Generate Cluster Statistics model");
+        handler.setOperationCountToProcess(size);
+        List<PrismObject<RoleAnalysisClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, size)
+                .mapToObj(i -> {
+                    handler.iterateActualStatus();
+
+                    return exactPrepareDataPoints(roleAnalysisService, dataPoints.get(i), String.valueOf(i), session,
+                            dataPointsOutliers, processedObjectComplexType, propertiesComplexType, sessionTypeObjectCount,
+                            task, result);
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        handler.enterNewStep("Skip pattern detection step");
+
+        handler.enterNewStep("Prepare Outliers");
+        handler.setOperationCountToProcess(dataPoints.size());
+
+        if (!dataPoints.isEmpty()) {
+            PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(roleAnalysisService, dataPoints,
+                    processedObjectComplexType, analysisOption, sessionTypeObjectCount, handler,
+                    task, result);
+            clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
+        }
+
+        return clusterTypeObjectWithStatistic;
+    }
 }
