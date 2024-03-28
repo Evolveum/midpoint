@@ -43,7 +43,13 @@ public enum SynchronizationTaskFlavor {
             SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value(),
             resourceObjectSet -> new WorkDefinitionsType()
                     .asynchronousUpdate(new AsyncUpdateWorkDefinitionType()
-                            .updatedResourceObjects(resourceObjectSet)));
+                            .updatedResourceObjects(resourceObjectSet))),
+
+    SHADOW_RECLASSIFICATION(
+            SystemObjectsType.ARCHETYPE_SHADOW_RECLASSIFICATION_TASK.value(),
+            resourceObjectSet -> new WorkDefinitionsType()
+                    .shadowReclassification(new ShadowReclassificationWorkDefinitionType()
+                            .resourceObjects(resourceObjectSet)));
 
     /** Structural archetype corresponding to given flavor */
     @NotNull private final String archetypeOid;

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 public class ReclassificationActivityHandler
         extends ModelActivityHandler<ReclassificationWorkDefinition, ReclassificationActivityHandler> {
 
-    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_OBJECT_SHADOW_RECLASSIFICATION_TASK.value();
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_SHADOW_RECLASSIFICATION_TASK.value();
 
     @PostConstruct
     public void register() {

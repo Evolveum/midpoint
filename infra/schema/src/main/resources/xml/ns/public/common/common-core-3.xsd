@@ -16689,7 +16689,7 @@
             <xsd:enumeration value="00000000-0000-0000-0000-000000000523">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_OBJECT_SHADOW_RECLASSIFICATION_TASK"/>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOW_RECLASSIFICATION_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

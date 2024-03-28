@@ -23,9 +23,9 @@ import java.util.stream.Collectors;
 /**
  * Popup panel for creating task for recognized resource object (work with object type, so with kind and intent).
  */
-public class TaskCreationForRecognizedObjectsPopup extends TaskCreationPopup<CompiledObjectCollectionView> {
+public class TaskCreationFoCategorizedObjectsPopup extends TaskCreationPopup<CompiledObjectCollectionView> {
 
-    public TaskCreationForRecognizedObjectsPopup(String id) {
+    public TaskCreationFoCategorizedObjectsPopup(String id) {
         super(id);
     }
 
@@ -46,7 +46,6 @@ public class TaskCreationForRecognizedObjectsPopup extends TaskCreationPopup<Com
 
             @Override
             protected void onTemplateChosePerformed(CompiledObjectCollectionView view, AjaxRequestTarget target) {
-                view.getArchetypeOid();
                 getFlavorModel().setObject(determineTaskFlavour(view.getArchetypeOid()));
             }
 
@@ -69,15 +68,5 @@ public class TaskCreationForRecognizedObjectsPopup extends TaskCreationPopup<Com
         return archetypeOid.equals(SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value())
                 || archetypeOid.equals(SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value())
                 || archetypeOid.equals(SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
-    }
-
-    private SynchronizationTaskFlavor determineTaskFlavour(String archetypeOid) {
-        SystemObjectsType taskType = SystemObjectsType.fromValue(archetypeOid);
-        return switch (taskType) {
-            case ARCHETYPE_RECONCILIATION_TASK -> SynchronizationTaskFlavor.RECONCILIATION;
-            case ARCHETYPE_LIVE_SYNC_TASK -> SynchronizationTaskFlavor.LIVE_SYNC;
-            case ARCHETYPE_IMPORT_TASK -> SynchronizationTaskFlavor.IMPORT;
-            default -> null;
-        };
     }
 }

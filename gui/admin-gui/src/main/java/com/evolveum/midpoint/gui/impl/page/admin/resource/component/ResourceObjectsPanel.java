@@ -534,7 +534,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
 
     @Override
     protected TaskCreationPopup<?> createNewTaskPopup() {
-        return new TaskCreationForRecognizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
+        return new TaskCreationFoCategorizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
 
             @Override
             protected void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean simulate, AjaxRequestTarget target) {
