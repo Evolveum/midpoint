@@ -108,7 +108,32 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
                         break;
                     case NOT_CHANGED:
                         break;
-                    case DELETED:
+                        case MODIFIED:
+                            if (updatedRefValue.getParent().isSingleValue()) {
+                                if (updatedRefValue.getNewValue().isEmpty())  {
+                                    // if old value is empty, nothing to do.
+                                    if (!updatedRefValue.getOldValue().isEmpty()) {
+                                        delta.addValueToDelete(shadowAssociationType.asPrismContainerValue());
+                                    }
+                                } else {
+                                    delta.addValueToReplace(shadowAssociationType.asPrismContainerValue());
+                                }
+                                break;
+                            }
+
+                            if (!updatedRefValue.getNewValue().isEmpty()) {
+                                delta.addValueToAdd(shadowAssociationType.asPrismContainerValue());
+                            }
+                            if (!updatedRefValue.getOldValue().isEmpty()) {
+                                ShadowAssociationType oldAssociationType = new ShadowAssociationType();
+                                oldAssociationType.asPrismContainerValue().applyDefinition(getItemDefinition());
+                                oldAssociationType.setShadowRef(
+                                        ObjectTypeUtil.createObjectRef((PrismReferenceValue)updatedRefValue.getOldValue()));
+
+                                delta.addValueToDelete(oldAssociationType.asPrismContainerValue());
+                            }
+                            break;
+                        case DELETED:
                         delta.addValueToDelete(shadowAssociationType.asPrismContainerValue());
                         break;
                     }
