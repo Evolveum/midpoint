@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -94,6 +96,9 @@ public class DefaultCleanupHandler implements CleanupHandler {
         }
 
         String oid = refValue.getOid();
+        if (oid == null) {
+            return;
+        }
 
         QName typeName = refValue.getTargetType();
         if (typeName == null) {
@@ -105,6 +110,11 @@ public class DefaultCleanupHandler implements CleanupHandler {
         if (canResolve) {
             return;
         }
+
+        event.result().getMissingReferences().add(
+                new ObjectReferenceType()
+                        .oid(oid)
+                        .type(typeName));
 
         event.result().getMessages().add(
                 new CleanupMessage(

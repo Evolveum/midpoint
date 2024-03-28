@@ -10,7 +10,7 @@ def verbose = params.VERBOSE ?: '0'
 podTemplate(
         nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 7200,
-        idleMinutes: 1,
+        idleMinutes: 5,
         // No need for secret volume, no mvn deploy done here.
         volumes: [ persistentVolumeClaim(claimName: "midpoint-quick-pipeline-m2repo", mountPath: "/root/.m2/repository")],
         //workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
@@ -30,8 +30,8 @@ podTemplate(
                         command: 'cat',
                         resourceRequestCpu: params.BUILDER_CPU ?: '4',
                         resourceLimitCpu: params.BUILDER_CPU ?: '4',
-                        resourceRequestMemory: '6Gi',
-                        resourceLimitMemory: '6Gi') // by default -Xmx4g is set in main POM
+                        resourceRequestMemory: '8Gi',
+                        resourceLimitMemory: '8Gi') // by default -Xmx4g is set in main POM
         ]
 ) {
     node(POD_LABEL) {
