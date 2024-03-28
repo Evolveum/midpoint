@@ -131,7 +131,7 @@ public class RoleAnalysisCollapsableTablePanel<T> extends BasePanel<T> implement
 
     protected Item<T> newRowItem(String id, int index, Item<T> item, @NotNull IModel<T> rowModel) {
 
-        WebMarkupContainer webMarkupContainerFirst = new WebMarkupContainer(ID_FIRST_COLLAPSABLE_CONTAINER);
+        CollapsableContainerPanel webMarkupContainerFirst = new CollapsableContainerPanel(ID_FIRST_COLLAPSABLE_CONTAINER);
         webMarkupContainerFirst.setOutputMarkupId(true);
         webMarkupContainerFirst.add(AttributeModifier.replace("class", "collapse"));
         webMarkupContainerFirst.add(AttributeModifier.replace("style", "display: none;"));
@@ -140,7 +140,7 @@ public class RoleAnalysisCollapsableTablePanel<T> extends BasePanel<T> implement
         webMarkupContainerContentFirst.setOutputMarkupId(true);
         webMarkupContainerFirst.add(webMarkupContainerContentFirst);
 
-        WebMarkupContainer webMarkupContainerSecond = new WebMarkupContainer(ID_SECOND_COLLAPSABLE_CONTAINER);
+        CollapsableContainerPanel webMarkupContainerSecond = new CollapsableContainerPanel(ID_SECOND_COLLAPSABLE_CONTAINER);
         webMarkupContainerSecond.setOutputMarkupId(true);
         webMarkupContainerSecond.add(AttributeModifier.replace("class", "collapse"));
         webMarkupContainerSecond.add(AttributeModifier.replace("style", "display: none;"));

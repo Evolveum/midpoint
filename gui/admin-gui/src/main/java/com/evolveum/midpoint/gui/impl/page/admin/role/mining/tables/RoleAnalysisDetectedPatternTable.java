@@ -19,6 +19,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.web.component.data.mining.CollapsableContainerPanel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -75,8 +77,6 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
     private static final String DOT_CLASS = RoleAnalysisDetectedPatternTable.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
 
-    //TODO brutal ugly just for fast solution (clusterModel)
-
     public RoleAnalysisDetectedPatternTable(
             @NotNull String id,
             @NotNull LoadableDetachableModel<List<DetectedPattern>> detectedPatternList,
@@ -100,54 +100,6 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
         RoleAnalysisCollapsableTablePanel<DetectedPattern> table = new RoleAnalysisCollapsableTablePanel<>(
                 ID_DATATABLE, provider, initColumns(false)) {
-
-            @Override
-            protected Item<DetectedPattern> newRowItem(String id, int index, Item<DetectedPattern> item, @NotNull IModel<DetectedPattern> rowModel) {
-                DetectedPattern detectedPattern = null;
-                RoleAnalysisAttributeAnalysisResult roleAnalysisResult = null;
-                RoleAnalysisAttributeAnalysisResult userAnalysisResult = null;
-                if (rowModel.getObject() != null) {
-                    detectedPattern = rowModel.getObject();
-                    roleAnalysisResult = detectedPattern.getRoleAttributeAnalysisResult();
-                    userAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
-                }
-
-                WebMarkupContainer webMarkupContainerUser = new WebMarkupContainer(ID_FIRST_COLLAPSABLE_CONTAINER);
-                webMarkupContainerUser.setOutputMarkupId(true);
-                webMarkupContainerUser.add(AttributeModifier.replace("class", "collapse"));
-                webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
-                item.add(webMarkupContainerUser);
-
-                if (userAnalysisResult != null) {
-                    RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
-                            ID_COLLAPSABLE_CONTENT, userAnalysisResult, detectedPattern.getUsers(), RoleAnalysisProcessModeType.USER);
-                    repeatingAttributeForm.setOutputMarkupId(true);
-                    webMarkupContainerUser.add(repeatingAttributeForm);
-                } else {
-                    Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
-                    label.setOutputMarkupId(true);
-                    webMarkupContainerUser.add(label);
-                }
-
-                WebMarkupContainer webMarkupContainerRole = new WebMarkupContainer(ID_SECOND_COLLAPSABLE_CONTAINER);
-                webMarkupContainerRole.setOutputMarkupId(true);
-                webMarkupContainerRole.add(AttributeModifier.replace("class", "collapse"));
-                webMarkupContainerRole.add(AttributeModifier.replace("style", "display: none;"));
-                item.add(webMarkupContainerRole);
-
-                if (roleAnalysisResult != null) {
-                    RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
-                            ID_COLLAPSABLE_CONTENT, roleAnalysisResult, detectedPattern.getRoles(), RoleAnalysisProcessModeType.ROLE);
-                    repeatingAttributeForm.setOutputMarkupId(true);
-                    webMarkupContainerRole.add(repeatingAttributeForm);
-                } else {
-                    Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
-                    label.setOutputMarkupId(true);
-                    webMarkupContainerRole.add(label);
-                }
-
-                return customizeNewRowItem(item, rowModel);
-            }
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
@@ -191,55 +143,6 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
         RoleAnalysisCollapsableTablePanel<DetectedPattern> table = new RoleAnalysisCollapsableTablePanel<>(
                 ID_DATATABLE, provider, initColumns(isTopPatterns)) {
-
-            @Override
-            protected Item<DetectedPattern> newRowItem(String id, int index, Item<DetectedPattern> item, @NotNull IModel<DetectedPattern> rowModel) {
-                DetectedPattern detectedPattern = null;
-                RoleAnalysisAttributeAnalysisResult roleAnalysisResult = null;
-                RoleAnalysisAttributeAnalysisResult userAnalysisResult = null;
-                if (rowModel.getObject() != null) {
-                    detectedPattern = rowModel.getObject();
-                    roleAnalysisResult = detectedPattern.getRoleAttributeAnalysisResult();
-                    userAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
-                }
-
-                WebMarkupContainer webMarkupContainerUser = new WebMarkupContainer(ID_FIRST_COLLAPSABLE_CONTAINER);
-                webMarkupContainerUser.setOutputMarkupId(true);
-                webMarkupContainerUser.add(AttributeModifier.replace("class", "collapse"));
-                webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
-                item.add(webMarkupContainerUser);
-
-                if (userAnalysisResult != null) {
-                    RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
-                            ID_COLLAPSABLE_CONTENT, userAnalysisResult, detectedPattern.getUsers(), RoleAnalysisProcessModeType.USER);
-                    repeatingAttributeForm.setOutputMarkupId(true);
-                    webMarkupContainerUser.add(repeatingAttributeForm);
-                } else {
-                    Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
-                    label.setOutputMarkupId(true);
-                    webMarkupContainerUser.add(label);
-                }
-
-                WebMarkupContainer webMarkupContainerRole = new WebMarkupContainer(ID_SECOND_COLLAPSABLE_CONTAINER);
-                webMarkupContainerRole.setOutputMarkupId(true);
-                webMarkupContainerRole.add(AttributeModifier.replace("class", "collapse"));
-                webMarkupContainerRole.add(AttributeModifier.replace("style", "display: none;"));
-                item.add(webMarkupContainerRole);
-
-                if (roleAnalysisResult != null) {
-                    RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
-                            ID_COLLAPSABLE_CONTENT, roleAnalysisResult, detectedPattern.getRoles(), RoleAnalysisProcessModeType.ROLE);
-                    repeatingAttributeForm.setOutputMarkupId(true);
-                    webMarkupContainerRole.add(repeatingAttributeForm);
-                } else {
-                    Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
-                    label.setOutputMarkupId(true);
-                    webMarkupContainerRole.add(label);
-                }
-
-                return customizeNewRowItem(item, rowModel);
-            }
-
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 AjaxIconButton refreshIcon = new AjaxIconButton(id, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
@@ -398,10 +301,45 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            Component collapseContainer = item.findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
-                            Component collapseContainerUser = item.findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
+                            CollapsableContainerPanel collapseContainerUser = (CollapsableContainerPanel) item
+                                    .findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
+                            CollapsableContainerPanel collapseContainerRole = (CollapsableContainerPanel) item
+                                    .findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
 
-                            target.appendJavaScript(getCollapseScript(collapseContainer, collapseContainerUser));
+                            if (!collapseContainerRole.isExpanded()) {
+                                DetectedPattern detectedPattern = null;
+                                RoleAnalysisAttributeAnalysisResult roleAnalysisResult = null;
+                                if (rowModel.getObject() != null) {
+                                    detectedPattern = rowModel.getObject();
+                                    roleAnalysisResult = detectedPattern.getRoleAttributeAnalysisResult();
+                                }
+
+                                CollapsableContainerPanel webMarkupContainerRole = new CollapsableContainerPanel(
+                                        ID_SECOND_COLLAPSABLE_CONTAINER);
+                                webMarkupContainerRole.setOutputMarkupId(true);
+                                webMarkupContainerRole.add(AttributeModifier.replace("class", "collapse"));
+                                webMarkupContainerRole.add(AttributeModifier.replace("style", "display: none;"));
+                                webMarkupContainerRole.setExpanded(true);
+                                item.add(webMarkupContainerRole);
+
+                                if (roleAnalysisResult != null) {
+                                    RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
+                                            ID_COLLAPSABLE_CONTENT, roleAnalysisResult,
+                                            detectedPattern.getRoles(), RoleAnalysisProcessModeType.ROLE);
+                                    repeatingAttributeForm.setOutputMarkupId(true);
+                                    webMarkupContainerRole.add(repeatingAttributeForm);
+                                } else {
+                                    Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
+                                    label.setOutputMarkupId(true);
+                                    webMarkupContainerRole.add(label);
+                                }
+
+                                collapseContainerRole.replaceWith(webMarkupContainerRole);
+                                target.add(webMarkupContainerRole);
+                            }
+
+                            target.appendJavaScript(getCollapseScript(collapseContainerRole, collapseContainerUser));
+
                         }
 
                     };
@@ -451,11 +389,44 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            Component collapseContainer = item.findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
-                            Component collapseContainerRole = item.findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
+                            CollapsableContainerPanel collapseContainerUser = (CollapsableContainerPanel) item
+                                    .findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
+                            CollapsableContainerPanel collapseContainerRole = (CollapsableContainerPanel) item
+                                    .findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
 
-                            target.appendJavaScript(getCollapseScript(collapseContainer, collapseContainerRole));
+                            if (!collapseContainerUser.isExpanded()) {
+                                DetectedPattern detectedPattern = null;
+                                RoleAnalysisAttributeAnalysisResult userAnalysisResult = null;
+                                if (rowModel.getObject() != null) {
+                                    detectedPattern = rowModel.getObject();
+                                    userAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
+                                }
 
+                                CollapsableContainerPanel webMarkupContainerUser = new CollapsableContainerPanel(
+                                        ID_FIRST_COLLAPSABLE_CONTAINER);
+                                webMarkupContainerUser.setOutputMarkupId(true);
+                                webMarkupContainerUser.add(AttributeModifier.replace("class", "collapse"));
+                                webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
+                                webMarkupContainerUser.setExpanded(true);
+                                item.add(webMarkupContainerUser);
+
+                                if (userAnalysisResult != null) {
+                                    RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
+                                            ID_COLLAPSABLE_CONTENT, userAnalysisResult,
+                                            detectedPattern.getUsers(), RoleAnalysisProcessModeType.USER);
+                                    repeatingAttributeForm.setOutputMarkupId(true);
+                                    webMarkupContainerUser.add(repeatingAttributeForm);
+                                } else {
+                                    Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
+                                    label.setOutputMarkupId(true);
+                                    webMarkupContainerUser.add(label);
+                                }
+
+                                collapseContainerUser.replaceWith(webMarkupContainerUser);
+                                target.add(webMarkupContainerUser);
+                            }
+
+                            target.appendJavaScript(getCollapseScript(collapseContainerUser, collapseContainerRole));
                         }
 
                     };
