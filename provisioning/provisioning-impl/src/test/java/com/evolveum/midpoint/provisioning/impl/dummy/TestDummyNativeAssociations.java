@@ -19,6 +19,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  * The same as {@link TestDummy} but with the dummy resource providing the associations natively.
  *
  * Currently does not pass, because there is no support for updating native associations yet.
+ *
+ * @see TestDummyAssociations
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext

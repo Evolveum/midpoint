@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
  *
  * . protected objects
  * . simulated activation (delegated to {@link ActivationConverter})
- * . entitlements (delegated to {@link EntitlementReader} and {@link EntitlementConverter})
+ * . simulated entitlements (delegated to {@link EntitlementReader} and {@link EntitlementConverter})
  * . script execution
  * . avoid duplicate values
  * . attributes returned by default/not returned by default

@@ -179,7 +179,8 @@ public abstract class ShadowAssociationClassSimulationDefinition
     private @NotNull Collection<ShadowAssociationClassDefinition.Participant> toParticipants(
             Collection<SimulatedAssociationClassParticipantDefinition> definitions) {
         return definitions.stream()
-                .map(def -> new ShadowAssociationClassDefinition.Participant(def.getObjectDefinition(), def.getAssociationItemName()))
+                .map(def -> new ShadowAssociationClassDefinition.Participant(
+                        def.getTypeIdentification(), def.getObjectDefinition(), def.getAssociationItemName()))
                 .toList();
     }
 
@@ -270,8 +271,9 @@ public abstract class ShadowAssociationClassSimulationDefinition
 
             List<SimulatedAssociationClassParticipantDefinition> definitions = new ArrayList<>();
             for (String intent : realIntents) {
+                var typeIdentification = ResourceObjectTypeIdentification.of(kind, intent);
                 var typeDef = definitionCI.configNonNull(
-                        resourceSchema.getObjectTypeDefinition(kind, intent),
+                        resourceSchema.getObjectTypeDefinition(typeIdentification),
                         "No object type definition for kind %s and intent %s in %s", kind, intent, DESC);
                 definitions.add(
                         new SimulatedAssociationClassParticipantDefinition(
@@ -280,7 +282,8 @@ public abstract class ShadowAssociationClassSimulationDefinition
                                 typeDef.getDelineation().getSearchHierarchyScope(),
                                 typeDef,
                                 null,
-                                null));
+                                null,
+                                typeIdentification));
             }
             return definitions;
         }
@@ -412,7 +415,8 @@ public abstract class ShadowAssociationClassSimulationDefinition
                                         resourceSchema.findDefinitionForObjectClass(objectClassName),
                                         "No definition for object class %s found in %s", objectClassName, DESC),
                                 delineationCI.getAuxiliaryObjectClassName(),
-                                associationItemName));
+                                associationItemName,
+                                null));
             }
             return definitions;
         }

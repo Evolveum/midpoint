@@ -135,8 +135,12 @@ public class ShadowAssociationClassDefinition implements DebugDumpable, Serializ
         return new ShadowAssociationClassDefinition(
                 definitionCI.getAssociationName(),
                 simulationDefinition,
-                List.of(new Participant(referentialSubjectDefinition, definitionCI.getAssociationName())),
-                Participant.fromObjectDefinitions(objectTypeDefinitions));
+                List.of(
+                        new Participant(
+                                referentialSubjectDefinition.getTypeIdentification(),
+                                referentialSubjectDefinition,
+                                definitionCI.getAssociationName())),
+                Participant.fromObjectTypeDefinitions(objectTypeDefinitions));
     }
 
     public @NotNull QName getClassName() {
@@ -150,6 +154,10 @@ public class ShadowAssociationClassDefinition implements DebugDumpable, Serializ
     @SuppressWarnings("WeakerAccess")
     public @NotNull ResourceObjectDefinition getRepresentativeObjectDefinition() {
         return representativeObjectDefinition;
+    }
+
+    public @NotNull Collection<Participant> getObjects() {
+        return objects;
     }
 
     public @NotNull Collection<? extends ResourceObjectDefinition> getObjectObjectDefinitions() {
@@ -191,23 +199,55 @@ public class ShadowAssociationClassDefinition implements DebugDumpable, Serializ
         return sb.toString();
     }
 
+    /**
+     * What kinds of objects can participate in this association class and under what item name?
+     *
+     * Some participants are object types, others are object classes. The former is obligatory for legacy simulated associations.
+     * Modern simulated associations and native associations can have class-scoped participants.
+     */
     public static class Participant implements Serializable {
 
-        /** Definition of the object type of the participant. */
+        /** Identification of the object type of the participant, if it's type-scoped. Null for class-scoped ones. */
+        @Nullable final ResourceObjectTypeIdentification typeIdentification;
+
+        /**
+         * Definition of the object type of the participant. It may be a genuine type even for class-scoped participants,
+         * if the object type is a default one for the object class.
+         */
         @NotNull final ResourceObjectDefinition objectDefinition;
 
         /** Item representing the association on that participant, if it's visible. Must be qualified. */
         @Nullable final ItemName itemName;
 
-        Participant(@NotNull ResourceObjectDefinition objectDefinition, @Nullable ItemName itemName) {
+        Participant(
+                @NotNull ResourceObjectTypeDefinition objectDefinition,
+                @Nullable ItemName itemName) {
+            this.typeIdentification = objectDefinition.getTypeIdentification();
             this.objectDefinition = objectDefinition;
             this.itemName = itemName;
         }
 
-        static Collection<Participant> fromObjectDefinitions(Collection<? extends ResourceObjectDefinition> definitions) {
+        Participant(
+                @Nullable ResourceObjectTypeIdentification typeIdentification,
+                @NotNull ResourceObjectDefinition objectDefinition,
+                @Nullable ItemName itemName) {
+            this.typeIdentification = typeIdentification;
+            this.objectDefinition = objectDefinition;
+            this.itemName = itemName;
+        }
+
+        static Collection<Participant> fromObjectTypeDefinitions(Collection<? extends ResourceObjectTypeDefinition> definitions) {
             return definitions.stream()
                     .map(def -> new Participant(def, null))
                     .toList();
+        }
+
+        public @Nullable ResourceObjectTypeIdentification getTypeIdentification() {
+            return typeIdentification;
+        }
+
+        public @NotNull ResourceObjectDefinition getObjectDefinition() {
+            return objectDefinition;
         }
     }
 }

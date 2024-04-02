@@ -40,17 +40,27 @@ public class SimulatedAssociationClassParticipantDefinition implements Serializa
      */
     @Nullable private final ItemName associationItemName;
 
+    /**
+     * This is a little hack: we need to know if the participant is defined as an object type or object class.
+     * The reason is that this definition is later used in upper layers that filter objects based on this information.
+     *
+     * To be (eventually) reconsidered.
+     */
+    @Nullable private final ResourceObjectTypeIdentification typeIdentification;
+
     SimulatedAssociationClassParticipantDefinition(
             @NotNull QName objectClassName,
             @Nullable ResourceObjectReferenceType baseContext,
             @Nullable SearchHierarchyScope searchHierarchyScope,
             @NotNull ResourceObjectDefinition objectDefinition,
             @Nullable QName auxiliaryObjectClassName,
-            @Nullable QName associationItemName) {
+            @Nullable QName associationItemName,
+            @Nullable ResourceObjectTypeIdentification typeIdentification) {
         this.delineation = new ResourceObjectSetDelineation(objectClassName, baseContext, searchHierarchyScope, List.of());
         this.objectDefinition = objectDefinition;
         this.auxiliaryObjectClassName = auxiliaryObjectClassName;
         this.associationItemName = ItemName.fromQName(associationItemName);
+        this.typeIdentification = typeIdentification;
     }
 
     static SimulatedAssociationClassParticipantDefinition fromObjectTypeDefinition(
@@ -63,7 +73,8 @@ public class SimulatedAssociationClassParticipantDefinition implements Serializa
                 typeDefinition.getDelineation().getSearchHierarchyScope(),
                 typeDefinition,
                 auxiliaryObjectClassName,
-                associationItemName);
+                associationItemName,
+                typeDefinition.getTypeIdentification());
     }
 
     public @Nullable QName getAuxiliaryObjectClassName() {
@@ -94,12 +105,17 @@ public class SimulatedAssociationClassParticipantDefinition implements Serializa
         return associationItemName;
     }
 
+    public @Nullable ResourceObjectTypeIdentification getTypeIdentification() {
+        return typeIdentification;
+    }
+
     @Override
     public String debugDump(int indent) {
         var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "delineation", delineation, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "auxiliaryObjectClassName", auxiliaryObjectClassName, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectDefinition", String.valueOf(objectDefinition), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "typeIdentification", String.valueOf(typeIdentification), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "associationItemName", associationItemName, indent + 1);
         return sb.toString();
     }

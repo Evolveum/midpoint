@@ -1162,4 +1162,8 @@ public class ShadowUtil {
             throw new IllegalArgumentException("Neither attribute nor association: " + item);
         }
     }
+
+    public static @NotNull ShadowAssociationsCollection getAssociationsCollection(@NotNull ShadowType shadowBean) {
+        return ShadowAssociationsCollection.ofShadow(shadowBean);
+    }
 }

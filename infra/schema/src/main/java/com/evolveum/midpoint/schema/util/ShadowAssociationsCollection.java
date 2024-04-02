@@ -89,6 +89,15 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
         return allValues;
     }
 
+    public List<ShadowAssociationValue> getAllAssociationValues() {
+        List<ShadowAssociationValue> allValues = new ArrayList<>();
+        var iterator = iterator();
+        while (iterator.hasNext()) {
+            allValues.add(iterator.next().associationValue());
+        }
+        return allValues;
+    }
+
     public int getNumberOfValues() {
         var iterator = iterator();
         int count = 0;

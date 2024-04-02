@@ -63,6 +63,7 @@ interface ShadowAssociationClassImplementation extends DebugDumpable, Serializab
             return nativeParticipants.stream()
                     .map(nativeParticipant ->
                             new Participant(
+                                    null,
                                     resolveObjectClass(nativeParticipant.objectClassName(), schema),
                                     nativeParticipant.associationName()))
                     .toList();

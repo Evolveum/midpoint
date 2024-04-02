@@ -29,7 +29,8 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 /**
  * Testing the native associations.
  *
- * TEMPORARY. This functionality will be moved to standard {@link TestDummy} later.
+ * TEMPORARY. This functionality will be moved to standard {@link TestDummy} later:
+ * see {@link TestDummyNativeAssociations} (currently failing).
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext

@@ -327,6 +327,10 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return associationsContainer != null ? associationsContainer.getAssociationValues(assocName) : List.of();
     }
 
+    default @NotNull ShadowAssociationsCollection getAssociationsCollection() {
+        return ShadowAssociationsCollection.ofShadow(getBean());
+    }
+
     /**
      * The default implementation. Other specific implementations reside in particular modules like `provisioning-impl`.
      * (At least for now, until they are stabilized and proved to be generally useful.

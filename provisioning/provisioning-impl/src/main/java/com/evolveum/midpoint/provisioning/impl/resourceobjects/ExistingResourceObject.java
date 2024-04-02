@@ -23,6 +23,7 @@ import com.evolveum.midpoint.provisioning.util.ErrorState;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -69,12 +70,29 @@ public class ExistingResourceObject extends ResourceObject {
     static ExistingResourceObject fromUcf(
             @NotNull UcfResourceObject ucfResourceObject, @NotNull ObjectReferenceType resourceRef, boolean exists) {
         ShadowType bean = ucfResourceObject.getBean();
-        bean.setResourceRef(resourceRef);
-        bean.setExists(exists);
+        putRequiredInformationToShadows(bean, resourceRef, exists);
         return new ExistingResourceObject(
                 bean,
                 ucfResourceObject.getPrimaryIdentifierValue(),
                 ErrorState.fromUcfErrorState(ucfResourceObject.getErrorState()));
+    }
+
+    /**
+     * Updates the shadow and all embedded associated objects with resource reference and exists flag.
+     *
+     * TODO Currently we assume that all embedded objects live and die with the main shadow. So their "exists" flag is the same
+     *  as the main shadow's "exists". This may change in the future when we will be able to e.g. fetch the associated groups
+     *  explicitly.
+     */
+    private static void putRequiredInformationToShadows(
+            @NotNull ShadowType shadowBean, @NotNull ObjectReferenceType resourceRef, boolean exists) {
+        shadowBean.setResourceRef(resourceRef);
+        shadowBean.setExists(exists);
+        for (var value : ShadowUtil.getAssociationsCollection(shadowBean).getAllAssociationValues()) {
+            if (value.hasFullObject()) {
+                putRequiredInformationToShadows(value.getShadowBean(), resourceRef, exists);
+            }
+        }
     }
 
     /** TODO we should perhaps indicate that the source is repo! OR REMOVE THIS BRUTAL HACK SOMEHOW! */
@@ -89,7 +107,7 @@ public class ExistingResourceObject extends ResourceObject {
             @NotNull RepoShadow repoShadow) throws SchemaException {
         return new ExistingResourceObject(
                 repoShadow.getBean(),
-                repoShadow.getPrimaryIdentifierValueFromAttributes(),
+                Objects.requireNonNull(repoShadow.getPrimaryIdentifierValueFromAttributes()),
                 ErrorState.ok());
     }
 
