@@ -18,12 +18,15 @@ import static com.evolveum.midpoint.test.asserter.predicates.StringAssertionPred
 import static com.evolveum.midpoint.test.asserter.predicates.TimeAssertionPredicates.approximatelyCurrent;
 import static com.evolveum.midpoint.test.util.TestUtil.getAttrQName;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.test.DummyDefaultScenario;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -1306,8 +1309,13 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         var attrsToGet = shadowItemsToReturn.getItemsToReturn().stream()
                 .map(itemDef -> itemDef.getItemName().getLocalPart())
                 .toList();
+
         // No "members" attribute here
-        PrismAsserts.assertSets("Wrong attribute to return", attrsToGet, "uid", "name", "description", "cc");
+        List<String> expectedValues = new ArrayList<>(List.of("uid", "name", "description", "cc"));
+        if (nativeAssociations) {
+            expectedValues.add(DummyDefaultScenario.Group.LinkNames.GROUP.local());
+        }
+        PrismAsserts.assertSets("Wrong attribute to return", attrsToGet, expectedValues);
 
         assertSteadyResource();
     }

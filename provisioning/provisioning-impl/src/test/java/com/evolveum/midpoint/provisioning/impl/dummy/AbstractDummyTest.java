@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -44,9 +44,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -134,6 +131,9 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected static final QName ASSOCIATION_GROUP_NAME = new QName(MidPointConstants.NS_RI, "group");
     protected static final QName ASSOCIATION_PRIV_NAME = new QName(MidPointConstants.NS_RI, "priv");
 
+    protected static final ObjectClassName AC_GROUP_MEMBERSHIP_NAME = ObjectClassName.custom("groupMembership");
+    protected static final ObjectClassName AC_ACCOUNT_PRIVILEGE_NAME = ObjectClassName.custom("accountPrivilege");
+
     protected PrismObject<ResourceType> resource;
     protected ResourceType resourceBean;
     /** True if the resource was successfully tested and {@link #resource} and {@link #resourceBean} contain complete schema. */
@@ -141,6 +141,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected static boolean resourceShutDown;
     protected static DummyResource dummyResource;
     protected static DummyResourceContoller dummyResourceCtl;
+
+    protected boolean nativeAssociations;
 
     protected String accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD;
 

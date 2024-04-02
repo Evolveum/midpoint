@@ -173,6 +173,10 @@ public class ShadowItemsToReturnProvider {
         } else if (fetchStrategy == AttributeFetchStrategyType.MINIMAL) {
             LOGGER.trace("Will not fetch explicitly because the strategy is MINIMAL: {}", itemDef);
             return false;
+        } else if (!itemDef.canRead()) {
+            // TODO shouldn't we do this check earlier?
+            LOGGER.trace("Will not fetch explicitly because the item is not readable: {}", itemDef);
+            return false;
         } else {
             assert fetchStrategy == AttributeFetchStrategyType.IMPLICIT;
             LOGGER.trace("Will fetch explicitly because of the implicit fetch strategy: {}", itemDef);

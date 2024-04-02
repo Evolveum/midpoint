@@ -92,7 +92,7 @@ public class TestDummyExtra extends TestDummy {
         // schema is extended, displayOrders are changed
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 20);
 
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource); // TODO for this resource, or the one obtained as argument?
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource); // TODO for this resource, or the one obtained as argument? (probably they are the same)
         ResourceObjectDefinition accountRDef = refinedSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
 
         var associationDefinitions = accountRDef.getAssociationDefinitions();

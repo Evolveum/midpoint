@@ -9,8 +9,7 @@ package com.evolveum.midpoint.test;
 
 import javax.xml.namespace.QName;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 /**
  * The internal/ConnId/midPoint form of object or association class name.
@@ -31,6 +30,10 @@ public class ObjectClassName {
 
     public static ObjectClassName legacyAccount(String localName) {
         return new ObjectClassName(localName, "__ACCOUNT__", RI_ACCOUNT_OBJECT_CLASS);
+    }
+
+    public static ObjectClassName legacyGroup(String localName) {
+        return new ObjectClassName(localName, "__GROUP__", RI_GROUP_OBJECT_CLASS);
     }
 
     public static ObjectClassName legacyCustom(String localName) {
