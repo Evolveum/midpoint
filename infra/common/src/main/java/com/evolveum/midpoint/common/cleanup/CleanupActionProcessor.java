@@ -139,7 +139,7 @@ public class CleanupActionProcessor {
         }
 
         if (item instanceof PrismContainer<?> pc) {
-            boolean emptyBefore = pc.isEmpty();
+            boolean emptyBefore = pc.hasNoValues();
 
             final List<Item<?, ?>> toBeRemoved = new ArrayList<>();
 
@@ -159,7 +159,7 @@ public class CleanupActionProcessor {
                 items.removeAll(toBeRemoved);
             }
 
-            return !emptyBefore && item.isEmpty();
+            return !emptyBefore && item.hasNoValues();
         }
 
         return false;

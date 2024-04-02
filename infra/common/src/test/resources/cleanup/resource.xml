@@ -189,6 +189,22 @@
             <focus>
                 <type>UserType</type>
             </focus>
+            <synchronization>
+                <reaction id="182">
+                    <name>unmatched-add</name>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus id="184"/>
+                    </actions>
+                </reaction>
+                <reaction id="183">
+                    <name>linked-synchronize</name>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize id="185"/>
+                    </actions>
+                </reaction>
+            </synchronization>
         </objectType>
     </c:schemaHandling>
 

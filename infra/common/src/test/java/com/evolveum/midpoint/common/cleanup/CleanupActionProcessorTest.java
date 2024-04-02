@@ -15,6 +15,7 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -150,25 +151,42 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
         PrismContainer<ResourceObjectTypeDefinitionType> container =
                 resource.findContainer(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
 
-        @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> value = container.getValue();
+        @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> objectType = container.getValue();
 
-        LOG.info("BEFORE \n{}", value.debugDump());
+        LOG.info("BEFORE \n{}", objectType.debugDump());
 
         CleanupActionProcessor processor = new CleanupActionProcessor();
+        processor.setRemoveContainerIds(true);
         processor.setPaths(List.of(
                 new CleanupPath(ResourceObjectFocusSpecificationType.COMPLEX_TYPE, ResourceObjectFocusSpecificationType.F_TYPE, CleanupPathAction.REMOVE)
         ));
 
         TestCleanupListener listener = new TestCleanupListener();
         processor.setHandler(listener);
-        processor.process(value, Source.of(file, content));
+        processor.process(objectType, Source.of(file, content));
 
-        LOG.info("AFTER \n{}", value.debugDump());
+        LOG.info("AFTER \n{}", objectType.debugDump());
 
         Assertions.assertThat(
-                        value.findItem(
+                        objectType.findItem(
                                 ItemPath.create(ResourceObjectTypeDefinitionType.F_FOCUS, ResourceObjectFocusSpecificationType.F_TYPE)))
                 .isNull();
+
+        ResourceObjectTypeDefinitionType rObjectType = objectType.asContainerable();
+        SynchronizationReactionsType synchronization = rObjectType.getSynchronization();
+        AssertJUnit.assertNotNull(synchronization);
+
+        AssertJUnit.assertEquals(2, synchronization.getReaction().size());
+        synchronization.getReaction().forEach(reaction -> {
+            SynchronizationActionsType actions = reaction.getActions();
+            AssertJUnit.assertNotNull(actions);
+
+            if ("unmatched-add".equals(reaction.getName())) {
+                AssertJUnit.assertEquals(1, actions.getAddFocus().size());
+            } else if ("linked-synchronize".equals(reaction.getName())) {
+                AssertJUnit.assertEquals(1, actions.getSynchronize().size());
+            }
+        });
     }
 
     @Test
