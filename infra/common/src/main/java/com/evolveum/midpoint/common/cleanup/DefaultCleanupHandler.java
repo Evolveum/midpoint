@@ -149,6 +149,11 @@ public class DefaultCleanupHandler implements CleanupHandler {
         try {
             PrismObject<ConnectorType> connector = resolveConnector(oid);
             if (connector == null) {
+                event.result().getMissingReferences().add(
+                        new ObjectReferenceType()
+                                .oid(oid)
+                                .type(ConnectorType.COMPLEX_TYPE));
+
                 event.result().getMessages().add(
                         new CleanupMessage(
                                 CleanupMessage.Status.WARNING,
