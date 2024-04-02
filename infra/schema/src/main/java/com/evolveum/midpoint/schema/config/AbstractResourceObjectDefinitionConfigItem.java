@@ -29,11 +29,12 @@ import java.util.List;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /** Type or class definition in schema handling. */
-public class AbstractResourceObjectDefinitionConfigItem
-        extends ConfigurationItem<ResourceObjectTypeDefinitionType> {
+public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObjectTypeDefinitionType>
+        extends ConfigurationItem<B> {
 
     @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
-    public AbstractResourceObjectDefinitionConfigItem(@NotNull ConfigurationItem<ResourceObjectTypeDefinitionType> original) {
+    public AbstractResourceObjectDefinitionConfigItem(
+            @NotNull ConfigurationItem<B> original) {
         super(original);
     }
 

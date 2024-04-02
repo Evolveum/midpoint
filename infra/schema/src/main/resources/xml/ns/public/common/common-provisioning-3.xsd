@@ -577,6 +577,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="associatedObjectType" type="tns:AssociatedResourceObjectTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Types of objects that are associated to traditional resource objects (their owners).
+                        They have kind of "associated".
+                        They must contain associationClass name that binds them to their owner.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="associationType" type="tns:ShadowAssociationTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1067,6 +1076,35 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:complexType name="AssociatedResourceObjectTypeDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of an associated object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ResourceObjectTypeDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="associationClass" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Association class through which is this associated object connected to its owner.
+                                TODO specify more precisely
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AssociatedResourceObjectTypeDefinitionType.associationClass</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:complexType name="ResourceObjectTypeIdentificationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1110,10 +1148,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="type" type="xsd:QName" minOccurs="0" default="c:UserType">
+            <xsd:element name="type" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Type of the focus objects.
+                        Type of the focus objects. The default is derived from associated object type, or UserType (otherwise).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1146,6 +1184,22 @@
                             <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
                         </xsd:appinfo>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the item to which this resource object should be mapped.
+                        If not specified, the resource object corresponds to the whole focus object.
+                        (A special case is when "assignmentSubtype" is present, then the default path is "assignment".)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignmentSubtype" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Subtype of the assignment to which this resource object is mapped (if applicable).
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -4791,7 +4845,7 @@
     <xsd:simpleType name="ShadowKindType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines the kind of a shadow.
+                Defines the kind of shadow.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -4819,6 +4873,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="GENERIC"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="associated">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASSOCIATED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

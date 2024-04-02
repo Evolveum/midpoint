@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class UcfResourceObjectIdentification extends UcfResourceObjectFragment {
 
-    UcfResourceObjectIdentification(@NotNull ShadowType bean, @NotNull UcfErrorState errorState) {
+    private UcfResourceObjectIdentification(@NotNull ShadowType bean, @NotNull UcfErrorState errorState) {
         super(bean, errorState);
     }
 
@@ -30,7 +30,9 @@ public class UcfResourceObjectIdentification extends UcfResourceObjectFragment {
     public void checkConsistence() {
         super.checkConsistence();
         bean.asPrismContainerValue().checkNothingExceptFor(
-                ShadowType.F_ATTRIBUTES, ShadowType.F_OBJECT_CLASS, ShadowType.F_AUXILIARY_OBJECT_CLASS);
+                ShadowType.F_ATTRIBUTES,
+                ShadowType.F_OBJECT_CLASS,
+                ShadowType.F_AUXILIARY_OBJECT_CLASS);
     }
 
     @Override

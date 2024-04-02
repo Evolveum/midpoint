@@ -15,6 +15,7 @@ import java.time.ZonedDateTime;
 
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
+import static com.evolveum.midpoint.test.AttrName.icfs;
 import static com.evolveum.midpoint.test.AttrName.ri;
 import static com.evolveum.midpoint.test.ObjectClassName.custom;
 import static com.evolveum.midpoint.test.ObjectClassName.legacyCustom;
@@ -52,6 +53,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
         public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("person");
 
         public static class AttributeNames {
+            public static final AttrName NAME = icfs("name");
             public static final AttrName FIRST_NAME = ri("firstName");
             public static final AttrName LAST_NAME = ri("lastName");
             public static final AttrName TITLE = ri("title");
@@ -82,6 +84,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
         public static class AttributeNames {
             public static final AttrName VALID_FROM = ri("validFrom");
             public static final AttrName VALID_TO = ri("validTo");
+            public static final AttrName NOTE = ri("note");
         }
 
         public static class LinkNames {
@@ -93,6 +96,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
             var oc = new DummyObjectClass();
             controller.addAttrDef(oc, AttributeNames.VALID_FROM.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.VALID_TO.local(), ZonedDateTime.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.NOTE.local(), String.class, false, false);
             controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
         }
 

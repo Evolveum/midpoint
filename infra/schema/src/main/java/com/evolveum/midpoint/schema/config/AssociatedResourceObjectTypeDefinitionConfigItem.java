@@ -9,14 +9,14 @@ package com.evolveum.midpoint.schema.config;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociatedResourceObjectTypeDefinitionType;
 
-public class ResourceObjectTypeDefinitionConfigItem
-        extends AbstractResourceObjectTypeDefinitionConfigItem<ResourceObjectTypeDefinitionType> {
+public class AssociatedResourceObjectTypeDefinitionConfigItem
+        extends AbstractResourceObjectTypeDefinitionConfigItem<AssociatedResourceObjectTypeDefinitionType> {
 
     @SuppressWarnings("unused") // called dynamically
-    public ResourceObjectTypeDefinitionConfigItem(
-            @NotNull ConfigurationItem<ResourceObjectTypeDefinitionType> original) {
+    public AssociatedResourceObjectTypeDefinitionConfigItem(
+            @NotNull ConfigurationItem<AssociatedResourceObjectTypeDefinitionType> original) {
         super(original);
     }
 

@@ -7,17 +7,17 @@
 
 package com.evolveum.midpoint.schema.config;
 
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 
 /** This is intended to help with refined resource definition parsing process. */
 public class SchemaHandlingConfigItem
@@ -35,11 +35,25 @@ public class SchemaHandlingConfigItem
                 SchemaHandlingType.F_OBJECT_CLASS);
     }
 
-    public List<ResourceObjectTypeDefinitionConfigItem> getObjectTypes() {
+    private List<ResourceObjectTypeDefinitionConfigItem> getObjectTypes() {
         return children(
                 value().getObjectType(),
                 ResourceObjectTypeDefinitionConfigItem.class,
                 SchemaHandlingType.F_OBJECT_TYPE);
+    }
+
+    private List<AssociatedResourceObjectTypeDefinitionConfigItem> getAssociatedObjectTypes() {
+        return children(
+                value().getAssociatedObjectType(),
+                AssociatedResourceObjectTypeDefinitionConfigItem.class,
+                SchemaHandlingType.F_ASSOCIATED_OBJECT_TYPE);
+    }
+
+    public List<AbstractResourceObjectTypeDefinitionConfigItem<?>> getAllObjectTypes() {
+        List<AbstractResourceObjectTypeDefinitionConfigItem<?>> all = new ArrayList<>();
+        all.addAll(getObjectTypes());
+        all.addAll(getAssociatedObjectTypes());
+        return all;
     }
 
     public List<ShadowAssociationTypeDefinitionConfigItem> getAssociationTypes() {
@@ -59,7 +73,7 @@ public class SchemaHandlingConfigItem
         for (var objectClassDefCI : getObjectClasses()) {
             objectClassDefCI.checkAttributeNames();
         }
-        for (var objectTypeDefCI : getObjectTypes()) {
+        for (var objectTypeDefCI : getAllObjectTypes()) {
             objectTypeDefCI.checkAttributeNames();
         }
     }

@@ -84,7 +84,7 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
         for (QName qName : determineItemNames(targetPcv, sourcePcv)) {
             LOGGER.trace("Merging {}", qName);
             ItemName itemName = ItemName.fromQName(qName);
-            ItemMerger merger = determineChildMerger(itemName, sourcePcv);
+            ItemMerger merger = determineChildMerger(itemName, targetPcv);
             merger.merge(itemName, targetPcv, sourcePcv);
         }
     }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.intest.mapping;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Various advanced tests related to mappings.
  *
- * NOT a subclass of AbstractMappingTest.
+ * NOT a subclass of {@link AbstractMappingTest}: it is not an {@link AbstractInitializedModelIntegrationTest}.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

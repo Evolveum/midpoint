@@ -14,10 +14,7 @@ import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -85,6 +82,21 @@ class ResourceSchemaParser {
 
     /** The schema being created. */
     @NotNull private final ResourceSchemaImpl resourceSchema;
+
+    /**
+     * Class definition configuration items. We don't want to put these (instead of beans) into
+     * {@link ResourceObjectClassDefinition} objects, as they are too fat. However, we need them
+     * when parsing specific features of object classes. The value may be `null` if there's no config item.
+     *
+     * Indexed by class name local part (as the names are in `ri` namespace).
+     */
+    @NotNull private final Map<String, ResourceObjectClassDefinitionConfigItem> classDefinitionConfigItemMap = new HashMap<>();
+
+    /**
+     * As {@link #classDefinitionConfigItemMap} but for object types (regular and associated).
+     * Indexed by type identification, e.g., `account/default`.
+     */
+    @NotNull private final Map<ResourceObjectTypeIdentification, AbstractResourceObjectTypeDefinitionConfigItem<?>> typeDefinitionConfigItemMap = new HashMap<>();
 
     private ResourceSchemaParser(
             @NotNull ResourceType resource,
@@ -199,6 +211,7 @@ class ResourceSchemaParser {
             resourceSchema.add(
                     ResourceObjectClassDefinitionImpl.create(
                             basicResourceInformation, rawObjectClassDefinition, classDefinitionCI.value()));
+            classDefinitionConfigItemMap.put(classDefinitionCI.getObjectClassName().getLocalPart(), classDefinitionCI);
         }
 
         LOGGER.trace("Created {} refined object class definitions from beans; creating remaining ones", classDefinitionCIs.size());
@@ -208,6 +221,7 @@ class ResourceSchemaParser {
                 resourceSchema.add(
                         ResourceObjectClassDefinitionImpl.create(
                                 basicResourceInformation, nativeObjectClassDefinition, null));
+                classDefinitionConfigItemMap.put(nativeObjectClassDefinition.getName(), null);
             }
         }
 
@@ -224,7 +238,7 @@ class ResourceSchemaParser {
     private void createEmptyObjectTypeDefinitions() throws SchemaException, ConfigurationException {
         LOGGER.trace("Creating empty object type definitions");
         int created = 0;
-        for (var typeDefinitionCI : schemaHandling.getObjectTypes()) {
+        for (var typeDefinitionCI : schemaHandling.getAllObjectTypes()) {
             if (!typeDefinitionCI.isAbstract()) {
                 ResourceObjectTypeDefinition definition = createEmptyObjectTypeDefinition(typeDefinitionCI);
                 LOGGER.trace("Created (empty) object type definition: {}", definition);
@@ -248,8 +262,8 @@ class ResourceSchemaParser {
         }
     }
 
-    private ResourceObjectTypeDefinition createEmptyObjectTypeDefinition(
-            @NotNull ResourceObjectTypeDefinitionConfigItem definitionCI)
+    private <B extends ResourceObjectTypeDefinitionType> ResourceObjectTypeDefinition createEmptyObjectTypeDefinition(
+            @NotNull AbstractResourceObjectTypeDefinitionConfigItem<B> definitionCI)
             throws SchemaException, ConfigurationException {
 
         ResourceObjectTypeIdentification identification = definitionCI.getTypeIdentification();
@@ -258,16 +272,31 @@ class ResourceSchemaParser {
         // the bean at any level. And we hope that although we do the merging in the top-bottom direction, it will cause
         // no harm if we merge the object class refinement (i.e. topmost component) at last.
         ObjectTypeExpansion expansion = new ObjectTypeExpansion();
-        ResourceObjectTypeDefinitionType expandedBean = expansion.expand(definitionCI.value());
+        B expandedBean = expansion.expand(definitionCI.value());
 
         // We assume that the path was not changed. Quite a hack, though.
-        var expandedCI = configItem(expandedBean, definitionCI.origin(), ResourceObjectTypeDefinitionConfigItem.class);
+        AbstractResourceObjectTypeDefinitionConfigItem<?> expandedCI;
+        if (definitionCI instanceof AssociatedResourceObjectTypeDefinitionConfigItem) {
+            //noinspection RedundantTypeArguments : The type arguments aren't redundant: they are needed for some Java compilers
+            expandedCI = ConfigurationItem.<AssociatedResourceObjectTypeDefinitionType, AssociatedResourceObjectTypeDefinitionConfigItem>configItem(
+                    (AssociatedResourceObjectTypeDefinitionType) expandedBean,
+                    definitionCI.origin(),
+                    AssociatedResourceObjectTypeDefinitionConfigItem.class);
+        } else {
+            //noinspection RedundantTypeArguments : see above
+            expandedCI = ConfigurationItem.<ResourceObjectTypeDefinitionType, ResourceObjectTypeDefinitionConfigItem>configItem(
+                    expandedBean,
+                    definitionCI.origin(),
+                    ResourceObjectTypeDefinitionConfigItem.class);
+        }
 
         QName objectClassName = expandedCI.getObjectClassName();
         ResourceObjectClassDefinition objectClassDefinition = getObjectClassDefinitionRequired(objectClassName, expandedCI);
 
         ResourceObjectTypeDefinitionType objectClassRefinementBean = objectClassDefinition.getDefinitionBean();
         merge(expandedBean, objectClassRefinementBean); // no-op if refinement bean is empty
+
+        typeDefinitionConfigItemMap.put(expandedCI.getTypeIdentification(), expandedCI);
 
         return new ResourceObjectTypeDefinitionImpl(
                 basicResourceInformation,
@@ -419,27 +448,22 @@ class ResourceSchemaParser {
          * It is merged from all the super-resources and super-types. Its CI origin and CI parent are
          * set artificially (for now).
          */
-        @NotNull private final AbstractResourceObjectDefinitionConfigItem definitionCI;
+        @NotNull private final AbstractResourceObjectDefinitionConfigItem<?> definitionCI;
 
         ResourceObjectDefinitionParser(@NotNull ResourceObjectDefinition definition) {
             this.definition = (AbstractResourceObjectDefinitionImpl) definition;
-            var definitionBean = definition.getDefinitionBean();
-            if (definition instanceof ResourceObjectTypeDefinition) {
-                this.definitionCI = configItem(
-                        definitionBean,
-                        inResourceOrAncestor(
-                                resource,
-                                ResourceType.F_SCHEMA_HANDLING.append(SchemaHandlingType.F_OBJECT_TYPE)), // ignoring ID for now
-                        schemaHandling,
-                        ResourceObjectTypeDefinitionConfigItem.class);
+            if (definition instanceof ResourceObjectTypeDefinition typeDefinition) {
+                this.definitionCI = stateNonNull(
+                        typeDefinitionConfigItemMap.get(typeDefinition.getTypeIdentification()),
+                        "No cached configuration item for %s", typeDefinition);
             } else if (definition instanceof ResourceObjectClassDefinition) {
-                this.definitionCI = configItem(
-                        definitionBean,
-                        inResourceOrAncestor(
-                                resource,
-                                ResourceType.F_SCHEMA_HANDLING.append(SchemaHandlingType.F_OBJECT_CLASS)), // ignoring ID for now
-                        schemaHandling,
-                        ResourceObjectClassDefinitionConfigItem.class);
+                //noinspection RedundantTypeArguments : actually needed by the Java compiler
+                this.definitionCI = Objects.requireNonNullElseGet(
+                        classDefinitionConfigItemMap.get(definition.getObjectClassName().getLocalPart()),
+                        () -> ConfigurationItem.<ResourceObjectTypeDefinitionType, ResourceObjectClassDefinitionConfigItem>configItem(
+                                new ResourceObjectTypeDefinitionType(),
+                                ConfigurationItemOrigin.generated(),
+                                ResourceObjectClassDefinitionConfigItem.class));
             } else {
                 throw new IllegalStateException("Neither object type or object class? " + definition);
             }
@@ -696,8 +720,8 @@ class ResourceSchemaParser {
          *
          * Does not modify existing {@link #resource} object, so it clones the beans that are being expanded.
          */
-        private @NotNull ResourceObjectTypeDefinitionType expand(
-                @NotNull ResourceObjectTypeDefinitionType definitionBean) throws ConfigurationException, SchemaException {
+        private <T extends ResourceObjectTypeDefinitionType> @NotNull T expand(@NotNull T definitionBean)
+                throws ConfigurationException, SchemaException {
             var superRef = definitionBean.getSuper();
             if (superRef == null) {
                 return definitionBean;
@@ -709,7 +733,8 @@ class ResourceSchemaParser {
                                     superBean, ancestorsIds, contextDescription));
                 }
                 ResourceObjectTypeDefinitionType expandedSuperBean = expand(superBean);
-                ResourceObjectTypeDefinitionType expandedSubBean = definitionBean.clone();
+                //noinspection unchecked
+                T expandedSubBean = (T) definitionBean.clone();
                 merge(expandedSubBean, expandedSuperBean);
                 return expandedSubBean;
             }
@@ -719,7 +744,7 @@ class ResourceSchemaParser {
         private @NotNull ResourceObjectTypeDefinitionType find(@NotNull ResourceObjectTypeIdentificationType superRefBean)
                 throws ConfigurationException {
             SuperReference superRef = SuperReference.of(superRefBean);
-            List<ResourceObjectTypeDefinitionType> matching = schemaHandling.getObjectTypes().stream()
+            List<ResourceObjectTypeDefinitionType> matching = schemaHandling.getAllObjectTypes().stream()
                     .map(ci -> ci.value())
                     .filter(superRef::matches)
                     .collect(Collectors.toList());

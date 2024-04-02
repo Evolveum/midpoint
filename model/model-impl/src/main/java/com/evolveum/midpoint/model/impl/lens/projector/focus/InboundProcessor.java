@@ -9,7 +9,10 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.ClockworkInboundsProcessing;
+import com.evolveum.midpoint.schema.processor.CompositeObjectDefinition;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,8 +57,10 @@ public class InboundProcessor implements ProjectorProcessor {
 
         MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(activityDescription, now, task);
 
-        ClockworkInboundsProcessing<F> processing = new ClockworkInboundsProcessing<>(context, beans, env, result);
-        processing.collectAndEvaluateMappings();
+        new ClockworkInboundsProcessing<>(context, beans, env, result)
+                .collectAndEvaluateMappings();
+
+        processAssociatedObjects(context, env, result);
 
         context.checkConsistenceIfNeeded();
         medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
@@ -65,5 +70,43 @@ public class InboundProcessor implements ProjectorProcessor {
         contextLoader.updateArchetypePolicyAndRelatives(
                 context.getFocusContextRequired(), true, task, result);
         context.checkConsistenceIfNeeded();
+    }
+
+    /** Correlates and synchronizes all associated objects. */
+    private <F extends FocusType> void processAssociatedObjects(
+            LensContext<F> context, MappingEvaluationEnvironment env, OperationResult result)
+            throws SchemaException, ConfigurationException {
+        for (LensProjectionContext projCtx : context.getProjectionContexts()) {
+            String skipReason = getAssociatedObjectsProcessingSkipReason(projCtx);
+            if (skipReason != null) {
+                LOGGER.trace("Skipping processing associated objects of {} because: {}",
+                        projCtx.getHumanReadableName(), skipReason);
+                continue;
+            }
+            for (var associationDefinition : projCtx.getCompositeObjectDefinition().getAssociationDefinitions()) {
+                LOGGER.trace("Processing association {} in {}", associationDefinition, projCtx.getHumanReadableName());
+                /* TODO */
+            }
+        }
+    }
+
+    private String getAssociatedObjectsProcessingSkipReason(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
+        if (!projCtx.isFullShadow()) {
+            return "not a full shadow";
+        } else if (projCtx.isBroken()) {
+            return "broken";
+        } else if (!projCtx.isVisible()) {
+            return "invisible";
+        } else if (!projCtx.isCanProject()) {
+            return "cannot project";
+        }
+        CompositeObjectDefinition definition = projCtx.getCompositeObjectDefinition();
+        if (definition == null) {
+            return "no object definition";
+        } else if (definition.getAssociationDefinitions().isEmpty()) {
+            return "no associated objects";
+        } else {
+            return null;
+        }
     }
 }
