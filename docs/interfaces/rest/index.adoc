@@ -1,3 +1,7 @@
+---
+midpoint-feature: rest-api
+doc-type: intro
+---
 = REST API
 :page-wiki-name: REST API
 :page-wiki-id: 13074536
@@ -5,8 +9,6 @@
 :page-wiki-metadata-create-date: 2013-10-24T17:29:05.212+02:00
 :page-wiki-metadata-modify-user: slavek
 :page-wiki-metadata-modify-date: 2021-02-16T10:07:40.669+01:00
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 :page-toc: top
 :page-keywords: [ 'rest', 'interface', 'rest api', 'restful']

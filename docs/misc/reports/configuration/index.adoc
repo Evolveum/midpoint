@@ -1,3 +1,7 @@
+---
+midpoint-feature: reporting
+doc-type: config
+---
 = Report Configuration
 :page-toc: top
 :toclevels: 3

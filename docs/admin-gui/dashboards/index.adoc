@@ -1,3 +1,7 @@
+---
+midpoint-feature: dashboard
+doc-type: intro
+---
 = Customizable Dashboards
 :page-wiki-name: Customizable Dashboards
 :page-wiki-id: 27361691
@@ -6,8 +10,6 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2019-02-01T13:16:14.087+01:00
 :page-nav-title: Dashboards
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-since: "4.0"
 :page-upkeep-status: orange
 :page-upkeep-note: This was a "planned feature" test. I have quicly edited it to be a in present tense. But perhaps more edits are needed.

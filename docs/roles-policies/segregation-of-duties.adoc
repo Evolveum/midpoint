@@ -1,3 +1,7 @@
+---
+midpoint-feature: sod
+doc-type: intro
+---
 = Segregation of Duties
 :page-wiki-name: Segregation of Duties
 :page-wiki-id: 4423716
@@ -7,8 +11,6 @@
 :page-wiki-metadata-modify-date: 2021-03-02T23:37:12.075+01:00
 :page-since: "3.5"
 :page-since-improved: [ "3.6" ]
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 Segregation of Duties (SoD) is a mechanisms that prevents accumulating of too much power in the hands of a single person.

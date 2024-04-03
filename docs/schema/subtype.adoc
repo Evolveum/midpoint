@@ -7,8 +7,6 @@
 :page-wiki-metadata-modify-date: 2019-04-24T15:44:49.268+02:00
 :page-deprecated: true
 :page-replaced-by: /midpoint/reference/schema/archetypes/
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 [NOTE]

@@ -1,3 +1,7 @@
+---
+midpoint-feature: synchronization-reaction
+doc-type: intro
+---
 = Synchronization Situations
 :page-nav-title: Situations
 :page-wiki-name: Synchronization Situations

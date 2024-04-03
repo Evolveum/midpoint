@@ -1,3 +1,7 @@
+---
+midpoint-feature: policy-rule
+doc-type: intro
+---
 = Policy Rules
 :page-wiki-name: Policy Rules
 :page-wiki-id: 24084558
@@ -7,8 +11,6 @@
 :page-wiki-metadata-modify-date: 2019-09-18T01:01:22.717+02:00
 :page-since: "3.6"
 :page-toc: top
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
 :page-upkeep-note: Lot's of TODOs here
 

@@ -5,8 +5,6 @@
 :page-wiki-metadata-create-date: 2012-01-28T16:48:00.601+01:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2019-03-12T11:58:29.167+01:00
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
 
 MidPoint is using internal mechanism based on relative changes.

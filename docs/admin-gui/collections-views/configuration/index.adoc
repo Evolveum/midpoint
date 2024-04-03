@@ -1,3 +1,7 @@
+---
+midpoint-feature: object-collection-and-view
+doc-type: config
+---
 = Object Collections and Views Configuration
 :page-nav-title: Configuration
 :page-display-order: 50
