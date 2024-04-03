@@ -8,8 +8,11 @@ package com.evolveum.midpoint.schema.processor;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
+
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,24 +22,27 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * @author semancik
  */
 public class ResourceObjectPattern implements Serializable {
-    private static final long serialVersionUID = 1L;
 
-    @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
-    @NotNull private final ObjectFilter objectFilter;
+    @Serial private static final long serialVersionUID = 1L;
 
-    public ResourceObjectPattern(@NotNull ResourceObjectDefinition resourceObjectDefinition, @NotNull ObjectFilter objectFilter) {
-        this.resourceObjectDefinition = resourceObjectDefinition;
-        this.objectFilter = objectFilter;
+    @NotNull private final ResourceObjectDefinition objectDefinition;
+
+    @NotNull private final ObjectFilter filter;
+
+    public ResourceObjectPattern(@NotNull ResourceObjectDefinition objectDefinition, @NotNull ObjectFilter filter) {
+        this.objectDefinition = objectDefinition;
+        this.filter = filter;
     }
 
     public static boolean matches(
-            @NotNull ShadowType shadowToMatch, @Nullable Collection<ResourceObjectPattern> protectedAccountPatterns)
+            @NotNull AbstractShadow shadowToMatch, @Nullable Collection<ResourceObjectPattern> protectedAccountPatterns)
             throws SchemaException {
         for (ResourceObjectPattern pattern : emptyIfNull(protectedAccountPatterns)) {
             if (pattern.matches(shadowToMatch)) {
@@ -46,18 +52,21 @@ public class ResourceObjectPattern implements Serializable {
         return false;
     }
 
-    public boolean matches(@NotNull ShadowType shadowToMatch) throws SchemaException {
-        // we suppose references in shadowToMatch are normalized (on return from repo)
+    @VisibleForTesting
+    public boolean matches(@NotNull AbstractShadow shadowToMatch) throws SchemaException {
         SchemaService schemaService = SchemaService.get();
-        ObjectTypeUtil.normalizeFilter(objectFilter, schemaService.relationRegistry());
-        return ObjectQuery.match(shadowToMatch, objectFilter, schemaService.matchingRuleRegistry());
+
+        // We suppose there are no references in the object filter. But to be safe, let's keep this here.
+        ObjectTypeUtil.normalizeFilter(filter, schemaService.relationRegistry());
+
+        return ObjectQuery.match(shadowToMatch.getBean(), filter, schemaService.matchingRuleRegistry());
     }
 
-    public @NotNull ResourceObjectDefinition getResourceObjectDefinition() {
-        return resourceObjectDefinition;
+    public @NotNull ResourceObjectDefinition getObjectDefinition() {
+        return objectDefinition;
     }
 
-    public @NotNull ObjectFilter getObjectFilter() {
-        return objectFilter;
+    public @NotNull ObjectFilter getFilter() {
+        return filter;
     }
 }

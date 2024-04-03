@@ -325,7 +325,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
             addObject(shadow, task, result);
 
             if (i == 0) {
-                PrismObject<ShadowType> createdShadow = getShadowRepo(shadow.getOid());
+                PrismObject<ShadowType> createdShadow = getShadowRepoLegacy(shadow.getOid());
                 assertShadow(createdShadow, "after creation")
                         .display()
                         .assertObjectClass(rOcDef.getTypeName())
@@ -340,7 +340,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
             EqualFilter<String> filter = prismContext.queryFactory().createEqual(nameAttributePath, null, null, prismContext, groupName);
 
             SearchFilterType filterType = prismContext.getQueryConverter().createSearchFilterType(filter);
-            associationTargetSearchType.setFilter(filterType);
+            associationTargetSearchType.filter(filterType);
             associationTargetSearchType.setSearchStrategy(ObjectSearchStrategyType.IN_REPOSITORY);
             JAXBElement<SearchObjectExpressionEvaluatorType> evaluator = objectFactory.createAssociationTargetSearch(associationTargetSearchType);
             roleType

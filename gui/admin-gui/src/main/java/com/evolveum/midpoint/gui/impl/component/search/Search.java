@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.prism.impl.query.OrFilterImpl;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -269,7 +268,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
             List<ObjectFilter> typeFilters = new ArrayList<>();
             type.getAvailableValues()
                     .forEach(t -> {
-                        Class cl = WebComponentUtil.qnameToClass(pageBase.getPrismContext(), t);
+                        Class cl = WebComponentUtil.qnameToClass(t);
                         typeFilters.add(PrismContext.get().queryFor(cl).type(t).buildFilter());
                     });
             return OrFilterImpl.createOr(typeFilters);

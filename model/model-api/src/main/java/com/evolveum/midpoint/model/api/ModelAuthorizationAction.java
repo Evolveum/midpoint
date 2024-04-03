@@ -9,11 +9,17 @@ package com.evolveum.midpoint.model.api;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.RestAuthorizationAction;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+/**
+ * Represents a model-level action (method) that can be authorized.
+ *
+ * @see RestAuthorizationAction
+ */
 public enum ModelAuthorizationAction implements DisplayableValue<String> {
 
     READ("read", "Read", "READ_HELP"),
@@ -56,6 +62,8 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     @SuppressWarnings("DeprecatedIsStillUsed") @Deprecated // use bulk-3#all
     EXECUTE_SCRIPT("executeScript", "Execute script", "EXECUTE_SCRIPT_HELP"),
     CHANGE_CREDENTIALS("changeCredentials", "Change credentials", "CHANGE_CREDENTIALS_HELP"),
+
+    NOTIFY_CHANGE("notifyChange", "Notify change", "NOTIFY_CHANGE_HELP"),
 
     SUSPEND_TASK("suspendTask", "Suspend task", "SUSPEND_TASK_HELP"),
     RESUME_TASK("resumeTask", "Resume task", "RESUME_TASK_HELP"),

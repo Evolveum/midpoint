@@ -19,57 +19,49 @@ containers inside xref:/midpoint/reference/concepts/system-configuration-object/
 
 == Configuring transports
 
-[NOTE]
-====
-In 4.5 the new container for transport configuration was introduced - `messageTransportConfiguration`.
-You can still place the transport configuration inside `notificationConfiguration` but that style
-will be eventually deprecated, depending on the GUI support for the new configuration style.
-
-There is just one notable difference in both styles.
-The "old" style supports `name` _attribute_ to distinguish between multiple transports of the same
-type - while the new style uses `name` _element_ which is more idiomatic for midPoint configuration.
-====
-
-Currently, there are a couple of transports available: *mail, sms*, *custom* and *file*.
+Currently, there are a couple of transports available: *mail, sms*, *customTransport* and *file*.
 
 They have to be configured to work properly.
 For the time being, here we show a sample configuration, hopefully self-explanatory enough:
 
 [source,xml]
 ----
-<mail>
-    <!-- There can be more servers if necessary; they are tried in the specified order. -->
-    <server>
-        <host>smtp.gmail.com</host>
+<messageTransportConfiguration>
+    <mail>
+        <name>main</name>
+        <!-- There can be more servers if necessary; they are tried in the specified order. -->
+        <server>
+            <host>smtp.gmail.com</host>
+            <!--
+            Specify port: 25, 587 (e.g. MS Exchange and TLS) or other based on your mail server.
+            You can skip the port definition altogether to use default (25).
+            -->
+            <port>587</port>
+            <username>abc@gmail.com</username>
+            <password>
+                <clearValue>abcdef</clearValue>
+            </password>
+            <!-- Other transportSecurity options: none, starttlsEnabled, starttlsRequired -->
+            <transportSecurity>starttlsRequired</transportSecurity>
+        </server>
+
+        <server> <!-- Second server -->
+           . . .
+        </server>
+        <server> <!-- Third server -->
+           . . .
+        </server>
+
+        <defaultFrom>abc@gmail.com</defaultFrom>
+        <!-- standard javax.mail debugging; it is going to stdout (midpoint.out)! -->
+        <debug>true</debug>
         <!--
-        Specify port: 25, 587 (e.g. MS Exchange and TLS) or other based on your mail server.
-        You can skip the port definition altogether to use default (25).
+        All notifications are logged to this file IN ADDITION TO sending them via mail.
+        They are logged in all cases: even if they eventually cannot be sent.
         -->
-        <port>587</port>
-        <username>abc@gmail.com</username>
-        <password>
-            <clearValue>abcdef</clearValue>
-        </password>
-        <!-- Other transportSecurity options: none, starttlsEnabled, starttlsRequired -->
-        <transportSecurity>starttlsRequired</transportSecurity>
-    </server>
-
-    <server> <!-- Second server -->
-       . . .
-    </server>
-    <server> <!-- Third server -->
-       . . .
-    </server>
-
-    <defaultFrom>abc@gmail.com</defaultFrom>
-    <!-- standard javax.mail debugging; it is going to stdout (midpoint.out)! -->
-    <debug>true</debug>
-    <!--
-    All notifications are logged to this file IN ADDITION TO sending them via mail.
-    They are logged in all cases: even if they eventually cannot be sent.
-    -->
-    <logToFile>mail-notifications.log</logToFile>
-</mail>
+        <logToFile>mail-notifications.log</logToFile>
+    </mail>
+</messageTransportConfiguration>
 ----
 
 *Ensure your SMTP server will accept multiple connection (message rate limit)* as midPoint notifications are being sent as the objects are created, e.g. one user can have 15 accounts or one organization 40 entitlements created at the same time.
@@ -78,6 +70,11 @@ This is especially important for Microsoft Exchange, where the default limit see
 Also please note that SSL-related settings for mail messaging are currently experimental (e.g. there is no support for setting certificate validation-related properties; default behavior of `javax.mail` implementation is used).
 You may also need to store the mail server self-signed SSL certificate in your Java "cacerts" keystore.
 
+[Important]
+====
+All root and intermediate CA certificates in chain for mailserver certificate must be imported into keystore, please see related documentation link:../../security/crypto/ssl-connections-client-side-.adoc[TLS Connections] how to get certificates and import them into keystore.
+====
+
 [TIP]
 ====
 For Microsoft Exchange, we've successfully tested the configuration with port=587, transportSecurity=starttlsRequired and a valid username/password combination.
@@ -85,9 +82,8 @@ For Microsoft Exchange, we've successfully tested the configuration with port=58
 
 [NOTE]
 ====
-In previous versions of midPoint, there could be only one configuration of the mail transport.
-Since 4.5, when using the modern configuration style in `messageTransportConfiguration` container, multiple mail transports can be used.
-They are then distinguished by their name, for example:
+Multiple mail transports can be used if using `messageTransportConfiguration`.
+They are distinguished by their name, for example:
 
 [source,xml]
 ----
@@ -113,13 +109,13 @@ They are then distinguished by their name, for example:
 </messageTransportConfiguration>
 ----
 
-The same way of naming individual transports can be used for all transport kinds (sms, custom, file).
+The same way of naming individual transports can be used for all transport kinds (`sms`, `customTransport`, `file`).
 ====
 
 === "File" transport
 
 This transport can be used to diagnose notifications.
-It works in a similar way as "redirectToFile" option, but:
+It works in a similar way as `redirectToFile` option, but:
 
 . can be used when you want to send messages both via mail/sms and log them into a file,
 
@@ -263,7 +259,7 @@ This requirement might change in the future.
 | redirectToFile
 | Instead of opening HTTP connection, writes the URL and other parameters to this file.
 Useful for debugging.
-|  +
+|
 
 | logToFile
 | In addition to executing the expression, writes all messages to a file.
@@ -272,7 +268,7 @@ Useful for debugging.
 
 |===
 
-Expressions specified in urlExpression (url), headersExpression, bodyExpression can use the following variables:
+Expressions specified in `urlExpression` (url), `headersExpression`, `bodyExpression` can use the following variables:
 
 [%autowidth]
 |===
@@ -307,13 +303,14 @@ Expressions specified in urlExpression (url), headersExpression, bodyExpression 
 
 It can accept any event and produce any notification(s).
 All is directed by parameters and expressions, as described in the following table.
+
 Please note that the following parameters can be used in any kind of notifier.
 
 [%autowidth]
 |===
 | Parameter name | Type | Cardinality | Meaning
 
-| name (attribute)
+| name
 | String
 | 0..1
 | Name of the notifier - just a help to the administrator in order to increase readability of the configuration.
@@ -330,7 +327,7 @@ Please note that the following parameters can be used in any kind of notifier.
 | 0..1
 | Recipient(s) that should get the notifications.
 (TODO: Exact form is to be determined yet, but here may be mail addresses, phone numbers, etc.
-We need to think how to distinguish these kinds of destinations.) Default: mail address of the requestee - user that is being dealt with by repository object change or within a workflow; or account owner.
+We need to think how to distinguish these kinds of destinations.) Default: mail address of the requestee - user that is being dealt with by repository object change or within a workflow; or account owner, if the e-mail address is not empty.
 
 
 | ccExpression
@@ -406,6 +403,11 @@ TODO
 Sends out a notification about the change of a user.
 It has no special parameters in addition to parameters of a general notifier.
 
+=== simpleFocalObjectNotifier
+
+Sends out a notification about the change of any focal object type.
+It has no special parameters in addition to parameters of a general notifier.
+
 === simpleResourceObjectNotifier
 
 Sends out a notification about the change of a resource object.It has one parameter:
@@ -444,8 +446,8 @@ There are the following categories available:
 |===
 | Category name | Expression | Description
 
-| userEvent
-| event.isUserRelated()
+| modelEvent
+| event instanceOf ModelEvent &amp;&amp; event.isUserRelated()
 | Event connected to a user object in repository.
 
 
@@ -477,7 +479,7 @@ An example:
 
 [source,xml]
 ----
-<category>userEvent</category>
+<category>modelEvent</category>
 
 ----
 
@@ -560,6 +562,32 @@ Filters events based on operation that was executed (or attempted to execute).
 
 |===
 
+=== focus type filter
+
+Filters events based on focus type that was processed.
+
+[%autowidth]
+|===
+| Name | Expression | Description
+
+| focusType
+| event.getFocusType()
+
+event.getFocusTypeName()
+| Type of the processed object, e.g. `RoleType`.
+
+Type of the processed object without suffix, e.g. `Role`
+
+|===
+
+An example:
+
+[source,xml]
+----
+<focusType>RoleType</focusType>
+----
+
+
 === expression filter
 
 Passes events based on arbitrary expression.
@@ -589,11 +617,11 @@ Variables that are available are:
 
 | requester
 | UserType
-| The user who requested the operation (if known).
+| The user who requested the operation (if known; might be null).
 
 | requestee
 | ObjectType
-| The object (typically a user) that is modified by the operation, or the owner of an account that is modified by the operation (if known).
+| The object (typically a user) that is modified by the operation, or the owner of an account that is modified by the operation (if known; might be null).
 
 | assignee
 | UserType
@@ -605,6 +633,269 @@ Variables that are available are:
 Not available in expressionFilters.
 
 |===
+
+== Expression Variables
+
+[TIP]
+====
+Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[Javadoc for com.evolveum.midpoint.notifications.api.events.Event] to learn about *all* possible variables.
+The methods documented in Javadoc can be used in your expressions.
+
+Other variables are defined for specific event types which are defined as subinterfaces of `Event` package.
+====
+
+// FIXME fix when macro is available, to point to specific Javadoc pages for support/master versions...
+// FIXME for now, I will point to master as agreed with Igor 4.3.2024.
+//Test: xref:/midpoint/#{ver}/midpoint-#{ver}javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[]
+
+//Test 2: https://download.evolveum.com/midpoint/#{ver}/midpoint-#{ver}-javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[Event doc]
+
+// Ver: #{ver} / {{ ver }}
+
+
+In your expressions, `event` variable contains the whole event object.
+Properties of `event` object can be accessed using Java calls, but both Groovy and Velocity allow short usage form:
+
+.*Groovy*
+* `event.channel` instead of `event.getChannel()`
+* `event.focusPassword` instead of `event.getFocusPassword()`
+* `event.success` instead of `event.isSuccess()`
+* etc.
+
+.*Velocity*
+* `$event.channel` instead of `$event.getChannel()`
+* `$event.focusPassword` instead of `$event.getFocusPassword()`
+* `$event.success` instead of `$event.isSuccess()`
+* etc.
+
+Please refer to the following documentation for the shorter notation rules:
+
+* *Groovy*: https://groovy-lang.org/objectorientation.html#properties
+* *Velocity*: https://velocity.apache.org/engine/1.7/user-guide.html#property-lookup-rules
+
+=== Expression Variables for Any Events
+
+[%autowidth]
+|===
+|Groovy (short) | Velocity (short) |Groovy (long)| Velocity (long)|Description
+
+|event.channel
+|$event.channel
+|event.getChannel()
+|$event.getChannel()
+|Returns the channel for the event
+
+|event.id
+|$event.id
+|event.getId()
+|$event.getId()
+|Returns randomly generated event ID
+
+|event.requestee
+|$event.requestee
+|event.getRequestee()
+|$event.getRequestee()
+|Returns the entity that is the object of this event or the owner of the object (e.g. account) of this event
+
+|event.requesteeName
+|$event.requesteeName
+|event.getRequesteeName()
+|$event.getRequesteeName()
+|Returns requestee's `name` property.
+
+|event.requesteeDisplayName
+|$event.requesteeDisplayName
+|event.getRequesteeDisplayName()
+|$event.getRequesteeDisplayName()
+|Returns requestee's "display name", e.g. user's `fullName` property if it exists.
+
+|event.requesteeObject
+|$event.requesteeObject
+|event.getRequesteeObject()
+|$event.getRequesteeObject()
+|Returns the entity that is the object of this event or the owner of the object (e.g. account) of this event
+
+|event.requesteeOid
+|$event.requesteeOid
+|event.getRequesteeOid()
+|$event.getRequesteeOid()
+|Returns requestee's oid.
+
+|event.requester
+|$event.requester
+|event.getRequester()
+|$event.getRequester()
+|Returns the entity that requested the operation that resulted in the event being generated.
+
+|event.statusAsText
+|$event.statusAsText
+|event.getStatusAsText()
+|$event.getStatusAsText()
+|Returns the status of the event converted to text and uppercased, e.g. `SUCCESS`
+
+|event.success
+|$event.success
+|event.isSuccess()
+|$event.isSuccess()
+|Returns true if the event resulted in success
+
+|event.failure
+|$event.failure
+|event.isFailure()
+|$event.isFailure()
+|Returns true if the event resulted in failure
+
+|===
+
+
+=== Expression Variables Specific For Model Event
+
+[TIP]
+====
+Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/ModelEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.ModelEvent] to learn about *all* possible variables.
+The methods documented in Javadoc can be used in your expressions.
+
+All variables for `Event` can be used as well.
+====
+
+[%autowidth]
+|===
+|Groovy (short) | Velocity (short) |Groovy (long)| Velocity (long)|Description
+
+|event.changeType
+|$event.changeType
+|event.getChangeType()
+|$event.getChangeType()
+|Returns change type (ADD, MODIFY, DELETE) from the event
+
+|event.contentAsFormattedList
+|$event.contentAsFormattedList
+|event.getContentAsFormattedList()
+|$event.getContentAsFormattedList()
+|Returns formatted list of changes for this event. NOTE: The content is rendered in plain text and will not use any HTML formatting.
+
+|event.focusPassword
+|$event.focusPassword
+|event.getFocusPassword()
+|$event.getFocusPassword()
+|Returns focal object password if known (e.g. during password generation)
+
+|===
+
+=== Expression Variables Specific For ResourceObject Event
+
+[TIP]
+====
+Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/ResourceObjectEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent] to learn about *all* possible variables.
+The methods documented in Javadoc can be used in your expressions.
+
+All variables for `Event` can be used as well.
+====
+
+[%autowidth]
+|===
+|Groovy (short) | Velocity (short) |Groovy (long)| Velocity (long)|Description
+
+|event.changeType
+|$event.changeType
+|event.getChangeType()
+|$event.getChangeType()
+|Returns change type (ADD, MODIFY, DELETE) from the event
+
+|event.contentAsFormattedList
+|$event.contentAsFormattedList
+|event.getContentAsFormattedList()
+|$event.getContentAsFormattedList()
+|Returns formatted list of changes for this event. NOTE: The content is rendered in plain text and will not use any HTML formatting.
+
+|event.plaintextPassword
+|$event.plaintextPassword
+|event.getPlaintextPassword()
+|event.getPlaintextPassword()
+|Returns resource object password if known (e.g. during password generation)
+
+|===
+
+=== Expression Variables Specific For WorkflowProcess Event
+
+[TIP]
+====
+Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/WorkflowProcessEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.WorkflowProcessEvent] to learn about *all* possible variables.
+The methods documented in Javadoc can be used in your expressions.
+
+All variables for `Event` can be used as well.
+====
+
+[%autowidth]
+|===
+|Groovy (short) | Velocity (short) |Groovy (long)| Velocity (long)|Description
+
+|event.caseName
+|$event.caseName
+|event.getCaseName()
+|$event.getCaseName()
+|Returns the case name
+
+|event.statusAsText
+|$event.statusAsText
+|event.getStatusAsText()
+|$event.getStatusAsText()
+|Returns the case outcome (`Approved` or `Rejected`).
+
+|===
+
+=== Expression Variables Specific For WorkItemAllocation Event
+
+[TIP]
+====
+Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/WorkItemEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.WorkItemEvent] to learn about *all* possible variables.
+The methods documented in Javadoc can be used in your expressions.
+
+All variables for `Event` can be used as well.
+====
+
+[%autowidth]
+|===
+|Groovy (short) | Velocity (short) |Groovy (long)| Velocity (long)|Description
+
+|event.workItemId
+|$event.workItemId
+|event.getWorkItemId()
+|$event.getWorkItemId()
+a|Returns the workitem id which can be used for further operations. Example:
+
+* call `event.getWorkItem().getDeadline()` to get workitem deadline date/time if workitem timeouts are used
+
+|event.workItemUrl
+|$event.workItemUrl
+|event.getWorkItemUrl()
+|$event.getWorkItemUrl()
+|Returns the URL which can be used as a direct link to act on this workitem. Very useful for notifications.
+The URL is composed using `midpoint.createWorkItemCompletionLink()` method.
+
+|event.cause.type
+|$event.cause.type
+|event.getCause().getType()
+|$event.getCause().getType()
+|For timed actions (workitem with a deadline defined): returns `TIMED_ACTION`
+
+|event.operationKind
+|$event.operationKind
+|event.getOperationKind()
+|$event.getOperationKind()
+a|Returns information about the operation that will be executed if timed actions are used (e.g. if you set workitem deadline, it will be automatically completed (e.g. rejected) after the deadline).
+
+Possible values:
+
+`CLAIM`: Claim operation.
+`RELEASE`: Release operation.
+`COMPLETE`: Complete (approve/reject) operation. (Explicit or automated.)
+`DELEGATE`: Delegate operation. (Explicit or automated.)
+`ESCALATE`: Escalate operation. (Explicit or automated.)
+`CANCEL`: Cancel operation. Work item was cancelled as a result of other action. (E.g. another work item was completed, resulting in process or stage completion. Or the process was cancelled/deleted externally.)
+
+|===
+
 
 ////
 TODO document other expression variables
@@ -634,6 +925,6 @@ Link any other expression documentation discussing variables?
 If the configuration doesn't do what is expected, or seemingly does nothing at all, it may
 be the right time to add some debug log messages for notifications and transport components.
 In the xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration],
-add the logers for `NOTIFICATION` and `TRANSPORT` (predefined `LoggingComponentType`-s)
+add the loggers for `NOTIFICATION` and `TRANSPORT` (predefined `LoggingComponentType`-s)
 and set them to the `DEBUG` level.
 This should provide additional information if the notification is skipped and why.

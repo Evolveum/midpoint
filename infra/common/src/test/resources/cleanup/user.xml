@@ -11,6 +11,31 @@
 
     <name>user</name>
 
+    <metadata>
+        <requestTimestamp>2024-02-15T12:59:15.453Z</requestTimestamp>
+        <createTimestamp>2024-02-15T12:59:15.468Z</createTimestamp>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init</createChannel>
+    </metadata>
+    <operationExecution id="2">
+        <recordType>simple</recordType>
+        <timestamp>2024-02-15T12:59:15.496Z</timestamp>
+        <operation>
+            <objectDelta>
+                <t:changeType>add</t:changeType>
+                <t:objectType>UserType</t:objectType>
+            </objectDelta>
+            <executionResult>
+                <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                <status>success</status>
+                <importance>normal</importance>
+                <token>1000000000000001473</token>
+            </executionResult>
+            <objectName>administrator</objectName>
+        </operation>
+        <status>success</status>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init</channel>
+    </operationExecution>
+
     <credentials>
         <password>
             <value>

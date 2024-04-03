@@ -6,8 +6,6 @@ scripts: [ 'multi-source.js' ]
 :page-display-order: 300
 :page-toc: top
 :toclevels: 3
-:sectnums:
-:sectnumlevels: 3
 
 This document contain advanced documentation describing concepts of querying in midPoint and midPoint Query language building blocks. New midPoint users and engineers may find this information hard to follow and confusing.
 
@@ -707,11 +705,10 @@ There are the following complex filters:
 
 And, Or and Not filters are quite self-explanatory.
 
-// TODO examples
 
 ==== Type filter
 
-Type filter with parameters `type` and optional `filter` accepts iff the object is of type `type` and `filter` passes on the object.
+Type filter with parameters `type` and optional `filter` accepts if the object is of type `type` and `filter` passes on the object.
 
 For example, imagine that the original query asked for an ObjectType.
 Then it is possible to set up Type filter with type=UserType, filter=(name equals "xyz") to find only users with the name of "xyz":
@@ -732,7 +729,7 @@ Then it is possible to set up Type filter with type=UserType, filter=(name equal
 
 ==== Exists filter
 
-Exists filter with parameters `item` and optional `filter` accepts iff there exists a value
+Exists filter with parameters `item` and optional `filter` accepts if there is a value
 in the specified `item` and the value matches the provided `filter`.
 Exists inner filter works for container items and reference targets; reference targets are supported only in the repository.
 
@@ -821,7 +818,7 @@ is applied to the SQL `EXISTS` resulting in `NOT EXISTS` query, which works as e
 `exists` for the old Generic repo was implemented using `LEFT JOIN` which works fine for positive
 conditions, but does not work with `NOT` as usual in SQL.
 In the Generic repo, `not` with `exists` is interpreted as "any of the entries does not match the condition inside".
-See https://jira.evolveum.com/browse/MID-7203[MID-7203].
+See bug:MID-7203[].
 ====
 
 // TODO example with nesting exists, show the need for .block() in fluent API (see sqale search test)
@@ -1333,11 +1330,11 @@ This filter is supported only for the xref:/midpoint/reference/repository/native
 |===
 | Subelement | Description
 
-| `type` | type of the referencing object/container (the object pointing to the searched object), mandatory
+| `@type` | type of the referencing object/container (the object pointing to the searched object), mandatory
 
-| `path` | item path from the referencing object to the searched object, mandatory
+| `@path` | item path from the referencing object to the searched object, mandatory
 
-| `relation` | Optional filter for relation of the reference pointing to the searched object.
+| `@relation` | Optional filter for relation of the reference pointing to the searched object.
 If not stated, any relation matches (equivalent of `q:any`).
 
 | `filter` | Optional nested filter applied to the referencing object (not the objects we search for).
@@ -1531,8 +1528,8 @@ For authoritative information about provisioning filter interpretation, see link
 
 Filters can be created using Fluent Java API or via XML (or equivalentYAML/JSON).
 
-The following samples are taken from link:https://github.com/Evolveum/midpoint/blob/master/infra/schema/src/test/java/com/evolveum/midpoint/schema/TestQueryConvertor.java[TestQueryConvertor] class.
-XML versions are in the files named `test*.xml` in link:https://github.com/Evolveum/midpoint/tree/master/infra/schema/src/test/resources/queryconvertor[this directory].
+The following samples are taken from link:https://github.com/Evolveum/midpoint/blob/master/infra/schema/src/test/java/com/evolveum/midpoint/schema/TestQueryConverter.java[TestQueryConvertor] class.
+XML versions are in the files named `test*.xml` in link:https://github.com/Evolveum/midpoint/tree/master/infra/schema/src/test/resources/queryconverter[this directory].
 
 ==== Primitive filters
 
@@ -2140,6 +2137,20 @@ The operation may return specified number of entries or less.
 Following is the example for using paging in the query.
 
 .Paging example
+[source,midPoint-query]
+----
+<q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <q:filter>
+        <q:text>activation/administrativeStatus="enabled"</q:text>
+    </q:filter>
+    <q:paging>
+        <q:orderBy>name</q:orderBy>
+        <q:offset>0</q:offset>
+        <q:maxSize>10</q:maxSize>
+    </q:paging>
+</q:query>
+----
+
 [source,xml]
 ----
 <q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -2151,8 +2162,8 @@ Following is the example for using paging in the query.
     </q:filter>
     <q:paging>
         <q:orderBy>name</q:orderBy>
-        <offset>0</offset>
-        <maxSize>10</maxSize>
+        <q:offset>0</q:offset>
+        <q:maxSize>10</q:maxSize>
     </q:paging>
 </q:query>
 ----

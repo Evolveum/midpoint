@@ -20,11 +20,11 @@ Even if you are upgrading from midPoint 4.4 LTS and not installing from scratch,
 
 midPoint 4.4 uses `midpoint.war` while new midPoint 4.8 uses `midpoint.jar` file!
 
-If you have followed xref:/midpoint/reference/deployment/ninja/upgrade-with-ninja/[Upgrade with Ninja] page, after the application is upgraded, the `lib/` directory contains both (old) `midpoint.war` and (new) `midpoint.jar`.
+If you have followed xref:/midpoint/reference/deployment/ninja/use-case/upgrade-with-ninja[] page, after the application is upgraded, the `lib/` directory contains both (old) `midpoint.war` and (new) `midpoint.jar`.
 
 Please check and fix your Systemd service unit file or service startup file for `midPoint.war` references and replace them with `midpoint.jar`.
 
-See also xref:/midpoint/install/systemd/[Running midPoint with systemd].
+See also xref:/midpoint/install/bare-installation/systemd/[Running midPoint with systemd].
 
 [#_resource_schema_change]
 === Do I need to update my 4.4-based resources after upgrade to 4.8 LTS?

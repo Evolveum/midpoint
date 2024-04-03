@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.CompositeObjectDefinition;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
@@ -83,6 +84,12 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
     Collection<ResourceObjectTypeDependencyType> getDependencies() throws SchemaException, ConfigurationException;
 
     CompositeObjectDefinition getCompositeObjectDefinition() throws SchemaException, ConfigurationException;
+
+    default @NotNull CompositeObjectDefinition getCompositeObjectDefinitionRequired()
+            throws SchemaException, ConfigurationException {
+        return MiscUtil.stateNonNull(
+                getCompositeObjectDefinition(), "No composite object definition in %s", this);
+    }
 
     ResourceType getResource();
 }

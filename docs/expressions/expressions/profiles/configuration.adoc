@@ -6,7 +6,6 @@
 :page-wiki-metadata-create-date: 2019-04-08T14:11:27.298+02:00
 :page-wiki-metadata-modify-user: martin.lizner
 :page-wiki-metadata-modify-date: 2019-09-26T14:54:40.106+02:00
-:page-since: "4.0"
 :page-upkeep-status: green
 :page-toc: top
 
@@ -87,9 +86,6 @@ Expression profiles are defined in xref:/midpoint/reference/concepts/system-conf
 </systemConfiguration>
 ----
 
-In versions 4.0 to 4.7, the configuration consists of two parts: expression profile and permission profile.
-Since 4.8, there are other parts as well, see below.
-
 _Expression profile_ specifies which expression evaluators are allowed.
 E.g. the configuration about specifies that `asIs`, `path` and `script` evaluators are allowed.
 The profile can also parametrize the use of evaluators.
@@ -110,54 +106,44 @@ The following table lists all items in an expression profile.
 .Configuration items in an expression profile
 [%autowidth]
 |===
-| Item | Description | Since | Default value
+| Item | Description | Default value
 
 | `identifier`
 | Profile identifier.
 Usually short string, essentially a simple profile name.
 Custom profiles should consider using URIs instead of simple names to avoid
 conflicts with built-in profiles that may be provided in later versions.
-| 4.0
 | mandatory
 
 | `description`
 | Free-form description (comment).
-| 4.0
 | -
 
 | `decision`
 | Default decision for evaluators in this profile: this is the decision of those evaluators that are not explicitly enumerated within it.
 Currently, this property does NOT apply for other parts of the profile.
-| 4.0
 | mandatory
 
 | `evaluator` (multivalued)
 | Profiles for individual evaluators.
-| 4.0
 | see `decision`
 
 | `bulkActionsProfile`
 | ID of the bulk actions profile to be used with this expression profile.
-| 4.8
 | "allow all bulk actions"
 
 | `functionLibrariesProfile`
 | ID of the function libraries profile to be used with this expression profile.
-| 4.8
 | "allow all function libraries"
 
 | `privilegeElevation`
 | Is the privilege elevation (runAsRef, runPrivileged) feature available in this profile?
-| 4.8
 | `allow`
 |===
 
 === Function Library and Bulk Action Profiles
-++++
-{% include since.html since="4.8" %}
-++++
 
-Since 4.8, we can specify which function libraries (`FunctionLibraryType` objects) and their individual functions are available in given expression profile.
+We can specify which function libraries (`FunctionLibraryType` objects) and their individual functions are available in given expression profile.
 This is done using `functionLibrariesProfile` items.
 
 In the following example, we create a `trusted-functions-only` expression profile that allows only the following:
@@ -285,9 +271,6 @@ Note that if not explicitly specified, the privilege elevation feature is enable
 == Expression Profile Usage
 
 === Archetypes
-++++
-{% include since.html since="4.8" %}
-++++
 
 The primary usage pattern for expression profiles is in conjunction with xref:/midpoint/reference/schema/archetypes/[archetypes].
 The idea is that archetype policy will identify expression profiles that should be applied to all the expressions in archetyped objects.
@@ -332,9 +315,6 @@ An example:
 This is also the method how to specify default expression profile for a particular type of objects.
 
 === Defaults
-++++
-{% include since.html since="4.8" %}
-++++
 
 === For Expressions
 For backwards compatibility reasons, default profile for expressions is built-in "full access" profile.
@@ -347,7 +327,7 @@ Please do not use this character as the first one in your profile identifiers.
 Also, it is not possible to reference built-in profiles from within your configuration.
 So, if you need to create a "full access" profile, you need to create your own.
 
-In 4.8, there are the following built-in profiles: `\\##full` (full access), `##none` (no access), `##legacyUnprivilegedBulkActions` (see below).
+Currently, there are the following built-in profiles: `\\##full` (full access), `##none` (no access), `##legacyUnprivilegedBulkActions` (see below).
 ====
 
 === For Bulk Actions
@@ -366,12 +346,15 @@ If there is no explicitly provided expression profile ID, midPoint looks for the
 | `##full`: full access
 |===
 
+[NOTE]
+====
 These defaults roughly correspond to pre-4.8 behavior.
 The distinction between privileged and unprivileged principal is based on whether it possesses the `#all` authorization.
 Before 4.8, this authorization was checked before execution of `script` bulk action and before execution of `notify` action with the custom event handler.
 In 4.8, it disallows execution of any expressions (including scripts).
 It roughly corresponds to the pre-4.7 behavior, but e.g. allows executing `notify` action with custom event handler that avoids any custom expressions or scripts.
 (Note that before 4.8 there was no bulk action that evaluated arbitrary expression.)
+====
 
 == Security Considerations
 
@@ -395,7 +378,7 @@ Yet another dangerous thing is a dynamic invocation based on Java Reflection fra
 This may even be tightly integrated into some scripting languages.
 Therefore be very careful and analyse the situation properly.
 Do not rely on default configuration that comes with midPoint.
-This configuration is xref:/midpoint/reference/security/security-guide/[not meant to be completely secure].
+This configuration is xref:/midpoint/security/security-guide/[not meant to be completely secure].
 The setup may vary in various environments, some scripts need to be less powerful, some must be more powerful, some environments are more tolerant to risk and would prefer more flexibility while other environments will heavily constrain flexibility to eliminate the risk.
 One size does not fit all.
 
@@ -421,8 +404,6 @@ Please see xref:/midpoint/features/planned/expression-profiles/[Expression Profi
 
 == Limitations
 
-=== Implementation in midPoint 4.8
-
 . Although the expression profile can be specified in any type of archetype (structural or auxiliary), for a given object, at most _one_ expression profile can be specified.
 If conflicting expression profile identifiers are found, an exception is raised.
 The reason is that we do not have a reasonable way for merging independently defined expression profiles yet.
@@ -434,34 +415,25 @@ Here, the usual "child-overrides-parent-value" approach applies, i.e. if an expr
 . The coverage by expression profiles is *NOT COMPLETE*.
 Please see the xref:coverage.adoc[current status].
 
-=== Implementation in midPoint 4.4.x - 4.7.x
-
-The only type of expression that is constrained by expression profiles are expressions in reports used in midPoint - and even that is partial.
-E.g. the ability to secure audit reports may not be complete currently.
-
-Support for expression profile identification in archetype policy is missing.
-
-=== Common Limitations
-
-For scripting evaluators, the only scripting language that can be constrained by a permission profile is Groovy.
+. For scripting evaluators, the only scripting language that can be constrained by a permission profile is Groovy.
 Other languages do not have this ability yet.
 And even Groovy is only constrained on a "compilation level" (see security considerations above).
 
-There may be performance issues when using expression profiles, especially when used with big and complex permission profiles.
+. There may be performance issues when using expression profiles, especially when used with big and complex permission profiles.
 The code is not yet optimized for performance.
 
-We provide the expression profiles in "AS IS" form.
+. We provide the expression profiles in "AS IS" form.
 We do not make any claims about security or insecurity of expression profiles.
 I.e. we do not claim that expression profiles are completely secure.
 If you are using expression profiles you are doing that completely on your own risk.
 Proper security testing is more than recommended in such case.
 
-See xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Full Implementation] for the details about our plans for the future of expression profiles.
+. See xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Full Implementation] for the details about our plans for the future of expression profiles.
 
 == See Also
 
 * xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles]
 
-* xref:/midpoint/reference/security/security-guide/[Security Guide]
+* xref:/midpoint/security/security-guide/[Security Guide]
 
 * xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Full Implementation]

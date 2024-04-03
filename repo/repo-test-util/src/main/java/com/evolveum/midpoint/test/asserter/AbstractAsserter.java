@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public abstract class AbstractAsserter<RA> {
 
-    private String details;
+    private final String details;
     private RA returnAsserter;
     private PrismContext prismContext;
     private SimpleObjectResolver objectResolver;

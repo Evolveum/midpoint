@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -418,11 +420,34 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
                     }
                 };
             }
+
+            @Override
+            protected DisplayType createDisplayType(IModel<ShoppingCartItem> model) {
+                AssignmentType a = model.getObject().getAssignment();
+                ObjectReferenceType ref = a != null ? a.getTargetRef() : null;
+
+                if (ref == null || ref.getType() == null) {
+                    return null;
+                }
+
+                PrismObject object = WebModelServiceUtils.loadObject(ref, getPageBase());
+                if (object == null) {
+                    String icon = IconAndStylesUtil.createDefaultColoredIcon(ref.getType());
+
+                    return new DisplayType()
+                            .icon(new IconType()
+                                    .cssClass(icon));
+                }
+
+                OperationResult result = new OperationResult("getIcon");
+                return GuiDisplayTypeUtil.getDisplayTypeForObject(object, result, getPageBase());
+            }
         });
         columns.add(new AbstractColumn<>(createStringResource("ShoppingCartPanel.accessName")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
+                item.add(AttributeAppender.append("class", "align-middle"));
                 item.add(new Label(id, () -> {
                     ShoppingCartItem cartItem = model.getObject();
 

@@ -39,7 +39,7 @@ public class FullTextRestriction extends Restriction<FullTextFilter> {
             conditions.add(createWordQuery(word));
         }
         if (conditions.isEmpty()) {
-            return createWordQuery("");                     // original behavior -> match all records (TODO return something like 'empty condition')
+            return createWordQuery(""); // original behavior -> match all records (TODO return something like 'empty condition')
         } else if (conditions.size() == 1) {
             return conditions.get(0);
         } else {
@@ -47,7 +47,7 @@ public class FullTextRestriction extends Restriction<FullTextFilter> {
         }
     }
 
-    private Condition createWordQuery(String word) throws QueryException {
+    private Condition createWordQuery(String word) {
         String textInfoItemsAlias = getItemPathResolver().addTextInfoJoin(getBaseHqlEntity().getHqlPath());
         String textPath = textInfoItemsAlias + "." + RObjectTextInfo.F_TEXT;
         return getContext().getHibernateQuery().createLike(textPath, word, MatchMode.ANYWHERE, false);

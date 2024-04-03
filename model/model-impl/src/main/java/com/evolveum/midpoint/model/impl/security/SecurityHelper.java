@@ -61,7 +61,6 @@ public class SecurityHelper implements ModelAuditRecorder {
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ArchetypeManager archetypeManager;
 
-
     @Override
     public void auditLoginSuccess(@NotNull ObjectType object, @NotNull ConnectionEnvironment connEnv) {
         FocusType focus = null;

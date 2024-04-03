@@ -11,33 +11,16 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignMappingType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Unfortunately, this cannot extend MappingConfigItem because of the conflict in generic type parameters. */
 public class AutoAssignMappingConfigItem
         extends ConfigurationItem<AutoassignMappingType>
         implements AbstractMappingConfigItem<AutoassignMappingType> {
 
-    @SuppressWarnings("unused") // called dynamically
+    @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
     public AutoAssignMappingConfigItem(@NotNull ConfigurationItem<AutoassignMappingType> original) {
         super(original);
-    }
-
-    public AutoAssignMappingConfigItem(@NotNull AutoassignMappingType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
-    }
-
-    public static AutoAssignMappingConfigItem embedded(@NotNull AutoassignMappingType bean) {
-        return of(bean, ConfigurationItemOrigin.embedded(bean));
-    }
-
-    public static AutoAssignMappingConfigItem of(@NotNull AutoassignMappingType bean, @NotNull ConfigurationItemOrigin origin) {
-        return new AutoAssignMappingConfigItem(bean, origin);
-    }
-
-    public static AutoAssignMappingConfigItem of(
-            @NotNull AutoassignMappingType bean,
-            @NotNull OriginProvider<? super AutoassignMappingType> originProvider) {
-        return new AutoAssignMappingConfigItem(bean, originProvider.origin(bean));
     }
 
     /** See LensUtil.setMappingTarget */

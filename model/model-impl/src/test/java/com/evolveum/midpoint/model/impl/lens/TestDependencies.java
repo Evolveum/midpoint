@@ -107,7 +107,6 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
         fillContextWithDummyElaineAccount(context, "a", task, result);
 
-        context.recompute();
         displayDumpable("Context before", context);
         context.checkConsistence();
 
@@ -134,7 +133,6 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "a", task, result);
         fillContextWithDummyElaineAccount(context, "b", task, result);
 
-        context.recompute();
         displayDumpable("Context before", context);
         context.checkConsistence();
 
@@ -164,7 +162,6 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "c", task, result);
         fillContextWithDummyElaineAccount(context, "d", task, result);
 
-        context.recompute();
         displayDumpable("Context before", context);
         context.checkConsistence();
 
@@ -193,7 +190,6 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "b", task, result);
         fillContextWithDummyElaineAccount(context, "c", task, result);
 
-        context.recompute();
         displayDumpable("Context before", context);
         context.checkConsistence();
 
@@ -220,7 +216,6 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "p", task, result);
         fillContextWithDummyElaineAccount(context, "r", task, result);
 
-        context.recompute();
         displayDumpable("Context before", context);
         context.checkConsistence();
 
@@ -251,7 +246,6 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "r", task, result);
         fillContextWithDummyElaineAccount(context, "p", task, result);
 
-        context.recompute();
         displayDumpable("Context before", context);
         context.checkConsistence();
 
@@ -279,7 +273,6 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         setDelete(accountContext);
         setDelete(fillContextWithDummyElaineAccount(context, "a", task, result));
 
-        context.recompute();
         displayDumpable("Context before", context);
         context.checkConsistence();
 
@@ -307,7 +300,6 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         setDelete(fillContextWithDummyElaineAccount(context, "a", task, result));
         setDelete(fillContextWithDummyElaineAccount(context, "b", task, result));
 
-        context.recompute();
         displayDumpable("Context before", context);
         context.checkConsistence();
 
@@ -338,7 +330,6 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         setDelete(fillContextWithDummyElaineAccount(context, "c", task, result));
         setDelete(fillContextWithDummyElaineAccount(context, "d", task, result));
 
-        context.recompute();
         displayDumpable("Context before", context);
         context.checkConsistence();
 
@@ -373,7 +364,6 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "y", task, result);
         fillContextWithDummyElaineAccount(context, "z", task, result);
 
-        context.recompute();
         displayDumpable("Context before", context);
         context.checkConsistence();
 

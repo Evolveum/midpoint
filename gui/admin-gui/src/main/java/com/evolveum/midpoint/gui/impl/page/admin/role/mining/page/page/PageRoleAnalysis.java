@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getSessionOptionType;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession.PARAM_IS_WIZARD;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 
 import java.io.Serial;
@@ -442,13 +441,9 @@ public class PageRoleAnalysis extends PageAdmin {
             @Override
             protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation,
                     CompiledObjectCollectionView collectionView) {
-
-                PageParameters parameters = new PageParameters();
-                parameters.add(PARAM_IS_WIZARD, true);
                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                         .getObjectDetailsPage(RoleAnalysisSessionType.class);
-                getPageBase().navigateToNext(detailsPageClass, parameters);
-
+                getPageBase().navigateToNext(detailsPageClass);
             }
 
             @Override

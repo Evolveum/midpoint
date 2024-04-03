@@ -16,7 +16,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.test.TestObject;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -157,14 +156,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     protected static final String RESOURCE_DUMMY_SCHEMALESS_FILENAME = COMMON_DIR + "/resource-dummy-schemaless-no-schema.xml";
     protected static final String RESOURCE_DUMMY_SCHEMALESS_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
     protected static final String RESOURCE_DUMMY_SCHEMALESS_NAME = "schemaless";
-    protected static final String RESOURCE_DUMMY_SCHEMALESS_NAMESPACE = MidPointConstants.NS_RI;
 
     // Upcase resource turns all names to upper case. It is also caseInsensitive resource
     protected static final File RESOURCE_DUMMY_UPCASE_FILE = new File(COMMON_DIR, "resource-dummy-upcase.xml");
     protected static final String RESOURCE_DUMMY_UPCASE_OID = "10000000-0000-0000-0000-000000001204";
     protected static final String RESOURCE_DUMMY_UPCASE_NAME = "upcase";
-    protected static final String RESOURCE_DUMMY_UPCASE_NAMESPACE = MidPointConstants.NS_RI;
-    protected static final QName RESOURCE_DUMMY_UPCASE_ASSOCIATION_GROUP_QNAME = new QName(RESOURCE_DUMMY_UPCASE_NAMESPACE, "group");
+    protected static final QName RESOURCE_DUMMY_UPCASE_ASSOCIATION_GROUP_QNAME = new QName(MidPointConstants.NS_RI, "group");
 
     protected static final String RESOURCE_DUMMY_FAKE_FILENAME = COMMON_DIR + "/resource-dummy-fake.xml";
     protected static final String RESOURCE_DUMMY_FAKE_OID = "10000000-0000-0000-0000-00000000000f";
@@ -395,7 +392,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
 
     public static final File GROUP_SHADOW_JOKER_DUMMY_UPCASE_FILE = new File(COMMON_DIR, "group-shadow-dummy-upcase-joker.xml");
     public static final String GROUP_SHADOW_JOKER_DUMMY_UPCASE_OID = "bc2a1d98-9ca4-11e4-a600-001e8c717e5b";
-    public static final String GROUP_SHADOW_JOKER_DUMMY_UPCASE_NAME = "joker";
     public static final String GROUP_JOKER_DUMMY_UPCASE_NAME = "JOKER";
 
     public static final String DUMMY_ORG_TOP_NAME = DummyResourceContoller.ORG_TOP_NAME;

@@ -158,6 +158,11 @@ public class ResourceAssociationPanel extends ItemRefinedPanel<ResourceObjectAss
     }
 
     @Override
+    protected boolean isDuplicationSupported() {
+        return false;
+    }
+
+    @Override
     protected boolean isCreateNewObjectVisible() {
         return true;
     }

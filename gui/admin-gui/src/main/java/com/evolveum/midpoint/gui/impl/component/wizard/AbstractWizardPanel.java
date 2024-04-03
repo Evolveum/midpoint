@@ -10,6 +10,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -34,18 +38,27 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
     private static final String ID_WIZARD = "wizard";
 
     private final WizardPanelHelper<C, AHD> helper;
+    private final boolean startWithChoiceTemplate;
 
     public AbstractWizardPanel(
             String id,
             WizardPanelHelper<C, AHD> helper) {
         super(id);
         this.helper = helper;
+        startWithChoiceTemplate = nameOfObjectIsNotNull();
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+    }
+
+    /**
+     * Define if will be showed introductory selection some options.
+     */
+    protected final boolean isStartWithChoiceTemplate() {
+        return startWithChoiceTemplate;
     }
 
     protected abstract void initLayout();
@@ -108,5 +121,27 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
 
     public WizardPanelHelper<C, AHD> getHelper() {
         return helper;
+    }
+
+    private boolean nameOfObjectIsNotNull() {
+        if (getHelper().getValueModel() == null) {
+            return true;
+        }
+
+        PrismContainerValueWrapper<C> value = getHelper().getValueModel().getObject();
+        if (value == null) {
+            return true;
+        }
+
+        C bean = value.getRealValue();
+        if (!(bean instanceof ObjectType)) {
+            return true;
+        }
+
+        if (((ObjectType) bean).getName() == null) {
+            return true;
+        }
+
+        return false;
     }
 }

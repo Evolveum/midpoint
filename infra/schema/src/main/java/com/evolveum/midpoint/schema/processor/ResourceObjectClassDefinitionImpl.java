@@ -71,6 +71,7 @@ public class ResourceObjectClassDefinitionImpl
     /** Set only for raw schema! */
     private boolean auxiliary;
 
+    // Some day, we will use ConfigurationItem for definition bean here.
     private ResourceObjectClassDefinitionImpl(
             @NotNull LayerType layer,
             @Nullable BasicResourceInformation basicResourceInformation,
@@ -268,7 +269,7 @@ public class ResourceObjectClassDefinitionImpl
             @NotNull QName name,
             @NotNull QName typeName,
             @NotNull Consumer<MutableRawResourceAttributeDefinition<?>> consumer) {
-        RawResourceAttributeDefinitionImpl<T> rawDefinition = new RawResourceAttributeDefinitionImpl<>(name, typeName);
+        RawResourceAttributeDefinition<T> rawDefinition = new RawResourceAttributeDefinition<>(name, typeName);
         consumer.accept(rawDefinition);
         //noinspection unchecked
         return (ResourceAttributeDefinition<T>) addInternal(rawDefinition);
@@ -318,6 +319,11 @@ public class ResourceObjectClassDefinitionImpl
             // It is most probably immutable, but let us give it a chance.
             rawObjectClassDefinition.trimTo(paths);
         }
+    }
+
+    @Override
+    public @Nullable QName getDefaultItemTypeName() {
+        return null;
     }
 
     @NotNull
@@ -377,6 +383,11 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public void setReferenceMarker(boolean value) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setDefaultItemTypeName(QName value) {
         throw new UnsupportedOperationException();
     }
 
@@ -676,5 +687,10 @@ public class ResourceObjectClassDefinitionImpl
         DebugUtil.debugDumpWithLabelLn(sb, "default account definition", isDefaultAccountDefinition(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "native object class", getNativeObjectClass(), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "auxiliary", isAuxiliary(), indent + 1);
+    }
+
+    @Override
+    public @NotNull String getShortIdentification() {
+        return getObjectClassName().getLocalPart();
     }
 }

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -67,7 +67,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     private static final String ID_ASSOCIATION = "association";
 
     private LoadableModel<List<String>> intentValues;
-    private LoadableModel<List<ResourceAssociationDefinition>> associationValuesModel;
+    private LoadableModel<List<ShadowAssociationDefinition>> associationValuesModel;
 
     private static final String DOT_CLASS = ResourceTypeAssignmentPopupTabPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeAssignmentPopupTabPanel.class);
@@ -140,22 +140,22 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         associationContainer.add(new VisibleBehaviour(() -> isEntitlementAssignment()));
         parametersPanel.add(associationContainer);
 
-        DropDownChoicePanel<ResourceAssociationDefinition> associationSelector = new DropDownChoicePanel<>(ID_ASSOCIATION,
-                Model.of(), associationValuesModel, new IChoiceRenderer<ResourceAssociationDefinition>() {
+        DropDownChoicePanel<ShadowAssociationDefinition> associationSelector = new DropDownChoicePanel<>(ID_ASSOCIATION,
+                Model.of(), associationValuesModel, new IChoiceRenderer<ShadowAssociationDefinition>() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public Object getDisplayValue(ResourceAssociationDefinition refinedAssociationDefinition) {
+            public Object getDisplayValue(ShadowAssociationDefinition refinedAssociationDefinition) {
                 return ProvisioningObjectsUtil.getAssociationDisplayName(refinedAssociationDefinition);
             }
 
             @Override
-            public String getIdValue(ResourceAssociationDefinition refinedAssociationDefinition, int index) {
+            public String getIdValue(ShadowAssociationDefinition refinedAssociationDefinition, int index) {
                 return Integer.toString(index);
             }
 
             @Override
-            public ResourceAssociationDefinition getObject(String id, IModel<? extends List<? extends ResourceAssociationDefinition>> choices) {
+            public ShadowAssociationDefinition getObject(String id, IModel<? extends List<? extends ShadowAssociationDefinition>> choices) {
                 return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
             }
         }, true);
@@ -206,9 +206,9 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
                 return availableIntentValues;
             }
         };
-        associationValuesModel = new LoadableModel<List<ResourceAssociationDefinition>>() {
+        associationValuesModel = new LoadableModel<List<ShadowAssociationDefinition>>() {
             @Override
-            protected List<ResourceAssociationDefinition> load() {
+            protected List<ShadowAssociationDefinition> load() {
                 ResourceType resource = getSelectedObjectsList() != null && getSelectedObjectsList().size() > 0 ?
                         getSelectedObjectsList().get(0) : null;
                 if (resource == null) {
@@ -239,7 +239,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
             AssignmentType newConstructionAssignment = ObjectTypeUtil.createAssignmentWithConstruction(
                     selectedObject.asPrismObject(), kind, intent);
             if (isEntitlementAssignment()) {
-                NameItemPathSegment segment = getAssociationValue() != null ? new NameItemPathSegment(getAssociationValue().getName()) : null;
+                NameItemPathSegment segment = getAssociationValue() != null ? new NameItemPathSegment(getAssociationValue().getItemName()) : null;
 
                 if (segment != null) {
                     ResourceObjectAssociationType association = new ResourceObjectAssociationType();
@@ -262,8 +262,8 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         return intentDropDown.getModel() != null ? intentDropDown.getModel().getObject() : null;
     }
 
-    private ResourceAssociationDefinition getAssociationValue() {
-        DropDownChoicePanel<ResourceAssociationDefinition> associationDropDown = getAssociationDropDown();
+    private ShadowAssociationDefinition getAssociationValue() {
+        DropDownChoicePanel<ShadowAssociationDefinition> associationDropDown = getAssociationDropDown();
         return associationDropDown != null ? associationDropDown.getModel().getObject() : null;
     }
 
@@ -275,8 +275,8 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         return (DropDownChoicePanel<ShadowKindType>) get(getPageBase().createComponentPath(ID_PARAMETERS_PANEL, ID_KIND_CONTAINER, ID_KIND));
     }
 
-    private DropDownChoicePanel<ResourceAssociationDefinition> getAssociationDropDown() {
-        return (DropDownChoicePanel<ResourceAssociationDefinition>) get(getPageBase().createComponentPath(ID_PARAMETERS_PANEL, ID_ASSOCIATION_CONTAINER, ID_ASSOCIATION));
+    private DropDownChoicePanel<ShadowAssociationDefinition> getAssociationDropDown() {
+        return (DropDownChoicePanel<ShadowAssociationDefinition>) get(getPageBase().createComponentPath(ID_PARAMETERS_PANEL, ID_ASSOCIATION_CONTAINER, ID_ASSOCIATION));
     }
 
     @Override

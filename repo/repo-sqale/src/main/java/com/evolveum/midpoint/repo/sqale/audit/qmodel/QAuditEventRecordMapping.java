@@ -11,16 +11,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventReco
 
 import java.time.Instant;
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-
-import com.google.common.collect.Table;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ArrayPath;
 import org.jetbrains.annotations.NotNull;
 
@@ -393,7 +388,7 @@ public class QAuditEventRecordMapping
     @Override
     public ResultListRowTransformer<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> createRowTransformer(
             SqlQueryContext<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> sqlQueryContext,
-            JdbcSession jdbcSession) {
+            JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         return new ResultListRowTransformer<>() {
             @Override
             public void beforeTransformation(List<Tuple> rowTuples, QAuditEventRecord entityPath) {
@@ -437,8 +432,7 @@ public class QAuditEventRecordMapping
             }
 
             @Override
-            public AuditEventRecordType transform(Tuple tuple, QAuditEventRecord entityPath,
-                    Collection<SelectorOptions<GetOperationOptions>> options) {
+            public AuditEventRecordType transform(Tuple tuple, QAuditEventRecord entityPath) {
                 return toSchemaObjectCompleteSafe(tuple, entityPath, options, jdbcSession, false);
             }
         };

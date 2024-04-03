@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FeedbackMessagesHookType;
@@ -248,11 +249,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
             String msg = null;
             if (result.getUserFriendlyMessage() != null) {
-                //TODO: unify with WebModelServiceUtil.translateMessage()
-                LocalizationService service = page.getLocalizationService();
-                Locale locale = page.getSession().getLocale();
-
-                msg = service.translate(result.getUserFriendlyMessage(), locale);
+                msg = LocalizationUtil.translateMessage(result.getUserFriendlyMessage());
             }
 
             if (StringUtils.isNotBlank(msg)) {

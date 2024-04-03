@@ -9,7 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ResourceObjectDiscriminator;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -172,7 +172,8 @@ abstract class ResourceObjectProvisioningOperation {
 
                 ResourceObjectUcfModifyOperation.execute(
                         entitlementCtx,
-                        entry.getValue().getCurrentShadow(),
+                        null,
+                        entry.getValue().getCurrentResourceObject(),
                         ResourceObjectIdentification.of(entitlementCtx.getObjectDefinitionRequired(), identifiers),
                         operations,
                         null,
@@ -203,12 +204,12 @@ abstract class ResourceObjectProvisioningOperation {
         }
     }
 
-    ShadowType preOrPostRead(
+    @Nullable ExistingResourceObject preOrPostRead(
             ProvisioningContext ctx,
             ResourceObjectIdentification.WithPrimary identification,
             Collection<Operation> operations,
             boolean fetchEntitlements,
-            ShadowType repoShadow,
+            RepoShadow repoShadow,
             OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
@@ -222,26 +223,27 @@ abstract class ResourceObjectProvisioningOperation {
 
         AttributesToReturn attributesToReturn = new AttributesToReturn();
         attributesToReturn.setAttributesToReturn(neededExtraAttributes);
-        ShadowType resourceObjectBean;
+        CompleteResourceObject resourceObject;
         try {
-            resourceObjectBean =
-                    Objects.requireNonNull(
-                                    b.resourceObjectConverter.fetchResourceObject(
-                                            ctx, identification, attributesToReturn, repoShadow, fetchEntitlements, result))
-                            .getBean();
+            if (ctx.isReadingCachingOnly() && repoShadow != null) {
+                resourceObject = b.resourceObjectConverter.completeResourceObject(
+                        ctx, ExistingResourceObject.fromRepoShadow(repoShadow.clone()), fetchEntitlements, result);
+            } else {
+                resourceObject = b.resourceObjectConverter.fetchResourceObject(
+                        ctx, identification, attributesToReturn, fetchEntitlements, result);
+            }
         } catch (ObjectNotFoundException e) {
             // This may happen for semi-manual connectors that are not yet up to date.
             // No big deal. We will have to work without it.
-            getLogger().warn("Cannot read shadow {}, it is probably not present in the {}. Skipping pre/post read.",
+            getLogger().warn("Cannot read shadow {}, it is probably not present on {}. Skipping pre/post read.",
                     identification, ctx.getResource());
             return null;
         }
-        if (repoShadow != null) {
-            resourceObjectBean.setOid(repoShadow.getOid());
-        }
-        resourceObjectBean.setName(
-                ShadowUtil.determineShadowNameRequired(resourceObjectBean));
-        return resourceObjectBean;
+        ShadowType resourceObjectBean = resourceObject.getBean();
+        resourceObjectBean.setName( // TODO why this?
+                ShadowUtil.determineShadowNameRequired(resourceObject.resourceObject()));
+
+        return resourceObject.resourceObject();
     }
 
     abstract Trace getLogger();

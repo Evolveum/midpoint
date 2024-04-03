@@ -16,7 +16,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -115,7 +114,7 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
     }
 
     protected void goToObjectPerformed(QName type) {
-        Class<? extends ObjectType> typeClass = WebComponentUtil.qnameToClass(PrismContext.get(), type, ObjectType.class);
+        Class<? extends ObjectType> typeClass = WebComponentUtil.qnameToClass(type, ObjectType.class);
         if (typeClass == null) {
             return;
         }

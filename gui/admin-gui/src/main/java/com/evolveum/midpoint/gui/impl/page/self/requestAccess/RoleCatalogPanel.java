@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
 
 import com.evolveum.midpoint.web.component.util.*;
@@ -917,12 +918,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected DisplayType createDisplayType(IModel<SelectableBean<ObjectType>> model) {
-                ObjectType obj = model.getObject().getValue();
-                String icon = IconAndStylesUtil.createDefaultBlackIcon(obj.asPrismContainerValue().getTypeName());
-
-                return new DisplayType()
-                        .icon(new IconType()
-                                .cssClass(icon));
+                OperationResult result =  new OperationResult("getIcon");
+                return GuiDisplayTypeUtil.getDisplayTypeForObject(model.getObject().getValue(), result, getPageBase());
             }
         });
         columns.add(new AbstractColumn<>(createStringResource("ObjectType.name")) {

@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2017-10-23T11:47:13.312+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-10-23T11:47:13.312+02:00
-:page-since: "3.7"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow

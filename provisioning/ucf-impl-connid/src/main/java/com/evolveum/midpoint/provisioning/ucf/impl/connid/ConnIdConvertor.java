@@ -13,10 +13,10 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectFound;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -24,16 +24,12 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -45,13 +41,10 @@ import org.jetbrains.annotations.NotNull;
  */
 class ConnIdConvertor {
 
-    final Protector protector;
-    final LocalizationService localizationService;
-    final ConnIdNameMapper connIdNameMapper;
+    private final ConnIdNameMapper connIdNameMapper;
+    private final ConnIdBeans b = ConnIdBeans.get();
 
-    ConnIdConvertor(Protector protector, LocalizationService localizationService, ConnIdNameMapper connIdNameMapper) {
-        this.protector = protector;
-        this.localizationService = localizationService;
+    ConnIdConvertor(ConnIdNameMapper connIdNameMapper) {
         this.connIdNameMapper = connIdNameMapper;
     }
 
@@ -68,11 +61,6 @@ class ConnIdConvertor {
      *
      * @param co ICF ConnectorObject to convert
      *
-     * @param full If true it describes if the returned resource object should
-     *             contain all of the attributes defined in the schema, if false
-     *             the returned resource object will contain only attributed with
-     *             the non-null values.
-     *
      * @param ucfErrorReportingMethod If EXCEPTIONS (the default), any exceptions are thrown as such. But if FETCH_RESULT,
      *                             exceptions are represented in fetchResult property of the returned resource object.
      *                             Generally, when called as part of "searchObjectsIterative" in the context of
@@ -81,41 +69,37 @@ class ConnIdConvertor {
      *
      * @return new mapped ResourceObject instance.
      */
-    @NotNull UcfObjectFound convertToUcfObject(
+    @NotNull UcfResourceObject convertToUcfObject(
             @NotNull ConnectorObject co,
-            @NotNull PrismObjectDefinition<ShadowType> objectDefinition,
-            boolean full,
-            boolean caseIgnoreAttributeNames,
+            @NotNull ResourceObjectDefinition objectDefinition,
+            @NotNull CompleteResourceSchema completeResourceSchema,
             boolean legacySchema,
             UcfFetchErrorReportingMethod ucfErrorReportingMethod,
             OperationResult parentResult) throws SchemaException {
 
         // This is because of suspicion that this operation sometimes takes a long time.
         // If it will not be the case, we can safely remove subresult construction here.
-        OperationResult result = parentResult.subresult(ConnIdConvertor.class.getName() + ".convertToResourceObject")
+        OperationResult result = parentResult.subresult(ConnIdConvertor.class.getName() + ".convertToUcfObject")
                 .setMinor()
                 .addArbitraryObjectAsParam("uid", co.getUid())
                 .addArbitraryObjectAsParam("objectDefinition", objectDefinition)
-                .addParam("full", full)
-                .addParam("caseIgnoreAttributeNames", caseIgnoreAttributeNames)
+                .addArbitraryObjectAsParam("completeResourceSchema", completeResourceSchema)
                 .addParam("legacySchema", legacySchema)
                 .addArbitraryObjectAsParam("ucfErrorReportingMethod", ucfErrorReportingMethod)
                 .build();
         try {
-            // UID value is not null according to ConnId
-            @NotNull String uidValue = co.getUid().getUidValue();
 
-            ConnIdToMidPointConversion conversion = new ConnIdToMidPointConversion(co, objectDefinition.instantiate(), full,
-                    caseIgnoreAttributeNames, legacySchema, this);
+            ConnIdToMidPointConversion conversion = new ConnIdToMidPointConversion(
+                    co, objectDefinition, completeResourceSchema, legacySchema, connIdNameMapper);
 
             try {
                 conversion.execute();
-                return new UcfObjectFound(conversion.getResourceObject(), uidValue, UcfErrorState.success());
+                return conversion.getUcfResourceObjectIfSuccess();
             } catch (Throwable t) {
                 if (ucfErrorReportingMethod == UcfFetchErrorReportingMethod.UCF_OBJECT) {
-                    @NotNull PrismObject<ShadowType> incompleteResourceObject = conversion.getResourceObject(); // can be empty!
                     Throwable wrappedException = MiscUtil.createSame(t, createMessage(co, t));
-                    return new UcfObjectFound(incompleteResourceObject, uidValue, UcfErrorState.error(wrappedException));
+                    result.recordException(wrappedException);
+                    return conversion.getPartialUcfResourceObject(UcfErrorState.error(wrappedException));
                 } else {
                     throw t; // handled just below
                 }
@@ -167,7 +151,7 @@ class ConnIdConvertor {
 
         Set<Object> connIdAttributeValues = new HashSet<>();
         for (PrismPropertyValue<?> pval : mpAttribute.getValues()) {
-            connIdAttributeValues.add(ConnIdUtil.convertValueToConnId(pval, protector, mpAttribute.getElementName()));
+            connIdAttributeValues.add(ConnIdUtil.convertValueToConnId(pval, b.protector, mpAttribute.getElementName()));
         }
 
         try {

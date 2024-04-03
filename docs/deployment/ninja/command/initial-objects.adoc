@@ -1,0 +1,79 @@
+= Initial objects
+
+[NOTE]
+Experimental feature.
+
+This is the last step of upgrade procedure while midPoint is still down.
+It is necessary to update initial objects to make sure that they are compatible with new version of midPoint and midPoint can start and work properly.
+
+IMPORTANT: When upgrading LTS (from 4.4 -> 4.8) it is necessary to upgrade at least securityPolicy object.
+Reason for this is that there were changes in authentication/authorization processing for different channels and configuration related to it, hence securityPolicy.
+See <<Important updates>> for more details.
+
+Ninja contains command `initial-objects` to help you update set of initial objects (see `ninja.sh help initial-objects` for more details).
+Initial objects command will help add, update or replace existing objects in repository.
+
+All necessary objects are bundled in directly in ninja, however, it is possible to use custom set of new initial objects using `--file` option.
+`--file` options can be used multiple times or have multiple values separated by comma to specify multiple directories/files.
+
+Ninja also supports filtered processing using `--type`, `--oid` and `--reverse-oid-filter`/`--reverse-type-filter`.
+Such options give you possibility to process only subset of objects using this command.
+E.g. replace objects without custom changes without any merge, reports or dry-run while reviewing merged objects with custom changes.
+
+This command also supports dry-run mode and reporting.
+Dry-run mode can be used to see what changes will be done in repository without actually doing them (option `--dry-run`).
+Reporting can be turned on using `-r, --report` options.
+Report option can be coupled with `--report-style [DELTA|FULL_OBJECT]` to specify whether XML output should contain only deltas or full objects after update.
+There's also standard set of options to send output to file (`-o, --output`) and overwrite (`-O, --overwrite`).
+
+NOTE: Initial objects that are new in upgraded version of midPoint are not added to repository by ninja automatically.
+By default, these objects will be properly imported during first start of upgraded midPoint.
+If one wants to import them before first start, it is possible to use `--force-add` option.
+
+WARNING: Merging algorithm used in this ninja command is experimental and might not work properly in all cases.
+Please review all changes proposed by ninja using `--dry-run` before applying them to repository.
+
+There are two main scenarios that can be followed:
+
+* <<No changes in initial objects>>
+* <<Custom changes in initial objects>>
+
+== No changes in initial objects
+
+This one is the simplest case.
+If there are no custom changes in initial objects made by users, then ninja can update initial objects automatically.
+Update can be done by overwriting existing ones without merge.
+Following command can be used (please use `--dry-run` if you want to see what will be done without actually doing it):
+
+[source,bash]
+----
+./bin/ninja.sh initial-objects --no-merge
+----
+
+== Custom changes in initial objects
+
+If there are custom changes in initial objects made by users, then ninja can help you merge them.
+First, dry run is recommended to see what needs to be done, optionally with report of changes:
+
+[source,bash]
+----
+./bin/ninja.sh initial-objects --dry-run --report --report-style FULL_OBJECT -o report-initial-objects.xml
+----
+
+If you're satisfied with changes proposed by ninja, you can execute command without `--dry-run` and report related options.
+If there are objects (filtered by types or oids) that can be handled without merge, you can run:
+
+[source,bash]
+----
+./bin/ninja.sh initial-objects --no-merge [--type securityPolicy,valuePolicy,...] [--oid 93ae3cd3-b34d-4093-ad49-adba573a95ba]
+----
+
+== Important updates
+
+There is at least one object - securityPolicy that needs to be updated when upgrading LTS from 4.4 to 4.8.
+If there are no custom changes in securityPolicy, following command can be used:
+
+[source,bash]
+----
+./bin/ninja.sh initial-objects --no-merge --type securityPolicy
+----

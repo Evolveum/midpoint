@@ -131,6 +131,7 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
 
     @SuppressWarnings("UnusedReturnValue")
     public <TS, TR> TR insertOwnedRow(QOwnedByMapping<TS, TR, R> mapping, TS schemaObject) throws SchemaException {
+        // Mapping sometimes modify object by normalizing relations, we should probably use clone
         return mapping.insert(schemaObject, row, jdbcSession);
     }
 

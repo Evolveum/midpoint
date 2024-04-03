@@ -56,8 +56,7 @@ abstract class ExtensionUpdate<E, ET> extends BaseUpdate {
         boolean dynamicsIndexed = !(extensionType instanceof RObjectExtensionType)
                 || RAnyConverter.areDynamicsOfThisKindIndexed((RObjectExtensionType) extensionType);
 
-        RAnyConverter.ValueType valueType = RAnyConverter.getValueType(definition, definition.getItemName(),
-                dynamicsIndexed, beans.prismContext);
+        RAnyConverter.ValueType valueType = RAnyConverter.getValueType(definition, definition.getItemName(), dynamicsIndexed);
         if (valueType == null) {
             return;
         }

@@ -7,6 +7,7 @@
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2020-06-02T10:29:25.618+02:00
 :page-toc: top
+:page-keywords: [ 'rest', 'authentication' ]
 
 [TIP]
 ====
@@ -21,19 +22,14 @@ MidPoint REST interface support standard HTTP basic authentication (RFC2617).
 Digest authentication is not supported.
 
 Username and password should correspond to the username and password of appropriately privileged midPoint user.
-For example, the default ones are:
-
-Username: *administrator*
-
-Password: *5ecr3t*
 
 == Proxy (Impersonation)
 
 There are use cases when the authenticated user is not the user which is supposed to execute the operations in midPoint.
 For example a self-service application would like to use the identity of the end user to execute the operations in midPoint.
-However in that case the self-service application would need to know the password of end user.
+However, in that case the self-service application would need to know the password of end user.
 This approach is neither practical nor secure.
-Therefore this use case is supported by other methods.
+Therefore, this use case is supported by other methods.
 The recommended approach is to use a single sign-on (SSO) or similar system to pass end-user identity to midPoint.
 OAuth2 is a recommended approach in the case of midPoint REST interface (see below).
 However, there are cases when OAuth cannot be used.
@@ -42,7 +38,7 @@ The proxy (impersonation) functionality is designed to handle those cases.
 The _proxy_ or _impersonation_ is an ability for one user to switch his identity to different user.
 In the case of self-service application it works like this:
 
-. Setup: Self-service application will be issues with the application credentials.
+. Setup: Self-service application will be issued with the application credentials.
 There will be an application user in midPoint (e.g. `selfserviceapp` user).
 The user will have a strong password which is known to the self-service application.
 
@@ -64,7 +60,7 @@ This header refers to the identity of the end user (`jack`).
 
 . MidPoint will check whether the authenticated (application) user has proxy authorization that allows switch to the end user.
 
-. If the authorization check is successful midPoint will switch the authenticated identity to the use user (`jack`). The operation will be executed using the authorizations of the end user.
+. If the authorization check is successful midPoint will switch the authenticated identity to the user (`jack`). The operation will be executed using the authorizations of the end user.
 The identity of the end user will be recorded in the audit trail.
 
 HTTP header format and example
@@ -76,7 +72,7 @@ Curl example:
 
 [source,bash]
 ----
-curl --user "administrator:5ecr3t" -X GET -H "Switch-To-Principal: dc12980b-0b92-4c4b-9a4d-f18f70ac977f" -H "Accept: application/yaml" "http://localhost:8080/midpoint/ws/rest/self" -v
+curl --user "administrator:y0uR_P455woR*d" -X GET -H "Switch-To-Principal: dc12980b-0b92-4c4b-9a4d-f18f70ac977f" -H "Accept: application/yaml" "http://localhost:8080/midpoint/ws/rest/self" -v
 ----
 
 Example proxy authorization (which is assigned to the application user such as selfserviceapp) :
@@ -88,16 +84,13 @@ Example proxy authorization (which is assigned to the application user such as s
   <object>
     <type>UserType</type>
     <filter>
-      <q:equal>
-        <q:path>employeeType</q:path>
-        <q:value>enduser</q:value>
-      </q:equal>
+        <text>archetypeRef/@/name = "Person"</text>
     </filter>
   </object>
 </authorization>
 ----
 
-The authorization above allows the user to switch identity to any other user who has the `employeeType` attribute set to value `enduser`.
+The authorization above allows the user to switch identity to any other user who has the archetype `person` assigned.
 
 == Security Questions
 
@@ -139,7 +132,7 @@ Example curl call:
 curl -X GET -H "Authorization: SecQ ew0KInVzZXIiIDogImFkbWluaXN0cmF0b3IiLA0KImFuc3dlciIgOiBbDQogew0KICAgInFpZCIgOiAiaHR0cDovL21pZHBvaW50LmV2b2x2ZXVtLmNvbS94bWwvbnMvcHVibGljL3NlY3VyaXR5L3F1ZXN0aW9uLTIjcTAwMSIsDQogICAicWFucyIgOiAiSSBkb24ndCBrbm93ISINCiB9DQpdDQp9" -H "Content-Type: application/xml" -H "Accept: application/yaml" "http://localhost:8080/midpoint/ws/rest/self" -v
 ----
 
-=== challengeResponseSecQ Challenge - Response implementation
+=== Challenge - Response implementation (challengeResponseSecQ)
 
 The whole sequence with link:https://httpie.org/[HTTPie] and link:https://linux.die.net/man/1/base64[base64] encoding using command substitution in bash may look like this:
 

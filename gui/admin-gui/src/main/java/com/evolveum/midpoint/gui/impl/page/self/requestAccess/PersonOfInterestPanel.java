@@ -711,7 +711,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
         @Override
         public void query(String text, int page, Response<ObjectReferenceType> response) {
-            ObjectFilter filter = null; // todo shouldn't we use this? probably load some collection filter from group or sometthing?
+            GroupSelectionType groupSelection = panel.getSelectedGroupSelection();
+            ObjectFilter filter = groupSelection != null ? panel.createObjectFilterFromGroupSelection(groupSelection.getIdentifier()) : null;
 
             ObjectFilter autocompleteFilter = panel.getAutocompleteFilter(text);
 

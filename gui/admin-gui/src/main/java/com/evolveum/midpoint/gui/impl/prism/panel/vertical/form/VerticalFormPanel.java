@@ -110,6 +110,21 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                     protected boolean isVisibleSubContainer(PrismContainerWrapper<? extends Containerable> c) {
                         return VerticalFormPanel.this.isVisibleSubContainer(c);
                     }
+
+                    @Override
+                    protected boolean isHeaderVisible() {
+                        return VerticalFormPanel.this.isHeaderVisible();
+                    }
+
+                    @Override
+                    protected boolean isShowEmptyButtonVisible() {
+                        return VerticalFormPanel.this.isShowEmptyButtonVisible();
+                    }
+
+                    @Override
+                    protected String getClassForPrismContainerValuePanel() {
+                        return VerticalFormPanel.this.getClassForPrismContainerValuePanel();
+                    }
                 };
             }
 
@@ -137,6 +152,18 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
         };
         singleContainer.setOutputMarkupId(true);
         add(singleContainer);
+    }
+
+    protected String getClassForPrismContainerValuePanel() {
+        return null;
+    }
+
+    protected boolean isShowEmptyButtonVisible() {
+        return true;
+    }
+
+    protected boolean isHeaderVisible() {
+        return true;
     }
 
     protected boolean isVisibleSubContainer(PrismContainerWrapper<? extends Containerable> c) {

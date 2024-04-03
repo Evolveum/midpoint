@@ -127,16 +127,17 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                     }
                     processInboundMappings(model, attrItem, attributeDefinition.getInboundMappingBeans());
                 }
-                Collection<ResourceAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
-                for (ResourceAssociationDefinition associationDefinition : associationDefinitions) {
+                Collection<ShadowAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
+                for (ShadowAssociationDefinition associationDefinition : associationDefinitions) {
                     if (associationDefinition.isIgnored()) {
                         continue;
                     }
-                    LOGGER.debug("Processing refined association definition for {}", associationDefinition.getName());
+                    LOGGER.debug("Processing refined association definition for {}", associationDefinition.getItemName());
                     ResourceDataItem assocItem = model.findResourceItem(resource.getOid(), kind, intent, getObjectClassName(refinedDefinition),
-                            ItemPath.create(associationDefinition.getName()));
-                    if (associationDefinition.getOutboundMappingType() != null) {
-                        processOutboundMapping(model, assocItem, associationDefinition.getOutboundMappingType(), null);
+                            ItemPath.create(associationDefinition.getItemName()));
+                    var outboundMapping = associationDefinition.getOutboundMapping();
+                    if (outboundMapping != null) {
+                        processOutboundMapping(model, assocItem, outboundMapping.value(), null);
                     }
 //                    if (associationDefinition.getAssociationTarget() != null) {
 //                        ResourceObjectTypeDefinition target = associationDefinition.getAssociationTarget();
@@ -225,13 +226,13 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                     model.registerDataItem(attrItem);
                 }
                 // TODO check attributes not mentioned in schema handling
-                Collection<ResourceAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
-                for (ResourceAssociationDefinition associationDefinition : associationDefinitions) {
+                Collection<ShadowAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
+                for (ShadowAssociationDefinition associationDefinition : associationDefinitions) {
                     if (associationDefinition.isIgnored()) {
                         continue;
                     }
-                    LOGGER.debug("Registering refined association definition for {}", associationDefinition.getName());
-                    ResourceDataItem assocItem = new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, associationDefinition.getName());
+                    LOGGER.debug("Registering refined association definition for {}", associationDefinition.getItemName());
+                    ResourceDataItem assocItem = new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, associationDefinition.getItemName());
                     model.registerDataItem(assocItem);
                 }
                 model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, PATH_ACTIVATION_ADMINISTRATIVE_STATUS));
@@ -413,7 +414,8 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                 currentItem.getObjectClassName(), path);
     }
 
-    private void processOutboundMapping(@NotNull DataModel model, @NotNull ResourceDataItem targetItem, @NotNull MappingType mapping,
+    private void processOutboundMapping(
+            @NotNull DataModel model, @NotNull ResourceDataItem targetItem, @NotNull MappingType mapping,
             @Nullable ItemPath defaultSourceItemPath) {
         LOGGER.debug("Processing outbound mapping: {} for {}", mapping, targetItem);
         List<DataItem> sources = new ArrayList<>();

@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.model.impl.lens.LensFocusContext.fromLensFoc
 import static com.evolveum.midpoint.model.impl.lens.LensProjectionContext.fromLensProjectionContextBean;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Supplier;
@@ -73,7 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class LensContext<F extends ObjectType> implements ModelContext<F>, Cloneable {
 
-    private static final long serialVersionUID = -778283437426659540L;
+    @Serial private static final long serialVersionUID = -778283437426659540L;
     private static final String DOT_CLASS = LensContext.class.getName() + ".";
 
     private static final Trace LOGGER = TraceManager.getTrace(LensContext.class);
@@ -216,7 +217,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     private transient boolean isFresh = false;
 
-    private boolean isRequestAuthorized = false;
+    @NotNull private AuthorizationState authorizationState = AuthorizationState.NONE;
 
     /**
      * Cache of resource instances. It is used to reduce the number of read
@@ -664,11 +665,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     @SuppressWarnings("WeakerAccess") // may be used from scripts
     public boolean isRequestAuthorized() {
-        return isRequestAuthorized;
+        return getAuthorizationState() == AuthorizationState.FULL;
     }
 
-    void setRequestAuthorized(boolean isRequestAuthorized) {
-        this.isRequestAuthorized = isRequestAuthorized;
+    public @NotNull AuthorizationState getAuthorizationState() {
+        return Objects.requireNonNull(authorizationState);
+    }
+
+    void setRequestAuthorized(@NotNull AuthorizationState authorizationState) {
+        this.authorizationState = authorizationState;
     }
 
     /**
@@ -708,7 +713,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         this.doReconciliationForAllProjections = doReconciliationForAllProjections;
     }
 
-    boolean isExecutionPhaseOnly() {
+    public boolean isExecutionPhaseOnly() {
         return executionPhaseOnly;
     }
 
@@ -929,23 +934,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return rottenExecutedDeltas;
     }
 
-    public void recompute() throws SchemaException {
-        recomputeFocus();
-        recomputeProjections();
-    }
-
-    public void recomputeFocus() throws SchemaException {
-        if (focusContext != null) {
-            focusContext.recompute();
-        }
-    }
-
-    private void recomputeProjections() throws SchemaException {
-        for (LensProjectionContext projCtx : getProjectionContexts()) {
-            projCtx.recompute();
-        }
-    }
-
     public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException, ConfigurationException {
         for (LensProjectionContext projCtx : getProjectionContexts()) {
             projCtx.refreshAuxiliaryObjectClassDefinitions();
@@ -976,8 +964,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             focusContext.checkConsistence();
         }
         for (LensProjectionContext projectionContext : projectionContexts) {
-            projectionContext.checkConsistence(this.toString(), isFresh, ModelExecuteOptions.isForce(options));
+            projectionContext.checkConsistence(this.toString(), isFresh, isForce());
         }
+    }
+
+    boolean isForce() {
+        return ModelExecuteOptions.isForce(options);
     }
 
     void checkEncryptedIfNeeded() {
@@ -1048,7 +1040,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         for (LensProjectionContext projectionContext : projectionContexts) {
             projectionContext.cleanup();
         }
-        recompute();
     }
 
     public void normalize() {
@@ -1074,7 +1065,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         clone.executionPhaseOnly = this.executionPhaseOnly;
         clone.focusClass = this.focusClass;
         clone.isFresh = this.isFresh;
-        clone.isRequestAuthorized = this.isRequestAuthorized;
+        clone.authorizationState = this.authorizationState;
         clone.resourceCache = resourceCache != null ?
                 new HashMap<>(resourceCache) : null;
         clone.explicitFocusTemplateOid = this.explicitFocusTemplateOid;
@@ -1134,7 +1125,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         sb.append(getAllChanges());
         sb.append(" changes, ");
         sb.append("fresh=").append(isFresh);
-        sb.append(", reqAutz=").append(isRequestAuthorized);
+        sb.append(", reqAutz=").append(authorizationState);
         if (systemConfiguration == null) {
             sb.append(" null-system-configuration");
         }
@@ -1378,7 +1369,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             bean.setLazyAuditRequest(lazyAuditRequest);
             bean.setRequestAudited(requestAudited);
             bean.setExecutionAudited(executionAudited);
-            bean.setRequestAuthorized(isRequestAuthorized);
+            bean.setRequestAuthorized(isRequestAuthorized());
             bean.setStats(stats);
             bean.setRequestMetadata(requestMetadata);
             bean.setOwnerOid(ownerOid);
@@ -1461,7 +1452,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         if (bean.isExecutionAudited() != null) {
             lensContext.setExecutionAudited(bean.isExecutionAudited());
         }
-        lensContext.setRequestAuthorized(Boolean.TRUE.equals(bean.isRequestAuthorized()));
+        // Let us consider the "request authorized" as "request fully authorized".
+        lensContext.setRequestAuthorized(
+                Boolean.TRUE.equals(bean.isRequestAuthorized()) ? AuthorizationState.FULL : AuthorizationState.NONE);
         lensContext.setStats(bean.getStats());
         lensContext.setRequestMetadata(bean.getRequestMetadata());
         lensContext.setOwnerOid(bean.getOwnerOid());
@@ -1922,7 +1915,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     public boolean isForcedFocusDelete() {
-        return focusContext != null && focusContext.isDelete() && ModelExecuteOptions.isForce(options);
+        return focusContext != null && focusContext.isDelete() && isForce();
     }
 
     void resetClickCounter() {
@@ -2059,5 +2052,16 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                     ", created=" + created +
                     '}';
         }
+    }
+
+    public enum AuthorizationState {
+        /** No authorization was carried out yet. */
+        NONE,
+
+        /** Only preliminary authorization was carried out (without e.g. org or tenant clauses). */
+        PRELIMINARY,
+
+        /** The full authorization was carried out. */
+        FULL
     }
 }

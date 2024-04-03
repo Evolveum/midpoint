@@ -48,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
         })
 public class PageArchetype extends PageAbstractRole<ArchetypeType, FocusDetailsModels<ArchetypeType>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentHolderDetails.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageArchetype.class);
 
     private static final long serialVersionUID = 1L;
 

@@ -18,7 +18,7 @@ SQL repository implements both repository and audit API.
 It facilitates Hibernate 5 as persistence framework, and for connection pooling link:https://brettwooldridge.github.io/HikariCP/[HikariCP] (previously c3p0).
 
 Audit records are stored synchronously and implementation currently shares connection pool with main repository.
-There are few planned improvements for audit, see link:https://jira.evolveum.com/browse/MID-4745[MID-4745].
+There are few planned improvements for audit, see bug:MID-4745[].
 
 == Configuration
 

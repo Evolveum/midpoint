@@ -13,6 +13,12 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.ApplicationRoleWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.BusinessRoleWizardPanel;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -57,10 +63,6 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderType, AHDM extends AssignmentHolderDetailsModel<AH>>
         extends AbstractPageObjectDetails<AH, AHDM> {
@@ -72,49 +74,89 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     private static final String ID_WIZARD = "wizard";
 
     private List<Breadcrumb> wizardBreadcrumbs = new ArrayList<>();
+    private final boolean showTemplate;
 
     public PageAssignmentHolderDetails() {
-        super();
-    }
-
-    public PageAssignmentHolderDetails(PrismObject<AH> assignmentHolder, List<BusinessRoleDto> patternDeltas) {
-        super(assignmentHolder, patternDeltas);
+        this(null, null);
     }
 
     public PageAssignmentHolderDetails(PageParameters pageParameters) {
-        super(pageParameters);
+        this(pageParameters, null);
     }
 
     public PageAssignmentHolderDetails(PrismObject<AH> assignmentHolder) {
-        super(assignmentHolder);
+        this(null, assignmentHolder);
+    }
+
+    private PageAssignmentHolderDetails(PageParameters pageParameters, PrismObject<AH> assignmentHolder) {
+        super(pageParameters, assignmentHolder);
+        showTemplate = assignmentHolder == null;
     }
 
     @Override
     protected void initLayout() {
-        if (isAdd() && isApplicableTemplate()) {
-            Fragment templateFragment = createTemplateFragment();
-            add(templateFragment);
-        } else {
-            if (isAdd()) {
-                Collection<CompiledObjectCollectionView> allApplicableArchetypeViews = findAllApplicableArchetypeViews();
-                if (allApplicableArchetypeViews.size() == 1) {
-                    CompiledObjectCollectionView view = allApplicableArchetypeViews.iterator().next();
-                    if (!view.isDefaultView()) {
-                        applyTemplate(allApplicableArchetypeViews.iterator().next());
+        if (isApplicableTemplate()) {
+            if (isAdd() && existMoreApplicableTemplate()) {
+                Fragment templateFragment = createTemplateFragment();
+                add(templateFragment);
+                return;
+            } else {
+                if (isAdd()) {
+                    Collection<CompiledObjectCollectionView> allApplicableArchetypeViews = findAllApplicableArchetypeViews();
+                    if (allApplicableArchetypeViews.size() == 1) {
+                        CompiledObjectCollectionView view = allApplicableArchetypeViews.iterator().next();
+                        if (!view.isDefaultView()) {
+                            applyTemplate(allApplicableArchetypeViews.iterator().next());
+                        }
                     }
                 }
             }
-            super.initLayout();
         }
+        super.initLayout();
+    }
+
+
+    protected DetailsFragment createDetailsFragment() {
+        if (canShowWizard()) {
+            setShowedByWizard(true);
+            return createWizardFragment();
+        }
+
+        return super.createDetailsFragment();
+    }
+
+    /**
+     * Return DetailsFragment that contains wizard.
+     */
+    protected DetailsFragment createWizardFragment() {
+        return super.createDetailsFragment();
+    }
+
+    /**
+     * Define whether wizard will be showed, for current object.
+     */
+    protected boolean canShowWizard() {
+        return false;
     }
 
     protected Fragment createTemplateFragment() {
         return new TemplateFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageAssignmentHolderDetails.this);
     }
 
-    protected boolean isApplicableTemplate() {
+    private boolean existMoreApplicableTemplate() {
         Collection<CompiledObjectCollectionView> applicableArchetypes = findAllApplicableArchetypeViews();
         return applicableArchetypes.size() > 1;
+    }
+
+    private boolean isShowTemplateChoices() {
+        return showTemplate;
+    }
+
+    /**
+     * Method for if page support selecting of template (archetype) for type which page works.
+     */
+    protected boolean isApplicableTemplate() {
+        return isShowTemplateChoices();
     }
 
     private class TemplateFragment extends Fragment {
@@ -298,6 +340,14 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             AjaxRequestTarget target,
             ItemPath pathToValue,
             Class<P> clazz) {
+        return showWizard(null, target, pathToValue, clazz);
+    }
+
+    protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(
+            PrismContainerValue<C> newValue,
+            AjaxRequestTarget target,
+            ItemPath pathToValue,
+            Class<P> clazz) {
 
         setShowedByWizard(true);
         getObjectDetailsModels().saveDeltas();
@@ -305,7 +355,27 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
         IModel<PrismContainerValueWrapper<C>> valueModel = null;
 
-        if (pathToValue != null) {
+        if (newValue != null) {
+            valueModel = new LoadableModel<>(false) {
+                @Override
+                protected PrismContainerValueWrapper<C> load() {
+                    try {
+                        PrismContainerWrapper<C> container =
+                                getObjectDetailsModels().getObjectWrapper().findContainer(pathToValue);
+                        PrismContainerValueWrapper<C> newWrapper = WebPrismUtil.createNewValueWrapper(
+                                container,
+                                newValue,
+                                PageAssignmentHolderDetails.this,
+                                getObjectDetailsModels().createWrapperContext());
+                        container.getValues().add(newWrapper);
+                        return newWrapper;
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't resolve value for path: " + pathToValue);
+                    }
+                    return null;
+                }
+            };
+        } else if (pathToValue != null) {
             valueModel = new LoadableModel<>(false) {
                 @Override
                 protected PrismContainerValueWrapper<C> load() {

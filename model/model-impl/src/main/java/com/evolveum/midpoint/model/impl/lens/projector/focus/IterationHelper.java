@@ -384,6 +384,5 @@ class IterationHelper<AH extends AssignmentHolderType> {
      */
     void restoreContext() throws SchemaException {
         focusContext.restoreElementState(initialElementState);
-        focusContext.recompute();
     }
 }

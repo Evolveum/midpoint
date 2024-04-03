@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 
+import org.jetbrains.annotations.Nullable;
+
 public class ExecuteScriptConfigItem
         extends ConfigurationItem<ExecuteScriptType> {
 
@@ -22,22 +24,13 @@ public class ExecuteScriptConfigItem
         super(original);
     }
 
-    protected ExecuteScriptConfigItem(@NotNull ExecuteScriptType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
-    }
-
-    public static ExecuteScriptConfigItem embedded(@NotNull ExecuteScriptType bean) {
-        return of(bean, ConfigurationItemOrigin.embedded(bean));
+    protected ExecuteScriptConfigItem(
+            @NotNull ExecuteScriptType value, @NotNull ConfigurationItemOrigin origin, @Nullable ConfigurationItem<?> parent) {
+        super(value, origin, parent);
     }
 
     public static ExecuteScriptConfigItem of(@NotNull ExecuteScriptType bean, @NotNull ConfigurationItemOrigin origin) {
-        return new ExecuteScriptConfigItem(bean, origin);
-    }
-
-    public static ExecuteScriptConfigItem of(
-            @NotNull ExecuteScriptType bean,
-            @NotNull OriginProvider<? super ExecuteScriptType> originProvider) {
-        return new ExecuteScriptConfigItem(bean, originProvider.origin(bean));
+        return new ExecuteScriptConfigItem(bean, origin, null); // hopefully the path is enough
     }
 
     @Override
@@ -49,5 +42,10 @@ public class ExecuteScriptConfigItem
         return ExecuteScriptConfigItem.of(
                 ExecuteScriptUtil.implantInput(value(), input),
                 origin());
+    }
+
+    @Override
+    public @NotNull String localDescription() {
+        return "script execution request (ExecuteScriptType)";
     }
 }

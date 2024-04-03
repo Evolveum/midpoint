@@ -308,7 +308,6 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         if (objectNew != null) {
             return objectNew;
         }
-        focusContext.recompute();
         PrismObject<F> objectNewAfter = focusContext.getObjectNew();
         if (objectNewAfter != null) {
             return objectNewAfter;
@@ -566,7 +565,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         try {
             switch (storageType) {
                 case ENCRYPTION:
-                    if (ps.isEncrypted()) {
+                    if (ps.isEncrypted() || ps.isExternal()) {
                         break;
                     }
                     if (ps.isHashed()) {

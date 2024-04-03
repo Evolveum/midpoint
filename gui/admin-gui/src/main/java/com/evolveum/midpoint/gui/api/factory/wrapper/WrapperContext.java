@@ -7,9 +7,8 @@
 package com.evolveum.midpoint.gui.api.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -48,7 +47,7 @@ public class WrapperContext {
     private ResourceShadowCoordinates coordinates;
 
     //Association related attributes
-    private Collection<ResourceAssociationDefinition> resourceAssociationDefinitions;
+    private Collection<ShadowAssociationDefinition> shadowAssociationDefinitions;
 
     //used e.g. for metadata - opertionsla attributes but want to create wrappers for them
     private boolean createOperational;
@@ -69,6 +68,8 @@ public class WrapperContext {
     private boolean configureMappingType;
 
     private boolean isShowedByWizard;
+
+    private boolean isDeprecatedItemAllowed = false;
 
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
@@ -123,12 +124,12 @@ public class WrapperContext {
         this.resource = resource;
     }
 
-    public Collection<ResourceAssociationDefinition> getRefinedAssociationDefinitions() {
-        return resourceAssociationDefinitions;
+    public Collection<ShadowAssociationDefinition> getRefinedAssociationDefinitions() {
+        return shadowAssociationDefinitions;
     }
 
-    public void setRefinedAssociationDefinitions(Collection<ResourceAssociationDefinition> resourceAssociationDefinitions) {
-        this.resourceAssociationDefinitions = resourceAssociationDefinitions;
+    public void setRefinedAssociationDefinitions(Collection<ShadowAssociationDefinition> shadowAssociationDefinitions) {
+        this.shadowAssociationDefinitions = shadowAssociationDefinitions;
     }
 
     public void setCoordinates(ResourceShadowCoordinates coordinates) {
@@ -278,6 +279,14 @@ public class WrapperContext {
 
     public boolean isShowedByWizard() {
         return isShowedByWizard;
+    }
+
+    public boolean isDeprecatedItemAllowed() {
+        return isDeprecatedItemAllowed;
+    }
+
+    public void setDeprecatedItemAllowed(boolean deprecatedItemAllowed) {
+        isDeprecatedItemAllowed = deprecatedItemAllowed;
     }
 
     public WrapperContext clone() {

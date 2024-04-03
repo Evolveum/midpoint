@@ -81,6 +81,7 @@ public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<Str
         return value;
     }
 
+    @Column(name = "norm")
     public String getNorm() {
         return norm;
     }
@@ -99,12 +100,13 @@ public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<Str
         if (o == null || getClass() != o.getClass()) { return false; }
         if (!super.equals(o)) { return false; }
         RAExtPolyString that = (RAExtPolyString) o;
-        return Objects.equals(value, that.value);
+        return Objects.equals(value, that.value)
+                && Objects.equals(norm, that.norm);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), value);
+        return Objects.hash(super.hashCode(), value, norm);
     }
 
     @Override

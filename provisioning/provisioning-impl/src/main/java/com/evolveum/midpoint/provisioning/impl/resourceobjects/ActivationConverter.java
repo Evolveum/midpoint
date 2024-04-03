@@ -16,6 +16,8 @@ import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -182,17 +184,14 @@ class ActivationConverter {
     @Nullable
     private Collection<Object> getSimulatingAttributeValues(ResourceObject resourceObject, QName attributeName) {
         ResourceAttributeContainer attributesContainer = resourceObject.getAttributesContainer();
-        ResourceAttribute<?> simulatingAttribute = attributesContainer != null ?
-                attributesContainer.findAttribute(attributeName) : null;
+        ResourceAttribute<?> simulatingAttribute = attributesContainer.findAttribute(attributeName);
         return simulatingAttribute != null ?
                 simulatingAttribute.getRealValues(Object.class) : null;
     }
 
     private void removeSimulatingAttribute(ResourceObject resourceObject, QName attributeName) {
         ResourceAttributeContainer attributesContainer = resourceObject.getAttributesContainer();
-        if (attributesContainer != null) {
-            attributesContainer.removeProperty(ItemPath.create(attributeName));
-        }
+        attributesContainer.removeProperty(ItemPath.create(attributeName));
     }
     //endregion
 
@@ -200,8 +199,8 @@ class ActivationConverter {
     /**
      * Transforms activation information when an object is being added.
      */
-    void transformOnAdd(ShadowType shadow, OperationResult result) throws SchemaException, CommunicationException {
-        ActivationType activation = shadow.getActivation();
+    void transformOnAdd(ResourceObject object, OperationResult result) throws SchemaException, CommunicationException {
+        ActivationType activation = object.getBean().getActivation();
         if (activation == null) {
             return;
         }
@@ -209,15 +208,15 @@ class ActivationConverter {
         ActivationCapabilityType activationCapability = ctx.getCapability(ActivationCapabilityType.class);
 
         if (activation.getAdministrativeStatus() != null) {
-            transformActivationStatusOnAdd(shadow, activationCapability, result);
+            transformActivationStatusOnAdd(object.getBean(), activationCapability, result);
         }
         if (activation.getLockoutStatus() != null) {
-            transformLockoutStatusOnAdd(shadow, activationCapability, result);
+            transformLockoutStatusOnAdd(object.getBean(), activationCapability, result);
         }
     }
 
     private void transformActivationStatusOnAdd(
-            ShadowType shadow, ActivationCapabilityType activationCapability, OperationResult result)
+            ShadowType resourceObjectBean, ActivationCapabilityType activationCapability, OperationResult result)
             throws SchemaException {
 
         ActivationStatusCapabilityType statusCapability = CapabilityUtil.getEnabledActivationStatusStrict(activationCapability);
@@ -234,15 +233,15 @@ class ActivationConverter {
         }
 
         boolean converted = TwoStateRealToSimulatedConverter.create(statusCapability, simulatingAttributeName, ctx, b)
-                .convertProperty(shadow.getActivation().getAdministrativeStatus(), shadow, result);
+                .convertProperty(resourceObjectBean.getActivation().getAdministrativeStatus(), resourceObjectBean, result);
 
         if (converted) {
-            shadow.getActivation().setAdministrativeStatus(null);
+            resourceObjectBean.getActivation().setAdministrativeStatus(null);
         }
     }
 
     private void transformLockoutStatusOnAdd(
-            ShadowType shadow, ActivationCapabilityType activationCapability, OperationResult result)
+            ShadowType resourceObjectBean, ActivationCapabilityType activationCapability, OperationResult result)
             throws SchemaException {
 
         ActivationLockoutStatusCapabilityType lockoutCapability =
@@ -260,10 +259,10 @@ class ActivationConverter {
         }
 
         boolean converted = TwoStateRealToSimulatedConverter.create(lockoutCapability, simulatingAttributeName, ctx, b)
-                .convertProperty(shadow.getActivation().getLockoutStatus(), shadow, result);
+                .convertProperty(resourceObjectBean.getActivation().getLockoutStatus(), resourceObjectBean, result);
 
         if (converted) {
-            shadow.getActivation().setLockoutStatus(null);
+            resourceObjectBean.getActivation().setLockoutStatus(null);
         }
     }
     //endregion
@@ -273,7 +272,7 @@ class ActivationConverter {
      * Creates activation change operations, based on existing collection of changes.
      */
     @NotNull Collection<Operation> transformOnModify(
-            ShadowType repoShadow, Collection<? extends ItemDelta<?, ?>> modifications, OperationResult result)
+            RepoShadow repoShadow, Collection<? extends ItemDelta<?, ?>> modifications, OperationResult result)
             throws SchemaException {
 
         Collection<Operation> operations = new ArrayList<>();
@@ -283,8 +282,8 @@ class ActivationConverter {
         LOGGER.trace("Found activation capability: {}", PrettyPrinter.prettyPrint(activationCapability));
 
         // using simulating attributes, if defined
-        createActivationStatusChange(modifications, repoShadow, activationCapability, resource, operations, result);
-        createLockoutStatusChange(modifications, repoShadow, activationCapability, resource, operations, result);
+        createActivationStatusChange(modifications, repoShadow.getBean(), activationCapability, resource, operations, result);
+        createLockoutStatusChange(modifications, repoShadow.getBean(), activationCapability, resource, operations, result);
 
         // these are converted "as is" (no simulation)
         createValidFromChange(modifications, activationCapability, resource, operations, result);

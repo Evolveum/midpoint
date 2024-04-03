@@ -79,6 +79,9 @@ image::step-1-discovered-config.png[link=step-1-discovered-config.png, 100%, tit
 
 Click btn:[Next] to continue the resource configuration.
 
+WARNING: If you are using CSV connector and wizard fails in this step with error _"Connector initialization failed. Configuration error: Configuration error: Header in csv file doesn't contain unique attribute name as defined in configuration."_, it may be caused by presence of UTF-8 BOM characters in the file. See more xref:https://support.evolveum.com/work_packages/9497[here]. +
+To resolve the issue, remove the leading UTF-8 BOM characters from the csv file and start the wizard again. This can be done e.g. by copying the file content to a new file in text editor.
+
 Connector will return possible object types and their attributes (_schema_ and its _object classes_).
 Confirm the detected configuration.
 
@@ -146,7 +149,7 @@ NOTE: You do not need to use the classification at all. If unsure, do not use it
 .See also the following pages for more information:
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6/#resource-object-type-delineation[Resource Object Type Delineation]
 
-// TODO TODO we do not have better Delination example! I have created https://jira.evolveum.com/browse/MID-9404 to track this
+// TODO TODO we do not have better Delination example! I have created https://support.evolveum.com/wp/9404 to track this
 
 image::step-2-object-type-resource-data.png[link=step-2-object-type-resource-data.png, 100%,title=Resource data]
 
@@ -158,6 +161,12 @@ Define the midPoint-specific configuration for this object type:
 * *Archetype* allows selection of archetype that will be automatically assigned for all midPoint objects created from this object type data on the resource. The same archetype will be also used as a part of correlation, i.e. enforced.
 +
 If unsure, keep Archetype empty.
++
+Panel for Archetype contains three possibilities:
+
+** _No archetype_,
+** _Use existing archetype_ - Use existing archetype means that you can choose from already created archetypes.
+** _Create new archetype_ - Create new archetype, with basic configuration. Created archetype will be added to configuration as reference.
 
 .See also the following pages for more information:
 * overview of xref:/midpoint/reference/schema/archetypes/[Archetypes]

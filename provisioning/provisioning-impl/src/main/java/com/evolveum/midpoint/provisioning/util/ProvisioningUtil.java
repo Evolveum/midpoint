@@ -7,23 +7,20 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
@@ -36,11 +33,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
-import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -50,7 +47,6 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -59,8 +55,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 public class ProvisioningUtil {
@@ -108,167 +102,9 @@ public class ProvisioningUtil {
         return scriptOperation;
     }
 
-    // To be called via ProvisioningContext
-    public static @Nullable AttributesToReturn createAttributesToReturn(@NotNull ProvisioningContext ctx) {
-
-        ResourceObjectDefinition resourceObjectDefinition = ctx.getObjectDefinitionRequired();
-
-        ResourceType resource = ctx.getResource();
-
-        boolean apply = false;
-        AttributesToReturn attributesToReturn = new AttributesToReturn();
-
-        // Attributes
-
-        boolean hasMinimal = checkForMinimalFetchStrategy(ctx);
-        attributesToReturn.setReturnDefaultAttributes(!hasMinimal);
-
-        Collection<ResourceAttributeDefinition<?>> explicit = getExplicitlyFetchedAttributes(ctx, !hasMinimal);
-
-        if (!explicit.isEmpty()) {
-            attributesToReturn.setAttributesToReturn(explicit);
-            apply = true;
-        }
-
-        // Password
-        CredentialsCapabilityType credentialsCapability =
-                ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
-        if (credentialsCapability != null) {
-            if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_PASSWORD_VALUE)) {
-                attributesToReturn.setReturnPasswordExplicit(true);
-                apply = true;
-            } else {
-                if (!CapabilityUtil.isPasswordReturnedByDefault(credentialsCapability)) {
-                    // The resource is capable of returning password but it does not do it by default.
-                    AttributeFetchStrategyType passwordFetchStrategy = resourceObjectDefinition.getPasswordFetchStrategy();
-                    if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-                        attributesToReturn.setReturnPasswordExplicit(true);
-                        apply = true;
-                    }
-                }
-            }
-        }
-
-        // Activation
-        ActivationCapabilityType activationCapability =
-                ResourceTypeUtil.getEnabledCapability(resource, ActivationCapabilityType.class);
-        if (activationCapability != null) {
-            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getStatus())) {
-                if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapability)) {
-                    // The resource is capable of returning enable flag but it does not do it by default.
-                    if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
-                        attributesToReturn.setReturnAdministrativeStatusExplicit(true);
-                        apply = true;
-                    } else {
-                        AttributeFetchStrategyType administrativeStatusFetchStrategy = resourceObjectDefinition
-                                .getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
-                        if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-                            attributesToReturn.setReturnAdministrativeStatusExplicit(true);
-                            apply = true;
-                        }
-                    }
-                }
-            }
-            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getValidFrom())) {
-                if (!CapabilityUtil.isActivationValidFromReturnedByDefault(activationCapability)) {
-                    if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_ACTIVATION_VALID_FROM)) {
-                        attributesToReturn.setReturnValidFromExplicit(true);
-                        apply = true;
-                    } else {
-                        AttributeFetchStrategyType administrativeStatusFetchStrategy = resourceObjectDefinition
-                                .getActivationFetchStrategy(ActivationType.F_VALID_FROM);
-                        if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-                            attributesToReturn.setReturnValidFromExplicit(true);
-                            apply = true;
-                        }
-                    }
-                }
-            }
-            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getValidTo())) {
-                if (!CapabilityUtil.isActivationValidToReturnedByDefault(activationCapability)) {
-                    if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_ACTIVATION_VALID_TO)) {
-                        attributesToReturn.setReturnValidToExplicit(true);
-                        apply = true;
-                    } else {
-                        AttributeFetchStrategyType administrativeStatusFetchStrategy = resourceObjectDefinition
-                                .getActivationFetchStrategy(ActivationType.F_VALID_TO);
-                        if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-                            attributesToReturn.setReturnValidToExplicit(true);
-                            apply = true;
-                        }
-                    }
-                }
-            }
-            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getLockoutStatus())) {
-                if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapability)) {
-                    // The resource is capable of returning lockout flag but it does not do it by default.
-                    if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS)) {
-                        attributesToReturn.setReturnAdministrativeStatusExplicit(true);
-                        apply = true;
-                    } else {
-                        AttributeFetchStrategyType statusFetchStrategy = resourceObjectDefinition
-                                .getActivationFetchStrategy(ActivationType.F_LOCKOUT_STATUS);
-                        if (statusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-                            attributesToReturn.setReturnLockoutStatusExplicit(true);
-                            apply = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (apply) {
-            return attributesToReturn;
-        } else {
-            return null;
-        }
-    }
-
-    @NotNull
-    private static Collection<ResourceAttributeDefinition<?>> getExplicitlyFetchedAttributes(
-            ProvisioningContext ctx, boolean returnsDefaultAttributes) {
-        return ctx.getObjectDefinitionRequired().getAttributeDefinitions().stream()
-                .filter(attributeDefinition -> shouldExplicitlyFetch(attributeDefinition, returnsDefaultAttributes, ctx))
-                .collect(Collectors.toList());
-    }
-
-    private static boolean shouldExplicitlyFetch(
-            ResourceAttributeDefinition<?> attributeDefinition,
-            boolean returnsDefaultAttributes, ProvisioningContext ctx) {
-        AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
-        if (fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-            return true;
-        } else if (returnsDefaultAttributes) {
-            // Normal attributes are returned by default. So there's no need to explicitly request this attribute.
-            return false;
-        } else if (isFetchingRequested(ctx, attributeDefinition)) {
-            // Client wants this attribute.
-            return true;
-        } else {
-            // If the fetch strategy is MINIMAL, we want to skip. Otherwise, request it.
-            return fetchStrategy != AttributeFetchStrategyType.MINIMAL;
-        }
-    }
-
-    private static boolean isFetchingRequested(ProvisioningContext ctx, ResourceAttributeDefinition<?> attributeDefinition) {
-        ItemPath attributePath = ShadowType.F_ATTRIBUTES.append(attributeDefinition.getItemName());
-        ItemPath legacyPath = attributeDefinition.getItemName(); // See MID-5838
-        return ctx.isFetchingRequested(attributePath) || ctx.isFetchingRequested(legacyPath);
-    }
-
-    private static boolean checkForMinimalFetchStrategy(ProvisioningContext ctx) {
-        for (ResourceAttributeDefinition<?> attributeDefinition :
-                ctx.getObjectDefinitionRequired().getAttributeDefinitions()) {
-            if (attributeDefinition.getFetchStrategy() == AttributeFetchStrategyType.MINIMAL) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static <T> PropertyDelta<T> narrowPropertyDelta(
-            PropertyDelta<T> propertyDelta,
-            ShadowType currentShadow,
+            @NotNull PropertyDelta<T> propertyDelta,
+            @NotNull ResourceObject currentObject,
             QName overridingMatchingRuleQName,
             MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         ItemDefinition<?> propertyDef = propertyDelta.getDefinition();
@@ -301,7 +137,7 @@ public class ProvisioningUtil {
         // Because we are dealing with properties, container IDs are also out of questions, and operational items
         // as well.
         PropertyDelta<T> filteredDelta =
-                propertyDelta.narrow(asPrismObject(currentShadow), comparator, comparator, true); // MID-5280
+                propertyDelta.narrow(currentObject.getPrismObject(), comparator, comparator, true); // MID-5280
         if (filteredDelta == null || !filteredDelta.equals(propertyDelta)) {
             LOGGER.trace("Narrowed delta: {}", DebugUtil.debugDumpLazily(filteredDelta));
         }
@@ -318,37 +154,38 @@ public class ProvisioningUtil {
     }
 
     public static boolean isAddShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
+            Collection<ResourceObjectPattern> protectedAccountPatterns, ResourceObject object, OperationResult result)
             throws SchemaException {
-        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getAdd().isEnabled();
+        return getEffectiveProvisioningPolicy(protectedAccountPatterns, object, result).getAdd().isEnabled();
     }
 
     public static boolean isModifyShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
+            Collection<ResourceObjectPattern> protectedAccountPatterns, RepoShadow shadow, OperationResult result)
             throws SchemaException {
         return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getModify().isEnabled();
     }
 
     public static boolean isDeleteShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow, @NotNull OperationResult result)
+            Collection<ResourceObjectPattern> protectedAccountPatterns, RepoShadow shadow, OperationResult result)
             throws SchemaException {
         return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getDelete().isEnabled();
     }
 
     private static ObjectOperationPolicyType getEffectiveProvisioningPolicy(
-            Collection<ResourceObjectPattern> protectedAccountPatterns,
-            ShadowType shadow,
+            @NotNull Collection<ResourceObjectPattern> protectedAccountPatterns,
+            @NotNull AbstractShadow shadow,
             @NotNull OperationResult result) throws SchemaException {
-        if (shadow.getEffectiveOperationPolicy() != null) {
-            return shadow.getEffectiveOperationPolicy();
+        ObjectOperationPolicyType existingPolicy = shadow.getBean().getEffectiveOperationPolicy();
+        if (existingPolicy != null) {
+            return existingPolicy;
         }
         ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
                 protectedAccountPatterns, shadow, result);
-        return shadow.getEffectiveOperationPolicy();
+        return shadow.getBean().getEffectiveOperationPolicy();
     }
 
     public static void setEffectiveProvisioningPolicy (
-            ProvisioningContext ctx, ShadowType shadow, OperationResult result)
+            ProvisioningContext ctx, AbstractShadow shadow, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
         ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
@@ -426,11 +263,11 @@ public class ProvisioningUtil {
         p.setMetadata(metadata);
     }
 
-    public static void checkShadowActivationConsistency(PrismObject<ShadowType> shadow) {
+    public static void checkShadowActivationConsistency(RepoShadow shadow) {
         if (shadow == null) { // just for sure
             return;
         }
-        ActivationType activation = shadow.asObjectable().getActivation();
+        ActivationType activation = shadow.getBean().getActivation();
         if (activation == null) {
             return;
         }
@@ -442,19 +279,10 @@ public class ProvisioningUtil {
                 activation.getLockoutStatus() != null ||
                 activation.getLockoutExpirationTimestamp() != null ||
                 activation.getValidityChangeTimestamp() != null) {
-            String m = "Unexpected content in shadow.activation for " + ObjectTypeUtil.toShortString(shadow) + ": " + activation;
+            String m = "Unexpected content in shadow.activation for " + ObjectTypeUtil.toShortString(shadow.getBean()) + ": " + activation;
             LOGGER.warn("{}", m);
             //throw new IllegalStateException(m);        // use only for testing
         }
-    }
-
-    public static Duration getGracePeriod(ProvisioningContext ctx) {
-        Duration gracePeriod = null;
-        ResourceConsistencyType consistency = ctx.getResource().getConsistency();
-        if (consistency != null) {
-            gracePeriod = consistency.getPendingOperationGracePeriod();
-        }
-        return gracePeriod;
     }
 
     public static Duration getPendingOperationRetentionPeriod(ProvisioningContext ctx) {
@@ -540,97 +368,9 @@ public class ProvisioningUtil {
         return pit == PointInTimeType.FUTURE;
     }
 
-    public static boolean isDoDiscovery(@NotNull ResourceType resource, ProvisioningOperationOptions options) {
-        return !ProvisioningOperationOptions.isDoNotDiscovery(options) && ResourceTypeUtil.isDiscoveryAllowed(resource);
-    }
-
-    // TODO better place?
-    public static @Nullable ShadowType selectSingleShadow(@NotNull List<PrismObject<ShadowType>> shadows, Object context) {
-        LOGGER.trace("Selecting from {} objects", shadows.size());
-
-        if (shadows.isEmpty()) {
-            return null;
-        } else if (shadows.size() > 1) {
-            LOGGER.error("Too many shadows ({}) for {}", shadows.size(), context);
-            LOGGER.debug("Shadows:\n{}", DebugUtil.debugDumpLazily(shadows));
-            throw new IllegalStateException("More than one shadow for " + context);
-        } else {
-            return shadows.get(0).asObjectable();
-        }
-    }
-
-    // TODO better place?
-    @Nullable
-    public static PrismObject<ShadowType> selectLiveShadow(List<PrismObject<ShadowType>> shadows, Object context) {
-        if (shadows == null || shadows.isEmpty()) {
-            return null;
-        }
-
-        List<PrismObject<ShadowType>> liveShadows = shadows.stream()
-                .filter(ShadowUtil::isNotDead)
-                .toList();
-
-        if (liveShadows.isEmpty()) {
-            return null;
-        } else if (liveShadows.size() > 1) {
-            LOGGER.error("More than one live shadow found ({} out of {}) {}\n{}",
-                    liveShadows.size(), shadows.size(), context, DebugUtil.debugDumpLazily(shadows, 1));
-            // TODO: handle "more than one shadow" case for conflicting shadows - MID-4490
-            throw new IllegalStateException("Found more than one live shadow " + context + ": " + liveShadows);
-        } else {
-            return liveShadows.get(0);
-        }
-    }
-
-    /**
-     * @return Live shadow (if there's one) or any of the dead ones.
-     * (We ignore the possibility of conflicting information in shadows.)
-     *
-     * TODO better place?
-     */
-    public static ShadowType selectLiveOrAnyShadow(List<PrismObject<ShadowType>> shadows) {
-        PrismObject<ShadowType> liveShadow = ProvisioningUtil.selectLiveShadow(shadows, "");
-        if (liveShadow != null) {
-            return liveShadow.asObjectable();
-        } else if (shadows.isEmpty()) {
-            return null;
-        } else {
-            return shadows.get(0).asObjectable();
-        }
-    }
-
-    // TODO better place?
-    public static @NotNull PrismProperty<?> getSingleValuedPrimaryIdentifierRequired(ShadowType shadow) throws SchemaException {
-        return MiscUtil.requireNonNull(
-                getSingleValuedPrimaryIdentifier(shadow),
-                () -> "No primary identifier value in " + ShadowUtil.shortDumpShadow(shadow));
-    }
-
-    // TODO better place?
-    @Nullable
-    public static PrismProperty<?> getSingleValuedPrimaryIdentifier(ShadowType shadow) {
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-        PrismProperty<?> identifier = attributesContainer.getPrimaryIdentifier();
-        if (identifier == null) {
-            return null;
-        }
-
-        checkSingleIdentifierValue(identifier);
-        return identifier;
-    }
-
-    // TODO better place?
-    private static void checkSingleIdentifierValue(PrismProperty<?> identifier) {
-        int identifierCount = identifier.getValues().size();
-        // Only one value is supported for an identifier
-        if (identifierCount > 1) {
-            // TODO: This should probably be switched to checked exception later
-            throw new IllegalArgumentException("More than one identifier value is not supported");
-        }
-        if (identifierCount < 1) {
-            // TODO: This should probably be switched to checked exception later
-            throw new IllegalArgumentException("The identifier has no value");
-        }
+    public static boolean isDiscoveryAllowed(@NotNull ResourceType resource, ProvisioningOperationOptions options) {
+        return !ProvisioningOperationOptions.isDoNotDiscovery(options)
+                && ResourceTypeUtil.isDiscoveryAllowed(resource);
     }
 
     // TODO better place?

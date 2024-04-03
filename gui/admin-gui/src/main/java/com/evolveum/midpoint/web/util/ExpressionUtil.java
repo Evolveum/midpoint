@@ -278,7 +278,7 @@ public class ExpressionUtil {
             return elements;
         }
         for (JAXBElement<?> element : expression.getExpressionEvaluator()) {
-            if (element != null && element.getName().equals(elementName)) {
+            if (element != null && QNameUtil.match(element.getName(), elementName)) {
                 elements.add(element);
             }
         }
@@ -309,8 +309,8 @@ public class ExpressionUtil {
                 RawType raw = (RawType) element.getValue();
                 if (raw.isParsed()) {
                     try {
-                        if (raw.getParsedRealValue(ShadowAssociationType.class) != null) {
-                            ShadowAssociationType assoc = raw.getParsedRealValue(ShadowAssociationType.class);
+                        if (raw.getParsedRealValue(ShadowAssociationValueType.class) != null) {
+                            ShadowAssociationValueType assoc = raw.getParsedRealValue(ShadowAssociationValueType.class);
                             if (assoc.getShadowRef() != null && shadowRefOid.equals(assoc.getShadowRef().getOid())) {
                                 elementIterator.remove();
                                 break;
@@ -350,6 +350,17 @@ public class ExpressionUtil {
         expression.getExpressionEvaluator().addAll(elementList);
     }
 
+    public static boolean containsAssociationFromLinkElement(ExpressionType expression) {
+        if (expression == null) {
+            return false;
+        }
+        List<JAXBElement<?>> elementList = findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK);
+        if (CollectionUtils.isEmpty(elementList)) {
+            return false;
+        }
+        return true;
+    }
+
     private static String getShadowRefNodeOid(MapXNode shadowRefNode) {
         if (shadowRefNode != null && shadowRefNode.containsKey(SHADOW_OID_KEY)) {
             PrimitiveXNode shadowOidNode = (PrimitiveXNode) shadowRefNode.get(SHADOW_OID_KEY);
@@ -376,7 +387,7 @@ public class ExpressionUtil {
 
         SearchFilterType filterType = new SearchFilterType();
         filterType.setFilterClauseXNode(filterClauseNode);
-        searchObjectExpressionEvaluatorType.setFilter(filterType);
+        searchObjectExpressionEvaluatorType.getFilter().add(filterType);
 
         evaluator.setValue(searchObjectExpressionEvaluatorType);
         return evaluator;
@@ -392,11 +403,11 @@ public class ExpressionUtil {
         if (evaluator == null) {
             evaluator = new SearchObjectExpressionEvaluatorType();
         }
-        SearchFilterType filterType = evaluator.getFilter();
-        if (filterType == null) {
-            filterType = new SearchFilterType();
+        List<SearchFilterType> filterTypeList = evaluator.getFilter();
+        if (filterTypeList.isEmpty()) {
+            filterTypeList.add(new SearchFilterType());
         }
-        MapXNode filterClauseNode = filterType.getFilterClauseXNode();
+        MapXNode filterClauseNode = filterTypeList.get(0).getFilterClauseXNode(); // TODO is this correct?
         if (filterClauseNode == null) {
             filterClauseNode = prismContext.xnodeFactory().map();
         }
@@ -419,7 +430,8 @@ public class ExpressionUtil {
         EqualFilter<?> pathFilter = prismContext.queryFactory().createEqual(ItemPath.create(newPath), null, null, prismContext, newValue);
 
         SearchFilterType filterType = prismContext.getQueryConverter().createSearchFilterType(pathFilter);
-        associationTargetSearchType.setFilter(filterType);
+        associationTargetSearchType.getFilter().clear(); // TODO is this correct?
+        associationTargetSearchType.getFilter().add(filterType);
         JAXBElement<SearchObjectExpressionEvaluatorType> evaluator = new ObjectFactory().createAssociationTargetSearch(associationTargetSearchType);
 
         removeEvaluatorByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
@@ -430,7 +442,7 @@ public class ExpressionUtil {
     public static List<ObjectReferenceType> getShadowRefValue(ExpressionType expressionType, PrismContext prismContext) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         if (expressionType != null) {
-            for (ShadowAssociationType association : getAssociationList(expressionType)) {
+            for (var association : getAssociationList(expressionType)) {
                 if (association.getShadowRef() != null) {
                     rv.add(association.getShadowRef().clone());
                 }
@@ -452,11 +464,11 @@ public class ExpressionUtil {
             PrismValue prismValue = raw.getAlreadyParsedValue();
             if (prismValue instanceof PrismContainerValue
                     && ((PrismContainerValue<?>) prismValue).getComplexTypeDefinition() != null
-                    && ShadowAssociationType.class.equals(
+                    && ShadowAssociationValueType.class.equals(
                     ((PrismContainerValue<?>) prismValue).getComplexTypeDefinition().getCompileTimeClass())) {
                 return true;
             }
-        } else if (element.getValue() instanceof ShadowAssociationType) {
+        } else if (element.getValue() instanceof ShadowAssociationValueType) {
             return true;
         }
         return false;
@@ -468,23 +480,23 @@ public class ExpressionUtil {
      * @return Immutable list of associations.
      */
     @NotNull
-    private static List<ShadowAssociationType> getAssociationList(ExpressionType expression) {
+    private static List<ShadowAssociationValueType> getAssociationList(ExpressionType expression) {
         if (expression == null) {
             return Collections.emptyList();
         }
-        List<ShadowAssociationType> rv = new ArrayList<>();
+        List<ShadowAssociationValueType> rv = new ArrayList<>();
         try {
             for (JAXBElement<?> evaluatorJaxbElement : expression.getExpressionEvaluator()) {
                 if (QNameUtil.match(evaluatorJaxbElement.getName(), SchemaConstantsGenerated.C_VALUE)) {
                     Object evaluatorValue = evaluatorJaxbElement.getValue();
-                    if (evaluatorValue instanceof ShadowAssociationType) {
-                        rv.add((ShadowAssociationType) evaluatorValue);
+                    if (evaluatorValue instanceof ShadowAssociationValueType) {
+                        rv.add((ShadowAssociationValueType) evaluatorValue);
                     } else if (evaluatorValue instanceof RawType) {
-                        rv.add(((RawType) evaluatorValue).getParsedRealValue(ShadowAssociationType.class));
+                        rv.add(((RawType) evaluatorValue).getParsedRealValue(ShadowAssociationValueType.class));
                     } else if (evaluatorValue == null) {
                         // just ignore it
                     } else {
-                        throw new SchemaException("Expected ShadowAssociationType, got " + MiscUtil.getClass(evaluatorValue));
+                        throw new SchemaException("Expected ShadowAssociationValueType, got " + MiscUtil.getClass(evaluatorValue));
                     }
                 }
             }
@@ -497,12 +509,12 @@ public class ExpressionUtil {
     public static void addShadowRefEvaluatorValue(ExpressionType expression, String oid, PrismContext prismContext) {
         if (StringUtils.isNotEmpty(oid)) {
             expression.getExpressionEvaluator().add(
-                    new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationType.class,
-                            new ShadowAssociationType(prismContext).shadowRef(oid, ShadowType.COMPLEX_TYPE)));
+                    new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationValueType.class,
+                            new ShadowAssociationValueType().shadowRef(oid, ShadowType.COMPLEX_TYPE)));
         } else {
             expression.getExpressionEvaluator().add(
-                    new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationType.class,
-                            new ShadowAssociationType(prismContext)));
+                    new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationValueType.class,
+                            new ShadowAssociationValueType()));
         }
     }
 
@@ -511,11 +523,12 @@ public class ExpressionUtil {
             expression = new ExpressionType();      // TODO ??? this is thrown away
         }
         removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
-        PrismContext prismContext = PrismContext.get();
         for (ObjectReferenceType value : values) {
-            JAXBElement element = new JAXBElement<>(SchemaConstantsGenerated.C_VALUE, ShadowAssociationType.class,
-                    new ShadowAssociationType(prismContext).shadowRef(value));
-            expression.expressionEvaluator(element);
+            expression.expressionEvaluator(
+                    new JAXBElement<>(
+                            SchemaConstantsGenerated.C_VALUE,
+                            ShadowAssociationValueType.class,
+                            new ShadowAssociationValueType().shadowRef(value)));
         }
     }
 
@@ -624,11 +637,11 @@ public class ExpressionUtil {
         }
         JAXBElement element = ExpressionUtil.findFirstEvaluatorByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
         if (element != null && element.getValue() != null && element.getValue() instanceof SearchObjectExpressionEvaluatorType) {
-            SearchFilterType filter = ((SearchObjectExpressionEvaluatorType) element.getValue()).getFilter();
-            if (filter == null) {
+            List<SearchFilterType> filters = ((SearchObjectExpressionEvaluatorType) element.getValue()).getFilter();
+            if (filters.isEmpty()) {
                 return null;
             }
-            MapXNode filterValue = filter.getFilterClauseXNode();
+            MapXNode filterValue = filters.get(0).getFilterClauseXNode(); // TODO is this correct?
             return filterValue != null && filterValue.containsKey(new QName(SchemaConstantsGenerated.NS_QUERY, "equal")) ?
                     (MapXNode) filterValue.get(new QName(SchemaConstantsGenerated.NS_QUERY, "equal")) : null;
 

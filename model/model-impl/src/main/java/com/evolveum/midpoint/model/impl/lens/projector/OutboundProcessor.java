@@ -79,7 +79,6 @@ public class OutboundProcessor {
             nextRecompute.createTrigger(context.getFocusContext());
         }
 
-        context.recompute();
         context.checkConsistenceIfNeeded();
     }
 }

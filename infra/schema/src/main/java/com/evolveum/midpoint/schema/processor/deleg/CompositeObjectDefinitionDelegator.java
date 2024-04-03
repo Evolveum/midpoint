@@ -24,8 +24,7 @@ public interface CompositeObjectDefinitionDelegator extends ResourceObjectDefini
     }
 
     @Override
-    default @NotNull Collection<ResourceObjectDefinition> getAuxiliaryDefinitions() {
+    default @NotNull Collection<? extends ResourceObjectDefinition> getAuxiliaryDefinitions() {
         return delegate().getAuxiliaryDefinitions();
     }
-
 }

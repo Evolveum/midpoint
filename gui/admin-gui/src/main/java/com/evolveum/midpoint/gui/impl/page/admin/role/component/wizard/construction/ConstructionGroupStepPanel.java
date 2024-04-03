@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
@@ -54,7 +55,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -112,7 +112,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     }
 
     private boolean nonExistAssociations() {
-        List<ResourceAssociationDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
+        List<ShadowAssociationDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
         return associations.isEmpty();
     }
 
@@ -215,7 +215,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
             selectedItems.getObject().forEach(item -> {
                 try {
 
-                    PrismContainerValueWrapper<ResourceObjectAssociationType> valueWrapper;
+                    PrismContainerValueWrapper<ResourceObjectAssociationType> valueWrapper = null;
 
                     Optional<PrismContainerValueWrapper<ResourceObjectAssociationType>> match = associationContainer.getValues().stream().filter(
                             value -> {
@@ -224,9 +224,21 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                                 }
                                 return item.associationName.equivalent(value.getRealValue().getRef().getItemPath());
                             }).findFirst();
+
+                    boolean  createNewAssociationValue = false;
+
                     if (match.isPresent()) {
                         valueWrapper = match.get();
+
+                        PrismPropertyWrapper<ExpressionType> expression = valueWrapper.findProperty(
+                                        ItemPath.create(ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION));
+                        if (ExpressionUtil.containsAssociationFromLinkElement(expression.getValue().getRealValue())) {
+                            createNewAssociationValue = true;
+                        }
                     } else {
+                        createNewAssociationValue = true;
+                    }
+                    if (createNewAssociationValue) {
 
                         PrismContainerValue<ResourceObjectAssociationType> newValue = associationContainer.getItem().createNewValue();
 

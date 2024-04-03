@@ -114,7 +114,10 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
 
             ItemPanelSettingsBuilder associationBuilder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
-            Panel associationsPanel = getPageBase().initItemPanel(ID_ASSOCIATIONS, ShadowAssociationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ASSOCIATION),
+            Panel associationsPanel = getPageBase().initItemPanel(
+                    ID_ASSOCIATIONS,
+                    ShadowAssociationValueType.COMPLEX_TYPE,
+                    PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ASSOCIATIONS),
                     associationBuilder.build());
             associationsPanel.add(new VisibleBehaviour(() -> checkAssociationsVisibility()));
             add(associationsPanel);

@@ -38,7 +38,8 @@ class FakeIdentifierGenerator {
         }
     }
 
-    void addFakePrimaryIdentifierIfNeeded(ResourceAttributeContainer attrContainer, Object primaryIdentifierRealValue,
+    void addFakePrimaryIdentifierIfNeeded(
+            ResourceAttributeContainer attrContainer, Object primaryIdentifierRealValue,
             @NotNull ResourceObjectDefinition objectClassDef) throws SchemaException {
         // TODO or should we use simply attrContainer.getPrimaryIdentifiers() ?
         //  It refers to the definition attached to the attrContainer.

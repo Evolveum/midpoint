@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -55,7 +56,6 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
     private LoadableDetachableModel<O> summaryModel;
     private List<ObjectDelta<? extends ObjectType>> savedDeltas = new ArrayList<>();
 
-
     public ObjectDetailsModels(LoadableDetachableModel<PrismObject<O>> prismObjectModel, ModelServiceLocator serviceLocator) {
         this.prismObjectModel = prismObjectModel;
         this.modelServiceLocator = serviceLocator;
@@ -64,7 +64,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
 
             @Override
             protected PrismObjectWrapper<O> load() {
-                PrismObject<O> prismObject = getPrismObject();//prismObjectModel.getObject();
+                PrismObject<O> prismObject = getPrismObject();
 
                 if (prismObject == null) {
                     return null;
@@ -254,6 +254,16 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         }
         LOGGER.trace("returning from saveOrPreviewPerformed");
         return new ArrayList<>();
+    }
+
+    /**
+     * Collect processor with deltas and consumer, that should be processed before basic deltas of showed object
+     */
+    public Collection<ExecutedDeltaPostProcessor> collectPreconditionDeltas(
+            ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
+        PrismObjectWrapper<O> objectWrapper = getObjectWrapperModel().getObject();
+        Collection<ExecutedDeltaPostProcessor> preconditionDeltas = objectWrapper.getPreconditionDeltas(serviceLocator, result);
+        return preconditionDeltas == null ? new ArrayList<>() : preconditionDeltas;
     }
 
     public Collection<SimpleValidationError> getValidationErrors() {

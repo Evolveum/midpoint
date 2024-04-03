@@ -7,17 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.dataModel.dot;
 
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.model.impl.dataModel.DataModel;
 import com.evolveum.midpoint.model.impl.dataModel.DataModelVisualizerImpl;
 import com.evolveum.midpoint.model.impl.dataModel.model.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -108,12 +105,12 @@ public class DotModel {
                     ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def), attrDef.getItemName());
                     previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
                 }
-                for (ResourceAssociationDefinition assocDef : def.getAssociationDefinitions()) {
+                for (ShadowAssociationDefinition assocDef : def.getAssociationDefinitions()) {
                     if (assocDef.isIgnored()) {
                         continue;
                     }
                     ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(),
-                            getObjectClassName(def), assocDef.getName());
+                            getObjectClassName(def), assocDef.getItemName());
                     previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
                 }
                 previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,

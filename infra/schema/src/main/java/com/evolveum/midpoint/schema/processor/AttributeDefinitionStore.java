@@ -57,7 +57,7 @@ public interface AttributeDefinitionStore
      * Finds a definition of an attribute with a given name. Returns null if nothing is found.
      */
     @Nullable
-    default ResourceAttributeDefinition<?> findAttributeDefinition(QName name) {
+    default <T> ResourceAttributeDefinition<T> findAttributeDefinition(QName name) {
         return findAttributeDefinition(name, false);
     }
 
@@ -65,7 +65,7 @@ public interface AttributeDefinitionStore
      * Finds a definition of an attribute with a given name. Throws {@link SchemaException} if it's not there.
      */
     @NotNull
-    default ResourceAttributeDefinition<?> findAttributeDefinitionRequired(@NotNull QName name)
+    default <T> ResourceAttributeDefinition<T> findAttributeDefinitionRequired(@NotNull QName name)
             throws SchemaException {
         return findAttributeDefinitionRequired(name, () -> "");
     }
@@ -82,7 +82,7 @@ public interface AttributeDefinitionStore
      * Finds a definition of an attribute with a given name. Throws {@link SchemaException} if it's not there.
      */
     @NotNull
-    default ResourceAttributeDefinition<?> findAttributeDefinitionRequired(
+    default <T> ResourceAttributeDefinition<T> findAttributeDefinitionRequired(
             @NotNull QName name, @NotNull Supplier<String> contextSupplier)
             throws SchemaException {
         return MiscUtil.requireNonNull(
@@ -110,8 +110,8 @@ public interface AttributeDefinitionStore
      * @param caseInsensitive if true, ignoring the case
      * @return found property definition or null
      */
-    @Nullable
-    default ResourceAttributeDefinition<?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+    default <T> @Nullable ResourceAttributeDefinition<T> findAttributeDefinition(QName name, boolean caseInsensitive) {
+        //noinspection unchecked
         return findLocalItemDefinition(
                 ItemName.fromQName(name), ResourceAttributeDefinition.class, caseInsensitive);
     }
@@ -122,8 +122,15 @@ public interface AttributeDefinitionStore
      * BEWARE: Ignores attributes in namespaces other than "ri:" (e.g. icfs:uid and icfs:name).
      */
     @VisibleForTesting
-    default ResourceAttributeDefinition<?> findAttributeDefinition(String name) {
+    default <T> ResourceAttributeDefinition<T> findAttributeDefinition(String name) {
         return findAttributeDefinition(
+                new QName(MidPointConstants.NS_RI, name));
+    }
+
+    /** A convenience variant of {@link #findAttributeDefinition(String)}. */
+    @VisibleForTesting
+    default <T> @NotNull ResourceAttributeDefinition<T> findAttributeDefinitionRequired(String name) throws SchemaException {
+        return findAttributeDefinitionRequired(
                 new QName(MidPointConstants.NS_RI, name));
     }
 
@@ -142,43 +149,18 @@ public interface AttributeDefinitionStore
         return findAttributeDefinition(attributeName) != null;
     }
 
-    default Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
-        return getAttributeDefinitions().stream()
-                .filter(attrDef -> !attrDef.getInboundMappingBeans().isEmpty())
-                .map(ItemDefinition::getItemName)
-                .collect(Collectors.toCollection(HashSet::new));
-    }
-
-    /**
-     * Converts a {@link PrismProperty} into corresponding {@link ResourceAttribute}.
-     * Used in the process of "definition application" in `applyDefinitions` and similar methods.
-     */
-    default <T> @NotNull ResourceAttribute<T> propertyToAttribute(PrismProperty<T> property)
-            throws SchemaException {
-        QName attributeName = property.getElementName();
-        //noinspection unchecked
-        ResourceAttributeDefinition<T> attributeDefinition =
-                (ResourceAttributeDefinition<T>) findAttributeDefinition(attributeName);
-        if (attributeDefinition == null) {
-            throw new SchemaException("No definition for attribute " + attributeName + " in " + this);
-        }
-        ResourceAttribute<T> attribute = new ResourceAttributeImpl<>(attributeName, attributeDefinition);
-        for (PrismPropertyValue<T> pval : property.getValues()) {
-            // MID-5833 This is manual copy process, could we could assume original property is correctly constructed
-            attribute.addIgnoringEquivalents(pval.clone());
-        }
-        attribute.applyDefinition(attributeDefinition);
-        attribute.setIncomplete(property.isIncomplete());
-        return attribute;
-    }
-
+    /** Real values should have no duplicates. */
     @SuppressWarnings("unchecked")
     default <T> @NotNull ResourceAttribute<T> instantiateAttribute(@NotNull QName attrName, @NotNull T... realValues)
             throws SchemaException {
         //noinspection unchecked
-        var attrDef = (ResourceAttributeDefinition<T>) findAttributeDefinitionRequired(attrName);
-        var attr = attrDef.instantiate();
-        attr.addRealValues(realValues);
-        return attr;
+        return ((ResourceAttributeDefinition<T>) findAttributeDefinitionRequired(attrName))
+                .instantiateFromRealValues(List.of(realValues));
+    }
+
+    default @NotNull Collection<ItemName> getAllAttributesNames() {
+        return getAttributeDefinitions(ResourceAttributeDefinition.class).stream()
+                .map(ItemDefinition::getItemName)
+                .toList();
     }
 }

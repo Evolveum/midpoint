@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
  *
  * @see SelectorToFilterTranslator
  */
-@SuppressWarnings("deprecation") // just because of javadoc
+@SuppressWarnings("deprecation")
 public class SelectorMatcher {
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectorMatcher.class);
@@ -92,6 +92,7 @@ public class SelectorMatcher {
                         null,
                         null,
                         new ClauseProcessingContextDescription.Default(),
-                        NO_DELEGATOR));
+                        NO_DELEGATOR,
+                        true)); // TODO inspect the callers (some of them may need to set this to false)
     }
 }

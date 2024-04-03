@@ -129,7 +129,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
      *
      * Immutable.
      */
-    @NotNull final DeeplyFreezableList<ResourceAssociationDefinition> associationDefinitions =
+    @NotNull final DeeplyFreezableList<ShadowAssociationDefinition> associationDefinitions =
             new DeeplyFreezableList<>();
 
     /**
@@ -193,16 +193,17 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<ResourceAssociationDefinition> getAssociationDefinitions() {
+    public @NotNull Collection<ShadowAssociationDefinition> getAssociationDefinitions() {
         return associationDefinitions;
     }
 
     @Override
-    public @Nullable ResourceAttributeDefinition<?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+    public <T> @Nullable ResourceAttributeDefinition<T> findAttributeDefinition(QName name, boolean caseInsensitive) {
         if (caseInsensitive || isMutable() || QNameUtil.isUnqualified(name)) {
             return ResourceObjectDefinition.super.findAttributeDefinition(name, caseInsensitive);
         } else {
-            return attributeDefinitionMap.get(name);
+            //noinspection unchecked
+            return (ResourceAttributeDefinition<T>) attributeDefinitionMap.get(name);
         }
     }
 
@@ -313,7 +314,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @Override
     public PrismObjectDefinition<ShadowType> getPrismObjectDefinition() {
         if (prismObjectDefinition == null) {
-            PrismObjectDefinition<ShadowType> definition = computePrismObjectDefinition();
+            PrismObjectDefinition<ShadowType> definition = toPrismObjectDefinition();
             definition.freeze();
             this.prismObjectDefinition = definition;
         }
@@ -322,11 +323,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     private void invalidatePrismObjectDefinition() {
         prismObjectDefinition = null;
-    }
-
-    @NotNull PrismObjectDefinition<ShadowType> computePrismObjectDefinition() {
-        return ObjectFactory.constructObjectDefinition(
-                toResourceAttributeContainerDefinition());
     }
 
     //region Accessing parts of schema handling ========================================================
@@ -383,25 +379,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
         return ResourceTypeUtil.getEnabledCapability(resource, definitionBean, capabilityClass);
     }
     //endregion
-
-    @Override
-    public PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
-        ShadowType shadow =
-                new ShadowType()
-                        .tag(tag)
-                        .objectClass(getObjectClassName())
-                        .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
-
-        PrismObject<ShadowType> shadowPrismObject = shadow.asPrismObject();
-
-        // Setup definition
-        shadowPrismObject.setDefinition(
-                shadowPrismObject.getDefinition()
-                        .cloneWithReplacedDefinition(
-                                ShadowType.F_ATTRIBUTES, toResourceAttributeContainerDefinition()));
-
-        return shadowPrismObject;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -765,13 +742,13 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @NotNull ResourceAttributeDefinition<?> addInternal(@NotNull ItemDefinition<?> definition) {
         ResourceAttributeDefinition<?> definitionToAdd;
-        if (definition instanceof ResourceAttributeDefinition<?>) {
+        if (definition instanceof ResourceAttributeDefinition<?> resourceAttributeDefinition) {
             // Can occur during definition replacement.
-            definitionToAdd = (ResourceAttributeDefinition<?>) definition;
-        } else if (definition instanceof RawResourceAttributeDefinition<?>) {
-            // This is the case during parsing. We get the really raw (and mutable) definition.
-            // The following call will convert it into usable form, including freezing.
-            definitionToAdd = ResourceAttributeDefinitionImpl.create((RawResourceAttributeDefinition<?>) definition);
+            definitionToAdd = resourceAttributeDefinition;
+//        } else if (definition instanceof RawResourceAttributeDefinition<?>) {
+//            // This is the case during parsing. We get the really raw (and mutable) definition.
+//            // The following call will convert it into usable form, including freezing.
+//            definitionToAdd = ResourceAttributeDefinitionImpl.create((RawResourceAttributeDefinition<?>) definition);
         } else {
             throw new IllegalArgumentException(
                     "Only ResourceAttributeDefinitions should be put into a ResourceObjectClassDefinition. "
@@ -806,7 +783,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
                 .map(ItemPath::asSingleName)
                 .collect(Collectors.toList());
         attributeDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getItemName()));
-        associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getName()));
+        associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getItemName()));
 
         // TODO what about QName references like primary or secondary identifier names,
         //  or name, display name, or description attribute names?
@@ -834,7 +811,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         return definitionBean;
     }
 
-    void addAssociationDefinition(@NotNull ResourceAssociationDefinition associationDef) {
+    void addAssociationDefinition(@NotNull ShadowAssociationDefinition associationDef) {
         checkMutable();
         associationDefinitions.add(associationDef);
     }

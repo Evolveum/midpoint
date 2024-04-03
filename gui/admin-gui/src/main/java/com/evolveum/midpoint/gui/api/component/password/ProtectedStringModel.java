@@ -12,6 +12,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.prism.xml.ns._public.types_3.ExternalDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.wicket.Application;
@@ -55,7 +56,13 @@ public class ProtectedStringModel implements IModel<String> {
     @Override
     public void setObject(String object) {
         if (object == null) {
-            psModel.setObject(null);
+            ExternalDataType externalData = null;
+            if (psModel.getObject() != null) {
+                externalData = psModel.getObject().getExternalData();
+            }
+            var emptyValue = new ProtectedStringType();
+            emptyValue.setExternalData(externalData);
+            psModel.setObject(emptyValue);
         } else {
             if (psModel.getObject() == null) {
                 psModel.setObject(new ProtectedStringType());

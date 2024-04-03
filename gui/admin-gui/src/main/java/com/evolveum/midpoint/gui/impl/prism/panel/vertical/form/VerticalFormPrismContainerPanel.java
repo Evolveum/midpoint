@@ -20,6 +20,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.w3c.dom.Attr;
 
 /**
  * @author katka
@@ -104,10 +105,24 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
             protected boolean isVisibleSubContainer(PrismContainerWrapper<? extends Containerable> c) {
                 return VerticalFormPrismContainerPanel.this.isVisibleSubContainer(c);
             }
+
+            @Override
+            protected boolean isShowEmptyButtonVisible() {
+                return VerticalFormPrismContainerPanel.this.isShowEmptyButtonVisible();
+            }
         };
         panel.setOutputMarkupId(true);
+        panel.add(AttributeAppender.append("class", getClassForPrismContainerValuePanel()));
         item.add(panel);
         return panel;
+    }
+
+    protected String getClassForPrismContainerValuePanel() {
+        return "";
+    }
+
+    protected boolean isShowEmptyButtonVisible() {
+        return true;
     }
 
     protected boolean isVisibleSubContainer(PrismContainerWrapper<? extends Containerable> c) {
@@ -115,6 +130,10 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
     }
 
     protected boolean getHeaderVisibility() {
-        return true;
+        return isHeaderVisible();
+    }
+
+    public Component getContainer(){
+        return get(ID_CONTAINER);
     }
 }

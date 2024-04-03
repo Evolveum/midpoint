@@ -13,6 +13,8 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocalAutoassignSpecificationType;
 
+import static com.evolveum.midpoint.schema.config.ConfigurationItem.configItem;
+
 public class AutoassignSpecificationConfigItem extends ConfigurationItem<AutoassignSpecificationType> {
 
     @SuppressWarnings("unused") // called dynamically
@@ -21,8 +23,7 @@ public class AutoassignSpecificationConfigItem extends ConfigurationItem<Autoass
     }
 
     public static AutoassignSpecificationConfigItem embedded(@NotNull AutoassignSpecificationType value) {
-        return ConfigurationItem.embedded(value)
-                .as(AutoassignSpecificationConfigItem.class);
+        return configItem(value, ConfigurationItemOrigin.embedded(value), AutoassignSpecificationConfigItem.class);
     }
 
     public boolean isEnabled() {
@@ -37,5 +38,10 @@ public class AutoassignSpecificationConfigItem extends ConfigurationItem<Autoass
         } else {
             return null;
         }
+    }
+
+    @Override
+    public @NotNull String localDescription() {
+        return "auto-assignment mapping";
     }
 }

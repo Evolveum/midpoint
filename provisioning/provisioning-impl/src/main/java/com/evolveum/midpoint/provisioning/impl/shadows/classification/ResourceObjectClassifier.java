@@ -248,8 +248,7 @@ public class ResourceObjectClassifier {
         private boolean matches(SynchronizationPolicy policy, OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-            DelineationMatcher matcher = new DelineationMatcher(
-                    policy.getDelineation(), policy.getObjectTypeDefinition(), context);
+            DelineationMatcher matcher = new DelineationMatcher(policy.getDelineation(), context);
             return matcher.matches(result);
         }
 

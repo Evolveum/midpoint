@@ -32,6 +32,15 @@ import com.evolveum.midpoint.util.exception.*;
  */
 public abstract class SelectorClause implements DebugDumpable, Serializable {
 
+    /**
+     * Does this clause require full information about the object that is provided by the Projector?
+     * For example, any clauses referring to `parentOrgRef` or `tenantRef` need that information
+     * (which is computed from the assignments).
+     */
+    public boolean requiresFullInformation() {
+        return false;
+    }
+
     /** Returns `true` if the `value` matches this clause. */
     public abstract boolean matches(
             @NotNull PrismValue value, @NotNull MatchingContext ctx)
@@ -89,5 +98,4 @@ public abstract class SelectorClause implements DebugDumpable, Serializable {
                 .map(c -> (T) c)
                 .collect(Collectors.toList()));
     }
-
 }

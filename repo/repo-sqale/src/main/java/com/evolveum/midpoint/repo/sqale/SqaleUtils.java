@@ -38,7 +38,7 @@ public class SqaleUtils {
      */
     public static final String SCHEMA_AUDIT_CHANGE_NUMBER = "schemaAuditChangeNumber";
 
-    public static final int CURRENT_SCHEMA_CHANGE_NUMBER = 25;
+    public static final int CURRENT_SCHEMA_CHANGE_NUMBER = 26;
 
     public static final int CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER = 8;
 
@@ -48,6 +48,7 @@ public class SqaleUtils {
      * THe owner oid knowledge is required for correctly computing filters in case of iterative search of containers
      */
     public static final String OWNER_OID = "ownerOid";
+    public static final String FULL_ID_PATH = "containerIdPath";
 
     /**
      * Returns version from midPoint object as a number.

@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -35,7 +34,6 @@ class ResourceObjectsBeans {
     // Local ones
     @Autowired ResourceObjectConverter resourceObjectConverter;
     @Autowired FakeIdentifierGenerator fakeIdentifierGenerator;
-    @Autowired DelineationProcessor delineationProcessor;
     @Autowired ResourceObjectReferenceResolver resourceObjectReferenceResolver;
 
     // From other parts of the code
@@ -43,6 +41,5 @@ class ResourceObjectsBeans {
     @Autowired ExpressionFactory expressionFactory;
     @Autowired LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired ShadowAuditHelper shadowAuditHelper;
-    @Autowired ShadowCaretaker shadowCaretaker;
     @Autowired MatchingRuleRegistry matchingRuleRegistry;
 }

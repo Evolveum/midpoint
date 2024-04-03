@@ -442,6 +442,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             if (menuItems == null) {
                 menuItems = new ArrayList<>();
             }
+            addBasicActions(menuItems);
             addCustomActions(menuItems, this::getSelectedRealObjects);
 
             if (!menuItems.isEmpty()) {
@@ -460,6 +461,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
         }
         return columns;
+    }
+
+    /**
+     * Method define basic menu action that is default for all subclasses
+     * and will be added on end of menu items list.
+     */
+    protected void addBasicActions(List<InlineMenuItem> menuItems) {
     }
 
     protected String getInlineMenuCssClass() {

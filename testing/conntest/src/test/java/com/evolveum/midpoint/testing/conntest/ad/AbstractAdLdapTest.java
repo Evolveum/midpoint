@@ -301,9 +301,4 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest
         assertAttribute(shadow, new QName(getResourceNamespace(), attrName), expectedValues);
     }
 
-    public <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
-        List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-        PrismAsserts.assertSets("attribute " + attrQname + " in " + shadow, actualValues, expectedValues);
-    }
-
 }

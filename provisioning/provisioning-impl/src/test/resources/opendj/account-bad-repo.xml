@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--  This account points to an object that does not exist in LDAP -->
+
+<shadow oid="dbb0c37d-9ee6-44a4-8d39-016dbce1ffff"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>drno</name>
+    <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+    <objectClass>ri:inetOrgPerson</objectClass>
+    <exists>true</exists> <!-- pretending the existence on the resource -->
+    <attributes>
+        <ri:entryUUID>ffffffff-eeee-ffff-eeee-ffffffffffff</ri:entryUUID>
+        <ri:dn>uid=drno,ou=People,dc=example,dc=com</ri:dn>
+    </attributes>
+</shadow>

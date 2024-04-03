@@ -33,15 +33,29 @@ public class PasswordPropertyPanel extends PasswordPanel {
 
 
     public PasswordPropertyPanel(String id, IModel<ProtectedStringType> passwordModel) {
-        this(id, passwordModel, false, passwordModel == null || passwordModel.getObject() == null);
+        this(id, passwordModel, false, passwordModel == null || passwordModel.getObject() == null, false);
     }
 
-    public PasswordPropertyPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible) {
-        this(id, passwordModel, isReadOnly, isInputVisible, null);
+    public PasswordPropertyPanel(String id, IModel<ProtectedStringType> passwordModel, boolean showOneLinePasswordPanel) {
+        this(id, passwordModel, false, passwordModel == null || passwordModel.getObject() == null, showOneLinePasswordPanel, null);
+    }
+
+    public PasswordPropertyPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible, boolean showOneLinePasswordPanel) {
+        this(id, passwordModel, isReadOnly, isInputVisible, showOneLinePasswordPanel,null);
     }
 
     public <F extends FocusType> PasswordPropertyPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible, PrismObject<F> object) {
-        super(id, passwordModel, isReadOnly, isInputVisible, object);
+        this(id, passwordModel, isReadOnly, isInputVisible, false, object);
+    }
+
+    public <F extends FocusType> PasswordPropertyPanel(
+            String id,
+            IModel<ProtectedStringType> passwordModel,
+            boolean isReadOnly,
+            boolean isInputVisible,
+            boolean showOneLinePasswordPanel,
+            PrismObject<F> object) {
+        super(id, passwordModel, isReadOnly, isInputVisible, showOneLinePasswordPanel, object);
     }
 
     @Override
@@ -109,7 +123,7 @@ public class PasswordPropertyPanel extends PasswordPanel {
     }
 
     private boolean isRemovePasswordVisible() {
-        return getPasswordModel().getObject() != null && notLoggedInUserPassword();
+        return !isReadOnly && !isPasswordInputVisible() && getPasswordModel().getObject() != null && notLoggedInUserPassword();
     }
 
     private boolean notLoggedInUserPassword() {

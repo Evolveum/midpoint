@@ -1252,12 +1252,6 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         assertAttribute(shadow, new QName(getResourceNamespace(), attrName), expectedValues);
     }
 
-    @SafeVarargs
-    public final <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
-        List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-        PrismAsserts.assertSets("attribute " + attrQname + " in " + shadow, actualValues, expectedValues);
-    }
-
     protected abstract void assertAccountDisabled(PrismObject<ShadowType> shadow);
 
     protected abstract void assertAccountEnabled(PrismObject<ShadowType> shadow);

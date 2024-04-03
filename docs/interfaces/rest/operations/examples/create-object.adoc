@@ -1,5 +1,5 @@
-= Create object
-:page-nav-title: Create object
+= Create Object
+:page-nav-title: Create Object
 :page-display-order: 400
 :page-toc: top
 
@@ -26,37 +26,14 @@ Sometimes the newlines are not correctly handled during the transfer.
 ====
 
 == Example
-//TODO
-.Create a new user in MidPoint with file data source
-// [source,bash]
-// ----
-// curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/resources -d @pathToMidpointGit\samples\rest\opendj-resource-sync.xml -v
-// ----
-//
-// .*Show* data source example for "Create a new user in MidPoint"
-// [%collapsible]
-// ====
-// [source, xml]
-// ----
-// include::https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/opendj-resource-sync.xml[]
-// ----
-// ====
 
-//TODO
-.Create a new Resource object in MidPoint with file data source
-[source,bash]
-----
-curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/resources -d @pathToMidpointGit\samples\rest\opendj-resource-sync.xml -v
-----
+include::../../raw/curl-env-note.adoc[]
 
-.*Show* data source example for *"Create a new Resource object in MidPoint"
-[%collapsible]
-====
-[source, xml]
-----
-include::https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/opendj-resource-sync.xml[]
-----
-====
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../examples/raw/create-resource.adoc[]
 
 == See Also
 

@@ -23,22 +23,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Evaluation of an attribute mapping in resource object construction (assigned/plain).
  */
-public class AttributeEvaluation<AH extends AssignmentHolderType>
-        extends ItemEvaluation<AH, PrismPropertyValue<?>, PrismPropertyDefinition<?>, ResourceAttributeDefinition<?>> {
+class AttributeEvaluation<AH extends AssignmentHolderType, T>
+        extends ItemEvaluation<AH, PrismPropertyValue<T>, ResourceAttributeDefinition<T>> {
 
     // [EP:M:OM] DONE 2/2
     AttributeEvaluation(
             ConstructionEvaluation<AH, ?> constructionEvaluation,
-            ResourceAttributeDefinition<?> refinedAttributeDefinition,
+            ResourceAttributeDefinition<T> attributeDefinition,
             MappingConfigItem mappingConfigItem,
             OriginType origin,
             MappingKindType mappingKind) {
         super(
                 constructionEvaluation,
-                refinedAttributeDefinition.getItemName(),
-                ShadowType.F_ATTRIBUTES.append(refinedAttributeDefinition.getItemName()),
-                refinedAttributeDefinition,
-                refinedAttributeDefinition,
+                attributeDefinition.getItemName(),
+                ShadowType.F_ATTRIBUTES.append(attributeDefinition.getItemName()),
+                attributeDefinition,
                 mappingConfigItem, // [EP:M:OM] DONE
                 origin,
                 mappingKind);
@@ -51,27 +50,11 @@ public class AttributeEvaluation<AH extends AssignmentHolderType>
 
     @Override
     String getLifecycleState() {
-        return itemRefinedDefinition.getLifecycleState();
+        return itemDefinition.getLifecycleState();
     }
 
     @Override
-    ResourceObjectTypeDefinition getAssociationTargetObjectClassDefinition() {
+    ResourceObjectTypeDefinition getAssociationTargetObjectDefinition() {
         return null;
-    }
-
-    @Override
-    protected Collection<PrismPropertyValue<?>> getOriginalTargetValuesFromShadow(@NotNull PrismObject<ShadowType> shadow) {
-        PrismProperty<?> attribute = shadow.findProperty(itemPath);
-        if (attribute != null) {
-            //noinspection unchecked,rawtypes
-            return (Collection) attribute.getValues();
-        } else {
-            // Either the projection is fully loaded and the attribute does not exist,
-            // or the projection is not loaded (contrary to the fact that loading was requested).
-            // In both cases the wisest approach is to return empty list, keeping mapping from failing,
-            // and not removing anything. In the future we may consider issuing a warning, if we don't have
-            // full shadow, and range specification is present.
-            return Collections.emptyList();
-        }
     }
 }

@@ -8,47 +8,41 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ResourceObjectDiscriminator;
-import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
-import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
+import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection.IterableAssociationValue;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.provisioning.impl.resourceobjects.EntitlementUtils.createEntitlementQuery;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
+import static com.evolveum.midpoint.provisioning.impl.resourceobjects.EntitlementUtils.*;
 
 /**
  * Transforms subject provisioning operations (add, modify, delete) into entitlement operations, either on the subject,
- * or on entitlement objects. Note the naming convention of
+ * or on entitlement objects.
+ *
+ * Deals with both subject-to-object and object-to-subject entitlement direction.
+ *
+ * Note the naming convention of
  *
  * - `transformToSubjectOpsOnXXX` (add, modify)
  * - `transformToObjectOpsOnXXX` (add, modify, delete)
@@ -63,515 +57,370 @@ class EntitlementConverter {
 
     @NotNull private final ProvisioningContext subjectCtx;
 
+    /** Information to be used in error messages. */
+    @NotNull private final Object errorCtx;
+
     private final ResourceObjectsBeans b = ResourceObjectsBeans.get();
 
     EntitlementConverter(@NotNull ProvisioningContext subjectCtx) {
         this.subjectCtx = subjectCtx;
+        this.errorCtx = subjectCtx.getExceptionDescriptionLazy();
     }
 
-    //region Add
-
-    /** Transforms values in `association` container into subject attributes (where applicable). */
-    void transformToSubjectOpsOnAdd(ShadowType subject) throws SchemaException {
-        PrismObject<ShadowType> subjectPrismObject = subject.asPrismObject();
-        PrismContainer<ShadowAssociationType> associationContainer = subjectPrismObject.findContainer(ShadowType.F_ASSOCIATION);
-        if (associationContainer == null || associationContainer.isEmpty()) {
-            return;
-        }
-
-        SubjectOperations subjectOperations = new SubjectOperations();
-        transformToSubjectOps(subjectOperations, associationContainer.getValues(), ModificationType.ADD);
-        for (PropertyModificationOperation<?> operation : subjectOperations.getOperations()) {
-            operation.getPropertyDelta().applyTo(subjectPrismObject);
-        }
+    //region Subject-to-object
+    /**
+     * Transforms values in the `associations` container into subject attributes (where applicable).
+     *
+     * Used for:
+     *
+     * - subject ADD operations,
+     * - {@link ResourceObjectAssociationDirectionType#SUBJECT_TO_OBJECT} entitlement direction.
+     *
+     * No deltas here. All that is done is the transformation of the object-to-be-added.
+     *
+     * An example: when a user is added, with `ri:privs` association to be created, the values of the association
+     * are converted into user's `ri:privileges` attribute values.
+     */
+    void transformToSubjectOpsOnAdd(ResourceObject subject) throws SchemaException {
+        List<IterableAssociationValue> associationValues =
+                ShadowAssociationsCollection.ofShadow(subject.getBean()).getAllValues();
+        subject.applyOperations(
+                transformToSubjectOps(associationValues));
     }
 
-    /** Transforms values in `association` container into object operations (where applicable). */
-    @NotNull EntitlementObjectsOperations transformToObjectOpsOnAdd(
-            ShadowType subject, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+    /**
+     * Transforms modifications against the shadow's `associations` container into subject attributes operations
+     * (where applicable).
+     *
+     * Used for:
+     *
+     *  - on subject MODIFY operation,
+     *  - {@link ResourceObjectAssociationDirectionType#SUBJECT_TO_OBJECT} entitlement direction.
+     *
+     * An example: when a user `ri:privs` association values are added, these values are converted into
+     * ADD VALUE operations on `ri:privileges` attribute of the same user.
+     */
+    @NotNull Collection<PropertyModificationOperation<?>> transformToSubjectOpsOnModify(
+            @NotNull ShadowAssociationsCollection associationsCollection) throws SchemaException {
+        checkNoReplace(associationsCollection);
+        return transformToSubjectOps(associationsCollection.getAllValues())
+                .getOperations();
+    }
+
+    /**
+     * Transforms operations on [subject] associations to operations on the same subject attributes.
+     *
+     * For {@link ResourceObjectAssociationDirectionType#SUBJECT_TO_OBJECT} entitlement direction, like `ri:priv`.
+     */
+    private @NotNull SubjectOperations transformToSubjectOps(
+            @NotNull Collection<IterableAssociationValue> iterableAssociationValues)
+            throws SchemaException {
+
+        LOGGER.trace("Transforming {} iterable association values to subject operations", iterableAssociationValues.size());
+
+        var subjectOperations = new SubjectOperations();
+        for (var iterableAssocValue : iterableAssociationValues) {
+            var associationDef = getAssociationDefinition(iterableAssocValue.name());
+            if (!isSimulatedSubjectToObject(associationDef)
+                    || !isVisible(associationDef, subjectCtx)
+                    || !doesMatchSubjectDelineation(associationDef, subjectCtx)) {
+                continue;
+            }
+
+            var simulationDefinition = associationDef.getSimulationDefinitionRequired();
+
+            // Just take the binding attribute value (like privilege name, e.g. "read") ...
+            PrismPropertyValue<?> bindingAttributeValue =
+                    iterableAssocValue.getSingleIdentifierValueRequired(
+                            simulationDefinition.getPrimaryObjectBindingAttributeName(), // e.g. icfs:name on privilege
+                            errorCtx);
+
+            // ... and add/delete it to/from the binding attribute of the subject (like ri:privileges in account).
+            subjectOperations
+                    .findOrCreateOperation(
+                            simulationDefinition.getSubjectSidePrimaryBindingAttributeDef(), // e.g. ri:privileges on account
+                            simulationDefinition.getPrimaryBindingMatchingRuleLegacy())
+                    .swallowValue(
+                            bindingAttributeValue.clone(), // e.g. "read" (a privilege name)
+                            iterableAssocValue.isAddNotDelete());
+        }
+
+        LOGGER.trace("Transformed iterable association values to:\n{}", subjectOperations.debugDumpLazily(1));
+        return subjectOperations;
+    }
+    //endregion
+
+    //region Object-to-subject
+    /**
+     * Transforms values in `associations` container into object operations (where applicable).
+     *
+     * Used for:
+     *
+     * - subject ADD operations,
+     * - {@link ResourceObjectAssociationDirectionType#OBJECT_TO_SUBJECT} entitlement direction.
+     *
+     * An example: when a user is added, with `ri:groups` association to be created, the values of the association
+     * are converted into ADD VALUE operations on `ri:member` attribute of the respective group objects.
+     */
+    @NotNull EntitlementObjectsOperations transformToObjectOpsOnAdd(ResourceObject subject, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+
         EntitlementObjectsOperations entitlementObjectsOperations = new EntitlementObjectsOperations();
-        PrismContainer<ShadowAssociationType> associationContainer =
-                subject.asPrismObject().findContainer(ShadowType.F_ASSOCIATION);
-        if (associationContainer == null || associationContainer.isEmpty()) {
-            return entitlementObjectsOperations;
-        }
         collectObjectOps(
                 entitlementObjectsOperations,
-                associationContainer.getValues(),
+                ShadowAssociationsCollection.ofShadow(subject.getBean()).getAllValues(),
                 null,
-                subject,
-                ModificationType.ADD,
+                subject.getBean(),
                 result);
         return entitlementObjectsOperations;
     }
-    //endregion
 
-    //region Modify
     /**
-     * Transforms modifications against the shadow's `association` container into attribute operations
-     * (where applicable, i.e. for {@link ResourceObjectAssociationDirectionType#SUBJECT_TO_OBJECT} entitlement direction).
+     * Transforms modifications against the shadow's `associations` container into operations on entitlement objects
+     * (where applicable).
+     *
+     * Used for:
+     *
+     * - subject MODIFY operation,
+     * - {@link ResourceObjectAssociationDirectionType#OBJECT_TO_SUBJECT} entitlement direction.
+     *
+     * An example: when a user `ri:groups` association values are added, these values are converted into
+     * ADD VALUE operations on `ri:member` attribute of the respective group objects.
+     *
+     * Special case: this method is also called when subject name is changed. There are special "fake" deltas
+     * that add/delete the respective association value. See the respective caller code.
      */
-    @NotNull SubjectOperations transformToSubjectOpsOnModify(
-            ContainerDelta<ShadowAssociationType> associationDelta)
-            throws SchemaException {
-
-        checkNoReplace(associationDelta);
-
-        SubjectOperations subjectOperations = new SubjectOperations();
-        transformToSubjectOps(subjectOperations, associationDelta.getValuesToAdd(), ModificationType.ADD);
-        transformToSubjectOps(subjectOperations, associationDelta.getValuesToDelete(), ModificationType.DELETE);
-        return subjectOperations;
+    void transformToObjectOpsOnModify(
+            @NotNull EntitlementObjectsOperations objectsOperations,
+            @NotNull ShadowAssociationsCollection associationsCollection,
+            ShadowType subjectShadowBefore,
+            ShadowType subjectShadowAfter,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+        checkNoReplace(associationsCollection);
+        collectObjectOps(
+                objectsOperations, associationsCollection.getAllValues(),
+                subjectShadowBefore, subjectShadowAfter, result);
     }
 
-    private void checkNoReplace(ContainerDelta<ShadowAssociationType> associationDelta) throws SchemaException {
-        var valuesToReplace = associationDelta.getValuesToReplace();
-        if (valuesToReplace != null) {
-            LOGGER.error("Replace delta not supported for association, modifications {},\n provisioning context: {}",
-                    associationDelta, subjectCtx);
-            throw new SchemaException("Cannot perform replace delta for association, replace values: " + valuesToReplace);
+    /**
+     * Transforms operations on [subject] associations to operations on target objects' attributes.
+     *
+     * For {@link ResourceObjectAssociationDirectionType#OBJECT_TO_SUBJECT} entitlement direction, like `ri:groups`.
+     */
+    private void collectObjectOps(
+            @NotNull EntitlementObjectsOperations objectsOperations,
+            @NotNull Collection<IterableAssociationValue> iterableAssociationValues,
+            ShadowType subjectShadowBefore,
+            ShadowType subjectShadowAfter,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+
+        for (var iterableAssociationValue : iterableAssociationValues) {
+
+            var associationName = iterableAssociationValue.name();
+            var isAddNotDelete = iterableAssociationValue.isAddNotDelete();
+
+            if (subjectCtx.getOperationContext() != null) {
+                // todo this shouldn't be subjectCtx but the other one [viliam]
+                subjectCtx.setAssociationShadowRef(iterableAssociationValue.value().getShadowRef());
+            }
+
+            ShadowAssociationDefinition associationDef = getAssociationDefinition(associationName);
+            if (!isSimulatedObjectToSubject(associationDef) // The other direction is processed elsewhere (see transformToSubjectOps).
+                    || !isVisible(associationDef, subjectCtx)
+                    || !doesMatchSubjectDelineation(associationDef, subjectCtx)) {
+                continue;
+            }
+
+            var simulationDefinition = associationDef.getSimulationDefinitionRequired();
+            var binding = simulationDefinition.getPrimaryAttributeBinding(); // e.g. account "ri:dn" <-> group "ri:member"
+
+            for (var objectDelineation : simulationDefinition.getObjectDelineations()) {
+
+                // TODO clear the relevant parts of the context
+                var entitlementCtx = subjectCtx.spawnForDefinition(objectDelineation.getObjectDefinition());
+
+                // Should we take the name from "before" or "after" state of the shadow? It depends on the operation
+                // and whether referential integrity is provided by midPoint or the resource.
+                var sourceSubjectShadow = selectSourceShadow(
+                        subjectShadowBefore, subjectShadowAfter, isAddNotDelete,
+                        simulationDefinition.requiresExplicitReferentialIntegrity());
+
+                // Take e.g. account's DN (e.g. "uid=joe,ou=people,dc=example,dc=com") ...
+                PrismPropertyValue<?> bindingAttributeValue =
+                        EntitlementUtils.getSingleValueRequired(
+                                sourceSubjectShadow, binding.subjectSide(), associationName, errorCtx);
+
+                // ... convert it into the definition of the object's binding attribute (e.g. "ri:member" on group) ...
+                var objectBindingAttrDef = objectDelineation.getObjectAttributeDefinition(binding);
+                var objectBindingAttrValue = objectBindingAttrDef.convertPrismValue(bindingAttributeValue);
+
+                // ... and add/remove it to/from that binding attribute on a specific group!
+                objectsOperations
+                        .findOrCreate( // operations on specific group (e.g. "cn=wheel,ou=groups,dc=example,dc=com")
+                                getEntitlementDiscriminator(iterableAssociationValue, entitlementCtx, result), // e.g. group uuid
+                                entitlementCtx)
+                        .findOrCreateAttributeOperation( // operations on specific attribute (e.g. ri:member on that group)
+                                objectBindingAttrDef,
+                                simulationDefinition.getPrimaryBindingMatchingRuleLegacy())
+                        .swallowValue(objectBindingAttrValue.clone(), isAddNotDelete);
+            }
         }
     }
 
     /**
-     * Transforms modifications against the shadow's `association` container into operations on entitlement objects
-     * (where applicable, i.e., for {@link ResourceObjectAssociationDirectionType#OBJECT_TO_SUBJECT} entitlement direction).
-     */
-    ShadowType transformToObjectOpsOnModify(
-            EntitlementObjectsOperations objectsOperations,
-            ContainerDelta<ShadowAssociationType> associationDelta,
-            ShadowType subjectShadowBefore,
-            ShadowType subjectShadowAfter,
-            OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-
-        checkNoReplace(associationDelta);
-
-        subjectShadowAfter = collectObjectOps(
-                objectsOperations, associationDelta.getValuesToAdd(),
-                subjectShadowBefore, subjectShadowAfter, ModificationType.ADD, result);
-        subjectShadowAfter = collectObjectOps(
-                objectsOperations, associationDelta.getValuesToDelete(),
-                subjectShadowBefore, subjectShadowAfter, ModificationType.DELETE, result);
-        return subjectShadowAfter;
-    }
-    //endregion
-
-    //region Delete
-    /**
-     * This is somehow different that all the other methods. We are not following the content of a shadow or delta.
-     * We are following the definitions. This is to avoid the need to read the object that is going to be deleted.
-     * In fact, the object should not be there any more, but we still want to clean up entitlement membership
-     * based on the information from the shadow.
+     * We are going to issue some operations on the entitlement object, based on the (usually naming) attribute
+     * of the subject.
      *
-     * @param <T> Type of the association (referencing) attribute
+     * But which subject shadow should we use - "before" or "after"?
+     *
+     * If the operation is ADD or REPLACE, we use "after" version of the shadow, because we want
+     * to ensure that we add most-recent data to the entitlement object.
+     *
+     * If the operation is DELETE, we have two possibilities:
+     *
+     * - if the resource provides referential integrity, the entitlement object has already
+     * new data (because the subject operation was already carried out), so we use "after";
+     * - if the resource does not provide referential integrity, the entitlement object has OLD data
+     * so we use "before" state.
      */
-    <T> @NotNull EntitlementObjectsOperations transformToObjectOpsOnDelete(
-            ShadowType subjectShadow, OperationResult result)
+    private static ShadowType selectSourceShadow(
+            ShadowType subjectShadowBefore, ShadowType subjectShadowAfter, boolean isAddNotDelete, boolean explicitIntegrity) {
+        if (isAddNotDelete) {
+            return subjectShadowAfter;
+        } else {
+            if (explicitIntegrity) {
+                return subjectShadowBefore; // we must ensure the referential integrity
+            } else {
+                return subjectShadowAfter; // the resource has referential integrity assured by itself
+            }
+        }
+    }
+
+    private ResourceObjectDiscriminator getEntitlementDiscriminator(
+            IterableAssociationValue associationValue,
+            ProvisioningContext entitlementCtx,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+        // this identification may be secondary-only
+        var rawEntitlementIdentification =
+                ResourceObjectIdentification.fromAssociationValue(
+                        entitlementCtx.getObjectDefinitionRequired(),
+                        associationValue.associationPcv());
+        var identification =
+                b.resourceObjectReferenceResolver.resolvePrimaryIdentifier(entitlementCtx, rawEntitlementIdentification, result);
+        return ResourceObjectDiscriminator.of(identification);
+    }
+
+    /**
+     * Transforms subject's deletion into operations on entitlement objects (where applicable).
+     *
+     * Used for:
+     *
+     * - subject DELETE operation,
+     * - {@link ResourceObjectAssociationDirectionType#OBJECT_TO_SUBJECT} entitlement direction.
+     *
+     * An example: when a user is deleted, all the respective values of `ri:member` attribute
+     * of the group objects where he was a member are removed.
+     *
+     * Note:
+     *
+     * 1. There no corresponding method for {@link ResourceObjectAssociationDirectionType#SUBJECT_TO_OBJECT} direction.
+     * Obviously, when the subject is deleted, all the subject-attached entitlement values are deleted with it.
+     *
+     * 2. For the other direction, this is somehow different from {@link #collectObjectOps(EntitlementObjectsOperations,
+     * Collection, ShadowType, ShadowType, OperationResult)}. We are not following the content of a shadow or delta, that is,
+     * the associations that are going to be deleted. We are following the definitions, and looking for all existing entitlements.
+     * This is to avoid the need to read the object that is going to be deleted. In fact, the object should not be there any more,
+     * but we still want to clean up entitlement membership based on the information from the shadow - typically, the account DN.
+     *
+     * @see #collectObjectOps(EntitlementObjectsOperations, Collection, ShadowType, ShadowType, OperationResult)
+     */
+    @NotNull EntitlementObjectsOperations transformToObjectOpsOnSubjectDelete(
+            @NotNull RepoShadow subjectRepoShadow, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
         EntitlementObjectsOperations objectsOperations = new EntitlementObjectsOperations();
 
-        ResourceObjectDefinition subjectDef = subjectCtx.getObjectDefinitionRequired();
+        for (var associationDef : subjectCtx.getAssociationDefinitions()) {
 
-        Collection<ResourceAssociationDefinition> associationDefs =
-                subjectDef.getAssociationDefinitions();
-        if (associationDefs.isEmpty()) {
-            LOGGER.trace("No associations in deleted shadow, nothing to do");
-            return objectsOperations;
+            if (!isSimulatedObjectToSubject(associationDef) // subject-to-object dies with the subject shadow that is being deleted
+                    || !isVisible(associationDef, subjectCtx)
+                    || !requiresExplicitReferentialIntegrity(associationDef) // it is taken care by resource itself
+                    || !doesMatchSubjectDelineation(associationDef, subjectCtx)) {
+                continue;
+            }
+
+            var simulationDefinition = associationDef.getSimulationDefinitionRequired();
+            var binding = simulationDefinition.getPrimaryAttributeBinding();
+
+            // This will find all entitlement objects (e.g. groups) that are associated with the subject (e.g. account).
+            var searchOp = new EntitlementObjectSearch<>(subjectCtx, simulationDefinition, binding, subjectRepoShadow.getBean());
+
+            // Now, take the value of the subject's binding attribute (like "uid=joe,ou=people,dc=example,dc=com") ...
+            PrismPropertyValue<?> subjectAttrValue = searchOp.getSubjectAttrValue();
+            if (subjectAttrValue == null) {
+                // This is very unfortunate situation. We wanted to delete all mentions of the subject in entitlement objects
+                // (like groups), but the subject shadow has no identifier! Most probably the value is not cached.
+                LOGGER.error("""
+                                No value of binding attribute '{}' in the subject repo shadow:
+                                {}
+                                Simulation definition:
+                                {}
+                                Subject context:
+                                {}
+
+                                Most probably, the attribute is not cached. The recommended way is to mark it as a secondary identifier.""",
+                        searchOp.getSubjectAttrName(), subjectRepoShadow.debugDump(1),
+                        simulationDefinition.debugDump(1), subjectCtx.debugDump(1));
+                throw new SchemaException(String.format(
+                        "Cannot delete associations for the subject, as the value of binding attribute '%s' "
+                                + "is unknown or missing in the subject shadow.", searchOp.getSubjectAttrName()));
+            }
+
+            // .. and remove it from each of the entitlement objects (e.g. group) found for that account.
+            searchOp.execute(
+                    (entitlementObjectFound, lResult) -> {
+                        // The group from which we want to remove the account being deleted. We are OK with the raw UCF-like object.
+                        var entitlementObject = entitlementObjectFound.getInitialUcfResourceObject();
+                        objectsOperations
+                                .findOrCreate( // operations on specific group (e.g. "cn=wheel,ou=groups,dc=example,dc=com")
+                                        ResourceObjectDiscriminator.of(entitlementObject.getBean()),
+                                        subjectCtx.spawnForDefinition(entitlementObject.getObjectDefinition()))
+                                .findOrCreateAttributeOperation( // operations on specific attribute (e.g. ri:member) on the group
+                                        simulationDefinition.getObjectAttributeDefinition(binding), // like ri:member
+                                        simulationDefinition.getPrimaryBindingMatchingRuleLegacy())
+                                .swallowValueToDelete(subjectAttrValue.clone()); // like "uid=joe,ou=people,dc=example,dc=com"
+
+                        return true;
+                    }, result);
         }
-        ResourceAttributeContainer subjectAttributesContainer = ShadowUtil.getAttributesContainer(subjectShadow);
-        for (ResourceAssociationDefinition associationDef : associationDefs) {
-            if (!associationDef.isObjectToSubject()) {
-                // We can ignore these. They will die together with the object. No need to explicitly delete them.
-                LOGGER.trace("Ignoring subject-to-object association in deleted shadow");
-                continue;
-            }
-            if (!associationDef.requiresExplicitReferentialIntegrity()) {
-                LOGGER.trace("Ignoring association in deleted shadow because it does not require explicit"
-                        + " referential integrity assurance");
-                continue;
-            }
-            QName auxiliaryObjectClass = associationDef.getAuxiliaryObjectClass();
-            if (auxiliaryObjectClass != null
-                    && !subjectDef.hasAuxiliaryObjectClass(auxiliaryObjectClass)) {
-                LOGGER.trace("Ignoring association in deleted shadow because subject does not have {} auxiliary object class",
-                        auxiliaryObjectClass);
-                continue;
-            }
 
-            QName associationName = associationDef.getName();
-            for (String entitlementIntent : associationDef.getIntents()) {
-                ResolvedAssociationDefinition def = resolveDefinition(associationDef, entitlementIntent);
-
-                //noinspection unchecked
-                ResourceAttributeDefinition<T> assocAttrDef =
-                        (ResourceAttributeDefinition<T>)
-                                def.entitlementObjDef.findAttributeDefinitionRequired(
-                                        def.assocAttrName,
-                                        () -> " in entitlement association '%s' in %s [association attribute]".formatted(
-                                                associationName, def.entitlementCtx));
-
-                final ResourceAttribute<T> valueAttr = subjectAttributesContainer.findAttribute(def.valueAttrName);
-                if (valueAttr == null || valueAttr.isEmpty()) {
-                    // We really want to throw the exception here. We cannot ignore this. If we ignore it then there may be
-                    // entitlement membership value left undeleted and this situation will go undetected.
-                    // Although we cannot really remedy the situation now, we at least throw an error so the problem is detected.
-                    throw new SchemaException(
-                            "Value attribute %s has no value; attribute defined in entitlement association '%s' in %s".formatted(
-                                    def.valueAttrName, associationName, subjectCtx));
-                }
-                if (valueAttr.size() > 1) {
-                    throw new SchemaException(
-                            "Value attribute %s has no more than one value; attribute defined in entitlement association '%s' in %s"
-                                    .formatted(def.valueAttrName, associationName, subjectCtx));
-                }
-
-                ResourceAttributeDefinition<T> valueAttrDef = valueAttr.getDefinition();
-                PrismPropertyValue<T> valueAttrValue = valueAttr.getAnyValue();
-
-                ObjectQuery query = createEntitlementQuery(valueAttrValue, valueAttrDef, assocAttrDef, associationDef);
-
-                QueryWithConstraints queryWithConstraints =
-                        b.delineationProcessor.determineQueryWithConstraints(def.entitlementCtx, query, result);
-
-                UcfObjectHandler handler = (ucfObject, lResult) -> {
-                    ShadowType entitlementShadow = ucfObject.getBean();
-
-                    ResourceObjectIdentification.WithPrimary entitlementIdentification =
-                            ResourceObjectIdentification.fromCompleteShadow(def.entitlementObjDef, entitlementShadow);
-                    ResourceObjectOperations singleObjectOperations =
-                            objectsOperations.findOrCreate(
-                                    ResourceObjectDiscriminator.of(entitlementIdentification),
-                                    def.entitlementCtx);
-
-                    PropertyDelta<T> attributeDelta = null;
-                    for (Operation ucfOperation: singleObjectOperations.getUcfOperations()) {
-                        if (ucfOperation instanceof PropertyModificationOperation<?> propOp) {
-                            if (propOp.getPropertyDelta().getElementName().equals(def.assocAttrName)) {
-                                //noinspection unchecked
-                                attributeDelta = (PropertyDelta<T>) propOp.getPropertyDelta();
-                            }
-                        }
-                    }
-                    if (attributeDelta == null) {
-                        attributeDelta = assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, def.assocAttrName));
-                        var attributeModification = new PropertyModificationOperation<>(attributeDelta);
-                        attributeModification.setMatchingRuleQName(associationDef.getMatchingRule());
-                        singleObjectOperations.add(attributeModification);
-                    }
-
-                    attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
-                    LOGGER.trace("Association in deleted shadow delta:\n{}", attributeDelta.debugDumpLazily());
-
-                    return true;
-                };
-                try {
-                    LOGGER.trace("Searching for associations in deleted shadow, query: {}", queryWithConstraints.query);
-                    ConnectorInstance connector = subjectCtx.getConnector(ReadCapabilityType.class, result);
-                    connector.search(
-                            def.entitlementObjDef,
-                            queryWithConstraints.query,
-                            handler,
-                            def.entitlementCtx.createAttributesToReturn(),
-                            null,
-                            queryWithConstraints.constraints,
-                            UcfFetchErrorReportingMethod.EXCEPTION,
-                            subjectCtx.getUcfExecutionContext(),
-                            result);
-                } catch (TunnelException e) {
-                    throw (SchemaException)e.getCause();
-                } catch (GenericFrameworkException e) {
-                    throw new GenericConnectorException(e.getMessage(), e);
-                }
-            }
-        }
+        LOGGER.trace("Entitlement objects operations on subject delete:\n{}", objectsOperations.debugDumpLazily(1));
         return objectsOperations;
     }
-
-    private @NotNull ResolvedAssociationDefinition resolveDefinition(
-            ResourceAssociationDefinition associationDef, String entitlementIntent)
-            throws SchemaException, ConfigurationException {
-        ProvisioningContext entitlementCtx = subjectCtx.spawnForKindIntent(associationDef.getKind(), entitlementIntent);
-        ResourceObjectDefinition entitlementDef = entitlementCtx.getObjectDefinitionRequired();
-
-        QName assocAttrName = associationDef.getDefinitionBean().getAssociationAttribute();
-        QName valueAttrName = associationDef.getDefinitionBean().getValueAttribute();
-
-        QName associationName = associationDef.getName();
-        schemaCheck(assocAttrName != null,
-                "No association attribute defined in entitlement association '%s' in %s", associationName, subjectCtx);
-        schemaCheck(valueAttrName != null,
-                "No value attribute defined in entitlement association '%s' in %s", associationName, subjectCtx);
-        return new ResolvedAssociationDefinition(entitlementCtx, entitlementDef, assocAttrName, valueAttrName);
-    }
-
     //endregion
 
     //region Common
-    /**
-     * Transforms operations on associations to operations on attributes.
-     */
-    private void transformToSubjectOps(
-            SubjectOperations subjectOperations,
-            Collection<PrismContainerValue<ShadowAssociationType>> associationValues,
-            ModificationType modificationType)
+    private @NotNull ShadowAssociationDefinition getAssociationDefinition(@NotNull ItemName associationValue)
             throws SchemaException {
-        for (PrismContainerValue<ShadowAssociationType> associationValue : emptyIfNull(associationValues)) {
-            transformToSubjectOps(subjectOperations, associationValue, modificationType);
-        }
+        return subjectCtx.findAssociationDefinitionRequired(associationValue);
     }
 
-    /**
-     *  Collects entitlement changes from the shadow to entitlement section into attribute operations.
-     *  Collects a single value.
-     *  NOTE: only collects  SUBJECT_TO_ENTITLEMENT entitlement direction.
-     */
-    private <T> void transformToSubjectOps(
-            SubjectOperations subjectOperations,
-            PrismContainerValue<ShadowAssociationType> associationValue,
-            ModificationType modificationType) throws SchemaException {
-        ResourceObjectDefinition subjectDef = subjectCtx.getObjectDefinitionRequired();
-
-        ShadowAssociationType associationBean = associationValue.asContainerable();
-        QName associationName = associationBean.getName();
-        schemaCheck(associationName != null, "No name in entitlement association %s", associationValue);
-
-        ResourceAssociationDefinition associationDef =
-                subjectDef.findAssociationDefinitionRequired(associationName, () -> " in " + subjectCtx);
-
-        if (!associationDef.isSubjectToObject()) {
-            // Process just this one direction. The other direction is treated in `collectObjectOps`.
-            return;
+    private void checkNoReplace(@NotNull ShadowAssociationsCollection associationRelatedDelta) throws SchemaException {
+        if (associationRelatedDelta.hasReplace()) {
+            LOGGER.error("Replace delta not supported for\nassociation modifications:\n{}\nin provisioning context:\n{}",
+                    associationRelatedDelta.debugDump(1), subjectCtx.debugDump(1));
+            throw new SchemaException("Cannot perform replace delta for association");
         }
-
-        QName assocAttrName = associationDef.getDefinitionBean().getAssociationAttribute();
-        QName valueAttrName = associationDef.getDefinitionBean().getValueAttribute();
-
-        schemaCheck(assocAttrName != null,
-                "No association attribute defined in entitlement association '%s' in %s", associationName, subjectCtx);
-        schemaCheck(valueAttrName != null,
-                "No value attribute defined in entitlement association '%s' in %s", associationName, subjectCtx);
-
-        ResourceAttributeDefinition<?> assocAttrDef = subjectDef.findAttributeDefinition(assocAttrName);
-        if (assocAttrDef == null) {
-            throw new SchemaException(
-                    "Association attribute '%s' defined in entitlement association '%s' was not found in schema for %s".formatted(
-                            assocAttrName, associationName, subjectCtx));
-        }
-
-        //noinspection unchecked
-        PropertyModificationOperation<T> attributeOperation = (PropertyModificationOperation<T>) subjectOperations.get(assocAttrName);
-        if (attributeOperation == null) {
-            //noinspection unchecked
-            PropertyDelta<T> emptyDelta = (PropertyDelta<T>)
-                    assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrName));
-            attributeOperation = new PropertyModificationOperation<>(emptyDelta);
-            attributeOperation.setMatchingRuleQName(associationDef.getMatchingRule());
-            subjectOperations.put(assocAttrName, attributeOperation);
-        }
-
-        //MID-7144: Identifier container may not be resource attribute container, if its origin is serialized pending delta
-        PrismContainer<?> identifiersContainer = associationValue
-                .findContainer(ShadowAssociationType.F_IDENTIFIERS);
-        PrismProperty<T> valueAttr = identifiersContainer.findProperty(ItemName.fromQName(valueAttrName));
-        if (valueAttr == null) {
-            throw new SchemaException("No value attribute " + valueAttrName + " present in entitlement association '"
-                    + associationName + "' in shadow for " + subjectCtx);
-        }
-
-        if (modificationType == ModificationType.ADD) {
-            attributeOperation.getPropertyDelta()
-                    .addValuesToAdd(valueAttr.getClonedValues());
-        } else if (modificationType == ModificationType.DELETE) {
-            attributeOperation.getPropertyDelta()
-                    .addValuesToDelete(valueAttr.getClonedValues());
-        } else if (modificationType == ModificationType.REPLACE) {
-            // TODO: check if already exists
-            attributeOperation.getPropertyDelta()
-                    .setValuesToReplace(valueAttr.getClonedValues());
-        }
-    }
-
-    private ShadowType collectObjectOps(
-            EntitlementObjectsOperations objectsOperations,
-            Collection<PrismContainerValue<ShadowAssociationType>> associationValuesInDeltaSet,
-            ShadowType subjectShadowBefore,
-            ShadowType subjectShadowAfter,
-            ModificationType modificationType,
-            OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-        for (PrismContainerValue<ShadowAssociationType> associationValue : emptyIfNull(associationValuesInDeltaSet)) {
-            subjectShadowAfter = collectObjectOps(
-                    objectsOperations, associationValue, subjectShadowBefore, subjectShadowAfter, modificationType, result);
-        }
-        return subjectShadowAfter;
-    }
-
-    private <TV,TA> ShadowType collectObjectOps(
-            EntitlementObjectsOperations objectsOperations,
-            PrismContainerValue<ShadowAssociationType> associationValue,
-            ShadowType subjectShadowBefore,
-            ShadowType subjectShadowAfter,
-            ModificationType modificationType,
-            OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-        ResourceType resource = subjectCtx.getResource();
-        ShadowAssociationType associationBean = associationValue.asContainerable();
-        if (subjectCtx.getOperationContext() != null) {
-            // todo this shouldn't be subjectCtx but the other one [viliam]
-            subjectCtx.setAssociationShadowRef(associationBean.getShadowRef());
-        }
-
-        QName associationName = associationBean.getName();
-        if (associationName == null) {
-            throw new SchemaException("No name in entitlement association " + associationValue);
-        }
-        ResourceObjectDefinition subjectDef = subjectCtx.getObjectDefinitionRequired();
-        ResourceAssociationDefinition associationDef =
-                subjectDef.findAssociationDefinitionRequired(associationName, () -> " in " + subjectCtx);
-
-        if (!associationDef.isObjectToSubject()) {
-            // Process just this one direction. The other direction is processed elsewhere (see transformToSubjectOps)
-            return subjectShadowAfter;
-        }
-
-        Collection<String> entitlementIntents = associationDef.getIntents();
-        if (entitlementIntents.isEmpty()) {
-            throw new SchemaException("No entitlement intent specified in association " + associationValue + " in " + resource);
-        }
-        // TODO reconsider the effectiveness of executing this loop repeatedly for multiple intents
-        for (String entitlementIntent : entitlementIntents) {
-            ResolvedAssociationDefinition def = resolveDefinition(associationDef, entitlementIntent);
-
-            //noinspection unchecked
-            ResourceAttributeDefinition<TA> assocAttrDef =
-                    (ResourceAttributeDefinition<TA>) def.entitlementObjDef.findAttributeDefinition(def.assocAttrName);
-            if (assocAttrDef == null) {
-                throw new SchemaException(
-                        ("Association attribute '%s' defined in entitlement association was not found in entitlement intent(s) "
-                                + "'%s' in schema for %s").formatted(def.assocAttrName, entitlementIntents, resource));
-            }
-
-            ResourceObjectIdentification<?> rawEntitlementIdentification = // may be secondary-only
-                    ResourceObjectIdentification.fromAssociationValue(def.entitlementObjDef, associationValue);
-            var primaryEntitlementIdentification =
-                    b.resourceObjectReferenceResolver.resolvePrimaryIdentifier(
-                            def.entitlementCtx, rawEntitlementIdentification, result);
-
-            ResourceObjectOperations objectOperations =
-                    objectsOperations.findOrCreate(
-                            ResourceObjectDiscriminator.of(primaryEntitlementIdentification),
-                            def.entitlementCtx);
-
-            // Which shadow would we use - shadowBefore or shadowAfter?
-            //
-            // If the operation is ADD or REPLACE, we use current version of the shadow (shadowAfter), because we want
-            // to ensure that we add most-recent data to the subject.
-            //
-            // If the operation is DELETE, we have two possibilities:
-            //  - if the resource provides referential integrity, the subject has already
-            //    new data (because the object operation was already carried out), so we use shadowAfter
-            //  - if the resource does not provide referential integrity, the subject has OLD data
-            //    so we use shadowBefore
-            ShadowType subjectShadow;
-            if (modificationType != ModificationType.DELETE) {
-                subjectShadow = subjectShadowAfter;
-            } else {
-                if (associationDef.requiresExplicitReferentialIntegrity()) {
-                    // we must ensure the referential integrity
-                    subjectShadow = subjectShadowBefore;
-                } else {
-                    // i.e. resource has ref integrity assured by itself
-                    subjectShadow = subjectShadowAfter;
-                }
-            }
-
-            ResourceAttribute<TV> valueAttr = ShadowUtil.getAttribute(subjectShadow, def.valueAttrName);
-            if (valueAttr == null) {
-                if (!ShadowUtil.isFullShadow(subjectShadow)) {
-                    ResourceObjectIdentification.WithPrimary subjectIdentification =
-                            subjectCtx.getIdentificationFromShadow(subjectShadow);
-                    LOGGER.trace("Fetching {} ({})", subjectShadow, subjectIdentification);
-                    subjectShadow = ResourceObject.getBean(
-                            ResourceObjectFetchOperation.executeRaw( // TODO what if there is no read capability?
-                                    subjectCtx, subjectIdentification, subjectShadow, result));
-                    subjectShadowAfter = subjectShadow;
-                    valueAttr = ShadowUtil.getAttribute(subjectShadow, def.valueAttrName);
-                }
-                if (valueAttr == null) {
-                    LOGGER.error("No value attribute {} in shadow\n{}", def.valueAttrName, subjectShadow.debugDump());
-                    // TODO: check schema and try to fetch full shadow if necessary
-                    throw new SchemaException("No value attribute " + def.valueAttrName + " in " + subjectShadow);
-                }
-            }
-
-            PropertyDelta<TA> attributeDelta = null;
-            for (Operation ucfOperation : objectOperations.getUcfOperations()) {
-                if (ucfOperation instanceof PropertyModificationOperation<?> propOp) {
-                    if (propOp.getPropertyDelta().getElementName().equals(def.assocAttrName)) {
-                        //noinspection unchecked
-                        attributeDelta = (PropertyDelta<TA>) propOp.getPropertyDelta();
-                    }
-                }
-            }
-            if (attributeDelta == null) {
-                attributeDelta = assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, def.assocAttrName));
-            }
-
-            PrismProperty<TA> changedAssocAttr = PrismUtil.convertProperty(valueAttr, assocAttrDef);
-
-            if (modificationType == ModificationType.ADD) {
-                attributeDelta.addValuesToAdd(changedAssocAttr.getClonedValues());
-            } else if (modificationType == ModificationType.DELETE) {
-                attributeDelta.addValuesToDelete(changedAssocAttr.getClonedValues());
-            } else {
-                throw new IllegalArgumentException("Unsupported modification type " + modificationType);
-            }
-
-            if (ResourceTypeUtil.isAvoidDuplicateValues(resource)) {
-                ShadowType currentObjectShadow = objectOperations.getCurrentShadow();
-                if (currentObjectShadow == null) {
-                    LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})",
-                            primaryEntitlementIdentification, entitlementIntent);
-                    currentObjectShadow = ResourceObject.getBean(
-                            ResourceObjectFetchOperation.executeRaw(
-                                    def.entitlementCtx, primaryEntitlementIdentification, null, result));
-                    objectOperations.setCurrentShadow(currentObjectShadow);
-                }
-                // TODO It seems that duplicate values are checked twice: once here and the second time
-                //  in ResourceObjectConverter.executeModify. Check that and fix if necessary.
-                PropertyDelta<TA> attributeDeltaAfterNarrow = ProvisioningUtil.narrowPropertyDelta(
-                        attributeDelta, currentObjectShadow, associationDef.getMatchingRule(), b.matchingRuleRegistry);
-                if (attributeDeltaAfterNarrow == null || attributeDeltaAfterNarrow.isEmpty()) {
-                    LOGGER.trace("Not collecting entitlement object operations ({}) association {}: "
-                                    + "attribute delta is empty after narrow, orig delta: {}",
-                            modificationType, associationName.getLocalPart(), attributeDelta);
-                }
-                attributeDelta = attributeDeltaAfterNarrow;
-            }
-
-            if (attributeDelta != null && !attributeDelta.isEmpty()) {
-                PropertyModificationOperation<?> attributeModification = new PropertyModificationOperation<>(attributeDelta);
-                attributeModification.setMatchingRuleQName(associationDef.getMatchingRule());
-                LOGGER.trace("Collecting entitlement object operations ({}) association {}: {}",
-                        modificationType, associationName.getLocalPart(), attributeModification);
-                objectOperations.add(attributeModification);
-            }
-        }
-        return subjectShadowAfter;
     }
     //endregion
 
-    /**
-     * Keeps modification operations indexed by attribute names.
-     */
-    static class SubjectOperations {
+    /** Operation to be executed on the _subject_. Keeps modification operations indexed by attribute names. */
+    static class SubjectOperations implements DebugDumpable {
+
         private final Map<QName, PropertyModificationOperation<?>> operationMap = new HashMap<>();
 
         public Collection<PropertyModificationOperation<?>> getOperations() {
@@ -585,8 +434,29 @@ class EntitlementConverter {
         void put(QName attributeName, PropertyModificationOperation<?> operation) {
             operationMap.put(attributeName, operation);
         }
+
+        <T> @NotNull PropertyModificationOperation<T> findOrCreateOperation(
+                ResourceAttributeDefinition<T> assocAttrDef, QName matchingRuleName) {
+            ItemName assocAttrName = assocAttrDef.getItemName();
+            //noinspection unchecked
+            PropertyModificationOperation<T> attributeOperation = (PropertyModificationOperation<T>) get(assocAttrName);
+            if (attributeOperation != null) {
+                return attributeOperation;
+            }
+            PropertyDelta<T> emptyDelta = assocAttrDef.createEmptyDelta();
+            var newOperation = new PropertyModificationOperation<>(emptyDelta);
+            newOperation.setMatchingRuleQName(matchingRuleName);
+            put(assocAttrName, newOperation);
+            return newOperation;
+        }
+
+        @Override
+        public String debugDump(int indent) {
+            return DebugUtil.debugDump(operationMap, indent);
+        }
     }
 
+    /** Operations to be executed on entitlement _objects_. */
     static class EntitlementObjectsOperations implements DebugDumpable {
         final Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 
@@ -605,16 +475,5 @@ class EntitlementConverter {
         public String debugDump(int indent) {
             return DebugUtil.debugDump(roMap, indent);
         }
-    }
-
-    /**
-     * Association definition resolved into directly usable details.
-     * See {@link #resolveDefinition(ResourceAssociationDefinition, String)}.
-     */
-    private record ResolvedAssociationDefinition(
-            @NotNull ProvisioningContext entitlementCtx,
-            @NotNull ResourceObjectDefinition entitlementObjDef,
-            @NotNull QName assocAttrName,
-            @NotNull QName valueAttrName) {
     }
 }

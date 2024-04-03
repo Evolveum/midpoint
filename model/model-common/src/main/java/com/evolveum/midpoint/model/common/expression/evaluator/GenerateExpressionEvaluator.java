@@ -75,7 +75,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
         ValuePolicyType valuePolicy = getValuePolicy(context, result);
 
         //noinspection unchecked
-        Item<V, D> output = outputDefinition.instantiate();
+        Item<V, D> output = (Item<V, D>) outputDefinition.instantiate();
         ItemPath outputPath = output.getPath(); // actually, a name only
 
         String stringValue = generateStringValue(valuePolicy, context, outputPath, result);
@@ -115,6 +115,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
             if (realValue != null) {
                 PrismPropertyValue<Object> prismValue = prismContext.itemFactory().createPropertyValue(realValue);
                 addInternalOrigin(prismValue, context);
+                //noinspection unchecked
                 ((PrismProperty<Object>) output).add(prismValue);
             }
         } else {
@@ -138,15 +139,6 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
                     + valuePolicy.getDescription() + ". " + result.getMessage());
         }
         return generatedValue;
-    }
-
-    private boolean isNotEmptyMinLength(ValuePolicyType valuePolicy) {
-        StringPolicyType stringPolicy = valuePolicy.getStringPolicy();
-        if (stringPolicy == null) {
-            return false;
-        }
-        Integer minLength = stringPolicy.getLimitations().getMinLength();
-        return minLength != null && minLength != 0;
     }
 
     @Nullable

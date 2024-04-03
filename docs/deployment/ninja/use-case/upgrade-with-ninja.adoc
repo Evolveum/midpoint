@@ -1,0 +1,682 @@
+= Upgrade with ninja
+:page-toc: top
+
+== Introduction
+
+This document describe how to upgrade midPoint installation using tool called ninja.
+More overall information about ninja can be found xref:./index.adoc[here].
+Ninja supports two different upgrade paths:
+
+* *Feature release upgrade* - from previous version to next one (e.g. 4.7 -> 4.8)
+* *LTS upgrade* - from previous LTS to next one (e.g. 4.4 -> 4.8)
+
+Deployment has to be upgraded to latest maintenance release before it can be upgraded to next version using ninja.
+
+For concrete examples of upgrade scenarios, please see <<Upgrade procedure examples>>.
+
+== Upgrade procedure overview
+
+Upgrade procedure consists of two main phases with several steps.
+First phase (preparation) can be executed while midPoint is still running, without any interruption of service.
+Second phase (upgrade) requires downtime of midPoint instance.
+This phase should be quick to minimize required downtime.
+All steps mentioned above are described in following sections, ninja will guide you through them.
+For concrete examples of upgrade scenarios, please see <<Upgrade procedure examples>>.
+
+. *Preparation phase*
+.. Read release notes for the new midPoint version / for all intermediate midPoint versions between your current and the new midPoint version (this is especially important for LTS to LTS upgrade)
+.. <<Upgrade tasks to use activities>>
+.. <<Pre-upgrade check>>
+.. <<Verification & upgrade objects>>
+//.. Review verification results
+//.. Run upgrade objects (based on verification results)
+.. <<Download distribution>>
+. *Upgrade phase*
+.. Stop midPoint
+.. <<Upgrade DB schema>>
+.. <<Upgrade installation,Upgrade midPoint installation>>
+.. <<Initial objects,Update initial objects>>
+.. Start midPoint
+.. <<Verify connector references in resources>>
+
+== Upgrade procedure examples
+
+Following chapter contains few examples on how to upgrade midPoint using ninja.
+First part describes how to set up midPoint instance for upgrade scenarios.
+
+There are three examples:
+
+* <<Automatic upgrade>>
+* <<Manual (sequential) upgrade>>
+* <<Container environment upgrade>>
+
+Variables used in examples:
+
+* `$MP_INSTALLATION` - MidPoint installation directory
+
+////
+=== Example setup
+
+Following chapter describe how to setup midPoint instance using ninja for example upgrade scenarios.
+Setup is for "old" midPoint version:
+
+* last 4.4.x (after 4.4.5, or snapshot build from support-4.4)
+* last 4.7.x (after 4.4.1, or snapshot build from support-4.7)
+
+==== Steps
+
+. Download https://download.evolveum.com/midpoint/4.4.6/midpoint-4.4.6-dist.zip[4.4.6 zip distribution]
+.. Alternatively https://download.evolveum.com/midpoint/4.7.2/midpoint-4.7.2-dist.zip[4.7.2 zip distribution]
+. Unzip to installation directory (`$MP_INSTALLATION`)
+. Install and start PostgreSQL 14/15
+. Create database and user for midPoint
++
+.create-database.sql
+[source,sql]
+----
+CREATE USER midpoint44 WITH PASSWORD 'midpoint44' LOGIN SUPERUSER;
+
+COMMIT;
+
+CREATE DATABASE midpoint44 WITH OWNER = midpoint44 ENCODING = 'UTF8'
+    TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1 TEMPLATE = template0;
+----
++
+Run ninja:
++
+[source,bash]
+----
+$MP_INSTALLATION/bin/ninja.sh run-sql \
+  --jdbc-url jdbc:postgresql://localhost:5432/postgres \
+  --jdbc-username <POSTGRES_USERNAME> \
+  --jdbc-password <POSTGRES_PASSWORD> \
+  --scripts ./create-database.sql
+----
+. Create `config.xml` file in `<MP_INSTALLATION>/var` directory
++
+.config.xml
+[source,xml]
+----
+<?xml version="1.0"?>
+<configuration>
+    <midpoint>
+        <webApplication>
+            <importFolder>${midpoint.home}/import</importFolder>
+        </webApplication>
+        <repository>
+            <type>native</type>
+            <jdbcUrl>jdbc:postgresql://localhost:5432/midpoint44</jdbcUrl>
+            <jdbcUsername>midpoint44</jdbcUsername>
+            <jdbcPassword>midpoint44</jdbcPassword>
+        </repository>
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
+        <icf>
+            <scanClasspath>true</scanClasspath>
+            <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
+        </icf>
+        <keystore>
+            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
+            <keyStorePassword>changeit</keyStorePassword>
+            <encryptionKeyAlias>default</encryptionKeyAlias>
+        </keystore>
+        <profilingEnabled>true</profilingEnabled>
+        <taskManager>
+            <clustered>true</clustered>
+        </taskManager>
+        <nodeId>my-sample-node</nodeId>
+    </midpoint>
+</configuration>
+
+----
+. Create tables and other database structures inside database
++
+[source,bash]
+----
+$MP_INSTALLATION/bin/ninja.sh run-sql \
+--mode repository \
+--create
+
+$MP_INSTALLATION/bin/ninja.sh run-sql \
+--mode audit \
+--create
+----
+
+.. Alternatively, if you don't have `config.xml` you can use ninja and manually set jdbc url, username and password.
++
+[source,bash]
+----
+$MP_INSTALLATION/bin/ninja.sh run-sql \
+  --jdbc-url jdbc:postgresql://localhost:5432/midpoint44 \
+  --jdbc-username midpoint44 \
+  --jdbc-password midpoint44 \
+  --mode repository \
+  --create
+
+$MP_INSTALLATION/bin/ninja.sh run-sql \
+  --jdbc-url jdbc:postgresql://localhost:5432/midpoint44 \
+  --jdbc-username midpoint44 \
+  --jdbc-password midpoint44 \
+  --mode audit \
+  --create
+----
+
+. Start midPoint and populate it with data (ideally containing deprecated/removed elements)
+////
+
+=== Automatic upgrade
+
+This is the simplest way to upgrade midPoint distribution.
+
+. (Update your tasks to use activities before continuing.)
+. Shutdown midPoint
+. Run distribution upgrade
++
+[source,bash]
+----
+$MP_INSTALLATION/bin/ninja.sh -v upgrade-distribution \
+  --temp-directory $MP_INSTALLATION/tmp \
+  --backup-midpoint-directory \
+----
++
+TIP: [.purple]#You can also point ninja to already downloaded zip file using `--distribution-archive` option.#
+
++
+TIP: You could use `--distribution-version{nbsp}latest` option to upgrade to an unreleased midPoint version (latest SNAPSHOT)
+
+. Check your start-up script for midPoint: if you are using systemd or a custom script referring to `midpoint.war`, you need to replace the reference with `midpoint.jar`.
+See also xref:/midpoint/install/bare-installation/systemd/[Running midPoint with systemd].
+
+. Start midPoint
+
+=== Manual (sequential) upgrade
+
+Manual upgrade allows for customization of each step done during upgrade procedure via custom options.
+Following example is almost equivalent to simple `upgrade-distribution` command described above, but split into multiple separate commands.
+
+. (<<Upgrade tasks to use activities,Update your tasks to use activities before continuing>>.)
+
+. Run pre-upgrade check (refer to <<Pre-upgrade check>> for more details and options)
++
+[source,bash]
+----
+$MP_INSTALLATION/bin/ninja.sh -v pre-upgrade-check
+----
++
+NOTE: Currently, this step only informs that there are X critical and other errors,
+but doesn't return error code and fail whole script.
+User has to make sure there are no critical errors and only then continue with next step.
+
++
+.Click here to display example output of the *pre-upgrade-check* command
+[%collapsible]
+====
+
+[source,bash]
+----
+/opt/midpoint/bin/ninja.sh -v pre-upgrade-check
+
+[INFO]
+[INFO] Starting pre-upgrade checks
+[INFO]
+[INFO] Initializing using midpoint home (FULL_REPOSITORY)
+[INFO] Checking node versions in midPoint cluster
+[INFO] Nodes version in cluster: 4.4.6
+[WARNING] Skipping nodes version check
+[INFO] Checking database schema version
+[INFO] Database schema change number matches supported one (1) for label schemaChangeNumber.
+[INFO] Database schema change number matches supported one (1) for label schemaAuditChangeNumber.
+[WARNING] Skipping database schema version check
+[INFO] Pre-upgrade checks finished successfully
+----
+====
+
+. Run verify (refer to <<Verification & upgrade objects>> for more details and options)
++
+[source,bash]
+----
+$MP_INSTALLATION/bin/ninja.sh -v verify
+----
++
+.Click here to display example output of the *verify* command
+[%collapsible]
+====
+
+[source,bash]
+----
+/opt/midpoint/bin/ninja.sh -v verify
+
+[INFO]
+[INFO] Starting verify
+[INFO]
+[WARNING] Consider using  '-o verify-output.csv' option for CSV output with upgradeability status of deprecated items.
+[WARNING] It is recommended to review this report and actions for proper upgrade procedure.
+[INFO] Initializing using midpoint home (FULL_REPOSITORY)
+[DEBUG] Operation: started
+[INFO] Processed: 19, error: 0, skipped: 0, avg.: 3.76obj/s
+WARNING NECESSARY Cleanup (00000000-0000-0000-0000-000000000005, TaskType) category deprecated
+WARNING NECESSARY Validity Scanner (00000000-0000-0000-0000-000000000006, TaskType) category deprecated
+WARNING NECESSARY Trigger Scanner (00000000-0000-0000-0000-000000000007, TaskType) category deprecated
+[INFO] Processed: 195, error: 0, skipped: 0, avg.: 35.13obj/s
+[DEBUG] Operation: producer finished
+[DEBUG] Operation: finished
+[INFO] Finished verify in 5.97s. Processed: 262, error: 0, skipped: 0, avg.: 43.85obj/s
+[INFO]
+[INFO] Verification finished. 0 critical, 4 necessary, 0 optional and 0 unknown issues found.
+----
+====
+
++
+NOTE: You need to fix the errors related to deprecated and to-be-removed content before upgrade.
+
+. Download (new) distribution (refer to <<Download distribution>> for more details and options)
++
+[source,bash]
+----
+$MP_INSTALLATION/bin/ninja.sh -v download-distribution \
+  --temp-dir $MP_INSTALLATION/.upgrade \
+  --distribution-directory $MP_INSTALLATION/.upgrade/new-distribution
+----
++
+.Click here to display example output of the *download-distribution* command
+[%collapsible]
+====
+[source,bash]
+----
+/opt/midpoint/bin/ninja.sh -v download-distribution --distribution-directory /opt/midpoint/midpoint-upgrade-to-4.8
+
+[INFO]
+[INFO] Starting download distribution
+[INFO]
+[INFO] Downloading version: 4.8
+[INFO] Download size: 219 MB
+[INFO] Download complete
+[INFO] Distribution zip: /tmp/.upgrade/1704884636253-midpoint-4.8-dist.zip
+[INFO] Distribution directory: /opt/midpoint/midpoint-upgrade-to-4.8
+----
+
+====
++
+NOTE: Next LTS version will be downloaded for 4.4.
+
+
+. Shut down midPoint
+
+. Upgrade DB schema for repository and audit (refer to <<Upgrade DB schema>> for more details and options)
++
+[source,bash]
+----
+$MP_INSTALLATION/bin/ninja.sh -v run-sql \
+  --upgrade \
+  --mode repository \
+  --scripts $MP_INSTALLATION/.upgrade/new-distribution/doc/config/sql/native/postgres-upgrade.sql
+----
++
+.Click here to display example output of the *run-sql* command
+[%collapsible]
+
+====
+[source,bash]
+----
+/opt/midpoint/bin/ninja.sh -v run-sql --upgrade --mode repository --scripts /opt/midpoint/midpoint-upgrade-to-4.8/doc/config/sql/native/postgres-upgrade.sql
+
+[INFO]
+[INFO] Starting run sql scripts
+[INFO]
+[INFO] Running scripts against midpoint repository.
+[INFO] Initializing using midpoint home (STARTUP_CONFIGURATION)
+[INFO] Creating connection for ninja-repository
+[INFO] Executing script /opt/midpoint/midpoint-upgrade-to-4.8/doc/config/sql/native/postgres-upgrade.sql
+[INFO] Scripts executed successfully.
+----
+====
+
+. Upgrade DB schema for audit (refer to <<Upgrade DB schema>> for more details and options)
++
+[source,bash]
+----
+$MP_INSTALLATION/bin/ninja.sh -v run-sql \
+  --upgrade \
+  --mode audit \
+  --scripts $MP_INSTALLATION/.upgrade/new-distribution/doc/config/sql/native/postgres-audit-upgrade.sql
+----
+
++
+.Click here to display example output of the *run-sql* command
+[%collapsible]
+====
+
+[source,bash]
+----
+/opt/midpoint/bin/ninja.sh -v run-sql --upgrade --mode audit --scripts /opt/midpoint/midpoint-upgrade-to-4.8/doc/config/sql/native/postgres-audit-upgrade.sql
+
+[INFO]
+[INFO] Starting run sql scripts
+[INFO]
+[INFO] Running scripts against midpoint audit.
+[INFO] Initializing using midpoint home (STARTUP_CONFIGURATION)
+[INFO] Creating connection for ninja-repository
+[INFO] Executing script /opt/midpoint/midpoint-upgrade-to-4.8/doc/config/sql/native/postgres-audit-upgrade.sql
+----
+
+====
+
+
+. Upgrade midPoint installation (files) (refer to <<Upgrade installation>> for more details and options)
++
+[source,bash]
+----
+$MP_INSTALLATION/bin/ninja.sh -v upgrade-installation \
+  --distribution-directory $MP_INSTALLATION/.upgrade/new-distribution \
+  --installation-directory $MP_INSTALLATION
+----
++
+.Click here to display example output of the *upgrade-installation* command
+[%collapsible]
+====
+[source,bash]
+----
+/opt/midpoint/bin/ninja.sh -v upgrade-installation --distribution-directory  /opt/midpoint/midpoint-upgrade-to-4.8/ --installation-directory /opt/midpoint/
+
+[INFO]
+[INFO] Starting upgrade installation
+[INFO]
+[INFO] Midpoint installation directory: /opt/midpoint
+[INFO] Installation upgraded successfully
+[INFO]
+[INFO] Next step should be to update initial objects. You can use 'ninja initial-objects --dry-run' to review changes.
+[INFO] Please see documentation and initial-objects command options for more information.
+----
+
+====
++
+NOTE: The same MP_INSTALLATION directory is used for new midPoint.
+
+. Simulate how initial objects would be updated (refer to <<Initial objects>> for more details and options)
++
+[source,bash]
+----
+$MP_INSTALLATION/bin/ninja.sh -v initial-objects --dry-run
+----
++
+.Click here to display example output of the *initial-objects --dry-run* command
+[%collapsible]
+====
+[source,bash]
+----
+/opt/midpoint/bin/ninja.sh -v initial-objects --dry-run
+
+[INFO]
+[INFO] Starting initial objects
+[INFO]
+[INFO] Initializing using midpoint home (FULL_REPOSITORY)
+[DEBUG] File: 000-system-configuration.xml
+[DEBUG] Merging object SystemConfiguration (00000000-0000-0000-0000-000000000001, systemConfiguration)
+[INFO] Updating object SystemConfiguration (00000000-0000-0000-0000-000000000001, systemConfiguration) in repository (dry run)
+[DEBUG] File: 010-value-policy.xml
+[DEBUG] Merging object Default Password Policy (00000000-0000-0000-0000-000000000003, valuePolicy)
+[INFO] Skipping object update, object Default Password Policy (00000000-0000-0000-0000-000000000003, valuePolicy) merged, no differences found.
+[DEBUG] File: 015-security-policy.xml
+[DEBUG] Merging object Default Security Policy (00000000-0000-0000-0000-000000000120, securityPolicy)
+[INFO] Updating object Default Security Policy (00000000-0000-0000-0000-000000000120, securityPolicy) in repository (dry run)
+. . .
+[DEBUG] File: 026-archetype-trace.xml
+[DEBUG] Merging object Trace (00000000-0000-0000-0000-000000000343, archetype)
+[INFO] Skipping object update, object Trace (00000000-0000-0000-0000-000000000343, archetype) merged, no differences found.
+[DEBUG] File: 027-archetype-correlation-case.xml
+[INFO] Skipping object add (force-add options is not set), object Correlation case (00000000-0000-0000-0000-000000000345, archetype) will be correctly added during midpoint startup.
+. . .
+[INFO]
+[INFO] Recompute task not created, no objects were changed in repository.
+[INFO]
+[INFO] Initial objects update finished. 0 added, 57 merged, 19 unchanged and 0 errors, total: 115 files processed.
+----
+
+====
+
+. Update initial objects (refer to <<Initial objects>> for more details and options)
++
+[source,bash]
+----
+$MP_INSTALLATION/bin/ninja.sh -v initial-objects
+----
++
+.Click here to display example output of the *initial-objects* command
+[%collapsible]
+====
+
+[source,bash]
+----
+/opt/midpoint/bin/ninja.sh -v initial-objects
+
+[INFO]
+[INFO] Starting initial objects
+[INFO]
+[INFO] Initializing using midpoint home (FULL_REPOSITORY)
+[DEBUG] File: 000-system-configuration.xml
+[DEBUG] Merging object SystemConfiguration (00000000-0000-0000-0000-000000000001, systemConfiguration)
+[INFO] Updating object SystemConfiguration (00000000-0000-0000-0000-000000000001, systemConfiguration) in repository (dry run)
+[DEBUG] File: 010-value-policy.xml
+[DEBUG] Merging object Default Password Policy (00000000-0000-0000-0000-000000000003, valuePolicy)
+[INFO] Skipping object update, object Default Password Policy (00000000-0000-0000-0000-000000000003, valuePolicy) merged, no differences found.
+[DEBUG] File: 015-security-policy.xml
+[DEBUG] Merging object Default Security Policy (00000000-0000-0000-0000-000000000120, securityPolicy)
+[INFO] Updating object Default Security Policy (00000000-0000-0000-0000-000000000120, securityPolicy) in repository (dry run)
+. . .
+[DEBUG] File: 026-archetype-trace.xml
+[DEBUG] Merging object Trace (00000000-0000-0000-0000-000000000343, archetype)
+[INFO] Skipping object update, object Trace (00000000-0000-0000-0000-000000000343, archetype) merged, no differences found.
+[DEBUG] File: 027-archetype-correlation-case.xml
+[INFO] Skipping object add (force-add options is not set), object Correlation case (00000000-0000-0000-0000-000000000345, archetype) will be correctly added during midpoint startup.
+. . .
+[INFO]
+[INFO] Recompute task task:8300470d-4c6b-4aaf-a46c-755b41e9c1a1(Initial objects recompute after upgrade to 4.8) created, it will be started after midpoint starts and will recompute 57 objects.
+[INFO]
+[INFO] Initial objects update finished. 0 added, 57 merged, 19 unchanged and 0 errors, total: 115 files processed.
+----
+====
++
+NOTE: The initial objects that are new in midPoint 4.8 will be created upon first midPoint start. Also, a *recompute task* has been created and will be started upon first midPoint start.
++
+//. TODO TODO TODO what about security policy here?!
+
+
+. Check your start-up script for midPoint: if you are using systemd or a custom script referring to `midpoint.war`, you need to replace the reference with `midpoint.jar`.
+See also xref:/midpoint/install/bare-installation/systemd/[Running midPoint with systemd].
+
+. Start midPoint
+
+=== Container environment upgrade
+
+This chapter describes how to upgrade midPoint using ninja in container environments, e.g. deployments in Kubernetes, Docker.
+
+Ninja in container environment can be accessed by using midPoint container started in interactive mode.
+`$CURRENT_VERSION` in following command is version of midPoint that is currently running.
+
+Container used to run ninja has to be started with same parameters as midPoint containers in deployment.
+Environment variables or config maps or other configuration has to be passed to container the same way as to midPoint containers.
+This is necessary to make sure that ninja uses same resources.
+Another case when this is necessary is if database connection configuration is not present in `$MIDPOINT_HOME/config.xml`, but passed via parameters.
+
+[source,bash]
+----
+docker run -ti --rm [-env VARIABLE=VALUE] -w=/opt/midpoint evolveum/midpoint:$CURRENT_VERSION /bin/bash
+----
+
+After container starts we're presented with bash prompt.
+Now we can run ninja as in non-container environment, e.g.:
+
+. Example printout of ninja version
+[source,bash]
+----
+f41fde86786d:/opt/midpoint# ./bin/ninja.sh -V
+Processing variable (MAP) ... midpoint.repository.database .:. h2
+Processing variable (MAP) ... midpoint.repository.missingSchemaAction .:. create
+Processing variable (MAP) ... midpoint.logging.alt.enabled .:. true
+Processing variable (MAP) ... midpoint.repository.initializationFailTimeout .:. 60000
+Processing variable (MAP) ... file.encoding .:. UTF8
+Processing variable (MAP) ... midpoint.repository.hibe nateHbm2ddl .:. none
+Processing variable (MAP) ... midpoint.repository.upgradeableSchemaAction .:. stop
+Processing variable (MAP) ... midpoint.repository.jdbcUrl .:. jdbc:h2:tcp://localhost:5437/midpoint
+Version: 4.8-SNAPSHOT, rev. v4.8devel-1509-g8abd865, built by , 2023-09-27T07:05:44+0000
+----
+
+==== Upgrade procedure for container environment
+
+Upgrade procedure is very similar to non-container environment, differences will be described in following sections.
+
+*Preparation phase* is the same as for non-container environment:
+
+* <<Upgrade tasks to use activities>>
+* <<Pre-upgrade check>>
+* <<Verification & upgrade objects>>
+
+*Upgrade phase can't* be executed using simple `upgrade-distribution` command due to differences in handling of installation directory.
+Following steps has to be executed instead:
+
+* Stop current midPoint containers
+* <<Setup ninja using new midPoint image>>
+* <<Upgrade DB schema (container environment)>>
+* <<Initial objects (container environment)>>
+* <<Upgrade midPoint containers>>
+* Start new midPoint containers
+
+==== Setup ninja using new midPoint image
+
+New midPoint image has to be pulled from Docker Hub before upgrade procedure can be started.
+`$NEXT_VERSION` in following command is version of midPoint that is going to be used after upgrade.
+At the time of writing it's `4.8`.
+
+As previously mentioned <<Container environment upgrade, here>>, container used to run ninja has to be started with same parameters as midPoint containers in deployment.
+
+[source,bash]
+----
+docker pull evolveum/midpoint:$NEXT_VERSION
+
+docker run -ti --rm [-env VARIABLE=VALUE] -w=/opt/midpoint evolveum/midpoint:$NEXT_VERSION /bin/bash
+----
+
+Now we're presented with bash prompt, new version of ninja can be used to upgrade midPoint.
+
+==== Upgrade DB schema (container environment)
+
+Database schema has to be upgraded by starting new midPoint image in interactive mode and running `run-sql` command.
+
+[source,bash]
+----
+# upgrade DB schema of midPoint repository
+./bin/ninja.sh run-sql \
+  --mode repository \
+  --upgrade
+
+# upgrade DB schema of midPoint audit repository
+./bin/ninja.sh run-sql \
+  --mode audit \
+  --upgrade
+----
+
+==== Initial objects (container environment)
+
+Initial objects can be updated using ninja started withing new midPoint image in interactive mode.
+As for the update itself, <<Initial objects>> chapter describes how to review and update initial objects.
+
+==== Upgrade midPoint containers
+
+Now is the time to update definition of midPoint containers in deployment.
+This means we should update configuration in `docker-compose.yml` when using Docker compose command, or stateful set in Kubernetes or any other related container configuration for midPoint cluster.
+`$NEXT_VERSION` version of `evolveum/midpoint` image must be used.
+
+Containers can be started.
+MidPoint in new version should start.
+
+Please review logs of midPoint containers to make sure there are no errors.
+
+
+
+
+
+
+
+
+
+
+
+
+
+== Upgrade procedure details
+
+=== Upgrade tasks to use activities
+
+Task objects in midPoint before 4.4 were using configuration mostly through handlerUri and arbitrary extension elements.
+With release 4.4 this has changed, better configuration schema was introduced with new task concept called activity.
+Most of the tasks without activities will not work in 4.8 (or newer) and have to be updated to use activities.
+Few internal types of tasks (e.g. related to certifications will still work with old configuration).
+Migration of tasks should be therefore done before upgrade procedure is started.
+
+Ninja currently doesn't support task migration out of the box.
+MidPoint Studio plugin with Intellij Idea will be able to help with migration of tasks.
+
+More information about task migration can be found in xref:/midpoint/reference/tasks/activities/migration/[Migration of Tasks from 4.0/4.3 to 4.4] section of midPoint documentation.
+
+=== Pre-upgrade check
+
+Pre-upgrade check is a simple check that verifies that current midPoint version matches version of distribution that is going to be upgraded.
+There are two items being checked:
+
+* database schema version
+* midPoint cluster nodes version
+
+For more information see xref:../command/pre-upgrade-check.adoc[] command documentation.
+
+=== Verification & upgrade objects
+
+Verification is a process that reads objects from midPoint repository and checks whether they are compatible with new version of midPoint.
+Verification checks for deprecated, removed elements or other issues that can cause problems during or after upgrade.
+
+Command `upgrade-objects` can be used to _upgrade_ objects to get rid of deprecated or obsolete data and configuration found by verification.
+
+See more information about verification in xref:../command/verify.adoc[] and xref:../command/upgrade-objects.adoc[] command documentation.
+
+=== Download distribution
+
+Download distribution is simple step that helps you download specific version of distribution of midPoint.
+Midpoint distribution is downloaded from https://download.evolveum.com/midpoint/[download.evolveum.com].
+
+For more information see xref:../command/download-distribution.adoc[] command documentation.
+
+=== Upgrade DB schema
+
+Database schema changes are handled by SQL scripts that are bundled with distribution in folder `doc/config/sql/native/*.sql`.
+These changes can be applied using ninja command `run-sql`.
+For more information see xref:../index.adoc#run-sql[run-sql] command documentation.
+
+// TODO TODO TODO what if I was using other than Default Security Policy?
+// TODO TODO TODO GUI auth works, but REST (Studio) will not work
+
+=== Upgrade installation
+
+Upgrade installation command will copy and replace files in midPoint installation directory using files from distribution.
+By default, installation directory is computed as a parent of midpoint-home directory.
+
+This command is useful only in non-container environments.
+
+To learn more about this command see xref:../command/upgrade-installation.adoc[].
+
+=== Initial objects
+
+This is the last step of upgrade procedure while midPoint is still down.
+It is necessary to update initial objects to make sure that they are compatible with new version of midPoint and midPoint can start and work properly.
+
+For more information see xref:../command/initial-objects.adoc[] command documentation.
+
+=== Verify connector references in resources
+
+After midPoint upgrade, built-in connector versions might have been changed.
+Your existing resources in midPoint might stop work.
+Please review your resources using built-in midPoint connectors and update `connectorRef` references to point to the new connector versions.

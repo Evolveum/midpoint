@@ -47,10 +47,10 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
     private static final Trace LOGGER = TraceManager.getTrace(ReferenceRestriction.class);
 
     // Definition of the item being queried.
-    @NotNull private final JpaLinkDefinition<JpaReferenceDefinition<?>> linkDefinition;
+    @NotNull private final JpaLinkDefinition<JpaReferenceDefinition> linkDefinition;
 
     public ReferenceRestriction(InterpretationContext context, RefFilter filter, JpaEntityDefinition baseEntityDefinition,
-            Restriction<?> parent, @NotNull JpaLinkDefinition<JpaReferenceDefinition<?>> linkDefinition) {
+            Restriction<?> parent, @NotNull JpaLinkDefinition<JpaReferenceDefinition> linkDefinition) {
         super(context, filter, baseEntityDefinition, parent);
         this.linkDefinition = linkDefinition;
     }

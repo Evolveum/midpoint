@@ -70,7 +70,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        recompute(context);
 
         when();
         processAssignments(task, result, context);
@@ -102,7 +101,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, new PolyString("Tortuga"));
-        recompute(context);
 
         displayDumpable("Input context", context);
 
@@ -166,7 +164,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
-        recompute(context);
 
         displayDumpable("Input context", context);
 
@@ -212,7 +209,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
-        recompute(context);
 
         displayDumpable("Input context", context);
 
@@ -276,7 +272,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addFocusModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
-        recompute(context);
 
         displayDumpable("Input context", context);
 
@@ -360,7 +355,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addFocusModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
-        recompute(context);
 
         displayDumpable("Input context", context);
 
@@ -439,7 +433,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_LARGO_OID, result);
         fillContextWithAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILE, task, result);
-        recompute(context);
 
         ProjectionPolicyType accountSynchronizationSettings = new ProjectionPolicyType();
         accountSynchronizationSettings.setLegalize(Boolean.TRUE);
@@ -455,7 +448,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         when();
         processAssignments(task, result, context);
 
-        context.recompute();
         then();
         displayDumpable("Output context", context);
         display("outbound processor result", result);
@@ -490,7 +482,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE_ENGINEER);
-        recompute(context);
 
         displayDumpable("Input context", context);
 
@@ -554,7 +545,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         fillContextWithFocus(context, user);
 
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_SET_COST_CENTER);
-        recompute(context);
 
         displayDumpable("Input context", context);
 
@@ -636,7 +626,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT).add(assignment)
                         .asObjectDelta(USER_JACK_OID));
-        recompute(context);
 
         displayDumpable("Input context", context);
 
@@ -693,7 +682,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT).add(assignmentType)
                         .asObjectDelta(USER_JACK_OID));
-        recompute(context);
 
         displayDumpable("Input context", context);
 

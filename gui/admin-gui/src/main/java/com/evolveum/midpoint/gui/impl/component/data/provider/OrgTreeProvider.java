@@ -113,7 +113,7 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
                     .isDirectChildOf(nodeOid)
                     .build();
 
-            orgs = getModelService().countObjects(OrgType.class, query, null, task, result);
+            orgs = WebModelServiceUtils.countObjectsByQueryFromSearchPanel(OrgType.class, query, null, task, result, getModelService());
 
             LOGGER.debug("Found {} sub-orgs.", orgs);
         } catch (CommonException|RuntimeException ex) {
@@ -159,7 +159,8 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
                     ObjectPaging paging = createPaging(node);
                     query.setPaging(paging);
 
-                List<PrismObject<OrgType>> orgs = getModelService().searchObjects(OrgType.class, query, null, task, result);
+                List<PrismObject<OrgType>> orgs = WebModelServiceUtils.searchObjectsByQueryFromSearchPanel(
+                        OrgType.class, query, null, task, result, getModelService());
                 LOGGER.debug("Found {} sub-orgs.", orgs.size());
                 children = new ArrayList<>();
                 for (PrismObject<OrgType> org : orgs) {

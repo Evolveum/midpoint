@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -80,10 +82,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
         if (clazz == null) {
             clazz = PrismContext.get().getSchemaRegistry().determineClassForType(unwrapWrapperModel().getTypeName());
         }
-        if (clazz != null && clazz.isPrimitive()) {
-            clazz = (Class<T>) ClassUtils.primitiveToWrapper(clazz);
-        }
-        return clazz;
+        return (Class<T>) MiscUtil.resolvePrimitiveIfNecessary(clazz);
     }
 
     public ItemRealValueModel<T> getRealValueModel() {

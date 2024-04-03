@@ -11,6 +11,8 @@ import com.evolveum.midpoint.prism.path.PathSet;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 
+import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
@@ -23,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * Overall context of the mappings preparation: environment, result, beans.
  */
-abstract class Context {
+abstract class Context implements ExecutionModeProvider {
 
     /** The environment: context description, now (the clock), task. */
     @NotNull protected final MappingEvaluationEnvironment env;

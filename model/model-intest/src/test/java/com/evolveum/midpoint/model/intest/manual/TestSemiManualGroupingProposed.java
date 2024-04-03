@@ -14,6 +14,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 
 import com.evolveum.midpoint.prism.query.FilterUtil;
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -141,26 +142,26 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 
         PendingOperationExecutionStatusType executionStage = PendingOperationExecutionStatusType.EXECUTION_PENDING;
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountBigmouthOid, null, result);
-        display("Repo shadow", shadowRepo);
-        PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, null, null, executionStage);
+        var repoShadow = getShadowRepo(accountBigmouthOid);
+        PrismObject<ShadowType> repoShadowObj = repoShadow.getPrismObject();
+        display("Repo shadow", repoShadowObj);
+        PendingOperationType pendingOperation = assertSinglePendingOperation(repoShadowObj, null, null, executionStage);
         assertNotNull("No ID in pending operation", pendingOperation.getId());
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_BIGMOUTH_NAME.toLowerCase(), ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_BIGMOUTH_FULLNAME, ATTR_FULLNAME_QNAME, prismContext));
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertShadowExists(shadowRepo, false);
-        assertNoShadowPassword(shadowRepo);
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_BIGMOUTH_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_BIGMOUTH_FULLNAME);
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        assertShadowExists(repoShadowObj, false);
+        assertNoShadowPassword(repoShadowObj);
 
-        PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-                accountBigmouthOid, null, task, result);
+        PrismObject<ShadowType> shadowModel =
+                modelService.getObject(ShadowType.class, accountBigmouthOid, null, task, result);
 
         display("Model shadow", shadowModel);
         ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
         assertShadowName(shadowModel, USER_BIGMOUTH_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-        assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_BIGMOUTH_NAME.toLowerCase());
+        assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_BIGMOUTH_NAME); // Why was here toLowerCase()?
         assertAttributeFromCache(shadowModel, ATTR_FULLNAME_QNAME, USER_BIGMOUTH_FULLNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowModel, ActivationStatusType.ENABLED);
         assertShadowExists(shadowModel, false);
@@ -189,17 +190,17 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 
         PendingOperationExecutionStatusType executionStage = PendingOperationExecutionStatusType.EXECUTING;
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountBigmouthOid, null, result);
-        display("Repo shadow", shadowRepo);
-        PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, null, null, executionStage);
+        var repoShadow = getShadowRepo(accountBigmouthOid);
+        PrismObject<ShadowType> repoShadowObj = repoShadow.getPrismObject();
+        display("Repo shadow", repoShadowObj);
+        PendingOperationType pendingOperation = assertSinglePendingOperation(repoShadowObj, null, null, executionStage);
         assertNotNull("No ID in pending operation", pendingOperation.getId());
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_BIGMOUTH_NAME.toLowerCase(), ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_BIGMOUTH_FULLNAME, ATTR_FULLNAME_QNAME, prismContext));
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertShadowExists(shadowRepo, false);
-        assertNoShadowPassword(shadowRepo);
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_BIGMOUTH_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_BIGMOUTH_FULLNAME);
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        assertShadowExists(repoShadowObj, false);
+        assertNoShadowPassword(repoShadowObj);
 
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountBigmouthOid, null, task, result);
@@ -208,7 +209,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
         ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
         assertShadowName(shadowModel, USER_BIGMOUTH_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-        assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_BIGMOUTH_NAME.toLowerCase());
+        assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_BIGMOUTH_NAME); // Why was here toLowerCase()?
         assertAttributeFromCache(shadowModel, ATTR_FULLNAME_QNAME, USER_BIGMOUTH_FULLNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowModel, ActivationStatusType.ENABLED);
         assertShadowExists(shadowModel, false);

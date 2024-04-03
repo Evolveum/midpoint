@@ -2,6 +2,7 @@
 :page-nav-title: Get Operation
 :page-display-order: 100
 :page-toc: top
+:page-keywords: [ 'rest', 'get', 'operation' ]
 
 == Description
 
@@ -25,11 +26,11 @@ Therefore, we still consider GET to be a safe operation.
 
 If you want to make sure no consistency related change might occur, use the *raw* option set to *true* in your
 get queries. As in this example:
+
 [source, http]
 ----
- http://localhost:8080/midpoint/ws/rest/users/{oid}?options=raw
+ http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}?options=raw
 ----
-
 
 == Request
 
@@ -37,7 +38,7 @@ Use the HTTP GET method with your request.
 
 [source, http]
 ----
-GET http://localhost:8080/midpoint/ws/rest/users/{oid}
+GET http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}
 GET http://localhost:8080/midpoint/ws/rest/self
 ----
 
@@ -50,21 +51,31 @@ For more information please have a look at the following sections.
 
 Regarding authorization type, the "Basic" Authorization header should be used.
 
-//TODO link na rfc
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
 [source, http]
 ----
-Authorization: Basic {HERE INSERT Base64 Encoded CREDENTIALS}
+Authorization: Basic {Base64EncodedCredentials}
 ----
 
-In case of the get operation you often you might like to specify the accepted content type:
+To specify the provided content type, please use the "Content-Type" header
+payload in the body:
 
+.Content type header example, other media types are supported as well
 [source, http]
 ----
-Accept: application/json
+"Content-Type: application/json"
 ----
 
-For supported media types please refer to the following section of the documentation:
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default):
 
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
 xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 
 === Body
@@ -76,17 +87,15 @@ request.
 
 Example of usage of options:
 
-//TODO full example
-[source, http]
-----
-?options=raw
-----
-
 The *"get"* operations support specifying options influencing the operation execution. You can find the
 supported options in these references:
 
 .Usable options for this type of operation
 link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
+
+include::../../rest/operations/raw/options-usage.adoc[]
+
+include::../../rest/operations/raw/operation-prop-search.adoc[]
 
 include::../../rest/concepts/raw/outcome.adoc[]
 
@@ -157,55 +166,22 @@ had some technical information and metadata related to the environment removed b
 ----
 ====
 
-== Operation Authorizations
-This section refers specifically to *midPoint authorization* configuration,
-it represents a set of permissions which is needed for the account accessing the REST interface.
-This way midPoint know what actions on which objects is the user permitted to execute.
-For more information on midPoint authorizations please see this link.
-//TODO add link to authorizations
+== Access Authorization
 
-[NOTE]
-====
-MidPoint application authorizations may sound similar to the authorization header used in
-REST authentication, but they are two distict topics.
-====
-
-For following is a simple authorization configuration example.
-
-.Show Authorization Example
-[%collapsible]
-====
-[source, xml]
-----
-<role>
-    <name>Rest Read All</name>
-    <activation/>
-    <authorization>
-        <name>rest-interface-access</name>
-        <description>Permits access to the REST interface</description>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#all</action>
-    </authorization>
-
-    <authorization>
-        <name>read-all</name>
-        <description>Authorized object is able to read data of all object</description>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    </authorization>
-</role>
-----
-====
-
-[WARNING]
-====
-We do not recommend to use solely the authorization configuration in this example, it is not meant
-for production use! Authorization configuration should be more *fine-grained* and *specific
-for your use case*.
-====
-
-// TODO reference to authorization configuration
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getObject+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getSelf+`
 
 == Examples
-//TODO examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../operations/examples/raw/get-user-administrator.adoc[]
+
+.Additional examples
 1. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get user based on his unique identificator]
 2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get own profile information]
 
@@ -213,3 +189,4 @@ for your use case*.
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
 - xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

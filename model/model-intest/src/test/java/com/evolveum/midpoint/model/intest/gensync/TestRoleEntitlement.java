@@ -123,7 +123,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertFalse("No linkRef oid", StringUtils.isBlank(groupOid));
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+        var accountShadow = getShadowRepo(groupOid);
         assertDummyGroupShadowRepo(accountShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         // Check account
@@ -193,7 +193,9 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismContainer<Containerable> accountContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         displayDumpable("Account attributes def", accountContainer.getDefinition());
         displayDumpable("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
-        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+
+        var repoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(repoShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
@@ -215,7 +217,9 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismContainer<Containerable> accountContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         displayDumpable("Account attributes def", accountContainer.getDefinition());
         displayDumpable("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
-        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+
+        var repoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(repoShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
@@ -341,7 +345,9 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertEquals("OID mismatch in linkRefValue", groupOid, linkRef.getOid());
         assertNotNull("Missing account object in linkRefValue", linkRef.getObject());
         ShadowType shadow = (ShadowType) roleType.getLinkRef().get(0).asReferenceValue().getObject().asObjectable();
-        assertDummyGroupShadowRepo(shadow.asPrismObject(), groupOid, GROUP_PIRATE_DUMMY_NAME);
+
+        var repoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(repoShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
@@ -427,8 +433,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertLiveLinks(role, 0);
 
         // Check shadow
-        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
-        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+        var repoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(repoShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 //        assertEnableTimestampShadow(shadow, startTime, endTime);
 
         // Check account
@@ -447,7 +453,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         // This is add. We do not yet have OID in request phase.
-        dummyAuditService.assertTarget(shadow.getOid(), AuditEventStage.EXECUTION);
+        dummyAuditService.assertTarget(repoShadow.getOid(), AuditEventStage.EXECUTION);
         dummyAuditService.assertExecutionSuccess();
     }
 
@@ -478,8 +484,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
-        assertDummyGroupShadowRepo(accountShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+        var accountRepoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(accountRepoShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
@@ -529,8 +535,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
                 .assertLinks(0, 0);
 
         // Check shadow (should be unchanged)
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, groupOid, null, result);
-        assertDummyGroupShadowRepo(shadowRepo, groupOid, GROUP_PIRATE_DUMMY_NAME);
+        var repoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(repoShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         // Check group (should be unchanged)
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
@@ -613,8 +619,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
-        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
-        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+        var repoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(repoShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 //        assertEnableTimestampShadow(shadow, startTime, endTime);
 
         // Check group
@@ -675,8 +681,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
-        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
-        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+        var repoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(repoShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         // Check group
         // All the changes should be reflected to the group
@@ -775,8 +781,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
-        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
-        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+        var repoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(repoShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 //        assertEnableTimestampShadow(shadow, startTime, endTime);
 
         // Check group
@@ -878,8 +884,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
-        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
-        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+        var repoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(repoShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 //        assertEnableTimestampShadow(shadow, startTime, endTime);
 
         // Check group
@@ -933,8 +939,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
-        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
-        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+        var repoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(repoShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         // Check group
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
@@ -982,8 +988,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
-        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
-        assertDummyGroupShadowRepo(shadow, groupOid, "privateers");
+        var repoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(repoShadow, groupOid, "privateers");
 //        assertEnableTimestampShadow(shadow, startTime, endTime);
 
         // Check group
@@ -1097,8 +1103,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         groupOid = getSingleLinkOid(role);
 
         // Check shadow
-        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
-        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_SWASHBUCKLER_DUMMY_NAME);
+        var repoShadow = getShadowRepo(groupOid);
+        assertDummyGroupShadowRepo(repoShadow, groupOid, GROUP_SWASHBUCKLER_DUMMY_NAME);
 //        assertEnableTimestampShadow(shadow, startTime, endTime);
 
         // Check account

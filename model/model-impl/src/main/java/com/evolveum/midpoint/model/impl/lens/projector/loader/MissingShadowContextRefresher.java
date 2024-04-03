@@ -147,7 +147,6 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
                 // The "exists" information in the projection context can be obsolete - reflecting the fact that
                 // resource object couldn't be found.
                 deadProjectionContext.setExists(ShadowUtil.isExists(shadow));
-                deadProjectionContext.recompute();
                 return true;
             } else {
                 LOGGER.trace("-> Unfortunately, this shadow is not usable; continuing through the linkRefs.");

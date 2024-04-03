@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -38,7 +40,7 @@ public class ObjectOperationPolicyHelper {
     private static final String OP_COMPUTE_EFFECTIVE_POLICY =
             ObjectOperationPolicyHelper.class.getName() + ".computeEffectivePolicy";
 
-    private abstract class Impl {
+    private abstract static class Impl {
 
         protected abstract Collection<ObjectReferenceType> getEffectiveMarkRefs(ObjectType shadow, OperationResult result);
 
@@ -129,18 +131,21 @@ public class ObjectOperationPolicyHelper {
         }
     }
 
-    public void updateEffectiveMarksAndPolicies(Collection<ResourceObjectPattern> protectedAccountPatterns,
-            ShadowType shadow, OperationResult result) throws SchemaException {
+    public void updateEffectiveMarksAndPolicies(
+            Collection<ResourceObjectPattern> protectedAccountPatterns,
+            AbstractShadow shadow, OperationResult result) throws SchemaException {
 
-        Collection<ObjectReferenceType> effectiveMarkRefs = behaviour.getEffectiveMarkRefs(shadow, result);
+        ShadowType bean = shadow.getBean();
 
-        if (behaviour.isProtectedByResourcePolicy(shadow, effectiveMarkRefs)) {
+        Collection<ObjectReferenceType> effectiveMarkRefs = behaviour.getEffectiveMarkRefs(bean, result);
+
+        if (behaviour.isProtectedByResourcePolicy(bean, effectiveMarkRefs)) {
             // Account was originally marked by resource policy
             // removing mark, so we can recompute if it still applies
             removeRefByOid(effectiveMarkRefs, MARK_PROTECTED_SHADOW_OID);
         }
 
-        if (needsToEvaluateResourcePolicy(shadow, effectiveMarkRefs)) {
+        if (needsToEvaluateResourcePolicy(bean, effectiveMarkRefs)) {
             // Resource protection policy was not explicitly excluded
             // so we need to check if shadow is protected
             if (ResourceObjectPattern.matches(shadow, protectedAccountPatterns)) {
@@ -149,8 +154,8 @@ public class ObjectOperationPolicyHelper {
             }
         }
 
-        var effectivePolicy = behaviour.computeEffectivePolicy(effectiveMarkRefs, shadow, result);
-        updateShadowObject(shadow, effectiveMarkRefs, effectivePolicy);
+        var effectivePolicy = behaviour.computeEffectivePolicy(effectiveMarkRefs, bean, result);
+        updateShadowObject(bean, effectiveMarkRefs, effectivePolicy);
     }
 
 

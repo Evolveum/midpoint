@@ -6,13 +6,12 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2018-02-16T10:44:19.889+01:00
 :page-experimenta: true
-:page-since: "3.7.1"
 :page-upkeep-status: yellow
 
 There are situations when you need to create non-tolerant focus mappings.
 This means that the focus (e.g. user) should have no values in particular item, unless provided by these mappings.
 
-For mappings residing in object template this feature has been available since midPoint 3.3 (although marked as experimental); but until now it was not available for mappings induced by assigned roles.
+Focus mappings are naturally available in object template, but it's also possible to induce them from an assigned role.
 Here we show how to do that.
 
 
@@ -28,25 +27,25 @@ To be effective, we outsource logic to one common meta role that all other stamp
 [source,xml]
 ----
 <role oid="8ce0a59d-dd67-40b4-b2d3-80f9173afa9c">
- <name>Metarole: Stamping service</name>
- <inducement>
-  <focusMappings>
-   <mapping>
-    <expression>
-     <script>
-      <code>
-       basic.stringify(assignmentPath[0].target.description) + '-bearer'
-      </code>
-     </script>
-    </expression>
-    <target>
-     <path>fullName</path>
-    </target>
-   </mapping>
-  </focusMappings>
-  <order>2</order>
-  <focusType>UserType</focusType>
- </inducement>
+    <name>Metarole: Stamping service</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <expression>
+                    <script>
+                        <code>
+                           basic.stringify(assignmentPath[0].target.description) + '-bearer'
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>fullName</path>
+                </target>
+            </mapping>
+        </focusMappings>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
 </role>
 
 ----
@@ -57,13 +56,13 @@ Then each stamping role has assignment to this metarole:
 [source,xml]
 ----
 <role>
- <name>Stamping role</name>
- <description>stamp1</description>
- <assignment>
-  <targetRef oid="8ce0a59d-dd67-40b4-b2d3-80f9173afa9c" type="RoleType">
-         <!-- Metarole: Stamping service -->
-  </targetRef>
- </assignment>
+    <name>Stamping role</name>
+    <description>stamp1</description>
+    <assignment>
+        <targetRef oid="8ce0a59d-dd67-40b4-b2d3-80f9173afa9c" type="RoleType">
+            <!-- Metarole: Stamping service -->
+        </targetRef>
+    </assignment>
 </role>
 ----
 

@@ -83,13 +83,13 @@ public final class MultiPropagationActivityRun
     }
 
     private void propagateOperationsOnShadow(
-            @NotNull ShadowType shadow,
+            @NotNull ShadowType repoShadow,
             @NotNull ResourceType resource,
             @NotNull Task workerTask,
             @NotNull OperationResult result) {
         try {
-            getActivityHandler().shadowsFacade.propagateOperations(resource, shadow, workerTask, result);
-        } catch (CommonException | GenericFrameworkException | EncryptionException e) {
+            getActivityHandler().shadowsFacade.propagateOperations(resource, repoShadow, workerTask, result);
+        } catch (CommonException | GenericFrameworkException e) {
             throw new SystemException("Provisioning error: " + e.getMessage(), e);
         }
     }

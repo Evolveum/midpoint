@@ -24,6 +24,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import static com.evolveum.midpoint.security.api.AuthorizationConstants.AUTZ_ALL_URL;
+
 /**
  * Parsed form of {@link AuthorizationType}.
  *
@@ -91,6 +93,12 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     public boolean matchesPhase(@Nullable AuthorizationPhaseType phase) {
         var autzPhase = getPhase();
         return autzPhase == null || autzPhase == phase;
+    }
+
+    public boolean matchesAnyAction(@NotNull List<String> actionUrls) {
+        var authorizedActions = getAction();
+        return authorizedActions.contains(AUTZ_ALL_URL)
+                || authorizedActions.stream().anyMatch(actionUrls::contains);
     }
 
     public AuthorizationEnforcementStrategyType getEnforcementStrategy() {

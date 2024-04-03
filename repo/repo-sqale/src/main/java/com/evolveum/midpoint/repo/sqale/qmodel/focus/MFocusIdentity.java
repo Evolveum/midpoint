@@ -9,13 +9,13 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 import java.util.UUID;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerWithFullObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QOperationExecution;
 
 /**
  * Querydsl "row bean" type related to {@link QOperationExecution}.
  */
-public class MFocusIdentity extends MContainer {
+public class MFocusIdentity extends MContainerWithFullObject {
 
-    public byte[] fullObject; // serialized container value, without items
     public UUID sourceResourceRefTargetOid; // target type and relation is implied/fixed
 }

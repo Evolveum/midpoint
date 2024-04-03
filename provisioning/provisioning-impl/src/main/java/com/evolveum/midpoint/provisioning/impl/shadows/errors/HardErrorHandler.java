@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowAddOperation;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowDeleteOperation;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -35,9 +35,9 @@ import org.jetbrains.annotations.NotNull;
 abstract class HardErrorHandler extends ErrorHandler {
 
     @Override
-    public ShadowType handleGetError(
+    public RepoShadow handleGetError(
             @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repositoryShadow,
+            @NotNull RepoShadow repositoryShadow,
             @NotNull Exception cause,
             @NotNull OperationResult failedOperationResult,
             @NotNull OperationResult result) throws SchemaException, GenericFrameworkException,

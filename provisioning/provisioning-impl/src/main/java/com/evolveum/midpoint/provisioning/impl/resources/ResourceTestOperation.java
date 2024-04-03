@@ -18,7 +18,6 @@ import java.util.function.Supplier;
 import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.ResourceCompletionMode;
 import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.TestMode;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.RefinedResourceSchemaParser;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -293,8 +291,7 @@ class ResourceTestOperation {
     }
 
     private void testResourceSchema(OperationResult parentResult) throws TestFailedException {
-        OperationResult result =
-                parentResult.createSubresult(TestResourceOpNames.RESOURCE_SCHEMA.getOperation());
+        OperationResult result = parentResult.createSubresult(TestResourceOpNames.RESOURCE_SCHEMA.getOperation());
         try {
             fetchSchema(result);
 
@@ -308,8 +305,7 @@ class ResourceTestOperation {
             adjustAndCheckSchema(result);
 
         } catch (Throwable t) {
-            // Not expected.
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
             result.close();
@@ -362,11 +358,8 @@ class ResourceTestOperation {
             rawResourceSchema =
                     new ResourceSchemaAdjuster(resource, rawResourceSchema)
                             .adjustSchema();
-            if (rawResourceSchema != null) {
-                new RefinedResourceSchemaParser(resource, rawResourceSchema)
-                        .parse();
-            }
-            schemaHelper.updateSchemaToConnectors(resource, rawResourceSchema, result);
+            var completeSchema = ResourceSchemaFactory.parseCompleteSchema(resource, rawResourceSchema);
+            schemaHelper.updateSchemaToConnectors(resource, completeSchema, result);
         } catch (Exception e) {
             throw TestFailedException.record(
                     "Couldn't process resource schema refinements",
@@ -426,7 +419,7 @@ class ResourceTestOperation {
             this.desc = "testing connection using " + connectorSpec;
         }
 
-        public void execute(OperationResult result) throws TestFailedException {
+        void execute(OperationResult result) throws TestFailedException {
             instantiateConnector(result);
             initializeConnector(result);
             testConnector(result);
@@ -491,41 +484,9 @@ class ResourceTestOperation {
                 }
                 schemaHelper.applyConnectorSchemaToResource(connectorSpec, connectorSpec, newResourceDefinition, result);
                 schemaHelper.evaluateExpressionsInConfigurationProperties(connectorSpec, resource, task, result);
-                PrismContainer<ConnectorConfigurationType> configurationContainer = connectorSpec.getConnectorConfiguration();
-                PrismContainerValue<ConnectorConfigurationType> configuration =
-                        configurationContainer != null ?
-                                configurationContainer.getValue() :
-                                PrismContext.get().itemFactory().createContainerValue(); // TODO or should UCF accept null config?
 
-                InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
-                connector.configure(
-                        configuration,
-                        new ConnectorConfigurationOptions()
-                                .generateObjectClasses(ResourceTypeUtil.getSchemaGenerationConstraints(resource))
-                                .doNotCache(!options.isFullMode()),
-                        result);
-
-                if (options.isFullMode()) {
-                    // We need to explicitly initialize the instance, e.g. in case that the schema and capabilities
-                    // cannot be detected by the connector and therefore are provided in the resource
-                    //
-                    // NOTE: the capabilities and schema that are used here are NOT necessarily those that are detected by the resource.
-                    //       The detected schema will come later. The schema here is the one that is stored in the resource
-                    //       definition (ResourceType). This may be schema that was detected previously. But it may also be a schema
-                    //       that was manually defined. This is needed to be passed to the connector in case that the connector
-                    //       cannot detect the schema and needs schema/capabilities definition to establish a connection.
-                    //       Most connectors will just ignore the schema and capabilities that are provided here.
-                    //       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
-                    //
-                    ResourceSchema previousResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
-                    CapabilityCollectionType previousCapabilities =
-                            ResourceTypeUtil.getNativeCapabilitiesCollection(resource);
-                    connector.initialize(
-                            previousResourceSchema,
-                            previousCapabilities,
-                            ResourceTypeUtil.isCaseIgnoreAttributeNames(resource),
-                            result);
-                }
+                CommonBeans.get().connectorManager
+                        .configureAndInitializeConnectorInstance(connector, connectorSpec, options.isFullMode(), result);
 
             } catch (CommunicationException e) {
                 onConfigurationProblem(e, "Communication error", DOWN, result);

@@ -38,10 +38,10 @@ public class ObjectFactory {
     }
 
     /**
-     * Creates {@link RawResourceAttributeDefinition}. It is mutable but not directly instantiable.
+     * Creates {@link ResourceAttributeDefinition}. It is mutable but not directly instantiable.
      */
-    public static <T> MutableRawResourceAttributeDefinition<T> createRawResourceAttributeDefinition(QName name, QName typeName) {
-        return new RawResourceAttributeDefinitionImpl<>(name, typeName);
+    public static <T> RawResourceAttributeDefinition<T> createRawResourceAttributeDefinition(QName name, QName typeName) {
+        return new RawResourceAttributeDefinition<>(name, typeName);
     }
 
     public static ResourceAttributeContainer createResourceAttributeContainer(
@@ -58,10 +58,15 @@ public class ObjectFactory {
         return new ResourceSchemaImpl();
     }
 
-    public static PrismObjectDefinition<ShadowType> constructObjectDefinition(ResourceAttributeContainerDefinition rACD) {
+    public static PrismObjectDefinition<ShadowType> constructObjectDefinition(
+            ResourceAttributeContainerDefinition rACD,
+            ShadowAssociationsContainerDefinition rAsCD) {
         // Almost-shallow clone of object definition and complex type
         PrismObjectDefinition<ShadowType> shadowDefinition =
                 PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-        return shadowDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, rACD);
+        // FIXME eliminate double cloning!
+        return shadowDefinition
+                .cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, rACD)
+                .cloneWithReplacedDefinition(ShadowType.F_ASSOCIATIONS, rAsCD);
     }
 }

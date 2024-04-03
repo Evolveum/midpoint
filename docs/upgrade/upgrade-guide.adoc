@@ -10,7 +10,7 @@
 :page-upkeep-status: green
 :page-toc: top
 
-This document describes the necessary steps to upgrade xref:/midpoint/install/distribution/[MidPoint installation].
+This document describes the necessary steps to upgrade xref:/midpoint/install/bare-installation/distribution/[MidPoint installation].
 It describes the usual steps, risks and consideration for upgrade, therefore it is quite comprehensive.
 
 The document describes upgrade of _production_ environment.
@@ -19,7 +19,7 @@ Upgrades of _evaluation_, _demo_, _development_ and similar environments can usu
 NOTE: Starting with midPoint version 4.8 (also backported to 4.4.6, 4.7.2 and later) ninja tool was extended.
 Multiple new commands related to upgrade procedure were added.
 For simple deployments ninja can perform upgrade of objects, database and binaries.
-For more information see xref:/midpoint/reference/deployment/ninja/upgrade-with-ninja/[Upgrade with ninja].
+For more information see xref:/midpoint/reference/deployment/ninja/use-case/upgrade-with-ninja/[].
 
 WARNING: Please read the *entire* guide *before* starting the upgrade.
 MidPoint is a flexible platform, often deployed in unusual situations.

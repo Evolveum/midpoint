@@ -1,0 +1,6 @@
+:page-visibility: hidden
+//[source,bash]
+// .Notify change operation in regard to passwords change
+// ----
+// curl --user administrator:y0uR_P455woR*d -H "Content-Type: application/json" -X POST http://localhost:8080/midpoint/ws/rest/notifyChange --data-binary @pathToMidpointGit\samples\rest\notify-change-modify-password.json -v
+// ----

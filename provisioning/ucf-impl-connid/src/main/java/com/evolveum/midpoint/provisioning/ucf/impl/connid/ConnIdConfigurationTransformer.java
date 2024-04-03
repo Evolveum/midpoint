@@ -57,19 +57,19 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author semancik
  */
-public class ConnIdConfigurationTransformer {
+class ConnIdConfigurationTransformer {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnIdConfigurationTransformer.class);
 
-    private ConnectorType connectorType;
-    private ConnectorInfo cinfo;
-    private Protector protector;
-    private ConnectorConfigurationOptions options;
+    private final ConnectorType connectorBean;
+    private final ConnectorInfo connectorInfo;
+    private final Protector protector;
+    private final ConnectorConfigurationOptions options;
 
-    public ConnIdConfigurationTransformer(
-            ConnectorType connectorType, ConnectorInfo cinfo, Protector protector, ConnectorConfigurationOptions options) {
-        this.connectorType = connectorType;
-        this.cinfo = cinfo;
+    ConnIdConfigurationTransformer(
+            ConnectorType connectorBean, ConnectorInfo connectorInfo, Protector protector, ConnectorConfigurationOptions options) {
+        this.connectorBean = connectorBean;
+        this.connectorInfo = connectorInfo;
         this.protector = protector;
         this.options = options;
     }
@@ -86,18 +86,18 @@ public class ConnIdConfigurationTransformer {
      * @throws SchemaException
      * @throws ConfigurationException
      */
-    public APIConfiguration transformConnectorConfiguration(PrismContainerValue configuration)
+    APIConfiguration transformConnectorConfiguration(PrismContainerValue<?> configuration)
             throws SchemaException, ConfigurationException {
 
-        APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
+        APIConfiguration apiConfig = connectorInfo.createDefaultAPIConfiguration();
         ConfigurationProperties configProps = apiConfig.getConfigurationProperties();
 
         // The namespace of all the configuration properties specific to the
         // connector instance will have a connector instance namespace. This
         // namespace can be found in the resource definition.
-        String connectorConfNs = connectorType.getNamespace();
+        String connectorConfNs = connectorBean.getNamespace();
 
-        PrismContainer configurationPropertiesContainer = configuration
+        PrismContainer<?> configurationPropertiesContainer = configuration
                 .findContainer(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
         if (configurationPropertiesContainer == null) {
             // Also try this. This is an older way.
@@ -137,21 +137,21 @@ public class ConnIdConfigurationTransformer {
 
     public Collection<PrismProperty<?>> transformSuggestedConfiguration(Map<String, SuggestedValues> suggestions)
             throws SchemaException {
-        APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
+        APIConfiguration apiConfig = connectorInfo.createDefaultAPIConfiguration();
         ConfigurationProperties configProps = apiConfig.getConfigurationProperties();
 
         // The namespace of all the configuration properties specific to the
         // connector instance will have a connector instance namespace.
-        String connectorConfNs = connectorType.getNamespace();
+        String connectorConfNs = connectorBean.getNamespace();
         PrismSchema schema;
         try {
-            schema = ConnectorTypeUtil.parseConnectorSchema(connectorType);
+            schema = ConnectorTypeUtil.parseConnectorSchema(connectorBean);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't parse connector schema: " + e.getMessage(), e);
         }
-        PrismContainerDefinition<ConnectorConfigurationType> connectorConfigDef = ConnectorTypeUtil.findConfigurationContainerDefinition(connectorType, schema);
+        PrismContainerDefinition<ConnectorConfigurationType> connectorConfigDef = ConnectorTypeUtil.findConfigurationContainerDefinition(connectorBean, schema);
         if (connectorConfigDef == null) {
-            throw new SystemException("Couldn't find container definition of connector configuration in connector: " + connectorType.getConnectorType());
+            throw new SystemException("Couldn't find container definition of connector configuration in connector: " + connectorBean.getConnectorType());
         }
 
         Collection<PrismProperty<?>> convertedSuggestions = new ArrayList<>();
@@ -219,17 +219,16 @@ public class ConnIdConfigurationTransformer {
             throws ConfigurationException, SchemaException {
 
         if (configurationPropertiesContainer == null || configurationPropertiesContainer.getValue() == null) {
-            throw new SchemaException("No configuration properties container in " + connectorType);
+            throw new SchemaException("No configuration properties container in " + connectorBean);
         }
 
         int numConfingProperties = 0;
         List<QName> wrongNamespaceProperties = new ArrayList<>();
 
         for (Item<?, ?> item : configurationPropertiesContainer.getValue().getItems()) {
-            if (!(item instanceof PrismProperty)) {
+            if (!(item instanceof PrismProperty<?> prismProperty)) {
                 continue;
             }
-            var prismProperty = (PrismProperty<?>) item;
             QName propertyQName = prismProperty.getElementName();
 
             // All the elements must be in a connector instance
@@ -237,7 +236,7 @@ public class ConnIdConfigurationTransformer {
             if (propertyQName.getNamespaceURI() == null
                     || !propertyQName.getNamespaceURI().equals(connectorConfNs)) {
                 LOGGER.warn("Found element with a wrong namespace ({}) in {}",
-                        propertyQName.getNamespaceURI(), connectorType);
+                        propertyQName.getNamespaceURI(), connectorBean);
                 wrongNamespaceProperties.add(propertyQName);
             } else {
 
@@ -280,10 +279,9 @@ public class ConnIdConfigurationTransformer {
 
         if (connectorPoolContainer != null) {
             for (Item<?, ?> item : connectorPoolContainer.getValue().getItems()) {
-                if (!(item instanceof PrismProperty)) {
+                if (!(item instanceof PrismProperty<?> prismProperty)) {
                     continue;
                 }
-                var prismProperty = (PrismProperty<?>) item;
                 QName propertyQName = prismProperty.getElementName();
                 if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
                     String subelementName = propertyQName.getLocalPart();
@@ -329,15 +327,14 @@ public class ConnIdConfigurationTransformer {
     private void transformConnectorTimeoutsConfiguration(APIConfiguration apiConfig,
             PrismContainer<?> connectorTimeoutsContainer) throws SchemaException {
 
-        if (connectorTimeoutsContainer == null || connectorTimeoutsContainer.getValue() == null) {
+        if (connectorTimeoutsContainer == null) {
             return;
         }
 
         for (Item<?, ?> item : connectorTimeoutsContainer.getValue().getItems()) {
-            if (!(item instanceof PrismProperty)) {
+            if (!(item instanceof PrismProperty<?> prismProperty)) {
                 continue;
             }
-            var prismProperty = (PrismProperty<?>) item;
             QName propertQName = prismProperty.getElementName();
 
             if (SchemaConstants.NS_ICF_CONFIGURATION.equals(propertQName.getNamespaceURI())) {
@@ -356,7 +353,7 @@ public class ConnIdConfigurationTransformer {
     }
 
     private void transformResultsHandlerConfiguration(ResultsHandlerConfiguration resultsHandlerConfiguration,
-            PrismContainer<?> resultsHandlerConfigurationContainer) throws SchemaException {
+            PrismContainer<?> resultsHandlerConfigurationContainer) {
 
         resultsHandlerConfiguration.setEnableNormalizingResultsHandler(
                 determineResultHandlerConfiguration(resultsHandlerConfigurationContainer,
@@ -381,7 +378,7 @@ public class ConnIdConfigurationTransformer {
     }
 
 private boolean determineResultHandlerConfiguration(PrismContainer<?> resultsHandlerConfigurationContainer, ItemName handlerProperty) {
-        if (resultsHandlerConfigurationContainer == null || resultsHandlerConfigurationContainer.getValue() == null) {
+        if (resultsHandlerConfigurationContainer == null) {
             return false;
         }
         PrismProperty<Boolean> property = resultsHandlerConfigurationContainer.getValue().findProperty(handlerProperty);
@@ -405,7 +402,7 @@ private boolean determineResultHandlerConfiguration(PrismContainer<?> resultsHan
         if (realValue instanceof Long) {
             return (Long) realValue;
         } else if (realValue instanceof Integer) {
-            return ((Integer) realValue);
+            return (Integer) realValue;
         } else {
             throw new IllegalArgumentException("Cannot convert " + realValue.getClass() + " to long");
         }

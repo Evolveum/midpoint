@@ -6,38 +6,38 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import java.io.Serial;
-import java.util.*;
-import java.util.Objects;
-import java.util.function.Consumer;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-
-import com.evolveum.midpoint.util.exception.SystemException;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import com.evolveum.midpoint.prism.util.DefinitionUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import static com.evolveum.midpoint.prism.util.CloneUtil.toImmutable;
 import static com.evolveum.midpoint.prism.util.DefinitionUtil.addNamespaceIfApplicable;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.io.Serial;
+import java.util.*;
+import java.util.function.Consumer;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryImpl;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.DefinitionUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * An attribute definition (obtained typically from the connector),
@@ -46,11 +46,14 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * The implementation consists of a pair of {@link #rawDefinition} and {@link #customizationBean},
  * plus some auxiliary information for faster access.
  *
- * NOTE: This structure is used to hold both "raw" and "refined" attributes. See the note for {@link #customizationBean}.
+ * This class intentionally does NOT inherit from {@link PrismPropertyDefinitionImpl}. Instead, a large part of the required
+ * functionality is delegated to {@link #rawDefinition} which inherits from that class.
+ *
+ * @see RawResourceAttributeDefinition
  */
 public class ResourceAttributeDefinitionImpl<T>
         extends AbstractFreezable
-        implements PropertyDefinitionDelegator<T>, ResourceAttributeDefinition<T> {
+        implements ResourceAttributeDefinition<T> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -105,12 +108,9 @@ public class ResourceAttributeDefinitionImpl<T>
     /**
      * Version without customization bean. Throws no checked exceptions.
      */
-    private ResourceAttributeDefinitionImpl(
-            @NotNull RawResourceAttributeDefinition<T> rawDefinition) {
+    private ResourceAttributeDefinitionImpl(@NotNull RawResourceAttributeDefinition<T> rawDefinition) {
 
         assert rawDefinition.isImmutable();
-
-        checkReallyRaw(rawDefinition);
 
         this.currentLayer = DEFAULT_LAYER;
         this.rawDefinition = rawDefinition;
@@ -138,8 +138,6 @@ public class ResourceAttributeDefinitionImpl<T>
         assert rawDefinition.isImmutable();
         assert customizationBean.isImmutable();
 
-        checkReallyRaw(rawDefinition);
-
         this.currentLayer = DEFAULT_LAYER;
         this.rawDefinition = rawDefinition;
         this.customizationBean = customizationBean;
@@ -159,40 +157,11 @@ public class ResourceAttributeDefinitionImpl<T>
         assert rawDefinition.isImmutable();
         assert customizationBean.isImmutable();
 
-        checkReallyRaw(rawDefinition);
-
         this.currentLayer = layer;
         this.rawDefinition = rawDefinition;
         this.customizationBean = customizationBean;
         this.limitationsMap = limitationsMap;
         this.accessOverride = accessOverride;
-    }
-
-    /**
-     * Checks that the definition is not "complete" one. If it's complete, everything would probably work,
-     * but not as expected - we assume that the raw definition is really "raw".
-     */
-    private void checkReallyRaw(RawResourceAttributeDefinition<T> rawDefinition) {
-        if (rawDefinition instanceof ResourceAttributeDefinition<?>) {
-            throw new IllegalStateException("Trying to use \"full\" ResourceAttributeDefinition where "
-                    + "a raw one is expected: " + rawDefinition + " (" + rawDefinition.getClass().getName() + ")");
-        }
-    }
-
-    /**
-     * Creates the definition from a {@link ResourceAttributeDefinition} containing only the raw part.
-     *
-     * TODO how we should call such definitions?
-     *
-     * @throws SchemaException If there's a problem with the customization bean.
-     */
-    public static <T> ResourceAttributeDefinition<T> create(
-            @NotNull ResourceAttributeDefinition<T> definitionProvidingRawData,
-            @Nullable ResourceAttributeDefinitionType customizationBean)
-            throws SchemaException {
-        return create(
-                definitionProvidingRawData.getRawAttributeDefinition(),
-                customizationBean);
     }
 
     /**
@@ -229,7 +198,8 @@ public class ResourceAttributeDefinitionImpl<T>
                     rawDefinition,
                     customizationBean,
                     limitationsMap,
-                    accessOverride.clone()); // TODO do we want to preserve also the access override?
+                    accessOverride.clone() // TODO do we want to preserve also the access override?
+            );
         }
     }
 
@@ -395,36 +365,76 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public boolean isAbstract() {
+        return rawDefinition.isAbstract(); // most probably false
+    }
+
+    @Override
+    public boolean isDeprecated() {
+        return rawDefinition.isDeprecated(); // most probably false
+    }
+
+    @Override
+    public boolean isRemoved() {
+        return rawDefinition.isRemoved(); // most probably false
+    }
+
+    @Override
+    public String getRemovedSince() {
+        return rawDefinition.getRemovedSince(); // most probably null
+    }
+
+    @Override
+    public boolean isExperimental() {
+        return rawDefinition.isExperimental(); // most probably false
+    }
+
+    @Override
+    public String getPlannedRemoval() {
+        return rawDefinition.getPlannedRemoval(); // most probably null
+    }
+
+    @Override
+    public boolean isElaborate() {
+        return rawDefinition.isElaborate(); // most probably null
+    }
+
+    @Override
+    public String getDeprecatedSince() {
+        return rawDefinition.getDeprecatedSince(); // most probably null
+    }
+
+    @Override
     public ItemProcessing getProcessing(LayerType layer) {
         return limitationsMap.get(layer).getProcessing();
     }
 
     @Override
     public String getDisplayName() {
-        if (customizationBean.getDisplayName() != null) {
-            return customizationBean.getDisplayName();
-        }
-        if (rawDefinition.getDisplayName() != null) {
-            return rawDefinition.getDisplayName();
-        }
-        if (StringUtils.isNotEmpty(rawDefinition.getNativeAttributeName())) {
-            return rawDefinition.getNativeAttributeName();
-        }
-        return null;
+        return MiscUtil.orElseGet(
+                customizationBean.getDisplayName(),
+                rawDefinition::getDisplayName);
     }
 
     @Override
     public Integer getDisplayOrder() {
-        if (customizationBean.getDisplayOrder() != null) {
-            return customizationBean.getDisplayOrder();
-        } else {
-            return rawDefinition.getDisplayOrder();
-        }
+        return MiscUtil.orElseGet(
+                customizationBean.getDisplayOrder(),
+                rawDefinition::getDisplayOrder);
+    }
+
+    @Override
+    public String getHelp() {
+        return MiscUtil.orElseGet(
+                customizationBean.getHelp(),
+                rawDefinition::getHelp);
     }
 
     @Override
     public String getDescription() {
-        return customizationBean.getDescription();
+        return MiscUtil.orElseGet(
+                customizationBean.getDescription(),
+                rawDefinition::getDescription);
     }
 
     @Override
@@ -440,11 +450,6 @@ public class ResourceAttributeDefinitionImpl<T>
     @Override
     public @NotNull List<InboundMappingType> getInboundMappingBeans() {
         return customizationBean.getInbound();
-    }
-
-    @Override
-    public RawResourceAttributeDefinition<T> delegate() {
-        return rawDefinition;
     }
 
     @Override
@@ -480,21 +485,46 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public boolean isOperational() {
+        return false;
+    }
+
+    @Override
     public boolean isIndexOnly() {
         return getStorageStrategy() == AttributeStorageStrategyType.INDEX_ONLY;
     }
 
     @Override
+    public boolean isInherited() {
+        return rawDefinition.isInherited(); // probably false
+    }
+
+    @Override
+    public boolean isDynamic() {
+        return rawDefinition.isDynamic(); // probably false?
+    }
+
+    @Override
+    public QName getSubstitutionHead() {
+        return rawDefinition.getSubstitutionHead(); // probably null
+    }
+
+    @Override
+    public boolean isHeterogeneousListItem() {
+        return rawDefinition.isHeterogeneousListItem(); // probably false
+    }
+
+    @Override
     public PrismReferenceValue getValueEnumerationRef() {
-        return null;
+        return rawDefinition.getValueEnumerationRef(); // probably false
     }
 
     @Override
     public boolean isValidFor(
             @NotNull QName elementQName, @NotNull Class<? extends ItemDefinition<?>> clazz, boolean caseInsensitive) {
         //noinspection unchecked,rawtypes
-        return clazz.isAssignableFrom(ResourceAttributeDefinitionImpl.class) &&
-                rawDefinition.isValidFor(elementQName, (Class) ItemDefinition.class, caseInsensitive);
+        return clazz.isAssignableFrom(ResourceAttributeDefinitionImpl.class)
+                && rawDefinition.isValidFor(elementQName, (Class) ItemDefinition.class, caseInsensitive);
     }
 
     @Override
@@ -520,6 +550,11 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public @NotNull ItemName getItemName() {
+        return rawDefinition.getItemName();
+    }
+
+    @Override
     public int getMinOccurs() {
         return getMinOccurs(currentLayer);
     }
@@ -542,15 +577,34 @@ public class ResourceAttributeDefinitionImpl<T>
 
     @Override
     public String getDocumentation() {
-        if (customizationBean.getDocumentation() != null) {
-            return customizationBean.getDocumentation();
-        }
-        return rawDefinition.getDocumentation();
+        return MiscUtil.orElseGet(
+                customizationBean.getDocumentation(),
+                rawDefinition::getDocumentation);
+    }
+
+    @Override
+    public String getDocumentationPreview() {
+        return rawDefinition.getDocumentationPreview(); // probably null
     }
 
     @Override
     public <A> void setAnnotation(QName qname, A value) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Nullable Map<QName, Object> getAnnotations() {
+        return rawDefinition.getAnnotations();
+    }
+
+    @Override
+    public @Nullable List<SchemaMigration> getSchemaMigrations() {
+        return rawDefinition.getSchemaMigrations(); // probably none
+    }
+
+    @Override
+    public List<ItemDiagramSpecification> getDiagrams() {
+        return rawDefinition.getDiagrams(); // probably none
     }
 
     @Override
@@ -570,17 +624,41 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public Boolean isIndexed() {
+        return true; // TODO reconsider
+    }
+
+    @Override
     public Boolean isCached() {
         return customizationBean.isCached();
     }
 
     @Override
+    public @Nullable Collection<? extends DisplayableValue<T>> getAllowedValues() {
+        return rawDefinition.getAllowedValues();
+    }
+
+    @Override
+    public @Nullable Collection<? extends DisplayableValue<T>> getSuggestedValues() {
+        return rawDefinition.getSuggestedValues();
+    }
+
+    @Override
+    public @Nullable T defaultValue() {
+        return rawDefinition.defaultValue();
+    }
+
+    @Override
     public QName getMatchingRuleQName() {
-        if (customizationBean.getMatchingRule() != null) {
-            return customizationBean.getMatchingRule();
-        } else {
-            return rawDefinition.getMatchingRuleQName();
-        }
+        return MiscUtil.orElseGet(
+                customizationBean.getMatchingRule(),
+                rawDefinition::getMatchingRuleQName);
+    }
+
+    @Override
+    public @NotNull MatchingRule<T> getMatchingRule() {
+        return MatchingRuleRegistryImpl.instance()
+                .getMatchingRuleSafe(getMatchingRuleQName(), getTypeName());
     }
 
     @Override
@@ -656,6 +734,16 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public boolean canBeDefinitionOf(PrismProperty<T> item) {
+        return rawDefinition.canBeDefinitionOf(item);
+    }
+
+    @Override
+    public boolean canBeDefinitionOf(@NotNull PrismValue pvalue) {
+        return rawDefinition.canBeDefinitionOf(pvalue);
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
@@ -688,6 +776,10 @@ public class ResourceAttributeDefinitionImpl<T>
             addOverride(sb, 'R', accessOverride.isRead());
             addOverride(sb, 'A', accessOverride.isAdd());
             addOverride(sb, 'M', accessOverride.isModify());
+        }
+        var matchingRuleQName = getMatchingRuleQName();
+        if (matchingRuleQName != null) {
+            sb.append(",MR=").append(PrettyPrinter.prettyPrint(matchingRuleQName));
         }
         return sb.toString();
     }
@@ -790,10 +882,10 @@ public class ResourceAttributeDefinitionImpl<T>
 
     @Override
     public ResourceAttributeDefinition<T> spawnModifyingRaw(
-            @NotNull Consumer<MutableRawResourceAttributeDefinition<T>> rawPartCustomizer) {
+            @NotNull Consumer<RawResourceAttributeDefinition<T>> rawPartCustomizer) {
         try {
             return ResourceAttributeDefinitionImpl.create(
-                    RawResourceAttributeDefinitionImpl.spawn(rawDefinition, rawPartCustomizer),
+                    RawResourceAttributeDefinition.spawn(rawDefinition, rawPartCustomizer),
                     customizationBean);
         } catch (SchemaException e) {
             // The customization bean should not have any schema problems at this time.
@@ -824,5 +916,40 @@ public class ResourceAttributeDefinitionImpl<T>
     @Override
     public @NotNull LayerType getCurrentLayer() {
         return currentLayer;
+    }
+
+    @Override
+    public @NotNull QName getTypeName() {
+        return rawDefinition.getTypeName();
+    }
+
+    @Override
+    public boolean isRuntimeSchema() {
+        return false;
+    }
+
+    @Override
+    public @NotNull Class<T> getTypeClass() {
+        return rawDefinition.getTypeClass();
+    }
+
+    @Override
+    public <A> A getAnnotation(QName qname) {
+        return null;
+    }
+
+    @Override
+    public boolean hasRefinements() {
+        return !customizationBean.asPrismContainerValue().isEmpty();
+    }
+
+    @Override
+    public void accept(Visitor<Definition> visitor) {
+        rawDefinition.accept(visitor);
+    }
+
+    @Override
+    public boolean isOptionalCleanup() {
+        return false; // TODO is this ok?
     }
 }

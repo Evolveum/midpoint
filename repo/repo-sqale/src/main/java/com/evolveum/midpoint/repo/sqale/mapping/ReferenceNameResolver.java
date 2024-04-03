@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.util.*;
 
+import com.evolveum.midpoint.repo.sqlbase.SqlBaseOperationTracker;
+
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,24 +74,30 @@ public abstract class ReferenceNameResolver {
 
         @Override
         protected <S> S resolve(S object, JdbcSession session) {
+
             if (!(object instanceof Containerable)) {
                 return object;
             }
-            PrismContainerValue<?> container = ((Containerable) object).asPrismContainerValue();
-            Visitor initialWalk = visitable -> {
-                if (visitable instanceof PrismReferenceValue) {
-                    initialVisit((PrismReferenceValue) visitable);
-                }
-            };
-            container.accept(initialWalk);
-            resolveNames(session);
-            Visitor updater = visitable -> {
-                if (visitable instanceof PrismReferenceValue) {
-                    updateReference((PrismReferenceValue) visitable);
-                }
-            };
-            container.accept(updater);
-            return object;
+            var result = SqlBaseOperationTracker.resolveNames();
+            try {
+                PrismContainerValue<?> container = ((Containerable) object).asPrismContainerValue();
+                Visitor initialWalk = visitable -> {
+                    if (visitable instanceof PrismReferenceValue) {
+                        initialVisit((PrismReferenceValue) visitable);
+                    }
+                };
+                container.accept(initialWalk);
+                resolveNames(session);
+                Visitor updater = visitable -> {
+                    if (visitable instanceof PrismReferenceValue) {
+                        updateReference((PrismReferenceValue) visitable);
+                    }
+                };
+                container.accept(updater);
+                return object;
+            } finally {
+                result.close();
+            }
         }
 
         private void resolveNames(JdbcSession session) {

@@ -10,10 +10,14 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.test.asserter.PendingOperationsAsserter;
+
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -31,12 +35,10 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -101,6 +103,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
         resourceBean = resource.asObjectable();
         assertSuccess(result);
         rememberSteadyResources();
+
+        addAccountDaemon(result);
     }
 
     /**
@@ -114,50 +118,49 @@ public class TestDummyConsistency extends AbstractDummyTest {
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        PrismObject<ShadowType> account = prismContext.parseObject(getAccountWillFile());
-        account.checkConsistence();
-        display("Adding shadow", account);
+        PrismObject<ShadowType> accountToAdd = prismContext.parseObject(getAccountWillFile());
+        accountToAdd.checkConsistence();
+        display("Adding shadow", accountToAdd);
 
         when();
-        String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
+        String addedObjectOid = provisioningService.addObject(accountToAdd, null, null, task, result);
 
         then();
         assertSuccess(result);
         assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
-                ACCOUNT_WILL_OID, null, task, result);
+        var accountAfter = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
 
-        display("Account provisioning", accountProvisioning);
         // @formatter:off
-        ShadowAsserter.forShadow(accountProvisioning)
-            .assertNoLegacyConsistency()
-            .pendingOperations()
-                .assertNone();
+        ShadowAsserter.forShadow(accountAfter)
+                .display()
+                .assertNoLegacyConsistency()
+                .pendingOperations()
+                    .assertNone();
         // @formatter:on
 
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(transformNameFromResource(ACCOUNT_WILL_USERNAME));
+        DummyAccount dummyAccount = dummyResource.getAccountByUsername(getWillNameOnResource());
         assertNotNull("No dummy account", dummyAccount);
-        assertEquals("Username is wrong", transformNameFromResource(ACCOUNT_WILL_USERNAME), dummyAccount.getName());
+        assertEquals("Username is wrong", getWillNameOnResource(), dummyAccount.getName());
         assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
         assertTrue("The account is not enabled", dummyAccount.isEnabled());
         assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD, dummyAccount.getPassword());
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        PrismObject<ShadowType> shadowFromRepo = getShadowRepo(addedObjectOid);
-        assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        display("Repository shadow", shadowFromRepo);
+        var repoShadow = getShadowRepo(addedObjectOid);
+        assertNotNull("Shadow was not created in the repository", repoShadow);
+        display("Repository shadow", repoShadow);
 
-        checkRepoAccountShadow(shadowFromRepo);
+        checkRepoAccountShadow(repoShadow);
         // @formatter:off
-        ShadowAsserter.forShadow(shadowFromRepo)
-            .assertNoLegacyConsistency()
-            .pendingOperations()
-                .assertNone();
+        RepoShadowAsserter.forRepoShadow(repoShadow, List.of())
+                .assertNoLegacyConsistency()
+                .pendingOperations()
+                    .assertNone();
         // @formatter:on
 
-        checkUniqueness(accountProvisioning);
+        checkUniqueness(accountAfter);
         assertSteadyResources();
     }
 
@@ -232,7 +235,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(ACCOUNT_MORGAN_OID);
 
         when();
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
@@ -299,7 +302,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(ACCOUNT_MORGAN_OID);
 
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -335,7 +338,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(ACCOUNT_MORGAN_OID);
 
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -353,7 +356,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     }
 
     protected void assertMorganDead() throws Exception {
-        PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_MORGAN_OID);
+        PrismObject<ShadowType> repoShadow = getShadowRepoLegacy(ACCOUNT_MORGAN_OID);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
         // @formatter:off
@@ -430,16 +433,16 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.resetBreakMode();
 
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(transformNameFromResource(ACCOUNT_WILL_USERNAME));
+        DummyAccount dummyAccount = dummyResource.getAccountByUsername(getWillNameOnResource());
         assertNotNull("No dummy account", dummyAccount);
-        assertEquals("Username is wrong", transformNameFromResource(ACCOUNT_WILL_USERNAME), dummyAccount.getName());
+        assertEquals("Username is wrong", getWillNameOnResource(), dummyAccount.getName());
         assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
         assertTrue("The account is not enabled", dummyAccount.isEnabled());
         assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD, dummyAccount.getPassword());
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-
-        checkUniqueness(shadowProvisioningFutureAsserter.getObject());
+        // We must not limit ourselves to live shadows only (as the shadow is dead)
+        checkUniqueness(AbstractShadow.of(shadowProvisioningFutureAsserter.getObject()), false); // FIXME remove the conversions here
 
         assertSteadyResources();
     }
@@ -459,7 +462,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(ACCOUNT_MORGAN_OID);
 
         when();
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
@@ -485,8 +488,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_MORGAN_FILE);
-        // Reset morgan OID. We cannot use the same OID, as there is a dead shadow with
-        // the original OID.
+        // Reset morgan OID. We cannot use the same OID, as there is a dead shadow with the original OID.
         account.setOid(null);
         account.checkConsistence();
         display("Adding shadow", account);
@@ -523,7 +525,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         clockForward("PT5M");
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         when();
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
@@ -554,7 +556,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.resetBreakMode();
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -622,7 +624,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         // WHEN
         when();
@@ -654,7 +656,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         when();
         task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
@@ -686,7 +688,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -724,7 +726,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -759,7 +761,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         // WHEN
         when();
@@ -928,7 +930,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.resetBreakMode();
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -993,7 +995,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         // WHEN
         when();
@@ -1026,7 +1028,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -1064,7 +1066,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -1098,7 +1100,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         // WHEN
         when();
@@ -1160,7 +1162,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.resetBreakMode();
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -1176,6 +1178,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertDeadShadowNotify();
 
         assertDeletedMorgan(2, 5);
+
+        // This is just to make the "read" counters happy. Obviously, there is some difference in behavior between
+        // "normal" and "reaper" version of this test, regarding the resource read operations. In the "reaper" version,
+        // the resource is being read later. So, this dummy read just unifies the behavior; without the risk
+        // of missing eventual excessive reads (as they are checked also later).
+        provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
         // Resource -> up
         assertResourceStatusChangeCounterIncrements();
@@ -1205,7 +1213,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.resetBreakMode();
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(ACCOUNT_MORGAN_OID);
 
         // WHEN
         when();
@@ -1263,10 +1271,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.resetBreakMode();
 
-        // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-
-        checkUniqueness(asserterShadowFuture.getObject());
-
         assertSteadyResources();
     }
 
@@ -1289,7 +1293,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.resetBreakMode();
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         // WHEN
         when();
@@ -1357,7 +1361,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.resetBreakMode();
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(ACCOUNT_MORGAN_OID);
 
         // WHEN
         when();
@@ -1392,7 +1396,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.resetBreakMode();
 
-        PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> shadowRepoBefore = getShadowRepoLegacy(shadowMorganOid);
 
         // WHEN
         when();
@@ -1446,10 +1450,10 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertFailure(result);
         account.checkConsistence();
 
-        PrismObject<ShadowType> conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_MORGAN_NAME, getResource(), result);
+        var conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_MORGAN_NAME, getResource(), result);
         assertNotNull("Shadow for conflicting object was not created in the repository", conflictingShadowRepo);
         // @formatter:off
-        ShadowAsserter.forShadow(conflictingShadowRepo,"conflicting repo shadow")
+        RepoShadowAsserter.forRepoShadow(conflictingShadowRepo,List.of(), "conflicting repo shadow")
             .display()
             .assertBasicRepoProperties()
             .assertOidDifferentThan(shadowMorganOid)
@@ -1523,7 +1527,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         account.checkConsistence();
 
         // @formatter:off
-        PrismObject<ShadowType> conflictingShadowRepo = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> conflictingShadowRepo = getShadowRepoLegacy(shadowMorganOid);
         ShadowAsserter.forShadow(conflictingShadowRepo,"conflicting repo shadow")
             .display()
             .assertBasicRepoProperties()
@@ -1548,7 +1552,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                     .assertName(ACCOUNT_MORGAN_NAME)
                     .assertKind(ShadowKindType.ACCOUNT)
                     .assertNotDead()
-                    .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+                    .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
                     .assertIsExists()
                     .attributes()
                         .assertHasPrimaryIdentifier()
@@ -1623,10 +1627,10 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         assertFailure(result);
 
-        PrismObject<ShadowType> conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_BETTY_USERNAME, getResource(), result);
+        var conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_BETTY_USERNAME, getResource(), result);
         assertNotNull("Shadow for conflicting object was not created in the repository", conflictingShadowRepo);
         // @formatter:off
-        ShadowAsserter.forShadow(conflictingShadowRepo,"conflicting repo shadow")
+        RepoShadowAsserter.forRepoShadow(conflictingShadowRepo,List.of(), "conflicting repo shadow")
             .display()
             .assertBasicRepoProperties()
             .assertOidDifferentThan(ACCOUNT_ELIZABETH_OID)
@@ -1650,7 +1654,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                     .assertKind(ShadowKindType.ACCOUNT)
                     .assertNotDead()
                     .assertIsExists()
-                    .assertPrimaryIdentifierValue(ACCOUNT_BETTY_USERNAME)
+                    .assertIndexedPrimaryIdentifierValue(ACCOUNT_BETTY_USERNAME)
                     .attributes()
                         .assertHasPrimaryIdentifier()
                         .assertHasSecondaryIdentifier()
@@ -1698,10 +1702,10 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         assertFailure(result);
 
-        PrismObject<ShadowType> conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_BETTY_USERNAME, getResource(), result);
+        var conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_BETTY_USERNAME, getResource(), result);
         assertNotNull("Shadow for conflicting object was not created in the repository", conflictingShadowRepo);
         // @formatter:off
-        ShadowAsserter.forShadow(conflictingShadowRepo, "conflicting repo shadow")
+        RepoShadowAsserter.forRepoShadow(conflictingShadowRepo, List.of(), "conflicting repo shadow")
             .display()
             .assertBasicRepoProperties()
             .assertOidDifferentThan(ACCOUNT_ELIZABETH_OID)
@@ -1725,7 +1729,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                     .assertKind(ShadowKindType.ACCOUNT)
                     .assertNotDead()
                     .assertIsExists()
-                    .assertPrimaryIdentifierValue(ACCOUNT_BETTY_USERNAME)
+                    .assertIndexedPrimaryIdentifierValue(ACCOUNT_BETTY_USERNAME)
                     .attributes()
                         .assertHasPrimaryIdentifier()
                         .assertHasSecondaryIdentifier()
@@ -1987,7 +1991,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                     .assertKind(ShadowKindType.ACCOUNT)
                     .assertNotDead()
                     .assertIsExists()
-                    .assertPrimaryIdentifierValue(ACCOUNT_ELIZABETH_USERNAME)
+                    .assertIndexedPrimaryIdentifierValue(ACCOUNT_ELIZABETH_USERNAME)
                     .attributes()
                         .assertHasPrimaryIdentifier()
                         .assertHasSecondaryIdentifier()
@@ -2082,7 +2086,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         when("no connection");
         assertInProgress(result);
 
-        ShadowAsserter.forShadow(getShadowRepo(shadowMorganOid), "repository")
+        ShadowAsserter.forShadow(getShadowRepoLegacy(shadowMorganOid), "repository")
                 .display()
                 .pendingOperations()
                     .assertOperations(2);
@@ -2271,7 +2275,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(asserterFuture.getObject());
+        checkUniqueness(AbstractShadow.of(asserterFuture.getObject()), true); // FIXME remove these conversions here
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -2282,7 +2286,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertKind(ShadowKindType.ACCOUNT)
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
@@ -2305,7 +2309,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertShadowNoFetch(shadowMorganOid)
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertResourceAttributeContainer()
@@ -2329,7 +2333,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertShadowProvisioning(shadowMorganOid)
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertResourceAttributeContainer()
@@ -2341,7 +2345,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         ShadowAsserter<Void> asserterFuture = assertShadowFuture(shadowMorganOid)
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertResourceAttributeContainer()
@@ -2355,7 +2359,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         dummyResource.resetBreakMode();
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(asserterFuture.getObject());
+        checkUniqueness(AbstractShadow.of(asserterFuture.getObject()), true); // FIXME remove these conversions here
 
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
                 .assertName(ACCOUNT_MORGAN_NAME)
@@ -2368,7 +2372,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             int expectedAttemptNumber, int expectedNumberOfPendingOperations, String expectedFullName)
             throws Exception {
 
-        PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> repoShadow = getShadowRepoLegacy(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
         // @formatter:off
@@ -2395,7 +2399,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertKind(ShadowKindType.ACCOUNT)
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
@@ -2420,7 +2424,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertResourceAttributeContainer()
@@ -2437,7 +2441,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .display()
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertResourceAttributeContainer()
@@ -2452,7 +2456,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .display()
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertResourceAttributeContainer()
@@ -2463,7 +2467,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(accountProvisioningFuture);
+        checkUniqueness(AbstractShadow.of(accountProvisioningFuture), true); // FIXME remove this conversion here
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
@@ -2478,7 +2482,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             int expectedAttemptNumber, int expectedNumberOfPendingOperations, String expectedFullName)
             throws Exception {
 
-        PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> repoShadow = getShadowRepoLegacy(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
         // @formatter:off
@@ -2507,7 +2511,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertKind(ShadowKindType.ACCOUNT)
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
@@ -2574,7 +2578,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(accountProvisioningFuture);
+        checkUniqueness(AbstractShadow.of(accountProvisioningFuture), true); // FIXME remove this conversion here
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
@@ -2585,7 +2589,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     }
 
     private void assertMorganModifyFailed() throws Exception {
-        PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> repoShadow = getShadowRepoLegacy(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
         // @formatter:off
@@ -2611,7 +2615,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertKind(ShadowKindType.ACCOUNT)
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
@@ -2674,7 +2678,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(accountProvisioningFuture);
+        checkUniqueness(AbstractShadow.of(accountProvisioningFuture), true); // FIXME remove this conversion here
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
@@ -2686,7 +2690,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     private void assertUndeletedMorgan(int expectedAttemptNumber, int expectedNumberOfPendingOperations) throws Exception {
 
-        PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> repoShadow = getShadowRepoLegacy(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
         // @formatter:off
@@ -2778,7 +2782,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(accountProvisioningFuture);
+        checkUniqueness(AbstractShadow.of(accountProvisioningFuture), true); // FIXME remove this conversion here
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
@@ -2789,7 +2793,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     }
 
     private void assertMorganDeleteFailed() throws Exception {
-        PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> repoShadow = getShadowRepoLegacy(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
         // @formatter:off
@@ -2816,7 +2820,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertKind(ShadowKindType.ACCOUNT)
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
@@ -2857,7 +2861,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .display()
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertResourceAttributeContainer()
@@ -2872,7 +2876,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .display()
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
                 .assertResourceAttributeContainer()
@@ -2882,7 +2886,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        checkUniqueness(accountProvisioningFuture);
+        checkUniqueness(AbstractShadow.of(accountProvisioningFuture), true); // FIXME remove this conversion here
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
@@ -2895,7 +2899,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     @SuppressWarnings("SameParameterValue")
     protected void assertDeletedMorgan(int expectedAttemptNumber, int expectedNumberOfPendingOperations) throws Exception {
 
-        PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
+        PrismObject<ShadowType> repoShadow = getShadowRepoLegacy(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
         // @formatter:off

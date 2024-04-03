@@ -29,6 +29,8 @@ import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
@@ -91,7 +93,7 @@ public class MappingTestEvaluator {
     private void init(boolean withMetadata) throws SchemaException, SAXException, IOException {
         this.withMetadata = withMetadata;
 
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
 
         ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans();
 

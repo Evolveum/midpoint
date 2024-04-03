@@ -3,8 +3,6 @@
 :page-display-order: 100
 :page-toc: top
 :toclevels: 2
-:sectnums:
-:sectnumlevels: 3
 
 
 This document provides introduction to the *midPoint Query Language*.
@@ -49,9 +47,9 @@ In its simplest form it is a name of object _property_, or names of items and co
 === Filter Name
 Item path is followed by filter name or its alias, which specifies which filtering condition should be used.
 
-Following tables summarizes common property filters:
-
 ==== Comparison filters
+
+Following tables summarizes common property filters:
 
 [options="header", cols="15,10,30", width=70]
 |====
@@ -76,7 +74,24 @@ less filter - All users which will not be valid after 2021
 Comparison filters also supports item path on right side of filter.
 For example `activation/validFrom > activation/validTo` should return all objects with incorrectly set activations (activation start is after activation end).
 
+[#_matching_rules]
+==== Matching rules
+Comparison filter can be even more specified by definition of matching rule in the filter.
+The syntax of matching rule in query is: `filter[matchingRuleName]`
+
+.Example of matching rules usage
+`givenName =[origIgnoreCase] "Adam"`::
+query matches all 'Adam', 'adam' or 'ADAM' in givenName
+`emailAddress endsWith[stringIgnoreCase] "@test.com"`::
+query matches user with email address ending with specific domain.
+
+See different matching rules in the examples above.
+There are different matching rules defined for PolyStringType (givenName) and strings (emailAddress).
+List of all matching rules is defined in xref:../../matching-rules.adoc[matching rules] page.
+
 ==== String filters
+
+Following table summarizes additional filters that can be applied on string and polystring values.
 
 [options="header", cols="15,40", width=70]
 |====
@@ -94,9 +109,55 @@ Value is usually a string literal, enclosed in double quotes.
 However, value may take various forms.
 For example, it may be a path of another item, e.g. in case when the query compares two items.
 The value may be also quite complex.
-The exact form of the value part of the filter depends on the operator.
 
-Numeric values and QNames does not need double quotes.
+The exact form of the value part of the filter depends on the operator and type of the value.
+
+==== Querying values of different types
+
+The exact syntax of queries for values of different types is described in the following table:
+
+[options="header", cols="10,30, 60", width=80]
+|====
+| Type | Query | Note
+
+| boolean
+| `extension/coreMember = true`
+| Boolean values do not need quotes. Allowed values are `true` and `false`.
+
+| string
+| `emailAddress endsWith "testorg.com"`
+| String values are enclosed in quotes (') or double quotes (").
+
+| PolystringType
+| `givenName = 'Adam'`
+| Values of PolystringType are enclosed in quotes (') or double quotes (").
+
+| int
+| `extension/height > 170`
+| Number values do not need quotes. Only common property filters (=,>, ..) are defined for number types.
+
+| float
+| `extension/perfScore > 1.05`
+| Number values do not need quotes. Only common property filters (=,>, ..) are defined for number types.
+
+| dateTime
+| `metadata/createTimestamp >= "2024-03-01"`
+| DateTime values are enclosed in quotes (') or double quotes ("). It can be compared as dates or date and time - written in format of xref:https://en.wikipedia.org/wiki/ISO_8601[ISO-8601].
+
+|
+| `metadata/createTimestamp >= "2024-03-01T15:30:00"`
+| While comparing time values. DateTime values entered without timezone are considered to be in the same timezone as running midPoint.
+
+|
+| `extension/empStartDate >= "2019-10-01" and extension/empStartDate < "2019-10-02"`
+| As datetime values contain exact time value up to milliseconds you need to compare dates as intervals. See examples.
+
+| ObjectReferenceType
+| `assignment/targetRef/@/name = "End user"`
+| Object references are queries using `matches` filter or dereferencing operator `@`. See <<Advanced filters>> chapter below.
+|====
+
+
 
 === Logical Filters
 
@@ -124,7 +185,7 @@ There is a usual set of logic operators:
 | Any of the subfilters is true.
 
 | `not`
-| `givenName not startsWith "J"`
+| `givenName not startsWith "J"` +
 `givenName != "John"`
 | Logical negation. Not prefixes filter name (as seen in example).
 
@@ -198,9 +259,9 @@ The second filter with match user who has an assignment which starts in 2022 and
 === Reference Filters
 
 Reference filters allows to match on references themselves using
-<<Reference matches filter, matches>> or on properties of referenced objects using <<Dereferencing, dereferencing>>
+`matches` filter on properties of referenced objects using dereferencing operator (`@`).
 
-You can also perform inverse search using <<referencedBy filter, referencedBy>> to search
+You can also perform inverse queries using `referencedBy` filter to search
 for object by properties of it's referencer (e.g. search roles by properties of its members).
 
 ==== Reference matches filter
@@ -243,7 +304,7 @@ IMPORTANT: If you need to match referenced object on multiple properties you sho
 
 ==== Dereferencing inside reference matches filter
 
-NOTE: This feature is currently supported in midPoint 4.6 Postgres native repository only
+NOTE: This feature is currently supported in midPoint native repository only
 
 If user wants to match on properties of reference itself and also on properties of it's target
 it is possible now, using dereferencing inside `reference matches` filter.
@@ -292,7 +353,7 @@ The short query syntax is:
 
 ==== ownedBy Filter
 
-NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
+NOTE: Filter is currently supported in midPoint native repository only
 
 ownedBy filter allows for matching indexed containers based on properties of their parent (owning object or container).
 
@@ -418,9 +479,8 @@ allows us to filter on properties of the target
 ----
 
 ==== All roles, which are assigned using inducement
-NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
+NOTE: Filter is currently supported in midPoint native repository only
 
-// All roles which are assigned using inducement
 .midPoint Query
 ----
 . referencedBy (
@@ -451,7 +511,3 @@ assignment/targetRef/@ matches (
 )
 ----
 
-
-//=== Query in configuration object
-
-//TODO - tu ako dat query do tasku na recompute vsetkych userov, ktori maju rolu "End user"

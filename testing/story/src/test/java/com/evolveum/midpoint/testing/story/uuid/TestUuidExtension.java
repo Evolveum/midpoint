@@ -166,7 +166,7 @@ public class TestUuidExtension extends AbstractUuidTest {
         // TODO: cn, sn, givenName
 
         // MID-5114
-        assertAttribute(resourceOpenDj, shadow.asObjectable(), ATTR_DEPARTMENT_NUMBER, user.getOid());
+        assertAttribute(shadow.asObjectable(), ATTR_DEPARTMENT_NUMBER, user.getOid());
     }
 
     private void assertNoLdapEmployee(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {

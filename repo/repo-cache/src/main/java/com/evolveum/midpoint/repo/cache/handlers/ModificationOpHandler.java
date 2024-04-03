@@ -59,7 +59,7 @@ public class ModificationOpHandler extends BaseOpHandler {
         RepositoryAddTraceType trace;
         TracingLevelType level = result.getTracingLevel(RepositoryAddTraceType.class);
         if (isAtLeastMinimal(level)) {
-            trace = new RepositoryAddTraceType(prismContext)
+            trace = new RepositoryAddTraceType()
                     .options(String.valueOf(options));
             result.addTrace(trace);
         } else {

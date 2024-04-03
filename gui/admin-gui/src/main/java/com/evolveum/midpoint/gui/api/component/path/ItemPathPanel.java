@@ -326,7 +326,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
     private Map<QName, Collection<ItemDefinition<?>>> initNamspaceDefinitionMap() {
         Map<QName, Collection<ItemDefinition<?>>> schemaDefinitionsMap = new HashMap<>();
         if (getModelObject().getObjectType() != null) {
-            Class clazz = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
+            Class clazz = WebComponentUtil.qnameToClass(
                     getModelObject().getObjectType());
             if (clazz != null) {
                 PrismObjectDefinition<?> objectDef = getPageBase().getPrismContext().getSchemaRegistry()

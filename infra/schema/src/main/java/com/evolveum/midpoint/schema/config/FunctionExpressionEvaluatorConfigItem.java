@@ -21,13 +21,13 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 /** Represents an {@link FunctionExpressionEvaluatorType} i.e. a call to a library function. */
 public class FunctionExpressionEvaluatorConfigItem extends ConfigurationItem<FunctionExpressionEvaluatorType> {
 
-    // called dynamically
+    @SuppressWarnings("unused") // called dynamically
     public FunctionExpressionEvaluatorConfigItem(@NotNull ConfigurationItem<FunctionExpressionEvaluatorType> original) {
         super(original);
     }
 
     private FunctionExpressionEvaluatorConfigItem(@NotNull FunctionExpressionEvaluatorType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
+        super(value, origin, null);
     }
 
     public static FunctionExpressionEvaluatorConfigItem of(
@@ -58,6 +58,7 @@ public class FunctionExpressionEvaluatorConfigItem extends ConfigurationItem<Fun
                 .collect(Collectors.toSet());
     }
 
+    // TODO replace with "children" or the like
     public List<FunctionCallArgumentConfigItem> getArguments() {
         return value().getParameter().stream()
                 .map(p -> FunctionCallArgumentConfigItem.of(p, origin()))

@@ -343,8 +343,7 @@ public class ModelImplUtils {
         if (!StringUtils.isBlank(refVal.getOid()) && (!forceFilterReevaluation || filter == null)) {
             // We have OID (and "force filter reevaluation" is not requested or not possible)
             if (filter != null) {
-                // We have both filter and OID. We will choose OID, but let's at
-                // least log a warning
+                // We have both filter and OID. We will choose OID, but let's at least log a warning.
                 LOGGER.debug("Both OID and filter for property {} in {}, OID takes precedence", refName, contextDesc);
             }
             // Nothing to resolve, but let's check if the OID exists

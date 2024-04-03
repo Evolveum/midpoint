@@ -87,7 +87,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
                 .findObjectDefinitionByType(objectType);
         PrismObject<O> prismObject;
         try {
-            prismObject = parentPage.getPrismContext().createObject((Class<O>)WebComponentUtil.qnameToClass(parentPage.getPrismContext(), objectType));
+            prismObject = parentPage.getPrismContext().createObject((Class<O>)WebComponentUtil.qnameToClass(objectType));
 //            parentPage.getPrismContext().adopt(prismObject);
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Could not initialize model for forgot password", e);

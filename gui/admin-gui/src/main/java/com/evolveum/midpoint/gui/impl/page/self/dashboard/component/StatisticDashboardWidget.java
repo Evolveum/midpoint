@@ -117,7 +117,7 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
                 return "";
             }
             ObjectFilter filter = view.getFilter();
-            Class<? extends Containerable> type = (Class<? extends Containerable>) WebComponentUtil.qnameToClass(getPrismContext(), view.getContainerType());
+            Class<? extends Containerable> type = (Class<? extends Containerable>) WebComponentUtil.qnameToClass(view.getContainerType());
             ObjectQuery query = getPrismContext().queryFor(type)
                     .build();
             if (filter != null) {

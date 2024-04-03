@@ -9,10 +9,9 @@ package com.evolveum.midpoint.gui.impl.component.data.provider;
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.TypedCacheKey;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 
@@ -112,7 +111,8 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
                 LOGGER.trace("Query {} with {}", getType().getSimpleName(), query.debugDump());
             }
 
-            List<PrismObject<O>> list = getModelService().searchObjects(getType(), query, getOptionsToUse(), task, result);
+            List<PrismObject<O>> list = WebModelServiceUtils.searchObjectsByQueryFromSearchPanel
+                    (getType(), query, getOptionsToUse(), task, result, getModelService());
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Query {} resulted in {} objects", getType().getSimpleName(), list.size());
@@ -170,7 +170,7 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            count = getModelService().countObjects(getType(), getQuery(), getOptionsToUse(), task, result);
+            count = WebModelServiceUtils.countObjectsByQueryFromSearchPanel(getType(), getQuery(), getOptionsToUse(), task, result, getModelService());
         } catch (Exception ex) {
             setupUserFriendlyMessage(result, ex);
             result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);

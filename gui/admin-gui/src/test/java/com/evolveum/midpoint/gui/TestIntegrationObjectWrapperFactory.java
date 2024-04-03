@@ -92,7 +92,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             ShadowType.F_PENDING_OPERATION,
             ShadowType.F_ATTRIBUTES,
             ShadowType.F_TRIGGER,
-            ShadowType.F_ASSOCIATION,
+            ShadowType.F_ASSOCIATIONS,
             ShadowType.F_ACTIVATION,
             ShadowType.F_CREDENTIALS,
             ShadowType.F_POLICY_EXCEPTION,
@@ -597,7 +597,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         WrapperTestUtil.assertPropertyWrapperByName(activationContainerValueWrapper, ActivationType.F_LOCKOUT_STATUS, null);
 
         //TODO: fix
-        PrismContainerWrapper<ShadowAssociationType> associationContainerWrapper = objectWrapper.findContainer(ShadowType.F_ASSOCIATION);
+        PrismContainerWrapper<ShadowAssociationValueType> associationContainerWrapper = objectWrapper.findContainer(ShadowType.F_ASSOCIATIONS);
         assertNotNull("No association container wrapper", associationContainerWrapper);
         assertTrue("Wrong type of group association property wrapper: " + associationContainerWrapper.getClass(), associationContainerWrapper instanceof ShadowAssociationWrapperImpl);
         assertEquals("wrong number of items in " + associationContainerWrapper, 1, associationContainerWrapper.getValues().size());
@@ -611,7 +611,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertEquals("wrong number of values in " + groupAssociationValue, ValueStatus.NOT_CHANGED, groupAssociationValue.getStatus());
         assertEquals("Wrong group association name", RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME, groupAssociationWrapper.getItemName());
         assertEquals("Wrong group association value", GROUP_DUMMY_MAPMAKERS_NAME, groupAssociationValuePVal.asReferencable().getTargetName().getOrig());
-//        PrismContainer<ShadowIdentifiersType> groupAssociationValueIdentifiers = groupAssociationValuePVal.findContainer(ShadowAssociationType.F_IDENTIFIERS);
+//        PrismContainer<ShadowIdentifiersType> groupAssociationValueIdentifiers = groupAssociationValuePVal.findContainer(ShadowAssociationValueType.F_IDENTIFIERS);
 //        PrismProperty<String> groupAssociationUidProp = groupAssociationValueIdentifiers.findProperty(new QName(null,"uid"));
 //        PrismAsserts.assertPropertyValue(groupAssociationValuePVal.asReferencable().getTargetName(), GROUP_DUMMY_MAPMAKERS_NAME);
     }

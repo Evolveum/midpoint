@@ -43,7 +43,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -86,8 +85,6 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
         processProjectionValues(context, projectionContext, activityDescription, task, result);
-        context.checkConsistenceIfNeeded();
-        projectionContext.recompute();
         context.checkConsistenceIfNeeded();
     }
 
@@ -173,7 +170,6 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                     // Re-evaluates the values in the account constructions (including roles) - currently no-op!
                     assignmentProcessor.processAssignmentsAccountValues(projContext, iterationResult);
 
-                    context.recompute();
                     context.checkConsistenceIfNeeded();
 
                     // Evaluates the values in outbound mappings
@@ -474,7 +470,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             return false;
         }
         LOGGER.trace("willResetIterationCounter: projectionDelta is\n{}", projectionDelta.debugDumpLazily());
-        ResourceObjectDefinition oOcDef = projectionContext.getCompositeObjectDefinition();
+        ResourceObjectDefinition oOcDef = projectionContext.getCompositeObjectDefinitionRequired();
         for (ResourceAttributeDefinition<?> identifierDef: oOcDef.getPrimaryIdentifiers()) {
             ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getItemName());
             if (projectionDelta.findPropertyDelta(identifierPath) != null) {
@@ -569,11 +565,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             return;
         }
 
-        ResourceObjectDefinition rAccountDef = accountContext.getCompositeObjectDefinition();
-        if (rAccountDef == null) {
-            throw new SchemaException("No definition for account type '"
-                    +accountContext.getKey()+"' in "+accountContext.getResource());
-        }
+        ResourceObjectDefinition rAccountDef = accountContext.getCompositeObjectDefinitionRequired();
 
         if (primaryDelta.isAdd()) {
             PrismObject<ShadowType> accountToAdd = primaryDelta.getObjectToAdd();
@@ -589,7 +581,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             }
         } else if (primaryDelta.isModify()) {
             for(ItemDelta<?,?> modification: primaryDelta.getModifications()) {
-                if (modification.getParentPath().equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
+                if (modification.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
                     PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
                     ResourceAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attrDelta.getElementName()));
                     if (!rAttrDef.isTolerant()) {
@@ -619,7 +611,6 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         //  This was implemented before but it's missing now.
 
         accountContext.clearIntermediateResults();
-        accountContext.recompute();
     }
 
     /**
@@ -671,8 +662,6 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         }
 
         consolidationProcessor.consolidateValuesPostRecon(projContext, task, result);
-        context.checkConsistenceIfNeeded();
-        projContext.recompute();
         context.checkConsistenceIfNeeded();
     }
 }

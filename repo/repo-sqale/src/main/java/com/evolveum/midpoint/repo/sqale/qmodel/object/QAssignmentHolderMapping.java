@@ -6,11 +6,30 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_FOCUS_IDENTITY;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.path.PathSet;
+
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocusIdentity;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusIdentity;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusIdentityMapping;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
+
+import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -75,6 +94,33 @@ public class QAssignmentHolderMapping<
         return (Q) new QAssignmentHolder<>(MObject.class, alias);
     }
 
+    private void loadAssignments(S focus, JdbcSession jdbcSession) throws SchemaException {
+        // Currently we don't consider container ids and load all identities/identity values.
+        // FIXME: This should be probably API concept now - something like fetchNestedFullObjects
+        QAssignmentMapping<R> mapping = QAssignmentMapping.getAssignmentMapping();
+        QAssignment<R> q = mapping.defaultAlias();
+        var query = jdbcSession.newQuery()
+                .from(q)
+                .select(q) // no complications here, we load it whole
+                .where(q.ownerOid.eq(SqaleUtils.oidToUuid(focus.getOid())));
+        for (MAssignment row : query.fetch()) {
+            // Logic here should be probably if assignment have fullObject and assignments
+
+            // FIXME: Migration needs testing for such scenarios
+            // We have fullObject with assignments inlined
+            // Object is readed, one assignment is modified
+            // All assignments should have full object present / legacy assignments should be kept
+            if (row.fullObject != null) {
+                focus.assignment(mapping.toSchemaObject(row));
+            }
+        }
+        // Setting "complete" for multi-value containers is quite verbose.
+        PrismContainer<Containerable> identityContainer = focus.asPrismObject().findContainer(F_ASSIGNMENT);
+        if (identityContainer != null) {
+            identityContainer.setIncomplete(false);
+        }
+    }
+
     @Override
     public void storeRelatedEntities(
             @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
@@ -82,10 +128,10 @@ public class QAssignmentHolderMapping<
 
         List<AssignmentType> assignments = schemaObject.getAssignment();
         if (!assignments.isEmpty()) {
-            assignments.forEach(assignment ->
-                    QAssignmentMapping.getAssignmentMapping().insert(assignment, row, jdbcSession));
+            for (var assignment : assignments) {
+                QAssignmentMapping.getAssignmentMapping().insert(assignment, row, jdbcSession);
+            }
         }
-
         storeRefs(row, schemaObject.getArchetypeRef(),
                 QObjectReferenceMapping.getForArchetype(), jdbcSession);
         storeRefs(row, schemaObject.getDelegatedRef(),

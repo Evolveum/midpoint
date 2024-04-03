@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 
@@ -16,7 +17,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
  *
  */
 public class AttributesToReturn implements Serializable {
-    private static final long serialVersionUID = 157146351122133667L;
+    @Serial private static final long serialVersionUID = 157146351122133667L;
 
     // TODO consider adding "fetchEntitlements" flag here
     private boolean returnDefaultAttributes = true;
@@ -25,7 +26,7 @@ public class AttributesToReturn implements Serializable {
     private boolean returnLockoutStatusExplicit = false;
     private boolean returnValidFromExplicit = false;
     private boolean returnValidToExplicit = false;
-    Collection<? extends ResourceAttributeDefinition> attributesToReturn = null;
+    private Collection<? extends ResourceAttributeDefinition<?>> attributesToReturn = null;
 
     public boolean isReturnDefaultAttributes() {
         return returnDefaultAttributes;
@@ -35,11 +36,11 @@ public class AttributesToReturn implements Serializable {
         this.returnDefaultAttributes = returnDefaultAttributes;
     }
 
-    public Collection<? extends ResourceAttributeDefinition> getAttributesToReturn() {
+    public Collection<? extends ResourceAttributeDefinition<?>> getAttributesToReturn() {
         return attributesToReturn;
     }
 
-    public void setAttributesToReturn(Collection<? extends ResourceAttributeDefinition> attributesToReturn) {
+    public void setAttributesToReturn(Collection<? extends ResourceAttributeDefinition<?>> attributesToReturn) {
         this.attributesToReturn = attributesToReturn;
     }
 

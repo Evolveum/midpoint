@@ -248,7 +248,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(
+    public <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinition(
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException {
@@ -262,7 +262,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
             // TODO: maybe we need to expose owner resolver in the interface?
             ObjectSecurityConstraints securityConstraints =
-                    securityEnforcer.compileSecurityConstraints(fullObject, SecurityEnforcer.Options.create(), task, result);
+                    securityEnforcer.compileSecurityConstraints(fullObject, true, SecurityEnforcer.Options.create(), task, result);
             LOGGER.trace("Security constrains for {}:\n{}", object, DebugUtil.debugDumpLazily(securityConstraints));
             TransformableObjectDefinition<O> objectDefinition = schemaTransformer.transformableDefinition(object.getDefinition());
             applyArchetypePolicy(objectDefinition, object, task, result);
@@ -272,7 +272,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             }
             return objectDefinition;
         } catch (ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | SchemaException e) {
-            result.recordFatalError(e);
+            result.recordException(e);
             throw e;
         } finally {
             result.computeStatusIfUnknown();
@@ -293,19 +293,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             } catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
                 throw new ConfigurationException(e.getMessage(), e);
             }
-            ResourceObjectDefinition refinedObjectClassDefinition =
+            ResourceObjectDefinition resourceObjectDefinition =
                     getEditObjectClassDefinition(shadow, resource, phase, task, result);
-            if (refinedObjectClassDefinition != null) {
+            if (resourceObjectDefinition != null) {
                 objectDefinition.replaceDefinition(ShadowType.F_ATTRIBUTES,
-                        refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
-
-                PrismContainerDefinition<?> assocContainer =
-                        objectDefinition.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION));
-                TransformableContainerDefinition.require(assocContainer)
-                        .replaceDefinition(
-                                ShadowAssociationType.F_IDENTIFIERS,
-                                refinedObjectClassDefinition
-                                        .toResourceAttributeContainerDefinition(ShadowAssociationType.F_IDENTIFIERS));
+                        resourceObjectDefinition.toResourceAttributeContainerDefinition());
+                objectDefinition.replaceDefinition(ShadowType.F_ASSOCIATIONS,
+                        resourceObjectDefinition.toShadowAssociationsContainerDefinition());
             }
         }
     }
@@ -382,24 +376,24 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         // TODO: maybe we need to expose owner resolver in the interface?
         ObjectSecurityConstraints securityConstraints =
-                securityEnforcer.compileSecurityConstraints(shadow, SecurityEnforcer.Options.create(), task, result);
+                securityEnforcer.compileSecurityConstraints(shadow, true, SecurityEnforcer.Options.create(), task, result);
         LOGGER.trace("Security constrains for {}:\n{}", shadow, DebugUtil.debugDumpLazily(securityConstraints));
 
         AuthorizationDecisionType attributesReadDecision =
                 securityConstraints.computeItemDecision(
-                        SchemaConstants.PATH_ATTRIBUTES,
+                        ShadowType.F_ATTRIBUTES,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
                         securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase),
                         phase);
         AuthorizationDecisionType attributesAddDecision =
                 securityConstraints.computeItemDecision(
-                        SchemaConstants.PATH_ATTRIBUTES,
+                        ShadowType.F_ATTRIBUTES,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD,
                         securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
                         phase);
         AuthorizationDecisionType attributesModifyDecision =
                 securityConstraints.computeItemDecision(
-                        SchemaConstants.PATH_ATTRIBUTES,
+                        ShadowType.F_ATTRIBUTES,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY,
                         securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase),
                         phase);
@@ -442,7 +436,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             }
         }
 
-        // TODO what about activation and credentials?
+        // TODO what about associations, activation and credentials?
 
         objectDefinition.freeze();
         return objectDefinition;
@@ -516,7 +510,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         ObjectSecurityConstraints securityConstraints;
         try {
             securityConstraints = securityEnforcer.compileSecurityConstraints(
-                    focus, SecurityEnforcer.Options.create(), task, result);
+                    focus, true, SecurityEnforcer.Options.create(), task, result);
         } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException |
                 SecurityViolationException e) {
             result.recordFatalError(e);
@@ -528,9 +522,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         // Global decisions: processing #modify authorizations: allow/deny for all items or allow/deny for assignment/inducement item.
         ItemPath assignmentPath;
         if (assignmentOrder == 0) {
-            assignmentPath = SchemaConstants.PATH_ASSIGNMENT;
+            assignmentPath = FocusType.F_ASSIGNMENT;
         } else {
-            assignmentPath = SchemaConstants.PATH_INDUCEMENT;
+            assignmentPath = AbstractRoleType.F_INDUCEMENT;
         }
         AuthorizationDecisionType assignmentItemDecision = securityConstraints.findItemDecision(assignmentPath,
                 ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
@@ -1508,7 +1502,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             return null;
         }
         try {
-            if (protectedString.isEncrypted()) {
+            if (protectedString.isEncrypted() || protectedString.isExternal()) {
 
                 return protector.decryptString(protectedString);
 

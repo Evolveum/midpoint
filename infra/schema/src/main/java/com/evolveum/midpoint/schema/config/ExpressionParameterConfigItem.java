@@ -21,16 +21,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionParameterT
 public class ExpressionParameterConfigItem
         extends ConfigurationItem<ExpressionParameterType> {
 
-    @SuppressWarnings("unused") // called dynamically
+    @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
     public ExpressionParameterConfigItem(@NotNull ConfigurationItem<ExpressionParameterType> original) {
         super(original);
     }
 
-    protected ExpressionParameterConfigItem(@NotNull ExpressionParameterType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
+    ExpressionParameterConfigItem(@NotNull ExpressionParameterType value, @NotNull ConfigurationItemOrigin origin) {
+        super(value, origin, null); // provide parent in the future
     }
 
-    public static ExpressionParameterConfigItem of(@NotNull ExpressionParameterType bean, @NotNull ConfigurationItemOrigin origin) {
+    public static ExpressionParameterConfigItem of(
+            @NotNull ExpressionParameterType bean, @NotNull ConfigurationItemOrigin origin) {
         return new ExpressionParameterConfigItem(bean, origin);
     }
 

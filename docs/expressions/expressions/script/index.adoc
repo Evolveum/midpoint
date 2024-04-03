@@ -17,11 +17,11 @@ Currently supported languages are:
 
 * xref:groovy.adoc[Groovy] (built-in)
 
-* xref:javascript.adoc[JavaScript (ECMAScript)] (optional since 4.4, depending on JDK)
+* xref:javascript.adoc[JavaScript (ECMAScript)] (optional, depending on JDK)
 
-* xref:python.adoc[Python] (built-in until 4.3, optional since 4.4)
+* xref:python.adoc[Python] (optional)
 
-* xref:/midpoint/reference/misc/notifications/velocity/[Velocity] (since 3.4.1) for expressions returning strings/texts
+* xref:/midpoint/reference/misc/notifications/velocity/[Velocity] (built-in) for expressions returning strings/texts
 
 [NOTE]
 ====
@@ -67,7 +67,7 @@ Meaning of individual script expression fields is as follows:
 Specifies the language in which the expression is written.
 If not specified it defaults to Groovy language.
 
-Since midPoint 4.5, it is possible to use the local part after `#` instead of the whole URL;
+It is possible to use the local part after `#` instead of the whole URL;
 for example, you can use just `velocity` or `Groovy`.
 Note that the short name is still case-sensitive!
 
@@ -76,16 +76,13 @@ Note that the short name is still case-sensitive!
 | optional
 | Explicitly trace the execution of this expression.
 The execution will be logged on INFO level if this property is set to true to make sure that it will be visible in the logs. +
-Available since midPoint 3.5.
 
-////
-TODO: this seems not to work now, see MID-8552
-| `returnType`
-| optional
-| The type of the expression result, either "list" or "scalar".
-If not set it will be determined automatically from the target data type for the expression.
-This setting should be used only if the automatic mechanism does not work as expected.
-////
+//TODO: this seems not to work now, see MID-8552
+//| `returnType`
+//| optional
+//| The type of the expression result, either "list" or "scalar".
+//If not set it will be determined automatically from the target data type for the expression.
+//This setting should be used only if the automatic mechanism does not work as expected.
 
 | `relativityMode`
 | optional
@@ -135,7 +132,7 @@ For example, the following expression will evaluate to the content of the `fullN
 [source,xml]
 ----
 <code>
-   user.getFullName()
+   focus.getFullName()
 </code>
 ----
 

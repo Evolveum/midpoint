@@ -13,23 +13,24 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaLinkDefinition;
 
-public class DataSearchResult<T extends JpaDataNodeDefinition<T>> {
+/**
+ * @param <TD> target node definition
+ */
+public class DataSearchResult<TD extends JpaDataNodeDefinition> {
 
-    @NotNull private final JpaLinkDefinition<T> linkDefinition;
+    /** Currently last link in the chain. */
+    @NotNull private final JpaLinkDefinition<TD> linkDefinition;
 
-    /**
-     * What has remained unresolved of the original search path.
-     */
+    /** What has remained unresolved of the original search path. */
     @NotNull private final ItemPath remainder;
 
-    public DataSearchResult(
-            @NotNull JpaLinkDefinition<T> linkDefinition, @NotNull ItemPath remainder) {
+    public DataSearchResult(@NotNull JpaLinkDefinition<TD> linkDefinition, @NotNull ItemPath remainder) {
         this.linkDefinition = linkDefinition;
         this.remainder = remainder;
     }
 
     @NotNull
-    public JpaLinkDefinition<T> getLinkDefinition() {
+    public JpaLinkDefinition<TD> getLinkDefinition() {
         return linkDefinition;
     }
 
@@ -42,7 +43,7 @@ public class DataSearchResult<T extends JpaDataNodeDefinition<T>> {
         return remainder.isEmpty();
     }
 
-    public T getTargetDefinition() {
+    public TD getTargetDefinition() {
         return linkDefinition.getTargetDefinition();
     }
 

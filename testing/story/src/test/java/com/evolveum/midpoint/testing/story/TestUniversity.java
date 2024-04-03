@@ -266,12 +266,13 @@ public class TestUniversity extends AbstractStoryTest {
         displayDumpable("account of john", account);
 
         and("it has the correct association");
-        List<ShadowAssociationType> associations = account.asObjectable().getAssociation();
-        assertThat(associations).as("associations").hasSize(1);
-        ShadowAssociationType association = associations.get(0);
-        assertThat(association.getName()).as("association name").isEqualTo(new QName(NS_RI, "department"));
+        var targetRef = assertShadow(account, "after")
+                .associations()
+                .assertSize(1)
+                .association("department")
+                .getSingleTargetRef();
         List<PrismObject<? extends ObjectType>> targets =
-                referenceResolver.resolve(association.getShadowRef(), null, REPOSITORY, null, task, result);
+                referenceResolver.resolve(targetRef, null, REPOSITORY, null, task, result);
         assertThat(targets).as("association targets").hasSize(1);
         PrismObject<? extends ObjectType> target = targets.get(0);
         assertThat(target.asObjectable().getName().getOrig())

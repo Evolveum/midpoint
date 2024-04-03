@@ -174,7 +174,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 
     private MutablePrismPropertyDefinition<?> createResourceAttributeDefinition(
             QName elementName, QName typeName, XSAnnotation annotation) throws SchemaException {
-        RawResourceAttributeDefinitionImpl<?> attrDef = new RawResourceAttributeDefinitionImpl<>(elementName, typeName);
+        RawResourceAttributeDefinition<?> attrDef = new RawResourceAttributeDefinition<>(elementName, typeName);
 
         // nativeAttributeName
         Element nativeAttrElement = getAnnotationElement(annotation, MidPointConstants.RA_NATIVE_ATTRIBUTE_NAME);

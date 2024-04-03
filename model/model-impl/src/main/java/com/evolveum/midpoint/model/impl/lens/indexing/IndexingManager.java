@@ -7,9 +7,23 @@
 
 package com.evolveum.midpoint.model.impl.lens.indexing;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.normalization.StringNormalizer;
+
+import com.evolveum.midpoint.util.QNameUtil;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
-import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.model.api.indexing.ValueNormalizer;
 import com.evolveum.midpoint.model.impl.lens.DeltaExecutionPreprocessor;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
@@ -18,7 +32,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.normalization.Normalizer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -28,23 +42,10 @@ import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Helps with searching through model-indexed values (currently, in identities/identity[X]/items/normalized container).
@@ -180,16 +181,26 @@ public class IndexingManager implements DeltaExecutionPreprocessor {
     }
 
     public static ValueNormalizer getNormalizerFor(@Nullable QName matchingRuleName) throws SchemaException {
-        if (matchingRuleName == null) {
+        // Special cases - TODO decide about these! MID-2119
+        if (QNameUtil.match(matchingRuleName, PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME)) {
+            return (input, task, result) ->
+                    PrismContext.get().getDefaultPolyStringNormalizer().normalize(stringify(input));
+        } else if (QNameUtil.match(matchingRuleName, PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME)) {
             return (input, task, result) -> stringify(input);
-        } else if (QNameUtil.match(matchingRuleName, PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME)) {
-            // The "normalize" in polyStringNorm matching rule does not fit the purpose of this method.
-            // TODO Is our approach OK at all? Or, is the PolyStringNormMatchingRule.normalize method faulty?
-            return (input, task, result) -> PrismContext.get().getDefaultPolyStringNormalizer().normalize(stringify(input));
+        }
+
+        Normalizer<?> normalizer =
+                SchemaService.get().matchingRuleRegistry()
+                        .getMatchingRule(matchingRuleName, null)
+                        .getNormalizer();
+        if (normalizer.isIdentity()) {
+            return (input, task, result) -> stringify(input);
+        } else if (normalizer instanceof StringNormalizer stringNormalizer) {
+            return (input, task, result) ->
+                    stringNormalizer.normalize(stringify(input));
         } else {
-            MatchingRule<Object> matchingRule =
-                    SchemaService.get().matchingRuleRegistry().getMatchingRule(matchingRuleName, null);
-            return (input, task, result) -> stringify(matchingRule.normalize(input));
+            throw new UnsupportedOperationException(
+                    "Unsupported normalizer: " + normalizer + ". Only string or polystring identity items are supported yet.");
         }
     }
 

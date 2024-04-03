@@ -9,10 +9,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -119,10 +119,10 @@ public class QCaseWorkItemMapping
 
     @Override
     public ResultListRowTransformer<CaseWorkItemType, QCaseWorkItem, MCaseWorkItem> createRowTransformer(
-            SqlQueryContext<CaseWorkItemType, QCaseWorkItem, MCaseWorkItem> sqlQueryContext, JdbcSession jdbcSession) {
+            SqlQueryContext<CaseWorkItemType, QCaseWorkItem, MCaseWorkItem> sqlQueryContext, JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         Map<UUID, PrismObject<CaseType>> casesCache = new HashMap<>();
 
-        return (tuple, entityPath, options) -> {
+        return (tuple, entityPath) -> {
             MCaseWorkItem row = Objects.requireNonNull(tuple.get(entityPath));
             UUID caseOid = row.ownerOid;
             PrismObject<CaseType> aCase = casesCache.get(caseOid);
@@ -140,7 +140,9 @@ public class QCaseWorkItemMapping
             if (workItemPcv == null) {
                 throw new SystemException("Case " + aCase + " has no work item with ID " + row.cid);
             }
-            return workItemPcv.asContainerable();
+            var containerable = workItemPcv.asContainerable();
+            attachContainerIdPath(containerable, tuple, entityPath);
+            return containerable;
         };
     }
 

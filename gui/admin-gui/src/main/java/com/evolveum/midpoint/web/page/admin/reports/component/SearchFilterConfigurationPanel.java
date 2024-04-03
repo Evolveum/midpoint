@@ -8,8 +8,6 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 
 import org.apache.commons.lang3.StringUtils;
@@ -99,7 +97,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
                     ObjectCollectionType collectionObj = containerWrapper.getRealValue();
                     filterType = collectionObj.getType() != null ? collectionObj.getType() : ObjectType.COMPLEX_TYPE;
                 }
-                return (Class<O>) WebComponentUtil.qnameToClass(SearchFilterConfigurationPanel.this.getPageBase().getPrismContext(),
+                return (Class<O>) WebComponentUtil.qnameToClass(
                         filterType == null ? ObjectType.COMPLEX_TYPE : filterType);
             }
         };

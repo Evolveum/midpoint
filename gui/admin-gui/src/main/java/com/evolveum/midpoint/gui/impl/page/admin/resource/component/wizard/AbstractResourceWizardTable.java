@@ -64,8 +64,8 @@ public abstract class AbstractResourceWizardTable<C extends Containerable, CV ex
     }
 
     @Override
-    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
-        createNewValue(target);
+    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
+        createNewValue(value, target);
         refreshTable(target);
     }
 
@@ -99,9 +99,12 @@ public abstract class AbstractResourceWizardTable<C extends Containerable, CV ex
             List<PrismContainerValueWrapper<C>> listItems) {
     }
 
-    protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
+    protected PrismContainerValueWrapper createNewValue(PrismContainerValue<C> value, AjaxRequestTarget target) {
         PrismContainerWrapper<C> container = getContainerModel().getObject();
-        PrismContainerValue<C> newValue = container.getItem().createNewValue();
+        PrismContainerValue<C> newValue = value;
+        if (newValue == null) {
+            newValue = container.getItem().createNewValue();
+        }
         return createNewItemContainerValueWrapper(newValue, container, target);
     }
 

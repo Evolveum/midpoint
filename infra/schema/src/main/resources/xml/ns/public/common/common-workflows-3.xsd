@@ -1312,10 +1312,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="association" type="tns:ShadowAssociationType">
+            <xsd:element name="name" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Association to be added.
+                        Name of the association to be added.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="tns:ShadowAssociationValueType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Association value to be added.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

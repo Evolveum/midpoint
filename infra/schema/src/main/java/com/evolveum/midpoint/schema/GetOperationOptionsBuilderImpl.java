@@ -14,6 +14,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowClassificationModeType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -264,7 +266,12 @@ public class GetOperationOptionsBuilderImpl
 
     @Override
     public GetOperationOptionsBuilder errorReportingMethod(FetchErrorReportingMethodType method) {
-        return forPaths(opts -> opts.setErrorReportingMethod(method, prismContext));
+        return forPaths(opts -> opts.setErrorReportingMethod(method));
+    }
+
+    @Override
+    public GetOperationOptionsBuilder shadowClassificationMode(ShadowClassificationModeType mode) {
+        return forPaths(opts -> opts.setShadowClassificationMode(mode));
     }
 
     //endregion

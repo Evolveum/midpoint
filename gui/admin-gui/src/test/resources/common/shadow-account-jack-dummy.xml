@@ -21,13 +21,14 @@
         <ri:fullname xsi:type="xsd:string">Jack Sparrow</ri:fullname>
         <ri:weapon xsi:type="xsd:string">rum</ri:weapon>
     </attributes>
-    <association>
-        <name>ri:group</name>
-        <shadowRef oid="c11f9678-b3b6-11e5-9f46-27aa13e12702"/>
-        <identifiers>
-            <icfs:name>pirates</icfs:name>
-        </identifiers>
-    </association>
+    <associations>
+        <ri:group>
+            <shadowRef oid="c11f9678-b3b6-11e5-9f46-27aa13e12702"/>
+            <identifiers>
+                <icfs:name>pirates</icfs:name>
+            </identifiers>
+        </ri:group>
+    </associations>
     <activation>
         <administrativeStatus>enabled</administrativeStatus>
     </activation>

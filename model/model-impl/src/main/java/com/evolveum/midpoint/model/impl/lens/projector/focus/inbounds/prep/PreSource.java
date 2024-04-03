@@ -11,7 +11,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
+import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -96,7 +99,7 @@ class PreSource extends MSource {
     @NotNull ProcessingMode getItemProcessingMode(
             String itemDescription,
             ItemDelta<?, ?> itemAPrioriDelta,
-            List<? extends MappingType> mappingBeans,
+            List<? extends AbstractMappingConfigItem<?>> mappings,
             boolean executionModeVisible,
             boolean ignored,
             PropertyLimitations limitations) {
@@ -113,8 +116,8 @@ class PreSource extends MSource {
 
     @Override
     void resolveInputEntitlements(
-            ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> associationAPrioriDelta,
-            Item<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> currentAssociation) {
+            ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
+            ShadowAssociation currentAssociation) {
         // Associations are not yet supported in pre-mappings
     }
 

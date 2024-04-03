@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2015-09-30T11:36:47.227+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2015-09-30T12:34:09.959+02:00
-:page-since: "3.3"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
@@ -15,7 +14,7 @@ They are mostly equivalent in functionality to database auto-increment columns.
 The sequences can be used to assign unique identifiers to large number of midPoint objects in a very efficient and reliable fashion.
 The sequences are excellent tool for automatic assignment of UNIX uid and gid numbers, persistent user identifiers, etc.
 
-The sequence in it self is a very simple object:
+The sequence in itself is a very simple object:
 
 [source,xml]
 ----
@@ -33,18 +32,18 @@ This may seem simple, but the real power in using sequences are in combination w
 
 [source,xml]
 ----
-            <mapping>
-                <name>sequenceUID</name>
-                <strength>weak</strength>
-                <expression>
-                    <sequentialValue>
-                        <sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
-                    </sequentialValue>
-                </expression>
-                <target>
-                    <path>extension/uidNumber</path>
-                </target>
-            </mapping>
+<mapping>
+    <name>sequenceUID</name>
+    <strength>weak</strength>
+    <expression>
+        <sequentialValue>
+            <sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
+        </sequentialValue>
+    </expression>
+    <target>
+        <path>extension/uidNumber</path>
+    </target>
+</mapping>
 ----
 
 This mapping will take a counter from the sequence and place it in the target property.

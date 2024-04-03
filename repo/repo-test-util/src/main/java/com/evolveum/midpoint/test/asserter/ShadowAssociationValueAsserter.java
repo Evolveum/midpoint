@@ -21,14 +21,14 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIdentifiersType;
 
 public class ShadowAssociationValueAsserter<R> extends AbstractAsserter<R> {
 
-    @NotNull private final ShadowAssociationType value;
+    @NotNull private final ShadowAssociationValueType value;
 
-    ShadowAssociationValueAsserter(@NotNull ShadowAssociationType value, R returnAsserter, String details) {
+    ShadowAssociationValueAsserter(@NotNull ShadowAssociationValueType value, R returnAsserter, String details) {
         super(returnAsserter, details);
         assertThat(value).as("association value").isNotNull();
         this.value = value;

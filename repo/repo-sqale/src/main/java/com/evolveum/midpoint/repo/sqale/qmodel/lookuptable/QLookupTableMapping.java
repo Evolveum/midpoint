@@ -24,7 +24,6 @@ import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -98,8 +97,8 @@ public class QLookupTableMapping
     }
 
     @Override
-    protected PathSet fullObjectItemsToSkip() {
-        return PathSet.of(F_ROW);
+    protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
+        mutableSet.add(F_ROW);
     }
 
     @Override

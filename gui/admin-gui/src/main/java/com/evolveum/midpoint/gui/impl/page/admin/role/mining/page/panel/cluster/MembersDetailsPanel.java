@@ -109,6 +109,10 @@ public class MembersDetailsPanel extends BasePanel<String> implements Popupable 
                 return selectableBeanObjectDataProvider;
             }
 
+            @Override
+            protected boolean isDuplicationSupported() {
+                return false;
+            }
         };
 
         table.setOutputMarkupId(true);

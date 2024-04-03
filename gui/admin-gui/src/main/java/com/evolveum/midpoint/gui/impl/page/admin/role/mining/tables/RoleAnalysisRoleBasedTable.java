@@ -807,9 +807,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
             operationData.setPatternId(detectedPattern.get(0).getId());
         }
 
-        @NotNull RoleType candidateBusinessRole = operationData.getBusinessRole().asObjectable();
         List<BusinessRoleDto> businessRoleDtos = operationData.getBusinessRoleDtos();
-        List<AssignmentType> inducement = candidateBusinessRole.getInducement();
+        Set<RoleType> inducement = operationData.getCandidateRoles();
         if (!inducement.isEmpty() && !businessRoleDtos.isEmpty()) {
             PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
             setResponsePage(pageRole);

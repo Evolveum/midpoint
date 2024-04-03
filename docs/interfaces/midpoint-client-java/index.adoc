@@ -14,7 +14,7 @@ The client library is designed to access midPoint functionality in a location-in
 E.g. this library can be used to access midPoint functionality from a third-party application, command-line tool, simple web form and so on.
 
 The client library is modeled in a way that reflects the structure of midPoint xref:/midpoint/reference/interfaces/rest/[REST API]. But the idea is that this library is location-independent and transport-independent.
-Therefore it can be theoretically implemented as a REST client, SOAP client or even as a thin wrapper library using local Java calls.
+Therefore, it can be theoretically implemented as a REST client, SOAP client or even as a thin wrapper library using local Java calls.
 
 [NOTE]
 .Partially implemented
@@ -24,7 +24,7 @@ This feature is partially implemented. But there are some parts that are not com
 
 == Design
 
-The Java REST client library is composed from the library interface and implementation.
+The Java REST client library is composed of the library interface and implementation.
 The applications should only access the library interface, allowing several implementations on the client library.
 This may be very useful during evolution of the client library for several reasons.
 Firstly the underlying technology will evolve.
@@ -38,6 +38,10 @@ image::client-architecture.png[]
 
 Structure and overall approach of the client library quite closely follows the structure of web resources in midPoint xref:/midpoint/reference/interfaces/rest/[REST API].
 
+
+== Download
+
+You can fork your copy of the source code on link:https://github.com/Evolveum/midpoint-client-java[github]
 
 == Client Library Usage Examples
 
@@ -118,9 +122,9 @@ But only the "verb" methods will indicate network errors and "business" errors s
 All the "verb" methods (get, post, delete) should return a "clean" return value if the invocation was successful (e.g. UserType, List<UserType>, etc.) If the invocation fails then an exception is thrown.
 The exception should contain xref:/midpoint/architecture/concepts/operation-result/[OperationResult] structure inside them.
 
-TODO: explain fetchResult for lists
-
-TODO: what about validate?
+// TODO: explain fetchResult for lists
+//
+// TODO: what about validate?
 
 
 ==== Unification of Error Handling
@@ -128,7 +132,7 @@ TODO: what about validate?
 The object-based operations should end with invocation of a method based on the HTTP verbs such as .get(), .post(), .delete(). This is the invocation that does the actual work.
 All the invocations before that (users(), oid(...), etc.) are just setting up the "context" for the invocation.
 But it is the get() or post() at the end that does the work.
-Therefore it should be possible to "prepare" the invocation and then pass that to a common code that handles all the network errors (e.g. retries, error logging, etc):
+Therefore, it should be possible to "prepare" the invocation and then pass that to a common code that handles all the network errors (e.g. retries, error logging, etc):
 
 [source,java]
 ----
@@ -151,7 +155,11 @@ T invokeGet(operation) {
 
 === Object References
 
-TODO: redirects (e.g. add user)
+When a new object is created, the post operation it-self gets a response with an empty body. Yet amongst
+the header information we can find the *Location* header. From this we are capable of constructing the
+reference for the newly created object.
+
+The object reference itself can be then used to fetch the object via a get operation.
 
 [source,java]
 ----
@@ -159,9 +167,6 @@ ObjectReference<UserType> newUserRef = rest.users().add(user).post();
 String newUserOid = newUserRef.getOid();
 UserType newUser = newUserRef.get();  // This may invoke remote GET operation
 ----
-
-TODO: redirects (e.g. add user)
-
 
 === Asynchronous Operations and Redirects
 
@@ -217,12 +222,6 @@ TODO: thread safety
 
 
 == Implementation
-
-
-=== Source Code
-
-Source code is on github: link:https://github.com/Evolveum/midpoint-client-java[https://github.com/Evolveum/midpoint-client-java]
-
 
 === Evolution and compatibility
 

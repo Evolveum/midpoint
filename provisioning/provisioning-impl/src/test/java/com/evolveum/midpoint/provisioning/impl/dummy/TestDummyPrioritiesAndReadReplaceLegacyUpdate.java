@@ -66,11 +66,11 @@ public class TestDummyPrioritiesAndReadReplaceLegacyUpdate extends TestDummyPrio
                 ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".addAttributeValues",
                 ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".removeAttributeValues");
         assertEquals("Wrong number of updates executed", 5, updatesExecuted.size());
-        checkAttributesUpdated(updatesExecuted.get(0), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);        // prio 0, read-replace
-        checkAttributesUpdated(updatesExecuted.get(1), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);            // prio 1, read-replace
+        checkAttributesUpdated(updatesExecuted.get(0), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME); // prio 0, read-replace
+        checkAttributesUpdated(updatesExecuted.get(1), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME); // prio 1, read-replace
         checkAttributesUpdated(updatesExecuted.get(2), "addAttributeValues", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME); // prio none, not read-replace
         checkAttributesUpdated(updatesExecuted.get(3), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);    // prio none, read-replace + real replace
-        checkAttributesUpdated(updatesExecuted.get(4), "removeAttributeValues", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);     // prio none, not read-replace
+        checkAttributesUpdated(updatesExecuted.get(4), "removeAttributeValues", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME); // prio none, not read-replace
     }
 
 }

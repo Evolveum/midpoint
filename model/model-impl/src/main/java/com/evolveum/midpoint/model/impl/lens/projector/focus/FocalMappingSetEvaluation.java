@@ -440,8 +440,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                     .aprioriItemDelta(getAprioriItemDelta(focusOdo.getObjectDelta(), path))
                     .itemDeltaExists(context.primaryFocusItemDeltaExists(path))
                     .itemContainer(focusOdo.getNewObject()) // covers existingItem
-                    .valueMatcher(null)
-                    .comparator(null)
+                    .equalsChecker(null)
                     .addUnchangedValues(false) // todo
                     .addUnchangedValuesExceptForNormalMappings(true) // todo
                     .existingItemKnown(true)

@@ -439,9 +439,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
-        //noinspection unchecked
-        ResourceAttributeDefinition<String> attrDef =
-                (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<String> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -554,9 +552,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "passwordAllowChange");
-        //noinspection unchecked
-        ResourceAttributeDefinition<Boolean> attrDef =
-                (ResourceAttributeDefinition<Boolean>) accountDefinition.findAttributeDefinition(attrQName);
+        ResourceAttributeDefinition<Boolean> attrDef = accountDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.FALSE);
         delta.addModification(attrDelta);
@@ -734,7 +730,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         TestUtil.assertSuccess(result);
 
         orgMeleeIslandOid = org.getOid();
-        Entry entry = assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
+        assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
 
         org = getObject(OrgType.class, orgMeleeIslandOid);
         groupMeleeOid = getSingleLinkOid(org);
@@ -784,7 +780,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        Entry entry = assertLdapGroup(GROUP_MELA_NOVA_NAME);
+        assertLdapGroup(GROUP_MELA_NOVA_NAME);
 
         PrismObject<OrgType> org = getObject(OrgType.class, orgMeleeIslandOid);
         String groupMeleeOidAfter = getSingleLinkOid(org);
@@ -847,7 +843,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(getResourceOid(), getAccountObjectClass())
                 .and().item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
                 .build();
-        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query, 0, task, result);
+        doSearch(query, 0, task, result);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);

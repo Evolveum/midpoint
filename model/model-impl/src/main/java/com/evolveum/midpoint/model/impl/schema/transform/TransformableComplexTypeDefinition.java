@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.deleg.ComplexTypeDefinitionDelegator;
@@ -142,6 +143,11 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
     }
 
     @Override
+    public @Nullable QName getDefaultItemTypeName() {
+        return delegate.get().getDefaultItemTypeName();
+    }
+
+    @Override
     public boolean isEmpty() {
         return getDefinitions().isEmpty();
     }
@@ -165,6 +171,11 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
 
     @Override
     public @NotNull ComplexTypeDefinition clone() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setDefaultItemTypeName(QName value) {
         throw new UnsupportedOperationException();
     }
 

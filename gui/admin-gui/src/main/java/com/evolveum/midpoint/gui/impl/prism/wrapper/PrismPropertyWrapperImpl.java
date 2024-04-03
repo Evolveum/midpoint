@@ -6,9 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +30,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
  */
 public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T>, PrismPropertyValueWrapper<T>> implements PrismPropertyWrapper<T> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private String predefinedValuesOid;
 
@@ -57,6 +61,11 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     @Override
     public QName getMatchingRuleQName() {
         return getItemDefinition().getMatchingRuleQName();
+    }
+
+    @Override
+    public @NotNull MatchingRule<T> getMatchingRule() {
+        return getItemDefinition().getMatchingRule();
     }
 
     @Override
@@ -148,7 +157,7 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     }
 
     @Override
-    public Class<T> getTypeClass() {
+    public @NotNull Class<T> getTypeClass() {
         //noinspection unchecked
         return (Class<T>) super.getTypeClass();
     }

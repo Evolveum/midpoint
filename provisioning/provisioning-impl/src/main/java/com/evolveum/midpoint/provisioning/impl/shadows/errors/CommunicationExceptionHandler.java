@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -33,9 +34,9 @@ class CommunicationExceptionHandler extends ErrorHandler {
     private static final Trace LOGGER = TraceManager.getTrace(CommunicationExceptionHandler.class);
 
     @Override
-    public @NotNull ShadowType handleGetError(
+    public RepoShadow handleGetError(
             @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repositoryShadow,
+            @NotNull RepoShadow repositoryShadow,
             @NotNull Exception cause,
             @NotNull OperationResult failedOperationResult,
             @NotNull OperationResult result) throws ObjectNotFoundException {
@@ -169,7 +170,7 @@ class CommunicationExceptionHandler extends ErrorHandler {
         return reasonMessage(operation.getGerund(), operation.getOpState().getRepoShadow(), cause);
     }
 
-    private static String reasonMessage(String opName, ShadowType repoShadow, @NotNull Exception cause) {
+    private static String reasonMessage(String opName, RepoShadow repoShadow, @NotNull Exception cause) {
         return String.format("%s %s ended with communication problem, %s", opName, repoShadow, cause.getMessage());
     }
 }

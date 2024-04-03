@@ -12,6 +12,8 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -178,14 +180,17 @@ public class QReferenceMapping<
      * All the other columns are based on a single schema type, so there is no variation.
      */
     @Override
-    public R insert(ObjectReferenceType reference, OR ownerRow, JdbcSession jdbcSession) {
+    public R insert(ObjectReferenceType reference, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
         R row = newRowObject(ownerRow);
-        // row.referenceType is DB generated, must be kept NULL, but it will match referenceType
-        row.relationId = processCacheableRelation(reference.getRelation());
-        row.targetOid = UUID.fromString(reference.getOid());
-        row.targetType = schemaTypeToObjectType(reference.getType());
+        initRowObject(row, reference);
 
         insert(row, jdbcSession);
         return row;
+    }
+
+    protected void initRowObject(R row, ObjectReferenceType reference) throws SchemaException {
+        row.relationId = processCacheableRelation(reference.getRelation());
+        row.targetOid = UUID.fromString(reference.getOid());
+        row.targetType = schemaTypeToObjectType(reference.getType());
     }
 }
