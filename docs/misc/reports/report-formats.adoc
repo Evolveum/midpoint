@@ -1,0 +1,16 @@
+= Report Output Format
+:page-nav-title: Report Output Format
+:page-display-order: 300
+:page-toc: top
+:page-keywords: [ 'report', 'output' ,'format', 'export' ]
+:page-upkeep-status: green
+
+
+== Description
+
+In the report definition you have a couple of possibilities for the export format of a report file.
+Currently, the *CSV* and *HTML* format is supported other formats such as *XSLX* are planned to be supported in the future.
+
+== File Format
+
+include::../reports/raw/file-format.adoc[]

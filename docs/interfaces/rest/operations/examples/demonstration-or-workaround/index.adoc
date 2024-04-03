@@ -1,0 +1,17 @@
+= Demonstration or Workaround Examples for REST
+:page-nav-title: REST Demonstration or Workaround Examples
+:page-display-order: 100
+:page-toc: top
+
+== Description
+Story examples for the midPoint REST API used mostly for demonstration purposes or as potential workaround.
+Usually these examples are not recommended as material which should be used for production environments.
+
+++++
+{% children %}
+++++
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
