@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecific
 public class MessageTemplateSummaryPanel extends ObjectSummaryPanel<MessageTemplateType> {
 
     public MessageTemplateSummaryPanel(String id, IModel<MessageTemplateType> model, SummaryPanelSpecificationType specification) {
-        super(id, MessageTemplateType.class, model, specification);
+        super(id, model, specification);
     }
     @Override
     protected String getDefaultIconCssClass() {

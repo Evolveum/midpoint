@@ -17,6 +17,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 
+import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchema;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -97,6 +99,8 @@ public final class DetailsPageUtil {
 
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisSessionType.class, PageRoleAnalysisSession.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisClusterType.class, PageRoleAnalysisCluster.class);
+
+        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(SchemaExtensionType.class, PageSchema.class);
 
     }
 

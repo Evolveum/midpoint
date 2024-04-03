@@ -294,8 +294,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
 
-        PrismObjectWrapper<O> objectWrapper = getModelWrapperObject();
-        LOGGER.debug("Saving object {}", objectWrapper);
+//        PrismObjectWrapper<O> objectWrapper = getModelWrapperObject();
+//        LOGGER.debug("Saving object {}", objectWrapper);
 
         if (task == null) {
             task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);

@@ -204,14 +204,12 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
 
     private Collection<ObjectDelta<? extends ObjectType>> collectDeltasFromObject(OperationResult result) throws CommonException {
         validationErrors = null;
-//        delta = null;
         PrismObjectWrapper<O> objectWrapper = getObjectWrapperModel().getObject();
         delta = objectWrapper.getObjectDelta();
         WebComponentUtil.encryptCredentials(delta, true, modelServiceLocator);
         switch (objectWrapper.getStatus()) {
             case ADDED:
                 PrismObject<O> objectToAdd = delta.getObjectToAdd();
-//                    WebComponentUtil.encryptCredentials(objectToAdd, true, modelServiceLocator);
                 prepareObjectForAdd(objectToAdd);
                 getPrismContext().adopt(objectToAdd, objectWrapper.getCompileTimeClass());
                 if (LOGGER.isTraceEnabled()) {
@@ -224,15 +222,10 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                     final Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                     validationErrors = performCustomValidation(objectToAdd, deltas);
                     return deltas;
-
-//                        if (checkValidationErrors(target, validationErrors)) {
-//                            return null;
-//                        }
                 }
                 break;
 
             case NOT_CHANGED:
-//                    WebComponentUtil.encryptCredentials(delta, true, modelServiceLocator);
                 prepareObjectDeltaForModify(delta); //preparing of deltas for projections (ADD, DELETE, UNLINK)
 
                 if (LOGGER.isTraceEnabled()) {

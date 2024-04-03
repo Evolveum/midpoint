@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.resources.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.component.table.DefinitionTablePanel;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
@@ -98,29 +99,29 @@ public class SchemaListPanel extends BasePanel<PrismObjectWrapper<ResourceType>>
     public SchemaListPanel(String id, IModel<PrismObjectWrapper<ResourceType>> model, PageBase parentPage) {
         super(id, model);
 
-        allClasses = new NonEmptyLoadableModel<List<ObjectClassDto>>(false) {
-            @Override @NotNull
+        allClasses = new NonEmptyLoadableModel<>(false) {
+            @Override
+            @NotNull
             protected List<ObjectClassDto> load() {
                 return loadAllClasses();
             }
         };
-//        parentPage.registerDependentModel(allClasses);
 
-        attributeModel = new NonEmptyLoadableModel<List<AttributeDto>>(false) {
-            @Override @NotNull
+        attributeModel = new NonEmptyLoadableModel<>(false) {
+            @Override
+            @NotNull
             protected List<AttributeDto> load() {
                 return loadAttributes();
             }
         };
-//        parentPage.registerDependentModel(attributeModel);
 
-        detailsModel = new NonEmptyLoadableModel<ObjectClassDetailsDto>(true) {
-            @Override @NotNull
+        detailsModel = new NonEmptyLoadableModel<>(true) {
+            @Override
+            @NotNull
             protected ObjectClassDetailsDto load() {
                 return loadDetails();
             }
         };
-//        parentPage.registerDependentModel(detailsModel);
 
         initLayout();
     }
@@ -205,13 +206,16 @@ public class SchemaListPanel extends BasePanel<PrismObjectWrapper<ResourceType>>
 
         initDetailsPanel(objectClassInfoColumn);
 
-        ListDataProvider<AttributeDto> attributeProvider = new ListDataProvider<>(this, attributeModel, true);
-        attributeProvider.setSort(AttributeDto.F_DISPLAY_ORDER, SortOrder.ASCENDING);
-        BoxedTablePanel<AttributeDto> attributeTable = new BoxedTablePanel<>(ID_ATTRIBUTE_TABLE, attributeProvider, initColumns());
-        attributeTable.setOutputMarkupId(true);
-        attributeTable.setItemsPerPage(UserProfileStorage.DEFAULT_PAGING_SIZE);
-        attributeTable.setShowPaging(true);
+        DefinitionTablePanel<AttributeDto> attributeTable = new DefinitionTablePanel<>(ID_ATTRIBUTE_TABLE, attributeModel);
         objectClassInfoColumn.add(attributeTable);
+
+//        ListDataProvider<AttributeDto> attributeProvider = new ListDataProvider<>(this, attributeModel, true);
+//        attributeProvider.setSort(AttributeDto.F_DISPLAY_ORDER, SortOrder.ASCENDING);
+//        BoxedTablePanel<AttributeDto> attributeTable = new BoxedTablePanel<>(ID_ATTRIBUTE_TABLE, attributeProvider, initColumns());
+//        attributeTable.setOutputMarkupId(true);
+//        attributeTable.setItemsPerPage(UserProfileStorage.DEFAULT_PAGING_SIZE);
+//        attributeTable.setShowPaging(true);
+//        objectClassInfoColumn.add(attributeTable);
     }
 
     private void initDetailsPanel(WebMarkupContainer parent) {

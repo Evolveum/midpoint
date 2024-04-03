@@ -20,6 +20,8 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -55,7 +57,7 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
     public <D extends ItemDelta<PrismValue, ? extends ItemDefinition>> void addToDelta(D delta) throws SchemaException {
         switch (status) {
             case ADDED:
-                if (newValue.isEmpty()) {
+                if (getNewValue().isEmpty()) {
                     break;
                 }
                 if (parent.isSingleValue()) {
@@ -71,10 +73,10 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
             case MODIFIED:
 
                 if (parent.isSingleValue()) {
-                    if (newValue.isEmpty())  {
+                    if (getNewValue().isEmpty())  {
                         // if old value is empty, nothing to do.
-                        if (!oldValue.isEmpty()) {
-                            delta.addValueToDelete(oldValue.clone());
+                        if (!getOldValue().isEmpty()) {
+                            delta.addValueToDelete(getOldValue().clone());
                         }
                     } else {
                         delta.addValueToReplace(getNewValueWithMetadataApplied());
@@ -82,16 +84,16 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
                     break;
                 }
 
-                if (!newValue.isEmpty()) {
+                if (!getNewValue().isEmpty()) {
                     delta.addValueToAdd(getNewValueWithMetadataApplied());
                 }
-                if (!oldValue.isEmpty()) {
-                    delta.addValueToDelete(oldValue.clone());
+                if (!getOldValue().isEmpty()) {
+                    delta.addValueToDelete(getOldValue().clone());
                 }
                 break;
             case DELETED:
-                if (oldValue != null && !oldValue.isEmpty()) {
-                    delta.addValueToDelete(oldValue.clone());
+                if (getOldValue() != null && !getOldValue().isEmpty()) {
+                    delta.addValueToDelete(getOldValue().clone());
                 }
                 break;
             default:
@@ -129,10 +131,10 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
             ValueMetadata newValueMetadata = app.getPrismContext().getValueMetadataFactory().createEmpty();
             newValueMetadata.addMetadataValue(newYieldValue);
 
-            newValue.setValueMetadata(newValueMetadata.clone());
+            newValue.setValueMetadata(newValueMetadata.clone()); //TODO possible NPE here
         }
 
-        return (V) newValue.clone();
+        return (V) getNewValue().clone();
     }
 
     @Override

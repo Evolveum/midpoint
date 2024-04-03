@@ -16,7 +16,7 @@ import org.apache.wicket.model.IModel;
 public abstract class ObjectSummaryPanel<O extends ObjectType> extends AbstractSummaryPanel<O> {
     private static final long serialVersionUID = -3755521482914447912L;
 
-    public ObjectSummaryPanel(String id, Class<O> type, final IModel<O> model, SummaryPanelSpecificationType summaryPanelSpecification) {
+    public ObjectSummaryPanel(String id, final IModel<O> model, SummaryPanelSpecificationType summaryPanelSpecification) {
         super(id, model, summaryPanelSpecification);
     }
 

@@ -13,9 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecific
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
 /**
  * @author skublik
@@ -24,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType
 public class ObjectTemplateSummaryPanel extends ObjectSummaryPanel<ObjectTemplateType> {
 
     public ObjectTemplateSummaryPanel(String id, IModel<ObjectTemplateType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
-        super(id, ObjectTemplateType.class, model, summaryPanelSpecificationType);
+        super(id, model, summaryPanelSpecificationType);
     }
 
     @Override

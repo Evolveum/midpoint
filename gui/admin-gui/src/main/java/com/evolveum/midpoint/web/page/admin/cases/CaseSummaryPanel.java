@@ -41,7 +41,7 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
     private static final String OPERATION_LOAD_PARENT_CASE_DISPLAY_NAME = DOT_CLASS + "loadParentCaseDisplayName";
 
     public CaseSummaryPanel(String id, IModel<CaseType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
-        super(id, CaseType.class, model, summaryPanelSpecificationType);
+        super(id, model, summaryPanelSpecificationType);
     }
 
     @Override

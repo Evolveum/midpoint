@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.page.admin.resources.dto;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.DefinitionDto;
+import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.ItemDefinitionDto;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,19 +17,19 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @author lazyman
  */
-public class AttributeDto implements Serializable {
+public class AttributeDto extends ItemDefinitionDto implements Serializable {
 
     public static final String F_NAME = "name";
     public static final String F_NAME_CASE_INSENSITIVE = "nameCaseInsensitive";
     public static final String F_MIN_MAX_OCCURS = "minMaxOccurs";
     public static final String F_NATIVE_ATTRIBUTE_NAME = "nativeAttributeName";
     public static final String F_DISPLAY_NAME = "displayName";
-    public static final String F_DISPLAY_ORDER = "displayOrder";
     public static final String F_RETURNED_BY_DEFAULT = "returnedByDefault";
 
     private final ResourceAttributeDefinition definition;
 
     public AttributeDto(ResourceAttributeDefinition def) {
+        super(def.toMutable());
         this.definition = def;
     }
 
@@ -39,23 +41,19 @@ public class AttributeDto implements Serializable {
         return StringUtils.lowerCase(definition.getItemName().getLocalPart());
     }
 
-    public String getMinMaxOccurs() {
-        return String.valueOf(definition.getMinOccurs())
-                + '/'
-                + definition.getMaxOccurs();
-    }
+//    public String getMinMaxOccurs() {
+//        return String.valueOf(definition.getMinOccurs())
+//                + '/'
+//                + definition.getMaxOccurs();
+//    }
 
     public String getNativeAttributeName() {
         return definition.getNativeAttributeName();
     }
 
-    public String getDisplayName() {
-        return definition.getDisplayName();
-    }
-
-    public Integer getDisplayOrder() {
-        return definition.getDisplayOrder();
-    }
+//    public String getDisplayName() {
+//        return definition.getDisplayName();
+//    }
 
     public Boolean getReturnedByDefault() {
         return definition.getReturnedByDefault();
