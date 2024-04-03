@@ -657,8 +657,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
             PrismObject<T> originalObject = prismObject.clone(); // for result later
 
-            boolean reindex = options.isForceReindex();
 
+            // Use reindex instead of modify if reindex is required by user, or repository
+            // itself detected need for reindex during preparation read for modify.
+            boolean reindex = updateContext.reindexNeeded() || options.isForceReindex();
             if (reindex) {
                 // UpdateTables is false, we want only to process modifications on fullObject
                 // do not modify nested items.

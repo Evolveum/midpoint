@@ -235,4 +235,15 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         //noinspection unchecked
         return (PrismObject<S>) object.asPrismObject();
     }
+
+    /**
+     * Returns true if reindex is needed for this object
+     *
+     * During read problems were found in object storage -  such as data which should be stored in separate tables
+     * were stored in full object, full objects for assignments were missing, etc.
+     *
+     */
+    public boolean reindexNeeded() {
+        return getPrismObject().getUserData().get(SqaleUtils.REINDEX_NEEDED) == Boolean.TRUE;
+    }
 }
