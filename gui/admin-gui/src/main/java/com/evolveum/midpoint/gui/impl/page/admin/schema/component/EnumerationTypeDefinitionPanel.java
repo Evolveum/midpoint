@@ -41,13 +41,5 @@ public class EnumerationTypeDefinitionPanel extends DefinitionPanel<EnumerationT
             }
         };
         add(valuesModel);
-
-//        Label displayName = new Label("displayName", getModelObject().getValues().iterator().next().getValue().toString());
-//        add(displayName);
-//
-//        List<DefinitionDto> definitions = getModelObject().getDefinitionDtos();
-//        for (DefinitionDto definition : definitions) {
-//            add(new DefinitionPanel<>("definition", () -> definition));
-//        }
     }
 }

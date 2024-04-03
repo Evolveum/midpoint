@@ -7,43 +7,67 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.schema.dto;
 
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutableItemDefinition;
+import com.evolveum.midpoint.prism.*;
 
 import java.io.Serializable;
 
-public class ItemDefinitionDto<ID extends MutableItemDefinition> extends DefinitionDto<ID> implements Serializable {
+public class ItemDefinitionDto<ID extends ItemDefinition> extends DefinitionDto<ID> implements Serializable {
 
     public static final String F_NAME = "name";
     public static final String F_MIN_OCCURS = "minOccurs";
     public static final String F_MAX_OCCURS = "maxOccurs";
     public static final String F_MIN_MAX_OCCURS = "minMaxOccurs";
+    public static final String F_INDEXED = "indexed";
 
     private String name;
-    private Integer minOccurs;
-    private Integer maxOccurs;
-
 
     public ItemDefinitionDto(ID definition) {
          super(definition);
          this.name = definition.getItemName().getLocalPart();
-         this.minOccurs = definition.getMinOccurs();
-         this.maxOccurs = definition.getMaxOccurs();
      }
 
      public String getMinMaxOccurs() {
-         return String.valueOf(minOccurs)
+         return String.valueOf(getOriginalDefinition().getMinOccurs())
                  + '/'
-                 + maxOccurs;
+                 + getOriginalDefinition().getMaxOccurs();
 
+     }
+
+     public String getMinOccurs() {
+        return String.valueOf(getOriginalDefinition().getMinOccurs());
+     }
+
+     public void setMinOccurs(String minOccurs) {
+        if (getOriginalDefinition() instanceof MutableItemDefinition<?>) {
+            ((MutableItemDefinition<?>) getOriginalDefinition()).setMinOccurs(Integer.valueOf(minOccurs));
+        }
+     }
+
+     public String getMaxOccurs() {
+         return String.valueOf(getOriginalDefinition().getMaxOccurs());
+     }
+
+     public void setMaxOccurs(String maxOccurs) {
+        if (getOriginalDefinition() instanceof MutableItemDefinition<?>) {
+            ((MutableItemDefinition<?>) getOriginalDefinition()).setMaxOccurs(Integer.valueOf(maxOccurs));
+        }
+     }
+
+     public boolean getIndexed() {
+         if (getOriginalDefinition() instanceof PrismPropertyDefinition){
+             return ((PrismPropertyDefinition) getOriginalDefinition()).isIndexed();
+        }
+        return false;
+     }
+
+     public void setIndexed(boolean indexed) {
+        if (getOriginalDefinition() instanceof MutablePrismPropertyDefinition<?>) {
+            ((MutablePrismPropertyDefinition<?>) getOriginalDefinition()).setIndexed(indexed);
+        }
      }
 
     @Override
     public ID getOriginalDefinition() {
         return super.getOriginalDefinition();
     }
-
-
 }

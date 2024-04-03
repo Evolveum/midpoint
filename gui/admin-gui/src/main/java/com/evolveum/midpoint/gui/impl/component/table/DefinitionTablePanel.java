@@ -10,12 +10,10 @@ package com.evolveum.midpoint.gui.impl.component.table;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.ItemDefinitionPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.DefinitionDto;
 
 import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.ItemDefinitionDto;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.page.admin.resources.dto.AttributeDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
@@ -78,6 +76,11 @@ public class DefinitionTablePanel<T extends ItemDefinitionDto> extends BasePanel
                         }
                 };
                 getPageBase().showMainPopup(itemDefPanel, target);
+            }
+
+            @Override
+            public boolean isEnabled(IModel<T> rowModel) {
+                return rowModel.getObject() instanceof ItemDefinitionDto;
             }
         });
         columns.add(new PropertyColumn<>(createStringResource("SchemaListPanel.displayName"), ItemDefinitionDto.F_DISPLAY_NAME));

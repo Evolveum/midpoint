@@ -435,27 +435,6 @@ call apply_change(24, $aa$
 $aa$);
 
 call apply_change(25, $aa$
-   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SCHEMA' AFTER 'ROLE_ANALYSIS_SESSION';
-$aa$);
-
-call apply_change(26, $aa$
-CREATE TABLE m_schema (
-    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('SCHEMA') STORED
-       CHECK (objectType = 'SCHEMA')
-)
-    INHERITS (m_assignment_holder);
-
-CREATE TRIGGER m_schema_oid_insert_tr BEFORE INSERT ON m_schema
-    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
-CREATE TRIGGER m_schema_update_tr BEFORE UPDATE ON m_schema
-    FOR EACH ROW EXECUTE FUNCTION before_update_object();
-CREATE TRIGGER m_schema_oid_delete_tr AFTER DELETE ON m_schema
-    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
-
-$aa$);
-
-call apply_change(27, $aa$
 CREATE OR REPLACE PROCEDURE m_refresh_org_closure(force boolean = false)
     LANGUAGE plpgsql
 AS $$
@@ -489,6 +468,28 @@ call apply_change(26, $aa$
     ALTER TABLE m_ref_projection ADD COLUMN fullObject BYTEA;
     ALTER TABLE m_ref_role_membership ADD COLUMN fullObject BYTEA;
 $aa$);
+
+call apply_change(27, $aa$
+   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SCHEMA' AFTER 'ROLE_ANALYSIS_SESSION';
+$aa$);
+
+call apply_change(28, $aa$
+CREATE TABLE m_schema (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('SCHEMA') STORED
+       CHECK (objectType = 'SCHEMA')
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_schema_oid_insert_tr BEFORE INSERT ON m_schema
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_schema_update_tr BEFORE UPDATE ON m_schema
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_schema_oid_delete_tr AFTER DELETE ON m_schema
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+$aa$);
+
 
 ---
 -- WRITE CHANGES ABOVE ^^

@@ -14,51 +14,42 @@ import com.evolveum.midpoint.prism.MutableDefinition;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 
-public abstract class DefinitionDto<D extends MutableDefinition> implements Serializable {
+public abstract class DefinitionDto<D extends Definition> implements Serializable {
 
     public static final String F_DISPLAY_NAME = "displayName";
     public static final String F_DISPLAY_ORDER = "displayOrder";
     public static final String F_TYPE = "type";
 
-    private String displayName;
-    private Integer displayOrder;
     private QName type;
 
     private D originalDefinition;
 
 
      public DefinitionDto(D definition) {
-         this.displayName = definition.getDisplayName();
-         this.displayOrder = definition.getDisplayOrder();
          this.type = definition.getTypeName();
 
          this.originalDefinition = definition;
      }
 
     public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-        this.originalDefinition.setDisplayName(displayName);
+        return originalDefinition.getDisplayName();
     }
 
     public Integer getDisplayOrder() {
-        return displayOrder;
+        return originalDefinition.getDisplayOrder();
+    }
+
+    public void setDisplayName(String displayName) {
+         if (originalDefinition instanceof MutableDefinition) {
+             ((MutableDefinition) originalDefinition).setDisplayName(displayName);
+         }
     }
 
     public void setDisplayOrder(Integer displayOrder) {
-        this.displayOrder = displayOrder;
-        this.originalDefinition.setDisplayOrder(displayOrder);
+         if (originalDefinition instanceof MutableDefinition) {
+             ((MutableDefinition) originalDefinition).setDisplayOrder(displayOrder);
+         }
     }
-
-//    public D getEditedDefinition() {
-//        MutableDefinition mutableDefinition = originalDefinition.clone().toMutable();
-//        mutableDefinition.setDisplayName(displayName);
-//        mutableDefinition.setDisplayOrder(displayOrder);
-//        return (D) mutableDefinition;
-//    }
 
     public D getOriginalDefinition() {
         return originalDefinition;

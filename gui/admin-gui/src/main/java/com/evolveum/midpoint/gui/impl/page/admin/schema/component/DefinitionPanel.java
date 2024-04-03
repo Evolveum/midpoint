@@ -36,16 +36,5 @@ public class DefinitionPanel<T extends DefinitionDto> extends BasePanel<T> {
         Label displayOrder = new Label("displayOrder", getModelObject().getDisplayOrder());
         add(displayOrder);
 
-//       Label documentation = new Label("documentation", new PropertyModel<>(getModel(), "documentation"));
-//       add(documentation);
-//
-//       Label deprecated = new Label("deprecated", new PropertyModel<>(getModel(), "deprecated"));
-//       add(deprecated);
-//
-//       Label experimental = new Label("experimental", new PropertyModel<>(getModel(), "experimental"));
-//       add(experimental);
-//
-//       Label runtimeSchema = new Label("runtimeSchema", new PropertyModel<>(getModel(), "runtimeSchema"));
-//       add(runtimeSchema);
     }
 }

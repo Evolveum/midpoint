@@ -18,43 +18,29 @@ public class ComplexTypeDefinitionDto extends DefinitionDto<MutableComplexTypeDe
 
     public static final String F_DEFINITIONS = "definitionDtos";
 
-//    private List<? extends ItemDefinitionDto> definitionDtos;
+    private List<? extends ItemDefinitionDto> definitionDtos;
 
     public ComplexTypeDefinitionDto(ComplexTypeDefinition ctd) {
         super(ctd.toMutable());
-
-//        definitionDtos = ctd.getDefinitions().stream()
-//                .map(this::createDefinitionDto)
-//                .collect(Collectors.toList());
-
     }
 
-//    private ItemDefinitionDto createDefinitionDto(ItemDefinition<?> def) {
-////        if (def instanceof ComplexTypeDefinition) {
-////            return new ComplexTypeDefinitionDto((ComplexTypeDefinition) def);
-////        } if (def instanceof EnumerationTypeDefinition) {
-////            return new EnumerationTypeDefinitionDto((EnumerationTypeDefinition) def);
-////        }
-////        else
-//            return new ItemDefinitionDto(def.toMutable());
-//    }
+    public List<? extends ItemDefinitionDto> getDefinitionDtos() {
+        if (definitionDtos == null) {
+            initDefinitionDtos();
 
-//    public List<DefinitionDto> getDefinitionDtos() {
-//        return definitionDtos;
-//    }
+        }
+        return definitionDtos;
+    }
 
-//    @Override
-//    public ComplexTypeDefinition getEditedDefinition() {
-//        ComplexTypeDefinition originalDefinition = getOriginalDefinition();
-//        MutableComplexTypeDefinition mutableDefinition = originalDefinition.clone().toMutable();
-//        mutableDefinition.setDisplayName(getDisplayName());
-//        mutableDefinition.setDisplayOrder(getDisplayOrder());
-////        mutableDefinition.getDefinitions().clear();
-////        for (ItemDefinitionDto dto : definitionDtos) {
-////            ItemDefinition<?> itemDEf = mutableDefinition.findItemDefinition(dto.getOriginalDefinition().getItemName());
-////            itemDEf.toMutable().setDisplayName(dto.getDisplayName());
-////            itemDEf.toMutable().setDisplayOrder(dto.getDisplayOrder());
-////        }
-//        return mutableDefinition;
-//    }
+    private void initDefinitionDtos() {
+        definitionDtos = getOriginalDefinition().getDefinitions().stream()
+            .map(this::createDefinitionDto)
+            .collect(Collectors.toList());
+    }
+
+    private ItemDefinitionDto createDefinitionDto(ItemDefinition<?> def) {
+        return new ItemDefinitionDto(def.toMutable());
+    }
+
+
 }

@@ -6,13 +6,12 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources.dto;
 
-import java.io.Serializable;
-
-import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.DefinitionDto;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.ItemDefinitionDto;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
 
 /**
  * @author lazyman
@@ -29,7 +28,7 @@ public class AttributeDto extends ItemDefinitionDto implements Serializable {
     private final ResourceAttributeDefinition definition;
 
     public AttributeDto(ResourceAttributeDefinition def) {
-        super(def.toMutable());
+        super(def);
         this.definition = def;
     }
 
@@ -41,19 +40,9 @@ public class AttributeDto extends ItemDefinitionDto implements Serializable {
         return StringUtils.lowerCase(definition.getItemName().getLocalPart());
     }
 
-//    public String getMinMaxOccurs() {
-//        return String.valueOf(definition.getMinOccurs())
-//                + '/'
-//                + definition.getMaxOccurs();
-//    }
-
     public String getNativeAttributeName() {
         return definition.getNativeAttributeName();
     }
-
-//    public String getDisplayName() {
-//        return definition.getDisplayName();
-//    }
 
     public Boolean getReturnedByDefault() {
         return definition.getReturnedByDefault();

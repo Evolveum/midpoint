@@ -20,12 +20,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.util.Collection;
 
 public class SchemaPropertyWrapperImpl extends PrismPropertyValueWrapper<SchemaDefinitionType> {
+
+    public static final String F_NAMESPACE = "namespace";
 
     private String oldValue;
     private String namespace;
@@ -35,6 +38,9 @@ public class SchemaPropertyWrapperImpl extends PrismPropertyValueWrapper<SchemaD
         super(parent, null, status);
         //String oldValue, PrismSchema newValue
         SchemaDefinitionType schemaDefinitionType = value.getValue();
+        if (schemaDefinitionType == null) {
+            return;
+        }
         Element schemaElement = schemaDefinitionType.getSchema();
         try {
             PrismSchema newValue = PrismSchemaImpl.parse(schemaElement, true, "schema for ", PrismContext.get());
@@ -58,9 +64,14 @@ public class SchemaPropertyWrapperImpl extends PrismPropertyValueWrapper<SchemaD
 
     @Override
     public PrismPropertyValue<SchemaDefinitionType> getNewValue() {
-        Document doc = null;
+        PrismSchema prismSchema = getParsedSchema();
+        if (prismSchema == null) {
+            return PrismContext.get().itemFactory().createPropertyValue();
+        }
+
+        Document doc;
         try {
-            doc = getParsedSchema().serializeToXsd();
+            doc = prismSchema.serializeToXsd();
         } catch (SchemaException e) {
             // TODO proper error handling
             System.out.println("error while serializing schema");
@@ -74,6 +85,9 @@ public class SchemaPropertyWrapperImpl extends PrismPropertyValueWrapper<SchemaD
 
 
     public PrismSchema getParsedSchema() {
+        if (StringUtils.isBlank(namespace)) {
+            return null;
+        }
         MutablePrismSchema parsedSchema = new PrismSchemaImpl(namespace);
         definitions.forEach(parsedSchema::add);
         return parsedSchema;

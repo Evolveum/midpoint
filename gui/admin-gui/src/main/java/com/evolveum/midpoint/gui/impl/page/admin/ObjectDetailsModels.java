@@ -78,7 +78,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                     ctx.setReadOnly(isReadonly());
                 }
                 try {
-                    return factory.createObjectWrapper(prismObject, isEditObject(prismObject) ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
+                    return factory.createObjectWrapper(prismObject, isEditObject() ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
                 } catch (SchemaException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Cannot create wrapper for {} \nReason: {]", e, prismObject, e.getMessage());
                     result.recordFatalError("Cannot create wrapper for " + prismObject + ", because: " + e.getMessage(), e);
@@ -187,8 +187,8 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return summaryModel;
     }
 
-    public boolean isEditObject(PrismObject<O> prismObject) {
-        return prismObject.getOid() != null;
+    public boolean isEditObject() {
+        return getPrismObject().getOid() != null;
     }
 
     protected PrismContext getPrismContext() {

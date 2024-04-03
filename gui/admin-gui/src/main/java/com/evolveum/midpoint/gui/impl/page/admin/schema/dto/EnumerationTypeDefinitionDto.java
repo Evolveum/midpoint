@@ -7,10 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.schema.dto;
 
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.EnumerationTypeDefinition;
-
 import java.util.Collection;
+
+import com.evolveum.midpoint.prism.EnumerationTypeDefinition;
 
 public class EnumerationTypeDefinitionDto extends DefinitionDto {
 

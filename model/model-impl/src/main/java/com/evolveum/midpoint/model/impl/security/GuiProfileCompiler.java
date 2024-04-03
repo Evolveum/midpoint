@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -152,6 +153,10 @@ public class GuiProfileCompiler {
         }
 
         FocusType focus = principal.getFocus(); // [EP:APSO] DONE, focus is from repository
+
+        ObjectQuery query = PrismContext.get().queryFor(AssignmentType.class).ownedBy(focus.getClass()).ownerId(focus.getOid()).build();
+        SearchResultList<AssignmentType> assignments = repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        focus.getAssignment().addAll(assignments);
 
         Collection<? extends EvaluatedAssignment> evaluatedAssignments = // [EP:APSO] DONE, see the called method
                 assignmentCollector.collect(focus.asPrismObject(), task, result);

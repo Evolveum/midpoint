@@ -10,7 +10,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.schema.component;
 import com.evolveum.midpoint.gui.impl.component.table.DefinitionTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.ComplexTypeDefinitionDto;
 
-import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.ItemDefinitionsModel;
 import com.evolveum.midpoint.prism.ItemDefinition;
 
 import org.apache.wicket.markup.html.basic.Label;
@@ -27,31 +26,8 @@ public class ComplexTypeDefinitionPanel extends DefinitionPanel<ComplexTypeDefin
         Label displayName = new Label("displayName", new PropertyModel<>(getModel(), ComplexTypeDefinitionDto.F_DISPLAY_NAME));
         add(displayName);
 
-        DefinitionTablePanel<? extends ItemDefinition> definitions = new DefinitionTablePanel<>("definitions", new ItemDefinitionsModel(getModel()));
+        DefinitionTablePanel<? extends ItemDefinition> definitions = new DefinitionTablePanel<>("definitions", new PropertyModel<>(getModel(), ComplexTypeDefinitionDto.F_DEFINITIONS));
         definitions.setOutputMarkupId(true);
         add(definitions);
-
-//        ListView<DefinitionDto> definitions = new ListView<>("definitions", () -> getModelObject().getDefinitionDtos()) {
-//
-//            @Override
-//            protected void populateItem(ListItem<DefinitionDto> item) {
-////                if (item.getModelObject() instanceof ComplexTypeDefinitionDto) {
-////                    ComplexTypeDefinitionPanel panel = new ComplexTypeDefinitionPanel("definition", (IModel<ComplexTypeDefinitionDto>) item.getModel());
-////                    item.add(panel);
-////                } else if (item.getModelObject() instanceof EnumerationTypeDefinitionDto) {
-////                    EnumerationTypeDefinitionPanel panel = new EnumerationTypeDefinitionPanel("definition", (IModel<EnumerationTypeDefinitionDto>) item.getModel());
-////                    item.add(panel);
-////                } else {
-//                    DefinitionPanel panel = new DefinitionPanel("definition", item.getModel());
-//                    item.add(panel);
-////                }
-//            }
-//        };
-//        add(definitions);
-
-//        List<DefinitionDto> definitions = getModelObject().getDefinitionDtos();
-//        for (DefinitionDto definition : definitions) {
-//            add(new DefinitionPanel<>("definition", () -> definition));
-//        }
     }
 }

@@ -2241,4 +2241,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(26, $$ SELECT 1 $$, true);
+call apply_change(28, $$ SELECT 1 $$, true);
