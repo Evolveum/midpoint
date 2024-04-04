@@ -414,6 +414,13 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
             protected SearchContext createAdditionalSearchContext() {
                 SearchContext searchContext = new SearchContext();
                 searchContext.setPanelType(CollectionPanelType.REPO_SHADOW);
+                // MID-9569: selectedObjectDefinition has knowledge about detailed shadow type, so we can provide it
+                // directly to search (since we are also adding coordinates to filter) so Axiom Query can access
+                // additional attributes
+                var resTypeDef = getSelectedObjectTypeDefinition();
+                if (resTypeDef != null) {
+                    searchContext.setDefinitionOverride(resTypeDef.getPrismObjectDefinition());
+                }
                 return searchContext;
             }
 
@@ -527,7 +534,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
 
     @Override
     protected TaskCreationPopup<?> createNewTaskPopup() {
-        return new TaskCreationForRecognizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
+        return new TaskCreationFoCategorizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
 
             @Override
             protected void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean simulate, AjaxRequestTarget target) {

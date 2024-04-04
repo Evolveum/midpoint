@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
 
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceSetTaskWorkDefinition;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
@@ -19,25 +21,10 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
-public class ReconciliationWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
-
-    /** Mutable, disconnected from the source. */
-    @NotNull private final ResourceObjectSetType resourceObjects;
+public class ReconciliationWorkDefinition extends ResourceSetTaskWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
     ReconciliationWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
         super(info);
-        var typedDefinition = (ReconciliationWorkDefinitionType) info.getBean();
-        resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
-        ResourceObjectSetUtil.setDefaultQueryApplicationMode(resourceObjects, APPEND);
-    }
-
-    @Override
-    public @NotNull ResourceObjectSetType getResourceObjectSetSpecification() {
-        return resourceObjects;
-    }
-
-    @Override
-    protected void debugDumpContent(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabel(sb, "resourceObjects", resourceObjects, indent+1);
+        ResourceObjectSetUtil.setDefaultQueryApplicationMode(getResourceObjectSetSpecification(), APPEND);
     }
 }

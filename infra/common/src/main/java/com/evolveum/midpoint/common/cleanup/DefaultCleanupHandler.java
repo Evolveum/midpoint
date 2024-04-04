@@ -28,11 +28,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+@SuppressWarnings("unused")
 public class DefaultCleanupHandler implements CleanupHandler {
 
     private static final Trace TRACE = TraceManager.getTrace(DefaultCleanupHandler.class);
@@ -62,10 +64,11 @@ public class DefaultCleanupHandler implements CleanupHandler {
     @Override
     public boolean onConfirmOptionalCleanup(CleanupEvent<Item<?, ?>> event) {
         event.result().getMessages().add(
-                new CleanupMessage(
-                        CleanupMessage.Status.WARNING,
+                new CleanupMessage<>(
+                        CleanupMessage.Type.OPTIONAL_CLEANUP,
                         new SingleLocalizableMessage(
-                                "Optional item '" + event.path() + "' not cleaned up.")));
+                                "Optional item '" + event.path() + "' not cleaned up."),
+                        event.path()));
 
         return false;
     }
@@ -94,6 +97,9 @@ public class DefaultCleanupHandler implements CleanupHandler {
         }
 
         String oid = refValue.getOid();
+        if (oid == null) {
+            return;
+        }
 
         QName typeName = refValue.getTargetType();
         if (typeName == null) {
@@ -107,10 +113,13 @@ public class DefaultCleanupHandler implements CleanupHandler {
         }
 
         event.result().getMessages().add(
-                new CleanupMessage(
-                        CleanupMessage.Status.WARNING,
+                new CleanupMessage<>(
+                        CleanupMessage.Type.MISSING_REFERENCE,
                         new SingleLocalizableMessage(
-                                "Unresolved reference (locally): " + refValue.getOid() + "(" + typeName.getLocalPart() + ").")));
+                                "Unresolved reference (locally): " + refValue.getOid() + "(" + typeName.getLocalPart() + ")."),
+                        new ObjectReferenceType()
+                                .oid(oid)
+                                .type(typeName)));
     }
 
     private void clearOidFromReference(PrismReferenceValue value) {
@@ -136,14 +145,19 @@ public class DefaultCleanupHandler implements CleanupHandler {
             return;
         }
 
+        ObjectReferenceType missingRef = new ObjectReferenceType()
+                .oid(oid)
+                .type(ConnectorType.COMPLEX_TYPE);
+
         try {
             PrismObject<ConnectorType> connector = resolveConnector(oid);
             if (connector == null) {
                 event.result().getMessages().add(
-                        new CleanupMessage(
-                                CleanupMessage.Status.WARNING,
+                        new CleanupMessage<>(
+                                CleanupMessage.Type.MISSING_REFERENCE,
                                 new SingleLocalizableMessage(
-                                        "Unresolved connector reference: Couldn't find connector with oid " + oid + ".")));
+                                        "Unresolved connector reference: Couldn't find connector with oid " + oid + "."),
+                                missingRef));
                 return;
             }
 
@@ -160,10 +174,11 @@ public class DefaultCleanupHandler implements CleanupHandler {
             TRACE.debug("Couldn't resolve connector reference", ex);
 
             event.result().getMessages().add(
-                    new CleanupMessage(
-                            CleanupMessage.Status.WARNING,
+                    new CleanupMessage<>(
+                            CleanupMessage.Type.MISSING_REFERENCE,
                             new SingleLocalizableMessage(
-                                    "Unresolved connector reference: " + ex.getMessage())));
+                                    "Unresolved connector reference: " + ex.getMessage()),
+                            missingRef));
         }
     }
 
@@ -224,6 +239,8 @@ public class DefaultCleanupHandler implements CleanupHandler {
             return;
         }
 
+        ProtectedStringViolations violations = new ProtectedStringViolations();
+
         List<String> messages = new ArrayList<>();
         for (PrismPropertyValue<ProtectedStringType> value : property.getValues()) {
             ProtectedStringType ps = value.getValue();
@@ -233,14 +250,17 @@ public class DefaultCleanupHandler implements CleanupHandler {
 
             if (ps.getEncryptedDataType() != null) {
                 messages.add("encrypted data in " + property.getPath());
+                violations.addEncrypted(property.getPath());
             }
 
             if (ps.getHashedDataType() != null) {
                 messages.add("hashed data in " + property.getPath());
+                violations.addHashed(property.getPath());
             }
 
             if (ps.getClearValue() != null) {
                 messages.add("clear value in " + property.getPath());
+                violations.addClearValue(property.getPath());
             }
         }
 
@@ -249,26 +269,20 @@ public class DefaultCleanupHandler implements CleanupHandler {
         }
 
         event.result().getMessages().add(
-                new CleanupMessage(
-                        CleanupMessage.Status.WARNING,
+                new CleanupMessage<>(
+                        CleanupMessage.Type.PROTECTED_STRING,
                         new SingleLocalizableMessage(
-                                "Protected string: " + StringUtils.join(messages, ", "))));
+                                "Protected string: " + StringUtils.join(messages, ", ")),
+                        violations));
     }
 
     /**
-     * @param type
-     * @param oid
-     * @param <O>
      * @return true if the object reference can be resolved, false otherwise. E.g. file/object is available locally in project.
      */
     protected <O extends ObjectType> boolean canResolveLocalObject(Class<O> type, String oid) {
         return false;
     }
 
-    /**
-     * @param oid
-     * @return
-     */
     protected PrismObject<ConnectorType> resolveConnector(String oid) {
         return null;
     }
