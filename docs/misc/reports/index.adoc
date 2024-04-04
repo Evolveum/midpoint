@@ -33,7 +33,7 @@ For an example of this please see this xref:TODO[link].
 You can execute a report in a couple of clicks *from dedicated places in the GUI*, as you can see in xref:TODO[this] example.
 
 Or you can create your own report completely *from scratch*, or modify any existing one to serve your needs.
-A more in depth look regarding this is documented xref:TODO[here].
+A more in depth look regarding this is documented xref:/midpoint/reference/misc/reports/configuration/index.adoc[here].
 
 In any case this creates a *report definition*, a sort of prescription how a report should look like, what should be present and from where we get the data.
 
@@ -50,6 +50,6 @@ It is also possible to send generated reports via email xref:/midpoint/reference
 
 For more information on export formats please have a look at xref:/midpoint/reference/misc/reports/report-formats.adoc[this] page.
 
-++++
-{% children %}
-++++
+// ++++
+// {% children %}
+// ++++

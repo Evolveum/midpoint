@@ -111,10 +111,17 @@ Naturally you can use them as a basis for your custom reports.
 
 You can create and configure reports also with the use of the xref:/midpoint/reference/interfaces/rest/endpoints/reports.adoc[REST API].
 
-== Tasks for Reports
+== Generate The Report
 
-A report is created by being generated via a task.
-The task for generating a report is executed asynchronously when the "run" button is clicked in the report definition.
+The actual report (i.e. report file) has to be generated.
+This is done usually by clicking the "run" ("Save and run" or "Run original report") button from the report definition.
+This will execute a special task object which generated the actual report.
+After the "run" button is clicked you can access the task either directly through the "notification" prompt which will appear at the header of the page ("show task" button).
+Or you can access the report through the left vertical menu "Server tasks" > "Report tasks" button.
+Here your task will be present.
+
+The actual report file can be downloaded when the task successfully finished, for this the task GUI contains the "Download report" button.
+
 
 There are multiple ways how tasks are build when executed from a report definition, for more information on this and also information how you can distribute the workload of the task to multiple nodes see xref:../configuration/report-task-definition.adoc[this] page
 
