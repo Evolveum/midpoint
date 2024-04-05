@@ -70,18 +70,18 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     protected void addViewMenuItemsForCreateTaskButton(List<InlineMenuItem> items) {
         items.add(createTaskViewMenuItem(
                 createStringResource("ResourceObjectsPanel.button.viewSimulatedTasks"),
-                null,
+                SystemObjectsType.ARCHETYPE_SHADOW_RECLASSIFICATION_TASK.value(),
                 true));
 
         items.add(createTaskViewMenuItem(
-                createStringResource("ResourceObjectsPanel.button.viewImportTasks"),
-                SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
+                createStringResource("ResourceObjectsPanel.button.viewShadowReclassificationTasks"),
+                SystemObjectsType.ARCHETYPE_SHADOW_RECLASSIFICATION_TASK.value(),
                 false));
     }
 
     @Override
     protected TaskCreationPopup<?> createNewTaskPopup() {
-        return new TaskCreationForUnrecognizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
+        return new TaskCreationForUncategorizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
             @Override
             protected void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean simulate, AjaxRequestTarget target) {
                 ResourceUncategorizedPanel.this.createNewTaskPerformed(flavor, simulate, target);
@@ -121,7 +121,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
             filter = addSimulationRule(
                     filter.and(),
                     true,
-                    ExecutionModeType.PREVIEW);
+                    ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
         }
 
         return filter.build();
@@ -277,11 +277,6 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
 
     @Override
     protected void customizeTaskCreator(ResourceTaskCreator creator, boolean isSimulation) {
-        creator.withSearchOptions(new SelectorQualifiedGetOptionsType()
-                        .option(new SelectorQualifiedGetOptionType()
-                                .options(new GetOperationOptionsType()
-                                        .shadowClassificationMode(ShadowClassificationModeType.FORCED))))
-                .withExecutionMode(ExecutionModeType.PREVIEW);
         if (isSimulation) {
             creator.withExecutionMode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
         }

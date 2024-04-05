@@ -203,33 +203,6 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
         addNameAttribute(parameterValue, item);
         parameterValue.setOutputMarkupId(true);
         item.add(parameterValue);
-
-        //todo ugly hack for DatePanel which has several input fields and we want to update hidden field model value
-        //after any change in each of them
-        if (isDateTypeAttribute(itemWrapper)) {
-            valuePanel.visitChildren(
-                    FormComponent.class,
-                    (component, objectIVisit) -> {
-                        component.add(new AjaxEventBehavior("keyup") {
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected void onEvent(AjaxRequestTarget target) {
-                                try {
-                                    hiddenFieldModel.setObject(itemWrapper.getValue().getRealValue().toString());
-                                } catch (Exception e) {
-                                    hiddenFieldModel.setObject(null);
-                                }
-                                target.add(item.get("parameterValue"));
-
-                            }
-                        });
-                    });
-        }
-    }
-
-    private boolean isDateTypeAttribute(PrismPropertyWrapper<?> itemWrapper) {
-        return QNameUtil.match(DOMUtil.XSD_DATETIME, itemWrapper.getTypeName());
     }
 
     private void addNameAttribute(FormComponent component, ListItem<VerificationAttributeDto> item) {

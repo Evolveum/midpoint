@@ -74,6 +74,9 @@ public class TestLdap extends AbstractLongTest {
     private static final int NUM_LDAP_ENTRIES = 1600;
 //    private static final int NUM_LDAP_ENTRIES = 100;
 
+    /** Estimated time to import/recon one LDAP entry. 2000 is too low for Jenkins+Oracle; moreover, test910 used 3000 already. */
+    private static final int TIME_PER_LDAP_ENTRY = 3000;
+
     private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 
     protected ResourceType resourceOpenDjType;
@@ -341,7 +344,7 @@ public class TestLdap extends AbstractLongTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, 20000 + NUM_LDAP_ENTRIES * 2000);
+        waitForTaskFinish(task, 20000 + NUM_LDAP_ENTRIES * TIME_PER_LDAP_ENTRY);
 
         // THEN
         then();
@@ -367,7 +370,7 @@ public class TestLdap extends AbstractLongTest {
 
         // THEN
         then();
-        waitForTaskFinish(task, 20000 + NUM_LDAP_ENTRIES * 2000);
+        waitForTaskFinish(task, 20000 + NUM_LDAP_ENTRIES * TIME_PER_LDAP_ENTRY);
 
         // THEN
         then();
@@ -393,7 +396,7 @@ public class TestLdap extends AbstractLongTest {
         // THEN
         then();
 
-        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, 20000 + NUM_LDAP_ENTRIES * 2000);
+        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, 20000 + NUM_LDAP_ENTRIES * TIME_PER_LDAP_ENTRY);
 
         // THEN
         then();
@@ -431,7 +434,7 @@ public class TestLdap extends AbstractLongTest {
         // THEN
         then();
 
-        waitForTaskFinish(TASK_DELETE_OPENDJ_ACCOUNTS_OID, 20000 + NUM_LDAP_ENTRIES * 3000);
+        waitForTaskFinish(TASK_DELETE_OPENDJ_ACCOUNTS_OID, 20000 + NUM_LDAP_ENTRIES * TIME_PER_LDAP_ENTRY);
 
         // THEN
         then();

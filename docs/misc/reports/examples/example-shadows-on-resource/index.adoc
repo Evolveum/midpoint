@@ -132,7 +132,6 @@ We want report with table of shadow, so we import dashboard report.
 ----
 <report>
     <name>Shadow dashboard report</name>
-    <reportEngine>dashboard</reportEngine>
     <dashboard>
         <dashboardRef oid="72b1f98e-f587-4b9f-b92b-72e251da1234" type="DashboardType"/>
     </dashboard>

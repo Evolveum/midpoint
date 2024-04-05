@@ -59,6 +59,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getRoleMembershipManagement());
         addTypedParameters(values, definitions.getRoleAnalysisClustering());
         addTypedParameters(values, definitions.getRoleAnalysisPatternDetection());
+        addTypedParameters(values, definitions.getShadowReclassification());
 
         addUntypedParameters(values, definitions.getExtension());
         return values;

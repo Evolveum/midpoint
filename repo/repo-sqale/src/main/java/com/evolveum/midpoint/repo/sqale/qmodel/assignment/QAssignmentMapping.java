@@ -42,6 +42,8 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
  * Mapping between {@link QAssignment} and {@link AssignmentType}.
  * There are separate instances for assignments and inducements and the instance also knows
@@ -61,6 +63,9 @@ public class QAssignmentMapping<OR extends MObject>
 
     /** Inducement mapping instance, this must be used for inserting inducements. */
     private static QAssignmentMapping<?> instanceInducement;
+
+    private boolean storeFullObject = true;
+
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static <OR extends MObject> QAssignmentMapping<OR>
@@ -283,7 +288,7 @@ public class QAssignmentMapping<OR extends MObject>
     @Override
     public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
         assignment = assignment.clone(); // initRowObejctWithFullObject normalizes relations, this modifies delta
-        MAssignment row = initRowObjectWithFullObject(assignment, ownerRow);
+        MAssignment row = storeFullObject ? initRowObjectWithFullObject(assignment, ownerRow) : initRowObject(assignment, ownerRow);
 
         row.lifecycleState = assignment.getLifecycleState();
         row.orderValue = assignment.getOrder();
@@ -369,5 +374,11 @@ public class QAssignmentMapping<OR extends MObject>
     @Override
     public OrderSpecifier<?> orderSpecifier(QAssignment<OR> orqAssignment) {
         return new OrderSpecifier<>(Order.ASC, orqAssignment.cid);
+    }
+
+
+    @VisibleForTesting
+    public void setStoreFullObject(boolean value) {
+        storeFullObject = value;
     }
 }

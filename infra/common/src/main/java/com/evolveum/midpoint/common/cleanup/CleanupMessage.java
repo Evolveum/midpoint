@@ -9,9 +9,14 @@ package com.evolveum.midpoint.common.cleanup;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
 
-public record CleanupMessage(Status status, LocalizableMessage message) {
+public record CleanupMessage<D>(Type type, LocalizableMessage message, D data) {
 
-    public enum Status {
-        INFO, ERROR, WARNING;
+    public enum Type {
+
+        MISSING_REFERENCE,
+
+        OPTIONAL_CLEANUP,
+
+        PROTECTED_STRING
     }
 }

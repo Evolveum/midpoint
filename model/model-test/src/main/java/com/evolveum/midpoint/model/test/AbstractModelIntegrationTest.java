@@ -7310,6 +7310,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .withUsingReconciliation();
     }
 
+    /** Reclassification of shadows by creating a specialized task. */
+    protected SynchronizationRequestBuilder shadowReclassificationRequest() {
+        return new SynchronizationRequestBuilder(this)
+                .withUsingShadowReclassification();
+    }
+
     /**
      * Executes a set of deltas in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      *

@@ -6,12 +6,15 @@
  */
 
 .main-sidebar .sidebar > .user-panel {
+  padding-left: 0.55rem;
+
   & > .image {
-    padding-left: 0.8rem;
+    //padding-left: 0.8rem;
     position: relative;
     width: 100%;
-    min-width: 2.85rem;
-    max-width: 3.5rem;
+    min-width: 2.5rem;
+    max-width: 2.5rem;
+    padding:0;
     transition: all ease 0.08s !important;
     -webkit-transition: all ease 0.08s !important;
 

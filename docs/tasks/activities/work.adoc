@@ -62,6 +62,15 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 | See xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronization/[].
 | `false`
 
+| `shadowReclassification`
+| Reclassification of specified resource objects.
+| Simple
+| N
+| Y
+| `resourceObjects`
+| What xref:../resource-object-set-specification/[resource objects] to import.
+| This is obligatory parameter.
+
 | `cleanup`
 | Cleans up obsolete objects: audit records, closed tasks, closed cases, closed certification
 campaigns, output reports, and dead nodes.

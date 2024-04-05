@@ -173,7 +173,7 @@ public class SecretProviderPanel extends BasePanel<ExternalDataType> {
         Protector protector = getProtector();
         if (protector instanceof SecretsResolver resolver) {
             identifiers.addAll(
-                    getPageBase().getSecretsProviderManager().getSecretsProviderDescriptions(resolver)
+                    getParentPage().getSecretsProviderManager().getSecretsProviderDescriptions(resolver)
                             .entrySet().stream()
                             .map(entry -> new SecretProvider(
                                     entry.getKey(),

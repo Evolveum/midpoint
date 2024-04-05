@@ -934,6 +934,14 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView id="254">
+                <identifier>shadow-reclassification-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000523" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
             <objectDetailsPage id="83">

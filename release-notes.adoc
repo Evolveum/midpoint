@@ -48,7 +48,8 @@ See xref:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status
 * Adding panel in gui, that support of creating new archetype for reference in resource object type.
 * Changing of input field for documentation element to multi-line text field.
 * Adding possibility for use 'Preview' button with development configuration on page details.
-* Adding button for creating simulated/production 'Reclassification' task on unrecognized resource objects panel.
+* Adding 'Shadow reclassification' task as a new separate activity of the task type.
+** Adding button for creating simulated/production 'Reclassification' task on unrecognized resource objects panel.
 
 === Releases Of Other Components
 
