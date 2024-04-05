@@ -88,6 +88,19 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="attributeAnalysis" type="c:AttributeAnalysis" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Contains information about the attribute analysis result.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AttributeAnalysis.attributeAnalysis</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -95,6 +108,45 @@
     </xsd:complexType>
     <xsd:element name="roleAnalysisOutlier" type="tns:RoleAnalysisOutlierType" substitutionGroup="tns:object"/>
 
+
+    <xsd:complexType name="AttributeAnalysis">
+        <xsd:annotation>
+            <xsd:documentation>
+                The container consists of statistical data about object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="roleAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Contains information about the attribute analysis result.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AttributeAnalysis.roleAttributeAnalysisResult</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="userAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Contains information about the attribute analysis result.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AttributeAnalysis.userAttributeAnalysisResult</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="attributeAnalysis" type="tns:AttributeAnalysis"/>
 
     <xsd:complexType name="RoleAnalysisClusterType">
         <xsd:annotation>

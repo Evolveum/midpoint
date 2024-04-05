@@ -16,14 +16,20 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class RoleAnalysisAttributeImpl extends RoleAnalysisAttributeDef {
-    public RoleAnalysisAttributeImpl(ItemPath path, boolean isContainer) {
-        super(path, isContainer);
+
+    public RoleAnalysisAttributeImpl(ItemPath path, boolean isContainer, Class<? extends ObjectType> classType) {
+        super(path, isContainer, classType);
     }
 
-    public RoleAnalysisAttributeImpl(ItemPath path, boolean isContainer, String displayValue) {
-        super(path, isContainer, displayValue);
+    public RoleAnalysisAttributeImpl(ItemPath path, boolean isContainer, Class<? extends ObjectType> classType, IdentifierType identifierType) {
+        super(path, isContainer, classType, identifierType);
+    }
+
+    public RoleAnalysisAttributeImpl(ItemPath path, boolean isContainer, String displayValue, Class<? extends ObjectType> classType, IdentifierType identifierType) {
+        super(path, isContainer, displayValue, classType, identifierType);
     }
 
     public int attributeWithExactValueCount(

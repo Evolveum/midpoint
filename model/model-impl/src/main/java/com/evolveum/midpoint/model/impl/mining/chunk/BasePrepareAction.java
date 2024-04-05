@@ -49,6 +49,7 @@ public abstract class BasePrepareAction implements MiningStructure {
     public RoleAnalysisCacheOption getRoleCacheOption() {
         return roleCacheOption;
     }
+
     //TODO - add the correct path for the attributes
     RoleAnalysisCacheOption userCacheOption = generateUserCacheOption();
     RoleAnalysisCacheOption roleCacheOption = generateRoleCacheOption();
@@ -66,15 +67,15 @@ public abstract class BasePrepareAction implements MiningStructure {
 //        }
 
         ItemPath path = ItemPath.create(UserType.F_NAME);
-        RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false);
+        RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, UserType.class);
         itemDef.add(roleAnalysisAttributeDef);
 
         path = ItemPath.create(UserType.F_ASSIGNMENT);
-        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, true);
+        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, true, null);
         itemDef.add(roleAnalysisAttributeDef);
 
         path = ItemPath.create(UserType.F_ARCHETYPE_REF);
-        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false);
+        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, ArchetypeType.class);
         itemDef.add(roleAnalysisAttributeDef);
 
         return new RoleAnalysisCacheOption(itemDef);
@@ -93,15 +94,15 @@ public abstract class BasePrepareAction implements MiningStructure {
 //        }
 
         ItemPath path = ItemPath.create(RoleType.F_NAME);
-        RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false);
+        RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, RoleType.class);
         itemDef.add(roleAnalysisAttributeDef);
 
         path = ItemPath.create(RoleType.F_LIFECYCLE_STATE);
-        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false);
+        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, RoleType.class);
         itemDef.add(roleAnalysisAttributeDef);
 
         path = ItemPath.create(RoleType.F_ARCHETYPE_REF);
-        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false);
+        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, ArchetypeType.class);
         itemDef.add(roleAnalysisAttributeDef);
 
         return new RoleAnalysisCacheOption(itemDef);

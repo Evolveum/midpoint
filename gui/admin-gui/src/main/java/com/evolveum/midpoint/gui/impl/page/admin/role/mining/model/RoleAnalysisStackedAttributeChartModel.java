@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,9 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.model;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -26,13 +24,16 @@ import com.evolveum.wicket.chartjs.*;
  * Used in role analysis cluster chart.
  */
 // TODO - this class is just fast experiment
-public class RoleAnalysisAttributeChartModel extends LoadableModel<ChartConfiguration> {
+public class RoleAnalysisStackedAttributeChartModel extends LoadableModel<ChartConfiguration> {
 
-    LoadableDetachableModel<List<AttributeAnalysisStructure>> roleAnalysisModels;
+    LoadableDetachableModel<List<AttributeAnalysisStructure>> roleAnalysisModelsPositive;
+    LoadableDetachableModel<List<AttributeAnalysisStructure>> roleAnalysisModelsNegative;
 
-    public RoleAnalysisAttributeChartModel(LoadableDetachableModel<List<AttributeAnalysisStructure>> roleAnalysisModel) {
-        this.roleAnalysisModels = roleAnalysisModel;
-
+    public RoleAnalysisStackedAttributeChartModel(
+            LoadableDetachableModel<List<AttributeAnalysisStructure>> roleAnalysisModelsStack0,
+            LoadableDetachableModel<List<AttributeAnalysisStructure>> roleAnalysisModelsStack1) {
+        this.roleAnalysisModelsPositive = roleAnalysisModelsStack0;
+        this.roleAnalysisModelsNegative = roleAnalysisModelsStack1;
     }
 
     @Override
@@ -55,32 +56,42 @@ public class RoleAnalysisAttributeChartModel extends LoadableModel<ChartConfigur
         ChartAnimationOption chartAnimationOption = new ChartAnimationOption();
         chartAnimationOption.setDuration(0);
         options.setAnimation(chartAnimationOption);
-        if (roleAnalysisModels.getObject().size() < 10) {
-            options.setBarPercentage(0.8);
-        }
+        options.setScales("{\n"
+                + "      x: {\n"
+                + "        stacked: true,\n"
+                + "      },\n"
+                + "      y: {\n"
+                + "        stacked: true\n"
+                + "      }\n"
+                + "    }");
         return options;
     }
 
-    public ChartData generateDataset(){
-       return createDataset();
-    }
-    private @NotNull ChartData createDataset() {
+    public ChartData generateDataset() {
         ChartData chartData = new ChartData();
+        createPositiveSideData(chartData);
+        createNegativeSideData(chartData);
+        return chartData;
+    }
+
+    private void createPositiveSideData(ChartData chartData) {
 
         ChartDataset datasetAttributeDensity = new ChartDataset();
         datasetAttributeDensity.setLabel("Density");
         datasetAttributeDensity.addBackgroudColor(getColor());
         datasetAttributeDensity.setBorderWidth(1);
 
-        ChartDataset datasetUsers = new ChartDataset();
+        RoleAnalysisChartDataSet datasetUsers = new RoleAnalysisChartDataSet();
         datasetUsers.setLabel("Users attribute");
         datasetUsers.addBackgroudColor("Red");
+        datasetUsers.setStack("stack0");
 
-        ChartDataset datasetRoles = new ChartDataset();
+        RoleAnalysisChartDataSet datasetRoles = new RoleAnalysisChartDataSet();
         datasetRoles.setLabel("Roles attribute");
         datasetRoles.addBackgroudColor("Green");
+        datasetRoles.setStack("stack1");
 
-        List<AttributeAnalysisStructure> objects = roleAnalysisModels.getObject();
+        List<AttributeAnalysisStructure> objects = roleAnalysisModelsPositive.getObject();
         Map<String, List<AttributeAnalysisStructure>> itemPathMap = objects.stream()
                 .collect(Collectors.groupingBy(AttributeAnalysisStructure::getItemPath));
 
@@ -140,8 +151,76 @@ public class RoleAnalysisAttributeChartModel extends LoadableModel<ChartConfigur
 
         chartData.addDataset(datasetRoles);
         chartData.addDataset(datasetUsers);
+    }
 
-        return chartData;
+    private void createNegativeSideData(ChartData chartData) {
+
+
+
+        ChartDataset datasetAttributeDensity = new ChartDataset();
+        datasetAttributeDensity.setLabel("Density");
+        datasetAttributeDensity.addBackgroudColor(getColor());
+        datasetAttributeDensity.setBorderWidth(1);
+
+        RoleAnalysisChartDataSet datasetUsers = new RoleAnalysisChartDataSet();
+        datasetUsers.setLabel("Users compare");
+        datasetUsers.addBackgroudColor("Red");
+        datasetUsers.setStack("stack0");
+
+        RoleAnalysisChartDataSet datasetRoles = new RoleAnalysisChartDataSet();
+        datasetRoles.setLabel("Roles compare");
+        datasetRoles.addBackgroudColor("Green");
+        datasetRoles.setStack("stack1");
+
+        List<AttributeAnalysisStructure> objects = roleAnalysisModelsNegative.getObject();
+        Map<String, List<AttributeAnalysisStructure>> itemPathMap = objects.stream()
+                .collect(Collectors.groupingBy(AttributeAnalysisStructure::getItemPath));
+
+        Collection<String> labels = chartData.getLabels();
+        List<String> indexedLabels = new ArrayList<>(labels);
+
+        for (String indexedLabel : indexedLabels) {
+            if (itemPathMap.containsKey(indexedLabel)) {
+                List<AttributeAnalysisStructure> filteredObjects = itemPathMap.get(indexedLabel);
+                String itemPath = indexedLabel;
+
+                if (filteredObjects.size() == 2) {
+                    AttributeAnalysisStructure userAttribute = null;
+                    AttributeAnalysisStructure roleAttribute = null;
+
+                    for (AttributeAnalysisStructure obj : filteredObjects) {
+                        if (obj.getComplexType() == UserType.COMPLEX_TYPE) {
+                            userAttribute = obj;
+                        } else {
+                            roleAttribute = obj;
+                        }
+                    }
+
+                    if (userAttribute != null) {
+                        datasetUsers.addData(-userAttribute.getDensity());
+                    }
+                    if (roleAttribute != null) {
+                        datasetRoles.addData(-roleAttribute.getDensity());
+                    }
+                } else if (filteredObjects.size() == 1) {
+                    AttributeAnalysisStructure attributeStructure = filteredObjects.get(0);
+                    if (attributeStructure.getComplexType() == UserType.COMPLEX_TYPE) {
+                        datasetUsers.addData(-attributeStructure.getDensity());
+                        datasetRoles.addData(0.0);
+                    } else {
+                        datasetRoles.addData(-attributeStructure.getDensity());
+                        datasetUsers.addData(0.0);
+                    }
+                }
+
+                chartData.addLabel(itemPath);
+
+            }
+        }
+
+        chartData.addDataset(datasetRoles);
+        chartData.addDataset(datasetUsers);
+
     }
 
     private @NotNull ChartLegendOption createLegendOptions() {

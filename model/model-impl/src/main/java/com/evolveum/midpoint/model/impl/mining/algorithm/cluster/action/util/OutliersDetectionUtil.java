@@ -7,12 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +25,154 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
+
 public class OutliersDetectionUtil {
+
+    public static @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult) {
+        Objects.requireNonNull(cluster);
+        Objects.requireNonNull(outlierCandidateAttributeAnalysisResult);
+
+        List<RoleAnalysisAttributeAnalysis> outlierAttributeAnalysis = outlierCandidateAttributeAnalysisResult.getAttributeAnalysis();
+        if (outlierAttributeAnalysis.isEmpty()) {
+            return null;
+        }
+
+        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
+        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
+        if (userAttributeAnalysisResult == null) {
+            return null;
+        }
+        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
+        if (attributeAnalysis.isEmpty()) {
+            return null;
+        }
+
+        RoleAnalysisAttributeAnalysisResult outlierAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResult();
+
+        for (RoleAnalysisAttributeAnalysis clusterAnalysis : attributeAnalysis) {
+            String clusterItemPath = clusterAnalysis.getItemPath();
+            Double clusterDensity = clusterAnalysis.getDensity();
+            Set<String> outlierValues = extractCorrespondingOutlierValues(outlierCandidateAttributeAnalysisResult, clusterItemPath);
+            if (outlierValues == null) {
+                continue;
+            }
+
+            RoleAnalysisAttributeAnalysis correspondingAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+            correspondingAttributeAnalysis.setItemPath(clusterItemPath);
+            correspondingAttributeAnalysis.setDensity(clusterDensity);
+
+            List<RoleAnalysisAttributeStatistics> attributeStatistics = clusterAnalysis.getAttributeStatistics();
+            for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                String clusterAttributeValue = attributeStatistic.getAttributeValue();
+                if (outlierValues.contains(clusterAttributeValue)) {
+                    correspondingAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
+                }
+            }
+
+            outlierAttributeAnalysisResult.getAttributeAnalysis().add(correspondingAttributeAnalysis);
+        }
+
+        return outlierAttributeAnalysisResult;
+    }
+
+    public static @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull PrismObject<UserType> prismUser) {
+        Objects.requireNonNull(cluster);
+        Objects.requireNonNull(prismUser);
+
+        RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResult();
+
+        List<RoleAnalysisAttributeDef> itemDef = getAttributesForUserAnalysis();
+
+        for (RoleAnalysisAttributeDef item : itemDef) {
+            RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+            roleAnalysisAttributeAnalysis.setItemPath(item.getPath().toString());
+            List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAnalysisAttributeAnalysis.getAttributeStatistics();
+
+            ItemPath path = item.getPath();
+            boolean isContainer = item.isContainer();
+
+            if (isContainer) {
+                Set<String> values = item.resolveMultiValueItem(prismUser, path);
+                for (String value : values) {
+                    RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
+                    attributeStatistic.setAttributeValue(value);
+                    attributeStatistics.add(attributeStatistic);
+                }
+            } else {
+                String value = item.resolveSingleValueItem(prismUser, path);
+                if (value != null) {
+                    RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
+                    attributeStatistic.setAttributeValue(value);
+                    attributeStatistics.add(attributeStatistic);
+                }
+            }
+            outlierCandidateAttributeAnalysisResult.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis.clone());
+        }
+
+        List<RoleAnalysisAttributeAnalysis> outlierAttributeAnalysis = outlierCandidateAttributeAnalysisResult.getAttributeAnalysis();
+        if (outlierAttributeAnalysis.isEmpty()) {
+            return null;
+        }
+
+        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
+        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
+        if (userAttributeAnalysisResult == null) {
+            return null;
+        }
+        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
+        if (attributeAnalysis.isEmpty()) {
+            return null;
+        }
+
+        RoleAnalysisAttributeAnalysisResult outlierAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResult();
+
+        for (RoleAnalysisAttributeAnalysis clusterAnalysis : attributeAnalysis) {
+            String clusterItemPath = clusterAnalysis.getItemPath();
+            Double clusterDensity = clusterAnalysis.getDensity();
+            Set<String> outlierValues = extractCorrespondingOutlierValues(outlierCandidateAttributeAnalysisResult, clusterItemPath);
+            if (outlierValues == null) {
+                continue;
+            }
+
+            RoleAnalysisAttributeAnalysis correspondingAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+            correspondingAttributeAnalysis.setItemPath(clusterItemPath);
+            correspondingAttributeAnalysis.setDensity(clusterDensity);
+
+            List<RoleAnalysisAttributeStatistics> attributeStatistics = clusterAnalysis.getAttributeStatistics();
+            for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                String clusterAttributeValue = attributeStatistic.getAttributeValue();
+                if (outlierValues.contains(clusterAttributeValue)) {
+                    correspondingAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
+                }
+            }
+
+            outlierAttributeAnalysisResult.getAttributeAnalysis().add(correspondingAttributeAnalysis);
+        }
+
+        return outlierAttributeAnalysisResult;
+    }
+
+    private static @Nullable Set<String> extractCorrespondingOutlierValues(
+            @NotNull RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult, String itemPath) {
+        List<RoleAnalysisAttributeAnalysis> outlier = outlierCandidateAttributeAnalysisResult.getAttributeAnalysis();
+        for (RoleAnalysisAttributeAnalysis outlierAttribute : outlier) {
+            if (outlierAttribute.getItemPath().equals(itemPath)) {
+                Set<String> outlierValues = new HashSet<>();
+                for (RoleAnalysisAttributeStatistics attributeStatistic : outlierAttribute.getAttributeStatistics()) {
+                    outlierValues.add(attributeStatistic.getAttributeValue());
+                }
+                return outlierValues;
+            }
+        }
+        return null;
+    }
 
     public static Collection<RoleAnalysisOutlierType> executeOutliersAnalysis(
             @NotNull RoleAnalysisService roleAnalysisService,

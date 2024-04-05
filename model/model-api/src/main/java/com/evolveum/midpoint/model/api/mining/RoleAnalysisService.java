@@ -754,7 +754,6 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-
     /**
      * Resolves the focus object icon color based on the provided focus object archetype.
      *
@@ -768,6 +767,7 @@ public interface RoleAnalysisService {
 
     /**
      * Resolve object attribute value.
+     *
      * @param prismUser The user object.
      * @param itemDef The attribute definition.
      * @return Set of attribute values that user has.
@@ -778,6 +778,7 @@ public interface RoleAnalysisService {
 
     /**
      * Resolve object attribute value.
+     *
      * @param prismRole The role object.
      * @param itemDef The attribute definition.
      * @return Set of attribute values that role has.
@@ -793,5 +794,19 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult parentResult);
 
+    String calculateAttributeConfidence(
+            @NotNull RoleAnalysisProcessModeType processModeType,
+            @NotNull AnalysisClusterStatisticType clusterStatistics);
+
+    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser);
+
+    @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
+            @NotNull RoleAnalysisAttributeAnalysisResult compared,
+            @NotNull RoleAnalysisAttributeAnalysisResult comparison);
+
+    RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttribute(
+            @NotNull String objectOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 
 }

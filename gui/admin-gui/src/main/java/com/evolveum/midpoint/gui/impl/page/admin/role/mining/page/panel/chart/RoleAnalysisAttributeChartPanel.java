@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisStackedAttributeChartModel;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -78,6 +80,11 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
                 new ChartJsPanel<>(ID_CHART, new LoadableModel<>() {
                     @Override
                     protected ChartConfiguration load() {
+
+                        if (getStackedNegativeValue() != null) {
+                            return getRoleAnalysisStatisticsStacked().getObject();
+                        }
+
                         return getRoleAnalysisStatistics().getObject();
                     }
                 });
@@ -92,11 +99,36 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
 
     }
 
+    public List<AttributeAnalysisStructure> getStackedNegativeValue() {
+        return null;
+    }
+
     public RoleAnalysisAttributeChartModel getRoleAnalysisStatistics() {
         return new RoleAnalysisAttributeChartModel(new LoadableDetachableModel<>() {
             @Override
             protected List<AttributeAnalysisStructure> load() {
                 return attributeAnalysisStructureList;
+            }
+
+        }) {
+            @Override
+            public String getColor() {
+                return RoleAnalysisAttributeChartPanel.this.getColor();
+            }
+        };
+    }
+
+    public RoleAnalysisStackedAttributeChartModel getRoleAnalysisStatisticsStacked() {
+        return new RoleAnalysisStackedAttributeChartModel(new LoadableDetachableModel<>() {
+            @Override
+            protected List<AttributeAnalysisStructure> load() {
+                return attributeAnalysisStructureList;
+            }
+
+        }, new LoadableDetachableModel<>() {
+            @Override
+            protected List<AttributeAnalysisStructure> load() {
+                return getStackedNegativeValue();
             }
 
         }) {

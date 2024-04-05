@@ -73,14 +73,10 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
         super();
     }
 
-
-
     @Override
     public void savePerformed(AjaxRequestTarget target) {
         super.savePerformed(target);
     }
-
-
 
     @Override
     protected void onInitialize() {

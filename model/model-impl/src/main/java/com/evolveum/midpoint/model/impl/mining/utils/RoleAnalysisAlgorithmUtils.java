@@ -470,11 +470,6 @@ public class RoleAnalysisAlgorithmUtils {
         cluster.setCategory(RoleAnalysisClusterCategory.INLIERS);
 
         cluster.getMember().addAll(members);
-        cluster.setName(candidateName != null ? PolyStringType.fromOrig(candidateName) : clusterStatistic.getName());
-
-        if (clusterExplanationDescription != null) {
-            cluster.setDescription(clusterExplanationDescription);
-        }
 
         double maxReduction = 0;
         List<RoleAnalysisDetectionPatternType> detectedPatterns = processPatternAnalysis(
@@ -490,6 +485,13 @@ public class RoleAnalysisAlgorithmUtils {
         resolveAttributeStatistics(clusterStatistic, roleAnalysisClusterStatisticType);
 
         cluster.setClusterStatistics(roleAnalysisClusterStatisticType);
+
+        String name = resolveClusterName(cluster, session, roleAnalysisService, task, result);
+        cluster.setName(name != null ? PolyStringType.fromOrig(name) : clusterStatistic.getName());
+
+        if (clusterExplanationDescription != null) {
+            cluster.setDescription(clusterExplanationDescription);
+        }
 
         processOutliersAnalysis(roleAnalysisService, cluster, session, analysisOption, task, result);
 

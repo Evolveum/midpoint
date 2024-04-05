@@ -7,25 +7,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
+import static com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure.extractAttributeAnalysis;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
 
 import java.io.Serial;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPopupPanel;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,19 +28,31 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPopupPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierHeaderResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -59,8 +62,6 @@ import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.NotNull;
 
 public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
 
@@ -251,10 +252,10 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                 Task task = getPageBase().createSimpleTask("Load object");
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                 String objectName = "unknown";
-                PrismObject<RoleAnalysisClusterType> object = roleAnalysisService
+                PrismObject<RoleAnalysisClusterType> cluster = roleAnalysisService
                         .getObject(RoleAnalysisClusterType.class, ref.getOid(), task, task.getResult());
-                if (object != null) {
-                    objectName = object.getName().getOrig();
+                if (cluster != null) {
+                    objectName = cluster.getName().getOrig();
                 }
 
                 item.add(new AjaxLinkPanel(componentId, Model.of(objectName)) {
@@ -265,6 +266,13 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                         getPageBase().navigateToNext(PageRoleAnalysisCluster.class, parameters);
                     }
                 });
+
+                //TODO - add similar aspect analysis
+//                PrismObject<UserType> user = roleAnalysisService.getUserTypeObject(targetObjectOid, task, task.getResult());
+//                if (cluster != null && user != null) {
+//                    RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService.resolveSimilarAspect(cluster.asObjectable(), user);
+//                }
+
             }
 
             @Override
@@ -333,6 +341,10 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                 PrismObject<RoleAnalysisClusterType> object = roleAnalysisService
                         .getObject(RoleAnalysisClusterType.class, clusterRef.getOid(), task, task.getResult());
 
+                if (object == null) {
+                    return;
+                }
+
                 RoleAnalysisClusterType cluster = object.asObjectable();
 
                 item.add(new AjaxLinkPanel(componentId, Model.of("Cluster attributes")) {
@@ -353,16 +365,34 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
 
                         }
 
+                        if (userTypeObject == null || roleTypeObject == null) {
+                            return;
+                        }
                         List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
                         Set<String> userPathToMark = roleAnalysisService.resolveUserValueToMark(userTypeObject, attributesForUserAnalysis);
 
                         List<RoleAnalysisAttributeDef> attributesForRoleAnalysis = getAttributesForRoleAnalysis();
                         Set<String> rolePathToMark = roleAnalysisService.resolveRoleValueToMark(roleTypeObject, attributesForRoleAnalysis);
 
+                        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject);
+                        RoleAnalysisAttributeAnalysisResult clusterAttributes = cluster.getClusterStatistics().getUserAttributeAnalysisResult();
+                        RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService.resolveSimilarAspect(userAttributes, clusterAttributes);
+
+                        if (compareAttributeResult == null) {
+                            return;
+                        }
+                        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
+
                         RoleAnalysisAttributeChartPopupPanel detailsPanel = new RoleAnalysisAttributeChartPopupPanel(
                                 ((PageBase) getPage()).getMainPopupBodyId(),
                                 Model.of("Analyzed members details panel"),
                                 cluster) {
+
+                            @Override
+                            public List<AttributeAnalysisStructure> getStackedNegativeValue() {
+                                return extractAttributeAnalysis(attributeAnalysis, UserType.COMPLEX_TYPE);
+                            }
+
                             @Override
                             public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                 super.onClose(ajaxRequestTarget);
@@ -423,19 +453,37 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                 OperationResult operationResult = task.getResult();
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                 String title = "Member attributes";
-                PrismObject<RoleType> object = roleAnalysisService
-                        .getRoleTypeObject(ref.getOid(), task, operationResult);
-
-                List<AttributeAnalysisStructure> attributeAnalysisStructures = roleAnalysisService
-                        .roleMembersAttributeAnalysis(object.getOid(), task, operationResult);
 
                 item.add(new AjaxLinkPanel(componentId, Model.of(title)) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        PrismObject<RoleType> object = roleAnalysisService
+                                .getRoleTypeObject(ref.getOid(), task, operationResult);
+                        if (object == null) {
+                            return;
+                        }
+
+                        List<AttributeAnalysisStructure> attributeAnalysisStructures = roleAnalysisService
+                                .roleMembersAttributeAnalysis(object.getOid(), task, operationResult);
 
                         PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectOid, task, task.getResult());
+
+                        if (userTypeObject == null) {
+                            return;
+                        }
+
                         List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
                         Set<String> userPathToMark = roleAnalysisService.resolveUserValueToMark(userTypeObject, attributesForUserAnalysis);
+
+                        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService.resolveRoleMembersAttribute(object.getOid(), task, operationResult);
+                        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject);
+
+                        RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService.resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);
+
+                        if (compareAttributeResult == null) {
+                            return;
+                        }
+                        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
 
                         RoleAnalysisAttributeChartPopupPanel detailsPanel = new RoleAnalysisAttributeChartPopupPanel(
                                 ((PageBase) getPage()).getMainPopupBodyId(),
@@ -444,6 +492,11 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                             @Override
                             public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                 super.onClose(ajaxRequestTarget);
+                            }
+
+                            @Override
+                            public List<AttributeAnalysisStructure> getStackedNegativeValue() {
+                                return extractAttributeAnalysis(attributeAnalysis, UserType.COMPLEX_TYPE);
                             }
 
                             @Override
@@ -474,6 +527,9 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
 
                         PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(targetObjectOid, task, task.getResult());
                         List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForRoleAnalysis();
+                        if (roleTypeObject == null) {
+                            return;
+                        }
                         Set<String> rolePathToMark = roleAnalysisService.resolveRoleValueToMark(roleTypeObject, attributesForUserAnalysis);
 
                         RoleAnalysisAttributeChartPopupPanel detailsPanel = new RoleAnalysisAttributeChartPopupPanel(
@@ -500,6 +556,86 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
             public Component getHeader(String componentId) {
                 return new Label(
                         componentId, Model.of("Member analysis"));
+            }
+
+        });
+
+        columns.add(new AbstractColumn<>(createStringResource("Result")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
+                    IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
+
+                item.add(new AjaxLinkPanel(componentId, Model.of("Result")) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        OutlierResultPanel detailsPanel = new OutlierResultPanel(
+                                ((PageBase) getPage()).getMainPopupBodyId(),
+                                Model.of("Analyzed members details panel")) {
+
+                            @Override
+                            public Component getCardHeaderBody(String componentId) {
+                                OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(componentId, "Janko",
+                                        "User has been marked as outlier object due to confidence score:", "78%");
+                                components.setOutputMarkupId(true);
+                                return components;
+                            }
+
+                            @Override
+                            public Component getCardBodyComponent(String componentId) {
+                                //TODO just for testing
+                                RepeatingView cardBodyComponent = (RepeatingView) super.getCardBodyComponent(componentId);
+                                cardBodyComponent.add(new OutlierItemResultPanel(cardBodyComponent.newChildId(),
+                                        new OutlierItemModel(
+                                                "98%",
+                                                "Description for selected factor",
+                                                "fa fa-user")));
+                                cardBodyComponent.add(new OutlierItemResultPanel(cardBodyComponent.newChildId(),
+                                        new OutlierItemModel(
+                                                "70%",
+                                                "Description for selected factor",
+                                                "fa fa-role")));
+                                cardBodyComponent.add(new OutlierItemResultPanel(cardBodyComponent.newChildId(),
+                                        new OutlierItemModel(
+                                                "60%",
+                                                "Description for selected factor",
+                                                "fa fa-key")));
+                                cardBodyComponent.add(new OutlierItemResultPanel(cardBodyComponent.newChildId(),
+                                        new OutlierItemModel(
+                                                "50%",
+                                                "Description for selected factor",
+                                                "fa fa-user")));
+                                cardBodyComponent.add(new OutlierItemResultPanel(cardBodyComponent.newChildId(),
+                                        new OutlierItemModel(
+                                                "40%",
+                                                "Description for selected factor",
+                                                "fa fa-role")));
+
+                                return cardBodyComponent;
+                            }
+
+                            @Override
+                            public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                super.onClose(ajaxRequestTarget);
+                            }
+
+                        };
+                        ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+
+                    }
+                });
+
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(
+                        componentId, Model.of("Result"));
             }
 
         });

@@ -20,6 +20,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
+import org.jetbrains.annotations.UnmodifiableView;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -62,7 +63,9 @@ public class RoleAnalysisAttributeDefUtils {
     public static RoleAnalysisAttributeDef archetypeRef = new RoleAnalysisAttributeDef(
             ItemPath.create(FocusType.F_ARCHETYPE_REF),
             false,
-            "archetypeRef") {
+            "archetypeRef",
+            ArchetypeType.class,
+            RoleAnalysisAttributeDef.IdentifierType.OID) {
 
         @Override
         public ObjectQuery getQuery(String value) {
@@ -90,7 +93,9 @@ public class RoleAnalysisAttributeDefUtils {
     public static RoleAnalysisAttributeDef title = new RoleAnalysisAttributeDef(
             F_TITLE,
             false,
-            "title") {
+            "title",
+            UserType.class,
+            RoleAnalysisAttributeDef.IdentifierType.FINAL) {
         @Override
         public ObjectQuery getQuery(String value) {
             return PrismContext.get().queryFor(UserType.class)
@@ -102,7 +107,9 @@ public class RoleAnalysisAttributeDefUtils {
     public static RoleAnalysisAttributeDef locale = new RoleAnalysisAttributeDef(
             F_LOCALE,
             false,
-            "locale") {
+            "locale",
+            FocusType.class,
+            RoleAnalysisAttributeDef.IdentifierType.FINAL) {
         @Override
         public ObjectQuery getQuery(String value) {
             return PrismContext.get().queryFor(FocusType.class)
@@ -114,7 +121,9 @@ public class RoleAnalysisAttributeDefUtils {
     public static RoleAnalysisAttributeDef locality = new RoleAnalysisAttributeDef(
             F_LOCALITY,
             false,
-            "locality") {
+            "locality",
+            FocusType.class,
+            RoleAnalysisAttributeDef.IdentifierType.FINAL) {
         @Override
         public ObjectQuery getQuery(String value) {
             return PrismContext.get().queryFor(FocusType.class)
@@ -126,7 +135,9 @@ public class RoleAnalysisAttributeDefUtils {
     public static RoleAnalysisAttributeDef costCenter = new RoleAnalysisAttributeDef(
             F_COST_CENTER,
             false,
-            "costCenter") {
+            "costCenter",
+            FocusType.class,
+            RoleAnalysisAttributeDef.IdentifierType.FINAL) {
         @Override
         public ObjectQuery getQuery(String value) {
             return PrismContext.get().queryFor(FocusType.class)
@@ -138,7 +149,9 @@ public class RoleAnalysisAttributeDefUtils {
     public static RoleAnalysisAttributeDef lifecycleState = new RoleAnalysisAttributeDef(
             F_LIFECYCLE_STATE,
             false,
-            "lifecycleState") {
+            "lifecycleState",
+            FocusType.class,
+            RoleAnalysisAttributeDef.IdentifierType.FINAL) {
         @Override
         public ObjectQuery getQuery(String value) {
             return PrismContext.get().queryFor(FocusType.class)
@@ -150,7 +163,9 @@ public class RoleAnalysisAttributeDefUtils {
     public static RoleAnalysisAttributeDef riskLevel = new RoleAnalysisAttributeDef(
             F_RISK_LEVEL,
             false,
-            "riskLevel") {
+            "riskLevel",
+            RoleType.class,
+            RoleAnalysisAttributeDef.IdentifierType.FINAL) {
         @Override
         public ObjectQuery getQuery(String value) {
             return PrismContext.get().queryFor(RoleType.class)
@@ -158,6 +173,32 @@ public class RoleAnalysisAttributeDefUtils {
                     .build();
         }
     };
+
+    public static RoleAnalysisAttributeDef getAttributeByDisplayValue(String displayValue) {
+        Map<String, RoleAnalysisAttributeDef> attributeMap = createAttributeMap();
+        return attributeMap.get(displayValue);
+    }
+
+    private static @NotNull @UnmodifiableView Map<String, RoleAnalysisAttributeDef> createAttributeMap() {
+        Map<String, RoleAnalysisAttributeDef> attributeMap = new HashMap<>();
+        attributeMap.put(orgAssignment.getDisplayValue(), orgAssignment);
+        attributeMap.put(roleAssignment.getDisplayValue(), roleAssignment);
+        attributeMap.put(serviceAssignment.getDisplayValue(), serviceAssignment);
+        attributeMap.put(archetypeAssignment.getDisplayValue(), archetypeAssignment);
+        attributeMap.put(resourceAssignment.getDisplayValue(), resourceAssignment);
+        attributeMap.put(orgInducement.getDisplayValue(), orgInducement);
+        attributeMap.put(roleInducement.getDisplayValue(), roleInducement);
+        attributeMap.put(serviceInducement.getDisplayValue(), serviceInducement);
+        attributeMap.put(archetypeInducement.getDisplayValue(), archetypeInducement);
+        attributeMap.put(archetypeRef.getDisplayValue(), archetypeRef);
+        attributeMap.put(title.getDisplayValue(), title);
+        attributeMap.put(locale.getDisplayValue(), locale);
+        attributeMap.put(locality.getDisplayValue(), locality);
+        attributeMap.put(costCenter.getDisplayValue(), costCenter);
+        attributeMap.put(lifecycleState.getDisplayValue(), lifecycleState);
+        attributeMap.put(riskLevel.getDisplayValue(), riskLevel);
+        return Collections.unmodifiableMap(attributeMap);
+    }
 
     @Contract(pure = true)
     public static @Unmodifiable @NotNull List<RoleAnalysisAttributeDef> getAttributesForRoleAnalysis() {
@@ -168,7 +209,6 @@ public class RoleAnalysisAttributeDefUtils {
                 locality,
                 costCenter,
                 riskLevel,
-//                archetypeAssignment,
                 orgAssignment,
                 resourceAssignment,
                 roleAssignment,
@@ -176,7 +216,6 @@ public class RoleAnalysisAttributeDefUtils {
                 orgInducement,
                 roleInducement,
                 serviceInducement,
-//                archetypeInducement,
                 archetypeRef
         ));
         analysisAttributeDefs.addAll(loadRoleExtension());
@@ -209,7 +248,9 @@ public class RoleAnalysisAttributeDefUtils {
         return new RoleAnalysisAttributeDef(
                 ItemPath.create(itemName, AssignmentType.F_TARGET_REF),
                 true,
-                displayValue) {
+                displayValue,
+                null,
+                RoleAnalysisAttributeDef.IdentifierType.OID) {
             @Override
             public @NotNull Set<String> resolveMultiValueItem(
                     @NotNull PrismObject<?> prismObject,
@@ -218,12 +259,28 @@ public class RoleAnalysisAttributeDefUtils {
             }
 
             @Override
+            public Class<? extends ObjectType> getClassType() {
+                Class<? extends ObjectType> objectClass = null;
+                if (targetType.equals(OrgType.COMPLEX_TYPE)) {
+                    objectClass = OrgType.class;
+                } else if (targetType.equals(RoleType.COMPLEX_TYPE)) {
+                    objectClass = RoleType.class;
+                } else if (targetType.equals(ServiceType.COMPLEX_TYPE)) {
+                    objectClass = ServiceType.class;
+                } else if (targetType.equals(ArchetypeType.COMPLEX_TYPE)) {
+                    objectClass = ArchetypeType.class;
+                } else if (targetType.equals(ResourceType.COMPLEX_TYPE)) {
+                    objectClass = ResourceType.class;
+                }
+                return objectClass;
+            }
+
+            @Override
             public ObjectQuery getQuery(String value) {
 
                 Class<? extends ObjectType> objectClass = null;
                 if (targetType.equals(OrgType.COMPLEX_TYPE)) {
                     objectClass = OrgType.class;
-
                 } else if (targetType.equals(RoleType.COMPLEX_TYPE)) {
                     objectClass = RoleType.class;
                 } else if (targetType.equals(ServiceType.COMPLEX_TYPE)) {
@@ -280,7 +337,8 @@ public class RoleAnalysisAttributeDefUtils {
 
                 RoleAnalysisAttributeDef attribute = new RoleAnalysisAttributeDef(
                         ItemPath.create(RoleType.F_EXTENSION, itemName),
-                        false, itemName + " extension");
+                        false, itemName + " extension", RoleType.class,
+                        RoleAnalysisAttributeDef.IdentifierType.FINAL);
                 attributes.add(attribute);
 
             }
@@ -303,13 +361,13 @@ public class RoleAnalysisAttributeDefUtils {
         for (Object definition : definitions) {
             if (definition instanceof PrismPropertyDefinition<?> containerDefinition) {
                 //TODO resolve if string polyString targetRef complexObject etc...
-                Class<?> typeClass = containerDefinition.getTypeClass();
                 ItemPath itemName = containerDefinition.getItemName();
 
                 RoleAnalysisAttributeDef attribute = new RoleAnalysisAttributeDef(
                         ItemPath.create(UserType.F_EXTENSION, itemName),
                         false,
-                        itemName + " extension"){
+                        itemName + " extension", UserType.class,
+                        RoleAnalysisAttributeDef.IdentifierType.FINAL) {
                     @Override
                     public ObjectQuery getQuery(String value) {
                         return PrismContext.get().queryFor(UserType.class)

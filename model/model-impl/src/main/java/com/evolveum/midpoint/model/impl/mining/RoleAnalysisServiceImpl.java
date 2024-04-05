@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
+
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
@@ -1863,5 +1865,173 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 CommunicationException | ExpressionEvaluationException e) {
             throw new RuntimeException("Couldn't count objects of type " + type + ": " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public String calculateAttributeConfidence(
+            @NotNull RoleAnalysisProcessModeType processModeType,
+            @NotNull AnalysisClusterStatisticType clusterStatistics) {
+
+        List<RoleAnalysisAttributeAnalysis> attributeAnalysis;
+
+        if (processModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
+            RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
+            if (roleAttributeAnalysisResult == null) {
+                return "0.0";
+            }
+            attributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
+        } else {
+            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
+            if (userAttributeAnalysisResult == null) {
+                return "0.0";
+            }
+            attributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
+        }
+
+        if (attributeAnalysis == null || attributeAnalysis.isEmpty()) {
+            return "0.0";
+        }
+
+        double attributeConfidence = 0;
+        for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
+            Double density = analysis.getDensity();
+            if (density != null) {
+                attributeConfidence += density;
+            }
+        }
+
+        attributeConfidence /= attributeAnalysis.size();
+        return String.format("%.2f", attributeConfidence);
+    }
+
+    @Override
+    public @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
+            @NotNull RoleAnalysisAttributeAnalysisResult compared,
+            @NotNull RoleAnalysisAttributeAnalysisResult comparison) {
+        Objects.requireNonNull(compared);
+        Objects.requireNonNull(comparison);
+
+        RoleAnalysisAttributeAnalysisResult outlierAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResult();
+        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = comparison.getAttributeAnalysis();
+
+        for (RoleAnalysisAttributeAnalysis clusterAnalysis : attributeAnalysis) {
+            String clusterItemPath = clusterAnalysis.getItemPath();
+            Double clusterDensity = clusterAnalysis.getDensity();
+            Set<String> outlierValues = extractCorrespondingOutlierValues(compared, clusterItemPath);
+            if (outlierValues == null) {
+                continue;
+            }
+
+            RoleAnalysisAttributeAnalysis correspondingAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+            correspondingAttributeAnalysis.setItemPath(clusterItemPath);
+
+            int counter = 0;
+            int sum = 0;
+            List<RoleAnalysisAttributeStatistics> attributeStatistics = clusterAnalysis.getAttributeStatistics();
+            for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                String clusterAttributeValue = attributeStatistic.getAttributeValue();
+                Integer inGroup = attributeStatistic.getInGroup();
+                sum += inGroup != null ? inGroup : 0;
+                if (outlierValues.contains(clusterAttributeValue)) {
+                    counter += inGroup != null ? inGroup : 0;
+                    correspondingAttributeAnalysis.getAttributeStatistics().add(attributeStatistic.clone());
+                }
+            }
+            double newDensity = (double) counter / sum * 100;
+            correspondingAttributeAnalysis.setDensity(newDensity);
+
+            outlierAttributeAnalysisResult.getAttributeAnalysis().add(correspondingAttributeAnalysis.clone());
+        }
+
+        return outlierAttributeAnalysisResult;
+    }
+
+    @NotNull
+    public RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser) {
+        RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResult();
+
+        List<RoleAnalysisAttributeDef> itemDef = getAttributesForUserAnalysis();
+
+        for (RoleAnalysisAttributeDef item : itemDef) {
+            RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+            roleAnalysisAttributeAnalysis.setItemPath(item.getDisplayValue());
+            List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAnalysisAttributeAnalysis.getAttributeStatistics();
+
+            ItemPath path = item.getPath();
+            boolean isContainer = item.isContainer();
+
+            if (isContainer) {
+                Set<String> values = item.resolveMultiValueItem(prismUser, path);
+                for (String value : values) {
+                    RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
+                    attributeStatistic.setAttributeValue(value);
+                    attributeStatistics.add(attributeStatistic);
+                }
+            } else {
+                String value = item.resolveSingleValueItem(prismUser, path);
+                if (value != null) {
+                    RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
+                    attributeStatistic.setAttributeValue(value);
+                    attributeStatistics.add(attributeStatistic);
+                }
+            }
+            outlierCandidateAttributeAnalysisResult.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis.clone());
+        }
+        return outlierCandidateAttributeAnalysisResult;
+    }
+
+    private static @Nullable Set<String> extractCorrespondingOutlierValues(
+            @NotNull RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult, String itemPath) {
+        List<RoleAnalysisAttributeAnalysis> outlier = outlierCandidateAttributeAnalysisResult.getAttributeAnalysis();
+        for (RoleAnalysisAttributeAnalysis outlierAttribute : outlier) {
+            if (outlierAttribute.getItemPath().equals(itemPath)) {
+                Set<String> outlierValues = new HashSet<>();
+                for (RoleAnalysisAttributeStatistics attributeStatistic : outlierAttribute.getAttributeStatistics()) {
+                    outlierValues.add(attributeStatistic.getAttributeValue());
+                }
+                return outlierValues;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttribute(
+            @NotNull String objectOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
+        this.extractUserTypeMembers(
+                userExistCache, null,
+                new HashSet<>(Collections.singleton(objectOid)),
+                task, result);
+
+        Set<PrismObject<UserType>> users = new HashSet<>(userExistCache.values());
+        userExistCache.clear();
+
+        List<AttributeAnalysisStructure> userAttributeAnalysisStructures = this
+                .userTypeAttributeAnalysis(users, 100.0, task, result);
+
+        RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
+        for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
+            double density = userAttributeAnalysisStructure.getDensity();
+            if (density == 0) {
+                continue;
+            }
+            RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+            roleAnalysisAttributeAnalysis.setDensity(density);
+            roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
+            roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
+            roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
+            List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
+            for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
+            }
+
+            userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
+        }
+
+        return userAnalysis;
     }
 }

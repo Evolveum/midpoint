@@ -71,7 +71,7 @@ public class AttributeAnalysisStructure implements Serializable {
         return attributeAnalysisStructures;
     }
 
-    private static @NotNull List<AttributeAnalysisStructure> extractAttributeAnalysis(
+    public static @NotNull List<AttributeAnalysisStructure> extractAttributeAnalysis(
             @NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList,
             @NotNull QName complexType) {
         List<AttributeAnalysisStructure> analysisStructures = new ArrayList<>();

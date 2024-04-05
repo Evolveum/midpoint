@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class RoleAnalysisAttributeDef implements Serializable {
 
@@ -25,16 +26,37 @@ public class RoleAnalysisAttributeDef implements Serializable {
     boolean isContainer;
     String displayValue;
     ObjectQuery query;
+    Class<? extends ObjectType> classType;
+    IdentifierType identifierType;
 
-    public RoleAnalysisAttributeDef(ItemPath path, boolean isContainer) {
+    public RoleAnalysisAttributeDef(ItemPath path,
+            boolean isContainer,
+            Class<? extends ObjectType> classType) {
         this.path = path;
         this.isContainer = isContainer;
+        this.classType = classType;
     }
 
-    public RoleAnalysisAttributeDef(ItemPath path, boolean isContainer, String displayValue) {
+    public RoleAnalysisAttributeDef(ItemPath path,
+            boolean isContainer,
+            Class<? extends ObjectType> classType,
+            IdentifierType identifierType) {
+        this.path = path;
+        this.isContainer = isContainer;
+        this.classType = classType;
+        this.identifierType = identifierType;
+    }
+
+    public RoleAnalysisAttributeDef(ItemPath path,
+            boolean isContainer,
+            String displayValue,
+            Class<? extends ObjectType> classType,
+            IdentifierType identifierType) {
         this.path = path;
         this.isContainer = isContainer;
         this.displayValue = displayValue;
+        this.classType = classType;
+        this.identifierType = identifierType;
     }
 
     public void calculateZScore(int objectWithExactAttributeCount, RoleAnalysisAttributeDef attributeDef) {
@@ -103,4 +125,26 @@ public class RoleAnalysisAttributeDef implements Serializable {
     public void setQuery(ObjectQuery query) {
         this.query = query;
     }
+
+    public Class<? extends ObjectType> getClassType() {
+        return classType;
+    }
+
+    public void setClassType(Class<? extends ObjectType> classType) {
+        this.classType = classType;
+    }
+
+    public enum IdentifierType {
+        OID,
+        FINAL
+    }
+
+    public IdentifierType getIdentifierType() {
+        return identifierType;
+    }
+
+    public void setIdentifierType(IdentifierType identifierType) {
+        this.identifierType = identifierType;
+    }
+
 }

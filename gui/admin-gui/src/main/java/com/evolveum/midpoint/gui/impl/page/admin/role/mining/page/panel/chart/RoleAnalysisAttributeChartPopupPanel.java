@@ -68,6 +68,11 @@ public class RoleAnalysisAttributeChartPopupPanel extends BasePanel<String> impl
             }
 
             @Override
+            public List<AttributeAnalysisStructure> getStackedNegativeValue() {
+                return RoleAnalysisAttributeChartPopupPanel.this.getStackedNegativeValue();
+            }
+
+            @Override
             protected Set<String> getRolePathToMark() {
                 return RoleAnalysisAttributeChartPopupPanel.this.getRolePathToMark();
             }
@@ -140,6 +145,10 @@ public class RoleAnalysisAttributeChartPopupPanel extends BasePanel<String> impl
 
     public void setProcessMode(RoleAnalysisProcessModeType processMode) {
         this.processMode = processMode;
+    }
+
+    public List<AttributeAnalysisStructure> getStackedNegativeValue() {
+        return null;
     }
 
 }
