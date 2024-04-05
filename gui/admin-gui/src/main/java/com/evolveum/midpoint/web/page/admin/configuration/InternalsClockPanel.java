@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -19,7 +20,6 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.input.DatePanel;
 
 public class InternalsClockPanel extends BasePanel<XMLGregorianCalendar>{
 
@@ -48,7 +48,7 @@ public class InternalsClockPanel extends BasePanel<XMLGregorianCalendar>{
         form.setOutputMarkupId(true);
         add(form);
 
-        DatePanel offset = new DatePanel(ID_OFFSET, getModel());
+        DateTimePickerPanel offset = DateTimePickerPanel.createByXMLGregorianCalendarModel(ID_OFFSET, getModel());
         form.add(offset);
 
             AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_BUTTON_SAVE, createStringResource("PageInternals.button.changeTime")) {

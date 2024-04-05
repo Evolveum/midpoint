@@ -7,6 +7,8 @@
 
 import MidPointTheme from './midpoint-theme';
 import MidPointAceEditor from "./ace-editor";
+import Popper from '@popperjs/core';
 
 window.MidPointTheme = new MidPointTheme();
 window.MidPointAceEditor = new MidPointAceEditor();
+window.Popper = Popper;

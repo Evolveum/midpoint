@@ -6,6 +6,7 @@
  */
 
 import Sparkline from "sparklines";
+import { TempusDominus } from '@eonasdan/tempus-dominus';
 
 export default class MidPointTheme {
 
@@ -217,6 +218,10 @@ export default class MidPointTheme {
                     });
                 });
     }
+
+initDateTimePicker(containerId, configuration) {
+    new TempusDominus(containerId, configuration);
+}
 
 breakLongerTextInTableCell(cellId) {
     $("#" + cellId).css("word-break", function (index, origValue) {

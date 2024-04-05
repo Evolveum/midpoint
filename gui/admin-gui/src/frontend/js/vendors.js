@@ -24,6 +24,9 @@ import '../../../node_modules/admin-lte/plugins/bootstrap-switch/js/bootstrap-sw
 
 import '../../../node_modules/ace-builds/src-noconflict/ace';
 
+import '../../../node_modules/@eonasdan/tempus-dominus';
+import '../../../node_modules/@popperjs/core';
+
 ace.config.setModuleUrl('ace/theme/eclipse',
     require('../../../node_modules/ace-builds/src-noconflict/theme-eclipse.js'));
 ace.config.setModuleUrl('ace/theme/eclipse',
