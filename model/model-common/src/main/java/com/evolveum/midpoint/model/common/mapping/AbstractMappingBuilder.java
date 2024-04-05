@@ -59,18 +59,40 @@ public abstract class AbstractMappingBuilder<
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
 
+    /** See {@link AbstractMappingImpl#variables}. */
     private final VariablesMap variables = new VariablesMap();
+
+    /** See {@link AbstractMappingImpl#mappingConfigItem}. */
     private ConfigurationItem<MBT> mappingConfigItem;
+
+    /** See {@link AbstractMappingImpl#mappingKind}. */
     private MappingKindType mappingKind;
-    private ItemPath implicitSourcePath; // for tracing purposes
-    private ItemPath implicitTargetPath; // for tracing purposes
+
+    /** See {@link AbstractMappingImpl#implicitSourcePath}. */
+    private ItemPath implicitSourcePath;
+
+    /** See {@link AbstractMappingImpl#implicitTargetPath}. */
+    private ItemPath implicitTargetPath;
+
+    /** See {@link AbstractMappingImpl#targetPathOverride}. */
     private ItemPath targetPathOverride;
+
+    /** See {@link AbstractMappingImpl#targetPathExecutionOverride}. */
+    private ItemPath targetPathExecutionOverride;
+
+    /** See {@link AbstractMappingImpl#defaultSource}. */
     private Source<?, ?> defaultSource;
+
+    /** See {@link AbstractMappingImpl#sources}. TODO explain the exact semantics. */
     private final List<Source<?, ?>> additionalSources = new ArrayList<>();
+
+    /** See {@link AbstractMappingImpl#defaultTargetDefinition}. */
     private D defaultTargetDefinition;
     @VisibleForTesting // NEVER use for production code
     private ExpressionProfile explicitExpressionProfile;
     private ItemPath defaultTargetPath;
+
+    /** See {@link AbstractMappingImpl#originalTargetValues}. */
     private Collection<V> originalTargetValues;
     private ObjectDeltaObject<?> sourceContext;
     private PrismContainerDefinition<?> targetContext;
@@ -125,6 +147,11 @@ public abstract class AbstractMappingBuilder<
 
     public RT targetPathOverride(ItemPath val) {
         targetPathOverride = val;
+        return typedThis();
+    }
+
+    public RT targetPathExecutionOverride(ItemPath val) {
+        targetPathExecutionOverride = val;
         return typedThis();
     }
 
@@ -384,6 +411,10 @@ public abstract class AbstractMappingBuilder<
 
     ItemPath getTargetPathOverride() {
         return targetPathOverride;
+    }
+
+    ItemPath getTargetPathExecutionOverride() {
+        return targetPathExecutionOverride;
     }
 
     public Source<?, ?> getDefaultSource() {

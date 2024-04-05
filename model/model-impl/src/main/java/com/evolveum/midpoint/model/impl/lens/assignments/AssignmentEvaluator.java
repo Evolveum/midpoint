@@ -62,7 +62,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
     // Context of use
 
-    final LensContext<AH> lensContext;
+    @NotNull final LensContext<AH> lensContext;
     final ObjectDeltaObject<AH> focusOdoAbsolute;
     final ObjectDeltaObject<AH> focusOdoRelative;
     final LifecycleStateModelType focusStateModel;

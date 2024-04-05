@@ -228,7 +228,7 @@ class ScriptExecutor<O extends ObjectType> {
 
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variables, shortDesc, task);
         eeContext.setExpressionFactory(b.expressionFactory);
-        ModelExpressionEnvironment<?, ?, ?> env = new ModelExpressionEnvironment<>(context, projCtx, task, result);
+        ModelExpressionEnvironment<?, ?> env = new ModelExpressionEnvironment<>(context, projCtx, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
                 ExpressionUtil.evaluateExpressionInContext(expression, eeContext, env, result);
 

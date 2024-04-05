@@ -155,6 +155,8 @@ class PathExpressionResolver {
             return determineTypedValue((PrismContainer<?>) rootValue, false, result);
         } else if (rootValue instanceof PrismContainerValue<?>) {
             return determineTypedValue((PrismContainerValue<?>) rootValue);
+        } else if (rootValue instanceof Containerable containerable) {
+            return determineTypedValue(containerable.asPrismContainerValue());
         } else if (rootValue instanceof Item<?, ?>) {
             // Except for container (which is handled above)
             throw new SchemaException(

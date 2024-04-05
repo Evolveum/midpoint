@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.util.MappingInspector;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -789,6 +791,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public ClockworkInspector getInspector() {
         return inspector;
+    }
+
+    public @NotNull MappingInspector getMappingInspector() {
+        return Objects.requireNonNullElse(inspector, MappingInspector.empty());
     }
 
     public void setInspector(ClockworkInspector inspector) {

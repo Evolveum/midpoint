@@ -13,6 +13,8 @@ import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -113,11 +115,10 @@ public abstract class ShadowItemDefinitionImpl<
     ShadowItemDefinitionImpl(@NotNull ND nativeDefinition, @NotNull CB customizationBean, boolean forcedIgnored)
             throws SchemaException {
         assert nativeDefinition.isImmutable();
-        assert customizationBean.isImmutable();
 
         this.currentLayer = DEFAULT_LAYER;
         this.nativeDefinition = nativeDefinition;
-        this.customizationBean = customizationBean;
+        this.customizationBean = CloneUtil.toImmutable(customizationBean);
         this.limitationsMap = computeLimitationsMap(forcedIgnored);
         this.accessOverride = new PropertyAccessType();
     }

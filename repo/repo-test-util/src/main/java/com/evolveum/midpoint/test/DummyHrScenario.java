@@ -85,6 +85,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
             public static final AttrName VALID_FROM = ri("validFrom");
             public static final AttrName VALID_TO = ri("validTo");
             public static final AttrName NOTE = ri("note");
+            public static final AttrName ORG_NAME = ri("orgName"); // TEMPORARY (should be treated by "org" link)
         }
 
         public static class LinkNames {
@@ -97,6 +98,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
             controller.addAttrDef(oc, AttributeNames.VALID_FROM.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.VALID_TO.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.NOTE.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.ORG_NAME.local(), String.class, false, false);
             controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
         }
 

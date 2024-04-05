@@ -178,6 +178,10 @@ public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
      */
     @NotNull List<InboundMappingType> getInboundMappingBeans();
 
+    default boolean hasInboundMapping() {
+        return !getInboundMappingBeans().isEmpty();
+    }
+
     /**
      * Drives behavior of strong and normal mappings for this attribute.
      *

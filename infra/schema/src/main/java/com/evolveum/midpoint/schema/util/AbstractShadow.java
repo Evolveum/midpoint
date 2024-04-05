@@ -253,6 +253,8 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
     AbstractShadow clone();
 
     default void applyDefinition(@NotNull ResourceObjectDefinition newDefinition) throws SchemaException {
+        // This causes problems with embedded associations
+        //getPrismObject().applyDefinition(newDefinition.getPrismObjectDefinition(), false);
         getAttributesContainer().applyDefinition(
                 newDefinition.toResourceAttributeContainerDefinition());
         checkConsistence();
@@ -308,6 +310,10 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return MiscUtil.stateNonNull(
                 getBean().getObjectClass(),
                 "No object class in %s", this);
+    }
+
+    default boolean isClassified() {
+        return ShadowUtil.isClassified(getBean());
     }
 
     default boolean isProtectedObject() {

@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.ClockworkInboundsProcessing;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing;
 import com.evolveum.midpoint.schema.processor.CompositeObjectDefinition;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,8 +57,8 @@ public class InboundProcessor implements ProjectorProcessor {
 
         MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(activityDescription, now, task);
 
-        new ClockworkInboundsProcessing<>(context, beans, env, result)
-                .collectAndEvaluateMappings();
+        new FullInboundsProcessing<>(context, env)
+                .collectAndEvaluateMappings(result);
 
         processAssociatedObjects(context, env, result);
 

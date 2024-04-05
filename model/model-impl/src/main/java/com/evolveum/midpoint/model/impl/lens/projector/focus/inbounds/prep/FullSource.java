@@ -13,7 +13,7 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingInContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingEvaluationRequest;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -48,21 +48,21 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
  * Inbound mapping source ({@link MSource}) that is used in clockwork-based inbound mapping evaluation.
  * This is the standard situation. The other one is e.g. pre-inbounds (correlation-time) evaluation.
  */
-class ClockworkSource extends MSource {
+class FullSource extends MSource {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ClockworkSource.class);
+    private static final Trace LOGGER = TraceManager.getTrace(FullSource.class);
 
-    private static final String OP_RESOLVE_ENTITLEMENT = ClockworkSource.class.getName() + ".resolveEntitlement";
+    private static final String OP_RESOLVE_ENTITLEMENT = FullSource.class.getName() + ".resolveEntitlement";
 
     @NotNull private final LensProjectionContext projectionContext;
 
-    @NotNull private final ModelBeans beans;
+    @NotNull private final ModelBeans beans = ModelBeans.get();
 
     @NotNull private final Context context;
 
     @NotNull private final IdentityManagementConfiguration identityManagementConfiguration;
 
-    ClockworkSource(
+    FullSource(
             PrismObject<ShadowType> currentShadow,
             @Nullable ObjectDelta<ShadowType> aPrioriDelta,
             ResourceObjectDefinition resourceObjectDefinition,
@@ -71,7 +71,6 @@ class ClockworkSource extends MSource {
         super(asObjectable(currentShadow), aPrioriDelta, resourceObjectDefinition);
         this.projectionContext = projectionContext;
         this.context = context;
-        this.beans = context.beans;
         this.identityManagementConfiguration = getFocusContext().getIdentityManagementConfiguration();
     }
 
@@ -96,11 +95,11 @@ class ClockworkSource extends MSource {
     }
 
     @Override
-    boolean isEligibleForInboundProcessing() throws SchemaException, ConfigurationException {
+    boolean isEligibleForInboundProcessing(OperationResult result) throws SchemaException, ConfigurationException {
         LOGGER.trace("Starting determination if we should process inbound mappings. Full shadow: {}. A priori delta present: {}.",
                 projectionContext.isFullShadow(), aPrioriDelta != null);
 
-        if (projectionContext.isInboundSyncDisabled(context.result)) {
+        if (projectionContext.isInboundSyncDisabled(result)) {
             LOGGER.trace("Skipping processing of inbound mappings because shadow policy marked shadow inbound disabled.");
             return false;
         }
@@ -156,24 +155,24 @@ class ClockworkSource extends MSource {
 
     @Override
     <V extends PrismValue, D extends ItemDefinition<?>> void setValueMetadata(
-            Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta)
+            Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         if (currentProjectionItem != null) {
             LOGGER.trace("Setting value metadata for current projection item");
             beans.projectionValueMetadataCreator.setValueMetadata(
-                    currentProjectionItem, projectionContext, context.env, context.result);
+                    currentProjectionItem, projectionContext, context.env, result);
         }
         if (itemAPrioriDelta != null) {
             LOGGER.trace("Setting value metadata for item a priori delta");
             beans.projectionValueMetadataCreator.setValueMetadata(
-                    itemAPrioriDelta, projectionContext, context.env, context.result);
+                    itemAPrioriDelta, projectionContext, context.env, result);
         }
     }
 
     @Override
     PrismObject<ShadowType> getResourceObjectNew() {
-        return projectionContext.getObjectNew();
+        return currentShadow;
     }
 
     @Override
@@ -229,7 +228,8 @@ class ClockworkSource extends MSource {
     }
 
     @Override
-    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull Context context) throws SchemaException, StopProcessingProjectionException {
+    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull Context context, OperationResult result)
+            throws SchemaException, StopProcessingProjectionException {
         if (projectionContext.isFullShadow()) {
             return;
         }
@@ -239,14 +239,14 @@ class ClockworkSource extends MSource {
 
         if (fullStateRequired) {
             LOGGER.trace("Loading {} because full state is required", getProjectionHumanReadableNameLazy());
-            doLoad(context);
+            doLoad(context, result);
         }
     }
 
-    private void doLoad(@NotNull Context context)
+    private void doLoad(@NotNull Context context, OperationResult result)
             throws SchemaException, StopProcessingProjectionException {
         try {
-            beans.contextLoader.loadFullShadow(projectionContext, "inbound", context.env.task, context.result);
+            beans.contextLoader.loadFullShadow(projectionContext, "inbound", context.env.task, result);
             currentShadow = projectionContext.getObjectCurrent();
             if (projectionContext.isBroken()) { // just in case the load does not return an exception
                 throw new StopProcessingProjectionException();
@@ -317,7 +317,7 @@ class ClockworkSource extends MSource {
             object = entitlementMap.get(oid);
         } else {
             // FIXME improve error handling here
-            OperationResult subResult = context.result.createMinorSubresult(OP_RESOLVE_ENTITLEMENT);
+            OperationResult subResult = new OperationResult(OP_RESOLVE_ENTITLEMENT); // FIXME!!!!!!!!!
             try {
                 object = beans.provisioningService.getObject(
                         ShadowType.class, oid, createReadOnlyCollection(), context.env.task, subResult);
@@ -376,8 +376,8 @@ class ClockworkSource extends MSource {
     }
 
     @Override
-    <V extends PrismValue, D extends ItemDefinition<?>> InboundMappingInContext<V, D> createInboundMappingInContext(MappingImpl<V, D> mapping) {
-        return new InboundMappingInContext<>(mapping, projectionContext);
+    <V extends PrismValue, D extends ItemDefinition<?>> InboundMappingEvaluationRequest<V, D> createMappingRequest(MappingImpl<V, D> mapping) {
+        return new InboundMappingEvaluationRequest<>(mapping, projectionContext.isDelete(), projectionContext);
     }
 
     @Override
@@ -400,7 +400,7 @@ class ClockworkSource extends MSource {
     }
 
     @Override
-    ItemPath determineTargetPathOverride(ItemPath targetItemPath) throws SchemaException {
+    ItemPath determineTargetPathExecutionOverride(ItemPath targetItemPath) throws SchemaException {
 
         LensFocusContext<?> focusContext = getFocusContext();
         ObjectType objectNew = asObjectable(focusContext.getObjectNew());

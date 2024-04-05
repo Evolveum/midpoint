@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -39,36 +38,32 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Maintains a list of mapped items: the items ready to produce prepared {@link MappingImpl} objects.
+ * Collection of {@link MappedItem}s: they will produce prepared {@link MappingImpl}s.
  */
-class MappedItems<F extends FocusType> {
+class MappedItems<T extends Containerable> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappedItems.class);
 
     @NotNull private final MSource source;
 
-    @NotNull private final Target<F> target;
+    @NotNull private final Target<T> target;
 
     @NotNull private final Context context;
 
-    @NotNull private final List<MappedItem<?, ?, F>> mappedItems = new ArrayList<>();
+    @NotNull private final List<MappedItem<?, ?, T>> mappedItems = new ArrayList<>();
 
     /**
      * Definition of `auxiliaryObjectClass` property in shadows.
      */
     private final Lazy<PrismPropertyDefinition<QName>> lazyAuxiliaryObjectClassPropertyDefinition =
-            Lazy.from(() -> getBeans().prismContext.getSchemaRegistry()
+            Lazy.from(() -> PrismContext.get().getSchemaRegistry()
                     .findObjectDefinitionByCompileTimeClass(ShadowType.class)
                     .findPropertyDefinition(ShadowType.F_AUXILIARY_OBJECT_CLASS));
 
-    MappedItems(@NotNull MSource source, @NotNull Target<F> target, @NotNull Context context) {
+    MappedItems(@NotNull MSource source, @NotNull Target<T> target, @NotNull Context context) {
         this.source = source;
         this.target = target;
         this.context = context;
-    }
-
-    private @NotNull ModelBeans getBeans() {
-        return context.beans;
     }
 
     /**
@@ -76,14 +71,14 @@ class MappedItems<F extends FocusType> {
      *
      * This excludes special mappings. They are _evaluated_ later. (This is planned to be changed!)
      */
-    void createMappedItems() throws SchemaException, ConfigurationException {
+    void collectMappedItems() throws SchemaException, ConfigurationException {
         for (var attributeDef : source.resourceObjectDefinition.getAttributeDefinitions()) {
             createMappedItemForAttribute(attributeDef);
         }
 
         // FIXME Remove this temporary check
         if (!source.isClockwork()) {
-            LOGGER.trace("Skipping application of special properties and aux object classes because of pre-mapping stage");
+            LOGGER.trace("Skipping processing of associations and aux object classes mappings because of limited stage");
             return;
         }
 
@@ -102,11 +97,11 @@ class MappedItems<F extends FocusType> {
     /**
      * Creates a mapping creation request for mapping(s) for given attribute.
      *
-     * @param <T> type of the attribute
+     * @param <TA> type of the attribute
      * @see #createMappedItemForAssociation(ShadowAssociationDefinition)
      * @see #createMappedItemForAuxObjectClasses()
      */
-    private <T> void createMappedItemForAttribute(ResourceAttributeDefinition<T> attributeDefinition)
+    private <TA> void createMappedItemForAttribute(ResourceAttributeDefinition<TA> attributeDefinition)
             throws SchemaException, ConfigurationException {
 
         // 1. Definitions and mapping beans
@@ -131,7 +126,7 @@ class MappedItems<F extends FocusType> {
 
         // 2. Values
 
-        ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> attributeAPrioriDelta = getItemAPrioriDelta(attributePath);
+        ItemDelta<PrismPropertyValue<TA>, PrismPropertyDefinition<TA>> attributeAPrioriDelta = getItemAPrioriDelta(attributePath);
 
         // 3. Processing source
 
@@ -166,8 +161,6 @@ class MappedItems<F extends FocusType> {
 
     /**
      * Creates a {@link MappedItem} for given association.
-     *
-     * The situation is complicated by the fact that all associations are mixed up in `shadow.association` container.
      *
      * @see #createMappedItemForAttribute(ResourceAttributeDefinition)
      * @see #createMappedItemForAuxObjectClasses()
@@ -334,7 +327,7 @@ class MappedItems<F extends FocusType> {
         }
     }
 
-    private @Nullable <T> PrismProperty<T> getCurrentAttribute(QName attributeName) {
+    private @Nullable <TA> PrismProperty<TA> getCurrentAttribute(QName attributeName) {
         if (source.currentShadow != null) {
             return source.currentShadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName));
         } else {
@@ -354,7 +347,7 @@ class MappedItems<F extends FocusType> {
         }
     }
 
-    @NotNull List<MappedItem<?, ?, F>> getMappedItems() {
+    @NotNull List<MappedItem<?, ?, T>> getMappedItems() {
         return mappedItems;
     }
 

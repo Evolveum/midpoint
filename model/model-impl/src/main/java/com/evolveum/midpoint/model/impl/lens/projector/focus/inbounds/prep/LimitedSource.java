@@ -15,13 +15,14 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAssociation;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingInContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -32,11 +33,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
-class PreSource extends MSource {
+class LimitedSource extends MSource {
 
     @NotNull private final PreInboundsContext<?> ctx;
 
-    PreSource(@NotNull PreInboundsContext<?> ctx) throws SchemaException, ConfigurationException {
+    LimitedSource(@NotNull PreInboundsContext<?> ctx) throws SchemaException, ConfigurationException {
         super(
                 ctx.getShadowedResourceObject(),
                 ctx.getResourceObjectDelta(),
@@ -45,7 +46,7 @@ class PreSource extends MSource {
     }
 
     @Override
-    boolean isEligibleForInboundProcessing() {
+    boolean isEligibleForInboundProcessing(OperationResult result) {
         return true; // The shadow (as such) is always eligible for inbounds processing
     }
 
@@ -81,7 +82,7 @@ class PreSource extends MSource {
 
     @Override
     <V extends PrismValue, D extends ItemDefinition<?>> void setValueMetadata(
-            Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta) {
+            Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta, OperationResult result) {
         // Not supported for pre-mappings.
     }
 
@@ -110,7 +111,7 @@ class PreSource extends MSource {
     }
 
     @Override
-    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull Context context) {
+    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull Context context, OperationResult result) {
         // Nothing to do here
     }
 
@@ -130,9 +131,9 @@ class PreSource extends MSource {
     }
 
     @Override
-    <V extends PrismValue, D extends ItemDefinition<?>> InboundMappingInContext<V, D> createInboundMappingInContext(
+    <V extends PrismValue, D extends ItemDefinition<?>> InboundMappingEvaluationRequest<V, D> createMappingRequest(
             MappingImpl<V, D> mapping) {
-        return new InboundMappingInContext<>(mapping, null);
+        return new InboundMappingEvaluationRequest<>(mapping, false, null);
     }
 
     @Override
@@ -151,7 +152,7 @@ class PreSource extends MSource {
     }
 
     @Override
-    ItemPath determineTargetPathOverride(ItemPath targetItemPath) {
+    ItemPath determineTargetPathExecutionOverride(ItemPath targetItemPath) {
         return null;
     }
 }

@@ -14,7 +14,6 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -24,16 +23,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
-public class ClockworkContext extends Context {
+public class FullContext extends Context {
 
     @NotNull private final LensContext<?> lensContext;
 
-    public ClockworkContext(
+    public FullContext(
             @NotNull LensContext<?> lensContext,
-            @NotNull MappingEvaluationEnvironment env,
-            @NotNull OperationResult result,
-            @NotNull ModelBeans beans) {
-        super(env, result, beans);
+            @NotNull MappingEvaluationEnvironment env) {
+        super(env);
         this.lensContext = lensContext;
     }
 

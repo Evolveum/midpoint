@@ -280,6 +280,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return evaluatedProtectedObjectPatterns;
     }
 
+    // Uses only the resource information from the context; TODO make that more explicit
     // we don't use additionalAuxiliaryObjectClassQNames as we don't know if they are initialized correctly [med] TODO: reconsider this
     public @NotNull ResourceObjectDefinition computeCompositeObjectDefinition(
             @NotNull ResourceObjectDefinition objectDefinition,

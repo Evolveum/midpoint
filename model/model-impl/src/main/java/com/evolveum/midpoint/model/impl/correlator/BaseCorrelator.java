@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation.Generic
 import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation.UnsupportedCorrelationExplanation;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlation.CorrelatorContextCreator;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -224,7 +225,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
     }
 
     protected CorrelationResult createResult(
-            @NotNull Collection<? extends ObjectType> candidates,
+            @NotNull Collection<? extends Containerable> candidates,
             @Nullable ConfidenceValueProvider confidenceValueProvider,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -234,25 +235,25 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
                 createCandidateOwnersMap(candidates, confidenceValueProvider, task, result));
     }
 
-    private CandidateOwnersMap createCandidateOwnersMap(
-            @NotNull Collection<? extends ObjectType> candidates,
+    private CandidateOwners createCandidateOwnersMap(
+            @NotNull Collection<? extends Containerable> candidates,
             @Nullable ConfidenceValueProvider confidenceValueProvider,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        CandidateOwnersMap candidateOwnersMap = new CandidateOwnersMap();
-        for (ObjectType candidate : candidates) {
-            candidateOwnersMap.put(
+        CandidateOwners candidateOwners = new CandidateOwners();
+        for (var candidate : candidates) {
+            candidateOwners.put(
                     candidate,
                     null, // no external IDs for the clients of this method
                     determineConfidence(candidate, confidenceValueProvider, task, result).getValue());
         }
-        return candidateOwnersMap;
+        return candidateOwners;
     }
 
     protected @NotNull Confidence determineConfidence(
-            @NotNull ObjectType candidate,
+            @NotNull Containerable candidate,
             @Nullable ConfidenceValueProvider confidenceValueProvider,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -271,7 +272,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
         return Confidence.full();
     }
 
-    private Double determineConfidenceUsingExpression(ObjectType candidate, Task task, OperationResult result)
+    private Double determineConfidenceUsingExpression(Containerable candidate, Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         CorrelationConfidenceDefinitionType confidenceDef = correlatorContext.getConfigurationBean().getConfidence();
@@ -307,7 +308,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
 
     @FunctionalInterface
     protected interface ConfidenceValueProvider {
-        @Nullable Confidence getConfidence(ObjectType candidate, Task task, OperationResult result)
+        @Nullable Confidence getConfidence(Containerable candidate, Task task, OperationResult result)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException;
     }

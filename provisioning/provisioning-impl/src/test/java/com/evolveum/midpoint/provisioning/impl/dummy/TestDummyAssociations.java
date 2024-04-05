@@ -6,12 +6,23 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import org.jetbrains.annotations.Nullable;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -26,6 +37,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
+import java.io.File;
+import java.util.Collection;
+
 /**
  * Testing the native associations.
  *
@@ -36,7 +50,14 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 @DirtiesContext
 public class TestDummyAssociations extends AbstractDummyTest {
 
+    public static final File RESOURCE_DUMMY_HR_FILE = new File(TEST_DIR, "resource-dummy-hr.xml");
+
     private DummyHrScenario hrScenario;
+
+    @Override
+    protected File getResourceDummyFile() {
+        return RESOURCE_DUMMY_HR_FILE;
+    }
 
     @Override
     protected void extraDummyResourceInit() throws Exception {
@@ -94,24 +115,67 @@ public class TestDummyAssociations extends AbstractDummyTest {
         var contractAssocDef = person.findAssociationDefinitionRequired(Person.LinkNames.CONTRACT.q());
     }
 
-    /** Just read an account with associations. */
+    /** Just read an account with associations (in various modes: get vs search, read-write vs read-only). */
     @Test
     public void test110GetObjectWithAssociations() throws Exception {
+        executeSearchForJohnWithAssociations(null);
+        var oid = executeSearchForJohnWithAssociations(createReadOnlyCollection());
+
+        executeGetJohnWithAssociations(oid, null);
+        executeGetJohnWithAssociations(oid, createReadOnlyCollection());
+    }
+
+    private String executeSearchForJohnWithAssociations(Collection<SelectorOptions<GetOperationOptions>> options)
+            throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
-        when("getting person 'john'");
+        when("searching for person 'john'");
         var objects = provisioningService.searchObjects(
                 ShadowType.class,
                 Resource.of(resource)
                         .queryFor(Person.OBJECT_CLASS_NAME.xsd())
                         .and().item(ICFS_NAME_PATH).eq("john")
                         .build(),
-                null, task, result);
+                options, task, result);
 
         then("there is a person 'john'");
         assertThat(objects).as("persons named john").hasSize(1);
-        assertShadow(objects.get(0), "john")
-                .display();
+        PrismObject<ShadowType> john = objects.get(0);
+
+        assertJohn(john);
+
+        return john.getOid();
+    }
+
+    private void executeGetJohnWithAssociations(String oid, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("getting person 'john' by OID");
+        var john = provisioningService.getObject(ShadowType.class, oid, options, task, result);
+
+        then("John is OK");
+        assertJohn(john);
+    }
+
+    private void assertJohn(PrismObject<ShadowType> shadow) {
+        assertShadow(shadow, "john")
+                .display()
+                .associations()
+                .assertValuesCount(2);
+
+        var johnLawContract = AbstractShadow.of(shadow)
+                .getAssociationValues(Person.LinkNames.CONTRACT.q())
+                .stream()
+                .map(val -> val.getShadow())
+                .filter(s -> s.getName().getOrig().equals("john-law"))
+                .findFirst().orElseThrow();
+        var def = johnLawContract.getObjectDefinition();
+        displayDumpable("johnLaw contract definition", def);
+        assertThat(def.getTypeIdentification())
+                .as("johnLaw contract object definition type")
+                .isEqualTo(ResourceObjectTypeIdentification.of(ShadowKindType.ASSOCIATED, "contract"));
     }
 }

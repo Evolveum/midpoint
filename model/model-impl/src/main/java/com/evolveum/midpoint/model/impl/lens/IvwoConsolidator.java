@@ -43,8 +43,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemType;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Consolidate the output of mappings for a single item to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
- * It produces the delta considering the mapping exclusion, authoritativeness and strength. See {@link #consolidateTriples()}.
+ * Consolidate the output of mappings for a single item to a delta.
+ * It takes the convenient structure of {@link ItemValueWithOrigin} triple and produces the delta considering
+ * the mapping exclusion, authoritativeness and strength. See {@link #consolidateTriples()}.
  *
  * @author semancik
  */

@@ -75,8 +75,12 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
                 .addAttributeValue(DummyHrScenario.Person.AttributeNames.LAST_NAME.local(), "Doe")
                 .addAttributeValue(DummyHrScenario.Person.AttributeNames.TITLE.local(), "Ing.");
 
-        DummyObject johnContractSciences = hrScenario.contract.add("john-sciences");
-        DummyObject johnContractLaw = hrScenario.contract.add("john-law");
+        DummyObject johnContractSciences = hrScenario.contract.add("john-sciences")
+                .addAttributeValues(DummyHrScenario.Contract.AttributeNames.ORG_NAME.local(), "sciences") // temporary
+                .addAttributeValues(DummyHrScenario.Contract.AttributeNames.NOTE.local(), "needs review");
+
+        DummyObject johnContractLaw = hrScenario.contract.add("john-law")
+                .addAttributeValues(DummyHrScenario.Contract.AttributeNames.ORG_NAME.local(), "law"); // temporary
 
         hrScenario.personContract.add(john, johnContractSciences);
         hrScenario.personContract.add(john, johnContractLaw);
@@ -118,7 +122,7 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
                 .withResourceOid(RESOURCE_DUMMY_HR.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "person"))
                 .withNameValue("john")
-                .withTracing()
+                .withTracingProfile(createModelAndProvisioningLoggingTracingProfile())
                 .executeOnForeground(result);
 
         then("john is found");

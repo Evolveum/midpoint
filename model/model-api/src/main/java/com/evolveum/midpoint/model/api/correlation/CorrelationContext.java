@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.correlation;
 
 import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -38,7 +40,15 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
      * Focus that was created using pre-mappings.
      * May be empty (but not null) e.g. if there are no such mappings.
      */
-    @NotNull final FocusType preFocus;
+    @NotNull final Containerable preFocus;
+
+    /**
+     * TEMPORARY
+     *
+     * Candidates from which we want to select the [candidate] owner/owners.
+     * If null, standard repository query is executed.
+     */
+    @Nullable final Collection<? extends Containerable> candidatePool;
 
     /**
      * System configuration to use during the correlation.
@@ -57,20 +67,42 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
     private AbstractCorrelatorStateType correlatorState;
 
     public CorrelationContext(
-            @NotNull FocusType preFocus,
+            @NotNull Containerable preFocus,
+            @Nullable Collection<? extends Containerable> candidatePool,
             @Nullable SystemConfigurationType systemConfiguration,
             @NotNull Task task) {
         this.preFocus = preFocus;
+        this.candidatePool = candidatePool;
         this.systemConfiguration = systemConfiguration;
         this.task = task;
     }
 
     public @NotNull FocusType getPreFocus() {
+        if (preFocus instanceof FocusType focus) {
+            return focus;
+        } else {
+            // TEMPORARY (until everything will be migrated to Containerable)
+            throw new UnsupportedOperationException("Use of non-FocusType objects is not supported here: " + preFocus);
+        }
+    }
+
+    // TEMPORARY (until everything will be migrated to Containerable)
+    public @NotNull Containerable getPreFocusContainerable() {
         return preFocus;
     }
 
+    // TEMPORARY (until everything will be migrated to Containerable)
     public @NotNull Class<? extends ObjectType> getFocusType() {
+        return getPreFocus().getClass();
+    }
+
+    // TEMPORARY (until everything will be migrated to Containerable)
+    public @NotNull Class<? extends Containerable> getFocusContainerableType() {
         return preFocus.getClass();
+    }
+
+    public @Nullable Collection<? extends Containerable> getCandidatePool() {
+        return candidatePool;
     }
 
     /** Returns the archetype for focus objects that the candidate(s) must possess. Null means "no restrictions".  */
@@ -114,7 +146,7 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "preFocus", preFocus, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "focusType", getFocusType(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "focusType", getFocusContainerableType(), indent + 1);
         debugDumpSpecific(sb, indent);
         DebugUtil.debugDumpWithLabelLn(sb, "systemConfiguration", String.valueOf(systemConfiguration), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "correlatorState", correlatorState, indent + 1);
@@ -139,8 +171,8 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
         }
     }
 
-    /** Returns the object (e.g. shadow or focus) that is being correlated. Currently for logging purposes. */
-    @NotNull public abstract ObjectType getPrimaryCorrelatedObject();
+    /** Returns the object (e.g. shadow or focus or its part) that is being correlated. Currently for logging purposes. */
+    @NotNull public abstract Containerable getPrimaryCorrelatedObject();
 
     /** Context for correlating a shadow to a set of matching focuses. */
     public static class Shadow extends CorrelationContext {
@@ -164,10 +196,11 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
                 @NotNull ShadowType resourceObject,
                 @NotNull ResourceType resource,
                 @NotNull ResourceObjectDefinition resourceObjectDefinition,
-                @NotNull FocusType preFocus,
+                @NotNull Containerable preFocus,
+                @Nullable Collection<? extends Containerable> candidatePool,
                 @Nullable SystemConfigurationType systemConfiguration,
                 @NotNull Task task) {
-            super(preFocus, systemConfiguration, task);
+            super(preFocus, candidatePool, systemConfiguration, task);
             this.resourceObject = resourceObject;
             this.resource = resource;
             this.resourceObjectDefinition = resourceObjectDefinition;
@@ -203,14 +236,14 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
         }
 
         @Override
-        public @NotNull ObjectType getPrimaryCorrelatedObject() {
+        public @NotNull Containerable getPrimaryCorrelatedObject() {
             return resourceObject;
         }
 
         @Override
         public String toString() {
             return "CorrelationContext.Shadow("
-                    + getFocusType().getSimpleName() + ", "
+                    + getFocusContainerableType().getSimpleName() + ", "
                     + resourceObjectDefinition.getHumanReadableName() + "@" + resource
                     + ')';
         }
@@ -234,12 +267,12 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
         private final Set<String> candidateOids;
 
         public Focus(
-                @NotNull FocusType preFocus,
+                @NotNull Containerable preFocus,
                 @Nullable String archetypeOid,
                 @NotNull Set<String> candidateOids,
                 @Nullable SystemConfigurationType systemConfiguration,
                 @NotNull Task task) {
-            super(preFocus, systemConfiguration, task);
+            super(preFocus, null, systemConfiguration, task);
             this.archetypeOid = archetypeOid;
             this.candidateOids = candidateOids;
         }
@@ -260,14 +293,14 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
         }
 
         @Override
-        public @NotNull ObjectType getPrimaryCorrelatedObject() {
+        public @NotNull Containerable getPrimaryCorrelatedObject() {
             return preFocus;
         }
 
         @Override
         public String toString() {
             return "CorrelationContext.Focus("
-                    + getFocusType().getSimpleName() + ", "
+                    + getFocusContainerableType().getSimpleName() + ", "
                     + preFocus
                     + ')';
         }

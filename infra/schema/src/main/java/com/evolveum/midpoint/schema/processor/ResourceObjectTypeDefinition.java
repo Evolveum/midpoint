@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
@@ -127,6 +128,18 @@ public interface ResourceObjectTypeDefinition
             return oid;
         }
         throw new UnsupportedOperationException("Dynamic references are not supported for archetypeRef; in " + this);
+    }
+
+    // TEMPORARY
+    default @Nullable ItemPath getFocusItemPath() {
+        var focusSpec = getDefinitionBean().getFocus();
+        return focusSpec != null && focusSpec.getItemPath() != null ? focusSpec.getItemPath().getItemPath() : null;
+    }
+
+    // TEMPORARY
+    default @Nullable String getAssignmentSubtype() {
+        var focusSpec = getDefinitionBean().getFocus();
+        return focusSpec != null ? focusSpec.getAssignmentSubtype() : null;
     }
 
     /** Returns true if there is "synchronization reactions" definition section here (even if it's empty). */

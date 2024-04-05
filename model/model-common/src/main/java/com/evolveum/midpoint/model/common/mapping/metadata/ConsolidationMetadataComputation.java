@@ -64,7 +64,9 @@ public class ConsolidationMetadataComputation extends ValueMetadataComputation {
     public static ConsolidationMetadataComputation forConsolidation(@NotNull List<ValueMetadataType> nonNegativeValues,
             @NotNull List<ValueMetadataType> existingValues, ItemValueMetadataProcessingSpec processingSpec,
             ModelCommonBeans beans, MappingEvaluationEnvironment env) throws SchemaException {
-        return new ConsolidationMetadataComputation(nonNegativeValues, existingValues, processingSpec, null, beans, env.createChild("metadata evaluation in"));
+        return new ConsolidationMetadataComputation(
+                nonNegativeValues, existingValues, processingSpec, null, beans,
+                env.createChild("metadata evaluation in"));
     }
 
     // TEMPORARY!!! (ignoring existing item for now)

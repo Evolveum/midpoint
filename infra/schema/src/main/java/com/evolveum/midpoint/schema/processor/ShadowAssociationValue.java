@@ -11,6 +11,7 @@ import java.io.Serial;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
@@ -146,9 +147,13 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     }
 
     /** Target object or its reference. TODO better name. */
-    public ShadowType getShadowBean() {
+    public @NotNull ShadowType getShadowBean() {
         var shadowRef = stateNonNull(asContainerable().getShadowRef(), "No shadowRef in %s", this);
         return (ShadowType) stateNonNull(shadowRef.getObjectable(), "No shadow in %s", this);
+    }
+
+    public @NotNull AbstractShadow getShadow() {
+        return AbstractShadow.of(getShadowBean());
     }
 
     public QName getTargetObjectClassName() {
@@ -190,7 +195,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return stateNonNull(getShadowIfPresent(), "No shadow in %s", this);
     }
 
-    private @NotNull ResourceObjectDefinition getAssociatedObjectDefinition() {
+    public @NotNull ResourceObjectDefinition getAssociatedObjectDefinition() {
         return getShadowRequired().getObjectDefinition();
     }
 
@@ -204,5 +209,18 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
                 .shadowRef(ObjectTypeUtil.createObjectRefWithFullObject(shadow.getBean()))
                 .identifiersOnly(false);
         // TODO check consistence
+    }
+
+    @Override
+    protected boolean appendExtraHeaderDump(StringBuilder sb, int indent, boolean wasIndent) {
+        wasIndent = super.appendExtraHeaderDump(sb, indent, wasIndent);
+        if (!wasIndent) {
+            DebugUtil.indentDebugDump(sb, indent);
+        } else {
+            sb.append("; ");
+        }
+        // TODO this should be a part of ShadowType dumping; but that code is automatically generated for now
+        sb.append(getAssociatedObjectDefinition());
+        return true;
     }
 }

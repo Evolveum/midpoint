@@ -22,8 +22,6 @@ public class AssociatedResourceObjectTypeDefinitionConfigItem
 
     @Override
     public @NotNull String localDescription() {
-        var displayName = value().getDisplayName();
-        return "associated object type '%s' %sdefinition".formatted(
-                value().getIntent(), displayName != null ? "(" + displayName + ") " : "");
+        return "associated " + super.localDescription();
     }
 }

@@ -54,13 +54,12 @@ class ShadowUpdater {
     private static final Trace LOGGER = TraceManager.getTrace(ShadowUpdater.class);
 
     @NotNull private final SynchronizationContext<?> syncCtx;
-    @NotNull private final ModelBeans beans;
+    @NotNull private final ModelBeans beans = ModelBeans.get();
     @NotNull private final List<ItemDelta<?, ?>> deltas = new ArrayList<>();
     @NotNull private final ShadowType shadowBefore;
 
-    ShadowUpdater(@NotNull SynchronizationContext<?> syncCtx, @NotNull ModelBeans beans) {
+    ShadowUpdater(@NotNull SynchronizationContext<?> syncCtx) {
         this.syncCtx = syncCtx;
-        this.beans = beans;
         this.shadowBefore = syncCtx.getShadowedResourceObjectBefore();
     }
 

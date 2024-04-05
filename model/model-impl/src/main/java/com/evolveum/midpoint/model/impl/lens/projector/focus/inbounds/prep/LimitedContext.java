@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.PathSet;
@@ -24,19 +23,17 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 /**
  * A {@link Context} for inbound mappings evaluation that is used in "pre-inbounds" evaluation (i.e., before clockwork is run).
  */
-public class PreContext extends Context {
+public class LimitedContext extends Context {
 
     @NotNull final PreInboundsContext<?> ctx;
 
     @NotNull private final PathSet correlationItemPaths;
 
-    public PreContext(
+    public LimitedContext(
             @NotNull PreInboundsContext<?> ctx,
             @NotNull PathSet correlationItemPaths,
-            @NotNull MappingEvaluationEnvironment env,
-            @NotNull OperationResult result,
-            @NotNull ModelBeans beans) {
-        super(env, result, beans);
+            @NotNull MappingEvaluationEnvironment env) {
+        super(env);
         this.ctx = ctx;
         this.correlationItemPaths = correlationItemPaths;
     }

@@ -563,6 +563,7 @@ public interface ResourceObjectDefinition
     }
     //endregion
 
+    /** Call {@link #getPrismObjectDefinition()} for the cached version. */
     default @NotNull PrismObjectDefinition<ShadowType> toPrismObjectDefinition() {
         return ObjectFactory.constructObjectDefinition(
                 toResourceAttributeContainerDefinition(),
@@ -598,4 +599,9 @@ public interface ResourceObjectDefinition
 
     /** Returns both attribute and association definitions. */
     @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions();
+
+    default boolean hasInboundMappings() {
+        return getShadowItemDefinitions().stream()
+                .anyMatch(ShadowItemDefinition::hasInboundMapping);
+    }
 }

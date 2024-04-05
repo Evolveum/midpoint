@@ -117,7 +117,7 @@ public class LensExpressionUtil {
         LensContext<? extends ObjectType> lensContext = elementContext != null ? elementContext.getLensContext() : null;
         LensProjectionContext projectionContext = elementContext instanceof LensProjectionContext ?
                 (LensProjectionContext) elementContext : null;
-        ModelExpressionEnvironment<?,?,?> env = new ModelExpressionEnvironment<>(lensContext, projectionContext, task, result);
+        ModelExpressionEnvironment<?,?> env = new ModelExpressionEnvironment<>(lensContext, projectionContext, task, result);
         eeContext.setExpressionFactory(expressionFactory);
         eeContext.setAdditionalConvertor(additionalConvertor);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple =

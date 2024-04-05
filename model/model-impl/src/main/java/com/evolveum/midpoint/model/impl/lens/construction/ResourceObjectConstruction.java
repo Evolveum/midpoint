@@ -43,6 +43,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
+
 /**
  * Contains "construction bean" (ConstructionType) - a definition how to construct a resource object.
  * Besides this definition it also contains auxiliary objects that are needed to evaluate the construction.
@@ -178,7 +180,11 @@ public abstract class ResourceObjectConstruction<
         }
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = builder.build();
 
-        getMappingEvaluator().evaluateMapping(mapping, getLensContext(), null, task, result);
+        getMappingEvaluator().evaluateMapping(
+                mapping,
+                forModelContext(getLensContext()),
+                task,
+                result);
 
         return mapping.getOutputTriple();
     }

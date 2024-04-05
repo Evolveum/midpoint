@@ -11,7 +11,7 @@ import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthenti
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
 import com.evolveum.midpoint.model.api.correlator.CandidateOwner;
-import com.evolveum.midpoint.model.api.correlator.CandidateOwnersMap;
+import com.evolveum.midpoint.model.api.correlator.CandidateOwners;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -25,7 +25,7 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
     private List<CorrelationModuleConfigurationType> correlators;
     private int currentProcessingCorrelator;
 
-    private CandidateOwnersMap candidateOwners = new CandidateOwnersMap();
+    private CandidateOwners candidateOwners = new CandidateOwners();
     private final List<ObjectType> owners = new ArrayList<>();
 
     private FocusType preFocus;
@@ -77,16 +77,12 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
         return CollectionUtils.isEmpty(correlators);
     }
 
-    public void rewriteCandidateOwners(CandidateOwnersMap map) {
-        candidateOwners.clear();
-        candidateOwners.mergeWith(map);
+    public void rewriteCandidateOwners(CandidateOwners newOwners) {
+        candidateOwners.replaceWith(newOwners);
     }
 
     public Set<String> getCandidateOids() {
-        return candidateOwners.values()
-                .stream()
-                .map(CandidateOwner::getOid)
-                .collect(Collectors.toSet());
+        return candidateOwners.getCandidateOids();
     }
 
     public void rewriteOwner(ObjectType owner) {

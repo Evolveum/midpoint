@@ -18,12 +18,14 @@ import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingInContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingEvaluationRequest;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -85,7 +87,7 @@ abstract class MSource implements DebugDumpable {
      * Checks if we should process mappings from this source. This is mainly to avoid the cost of loading
      * from resource if there's no explicit reason to do so. See the implementation for details.
      */
-    abstract boolean isEligibleForInboundProcessing() throws SchemaException, ConfigurationException;
+    abstract boolean isEligibleForInboundProcessing(OperationResult result) throws SchemaException, ConfigurationException;
 
     /**
      * Resource object definition is absolutely necessary for mappings to be processed.
@@ -154,7 +156,7 @@ abstract class MSource implements DebugDumpable {
      * Currently relevant only for clockwork processing.
      */
     abstract <V extends PrismValue, D extends ItemDefinition<?>> void setValueMetadata(
-            Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta)
+            Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException;
 
@@ -205,7 +207,7 @@ abstract class MSource implements DebugDumpable {
      *
      * Currently relevant only for clockwork-based execution.
      */
-    abstract void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull Context context)
+    abstract void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull Context context, OperationResult result)
             throws SchemaException, StopProcessingProjectionException;
 
     /**
@@ -224,10 +226,10 @@ abstract class MSource implements DebugDumpable {
             @NotNull Source<?, ?> source, @Nullable PrismValue value, @NotNull VariablesMap variables);
 
     /**
-     * Creates {@link InboundMappingInContext} object by providing the appropriate context to the mapping.
+     * Creates {@link InboundMappingEvaluationRequest} object by providing the appropriate context to the mapping.
      */
-    abstract <V extends PrismValue, D extends ItemDefinition<?>> InboundMappingInContext<V,D> createInboundMappingInContext(
-            MappingImpl<V, D> mapping);
+    abstract <V extends PrismValue, D extends ItemDefinition<?>> InboundMappingEvaluationRequest<V, D>
+    createMappingRequest(MappingImpl<V, D> mapping);
 
     /**
      * Selects mappings appropriate for the current evaluation phase.
@@ -264,5 +266,5 @@ abstract class MSource implements DebugDumpable {
 
     abstract @Nullable IdentityItemConfiguration getIdentityItemConfiguration(@NotNull ItemPath itemPath) throws ConfigurationException;
 
-    abstract ItemPath determineTargetPathOverride(ItemPath targetItemPath) throws ConfigurationException, SchemaException;
+    abstract ItemPath determineTargetPathExecutionOverride(ItemPath targetItemPath) throws ConfigurationException, SchemaException;
 }

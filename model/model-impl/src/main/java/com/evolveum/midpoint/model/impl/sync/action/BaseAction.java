@@ -31,13 +31,12 @@ public abstract class BaseAction<F extends FocusType> implements Synchronization
     @NotNull protected final ResourceObjectShadowChangeDescription change;
     @NotNull protected final SynchronizationReactionDefinition reactionDefinition; // TODO consider removal
     @NotNull protected final SynchronizationActionDefinition actionDefinition;
-    @NotNull protected final ModelBeans beans;
+    @NotNull protected final ModelBeans beans = ModelBeans.get();
 
     BaseAction(@NotNull ActionInstantiationContext<F> ctx) {
         this.syncCtx = ctx.syncCtx;
         this.change = ctx.change;
         this.reactionDefinition = ctx.reactionDefinition;
         this.actionDefinition = ctx.actionDefinition;
-        this.beans = syncCtx.getBeans();
     }
 }

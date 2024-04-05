@@ -120,7 +120,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         attrManagerDefinition = classDef.findAttributeDefinitionRequired(new ItemName(NS_RI, "manager"));
 
         shadowAttributesDefinition = classDef.toResourceAttributeContainerDefinition();
-        shadowDefinition = classDef.toPrismObjectDefinition();
+        shadowDefinition = classDef.getPrismObjectDefinition();
         itemGroupName = extItemDictionary.createOrFindItemDefinition(attrGroupNameDefinition, false);
         itemMember = extItemDictionary.createOrFindItemDefinition(attrMemberDefinition, false);
         itemManager = extItemDictionary.createOrFindItemDefinition(attrManagerDefinition, false);

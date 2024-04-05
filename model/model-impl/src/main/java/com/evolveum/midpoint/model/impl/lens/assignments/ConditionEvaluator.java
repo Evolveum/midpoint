@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.*;
+
 /**
  * Evaluates assignment/role conditions, resulting in "relativity mode" updates.
  */
@@ -100,7 +102,11 @@ class ConditionEvaluator {
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        ctx.ae.mappingEvaluator.evaluateMapping(mapping, ctx.ae.lensContext, ctx.task, result);
+        ctx.ae.mappingEvaluator.evaluateMapping(
+                mapping,
+                forModelContext(ctx.ae.lensContext),
+                ctx.task,
+                result);
 
         return mapping.getOutputTriple();
     }

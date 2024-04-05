@@ -305,7 +305,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public <F extends ObjectType> boolean hasLinkedAccount(String resourceOid) {
-        ModelContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
+        ModelContext<?> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
         ProjectionContextFilter filter =
                 new ProjectionContextFilter(resourceOid, ShadowKindType.ACCOUNT, null);
         for (ModelProjectionContext projectionContext : ctx.findProjectionContexts(filter)) {
@@ -546,10 +546,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public boolean isDirectlyAssigned(String targetOid) {
-        ModelContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
-        ModelElementContext<? extends FocusType> focusContext = ctx.getFocusContextRequired();
+        ModelContext<?> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
+        ModelElementContext<?> focusContext = ctx.getFocusContextRequired();
 
-        PrismObject<? extends FocusType> focus;
+        PrismObject<?> focus;
         ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
         if (scriptContext == null) {
             focus = focusContext.getObjectAny();
@@ -566,10 +566,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             }
             focus = focusContext.getObjectOld();
         }
-        if (focus == null) {
-            return false;
-        }
-        return isDirectlyAssigned(focus.asObjectable(), targetOid);
+        var focusBean = asObjectable(focus);
+        return focusBean instanceof FocusType focusTypedBean
+                && isDirectlyAssigned(focusTypedBean, targetOid);
     }
 
     @Override
@@ -581,7 +580,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @SuppressWarnings("unused")
     @Experimental
     public boolean hasActiveAssignmentTargetSubtype(String roleSubtype) {
-        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
+        ModelContext<?> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
         DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with evaluatedAssignmentTriple");
@@ -880,12 +879,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public <F extends ObjectType> ModelContext<F> getModelContext() {
-        return ModelExpressionThreadLocalHolder.getLensContext();
+        //noinspection unchecked
+        return (ModelContext<F>) ModelExpressionThreadLocalHolder.getLensContext();
     }
 
     @Override
     public <F extends ObjectType> ModelElementContext<F> getFocusContext() {
-        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+        var lensContext = ModelExpressionThreadLocalHolder.getLensContext();
         if (lensContext == null) {
             return null;
         }
@@ -2100,7 +2100,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     @NotNull
     public Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException {
-        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
+        ModelContext<?> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
         Collection<PrismValue> rv = new HashSet<>();
         for (EvaluatedAssignment evaluatedAssignment : lensContext.getNonNegativeEvaluatedAssignments()) {
             if (evaluatedAssignment.isValid()) {

@@ -181,7 +181,7 @@ public class ShadowAssociationDefinitionImpl
         // We apply the prism shadow definition for (representative) target object to the shadowRef definition.
         var shadowRefDef = Objects.requireNonNull(def.findReferenceDefinition(ShadowAssociationValueType.F_SHADOW_REF)).clone();
         shadowRefDef.mutator().setTargetObjectDefinition(
-                getTargetObjectDefinition().toPrismObjectDefinition());
+                getTargetObjectDefinition().getPrismObjectDefinition());
         def.mutator().replaceDefinition(
                 ShadowAssociationValueType.F_SHADOW_REF,
                 shadowRefDef);

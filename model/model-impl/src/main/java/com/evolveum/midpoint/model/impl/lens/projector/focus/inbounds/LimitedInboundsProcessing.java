@@ -13,6 +13,10 @@ import java.util.function.Function;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.correlation.CorrelatorContextCreator;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.APrioriDeltaProvider;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.PathSet;
 
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
@@ -23,17 +27,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.PreContext;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.PreShadowInboundsPreparation;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.LimitedContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.LimitedInboundsPreparation;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -46,39 +46,37 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
 /**
- * Evaluation of inbound mappings during correlation, i.e. before clockwork is started.
+ * Evaluation of inbound mappings for a single shadow only, mainly for the purposes of correlation.
  */
-public class PreInboundsProcessing<F extends FocusType> extends AbstractInboundsProcessing<F> {
+public class LimitedInboundsProcessing<T extends Containerable> extends AbstractInboundsProcessing<T> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PreInboundsProcessing.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LimitedInboundsProcessing.class);
 
-    @NotNull private final PreInboundsContext<F> ctx;
+    @NotNull private final PreInboundsContext<T> ctx;
 
-    public PreInboundsProcessing(
-            @NotNull PreInboundsContext<F> ctx,
-            @NotNull ModelBeans beans,
-            @NotNull MappingEvaluationEnvironment env,
-            @NotNull OperationResult result) {
-        super(beans, env, result);
+    public LimitedInboundsProcessing(
+            @NotNull PreInboundsContext<T> ctx,
+            @NotNull MappingEvaluationEnvironment env) {
+        super(env);
         this.ctx = ctx;
     }
 
     /**
      * Collects mappings for the given shadow.
      */
-    void collectMappings()
+    void collectMappings(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
 
         try {
-            PrismObject<F> preFocus = ctx.getPreFocusAsPrismObject();
-            new PreShadowInboundsPreparation<>(
-                    mappingsMap,
+            var preFocusPcv = ctx.getPreFocusAsPcv();
+            new LimitedInboundsPreparation<>(
+                    evaluationRequests,
                     itemDefinitionMap,
-                    new PreContext(ctx, getCorrelationItemPaths(), env, result, beans),
-                    preFocus,
-                    getFocusDefinition(preFocus))
-                    .collectOrEvaluate();
+                    new LimitedContext(ctx, getCorrelationItemPaths(result), env),
+                    preFocusPcv,
+                    getFocusDefinition(preFocusPcv))
+                    .collectOrEvaluate(result);
         } catch (StopProcessingProjectionException e) {
             // Should be used only in clockwork processing.
             throw new IllegalStateException("Unexpected 'stop processing' exception: " + e.getMessage(), e);
@@ -86,12 +84,13 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
     }
 
     /** We need to get paths to all correlation items - to enable pre-inbounds for the respective attributes. */
-    private PathSet getCorrelationItemPaths() throws SchemaException, ObjectNotFoundException, ConfigurationException {
+    private PathSet getCorrelationItemPaths(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
         CorrelatorContext<?> correlatorContext =
                 CorrelatorContextCreator.createRootContext(
                         getCorrelationDefinitionBean(),
                         CorrelatorDiscriminator.forSynchronization(),
-                        getObjectTemplate(),
+                        getObjectTemplate(result),
                         ctx.getSystemConfiguration());
         PathSet paths = correlatorContext.getConfiguration().getCorrelationItemPaths();
         LOGGER.trace("Correlation items: {}", paths);
@@ -106,7 +105,8 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
                 resourceCorrelationDefinitionBean : new CorrelationDefinitionType();
     }
 
-    private ObjectTemplateType getObjectTemplate() throws SchemaException, ConfigurationException, ObjectNotFoundException {
+    private ObjectTemplateType getObjectTemplate(OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
         String archetypeOid = ctx.getArchetypeOid();
         if (archetypeOid == null) {
             return null;
@@ -122,16 +122,16 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
         return beans.archetypeManager.getExpandedObjectTemplate(templateOid, env.task.getExecutionMode(), result);
     }
 
-    @Override
-    @NotNull PrismObjectDefinition<F> getFocusDefinition(@Nullable PrismObject<F> focus) {
+    private @NotNull PrismContainerDefinition<T> getFocusDefinition(@Nullable PrismContainerValue<T> focus) {
         // The interface expects nullable focus, but in fact we always have a non-null focus here
         Objects.requireNonNull(focus, "no focus");
         if (focus.getDefinition() != null) {
             return focus.getDefinition();
         } else {
+            // FIXME brutal hack - may or may not work for all container types
             //noinspection unchecked
-            return (PrismObjectDefinition<F>) beans.prismContext.getSchemaRegistry()
-                    .findObjectDefinitionByCompileTimeClass(focus.asObjectable().getClass());
+            return (PrismContainerDefinition<T>) beans.prismContext.getSchemaRegistry()
+                    .findContainerDefinitionByCompileTimeClass(focus.asContainerable().getClass());
         }
     }
 
@@ -139,7 +139,7 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
     void applyComputedDeltas(Collection<ItemDelta<?, ?>> itemDeltas) throws SchemaException {
         LOGGER.trace("Applying deltas to the pre-focus:\n{}", DebugUtil.debugDumpLazily(itemDeltas, 1));
         ItemDeltaCollectionsUtil.applyTo(
-                itemDeltas, ctx.getPreFocusAsPrismObject());
+                itemDeltas, ctx.getPreFocusAsPcv());
     }
 
     @Override
@@ -149,13 +149,13 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
     }
 
     @Override
-    @Nullable PrismObject<F> getFocusNew() {
-        return ctx.getPreFocusAsPrismObject();
+    @Nullable PrismContainerValue<T> getTarget() {
+        return ctx.getPreFocusAsPcv();
     }
 
     @Override
-    protected @Nullable ObjectDelta<F> getFocusAPrioriDelta() {
-        return null; // No focus -> no a priori delta for it.
+    protected @NotNull APrioriDeltaProvider getFocusAPrioriDeltaProvider() {
+        return APrioriDeltaProvider.none(); // No focus -> no a priori delta for it.
     }
 
     @Override
@@ -167,7 +167,7 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
     // TODO !!!!!!!!!!!!!!
     public VariablesMap getVariablesMap() {
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
-                ctx.getPreFocus(),
+                null, // FIXME
                 ctx.getShadowedResourceObject(),
                 ctx.getResource(),
                 ctx.getSystemConfiguration());

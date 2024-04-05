@@ -69,6 +69,7 @@
             </synchronization>
         </objectType>
         <associatedObjectType>
+            <kind>associated</kind>
             <intent>contract</intent>
             <associationClass>ri:personContract</associationClass>
             <delineation>
@@ -81,7 +82,6 @@
             </focus>
             <attribute>
                 <ref>icfs:uid</ref>
-                <correlator/>
                 <inbound>
                     <strength>strong</strength>
                     <expression>
@@ -103,6 +103,41 @@
                     </target>
                 </inbound>
             </attribute>
+            <attribute>
+                <ref>ri:orgName</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <!-- What about the range? -->
+                    <target>
+                        <path>$focus/organization</path>
+                    </target>
+                </inbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <referenceSearch>
+                            <targetType>OrgType</targetType>
+                            <filter>
+                                <q:text>name = $input</q:text>
+                            </filter>
+                            <createOnDemand>true</createOnDemand>
+                            <populateObject>
+                                <populateItem>
+                                    <expression>
+                                        <path>$input</path>
+                                    </expression>
+                                    <target>
+                                        <path>name</path>
+                                    </target>
+                                </populateItem>
+                            </populateObject>
+                        </referenceSearch>
+                    </expression>
+                    <target>
+                        <path>targetRef</path>
+                    </target>
+                </inbound>
+            </attribute>
             <activation>
                 <validFrom>
                     <inbound/>
@@ -111,6 +146,15 @@
                     <inbound/>
                 </validTo>
             </activation>
+            <correlation> <!-- TODO replace with the flag on the attribute -->
+                <correlators>
+                    <items>
+                        <item>
+                            <ref>identifier</ref>
+                        </item>
+                    </items>
+                </correlators>
+            </correlation>
             <synchronization>
                 <reaction>
                     <situation>unmatched</situation>

@@ -15,7 +15,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.token.Cor
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
-import com.evolveum.midpoint.model.api.correlator.CandidateOwnersMap;
+import com.evolveum.midpoint.model.api.correlator.CandidateOwners;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.*;
@@ -96,8 +96,8 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
                 return authentication;
             }
 
-            CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
-            correlationModuleAuthentication.rewriteCandidateOwners(ownersMap);
+            CandidateOwners owners = correlationResult.getCandidateOwnersMap();
+            correlationModuleAuthentication.rewriteCandidateOwners(owners);
 
             return authentication;
         } catch (Exception e) {
@@ -125,11 +125,11 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
         return correlationResult.getCandidateOwnersMap() != null && !correlationResult.getCandidateOwnersMap().isEmpty();
     }
 
-    private void rewriteCandidatesToOwners(@NotNull CandidateOwnersMap candidateOwnersMap,
+    private void rewriteCandidatesToOwners(@NotNull CandidateOwners candidateOwners,
             CorrelationModuleAuthenticationImpl correlationModuleAuthentication) {
         correlationModuleAuthentication.clearOwners();
-        candidateOwnersMap.values()
-                .forEach(c -> correlationModuleAuthentication.addOwnerIfNotExist(c.getObject()));
+        candidateOwners.objectBasedValues()
+                .forEach(c -> correlationModuleAuthentication.addOwnerIfNotExist(c.getValue()));
     }
 
     private void isOwnersNumberUnderRestriction(CorrelationModuleAuthenticationImpl correlationModuleAuthentication) {

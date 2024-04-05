@@ -661,7 +661,7 @@ class ResourceSchemaParser {
             if (protectedPatternBeans.isEmpty()) {
                 return;
             }
-            var prismObjectDef = definition.toPrismObjectDefinition();
+            var prismObjectDef = definition.getPrismObjectDefinition();
             for (ResourceObjectPatternType protectedPatternBean : protectedPatternBeans) {
                 definition.addProtectedObjectPattern(
                         convertToPattern(protectedPatternBean, prismObjectDef));

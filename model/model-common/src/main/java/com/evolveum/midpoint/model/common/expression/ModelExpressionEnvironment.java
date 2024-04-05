@@ -6,16 +6,17 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Describes an environment in which an {@link Expression} is evaluated.
@@ -27,19 +28,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  * @author semancik
  *
- * @param <F> type of focus object if {@link ModelContext} is involved
  * @param <V> type of {@link PrismValue} the mapping produces
  * @param <D> type of {@link ItemDefinition} of the item the mapping produces
  */
-public class ModelExpressionEnvironment<F extends ObjectType, V extends PrismValue, D extends ItemDefinition<?>>
+public class ModelExpressionEnvironment<V extends PrismValue, D extends ItemDefinition<?>>
         extends ExpressionEnvironment {
 
-    private final ModelContext<F> lensContext;
+    private final ModelContext<?> lensContext;
     private final ModelProjectionContext projectionContext;
     private final Mapping<V, D> mapping;
 
     private ModelExpressionEnvironment(
-            ModelContext<F> lensContext,
+            ModelContext<?> lensContext,
             ModelProjectionContext projectionContext,
             Mapping<V, D> mapping,
             Task currentTask, OperationResult currentResult) {
@@ -55,14 +55,14 @@ public class ModelExpressionEnvironment<F extends ObjectType, V extends PrismVal
 
     /** Consider using {@link ExpressionEnvironmentBuilder} instead. */
     public ModelExpressionEnvironment(
-            ModelContext<F> lensContext,
+            ModelContext<?> lensContext,
             ModelProjectionContext projectionContext,
             Task currentTask,
             OperationResult currentResult) {
         this(lensContext, projectionContext, null, currentTask, currentResult);
     }
 
-    public ModelContext<F> getLensContext() {
+    public ModelContext<?> getLensContext() {
         return lensContext;
     }
 
@@ -74,7 +74,6 @@ public class ModelExpressionEnvironment<F extends ObjectType, V extends PrismVal
         return mapping;
     }
 
-
     @Override
     public String toString() {
         return "ModelExpressionEnvironment(lensContext=" + lensContext + ", projectionContext="
@@ -82,41 +81,65 @@ public class ModelExpressionEnvironment<F extends ObjectType, V extends PrismVal
                 + ")";
     }
 
-    public static final class ExpressionEnvironmentBuilder
-            <F extends ObjectType, V extends PrismValue, D extends ItemDefinition<?>> {
-        private ModelContext<F> lensContext;
+    public static final class ExpressionEnvironmentBuilder<V extends PrismValue, D extends ItemDefinition<?>> {
+        private ModelContext<?> lensContext;
         private ModelProjectionContext projectionContext;
         private Mapping<V, D> mapping;
         private OperationResult currentResult;
         private Task currentTask;
 
-        public ExpressionEnvironmentBuilder<F, V, D> lensContext(ModelContext<F> lensContext) {
+        public ExpressionEnvironmentBuilder<V, D> lensContext(ModelContext<?> lensContext) {
             this.lensContext = lensContext;
             return this;
         }
 
-        public ExpressionEnvironmentBuilder<F, V, D> projectionContext(ModelProjectionContext projectionContext) {
+        public ExpressionEnvironmentBuilder<V, D> projectionContext(ModelProjectionContext projectionContext) {
             this.projectionContext = projectionContext;
             return this;
         }
 
-        public ExpressionEnvironmentBuilder<F, V, D> mapping(Mapping<V, D> mapping) {
+        public ExpressionEnvironmentBuilder<V, D> mapping(Mapping<V, D> mapping) {
             this.mapping = mapping;
             return this;
         }
 
-        public ExpressionEnvironmentBuilder<F, V, D> currentResult(OperationResult currentResult) {
+        public ExpressionEnvironmentBuilder<V, D> currentResult(OperationResult currentResult) {
             this.currentResult = currentResult;
             return this;
         }
 
-        public ExpressionEnvironmentBuilder<F, V, D> currentTask(Task currentTask) {
+        public ExpressionEnvironmentBuilder<V, D> currentTask(Task currentTask) {
             this.currentTask = currentTask;
             return this;
         }
 
-        public ModelExpressionEnvironment<F, V, D> build() {
+        public ExpressionEnvironmentBuilder<V, D> provideExtraOptions(@NotNull ExtraOptionsProvider<V, D> provider) {
+            return provider.provide(this);
+        }
+
+        public ModelExpressionEnvironment<V, D> build() {
             return new ModelExpressionEnvironment<>(lensContext, projectionContext, mapping, currentTask, currentResult);
+        }
+    }
+
+    public interface ExtraOptionsProvider<V extends PrismValue, D extends ItemDefinition<?>> {
+
+        ExpressionEnvironmentBuilder<V, D> provide(ExpressionEnvironmentBuilder<V, D> builder);
+
+        static <V extends PrismValue, D extends ItemDefinition<?>> ExtraOptionsProvider<V, D> forProjectionContext(
+                @NotNull ModelProjectionContext projectionContext) {
+            return builder -> builder
+                    .projectionContext(projectionContext)
+                    .lensContext(projectionContext.getModelContext());
+        }
+
+        static <V extends PrismValue, D extends ItemDefinition<?>> ExtraOptionsProvider<V, D> forModelContext(
+                @NotNull ModelContext<?> modelContext) {
+            return builder -> builder.lensContext(modelContext);
+        }
+
+        static <V extends PrismValue, D extends ItemDefinition<?>> ExtraOptionsProvider<V, D> empty() {
+            return builder -> builder;
         }
     }
 }

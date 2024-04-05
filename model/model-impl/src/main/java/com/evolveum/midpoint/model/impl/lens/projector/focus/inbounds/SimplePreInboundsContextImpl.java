@@ -7,13 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
@@ -34,14 +34,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * or {@link CorrelationServiceImpl#checkCandidateOwner(ShadowType, ResourceType, SynchronizationPolicy, FocusType, Task,
  * OperationResult)} method call.
  */
-public class SimplePreInboundsContextImpl<F extends FocusType>
-        implements PreInboundsContext<F> {
+public class SimplePreInboundsContextImpl<T extends Containerable>
+        implements PreInboundsContext<T> {
 
     @NotNull private final ShadowType shadowedResourceObject;
 
     @NotNull private final ResourceType resource;
 
-    @NotNull private final F preFocus;
+    @NotNull private final T preFocus;
 
     @Nullable private final SystemConfigurationType systemConfiguration;
 
@@ -49,23 +49,19 @@ public class SimplePreInboundsContextImpl<F extends FocusType>
 
     @NotNull private final ResourceObjectTypeDefinition objectTypeDefinition;
 
-    @NotNull private final ModelBeans beans;
-
     public SimplePreInboundsContextImpl(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull ResourceType resource,
-            @NotNull F preFocus,
+            @NotNull T preFocus,
             @Nullable SystemConfigurationType systemConfiguration,
             @NotNull Task task,
-            @NotNull ResourceObjectTypeDefinition objectTypeDefinition,
-            @NotNull ModelBeans beans) {
+            @NotNull ResourceObjectTypeDefinition objectTypeDefinition) {
         this.shadowedResourceObject = shadowedResourceObject;
         this.resource = resource;
         this.preFocus = preFocus;
         this.systemConfiguration = systemConfiguration;
         this.task = task;
         this.objectTypeDefinition = objectTypeDefinition;
-        this.beans = beans;
     }
 
     @Override
@@ -73,7 +69,7 @@ public class SimplePreInboundsContextImpl<F extends FocusType>
         return shadowedResourceObject;
     }
 
-    public @NotNull F getPreFocus() {
+    public @NotNull T getPreFocus() {
         return preFocus;
     }
 
@@ -89,11 +85,6 @@ public class SimplePreInboundsContextImpl<F extends FocusType>
     @Override
     public @NotNull Task getTask() {
         return task;
-    }
-
-    @Override
-    public @NotNull ModelBeans getBeans() {
-        return beans;
     }
 
     @Override

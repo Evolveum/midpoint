@@ -20,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContext;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
@@ -147,8 +146,6 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     @NotNull private final PrismContext prismContext = PrismContext.get();
 
-    @NotNull private final ModelBeans beans;
-
     /** TODO maybe will be removed */
     @Experimental
     private final String itemProcessingIdentifier;
@@ -175,7 +172,6 @@ public abstract class SynchronizationContext<F extends FocusType>
         this.systemConfiguration = processingContext.getSystemConfiguration();
         this.task = processingContext.getTask();
         this.executionMode = TaskUtil.getExecutionMode(task);
-        this.beans = processingContext.getBeans();
         this.typeIdentification = typeIdentification;
         this.resourceObjectDefinition = objectDefinition;
         this.synchronizationPolicy = synchronizationPolicy;
@@ -192,7 +188,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         } else {
             this.forceClassificationUpdate = false;
         }
-        this.updater = new ShadowUpdater(this, beans);
+        this.updater = new ShadowUpdater(this);
     }
 
     boolean isSynchronizationEnabled() {
@@ -333,12 +329,6 @@ public abstract class SynchronizationContext<F extends FocusType>
         return preFocus;
     }
 
-    @Override
-    public @NotNull PrismObject<F> getPreFocusAsPrismObject() {
-        //noinspection unchecked
-        return (PrismObject<F>) preFocus.asPrismObject();
-    }
-
     ObjectTemplateType getObjectTemplateForCorrelation() {
         return objectTemplateForCorrelation;
     }
@@ -477,11 +467,6 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     SystemConfigurationType getSystemConfigurationBean() {
         return systemConfiguration;
-    }
-
-    @Override
-    public @NotNull ModelBeans getBeans() {
-        return beans;
     }
 
     public @NotNull ExecutionModeType getExecutionMode() {
