@@ -413,10 +413,6 @@
             <artifactId>wicket-extensions</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-datetime</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.wicketstuff</groupId>
             <artifactId>wicketstuff-select2</artifactId>
         </dependency>
