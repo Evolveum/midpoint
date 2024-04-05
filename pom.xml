@@ -392,11 +392,6 @@
                 <version>${wicketstuff.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.wicket</groupId>
-                <artifactId>wicket-datetime</artifactId>
-                <version>8.0.0-M7</version>
-            </dependency>
-            <dependency>
                 <groupId>com.evolveum.chartjs</groupId>
                 <artifactId>wicket-chartjs-core</artifactId>
                 <version>${wicket.chartjs.version}</version>
