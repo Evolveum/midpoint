@@ -36,7 +36,7 @@ public class AbstractDummyScenario {
     /** Resource schema - it may or may not be present. See {@link #attachResourceSchema(CompleteResourceSchema)}. */
     protected CompleteResourceSchema resourceSchema;
 
-    AbstractDummyScenario(@NotNull DummyResourceContoller controller) {
+    protected AbstractDummyScenario(@NotNull DummyResourceContoller controller) {
         this.controller = controller;
     }
 
@@ -70,7 +70,7 @@ public class AbstractDummyScenario {
                 + "}";
     }
 
-    abstract class ScenarioObjectClass {
+    protected abstract class ScenarioObjectClass {
 
         /** Creates a new object. Does *not* add it to the resource. */
         public DummyObject create(String name) {
@@ -115,7 +115,7 @@ public class AbstractDummyScenario {
         }
     }
 
-    abstract class ScenarioLinkClass {
+    protected abstract class ScenarioLinkClass {
 
         /** Creates the respective link on the resource. */
         public void add(DummyObject first, DummyObject second) {

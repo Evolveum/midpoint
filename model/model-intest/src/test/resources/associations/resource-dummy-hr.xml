@@ -10,7 +10,8 @@
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:assoc="http://midpoint.evolveum.com/xml/ns/samples/associations">
     <name>hr</name>
     <connectorRef type="ConnectorType">
         <filter>
@@ -36,6 +37,7 @@
         <objectType>
             <kind>account</kind>
             <intent>person</intent>
+            <documentation>Just a standard account. Nothing special here.</documentation>
             <delineation>
                 <objectClass>ri:CustompersonObjectClass</objectClass>
             </delineation>
@@ -68,20 +70,65 @@
                 </reaction>
             </synchronization>
         </objectType>
+        <objectType>
+            <kind>generic</kind>
+            <intent>costCenter</intent>
+            <documentation>This is also a standard type of objects.</documentation>
+            <delineation>
+                <objectClass>ri:CustomcostCenterObjectClass</objectClass>
+            </delineation>
+            <focus>
+                <type>OrgType</type>
+                <archetypeRef oid="eb49f576-5813-4988-9dd1-91e418c65be6"/>
+            </focus>
+            <attribute>
+                <ref>icfs:name</ref>
+                <correlator/>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
         <associatedObjectType>
             <kind>associated</kind>
             <intent>contract</intent>
+            <documentation>
+                This is an object that's associated to the person. It's fetched automatically with its owning person.
+                (Decided by the resource itself, for now. There's no support for "item to fetch" yet.)
+                It is mapped to a user's assignment. So, mappings refer to the specific assignment value, unless
+                specified otherwise.
+            </documentation>
+            <!-- This is the association by which the contract is connected to its owner. -->
+            <!-- Note that contract has two more associations: to org and to costCenter. -->
             <associationClass>ri:personContract</associationClass>
             <delineation>
                 <objectClass>ri:CustomcontractObjectClass</objectClass>
             </delineation>
             <focus>
-                <!-- object level is derived from associated object (account/person) -->
+                <!-- The object-level specification is derived from associated object (account/person). -->
                 <itemPath>assignment</itemPath>
                 <assignmentSubtype>contract</assignmentSubtype>
             </focus>
             <attribute>
                 <ref>icfs:uid</ref>
+                <!-- The correlation is based on this property. -->
                 <inbound>
                     <strength>strong</strength>
                     <expression>
@@ -103,28 +150,51 @@
                     </target>
                 </inbound>
             </attribute>
-            <attribute>
-                <ref>ri:orgName</ref>
+            <association>
+                <ref>ri:org</ref>
+                <documentation>
+                    Sample association. Note that this org is not "associated object". It is a standalone object. It is not
+                    fetched by default. The mappings here have only the shadowRef and the identifiers (icfs:name + icfs:uid).
+                    But that is enough to run some simple mappings: for $focus/organization and for targetRef in the assignment.
+                </documentation>
                 <inbound>
                     <strength>strong</strength>
-                    <!-- What about the range? -->
+                    <documentation>
+                        Sample mapping #1: putting the name of the org to the property of the user (i.e., not
+                        into the assignement!)
+                    </documentation>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType
+
+                                basic.getAssociatedObjectName(input as ShadowAssociationValueType)
+                            </code>
+                        </script>
+                    </expression>
                     <target>
                         <path>$focus/organization</path>
                     </target>
                 </inbound>
                 <inbound>
                     <strength>strong</strength>
+                    <documentation>Sample mapping #2: providing targetRef for the assignment.</documentation>
                     <expression>
+                        <!-- Binding to the org object. Searching by name. CoD. -->
+                        <!-- Note that this is _NOT_ associationTargetSearch. It is simple referenceSearch for targetRef.
+                             The assignment value itself is created automatically by midPoint. -->
                         <referenceSearch>
                             <targetType>OrgType</targetType>
                             <filter>
-                                <q:text>name = $input</q:text>
+                                <q:text>name = `basic.getAssociatedObjectName(input)`</q:text>
                             </filter>
                             <createOnDemand>true</createOnDemand>
                             <populateObject>
                                 <populateItem>
                                     <expression>
-                                        <path>$input</path>
+                                        <script>
+                                            <code>basic.getAssociatedObjectName(input)</code>
+                                        </script>
                                     </expression>
                                     <target>
                                         <path>name</path>
@@ -137,7 +207,43 @@
                         <path>targetRef</path>
                     </target>
                 </inbound>
-            </attribute>
+            </association>
+            <association>
+                <ref>ri:costCenter</ref>
+                <documentation>Just another association, to show a different mapping style.</documentation>
+                <inbound>
+                    <strength>strong</strength>
+                    <documentation>Just as mapping #1 for org.</documentation>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType
+
+                                basic.getAssociatedObjectName(input as ShadowAssociationValueType)
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>extension/assoc:costCenter</path>
+                    </target>
+                </inbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <documentation>Creates assignment/orgRef based on the costCenter reference. Uses shadowRef for this.</documentation>
+                    <expression>
+                        <referenceSearch>
+                            <targetType>OrgType</targetType>
+                            <filter>
+                                <!-- We assume that the cost center is already imported; we'll find it as shadow owner. -->
+                                <q:text>linkRef = `input.shadowRef`</q:text>
+                            </filter>
+                        </referenceSearch>
+                    </expression>
+                    <target>
+                        <path>orgRef</path>
+                    </target>
+                </inbound>
+            </association>
             <activation>
                 <validFrom>
                     <inbound/>
@@ -159,18 +265,21 @@
                 <reaction>
                     <situation>unmatched</situation>
                     <actions>
+                        <!-- If the matching assignment does not exist, midPoint will create and synchronize it -->
                         <addFocus/>
                     </actions>
                 </reaction>
                 <reaction>
-                    <situation>unlinked</situation>
+                    <situation>linked</situation>
                     <actions>
-                        <link/>
+                        <!-- If the matching assignment exists, midPoint will synchronize it. -->
+                        <synchronize/>
                     </actions>
                 </reaction>
                 <reaction>
                     <situation>deleted</situation>
                     <actions>
+                        <!-- This should case deletion of no-longer-connected assignments. Not implemented yet. -->
                         <deleteFocus/>
                     </actions>
                 </reaction>

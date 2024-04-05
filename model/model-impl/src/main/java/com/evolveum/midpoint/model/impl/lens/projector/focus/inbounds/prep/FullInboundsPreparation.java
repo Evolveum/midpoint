@@ -347,11 +347,13 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                 var associatedObjectDefinition = associationValue.getAssociatedObjectDefinition();
                 LOGGER.trace("Processing association value: {} ({})", associationValue, associatedObjectDefinition);
                 var associatedObjectTypeDefinition = associatedObjectDefinition.getTypeDefinition();
-                if (associatedObjectTypeDefinition != null && associatedObjectTypeDefinition.hasInboundMappings()) {
+                if (associatedObjectTypeDefinition != null
+                        && associatedObjectTypeDefinition.hasInboundMappings()
+                        && associatedObjectTypeDefinition.getKind() == ShadowKindType.ASSOCIATED) { // TODO rethink this
                     new AssociatedObjectProcessing(associationValue, associatedObjectTypeDefinition)
                             .process(result);
                 } else {
-                    LOGGER.trace(" -> no inbound mappings, skipping the value");
+                    LOGGER.trace(" -> not an associated object with inbound mappings, skipping the value");
                 }
             }
         }

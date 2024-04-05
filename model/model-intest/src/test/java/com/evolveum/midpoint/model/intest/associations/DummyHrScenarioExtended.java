@@ -5,13 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.test;
-
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.time.ZonedDateTime;
+package com.evolveum.midpoint.model.intest.associations;
 
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
@@ -20,31 +14,42 @@ import static com.evolveum.midpoint.test.AttrName.ri;
 import static com.evolveum.midpoint.test.ObjectClassName.custom;
 import static com.evolveum.midpoint.test.ObjectClassName.legacyCustom;
 
-/** Represents the HR scenario residing on given dummy resource. */
+import java.time.ZonedDateTime;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.icf.dummy.resource.DummyObjectClass;
+import com.evolveum.midpoint.test.*;
+
+/** Represents the HR scenario residing on given dummy resource. Its richer than the default one, e.g. with cost centers. */
 @SuppressWarnings("WeakerAccess") // there are a lot of constants that will be eventually used from the outside
-public class DummyHrScenario extends AbstractDummyScenario {
+public class DummyHrScenarioExtended extends AbstractDummyScenario {
 
     public final Person person = new Person();
     public final Contract contract = new Contract();
     public final OrgUnit orgUnit = new OrgUnit();
+    public final CostCenter costCenter = new CostCenter();
 
     public final PersonContract personContract = new PersonContract();
     public final ContractOrgUnit contractOrgUnit = new ContractOrgUnit();
+    public final ContractCostCenter contractCostCenter = new ContractCostCenter();
 
-    private DummyHrScenario(@NotNull DummyResourceContoller controller) {
+    private DummyHrScenarioExtended(@NotNull DummyResourceContoller controller) {
         super(controller);
     }
 
-    public static DummyHrScenario on(DummyResourceContoller controller) {
-        return new DummyHrScenario(controller);
+    public static DummyHrScenarioExtended on(DummyResourceContoller controller) {
+        return new DummyHrScenarioExtended(controller);
     }
 
-    public DummyHrScenario initialize() {
+    public DummyHrScenarioExtended initialize() {
         person.initialize();
         contract.initialize();
         orgUnit.initialize();
+        costCenter.initialize();
         personContract.initialize();
         contractOrgUnit.initialize();
+        contractCostCenter.initialize();
         return this;
     }
 
@@ -85,12 +90,12 @@ public class DummyHrScenario extends AbstractDummyScenario {
             public static final AttrName VALID_FROM = ri("validFrom");
             public static final AttrName VALID_TO = ri("validTo");
             public static final AttrName NOTE = ri("note");
-            public static final AttrName ORG_NAME = ri("orgName"); // TEMPORARY (should be treated by "org" link)
         }
 
         public static class LinkNames {
             public static final AssocName PERSON = AssocName.ri("person"); // invisible
             public static final AssocName ORG = AssocName.ri("org");
+            public static final AssocName COST_CENTER = AssocName.ri("costCenter");
         }
 
         void initialize() {
@@ -111,6 +116,30 @@ public class DummyHrScenario extends AbstractDummyScenario {
 
         // for simplicity, we are not reusing standard "org" class
         public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("orgUnit");
+
+        public static class AttributeNames {
+            public static final AttrName DESCRIPTION = ri("description");
+        }
+
+        public static class LinkNames {
+            public static final AssocName CONTRACT = AssocName.ri("contract");
+        }
+
+        void initialize() {
+            var oc = new DummyObjectClass();
+            controller.addAttrDef(oc, AttributeNames.DESCRIPTION.local(), String.class, false, false);
+            controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
+        }
+
+        @Override
+        public @NotNull String getNativeObjectClassName() {
+            return OBJECT_CLASS_NAME.local();
+        }
+    }
+
+    public class CostCenter extends ScenarioObjectClass {
+
+        public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("costCenter");
 
         public static class AttributeNames {
             public static final AttrName DESCRIPTION = ri("description");
@@ -181,6 +210,38 @@ public class DummyHrScenario extends AbstractDummyScenario {
                             .withSecondParticipant(aParticipant()
                                     .withObjectClassNames(OrgUnit.OBJECT_CLASS_NAME.local())
                                     .withLinkAttributeName(OrgUnit.LinkNames.CONTRACT.local())
+                                    .withMaxOccurs(-1)
+                                    .withReturnedByDefault(false)
+                                    .withExpandedByDefault(false)
+                                    .build())
+                            .build());
+        }
+
+        @Override
+        public @NotNull ObjectClassName getLinkClassName() {
+            return NAME;
+        }
+    }
+
+    public class ContractCostCenter extends ScenarioLinkClass {
+
+        public static final ObjectClassName NAME = custom("contractCostCenter");
+
+        void initialize() {
+            controller.addLinkClassDefinition(
+                    aLinkClassDefinition()
+                            .withName(NAME.local())
+                            .withFirstParticipant(aParticipant()
+                                    .withObjectClassNames(Contract.OBJECT_CLASS_NAME.local())
+                                    .withLinkAttributeName(Contract.LinkNames.COST_CENTER.local())
+                                    .withMinOccurs(1)
+                                    .withMaxOccurs(1)
+                                    .withReturnedByDefault(true)
+                                    .withExpandedByDefault(false)
+                                    .build())
+                            .withSecondParticipant(aParticipant()
+                                    .withObjectClassNames(CostCenter.OBJECT_CLASS_NAME.local())
+                                    .withLinkAttributeName(CostCenter.LinkNames.CONTRACT.local())
                                     .withMaxOccurs(-1)
                                     .withReturnedByDefault(false)
                                     .withExpandedByDefault(false)

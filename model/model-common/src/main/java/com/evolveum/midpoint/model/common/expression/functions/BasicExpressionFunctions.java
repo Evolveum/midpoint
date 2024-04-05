@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.SecretsResolver;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -1273,5 +1274,24 @@ public class BasicExpressionFunctions {
         }
         activity.getDistribution().setWorkerThreads(value);
         // Maybe we could delete empty distribution container if value is null - but most probably we shouldn't.
+    }
+
+    /**
+     * Returns the name of the associated object - according to what attribute is designated as the naming one.
+     * Note that the attribute itself may or may not be present: but usually it is the same attribute that is used
+     * to do the binding.
+     */
+    public String getAssociatedObjectName(ShadowAssociationValueType associationValue) {
+        if (associationValue == null) {
+            return null;
+        }
+        var namingAttribute = ShadowAssociationValue.of(associationValue)
+                .getAttributesContainerRequired()
+                .getNamingAttribute();
+        if (namingAttribute != null) {
+            return namingAttribute.getRealValue();
+        } else {
+            return null;
+        }
     }
 }

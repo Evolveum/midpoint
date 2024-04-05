@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.intest.associations;
 import java.io.File;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
+import com.evolveum.midpoint.model.intest.associations.DummyHrScenarioExtended.CostCenter;
+import com.evolveum.midpoint.model.intest.associations.DummyHrScenarioExtended.OrgUnit;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.test.DummyHrScenario;
@@ -38,14 +40,18 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
     private static final File TEST_DIR = new File("src/test/resources/associations");
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static DummyHrScenario hrScenario;
+    private static final String INTENT_COST_CENTER = "costCenter";
+
+    private static DummyHrScenarioExtended hrScenario;
 
     private static final DummyTestResource RESOURCE_DUMMY_HR = new DummyTestResource(
             TEST_DIR, "resource-dummy-hr.xml", "ded54130-8ce5-4c8d-ac30-c3bf4fc82337", "hr",
-            c -> hrScenario = DummyHrScenario.on(c).initialize());
+            c -> hrScenario = DummyHrScenarioExtended.on(c).initialize());
 
     private static final TestObject<ArchetypeType> ARCHETYPE_PERSON = TestObject.file(
             TEST_DIR, "archetype-person.xml", "184a5aa5-3e28-46c7-b9ed-a1dabaacc11d");
+    private static final TestObject<ArchetypeType> ARCHETYPE_COST_CENTER = TestObject.file(
+            TEST_DIR, "archetype-costCenter.xml", "eb49f576-5813-4988-9dd1-91e418c65be6");
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -57,36 +63,51 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
         super.initSystem(initTask, initResult);
 
         initTestObjects(initTask, initResult,
-                ARCHETYPE_PERSON);
+                ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER);
 
         RESOURCE_DUMMY_HR.initAndTest(this, initTask, initResult);
         createCommonHrObjects();
+        importCostCenters();
     }
 
     /** These objects should be usable in all tests. */
     private void createCommonHrObjects() throws Exception {
         DummyObject sciences = hrScenario.orgUnit.add("sciences")
-                .addAttributeValues(DummyHrScenario.OrgUnit.AttributeNames.DESCRIPTION.local(), "Faculty of Sciences");
+                .addAttributeValues(OrgUnit.AttributeNames.DESCRIPTION.local(), "Faculty of Sciences");
         DummyObject law = hrScenario.orgUnit.add("law")
-                .addAttributeValues(DummyHrScenario.OrgUnit.AttributeNames.DESCRIPTION.local(), "Faculty of Law");
+                .addAttributeValues(OrgUnit.AttributeNames.DESCRIPTION.local(), "Faculty of Law");
+
+        DummyObject cc1000 = hrScenario.costCenter.add("cc1000")
+                .addAttributeValues(CostCenter.AttributeNames.DESCRIPTION.local(), "cc1000");
 
         DummyObject john = hrScenario.person.add("john")
-                .addAttributeValue(DummyHrScenario.Person.AttributeNames.FIRST_NAME.local(), "John")
-                .addAttributeValue(DummyHrScenario.Person.AttributeNames.LAST_NAME.local(), "Doe")
-                .addAttributeValue(DummyHrScenario.Person.AttributeNames.TITLE.local(), "Ing.");
+                .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.FIRST_NAME.local(), "John")
+                .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), "Doe")
+                .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.TITLE.local(), "Ing.");
 
         DummyObject johnContractSciences = hrScenario.contract.add("john-sciences")
-                .addAttributeValues(DummyHrScenario.Contract.AttributeNames.ORG_NAME.local(), "sciences") // temporary
-                .addAttributeValues(DummyHrScenario.Contract.AttributeNames.NOTE.local(), "needs review");
+                .addAttributeValues(DummyHrScenarioExtended.Contract.AttributeNames.NOTE.local(), "needs review");
 
-        DummyObject johnContractLaw = hrScenario.contract.add("john-law")
-                .addAttributeValues(DummyHrScenario.Contract.AttributeNames.ORG_NAME.local(), "law"); // temporary
+        DummyObject johnContractLaw = hrScenario.contract.add("john-law");
 
         hrScenario.personContract.add(john, johnContractSciences);
-        hrScenario.personContract.add(john, johnContractLaw);
-
         hrScenario.contractOrgUnit.add(johnContractSciences, sciences);
+        hrScenario.contractCostCenter.add(johnContractSciences, cc1000);
+
+        hrScenario.personContract.add(john, johnContractLaw);
         hrScenario.contractOrgUnit.add(johnContractLaw, law);
+        hrScenario.contractCostCenter.add(johnContractLaw, cc1000);
+    }
+
+    private void importCostCenters() throws Exception {
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_HR.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.GENERIC, INTENT_COST_CENTER))
+                .withProcessingAllAccounts()
+                .executeOnForeground(getTestOperationResult());
+
+        assertOrgByName("cc1000", "after")
+                .display();
     }
 
     @Test
