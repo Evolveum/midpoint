@@ -49,6 +49,7 @@ public class SqaleUtils {
      */
     public static final String OWNER_OID = "ownerOid";
     public static final String FULL_ID_PATH = "containerIdPath";
+    public static final String REINDEX_NEEDED = "sqale.reindexNeeded";
 
     /**
      * Returns version from midPoint object as a number.

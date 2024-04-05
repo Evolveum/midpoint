@@ -127,7 +127,6 @@ We want report with table of users created by Midpoint, so we import dashboard r
 ----
 <report>
     <name>Users created by mP dashboard report</name>
-    <reportEngine>dashboard</reportEngine>
     <dashboard>
         <dashboardRef oid="72b1f98e-f587-4b9f-b92b-72e251da3456" type="DashboardType"/>
     </dashboard>
