@@ -17,9 +17,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
-import com.nimbusds.jose.shaded.json.JSONArray;
-import com.nimbusds.jose.shaded.json.JSONObject;
-import com.nimbusds.jose.util.JSONObjectUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.poi.util.ReplacingInputStream;
 import org.keycloak.authorization.client.AuthzClient;
@@ -29,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.Optional;
 
 public class TestKeycloakOidcRestAuthModule extends TestAbstractOidcRestModule {
 
