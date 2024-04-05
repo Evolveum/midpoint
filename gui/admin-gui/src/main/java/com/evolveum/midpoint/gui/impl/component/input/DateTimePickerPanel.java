@@ -25,11 +25,16 @@ import org.apache.wicket.util.convert.IConverter;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Date;
 
+/**
+ * Panel for Date. Panel use date time picker. We can use Model of types Date or XMLGregorianCalendar.
+ */
 public class DateTimePickerPanel extends InputPanel {
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_INPUT = "input";
     private static final String ID_ICON_CONTAINER = "iconContainer";
+
+    private final DateTimePickerOptions dateTimePickerOptions = DateTimePickerOptions.of();
 
     public static DateTimePickerPanel createByDateModel(String id, IModel<Date> model) {
         return new DateTimePickerPanel(id, model);
@@ -53,7 +58,7 @@ public class DateTimePickerPanel extends InputPanel {
                         OnDomReadyHeaderItem.forScript(
                                 "MidPointTheme.initDateTimePicker("
                                         + getMarkupId() + ", "
-                                        + DateTimePickerOptions.of().toJsConfiguration() + ");"));
+                                        + dateTimePickerOptions.toJsConfiguration() + ");"));
             }
         };
         container.setOutputMarkupId(true);
@@ -65,7 +70,7 @@ public class DateTimePickerPanel extends InputPanel {
             {
                 if (Date.class.isAssignableFrom(clazz))
                 {
-                    return new DateConverter();
+                    return new DateConverter(dateTimePickerOptions.getDateTimeFormat());
                 }
                 return null;
             }

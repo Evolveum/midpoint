@@ -15,18 +15,28 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Session;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-public class DateTimePickerOptions {
+/**
+ * Options that will be used for date time picker in js.
+ * We can generate options as string for js script by {@link #toJsConfiguration()}.
+ */
+public class DateTimePickerOptions implements Serializable {
+
+    @Serial private static final long serialVersionUID = 1L;
 
     private final static List<String> LIST_OF_LOCALIZATION_KEYS;
 
     public enum Theme {LIGHT, DARK, AUTO}
+
     private Theme theme;
 
+    // List of key that contains translation values. Key for localization is DateTimePickerOptions.'key'.
     static {
         LIST_OF_LOCALIZATION_KEYS = List.of(
                 "today",
@@ -57,6 +67,7 @@ public class DateTimePickerOptions {
                 "selectDate"
         );
     }
+
     private DateTimePickerOptions() {
         SessionStorage.Mode mode = ((MidPointAuthWebSession) Session.get()).getSessionStorage().getMode();
         this.theme = Theme.LIGHT;
@@ -65,7 +76,7 @@ public class DateTimePickerOptions {
         }
     }
 
-    public static DateTimePickerOptions of(){
+    public static DateTimePickerOptions of() {
         return new DateTimePickerOptions();
     }
 
@@ -74,6 +85,9 @@ public class DateTimePickerOptions {
         return this;
     }
 
+    /**
+     * Produce string that represent options for date time picker which can be used for js script.
+     */
     public String toJsConfiguration() {
         StringBuilder sb = new StringBuilder("{");
 
@@ -83,7 +97,7 @@ public class DateTimePickerOptions {
         LIST_OF_LOCALIZATION_KEYS.forEach(
                 key -> sb.append(key)
                         .append(": '")
-                        .append(LocalizationUtil.translate("DateTimePickerPanel." + key))
+                        .append(LocalizationUtil.translate("DateTimePickerOptions." + key))
                         .append("', "));
         sb.append("dayViewHeaderFormat: { month: 'long', year: 'numeric' }, ");
 
@@ -91,7 +105,7 @@ public class DateTimePickerOptions {
         sb.append("locale: '").append(locale.toLanguageTag()).append("', ");
 
         sb.append("format: '")
-                .append(getDateTimeFormatForLocale(locale))
+                .append(getDateTimeFormatForOption(locale))
                 .append("' ");
 
         sb.append("}");
@@ -104,11 +118,11 @@ public class DateTimePickerOptions {
         @NotNull Locale locale = LocalizationUtil.findLocale();
         String localizedDatePattern = getDateTimeFormat(locale);
 
-        if (localizedDatePattern.contains("MMMM")){
+        if (localizedDatePattern.contains("MMMM")) {
             localizedDatePattern = localizedDatePattern.replaceAll("MMMM", "LLLL");
         }
 
-        if (localizedDatePattern != null && !localizedDatePattern.contains("yyyy")){
+        if (!localizedDatePattern.contains("yyyy")) {
             localizedDatePattern = localizedDatePattern.replaceAll("yy", "yyyy");
         }
 
@@ -121,7 +135,7 @@ public class DateTimePickerOptions {
         return dateFormat + " " + timeFormat;
     }
 
-    private String getDateTimeFormatForLocale(@NotNull Locale locale) {
+    private String getDateTimeFormatForOption(@NotNull Locale locale) {
         return replacingSingleQuotationMark(getDateTimeFormat(locale));
     }
 
@@ -131,7 +145,7 @@ public class DateTimePickerOptions {
         }
 
         String replacingChar = "[";
-        while (dateTimeFormat.indexOf("'") != -1) {
+        while (dateTimeFormat.contains("'")) {
             dateTimeFormat = dateTimeFormat.replaceFirst("'", replacingChar);
             if (replacingChar.equals("[")) {
                 replacingChar = "]";
@@ -152,7 +166,7 @@ public class DateTimePickerOptions {
 
         boolean isInBrackets = false;
         char[] chars = dateTimeFormat.toCharArray();
-        for (int i = 0; i < chars.length; i++){
+        for (int i = 0; i < chars.length; i++) {
             char currentChar = chars[i];
 
             if (!isInBrackets && currentChar == 'a') {
