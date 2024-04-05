@@ -100,7 +100,7 @@ public class IconAndStylesUtil {
             return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
         } else if (QNameUtil.match(RoleAnalysisSessionType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
-        }else {
+        } else {
             return "";
         }
     }
