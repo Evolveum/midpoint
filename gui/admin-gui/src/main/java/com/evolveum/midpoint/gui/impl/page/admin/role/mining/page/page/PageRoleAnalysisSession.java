@@ -240,14 +240,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
 
             if (containerPanelConfigurationType.getIdentifier().equals("matchingOptions")) {
-                if (!analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED) && !analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                    continue;
-                }
-            }
-
-            if (containerPanelConfigurationType.getIdentifier().equals("topDetectedPattern")) {
-                if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                if (!analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
                     containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
                     continue;
                 }

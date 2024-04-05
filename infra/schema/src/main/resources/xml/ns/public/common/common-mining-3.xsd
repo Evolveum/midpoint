@@ -33,120 +33,6 @@
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
-    <xsd:complexType name="RoleAnalysisOutlierType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Contains information about outliers and their analysis.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:object/>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AssignmentHolderType">
-                <xsd:sequence>
-
-                    <xsd:element name="createTimestamp" type="xsd:dateTime" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                When this object was created.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisOutlierType.createTimestamp</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="targetObjectRef" type="c:ObjectReferenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The object that is the target of the outlier analysis.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisOutlierType.targetObject</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="targetClusterRef" type="c:ObjectReferenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The cluster that owns outlier.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisOutlierType.targetSession</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="result" type="tns:RoleAnalysisOutlierDescriptionType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Additional information about the properties that make from object an outlier.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="attributeAnalysis" type="c:AttributeAnalysis" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Contains information about the attribute analysis result.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>AttributeAnalysis.attributeAnalysis</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-
-    </xsd:complexType>
-    <xsd:element name="roleAnalysisOutlier" type="tns:RoleAnalysisOutlierType" substitutionGroup="tns:object"/>
-
-
-    <xsd:complexType name="AttributeAnalysis">
-        <xsd:annotation>
-            <xsd:documentation>
-                The container consists of statistical data about object.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="roleAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Contains information about the attribute analysis result.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AttributeAnalysis.roleAttributeAnalysisResult</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="userAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Contains information about the attribute analysis result.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AttributeAnalysis.userAttributeAnalysisResult</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-    <xsd:element name="attributeAnalysis" type="tns:AttributeAnalysis"/>
 
     <xsd:complexType name="RoleAnalysisClusterType">
         <xsd:annotation>
@@ -270,12 +156,12 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
 
     </xsd:complexType>
+
     <xsd:element name="roleAnalysisCluster" type="tns:RoleAnalysisClusterType" substitutionGroup="tns:object"/>
 
     <xsd:complexType name="RoleAnalysisSessionType">
@@ -1409,7 +1295,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-
     <xsd:simpleType name="RoleAnalysisOperation">
         <xsd:annotation>
             <xsd:documentation>
@@ -1471,7 +1356,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-
     <xsd:complexType name="RoleAnalysisMatchingRuleType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1523,167 +1407,10 @@
     </xsd:complexType>
     <xsd:element name="roleAnalysisMatchingRule" type="tns:RoleAnalysisMatchingRuleType"/>
 
-    <!--Currently not used (reserved for future use).-->
-    <xsd:complexType name="RoleAnalysisSimilarityMetricType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Contains information about the similarity metric for role analysis.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Path to the property used for similarity metric.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="mode" type="tns:MetricMode" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Mode of the similarity metric.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="similarity" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Similarity threshold used for similarity metric (Jaccard).
-                        If the condition is not met, then the objects are not grouped.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-    <xsd:element name="roleAnalysisSimilarityMetricType" type="tns:RoleAnalysisSimilarityMetricType"/>
-    <!--Currently not used (reserved for future use).-->
-    <xsd:simpleType name="MetricMode">
-        <xsd:annotation>
-            <xsd:documentation>
-                Role analysis metric mode.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="exact">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Check for exact match.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EXACT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="partial">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Check for partial match. Required for similarity metric.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="PARTIAL"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:complexType name="RoleAnalysisOutlierDescriptionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Contains detailed information about an outlier identified during role analysis.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-
-            <xsd:element name="session" type="c:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Session to which the outlier belongs.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="cluster" type="c:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Cluster to which the outlier belongs.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="object" type="c:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Object that is identified as an outlier during the analysis.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="confidence" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Confidence level associated with the identified outlier.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="category" type="tns:OutlierCategory" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Category classification of the outlier (inner or outer outlier).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-    <xsd:element name="roleAnalysisOutlierDescriptionType" type="tns:RoleAnalysisOutlierDescriptionType"/>
-
-    <xsd:simpleType name="OutlierCategory">
-        <xsd:annotation>
-            <xsd:documentation>
-                Represents the outlier status in role analysis.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="inner_outlier">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Inner outlier: An outlier that is inside the cluster.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="INNER_OUTLIER"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="outer_outlier">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Outer outlier: An outlier that is outside the cluster.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OUTER_OUTLIER"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-
     <xsd:complexType name="RoleAnalysisOptionType">
         <xsd:annotation>
             <xsd:documentation>
-                Contains information about outliers regarding cluster objects.
+                Represents the role analysis options.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -1752,16 +1479,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ADVANCED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="outliers">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during outlier analysis.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OUTLIERS"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

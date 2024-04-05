@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
-
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
@@ -61,7 +59,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -264,11 +261,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         clusterObject.setRoleAnalysisSessionRef(parentRef);
         clusterObject.setDetectionOption(roleAnalysisSessionDetectionOption);
         modelService.importObject(clusterPrismObject, null, task, result);
-    }
-
-    @Override
-    public void importOutlier(@NotNull RoleAnalysisOutlierType outlier, @NotNull Task task, @NotNull OperationResult result) {
-        modelService.importObject(outlier.asPrismObject(), null, task, result);
     }
 
     @Override
@@ -1546,82 +1538,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
     }
 
-    public void resolveOutliers(
-            @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
-            @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull String sessionOid) {
-        ObjectReferenceType targetObjectRef = roleAnalysisOutlierType.getTargetObjectRef();
-
-        RoleAnalysisOutlierType outlier = null;
-
-        try {
-
-            ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
-                    .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF).ref(targetObjectRef.getOid())
-                    .build();
-            SearchResultList<PrismObject<RoleAnalysisOutlierType>> outlierSearch = modelService
-                    .searchObjects(RoleAnalysisOutlierType.class, query, null, task, result);
-
-            if (outlierSearch == null || outlierSearch.isEmpty()) {
-                this.importOutlier(roleAnalysisOutlierType, task, result);
-                return;
-            }
-
-            Collection<PrismContainerValue<?>> collection = new ArrayList<>();
-            for (RoleAnalysisOutlierDescriptionType outlierResult : roleAnalysisOutlierType.getResult()) {
-                collection.add(outlierResult.clone().asPrismContainerValue());
-            }
-
-            outlier = outlierSearch.get(0).asObjectable();
-
-            List<RoleAnalysisOutlierDescriptionType> result1 = outlier.getResult();
-            Collection<PrismContainerValue<?>> delete = new ArrayList<>();
-
-            for (RoleAnalysisOutlierDescriptionType roleAnalysisOutlierDescriptionType : result1) {
-                ObjectReferenceType session = roleAnalysisOutlierDescriptionType.getSession();
-                if (session.getOid().equals(sessionOid)) {
-                    delete.add(roleAnalysisOutlierDescriptionType.clone().asPrismContainerValue());
-                }
-            }
-
-            ObjectDelta<RoleAnalysisOutlierType> delta = PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
-                    .item(RoleAnalysisOutlierType.F_RESULT).add(collection)
-                    .asObjectDelta(outlier.getOid());
-            modelService.executeChanges(singleton(delta), null, task, result);
-
-            if (!delete.isEmpty()) {
-                delta = PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
-                        .item(RoleAnalysisOutlierType.F_RESULT).delete(delete)
-                        .asObjectDelta(outlier.getOid());
-                modelService.executeChanges(singleton(delta), null, task, result);
-            }
-        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
-            LOGGER.error("Couldn't modify  RoleAnalysisOutlierType {}", outlier, e);
-        }
-
-    }
-
-    @Override
-    public List<AttributeAnalysisStructure> attributeAnalysis(
-            @NotNull Set<String> objectOid,
-            @NotNull RoleAnalysisProcessModeType mode,
-            Double membershipDensity,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
-
-        if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            Set<PrismObject<UserType>> prismUsers = fetchPrismUsers(this, objectOid, task, result);
-            runUserAttributeAnalysis(this, prismUsers, attributeAnalysisStructures, task, result);
-        } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            Set<PrismObject<RoleType>> prismRolesSet = fetchPrismRoles(this, objectOid, task, result);
-            runRoleAttributeAnalysis(this, prismRolesSet, attributeAnalysisStructures, task, result);
-        }
-        return attributeAnalysisStructures;
-    }
-
     @Override
     public List<AttributeAnalysisStructure> userTypeAttributeAnalysis(
             @NotNull Set<PrismObject<UserType>> prismUsers,
@@ -1794,66 +1710,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @Override
-    public @Nullable Set<String> resolveUserValueToMark(
-            @NotNull PrismObject<UserType> prismUser,
-            @NotNull List<RoleAnalysisAttributeDef> itemDef) {
-
-        Set<String> valueToMark = new HashSet<>();
-
-        for (RoleAnalysisAttributeDef item : itemDef) {
-            ItemPath path = item.getPath();
-            boolean isContainer = item.isContainer();
-
-            if (isContainer) {
-                Set<String> values = item.resolveMultiValueItem(prismUser, path);
-                valueToMark.addAll(values);
-            } else {
-                String value = item.resolveSingleValueItem(prismUser, path);
-                if (value != null) {
-                    valueToMark.add(value);
-                }
-            }
-
-        }
-
-        if (valueToMark.isEmpty()) {
-            return null;
-        } else {
-            return valueToMark;
-        }
-    }
-
-    @Override
-    public @Nullable Set<String> resolveRoleValueToMark(
-            @NotNull PrismObject<RoleType> prismRole,
-            @NotNull List<RoleAnalysisAttributeDef> itemDef) {
-
-        Set<String> valueToMark = new HashSet<>();
-
-        for (RoleAnalysisAttributeDef item : itemDef) {
-            ItemPath path = item.getPath();
-            boolean isContainer = item.isContainer();
-
-            if (isContainer) {
-                Set<String> values = item.resolveMultiValueItem(prismRole, path);
-                valueToMark.addAll(values);
-            } else {
-                String value = item.resolveSingleValueItem(prismRole, path);
-                if (value != null) {
-                    valueToMark.add(value);
-                }
-            }
-
-        }
-
-        if (valueToMark.isEmpty()) {
-            return null;
-        } else {
-            return valueToMark;
-        }
-    }
-
-    @Override
     public <T extends ObjectType> Integer countObjects(@NotNull Class<T> type,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
@@ -1904,134 +1760,4 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         return String.format("%.2f", attributeConfidence);
     }
 
-    @Override
-    public @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
-            @NotNull RoleAnalysisAttributeAnalysisResult compared,
-            @NotNull RoleAnalysisAttributeAnalysisResult comparison) {
-        Objects.requireNonNull(compared);
-        Objects.requireNonNull(comparison);
-
-        RoleAnalysisAttributeAnalysisResult outlierAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResult();
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = comparison.getAttributeAnalysis();
-
-        for (RoleAnalysisAttributeAnalysis clusterAnalysis : attributeAnalysis) {
-            String clusterItemPath = clusterAnalysis.getItemPath();
-            Double clusterDensity = clusterAnalysis.getDensity();
-            Set<String> outlierValues = extractCorrespondingOutlierValues(compared, clusterItemPath);
-            if (outlierValues == null) {
-                continue;
-            }
-
-            RoleAnalysisAttributeAnalysis correspondingAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
-            correspondingAttributeAnalysis.setItemPath(clusterItemPath);
-
-            int counter = 0;
-            int sum = 0;
-            List<RoleAnalysisAttributeStatistics> attributeStatistics = clusterAnalysis.getAttributeStatistics();
-            for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
-                String clusterAttributeValue = attributeStatistic.getAttributeValue();
-                Integer inGroup = attributeStatistic.getInGroup();
-                sum += inGroup != null ? inGroup : 0;
-                if (outlierValues.contains(clusterAttributeValue)) {
-                    counter += inGroup != null ? inGroup : 0;
-                    correspondingAttributeAnalysis.getAttributeStatistics().add(attributeStatistic.clone());
-                }
-            }
-            double newDensity = (double) counter / sum * 100;
-            correspondingAttributeAnalysis.setDensity(newDensity);
-
-            outlierAttributeAnalysisResult.getAttributeAnalysis().add(correspondingAttributeAnalysis.clone());
-        }
-
-        return outlierAttributeAnalysisResult;
-    }
-
-    @NotNull
-    public RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser) {
-        RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResult();
-
-        List<RoleAnalysisAttributeDef> itemDef = getAttributesForUserAnalysis();
-
-        for (RoleAnalysisAttributeDef item : itemDef) {
-            RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
-            roleAnalysisAttributeAnalysis.setItemPath(item.getDisplayValue());
-            List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAnalysisAttributeAnalysis.getAttributeStatistics();
-
-            ItemPath path = item.getPath();
-            boolean isContainer = item.isContainer();
-
-            if (isContainer) {
-                Set<String> values = item.resolveMultiValueItem(prismUser, path);
-                for (String value : values) {
-                    RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
-                    attributeStatistic.setAttributeValue(value);
-                    attributeStatistics.add(attributeStatistic);
-                }
-            } else {
-                String value = item.resolveSingleValueItem(prismUser, path);
-                if (value != null) {
-                    RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
-                    attributeStatistic.setAttributeValue(value);
-                    attributeStatistics.add(attributeStatistic);
-                }
-            }
-            outlierCandidateAttributeAnalysisResult.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis.clone());
-        }
-        return outlierCandidateAttributeAnalysisResult;
-    }
-
-    private static @Nullable Set<String> extractCorrespondingOutlierValues(
-            @NotNull RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult, String itemPath) {
-        List<RoleAnalysisAttributeAnalysis> outlier = outlierCandidateAttributeAnalysisResult.getAttributeAnalysis();
-        for (RoleAnalysisAttributeAnalysis outlierAttribute : outlier) {
-            if (outlierAttribute.getItemPath().equals(itemPath)) {
-                Set<String> outlierValues = new HashSet<>();
-                for (RoleAnalysisAttributeStatistics attributeStatistic : outlierAttribute.getAttributeStatistics()) {
-                    outlierValues.add(attributeStatistic.getAttributeValue());
-                }
-                return outlierValues;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttribute(
-            @NotNull String objectOid,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
-        this.extractUserTypeMembers(
-                userExistCache, null,
-                new HashSet<>(Collections.singleton(objectOid)),
-                task, result);
-
-        Set<PrismObject<UserType>> users = new HashSet<>(userExistCache.values());
-        userExistCache.clear();
-
-        List<AttributeAnalysisStructure> userAttributeAnalysisStructures = this
-                .userTypeAttributeAnalysis(users, 100.0, task, result);
-
-        RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
-        for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
-            double density = userAttributeAnalysisStructure.getDensity();
-            if (density == 0) {
-                continue;
-            }
-            RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
-            roleAnalysisAttributeAnalysis.setDensity(density);
-            roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
-            roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
-            roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
-            List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
-            for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
-                roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
-            }
-
-            userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
-        }
-
-        return userAnalysis;
-    }
 }

@@ -59,7 +59,6 @@ DO $$ BEGIN
         'ROLE',
         'ROLE_ANALYSIS_CLUSTER',
         'ROLE_ANALYSIS_SESSION',
-        'ROLE_ANALYSIS_OUTLIER',
         'SECURITY_POLICY',
         'SEQUENCE',
         'SERVICE',

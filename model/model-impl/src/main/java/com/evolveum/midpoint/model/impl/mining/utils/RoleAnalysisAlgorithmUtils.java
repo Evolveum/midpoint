@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.mining.utils;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.OutliersDetectionUtil.executeOutliersAnalysis;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.ClusterExplanation.getClusterExplanationDescription;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.ClusterExplanation.resolveClusterName;
 
@@ -106,11 +105,6 @@ public class RoleAnalysisAlgorithmUtils {
         }
 
         boolean executeDetection = true;
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-            executeDetection = false;
-        }
-
         for (PrismObject<RoleAnalysisClusterType> roleAnalysisClusterTypePrismObject : clusterTypeObjectWithStatistic) {
             RoleAnalysisClusterType cluster = roleAnalysisClusterTypePrismObject.asObjectable();
             processMetricAnalysis(cluster, session, maxReduction, executeDetection);
@@ -276,39 +270,6 @@ public class RoleAnalysisAlgorithmUtils {
                 propertiesCount, propertiesCount, propertiesCount, density);
     }
 
-    private @Nullable PrismObject<RoleAnalysisClusterType> exactPrepareDataPoints(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull DataPoint dataPointCluster,
-            @NotNull String clusterIndex,
-            @NotNull RoleAnalysisSessionType session,
-            @NotNull List<DataPoint> dataPointsOutliers,
-            @NotNull QName processedObjectComplexType,
-            @NotNull QName propertiesComplexType,
-            @NotNull Integer sessionTypeObjectCount,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        AbstractAnalysisSessionOptionType sessionOptionType = getSessionOptionType(session);
-        int minMembersCount = sessionOptionType.getMinMembersCount();
-        ClusterStatistic clusterStatistic = exactStatisticLoad(roleAnalysisService, dataPointCluster, clusterIndex, minMembersCount,
-                dataPointsOutliers, processedObjectComplexType, propertiesComplexType, sessionTypeObjectCount, task, result);
-
-        if (clusterStatistic != null) {
-            RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-            AnalysisClusterStatisticType roleAnalysisClusterStatisticType = createClusterStatisticType(clusterStatistic,
-                    analysisOption.getProcessMode());
-
-            boolean executeDetection = true;
-            RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-            if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                executeDetection = false;
-            }
-            return generateClusterObject(roleAnalysisService, null, null, clusterStatistic, session,
-                    roleAnalysisClusterStatisticType, session.getAnalysisOption(), executeDetection,
-                    task, result);
-        } else {return null;}
-    }
-
     private @Nullable PrismObject<RoleAnalysisClusterType> prepareClusters(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull Cluster<DataPoint> cluster,
@@ -363,10 +324,6 @@ public class RoleAnalysisAlgorithmUtils {
         boolean detect = true;
         RoleAnalysisDetectionProcessType detectMode = session.getDefaultDetectionOption().getDetectionProcessMode();
 
-        RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
-        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-            return false;
-        }
         if (detectMode == null) {
             detectMode = RoleAnalysisDetectionProcessType.FULL;
         }
@@ -493,8 +450,6 @@ public class RoleAnalysisAlgorithmUtils {
             cluster.setDescription(clusterExplanationDescription);
         }
 
-        processOutliersAnalysis(roleAnalysisService, cluster, session, analysisOption, task, result);
-
         return clusterTypePrismObject;
     }
 
@@ -543,41 +498,6 @@ public class RoleAnalysisAlgorithmUtils {
                 userAnalysis.getAttributeAnalysis().add(userAnalysisAttributeAnalysis);
             }
             roleAnalysisClusterStatisticType.setUserAttributeAnalysisResult(userAnalysis);
-        }
-    }
-
-    private void processOutliersAnalysis(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull RoleAnalysisClusterType cluster,
-            @Nullable RoleAnalysisSessionType session,
-            @NotNull RoleAnalysisOptionType analysisOption,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        if (session != null && analysisOption.getAnalysisCategory().equals(RoleAnalysisCategoryType.OUTLIERS)) {
-            RoleAnalysisDetectionOptionType detectionOption = session.getDefaultDetectionOption();
-            Double min = detectionOption.getFrequencyRange().getMin();
-            if (min == null) {
-                detectionOption.getFrequencyRange().setMin(0.01);
-            }
-            Collection<RoleAnalysisOutlierType> roleAnalysisOutlierTypes = executeOutliersAnalysis(
-                    roleAnalysisService, cluster, session, analysisOption, min, task, result);
-
-            for (RoleAnalysisOutlierType roleAnalysisOutlierType : roleAnalysisOutlierTypes) {
-                roleAnalysisOutlierType.setTargetClusterRef(new ObjectReferenceType()
-                        .oid(session.getOid())
-                        .type(RoleAnalysisSessionType.COMPLEX_TYPE));
-
-                ObjectReferenceType targetObjectRef = roleAnalysisOutlierType.getTargetObjectRef();
-                PrismObject<FocusType> object = roleAnalysisService
-                        .getObject(FocusType.class, targetObjectRef.getOid(), task, result);
-
-                roleAnalysisOutlierType.setName(object != null && object.getName() != null
-                        ? PolyStringType.fromOrig(object.getName() + " (outlier)")
-                        : PolyStringType.fromOrig("outlier_" + session.getName() + "_" + UUID.randomUUID()));
-
-                roleAnalysisService.resolveOutliers(roleAnalysisOutlierType, task, result, session.getOid());
-            }
         }
     }
 
@@ -641,54 +561,4 @@ public class RoleAnalysisAlgorithmUtils {
         }
     }
 
-    @NotNull
-    public List<PrismObject<RoleAnalysisClusterType>> processExactMatch(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull List<DataPoint> dataPoints,
-            @NotNull RoleAnalysisSessionType session,
-            @NotNull RoleAnalysisProgressIncrement handler,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        Integer sessionTypeObjectCount = roleAnalysisService.countSessionTypeObjects(task, result);
-
-        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        QName processedObjectComplexType = analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
-                ? RoleType.COMPLEX_TYPE
-                : UserType.COMPLEX_TYPE;
-
-        QName propertiesComplexType = processedObjectComplexType.equals(RoleType.COMPLEX_TYPE)
-                ? UserType.COMPLEX_TYPE
-                : RoleType.COMPLEX_TYPE;
-
-        List<DataPoint> dataPointsOutliers = new ArrayList<>();
-        int size = dataPoints.size();
-
-        handler.enterNewStep("Generate Cluster Statistics model");
-        handler.setOperationCountToProcess(size);
-        List<PrismObject<RoleAnalysisClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, size)
-                .mapToObj(i -> {
-                    handler.iterateActualStatus();
-
-                    return exactPrepareDataPoints(roleAnalysisService, dataPoints.get(i), String.valueOf(i), session,
-                            dataPointsOutliers, processedObjectComplexType, propertiesComplexType, sessionTypeObjectCount,
-                            task, result);
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        handler.enterNewStep("Skip pattern detection step");
-
-        handler.enterNewStep("Prepare Outliers");
-        handler.setOperationCountToProcess(dataPoints.size());
-
-        if (!dataPoints.isEmpty()) {
-            PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(roleAnalysisService, dataPoints,
-                    processedObjectComplexType, analysisOption, sessionTypeObjectCount, handler,
-                    task, result);
-            clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
-        }
-
-        return clusterTypeObjectWithStatistic;
-    }
 }

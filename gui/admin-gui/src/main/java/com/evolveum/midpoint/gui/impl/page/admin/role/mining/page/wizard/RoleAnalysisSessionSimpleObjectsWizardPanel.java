@@ -72,7 +72,7 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
 
             double minMembersObject = maxMembersObjects < 10 ? 2.0 : 10;
             double minObject = maxPropertiesObjects < 10 ? 1.0 : 10;
-            boolean isIndirect = analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS);
+            boolean isIndirect = false;
 
             if (sessionType.getNewValue().getValue().isIsIndirect() == null) {
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);

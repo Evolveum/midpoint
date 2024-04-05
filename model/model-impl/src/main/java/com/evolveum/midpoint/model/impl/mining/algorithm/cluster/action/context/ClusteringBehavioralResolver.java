@@ -49,7 +49,6 @@ public class ClusteringBehavioralResolver implements Clusterable {
         List<PrismObject<RoleAnalysisClusterType>> clusteringResult = switch (analysisCategory) {
             case STANDARD -> executeStandardClustering(roleAnalysisService, modelService, session, handler, task, result);
             case ADVANCED -> executeAdvancedClustering(roleAnalysisService, modelService, session, handler, task, result);
-            case OUTLIERS -> executeOutlierClustering(roleAnalysisService, modelService, session, handler, task, result);
         };
 
         validateNotNull(clusteringResult, "clustering result");
@@ -76,17 +75,6 @@ public class ClusteringBehavioralResolver implements Clusterable {
             @NotNull Task task,
             @NotNull OperationResult result) {
         return new AdvancedClustering()
-                .executeClustering(roleAnalysisService, modelService, session, handler, task, result);
-    }
-
-    private List<PrismObject<RoleAnalysisClusterType>> executeOutlierClustering(
-            RoleAnalysisService roleAnalysisService,
-            ModelService modelService,
-            RoleAnalysisSessionType session,
-            RoleAnalysisProgressIncrement handler,
-            Task task,
-            OperationResult result) {
-        return new OutlierClustering()
                 .executeClustering(roleAnalysisService, modelService, session, handler, task, result);
     }
 

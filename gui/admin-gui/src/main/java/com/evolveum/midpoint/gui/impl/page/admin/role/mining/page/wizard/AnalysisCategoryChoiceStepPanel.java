@@ -56,13 +56,11 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
 
     @Override
     protected void onTileClickPerformed(AnalysisCategory value, AjaxRequestTarget target) {
-        RoleAnalysisCategoryType mode;
+        RoleAnalysisCategoryType mode = null;
         if (value.equals(AnalysisCategory.STANDARD)) {
             mode = RoleAnalysisCategoryType.STANDARD;
         } else if (value.equals(AnalysisCategory.ADVANCED)) {
             mode = RoleAnalysisCategoryType.ADVANCED;
-        } else {
-            mode = RoleAnalysisCategoryType.OUTLIERS;
         }
 
         PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
@@ -76,9 +74,7 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
 
     public enum AnalysisCategory implements TileEnum {
         STANDARD("fa fa-cogs"),
-        ADVANCED("fa fa-sliders-h"),
-        OUTLIER("fa fa-wrench");
-
+        ADVANCED("fa fa-sliders-h");
         private final String icon;
 
         AnalysisCategory(String icon) {

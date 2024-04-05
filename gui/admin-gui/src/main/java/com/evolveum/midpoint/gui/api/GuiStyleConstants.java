@@ -301,6 +301,4 @@ public class GuiStyleConstants {
     public static final String CLASS_MARK = "fa-solid fa-tag";
 
     public static final String CLASS_AUDIT = "fa-solid fa-magnifying-glass-chart";
-
-    public static final String CLASS_ICON_OUTLIER = "fa fa-user-circle";
 }

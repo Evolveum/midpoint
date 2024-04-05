@@ -16,7 +16,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
  */
 public enum ObjectTypeGuiDescriptor {
 
-    ROLE_ANALYSIS_OUTLIER(ObjectTypes.ROLE_ANALYSIS_OUTLIER, "ObjectTypeGuiDescriptor.outlier", GuiStyleConstants.CLASS_ICON_OUTLIER, GuiStyleConstants.CLASS_ICON_OUTLIER),
 
     ROLE_ANALYSIS_CLUSTER(ObjectTypes.ROLE_ANALYSIS_CLUSTER, "ObjectTypeGuiDescriptor.cluster", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON),
 

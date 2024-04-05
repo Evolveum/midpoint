@@ -122,7 +122,7 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
 
-        if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED) || analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
             steps.add(new RoleAnalysisMatchingRulesWizardPanel(getHelper().getDetailsModel()) {
                 @Override
                 public VisibleEnableBehaviour getBackBehaviour() {
@@ -141,7 +141,6 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
             });
         }
 
-        boolean outlier = analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS);
 
         steps.add(new RoleAnalysisSessionDetectionOptionsWizardPanel(getHelper().getDetailsModel()) {
             @Override
@@ -156,30 +155,17 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected IModel<String> getTextModel() {
-                if (outlier) {
-                    return createStringResource("PageRoleAnalysisSession.wizard.step.work.filter.options.outlier.text");
-                }
                 return super.getTextModel();
             }
 
             @Override
             protected IModel<String> getSubTextModel() {
-                if (outlier) {
-                    return createStringResource("PageRoleAnalysisSession.wizard.step.work.filter.options.outlier.subText");
-                }
                 return super.getSubTextModel();
             }
 
             @Override
             protected ItemVisibilityHandler getVisibilityHandler() {
-                return wrapper -> {
-                    if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)
-                            && (wrapper.getItemName().equals(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
-                            || wrapper.getItemName().equals(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY))) {
-                        return ItemVisibility.HIDDEN;
-                    }
-                    return ItemVisibility.AUTO;
-                };
+                return wrapper -> ItemVisibility.AUTO;
             }
 
             @Override
