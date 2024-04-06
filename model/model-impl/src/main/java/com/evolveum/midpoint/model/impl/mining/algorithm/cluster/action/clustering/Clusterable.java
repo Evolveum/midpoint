@@ -39,7 +39,7 @@ public interface Clusterable {
      * @return A list of PrismObject instances representing the cluster.
      * @throws IllegalArgumentException If session is null.
      */
-    List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+    @NotNull List<PrismObject<RoleAnalysisClusterType>> executeClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,

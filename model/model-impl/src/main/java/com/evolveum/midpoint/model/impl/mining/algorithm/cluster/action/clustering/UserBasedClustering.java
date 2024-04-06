@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.cluster
 
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context.ClusteringBehavioralResolver;
@@ -52,7 +53,7 @@ public class UserBasedClustering implements Clusterable {
      * @return A list of PrismObject instances representing the role analysis clusters.
      */
     @Override
-    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
@@ -76,14 +77,16 @@ public class UserBasedClustering implements Clusterable {
         ListMultimap<List<String>, String> chunkMap = loadData(modelService, isIndirect, minRolesOccupancy, maxRolesOccupancy,
                 query, result, task
         );
+
         handler.iterateActualStatus();
-        handler.enterNewStep(PREPARING_DATA_POINTS_STEP);
-        handler.setOperationCountToProcess(1);
 
         if (chunkMap.isEmpty()) {
-            LOGGER.info("No data to process.");
-            return null;
+            LOGGER.warn("No data to process.");
+            return new ArrayList<>();
         }
+
+        handler.enterNewStep(PREPARING_DATA_POINTS_STEP);
+        handler.setOperationCountToProcess(1);
 
         List<DataPoint> dataPoints = prepareDataPoints(chunkMap);
         handler.iterateActualStatus();

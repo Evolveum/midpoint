@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.cluster
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.*;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.AttributeMatch.generateMatchingRulesList;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class AdvancedClustering implements Clusterable {
     public static final Trace LOGGER = TraceManager.getTrace(AdvancedClustering.class);
 
     @Override
-    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
@@ -59,7 +60,7 @@ public class AdvancedClustering implements Clusterable {
         }
     }
 
-    public List<PrismObject<RoleAnalysisClusterType>> executeRoleBasedAdvancedClustering(
+    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeRoleBasedAdvancedClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
@@ -85,9 +86,9 @@ public class AdvancedClustering implements Clusterable {
                 RoleAnalysisProcessModeType.ROLE, attributeMatches,
                 minUserOccupancy, maxUserOccupancy, query, task, result);
 
-        if (dataPoints == null) {
+        if (dataPoints.isEmpty()) {
             LOGGER.warn("No data to process.");
-            return null;
+            return new ArrayList<>();
         }
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(
@@ -102,7 +103,7 @@ public class AdvancedClustering implements Clusterable {
                 handler, task, result);
     }
 
-    public List<PrismObject<RoleAnalysisClusterType>> executeUserBasedAdvancedClustering(
+    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeUserBasedAdvancedClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
@@ -128,9 +129,9 @@ public class AdvancedClustering implements Clusterable {
                 isIndirect, RoleAnalysisProcessModeType.USER, attributeMatches,
                 minRolesOccupancy, maxRolesOccupancy, query, task, result);
 
-        if (dataPoints == null) {
+        if (dataPoints.isEmpty()) {
             LOGGER.info("No data to process.");
-            return null;
+            return new ArrayList<>();
         }
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(
@@ -145,7 +146,7 @@ public class AdvancedClustering implements Clusterable {
                 handler, task, result);
     }
 
-    private @Nullable List<DataPoint> loadInitialData(
+    private @NotNull List<DataPoint> loadInitialData(
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisProgressIncrement handler,
@@ -166,13 +167,13 @@ public class AdvancedClustering implements Clusterable {
         } else {
             chunkMap = loadUserModeData(modelService, isIndirect, minProperties, maxProperties, userQuery, task, result);
         }
+        handler.iterateActualStatus();
 
         if (chunkMap.isEmpty()) {
             LOGGER.warn("No data to process.");
-            return null;
+            return new ArrayList<>();
         }
 
-        handler.iterateActualStatus();
         handler.enterNewStep(PREPARING_DATA_POINTS_STEP);
         handler.setOperationCountToProcess(1);
 
@@ -193,7 +194,7 @@ public class AdvancedClustering implements Clusterable {
     @NotNull
     public ListMultimap<List<String>, String> loadUserModeData(
             @NotNull ModelService modelService,
-            Boolean isIndirect, int minRolesOccupancy,
+            @NotNull Boolean isIndirect, int minRolesOccupancy,
             int maxRolesOccupancy,
             @Nullable SearchFilterType sessionOptionType,
             @NotNull Task task,
