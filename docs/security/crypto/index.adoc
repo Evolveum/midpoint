@@ -72,12 +72,21 @@ E.g. to stop tomcat in Linux:
 /etc/init.d/tomcat stop
 ----
 
+[NOTE]
+.Generating a new key
+====
+Currently, there is a limitation when setting up the "keypass" (-keypass) parameter. The parameter has to have the value "midpoint" with any new generated key.
+The limitation is mentioned in the following work package bug:MID-9595.
+====
+
 Generate new key with a `keytool` command:
 
 [source,bash]
 ----
 keytool -genseckey -alias strong -keystore /var/opt/midpoint/keystore.jceks -storetype jceks -storepass changeit -keyalg AES -keysize 256 -keypass midpoint
 ----
+
+
 
 That command will create a new 256-bit AES key with alias `strong`. Now reconfigure midPoint to use the new key.
 Edit the `config.xml` file to change encryption key alias.
