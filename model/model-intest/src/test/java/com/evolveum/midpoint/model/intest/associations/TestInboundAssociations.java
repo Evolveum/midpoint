@@ -85,10 +85,10 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
                 .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), "Doe")
                 .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.TITLE.local(), "Ing.");
 
-        DummyObject johnContractSciences = hrScenario.contract.add("john-sciences")
+        DummyObject johnContractSciences = hrScenario.contract.add("10703321")
                 .addAttributeValues(DummyHrScenarioExtended.Contract.AttributeNames.NOTE.local(), "needs review");
 
-        DummyObject johnContractLaw = hrScenario.contract.add("john-law");
+        DummyObject johnContractLaw = hrScenario.contract.add("10409314");
 
         hrScenario.personContract.add(john, johnContractSciences);
         hrScenario.contractOrgUnit.add(johnContractSciences, sciences);

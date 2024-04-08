@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -33,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.repo.common.expression.ExpressionUtil.getPath;
@@ -191,6 +193,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
                     .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadowVariableValue, shadowVariableDef)
                     .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
                     .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
+                    .addVariableDefinition(ExpressionConstants.VAR_ASSOCIATED_SHADOW, getAssociatedShadow(currentProjectionItem), shadowVariableDef)
                     .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource, resource.asPrismObject().getDefinition())
                     .addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION,
                             context.getSystemConfiguration(), getSystemConfigurationDefinition())
@@ -226,6 +229,19 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
             ItemPath realTargetPath = mapping.getOutputPath();
             evaluationRequestsBeingCollected.add(realTargetPath, source.createMappingRequest(mapping));
         }
+    }
+
+    // FIXME brutal hack
+    private PrismObject<ShadowType> getAssociatedShadow(Item<V, D> currentProjectionItem) {
+        if (currentProjectionItem == null
+                || !currentProjectionItem.getPath().startsWith(ShadowType.F_ASSOCIATIONS)) {
+            return null;
+        }
+        List<V> values = currentProjectionItem.getValues();
+        if (values.size() != 1) {
+            return null;
+        }
+        return ((ShadowAssociationValue) values.get(0)).getShadowBean().asPrismObject();
     }
 
     private @NotNull ItemPath getTargetFullPath(AbstractMappingType mappingBean, String errorCtxDesc)

@@ -351,17 +351,21 @@ class FullSource extends MSource {
 
         // FIXME rework this!
 
+        PrismReference entitlementRef;
+
         LOGGER.trace("Trying to resolve the entitlement object from association value {}", value);
         PrismObject<ShadowType> entitlement;
         if (!(value instanceof PrismContainerValue<?> pcv)) {
             LOGGER.trace("No value or not a PCV -> no entitlement object");
+            entitlementRef = null;
             entitlement = null;
         } else {
-            PrismReference entitlementRef = pcv.findReference(ShadowAssociationValueType.F_SHADOW_REF);
+            entitlementRef = pcv.findReference(ShadowAssociationValueType.F_SHADOW_REF);
             if (entitlementRef == null) {
                 LOGGER.trace("No shadow reference found -> no entitlement object");
                 entitlement = null;
             } else {
+                // This is the old style of obtaining the entitlement; to be deleted
                 entitlement = projectionContext.getEntitlementMap().get(entitlementRef.getOid());
                 LOGGER.trace("Resolved entitlement object: {}", entitlement);
             }
@@ -373,6 +377,11 @@ class FullSource extends MSource {
                         beans.prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
         variables.put(ExpressionConstants.VAR_ENTITLEMENT, entitlement, entitlementDef);
+
+        // The new way
+        var entitlementRefValue = entitlementRef != null ? entitlementRef.getValue() : null;
+        var entitlementNew = entitlementRefValue != null ? entitlementRefValue.getObject() : null;
+        variables.put(ExpressionConstants.VAR_ASSOCIATED_SHADOW, entitlementNew, entitlementDef);
     }
 
     @Override
