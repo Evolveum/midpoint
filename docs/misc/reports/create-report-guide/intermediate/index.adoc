@@ -10,7 +10,7 @@
 * set it to *your custom value*
 * click search
 
-image::all-users-tester.png[]
+image::all-users-tester.png[100%]
 
 * scroll to the *bottom* of the screen
 * click *Create report* (‘pie chart’ button)
@@ -21,7 +21,7 @@ image::report-mptesters.png[]
 * click the *File Format* panel
 * in the *Export* container set the value to *HTML*
 
-image::report-mptesters-ff.png[]
+image::report-mptesters-ff.png[100%]
 
 * click the *View* panel
 * click + to *add a new column*
@@ -32,17 +32,17 @@ image::report-mptesters-ff.png[]
 * in *Path* click the top drop-down and select *User*
 * in *Path* click the bottom drop-down and type *emailAddress*
 
-image::report-mptesters-view.png[]
+image::report-mptesters-view.png[100%]
 
 * after success the top screen should have a “blue” banner stating that there is a task on the
 background, click *show task* on it
 
-image::users-all-report-exec.png[]
+image::users-all-report-exec.png[100%]
 
 * in the action button container on the top of the page click on the button *Download report*
 * you should have a *html* with your specific demands
 
-image::mptesters-download-report.png[]
+image::mptesters-download-report.png[100%]
 
 == See Also
 

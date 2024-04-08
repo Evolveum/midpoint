@@ -25,11 +25,11 @@ Alternatively both possibilities can be also customized, or you can create your 
 As in the case with a large portion of midPoint objects, reports can be *customized* via configuration.
 This is done either *directly in the GUI* or in case of some advanced scenarios by *editing* the *raw report object definition*.
 
-== How To Use
+== How To Use Reports
 
 As mentioned above there are multiple possibilities for the usage of reports.
 Either you can use the reports which are present in your midPoint instance *out of the box*.
-For an example of this please see this xref:TODO[link].
+For an example of this please see this xref:/midpoint/reference/misc/reports/create-report-guide/#_create_o_o_t_b[link].
 
 You can execute a report in a couple of clicks *from dedicated places in the GUI*, as you can see in xref:/midpoint/reference/misc/reports/create-report-guide[this] example.
 
