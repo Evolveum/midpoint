@@ -6,7 +6,9 @@ doc-type: config
 :page-toc: top
 :toclevels: 3
 :page-upkeep-status: green
-:page-upkeep-note: Rewrite, remove mentions of Jasper, explain the basics
+:page-keywords: [ 'report', 'reports', 'reporting' ]
+:search-alias: "report configuration"
+
 
 MidPoint reports can be configured based on the following midPoint concepts:
 
@@ -125,12 +127,12 @@ The actual report file can be downloaded when the task successfully finished, fo
 
 There are multiple ways how tasks are build when executed from a report definition, for more information on this and also information how you can distribute the workload of the task to multiple nodes see xref:../configuration/report-task-definition.adoc[this] page
 
-== Import Behaviour 'Import report'
+== Import Behaviour 'Import From Report'
 
 As mentioned above, the report functionality is also capable of using exported reports or custom csv files to create or update objects.
 We call this "Import" or "Reverse" reports, for more information regarding them please see the following page:
 
-xref:../configuration/report-task-definition.adoc[Import Report]
+xref:../configuration/report-task-definition.adoc[Import From Report]
 
 == Multithreading and Bucketing
 
