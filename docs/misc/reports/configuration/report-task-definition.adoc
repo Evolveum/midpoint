@@ -41,7 +41,7 @@ The reports can be either "Export" reports or "Import" reports.
     </activity>
 ----
 
-=== Import Report
+=== Import From Report
 
 The second kind of reports are the *"Import"* reports, these work the other way around.
 A CSV is uploaded into midPoint in a similar format as a report, based on this midPoint will create or update objects.

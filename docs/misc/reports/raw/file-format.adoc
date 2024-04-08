@@ -3,9 +3,8 @@
 
 With a report you can specify what kind of export file format should be used.
 If nothing is specified then there are defaults which are used based on the source of data used in the export.
-//TODO
 
-The default for xref:TODO[dashboard] based reports is *HTML*.
+The default for xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[dashboard] based reports is *HTML*.
 For object collection based reports it is *CSV*.
 
 .Show *Configuration attributes*:
@@ -30,6 +29,8 @@ Possible values: _csv_ and _html_.
 | html
 | *HtmlFileFormatType*
 | Configuration attribute for html export.
+|===
+
 ====
 
 === HTML
