@@ -30,7 +30,7 @@ Let's visit a list of users:
 * scroll to the *bottom of the screen*
 * click *Create report* (‘pie chart’ button)
 
-image::users-all.png[100%]
+image::users-all.png[75%]
 
 The screen represents a *“new” Collection report*. There are a couple of parameters we have to *input*
 here
@@ -38,19 +38,19 @@ here
 * type in the Name: *All users report*
 * click *Save and run*
 
-image::new-collection-report.png[100%]
+image::new-collection-report.png[75%]
 
 After success the top screen should have a “blue” banner stating that there is a task on the
 background.
 
 * click *show task* on it
 
-image::show-tasks.png[100%]
+image::show-tasks.png[75%]
 
 * in the action button container on the top of the page click on the button *Download report*
 * you should have a csv with *all the users in midPoint.*
 
-image::export-report.png[100%]
+image::export-report.png[75%]
 
 [#_create_o_o_t_b]
 == Execute an Already Existing Report
@@ -59,24 +59,24 @@ If we already have a *Report Definition present*, either one which was created b
 
 * in *Reports >All reports* (or choose one of the report types)
 
-image::reports-all.png[100%]
+image::reports-all.png[75%]
 
 * Click on *"Users in MidPoint"*
 * In the reports page Click *"Run original report"*
 
-image::users-in-mp.png[100%]
+image::users-in-mp.png[75%]
 
 * A window called "Report configuration before run" will pop up, click on *"Run Report"*
 
-image::conf-b-run.png[100%]
+image::conf-b-run.png[75%]
 
 * A blue banner will show up, click the *show task* string which is on it
 
-image::run-usrs-in-mp.png[100%]
+image::run-usrs-in-mp.png[75%]
 
 * in the action button container on the top of the page click on the button *Download report*
 
-image::download-usrs-in-mp.png[100%]
+image::download-usrs-in-mp.png[75%]
 
 == Intermediate Report Customization
 
