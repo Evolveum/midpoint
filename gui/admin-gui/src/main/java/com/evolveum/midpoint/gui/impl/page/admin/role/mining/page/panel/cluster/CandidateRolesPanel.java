@@ -108,7 +108,7 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
         Task task = getPageBase().createSimpleTask(OP_UPDATE_STATUS);
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         roleAnalysisService.recomputeAndResolveClusterOpStatus(
-                getObjectWrapperObject(),
+                getObjectWrapperObject().getOid(),
                 result, task);
     }
 

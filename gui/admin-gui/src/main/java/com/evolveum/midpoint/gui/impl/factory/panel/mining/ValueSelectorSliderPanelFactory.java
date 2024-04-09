@@ -4,23 +4,26 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.factory.panel;
+package com.evolveum.midpoint.gui.impl.factory.panel.mining;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import java.io.Serializable;
+
+import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFactory;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RangeSliderPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionOptionType;
 
+//TODO check serializable
 @Component
-public class ValueSelectorSliderPanelFactory extends AbstractInputGuiComponentFactory<Double> {
+public class ValueSelectorSliderPanelFactory extends AbstractInputGuiComponentFactory<Double> implements Serializable {
 
     @PostConstruct
     public void register() {
@@ -34,7 +37,7 @@ public class ValueSelectorSliderPanelFactory extends AbstractInputGuiComponentFa
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<Double> panelCtx) {
-        RangeSliderPanel rangeSliderPanel = new RangeSliderPanel(panelCtx.getComponentId(),panelCtx.getRealValueModel());
+        RangeSliderPanel rangeSliderPanel = new RangeSliderPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
         rangeSliderPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         rangeSliderPanel.setOutputMarkupId(true);
         return rangeSliderPanel;
@@ -44,6 +47,5 @@ public class ValueSelectorSliderPanelFactory extends AbstractInputGuiComponentFa
     public Integer getOrder() {
         return 10000;
     }
-
 
 }

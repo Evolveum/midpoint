@@ -7,25 +7,23 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -42,7 +40,9 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
             Task task = getPageBase().createSimpleTask("countObjects");
             OperationResult result = task.getResult();
             LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-            RoleAnalysisProcessModeType processMode = objectWrapperModel.getObject().getObject().asObjectable().getProcessMode();
+            RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
+            RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
+            RoleAnalysisCategoryType analysisCategory = processModeObject.getAnalysisCategory();
 
             PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType = getContainerFormModel().getObject()
                     .getValue();
@@ -72,6 +72,11 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
 
             double minMembersObject = maxMembersObjects < 10 ? 2.0 : 10;
             double minObject = maxPropertiesObjects < 10 ? 1.0 : 10;
+            boolean isIndirect = false;
+
+            if (sessionType.getNewValue().getValue().isIsIndirect() == null) {
+                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);
+            }
 
             if (sessionType.getNewValue().getValue().getSimilarityThreshold() == null) {
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD, 80.0);
@@ -111,7 +116,8 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
     @Override
     protected IModel<? extends PrismContainerWrapper<AbstractAnalysisSessionOptionType>> getContainerFormModel() {
         LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-        RoleAnalysisProcessModeType processMode = objectWrapperModel.getObject().getObject().asObjectable().getProcessMode();
+        RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
 
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
             return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),

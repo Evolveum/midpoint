@@ -63,6 +63,11 @@ public class ExtractPatternUtils {
             DetectedPattern detectedPattern = prepareDetectedPattern(roles,
                     users, id);
 
+            detectedPattern.setRoleAttributeAnalysisResult(roleAnalysisClusterDetectionType.getRoleAttributeAnalysisResult());
+            detectedPattern.setUserAttributeAnalysisResult(roleAnalysisClusterDetectionType.getUserAttributeAnalysisResult());
+            detectedPattern.setItemsConfidence(roleAnalysisClusterDetectionType.getItemConfidence());
+            detectedPattern.setReductionFactorConfidence(roleAnalysisClusterDetectionType.getReductionConfidence());
+            detectedPattern.setClusterRef(new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE));
             mergedIntersection.add(detectedPattern);
 
         }
@@ -71,11 +76,11 @@ public class ExtractPatternUtils {
     }
 
     public static @NotNull DetectedPattern transformPattern(@NotNull RoleAnalysisDetectionPatternType pattern) {
-            List<ObjectReferenceType> rolesRef = pattern.getRolesOccupancy();
-            List<ObjectReferenceType> usersRef = pattern.getUserOccupancy();
+        List<ObjectReferenceType> rolesRef = pattern.getRolesOccupancy();
+        List<ObjectReferenceType> usersRef = pattern.getUserOccupancy();
 
-            Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
-            Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+        Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+        Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
 
         return new DetectedPattern(roles, users, users.size() * roles.size(), pattern.getId());
     }

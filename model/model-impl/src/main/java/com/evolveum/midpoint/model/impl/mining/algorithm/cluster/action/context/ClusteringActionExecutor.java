@@ -5,10 +5,12 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
+package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context;
 
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering.Clusterable;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -59,22 +61,18 @@ public class ClusteringActionExecutor extends BaseAction {
 
         PrismObject<RoleAnalysisSessionType> prismSession = roleAnalysisService.getSessionTypeObject(
                 sessionOid, task, result);
+
         if (prismSession != null) {
 
+            RoleAnalysisSessionType session = prismSession.asObjectable();
             roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result);
 
-            RoleAnalysisProcessModeType processMode = prismSession.asObjectable().getProcessMode();
-            if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-                this.clusterable = new UserBasedClustering();
-            } else if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-                this.clusterable = new RoleBasedClustering();
-            }
+            this.clusterable = new ClusteringBehavioralResolver();
 
-            RoleAnalysisSessionType session = prismSession.asObjectable();
             List<PrismObject<RoleAnalysisClusterType>> clusterObjects =
                     clusterable.executeClustering(roleAnalysisService, modelService, session, handler, task, result);
 
-            if (clusterObjects != null && !clusterObjects.isEmpty()) {
+            if (!clusterObjects.isEmpty()) {
                 importObjects(roleAnalysisService, clusterObjects, session, task, result);
             }
 
@@ -93,9 +91,9 @@ public class ClusteringActionExecutor extends BaseAction {
         sessionRef.setOid(sessionOid);
         sessionRef.setType(RoleAnalysisSessionType.COMPLEX_TYPE);
         sessionRef.setTargetName(session.getName());
-
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         int processedObjectCount = 0;
-        QName complexType = session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
+        QName complexType = analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
                 ? RoleType.COMPLEX_TYPE
                 : UserType.COMPLEX_TYPE;
 
@@ -115,7 +113,7 @@ public class ClusteringActionExecutor extends BaseAction {
 
             AnalysisClusterStatisticType clusterStatistic = clusterTypePrismObject.asObjectable().getClusterStatistics();
             meanDensity += clusterStatistic.getMembershipDensity();
-            if (session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
+            if (analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
                 processedObjectCount += clusterStatistic.getRolesCount();
             } else {
                 processedObjectCount += clusterStatistic.getUsersCount();

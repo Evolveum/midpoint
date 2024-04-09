@@ -58,7 +58,7 @@ public class SecurityUtils {
         return clazz == null || isPageAuthorized(clazz);
     }
 
-    public static boolean isMenuAuthorized(MenuItem item) {
+    public static boolean isMenuAuthorized(@NotNull MenuItem item) {
         Class<? extends WebPage> clazz = item.getPageClass();
         List<String> authz = LeftMenuAuthzUtil.getAuthorizationsForPage(clazz);
         if (CollectionUtils.isNotEmpty(authz)) {

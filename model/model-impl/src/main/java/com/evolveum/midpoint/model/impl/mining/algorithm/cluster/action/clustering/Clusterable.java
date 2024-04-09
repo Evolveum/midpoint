@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
+package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering;
 
 import java.util.List;
 
@@ -39,7 +39,7 @@ public interface Clusterable {
      * @return A list of PrismObject instances representing the cluster.
      * @throws IllegalArgumentException If session is null.
      */
-    List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+    @NotNull List<PrismObject<RoleAnalysisClusterType>> executeClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,

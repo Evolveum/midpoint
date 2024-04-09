@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
+import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -23,6 +25,7 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
@@ -233,14 +236,29 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     private void initLayout() {
-        BoxedTablePanel<PO> itemTable = initItemTable();
-        itemTable.setOutputMarkupId(true);
-        itemTable.setOutputMarkupPlaceholderTag(true);
-        add(itemTable);
+        Component table;
 
-        itemTable.add(new VisibleBehaviour(this::isListPanelVisible));
+        if (isCollapsableTable()) {
+            table = initCollapsableItemTable();
+        } else {
+            table = initItemTable();
+        }
+
+        table.setOutputMarkupId(true);
+        table.setOutputMarkupPlaceholderTag(true);
+        add(table);
+
+        table.add(new VisibleBehaviour(this::isListPanelVisible));
         setOutputMarkupId(true);
+    }
 
+    /**
+     * Checks if the table is collapsible.
+     *
+     * @return {@code true} if the table is collapsible, {@code false} otherwise.
+     */
+    protected boolean isCollapsableTable() {
+        return false;
     }
 
     protected boolean isListPanelVisible() {
@@ -342,6 +360,137 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return itemTable;
     }
 
+    /**
+     * <p>NOTE: This method is experimental and may be removed in the future.</p>
+     * Initializes a collapsible table for displaying items.
+     *
+     * <p>When using this method, ensure that specific IDs are used for the collapsible components,
+     * as defined in the RoleAnalysisCollapsableTablePanel class. These IDs are required for proper
+     * functionality of collapsible elements.
+     *
+     * <p>An example of how to utilize this method is provided below:
+     * <pre>{@code
+     * Component firstCollapseContainer = cellItem.findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
+     * Component secondCollapseContainer = cellItem.findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
+     *
+     * // Assuming there's a button in the table header with the ID "headerActionButton"
+     * AjaxButton headerActionButton = new AjaxButton("headerActionButton") {
+     *     @Override
+     *     public void onSubmit(AjaxRequestTarget target) {
+     *         // Your action logic here
+     *         target.appendJavaScript(getCollapseScript(firstCollapseContainer, secondCollapseContainer));
+     *     }
+     * };
+     * add(headerActionButton);
+     * }</pre>
+     *
+     * <p>You can customize components further by overriding the {@code newRowItem} method, as shown below:
+     * <pre>{@code
+     * @Override
+     * protected Item<SelectableBean<RoleAnalysisClusterType>> newRowItem(String id, int index,
+     * IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+     *     // Customization logic here
+     * }
+     * }</pre>
+     *
+     * @return The initialized RoleAnalysisCollapsableTablePanel instance.
+     */
+    protected RoleAnalysisCollapsableTablePanel<PO> initCollapsableItemTable() {
+
+        List<IColumn<PO, String>> columns = createColumns();
+        ISelectableDataProvider<PO> provider = createProvider();
+        setDefaultSorting(provider);
+        setUseCounting(provider);
+        RoleAnalysisCollapsableTablePanel<PO> itemTable = new RoleAnalysisCollapsableTablePanel<>(ID_ITEMS_TABLE,
+                provider, columns, getTableId()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Item<PO> newRowItem(String id, int index, Item<PO> item, @NotNull IModel<PO> rowModel) {
+
+                Item<PO> components = ContainerableListPanel.this.newRowItem(id, index, item, rowModel);
+                if (components != null) {
+                    return components;
+                } else {
+                    return super.newRowItem(id, index, item, rowModel);
+                }
+            }
+
+            @Override
+            protected Component createHeader(String headerId) {
+                if (isPreview()) {
+                    return createWidgetHeader(headerId);
+                }
+                Component header = ContainerableListPanel.this.createHeader(headerId);
+                header.add(new VisibleBehaviour(() -> isHeaderVisible()));
+                return header;
+
+            }
+
+            @Override
+            protected Item<PO> customizeNewRowItem(Item<PO> item, IModel<PO> model) {
+                item.add(AttributeModifier.append("class", () -> GuiImplUtil.getObjectStatus(model.getObject())));
+
+                customProcessNewRowItem(item, model);
+                return item;
+            }
+
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                if (isPreview()) {
+                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
+                }
+                return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
+            }
+
+            @Override
+            public String getAdditionalBoxCssClasses() {
+                return ContainerableListPanel.this.getAdditionalBoxCssClasses();
+            }
+
+            @Override
+            protected boolean hideFooterIfSinglePage() {
+                return ContainerableListPanel.this.hideFooterIfSinglePage();
+            }
+
+            @Override
+            public int getAutoRefreshInterval() {
+                return ContainerableListPanel.this.getAutoRefreshInterval();
+            }
+
+            @Override
+            public boolean isAutoRefreshEnabled() {
+                return ContainerableListPanel.this.isRefreshEnabled();
+            }
+
+            @Override
+            public boolean enableSavePageSize() {
+                return ContainerableListPanel.this.enableSavePageSize();
+            }
+
+            @Override
+            protected boolean isPagingVisible() {
+                return ContainerableListPanel.this.isPagingVisible();
+            }
+        };
+        itemTable.setOutputMarkupId(true);
+
+        itemTable.setItemsPerPage(getDefaultPageSize());
+
+        if (getPageStorage() != null) {
+            ObjectPaging pageStorage = getPageStorage().getPaging();
+            if (pageStorage != null) {
+                itemTable.setCurrentPage(pageStorage);
+            }
+        }
+
+        return itemTable;
+    }
+
+    protected Item<PO> newRowItem(String id, int index, Item<PO> item, @NotNull IModel<PO> rowModel) {
+        return null;
+    }
+
     private int getDefaultPageSize() {
         if (isPreview()) {
             Integer previewSize = ((PreviewContainerPanelConfigurationType) config).getPreviewSize();
@@ -365,7 +514,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return view != null && view.getPaging() != null ? view.getPaging().getMaxSize() : null;
     }
 
-    protected void customProcessNewRowItem(org.apache.wicket.markup.repeater.Item<PO> item, IModel<PO> model) {
+    protected void customProcessNewRowItem(Item<PO> item, IModel<PO> model) {
     }
 
     protected boolean isPagingVisible() {

@@ -7,15 +7,21 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.AttributeMatch;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 
 /**
  * A distance measure implementation for calculating the Jaccard distance/similarity between two sets of values.
  */
 public class JaccardDistancesMeasure implements DistanceMeasure {
     private final int minIntersection;
+    private final int minIntersectionAttributes;
+    Set<AttributeMatch> attributesMatch;
 
     /**
      * Constructs a JaccardDistancesMeasure with the specified minimum intersection size for calculation.
@@ -24,6 +30,15 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
      */
     public JaccardDistancesMeasure(int minIntersection) {
         this.minIntersection = minIntersection;
+        this.minIntersectionAttributes = 0;
+    }
+
+    public JaccardDistancesMeasure(int minIntersection,
+            @NotNull Set<AttributeMatch> attributesMatch,
+            int minIntersectionAttributes) {
+        this.minIntersectionAttributes = minIntersectionAttributes;
+        this.minIntersection = minIntersection;
+        this.attributesMatch = attributesMatch;
     }
 
     /**
@@ -34,7 +49,9 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
      * @return The computed Jaccard distance between the sets.
      */
     @Override
-    public double compute(@NotNull Set<String> valueA, @NotNull Set<String> valueB) {
+    public double compute(
+            @NotNull Set<String> valueA,
+            @NotNull Set<String> valueB) {
         int intersectionCount = 0;
         int setBunique = 0;
 
@@ -71,6 +88,129 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
 
         }
 
+    }
+
+    @Override
+    public double computeMultiValueAttributes(
+            @NotNull Set<String> valueA,
+            @NotNull Set<String> valueB) {
+        int intersectionCount = 0;
+        int setBunique = 0;
+
+        if (valueA.size() > valueB.size()) {
+            for (String num : valueB) {
+                if (valueA.contains(num)) {
+                    intersectionCount++;
+                } else {
+                    setBunique++;
+                }
+            }
+
+            if (intersectionCount < minIntersectionAttributes) {
+                return 1;
+            }
+
+            return 1 - (double) intersectionCount / (valueA.size() + setBunique);
+
+        } else {
+
+            for (String num : valueA) {
+                if (valueB.contains(num)) {
+                    intersectionCount++;
+                } else {
+                    setBunique++;
+                }
+            }
+
+            if (intersectionCount < minIntersectionAttributes) {
+                return 1;
+            }
+
+            return 1 - (double) intersectionCount / (valueB.size() + setBunique);
+
+        }
+
+    }
+
+    @Override
+    public double compute(
+            @NotNull ExtensionProperties valueA,
+            @NotNull ExtensionProperties valueB,
+            @NotNull Set<ClusterExplanation> explanation) {
+
+        double weightSum = 0;
+
+        ClusterExplanation clusterExplanation = new ClusterExplanation();
+
+        Set<AttributeMatchExplanation> attributeMatchExplanations = new HashSet<>();
+        for (AttributeMatch attributeMatch : attributesMatch) {
+
+            boolean multiValue = attributeMatch.isMultiValue();
+            if (!multiValue) {
+                double weight = computeSingleValue(valueA, valueB, attributeMatch);
+                if (weight > 0) {
+                    AttributeMatchExplanation attributeMatchExplanation = new AttributeMatchExplanation(
+                            attributeMatch.getAttributeDisplayValue().toString(),
+                            valueA.getSingleValueForKey(attributeMatch));
+                    attributeMatchExplanations.add(attributeMatchExplanation);
+                    weightSum += weight;
+                }
+            } else {
+                double weight = computeMultiValue(valueA, valueB, attributeMatch);
+                if (weight > 0) {
+                    AttributeMatchExplanation attributeMatchExplanation = new AttributeMatchExplanation(
+                            attributeMatch.getAttributeDisplayValue().toString(),
+                            "multiValue");
+                    attributeMatchExplanations.add(attributeMatchExplanation);
+                    weightSum += weight;
+                }
+            }
+        }
+
+        if (weightSum >= 1.0) {
+            clusterExplanation.setAttributeExplanation(attributeMatchExplanations);
+            explanation.add(clusterExplanation);
+            return 0;
+        }
+
+        return 1;
+    }
+
+    private double computeSingleValue(
+            @NotNull ExtensionProperties valueA,
+            @NotNull ExtensionProperties valueB,
+            @NotNull AttributeMatch attributeMatch) {
+        String valuesForKeyA = valueA.getSingleValueForKey(attributeMatch);
+        String valuesForKeyB = valueB.getSingleValueForKey(attributeMatch);
+
+        if (valuesForKeyA != null && valuesForKeyB != null) {
+            if (valuesForKeyA.equals(valuesForKeyB)) {
+                return attributeMatch.getWeight();
+            }
+        }
+        return 0;
+    }
+
+    private double computeMultiValue(
+            @NotNull ExtensionProperties valueA,
+            @NotNull ExtensionProperties valueB,
+            @NotNull AttributeMatch attributeMatch) {
+        Set<String> valuesForKeyA = valueA.getSetValuesForKeys(attributeMatch);
+        Set<String> valuesForKeyB = valueB.getSetValuesForKeys(attributeMatch);
+        double percentage = attributeMatch.getSimilarity();
+
+        if (valuesForKeyA != null
+                && valuesForKeyB != null
+                && !valuesForKeyA.isEmpty()
+                && !valuesForKeyB.isEmpty()) {
+            double compute = computeMultiValueAttributes(valuesForKeyA, valuesForKeyB);
+
+            if ((1 - compute) >= percentage) {
+                return attributeMatch.getWeight();
+            }
+        }
+
+        return 0;
     }
 
 }

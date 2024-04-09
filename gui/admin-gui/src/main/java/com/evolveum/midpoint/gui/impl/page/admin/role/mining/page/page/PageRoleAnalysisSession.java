@@ -7,17 +7,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import java.io.Serial;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -27,7 +18,6 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -37,19 +27,22 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.SessionSummaryPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.RoleAnalysisSessionWizardPanel;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -134,6 +127,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         if (form != null) {
             form.setDefaultButton(rebuildButton);
         }
+
     }
 
     public void clusteringPerform(@NotNull AjaxRequestTarget target) {
@@ -228,14 +222,30 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     public IModel<List<ContainerPanelConfigurationType>> getPanelConfigurations() {
 
         IModel<List<ContainerPanelConfigurationType>> panelConfigurations = super.getPanelConfigurations();
-        RoleAnalysisProcessModeType processMode = getObjectDetailsModels().getObjectWrapper().getObject().asObjectable().getProcessMode();
+        RoleAnalysisSessionType session = getObjectDetailsModels()
+                .getObjectWrapper()
+                .getObject()
+                .asObjectable();
+
+        RoleAnalysisOptionType processModeObject = session.getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
 
         if (processMode == null) {
             return super.getPanelConfigurations();
         }
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
+
+            if (containerPanelConfigurationType.getIdentifier().equals("matchingOptions")) {
+                if (!analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
+                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                    continue;
+                }
+            }
+
             if (containerPanelConfigurationType.getIdentifier().equals("sessionOptions")) {
                 List<VirtualContainersSpecificationType> container = containerPanelConfigurationType.getContainer();
 

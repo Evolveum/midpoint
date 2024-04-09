@@ -12,6 +12,7 @@ doc-type: intro
 :page-wiki-metadata-modify-date: 2016-10-19T10:04:33.028+02:00
 :page-keywords: [ 'report', 'reports', 'reporting' ]
 :page-upkeep-status: green
+:search-alias: "reports"
 
 == Description
 
@@ -24,16 +25,16 @@ Alternatively both possibilities can be also customized, or you can create your 
 As in the case with a large portion of midPoint objects, reports can be *customized* via configuration.
 This is done either *directly in the GUI* or in case of some advanced scenarios by *editing* the *raw report object definition*.
 
-== How To Use
+== How To Use Reports
 
 As mentioned above there are multiple possibilities for the usage of reports.
 Either you can use the reports which are present in your midPoint instance *out of the box*.
-For an example of this please see this xref:TODO[link].
+For an example of this please see this xref:/midpoint/reference/misc/reports/create-report-guide/#_create_o_o_t_b[link].
 
-You can execute a report in a couple of clicks *from dedicated places in the GUI*, as you can see in xref:TODO[this] example.
+You can execute a report in a couple of clicks *from dedicated places in the GUI*, as you can see in xref:/midpoint/reference/misc/reports/create-report-guide[this] example.
 
 Or you can create your own report completely *from scratch*, or modify any existing one to serve your needs.
-A more in depth look regarding this is documented xref:TODO[here].
+A more in depth look regarding this is documented xref:/midpoint/reference/misc/reports/configuration/index.adoc[here].
 
 In any case this creates a *report definition*, a sort of prescription how a report should look like, what should be present and from where we get the data.
 
@@ -50,6 +51,11 @@ It is also possible to send generated reports via email xref:/midpoint/reference
 
 For more information on export formats please have a look at xref:/midpoint/reference/misc/reports/report-formats.adoc[this] page.
 
-++++
-{% children %}
-++++
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/report-security.adoc[Report Security]
+- xref:/midpoint/reference/misc/reports/configuration/report-task-definition.adoc[Report Task Definition]
