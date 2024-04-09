@@ -18,6 +18,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serial;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.time.chrono.IsoChronology;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -36,7 +39,7 @@ public class DateTimePickerOptions implements Serializable {
 
     private Theme theme;
 
-    // List of key that contains translation values. Key for localization is DateTimePickerOptions.'key'.
+    // List of key that contains translation values. Key for localization is DateTimePickerOptions."key".
     static {
         LIST_OF_LOCALIZATION_KEYS = List.of(
                 "today",
@@ -99,10 +102,16 @@ public class DateTimePickerOptions implements Serializable {
                         .append(": '")
                         .append(LocalizationUtil.translate("DateTimePickerOptions." + key))
                         .append("', "));
-        sb.append("dayViewHeaderFormat: { month: 'long', year: 'numeric' }, ");
+        sb.append("dayViewHeaderFormat: { month: 'long', year: 'numeric', hour: '2-digit' }, ");
 
         @NotNull Locale locale = LocalizationUtil.findLocale();
         sb.append("locale: '").append(locale.toLanguageTag()).append("', ");
+
+        if (usesAmPm(locale)) {
+            sb.append("hourCycle: 'h12',");
+        } else {
+            sb.append("hourCycle: 'h23',");
+        }
 
         sb.append("format: '")
                 .append(getDateTimeFormatForOption(locale))
@@ -114,10 +123,20 @@ public class DateTimePickerOptions implements Serializable {
         return sb.toString();
     }
 
-    public String getDateTimeFormat() {
+    public List<String> getDateTimeFormat() {
         @NotNull Locale locale = LocalizationUtil.findLocale();
         String localizedDatePattern = getDateTimeFormat(locale);
 
+        localizedDatePattern = replaceSpecificCharacters(localizedDatePattern);
+
+        return List.of(
+                replaceSpecificCharacters(localizedDatePattern),
+                replaceSpecificCharacters(((SimpleDateFormat) SimpleDateFormat.getDateInstance(SimpleDateFormat.LONG, locale)).toPattern()),
+                replaceSpecificCharacters(((SimpleDateFormat) SimpleDateFormat.getDateInstance(SimpleDateFormat.SHORT, locale)).toPattern())
+        );
+    }
+
+    private String replaceSpecificCharacters(String localizedDatePattern) {
         if (localizedDatePattern.contains("MMMM")) {
             localizedDatePattern = localizedDatePattern.replaceAll("MMMM", "LLLL");
         }
@@ -136,10 +155,10 @@ public class DateTimePickerOptions implements Serializable {
     }
 
     private String getDateTimeFormatForOption(@NotNull Locale locale) {
-        return replacingSingleQuotationMark(getDateTimeFormat(locale));
+        return formatPatterForDateTimePicker(getDateTimeFormat(locale));
     }
 
-    private String replacingSingleQuotationMark(String dateTimeFormat) {
+    private String formatPatterForDateTimePicker(String dateTimeFormat) {
         if (StringUtils.isEmpty(dateTimeFormat)) {
             return "";
         }
@@ -151,6 +170,19 @@ public class DateTimePickerOptions implements Serializable {
                 replacingChar = "]";
             } else {
                 replacingChar = "[";
+            }
+        }
+
+        if (dateTimeFormat.toLowerCase().contains("a")) {
+            if (!dateTimeFormat.toLowerCase().contains("hh")
+                    && dateTimeFormat.toLowerCase().contains("h")) {
+                dateTimeFormat = dateTimeFormat.replaceAll("h", "hh");
+                dateTimeFormat = dateTimeFormat.replaceAll("H", "HH");
+            }
+        } else {
+            if (dateTimeFormat.toLowerCase().contains("hh")) {
+                dateTimeFormat = dateTimeFormat.replaceAll("hh", "h");
+                dateTimeFormat = dateTimeFormat.replaceAll("HH", "H");
             }
         }
 
@@ -196,6 +228,12 @@ public class DateTimePickerOptions implements Serializable {
         StringBuilder sb = new StringBuilder(dateTimeFormat);
         sb.setCharAt(i, replacingChar);
         return sb.toString();
+    }
+
+    private boolean usesAmPm(Locale locale) {
+        String pattern = DateTimeFormatterBuilder.getLocalizedDateTimePattern(
+                FormatStyle.SHORT, FormatStyle.SHORT, IsoChronology.INSTANCE, locale);
+        return pattern.toLowerCase().contains("a");
     }
 
 }

@@ -16,9 +16,19 @@ import org.apache.wicket.protocol.http.request.WebClientInfo;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.util.string.Strings;
+import org.jetbrains.annotations.NotNull;
 
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.chrono.IsoChronology;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.FormatStyle;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalField;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -28,14 +38,18 @@ import java.util.TimeZone;
 public class DateConverter implements IConverter<Date> {
 
     private final boolean useTimeZone;
-    private final String dateTimePattern;
+    private final List<String> dateTimePattern;
 
     public DateConverter(String dateTimePattern, boolean useTimeZone) {
+        this(List.of(dateTimePattern), useTimeZone);
+    }
+
+    public DateConverter(List<String> dateTimePattern, boolean useTimeZone) {
         this.useTimeZone = useTimeZone;
         this.dateTimePattern = dateTimePattern;
     }
 
-    public DateConverter(String dateTimePattern) {
+    public DateConverter(List<String> dateTimePattern) {
         this(dateTimePattern, false);
     }
 
@@ -45,12 +59,21 @@ public class DateConverter implements IConverter<Date> {
             return null;
         }
 
-        SimpleDateFormat formatter = getFormatter();
-        try {
-            return formatter.parse(value);
-        } catch (Exception e) {
-            throw newConversionException(e);
+        Exception ex = null;
+        for (String pattern : dateTimePattern) {
+            DateTimeFormatter formatter = getFormatter(pattern);
+            try {
+                return Date.from(
+                        LocalDateTime.parse(value, formatter)
+                                .atZone(ZoneId.systemDefault())
+                                .toInstant());
+            } catch (Exception e) {
+                if (ex == null) {
+                    ex = e;
+                }
+            }
         }
+        throw newConversionException(ex);
     }
 
     private ConversionException newConversionException(Exception cause) {
@@ -58,13 +81,30 @@ public class DateConverter implements IConverter<Date> {
                 .setVariable("formatter", dateTimePattern);
     }
 
-    private SimpleDateFormat getFormatter() {
-        SimpleDateFormat formatter = new SimpleDateFormat(dateTimePattern, LocalizationUtil.findLocale());
+    private DateTimeFormatter getFormatter(String dateTimePattern) {
+        DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder()
+                .appendPattern(dateTimePattern);
+        @NotNull Locale locale = LocalizationUtil.findLocale();
+
+        if (!dateTimePattern.contains("h") && !dateTimePattern.contains("H")) {
+            if (usesAmPm(locale)) {
+                builder.parseDefaulting(ChronoField.CLOCK_HOUR_OF_AMPM, 12);
+                builder.parseDefaulting(ChronoField.AMPM_OF_DAY, 0);
+            } else {
+                builder.parseDefaulting(ChronoField.HOUR_OF_DAY, 0);
+            }
+        }
+
+        if (!dateTimePattern.contains("m")) {
+            builder.parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0);
+        }
+
+        DateTimeFormatter formatter = builder.toFormatter(locale);
 
         if (useTimeZone) {
             TimeZone timezone = getTimeZone();
             if (timezone != null) {
-                formatter.setTimeZone(timezone);
+                formatter.withZone(timezone.toZoneId());
             }
         }
 
@@ -73,7 +113,21 @@ public class DateConverter implements IConverter<Date> {
 
     @Override
     public String convertToString(Date date, Locale locale) {
-        return getFormatter().format(date);
+        Instant instant = date.toInstant();
+
+        LocalDateTime ldt = instant.atZone(getZoneId()).toLocalDateTime();
+        return ldt.format(getFormatter(this.dateTimePattern.get(0)));
+    }
+
+    private ZoneId getZoneId() {
+        if (useTimeZone) {
+            TimeZone timezone = getTimeZone();
+            if (timezone != null) {
+                return timezone.toZoneId();
+            }
+        }
+
+        return ZoneId.systemDefault();
     }
 
     private TimeZone getTimeZone() {
@@ -87,6 +141,12 @@ public class DateConverter implements IConverter<Date> {
             return ((WebClientInfo) info).getProperties().getTimeZone();
         }
         return null;
+    }
+
+    private boolean usesAmPm(Locale locale) {
+        String pattern = DateTimeFormatterBuilder.getLocalizedDateTimePattern(
+                FormatStyle.SHORT, FormatStyle.SHORT, IsoChronology.INSTANCE, locale);
+        return pattern.toLowerCase().contains("a");
     }
 
 }
