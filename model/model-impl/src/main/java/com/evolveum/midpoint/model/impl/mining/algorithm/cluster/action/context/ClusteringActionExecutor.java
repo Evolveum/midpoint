@@ -72,7 +72,7 @@ public class ClusteringActionExecutor extends BaseAction {
             List<PrismObject<RoleAnalysisClusterType>> clusterObjects =
                     clusterable.executeClustering(roleAnalysisService, modelService, session, handler, task, result);
 
-            if (clusterObjects != null && !clusterObjects.isEmpty()) {
+            if (!clusterObjects.isEmpty()) {
                 importObjects(roleAnalysisService, clusterObjects, session, task, result);
             }
 

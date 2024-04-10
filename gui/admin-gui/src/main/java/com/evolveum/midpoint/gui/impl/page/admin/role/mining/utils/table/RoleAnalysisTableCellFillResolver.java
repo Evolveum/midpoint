@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 import java.util.*;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ListMultimap;
@@ -57,14 +58,32 @@ public class RoleAnalysisTableCellFillResolver {
     public static <T extends MiningBaseTypeChunk> void updateFrequencyBased(
             @NotNull IModel<T> rowModel,
             double minFrequency,
-            double maxFrequency) {
+            double maxFrequency,
+            boolean isOutlier) {
+
+        if(isOutlier){
+            MiningBaseTypeChunk object = rowModel.getObject();
+            FrequencyItem frequencyItem = object.getFrequencyItem();
+            FrequencyItem.Status status = frequencyItem.getStatus();
+
+            if(status.equals(FrequencyItem.Status.NEGATIVE_EXCLUDE)){
+                object.setStatus(RoleAnalysisOperationMode.NEGATIVE_EXCLUDE);
+            }else if(status.equals(FrequencyItem.Status.POSITIVE_EXCLUDE)){
+                object.setStatus(RoleAnalysisOperationMode.POSITIVE_EXCLUDE);
+            }
+
+            return;
+        }
+
         T rowModelObject = rowModel.getObject();
-        double frequency = rowModelObject.getFrequency();
+        FrequencyItem frequencyItem = rowModelObject.getFrequencyItem();
+        double frequency = frequencyItem.getFrequency();
         boolean isInclude = rowModelObject.getStatus().isInclude();
 
         if (!isInclude && (minFrequency > frequency || maxFrequency < frequency)) {
             rowModel.getObject().setStatus(RoleAnalysisOperationMode.DISABLE);
         }
+
     }
 
     /**
@@ -75,9 +94,9 @@ public class RoleAnalysisTableCellFillResolver {
      */
     public static <T extends MiningBaseTypeChunk> boolean resolveCellTypeUserTable(@NotNull String componentId,
             Item<ICellPopulator<MiningRoleTypeChunk>> cellItem,
-            MiningRoleTypeChunk rowModel,
-            MiningUserTypeChunk colModel,
-            LoadableDetachableModel<Map<String, String>> colorLoadableMap) {
+            @NotNull MiningRoleTypeChunk rowModel,
+            @NotNull MiningUserTypeChunk colModel,
+            @NotNull LoadableDetachableModel<Map<String, String>> colorLoadableMap) {
         Map<String, String> colorMap = colorLoadableMap.getObject();
         RoleAnalysisObjectStatus rowObjectStatus = rowModel.getObjectStatus();
         RoleAnalysisObjectStatus colObjectStatus = colModel.getObjectStatus();
@@ -101,6 +120,24 @@ public class RoleAnalysisTableCellFillResolver {
 
         RoleAnalysisOperationMode rowStatus = rowObjectStatus.getRoleAnalysisOperationMode();
         RoleAnalysisOperationMode colStatus = colObjectStatus.getRoleAnalysisOperationMode();
+
+        if(rowStatus.isNegativeExclude() || colStatus.isNegativeExclude()){
+            if (isCandidate) {
+                negativeDisabledCell(componentId, cellItem);
+                return false;
+            }
+            emptyCell(componentId, cellItem);
+            return false;
+        }
+
+        if(rowStatus.isPositiveExclude() || colStatus.isPositiveExclude()){
+            if (isCandidate) {
+                positiveDisabledCell(componentId, cellItem);
+                return false;
+            }
+            emptyCell(componentId, cellItem);
+            return false;
+        }
 
         if (rowStatus.isDisable() || colStatus.isDisable()) {
             if (isCandidate) {
@@ -170,6 +207,24 @@ public class RoleAnalysisTableCellFillResolver {
 
         RoleAnalysisOperationMode rowStatus = rowObjectStatus.getRoleAnalysisOperationMode();
         RoleAnalysisOperationMode colStatus = colObjectStatus.getRoleAnalysisOperationMode();
+
+        if(rowStatus.isNegativeExclude() || colStatus.isNegativeExclude()){
+            if (isCandidate) {
+                negativeDisabledCell(componentId, cellItem);
+                return false;
+            }
+            emptyCell(componentId, cellItem);
+            return false;
+        }
+
+        if(rowStatus.isPositiveExclude() || colStatus.isPositiveExclude()){
+            if (isCandidate) {
+                positiveDisabledCell(componentId, cellItem);
+                return false;
+            }
+            emptyCell(componentId, cellItem);
+            return false;
+        }
 
         if (rowStatus.isDisable() || colStatus.isDisable()) {
             if (isCandidate) {
@@ -245,7 +300,9 @@ public class RoleAnalysisTableCellFillResolver {
         });
 
         for (MiningRoleTypeChunk role : roles) {
-            double frequency = role.getFrequency();
+            FrequencyItem frequencyItem = role.getFrequencyItem();
+            double frequency = frequencyItem.getFrequency();
+
             IntStream.range(0, detectedPatternsRoles.size()).forEach(i -> {
                 List<String> detectedPatternsRole = detectedPatternsRoles.get(i);
                 List<String> chunkRoles = role.getRoles();
@@ -322,7 +379,9 @@ public class RoleAnalysisTableCellFillResolver {
         });
 
         for (MiningUserTypeChunk user : users) {
-            double frequency = user.getFrequency();
+            FrequencyItem frequencyItem = user.getFrequencyItem();
+            double frequency = frequencyItem.getFrequency();
+
             IntStream.range(0, detectedPatternsUsers.size()).forEach(i -> {
                 List<String> detectedPatternsUser = detectedPatternsUsers.get(i);
                 List<String> chunkUsers = user.getUsers();
@@ -400,7 +459,7 @@ public class RoleAnalysisTableCellFillResolver {
                         Collections.singletonList(detectedPatternRole),
                         properties,
                         chunkName,
-                        100.0,
+                        new FrequencyItem(100.0),
                         roleAnalysisObjectStatus);
                 if (iconColor != null) {
                     miningRoleTypeChunk.setIconColor(iconColor);
@@ -426,7 +485,7 @@ public class RoleAnalysisTableCellFillResolver {
                         Collections.singletonList(detectedPatternUser),
                         properties,
                         chunkName,
-                        100.0,
+                        new FrequencyItem(100.0),
                         roleAnalysisObjectStatus);
 
                 if (iconColor != null) {
@@ -479,6 +538,16 @@ public class RoleAnalysisTableCellFillResolver {
 
     protected static <T> void disabledCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem) {
         cellItem.add(AttributeModifier.append("class", "bg-danger"));
+        cellItem.add(new EmptyPanel(componentId));
+    }
+
+    protected static <T> void negativeDisabledCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem) {
+        cellItem.add(AttributeModifier.append("class", "bg-danger"));
+        cellItem.add(new EmptyPanel(componentId));
+    }
+
+    protected static <T> void positiveDisabledCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem) {
+        cellItem.add(AttributeModifier.append("class", "bg-info"));
         cellItem.add(new EmptyPanel(componentId));
     }
 

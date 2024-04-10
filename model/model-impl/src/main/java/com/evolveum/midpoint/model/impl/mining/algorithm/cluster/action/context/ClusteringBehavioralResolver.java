@@ -30,7 +30,7 @@ public class ClusteringBehavioralResolver implements Clusterable {
     public static final Trace LOGGER = TraceManager.getTrace(ClusteringBehavioralResolver.class);
 
     @Override
-    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,

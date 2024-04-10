@@ -147,6 +147,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
     }
 
     private @NotNull RoleMiningProvider<MiningRoleTypeChunk> createRoleMiningProvider(List<MiningRoleTypeChunk> roles) {
+
         ListModel<MiningRoleTypeChunk> model = new ListModel<>(roles) {
             @Serial
             private static final long serialVersionUID = 1L;
@@ -428,9 +429,13 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                 List<String> elements = rowModel.getObject().getRoles();
 
-                updateFrequencyBased(rowModel, minFrequency, maxFrequency);
+                updateFrequencyBased(rowModel, minFrequency, maxFrequency, isOutlierDetection());
 
                 String title = rowModel.getObject().getChunkName();
+                if (isOutlierDetection()) {
+                    double confidence = rowModel.getObject().getFrequencyItem().getzScore();
+                    title = " (" + confidence + ")" + title;
+                }
                 AjaxLinkPanel analyzedMembersDetailsPanel = new AjaxLinkPanel(componentId,
                         createStringResource(title)) {
                     @Override
@@ -884,4 +889,9 @@ public class RoleAnalysisUserBasedTable extends Panel {
     public LoadableDetachableModel<DisplayValueOption> getDisplayValueOptionModel() {
         return displayValueOptionModel;
     }
+
+    public boolean isOutlierDetection() {
+        return false;
+    }
+
 }

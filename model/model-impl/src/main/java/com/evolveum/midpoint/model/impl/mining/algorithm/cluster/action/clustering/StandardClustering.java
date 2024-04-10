@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class StandardClustering implements Clusterable {
     @Override
-    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,

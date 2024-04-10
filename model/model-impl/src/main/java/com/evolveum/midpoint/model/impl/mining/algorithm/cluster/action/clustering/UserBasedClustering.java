@@ -9,15 +9,12 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.cluster
 
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.*;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context.ClusteringBehavioralResolver;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -27,9 +24,12 @@ import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserAnalysisSessionOptionType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Implements clustering of user based process mode.
@@ -52,7 +52,7 @@ public class UserBasedClustering implements Clusterable {
      * @return A list of PrismObject instances representing the role analysis clusters.
      */
     @Override
-    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
@@ -76,14 +76,16 @@ public class UserBasedClustering implements Clusterable {
         ListMultimap<List<String>, String> chunkMap = loadData(modelService, isIndirect, minRolesOccupancy, maxRolesOccupancy,
                 query, result, task
         );
+
         handler.iterateActualStatus();
-        handler.enterNewStep(PREPARING_DATA_POINTS_STEP);
-        handler.setOperationCountToProcess(1);
 
         if (chunkMap.isEmpty()) {
-            LOGGER.info("No data to process.");
-            return null;
+            LOGGER.warn("No data to process.");
+            return new ArrayList<>();
         }
+
+        handler.enterNewStep(PREPARING_DATA_POINTS_STEP);
+        handler.setOperationCountToProcess(1);
 
         List<DataPoint> dataPoints = prepareDataPoints(chunkMap);
         handler.iterateActualStatus();

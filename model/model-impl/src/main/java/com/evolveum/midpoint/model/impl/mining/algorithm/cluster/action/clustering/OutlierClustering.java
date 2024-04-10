@@ -31,7 +31,7 @@ import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.u
  */
 public class OutlierClustering implements Clusterable {
     @Override
-    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
@@ -43,7 +43,7 @@ public class OutlierClustering implements Clusterable {
             @Override
             public @NotNull ListMultimap<List<String>, String> loadUserModeData(
                     @NotNull ModelService modelService,
-                    Boolean isIndirect,
+                    @NotNull Boolean isIndirect,
                     int minRolesOccupancy,
                     int maxRolesOccupancy,
                     @Nullable SearchFilterType sessionOptionType,

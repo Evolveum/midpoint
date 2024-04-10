@@ -24,8 +24,12 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.*;
+import com.evolveum.midpoint.common.mining.utils.values.*;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,16 +38,9 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -2033,5 +2030,126 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
 
         return userAnalysis;
+    }
+
+    public <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(@NotNull List<T> data, double negativeThreshold, double positiveThreshold) {
+        double sum = 0;
+        int dataSize = 0;
+        for (T item : data) {
+            int size = item.getMembers().size();
+            dataSize += size;
+            sum += (item.getFrequencyValue()) * size;
+        }
+        double mean = sum / dataSize;
+
+        double sumSquaredDiff = 0;
+        for (T item : data) {
+            int size = item.getMembers().size();
+            sumSquaredDiff += (Math.pow((item.getFrequencyValue()) - mean, 2)) * size;
+        }
+
+        // n-1 Bessel's correction is preferable for outlier detection or n TODO check more details
+        double variance = sumSquaredDiff / (dataSize);
+        double stdDev = Math.sqrt(variance);
+        ZScoreData zScoreData = new ZScoreData(sum, dataSize, mean, sumSquaredDiff, variance, stdDev);
+        for (T item : data) {
+            double zScore = ((item.getFrequencyValue()) - mean) / stdDev;
+            //TODO thing about it
+            zScore = Math.round(zScore * 100.0) / 100.0;
+
+            double confidence = calculateZScoreConfidence(item, zScoreData);
+            item.getFrequencyItem().setConfidence(confidence);
+            item.getFrequencyItem().setzScore(zScore);
+            // -1 OR -2 should it be fixed or configurable. Now it is good to identify unusual values like TODO
+            if (zScore <= -negativeThreshold) {
+                item.getFrequencyItem().setNegativeExclude();
+            } else if (zScore >= positiveThreshold) {
+                item.getFrequencyItem().setPositiveExclude();
+            } else {
+                item.getFrequencyItem().setInclude();
+            }
+        }
+
+        //TODO experiment
+        resolveNeighbours(data);
+        return zScoreData;
+    }
+
+    public <T extends MiningBaseTypeChunk> void resolveNeighbours(@NotNull List<T> data) {
+//        List<T> negativeExcludeChunks = new ArrayList<>();
+        ListMultimap<FrequencyItem.Status, T> itemMap = ArrayListMultimap.create();
+        for (T chunk : data) {
+            double status = chunk.getFrequencyItem().getzScore();
+            if (status <= -1) {
+                itemMap.put(FrequencyItem.Status.NEGATIVE_EXCLUDE, chunk);
+            }
+//            if (status.equals(FrequencyItem.Status.NEGATIVE_EXCLUDE)) {
+//                negativeExcludeChunks.add(chunk);
+//            }
+        }
+
+        List<T> negativeExcludeChunks = itemMap.get(FrequencyItem.Status.NEGATIVE_EXCLUDE);
+
+        if (negativeExcludeChunks.size() < 2) {
+            return;
+        }
+
+        for (int i = 0; i < negativeExcludeChunks.size(); i++) {
+            T firstItem = negativeExcludeChunks.get(i);
+            List<String> properties = firstItem.getProperties();
+            for (int j = i + 1; j < negativeExcludeChunks.size(); j++) {
+                T secondItem = negativeExcludeChunks.get(j);
+                List<String> properties2 = secondItem.getProperties();
+
+                if(properties.size() != properties2.size()) {
+                    continue;
+                }
+
+                if (new HashSet<>(properties).containsAll(properties2)) {
+                    for (String member : secondItem.getMembers()) {
+                        FrequencyItem.Neighbour neighbour = new FrequencyItem.Neighbour(
+                                new ObjectReferenceType()
+                                        .type(RoleType.COMPLEX_TYPE)
+                                        .oid(member),
+                                1);
+                        firstItem.getFrequencyItem().addNeighbour(neighbour);
+                    }
+                    for (String member : firstItem.getMembers()) {
+                        FrequencyItem.Neighbour neighbour = new FrequencyItem.Neighbour(
+                                new ObjectReferenceType()
+                                        .type(RoleType.COMPLEX_TYPE)
+                                        .oid(member),
+                                1);
+                        secondItem.getFrequencyItem().addNeighbour(neighbour);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public <T extends MiningBaseTypeChunk> double calculateZScore(@NotNull T item, ZScoreData zScoreData) {
+        return ((item.getFrequencyValue()) - zScoreData.getMean()) / zScoreData.getStdDev();
+    }
+
+    /**
+     * Calculate the confidence of the Z-Score
+     *
+     * @param item the item to calculate the confidence
+     * @param zScoreData the Z-Score data
+     * @param <T> the type of the item
+     * @return the confidence of the Z-Score 0 to 1 if 1 is 100% confidence
+     */
+    @Override
+
+    public <T extends MiningBaseTypeChunk> double calculateZScoreConfidence(@NotNull T item, ZScoreData zScoreData) {
+        //Range from 0 to 1
+        double zScore = ((item.getFrequencyValue()) - zScoreData.getMean()) / zScoreData.getStdDev();
+        double standardDeviation = zScoreData.getStdDev();
+//        NormalDistribution normalDistribution = new NormalDistribution(zScoreData.getMean(), zScoreData.getStdDev());
+        NormalDistribution normalDistribution = new NormalDistribution(0, 1);
+        double cumulativeProbability = normalDistribution.cumulativeProbability(zScore);
+        cumulativeProbability = Math.min(100, Math.max(0.0, cumulativeProbability));
+        return 1 - cumulativeProbability;
     }
 }

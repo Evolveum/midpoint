@@ -86,6 +86,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     public static final String PARAM_CANDIDATE_ROLE_ID = "candidateRoleId";
     public static final String PARAM_DETECTED_PATER_ID = "detectedPatternId";
+    boolean isOutlierDetection = false;
 
     public List<String> getCandidateRoleContainerId() {
         StringValue stringValue = getPageBase().getPageParameters().get(PARAM_CANDIDATE_ROLE_ID);
@@ -127,6 +128,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         if (getParent != null) {
             RoleAnalysisSessionType session = getParent.asObjectable();
             RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+            RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+            if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                isOutlierDetection = true;
+            }
             mode = analysisOption.getProcessMode();
             isRoleMode = mode.equals(RoleAnalysisProcessModeType.ROLE);
             displayValueOptionModel.getObject().setProcessMode(mode);
@@ -302,9 +307,22 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             maxFrequency = frequencyRange.getMax() / 100;
         }
 
-        List<MiningUserTypeChunk> users = miningOperationChunk.getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
-        List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
+        RoleAnalysisSortMode sortMode = displayValueOption.getSortMode();
+        if(sortMode == null) {
+            displayValueOption.setSortMode(RoleAnalysisSortMode.NONE);
+            sortMode = RoleAnalysisSortMode.NONE;
+        }
 
+        List<MiningUserTypeChunk> users = miningOperationChunk.getMiningUserTypeChunks(sortMode);
+        List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks(sortMode);
+
+        if (isOutlierDetection) {
+            if (!isRoleMode) {
+                roleAnalysisService.resolveOutliersZScore(roles, frequencyRange.getMin(), frequencyRange.getMax());
+            } else {
+                roleAnalysisService.resolveOutliersZScore(users, frequencyRange.getMin(), frequencyRange.getMax());
+            }
+        }
         if (analysePattern != null && !analysePattern.isEmpty()) {
             if (isRoleMode) {
                 initRoleBasedDetectionPattern(getPageBase(), users, roles, analysePattern, minFrequency, maxFrequency, task, result);
@@ -392,6 +410,11 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 getObjectWrapperObject()) {
 
             @Override
+            public boolean isOutlierDetection() {
+                return isOutlierDetection;
+            }
+
+            @Override
             protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRole() {
                 return getRoleAnalysisCandidateRoleType();
             }
@@ -469,6 +492,11 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 miningOperationChunk,
                 intersection,
                 displayValueOptionModel, getObjectWrapperObject()) {
+
+            @Override
+            public boolean isOutlierDetection() {
+                return isOutlierDetection;
+            }
 
             @Override
             protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRole() {

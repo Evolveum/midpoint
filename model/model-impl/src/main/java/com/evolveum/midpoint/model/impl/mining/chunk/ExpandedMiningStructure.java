@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 import java.util.*;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
+import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -119,7 +120,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                     Collections.singletonList(clusterMember),
                     users,
                     chunkName,
-                    0,
+                    new FrequencyItem(0),
                     RoleAnalysisOperationMode.EXCLUDE
             );
 
@@ -138,7 +139,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         handler.setOperationCountToProcess(miningRoleTypeChunks.size());
         for (MiningRoleTypeChunk chunk : miningRoleTypeChunks) {
             handler.iterateActualStatus();
-            chunk.setFrequency((chunk.getUsers().size() / (double) userChunkSize));
+            chunk.setFrequency(new FrequencyItem((chunk.getUsers().size() / (double) userChunkSize)));
         }
 
         int memberCount = membersOidSet.size();
@@ -171,7 +172,10 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 chunkName = user.getName().toString();
             }
 
-            MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(Collections.singletonList(key), roleIds, chunkName, frequency,
+            MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(Collections.singletonList(key),
+                    roleIds,
+                    chunkName,
+                    new FrequencyItem(frequency),
                     RoleAnalysisOperationMode.EXCLUDE);
 
             if (iconColor != null) {
@@ -250,8 +254,11 @@ public class ExpandedMiningStructure extends BasePrepareAction {
 
             }
 
-            MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(Collections.singletonList(userOid), existingRolesAssignment,
-                    chunkName, 0, RoleAnalysisOperationMode.EXCLUDE);
+            MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(Collections.singletonList(userOid),
+                    existingRolesAssignment,
+                    chunkName,
+                    new FrequencyItem(0),
+                    RoleAnalysisOperationMode.EXCLUDE);
 
             if (iconColor != null) {
                 miningUserTypeChunk.setIconColor(iconColor);
@@ -267,7 +274,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         handler.setOperationCountToProcess(membersCount);
         for (MiningUserTypeChunk chunk : miningUserTypeChunks) {
             handler.iterateActualStatus();
-            chunk.setFrequency((chunk.getRoles().size() / (double) roleChunkSize));
+            chunk.setFrequency(new FrequencyItem((chunk.getRoles().size() / (double) roleChunkSize)));
         }
 
         int memberCount = membersOidSet.size();
@@ -298,7 +305,10 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 chunkName = role.getName().toString();
             }
 
-            MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(Collections.singletonList(key), usersOidList, chunkName, frequency,
+            MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(Collections.singletonList(key),
+                    usersOidList,
+                    chunkName,
+                    new FrequencyItem(frequency),
                     RoleAnalysisOperationMode.EXCLUDE);
             if (iconColor != null) {
                 miningRoleTypeChunk.setIconColor(iconColor);

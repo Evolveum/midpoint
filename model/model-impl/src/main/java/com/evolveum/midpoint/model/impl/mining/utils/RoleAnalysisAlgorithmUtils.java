@@ -561,7 +561,7 @@ public class RoleAnalysisAlgorithmUtils {
                 detectionOption.getFrequencyRange().setMin(0.01);
             }
             Collection<RoleAnalysisOutlierType> roleAnalysisOutlierTypes = executeOutliersAnalysis(
-                    roleAnalysisService, cluster, session, analysisOption, min, task, result);
+                    roleAnalysisService, cluster, session, analysisOption, task, result);
 
             for (RoleAnalysisOutlierType roleAnalysisOutlierType : roleAnalysisOutlierTypes) {
                 roleAnalysisOutlierType.setTargetClusterRef(new ObjectReferenceType()

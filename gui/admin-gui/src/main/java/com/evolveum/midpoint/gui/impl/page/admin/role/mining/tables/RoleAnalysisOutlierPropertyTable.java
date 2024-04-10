@@ -11,8 +11,11 @@ import static com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnal
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateAssignmentOutlierResultModel;
 
 import java.io.Serial;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -46,8 +49,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleA
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPopupPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierHeaderResultPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -302,8 +305,11 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                     Double confidence = rowModel.getObject().getConfidence();
                     if (confidence != null) {
                         double confidencePercentage = confidence * 100.0;
-                        confidencePercentage = Math.round(confidencePercentage * 100.0) / 100.0;
-                        String formattedConfidence = String.format("%.2f", confidencePercentage);
+                        confidencePercentage = confidencePercentage * 100.0 / 100.0;
+                        DecimalFormat decimalFormat = new DecimalFormat("#.##");
+                        decimalFormat.setGroupingUsed(false);
+                        decimalFormat.setRoundingMode(RoundingMode.DOWN);
+                        String formattedConfidence = decimalFormat.format(confidencePercentage);
                         item.add(new Label(componentId, formattedConfidence + " (%)"));
                     } else {
                         item.add(new Label(componentId, "N/A"));
@@ -362,7 +368,6 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                         } else {
                             userTypeObject = roleAnalysisService.getUserTypeObject(propertyObjectRef.getOid(), task, task.getResult());
                             roleTypeObject = roleAnalysisService.getRoleTypeObject(targetObjectOid, task, task.getResult());
-
                         }
 
                         if (userTypeObject == null || roleTypeObject == null) {
@@ -570,6 +575,29 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
             @Override
             public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
                     IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
+                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                Task task = getPageBase().createSimpleTask("Load object");
+
+                ObjectReferenceType ref = rowModel.getObject().getObject();
+                QName type = ref.getType();
+
+                if (type.equals(UserType.COMPLEX_TYPE)) {
+                    item.add(new Label(componentId, "TODO"));
+                    return;
+                }
+
+                PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectOid, task, task.getResult());
+
+                if (userTypeObject == null) {
+                    return;
+                }
+
+                OutlierObjectModel outlierObjectModel = generateAssignmentOutlierResultModel(roleAnalysisService, rowModel.getObject(), task, task.getResult(), userTypeObject);
+
+                String outlierName = outlierObjectModel.getOutlierName();
+                Double outlierConfidence = outlierObjectModel.getOutlierConfidence();
+                String description = outlierObjectModel.getOutlierDescription();
+                String timestamp = outlierObjectModel.getTimeCreated();
 
                 item.add(new AjaxLinkPanel(componentId, Model.of("Result")) {
                     @Override
@@ -579,9 +607,14 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                                 Model.of("Analyzed members details panel")) {
 
                             @Override
+                            public StringResourceModel getTitle() {
+                                return createStringResource("Outlier assignment description");
+                            }
+
+                            @Override
                             public Component getCardHeaderBody(String componentId) {
-                                OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(componentId, "Janko",
-                                        "User has been marked as outlier object due to confidence score:", "78%");
+                                OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(componentId, outlierName,
+                                        description, String.valueOf(outlierConfidence), timestamp);
                                 components.setOutputMarkupId(true);
                                 return components;
                             }
@@ -590,32 +623,9 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                             public Component getCardBodyComponent(String componentId) {
                                 //TODO just for testing
                                 RepeatingView cardBodyComponent = (RepeatingView) super.getCardBodyComponent(componentId);
-                                cardBodyComponent.add(new OutlierItemResultPanel(cardBodyComponent.newChildId(),
-                                        new OutlierItemModel(
-                                                "98%",
-                                                "Description for selected factor",
-                                                "fa fa-user")));
-                                cardBodyComponent.add(new OutlierItemResultPanel(cardBodyComponent.newChildId(),
-                                        new OutlierItemModel(
-                                                "70%",
-                                                "Description for selected factor",
-                                                "fa fa-role")));
-                                cardBodyComponent.add(new OutlierItemResultPanel(cardBodyComponent.newChildId(),
-                                        new OutlierItemModel(
-                                                "60%",
-                                                "Description for selected factor",
-                                                "fa fa-key")));
-                                cardBodyComponent.add(new OutlierItemResultPanel(cardBodyComponent.newChildId(),
-                                        new OutlierItemModel(
-                                                "50%",
-                                                "Description for selected factor",
-                                                "fa fa-user")));
-                                cardBodyComponent.add(new OutlierItemResultPanel(cardBodyComponent.newChildId(),
-                                        new OutlierItemModel(
-                                                "40%",
-                                                "Description for selected factor",
-                                                "fa fa-role")));
-
+                                outlierObjectModel.getOutlierItemModels().forEach(outlierItemModel -> {
+                                    cardBodyComponent.add(new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel));
+                                });
                                 return cardBodyComponent;
                             }
 

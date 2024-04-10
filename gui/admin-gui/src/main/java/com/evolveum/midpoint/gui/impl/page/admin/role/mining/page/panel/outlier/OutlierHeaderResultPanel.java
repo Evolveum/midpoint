@@ -23,16 +23,19 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
     private static final String ID_PROGRESS_VALUE = "progress-value";
     private static final String ID_PROGRESS_VALUE_LABEL = "progress-label";
     private static final String ID_ICON = "icon";
+    private static final String ID_TIMESTAMP = "timestamp";
 
     String value;
     String valueDescription;
     String progressValue;
+    String timestamp;
 
-    public OutlierHeaderResultPanel(String id, String value, String valueDescription, String progressValue) {
+    public OutlierHeaderResultPanel(String id, String value, String valueDescription, String progressValue, String timestamp) {
         super(id);
         this.value = value;
         this.valueDescription = valueDescription;
         this.progressValue = progressValue;
+        this.timestamp = timestamp;
 
         initLayout();
     }
@@ -47,10 +50,13 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
         iconContainer.setOutputMarkupId(true);
         itemBox.add(iconContainer);
 
-
-        Label value = new Label(ID_VALUE, getValue());
+        Label value = new Label(ID_VALUE, Model.of(getValue()));
         value.setOutputMarkupId(true);
         itemBox.add(value);
+
+        Label timestamp = new Label(ID_TIMESTAMP, Model.of(this.timestamp));
+        timestamp.setOutputMarkupId(true);
+        itemBox.add(timestamp);
 
         Label valueDescription = new Label(ID_VALUE_DESCRIPTION, getValueDescription());
         valueDescription.setOutputMarkupId(true);
@@ -63,13 +69,13 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
 
     public @NotNull WebMarkupContainer createProgressContainer(String componentId) {
         WebMarkupContainer progressContainer = new WebMarkupContainer(componentId);
-        progressContainer.add(AttributeModifier.append("style", "width:" + getProgressValue() + ";"));
+        progressContainer.add(AttributeModifier.append("style", "width:" + getProgressValue() + "%;"));
 
         progressContainer.add(AttributeModifier.append("aria-valuenow", getProgressValue()));
         progressContainer.add(AttributeModifier.append("aria-valuemin", "0"));
         progressContainer.add(AttributeModifier.append("aria-valuemax", "100"));
 
-        progressContainer.add(new Label(ID_PROGRESS_VALUE_LABEL, Model.of(getProgressValue())));
+        progressContainer.add(new Label(ID_PROGRESS_VALUE_LABEL, Model.of(this.progressValue + "%")));
         return progressContainer;
     }
 
@@ -82,7 +88,9 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
     }
 
     public String getProgressValue() {
-        return progressValue;
+        double progressValue = Double.parseDouble(this.progressValue);
+
+        return String.valueOf((int) progressValue);
     }
 
     private @NotNull WebMarkupContainer createIconContainer(String componentId) {
