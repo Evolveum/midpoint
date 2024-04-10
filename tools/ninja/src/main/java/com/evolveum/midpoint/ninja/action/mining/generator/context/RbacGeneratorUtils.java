@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.ninja.action.mining.generator.context;
 
+import static com.evolveum.midpoint.ninja.action.mining.generator.object.InitialObjectsDefinition.getNoiseRolesObjects;
 import static com.evolveum.midpoint.schema.util.FocusTypeUtil.createArchetypeAssignment;
 import static com.evolveum.midpoint.schema.util.FocusTypeUtil.createTargetAssignment;
 
@@ -41,7 +42,8 @@ public class RbacGeneratorUtils {
      * @return The randomly selected location business role.
      */
     protected static @NotNull InitialObjectsDefinition.LocationInitialBusinessRole getRandomLocationBusinessRole() {
-        InitialObjectsDefinition.LocationInitialBusinessRole[] roles = InitialObjectsDefinition.LocationInitialBusinessRole.values();
+        InitialObjectsDefinition.LocationInitialBusinessRole[] roles = InitialObjectsDefinition
+                .LocationInitialBusinessRole.values();
         Random random = new Random();
         return roles[random.nextInt(roles.length)];
     }
@@ -63,7 +65,8 @@ public class RbacGeneratorUtils {
      * @return The randomly selected plankton abstract role.
      */
     protected static @NotNull InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole getRandomPlanktonRole() {
-        InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole[] roles = InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole.values();
+        InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole[] roles = InitialObjectsDefinition
+                .PlanktonApplicationBusinessAbstractRole.values();
         Random random = new Random();
         return roles[random.nextInt(roles.length)];
     }
@@ -259,4 +262,27 @@ public class RbacGeneratorUtils {
         }
     }
 
+    /**
+     * Resolve chance.
+     *
+     * @param chance The chance to resolve.
+     * @return True if the chance is resolved, false otherwise.
+     */
+    public static boolean isExcluded(int chance) {
+        Random random = new Random();
+        return random.nextInt(100) < chance;
+    }
+
+    public static @Nullable RoleType getNoiseRole(int chance) {
+        Random random = new Random();
+        boolean b = random.nextInt(100) < chance;
+        List<RoleType> noiseRolesObjects = getNoiseRolesObjects();
+
+        if (b && !noiseRolesObjects.isEmpty()) {
+            int randomIndex = random.nextInt(noiseRolesObjects.size());
+            return noiseRolesObjects.get(randomIndex);
+        } else {
+            return null;
+        }
+    }
 }

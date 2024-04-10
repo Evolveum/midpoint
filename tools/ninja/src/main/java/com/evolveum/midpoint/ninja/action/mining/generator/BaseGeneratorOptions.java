@@ -42,6 +42,17 @@ public class BaseGeneratorOptions {
     public static final String P_INCLUDE_AUX = "-ia";
     public static final String P_INCLUDE_AUX_LONG = "--include-aux";
 
+    public static final String P_FORGET_NOISE = "-fn";
+    public static final String P_FORGET_NOISE_LONG = "--forget-noise";
+
+    public static final String P_ADDITION_NOISE = "-an";
+    public static final String P_ADDITION_NOISE_LONG = "--addition-noise";
+
+    @Parameter(names = { P_ADDITION_NOISE, P_ADDITION_NOISE_LONG }, descriptionKey = "baseGeneratorOptions.forget.noise")
+    private int forgetNoise = 0;
+    @Parameter(names = { P_FORGET_NOISE, P_FORGET_NOISE_LONG }, descriptionKey = "baseGeneratorOptions.addition.noise")
+    private int additionNoise = 0;
+
     @Parameter(names = { P_INCLUDE_AUX, P_INCLUDE_AUX_LONG }, descriptionKey = "baseGeneratorOptions.includeAux")
     private boolean isAuxInclude = false;
 
@@ -104,4 +115,13 @@ public class BaseGeneratorOptions {
     public boolean isAuxInclude() {
         return isAuxInclude;
     }
+
+    public int getForgetNoise() {
+        return forgetNoise;
+    }
+
+    public int getAdditionNoise() {
+        return additionNoise;
+    }
+
 }

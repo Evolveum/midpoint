@@ -56,6 +56,12 @@ public class InitialObjectsDefinition {
         return roleObjects;
     }
 
+    public static List<RoleType> getNoiseRolesObjects() {
+        List<RoleType> roleObjects = new ArrayList<>();
+        addRoleObjects(NoiseApplicationBusinessAbstractRole.values(), roleObjects);
+        return roleObjects;
+    }
+
     public List<OrgType> getOrgObjects() {
         List<OrgType> orgObjects = new ArrayList<>();
         addOrgObjects(Organization.values(), orgObjects);
@@ -383,6 +389,56 @@ public class InitialObjectsDefinition {
         }
     }
 
+
+    public enum NoiseApplicationBusinessAbstractRole implements InitialAbstractRole {
+
+        SOCIAL_MEDIA_MANAGER("c368b9a1-3c58-4d6f-9f86-a23ccf8a4f06", "Social Media Manager"),
+        SOCIAL_MEDIA_ANALYST("6e42c7ab-4c75-4c17-bf69-63049315680c", "Social Media Analyst"),
+        SOCIAL_MEDIA_WRITER("f659fe15-9e98-4468-9e7d-80eabe6253c9", "Social Media Writer"),
+        SOCIAL_MEDIA_READER("f3e4d45c-d311-4f8b-99da-a96313ec7eb0", "Social Media Reader"),
+        SOCIAL_MEDIA_AUDITOR("dd36aaa5-d671-4a5d-b2c0-3af937f5db0c", "Social Media Auditor"),
+        SOCIAL_MEDIA_ADMIN("62231b07-af48-4dfb-8250-a40f13994d0c", "Social Media Admin");
+
+        private final String oid;
+        private final String name;
+
+        NoiseApplicationBusinessAbstractRole(String oid, String name) {
+            this.oid = oid;
+            this.name = name;
+        }
+
+        @Override
+        public String getOidValue() {
+            return oid;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public @Nullable List<String> getAssociations() {
+            return null;
+        }
+
+        @Override
+        public String getArchetypeOid() {
+            return Archetypes.NOISE_ROLE.getOidValue();
+        }
+
+        @Override
+        public int getAssociationsMultiplier() {
+            return 0;
+        }
+
+        @Override
+        public boolean isArchetypeRoleEnable() {
+            return true;
+        }
+    }
+
+
     public enum BasicAbstractRole implements InitialAbstractRole {
 
         AD_GROUP_EMPLOYEES("c112783f-5e01-4b1b-bd5b-f5fe1a091413", "AD Group Employees",
@@ -562,7 +618,8 @@ public class InitialObjectsDefinition {
                 "purple", "fe fe-role"),
         BIRTHRIGHT_ROLE("d212dcd9-b062-49fd-adbd-7815868f132c", "Birthright Role Archetype",
                 "orange", "fe fe-role"),
-
+        NOISE_ROLE("5b8a247c-443f-4a9a-a125-963b36383061", "Noise Role Archetype",
+                "blue", "fe fe-role"),
         REGULAR_USER("86638d1c-66b6-40a9-817e-cf88ca7aaced", "Regular User Archetype",
                 "blue", "fa fa-user"),
         SEMI_REGULAR_USER("e3b84663-1f37-46fa-ab06-70cbac038885", "Semi-regular User Archetype",
