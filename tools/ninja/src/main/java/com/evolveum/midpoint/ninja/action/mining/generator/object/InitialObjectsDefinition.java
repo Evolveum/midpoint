@@ -392,12 +392,12 @@ public class InitialObjectsDefinition {
 
     public enum NoiseApplicationBusinessAbstractRole implements InitialAbstractRole {
 
-        SOCIAL_MEDIA_MANAGER("c368b9a1-3c58-4d6f-9f86-a23ccf8a4f06", "Social Media Manager"),
-        SOCIAL_MEDIA_ANALYST("6e42c7ab-4c75-4c17-bf69-63049315680c", "Social Media Analyst"),
-        SOCIAL_MEDIA_WRITER("f659fe15-9e98-4468-9e7d-80eabe6253c9", "Social Media Writer"),
-        SOCIAL_MEDIA_READER("f3e4d45c-d311-4f8b-99da-a96313ec7eb0", "Social Media Reader"),
-        SOCIAL_MEDIA_AUDITOR("dd36aaa5-d671-4a5d-b2c0-3af937f5db0c", "Social Media Auditor"),
-        SOCIAL_MEDIA_ADMIN("62231b07-af48-4dfb-8250-a40f13994d0c", "Social Media Admin");
+        NOISE_MEDIA_MANAGER("c368b9a1-3c58-4d6f-9f86-a23ccf8a4f06", "Noise Media Manager"),
+        NOISE_MEDIA_ANALYST("6e42c7ab-4c75-4c17-bf69-63049315680c", "Noise Media Analyst"),
+        NOISE_MEDIA_WRITER("f659fe15-9e98-4468-9e7d-80eabe6253c9", "Noise Media Writer"),
+        NOISE_MEDIA_READER("f3e4d45c-d311-4f8b-99da-a96313ec7eb0", "Noise Media Reader"),
+        NOISE_MEDIA_AUDITOR("dd36aaa5-d671-4a5d-b2c0-3af937f5db0c", "Noise Media Auditor"),
+        NOISE_MEDIA_ADMIN("62231b07-af48-4dfb-8250-a40f13994d0c", "Noise Media Admin");
 
         private final String oid;
         private final String name;
