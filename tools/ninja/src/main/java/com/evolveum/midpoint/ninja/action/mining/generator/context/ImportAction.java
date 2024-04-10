@@ -69,7 +69,7 @@ public class ImportAction {
 
         if (generatorOptions.isTransform()) {
             log.info("Make sure that RoleType objects is recomputed");
-            remakeUsersBusinessRoles(context, result, null, null);
+            remakeUsersBusinessRoles(context, result, generatorOptions, null, null);
         }
     }
 
@@ -85,6 +85,7 @@ public class ImportAction {
         importPlanktonRoles(initialObjectsDefinition, repositoryService, result, log);
         importMultipliedBasicRoles(initialObjectsDefinition, repositoryService, result, log);
         importBusinessRoles(initialObjectsDefinition, repositoryService, result, log);
+        importNoiseRoles(initialObjectsDefinition, repositoryService, result, log);
         log.info("Initial role objects imported");
     }
 
@@ -137,6 +138,27 @@ public class ImportAction {
         log.info("Importing plankton roles: 0/{}", rolesObjects.size());
         for (int i = 0; i < rolesObjects.size(); i++) {
             log.info("Importing plankton roles: {}/{}", i + 1, rolesObjects.size());
+            RoleType role = rolesObjects.get(i);
+            try {
+                repositoryService.addObject(role.asPrismObject(), null, result);
+            } catch (ObjectAlreadyExistsException e) {
+                log.warn("Role {} already exists", role.getName());
+            } catch (SchemaException e) {
+                log.error("Error adding role {}", role.getName(), e);
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void importNoiseRoles(
+            @NotNull InitialObjectsDefinition initialObjectsDefinition,
+            @NotNull RepositoryService repositoryService,
+            @NotNull OperationResult result,
+            @NotNull Log log) {
+        List<RoleType> rolesObjects = initialObjectsDefinition.getNoiseRolesObjects();
+        log.info("Importing noise roles: 0/{}", rolesObjects.size());
+        for (int i = 0; i < rolesObjects.size(); i++) {
+            log.info("Importing noise roles: {}/{}", i + 1, rolesObjects.size());
             RoleType role = rolesObjects.get(i);
             try {
                 repositoryService.addObject(role.asPrismObject(), null, result);
@@ -565,12 +587,14 @@ public class ImportAction {
      *
      * @param context The Ninja context.
      * @param result The operation result used for tracking the operation.
+     * @param noise
      * @param query The query for searching users.
      * @param options The options for retrieving users.
      * @throws RuntimeException If an error occurs during the process.
      */
     public static void remakeUsersBusinessRoles(@NotNull NinjaContext context,
             @NotNull OperationResult result,
+            GeneratorOptions generatorOptions,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
 
@@ -579,7 +603,7 @@ public class ImportAction {
         log.info("Replace business role for their inducements on users started");
 
         ResultHandler<UserType> handler = (object, parentResult) -> {
-            executeChangesOnUser(result, object, repository, log);
+            executeChangesOnUser(result, object, generatorOptions, repository, log);
             return true;
         };
 
@@ -603,7 +627,12 @@ public class ImportAction {
      * @param log The log used for logging the operation.
      * @throws RuntimeException If an error occurs during the process.
      */
-    private static void executeChangesOnUser(@NotNull OperationResult result, @NotNull PrismObject<UserType> object, RepositoryService repository, Log log) {
+    private static void executeChangesOnUser(
+            @NotNull OperationResult result,
+            @NotNull PrismObject<UserType> object,
+            GeneratorOptions generatorOptions,
+            RepositoryService repository,
+            Log log) {
         String userOid = object.getOid();
         PolyString name = object.getName();
         if (name == null) {
@@ -633,7 +662,19 @@ public class ImportAction {
             List<ItemDelta<?, ?>> modifications = new ArrayList<>();
             try {
 
+                RoleType noiseRole = getNoiseRole(generatorOptions.getAdditionNoise());
+                if (noiseRole != null) {
+                    modifications.add(PrismContext.get().deltaFor(UserType.class)
+                            .item(UserType.F_ASSIGNMENT).add(createRoleAssignment(noiseRole.getOid()))
+                            .asItemDelta());
+                }
+
                 for (AssignmentType assignmentType : inducement) {
+                    boolean allowed = isExcluded(generatorOptions.getForgetNoise());
+                    if (allowed) {
+                        continue;
+                    }
+
                     modifications.add(PrismContext.get().deltaFor(UserType.class)
                             .item(UserType.F_ASSIGNMENT).add(createRoleAssignment(assignmentType.getTargetRef().getOid()))
                             .asItemDelta());
