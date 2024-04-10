@@ -39,6 +39,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 
@@ -201,6 +202,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected ModelAuditService modelAuditService;
     @Autowired protected ActivityBasedTaskHandler activityBasedTaskHandler;
     @Autowired protected ArchetypeManager archetypeManager;
+
+    @Autowired protected RoleAnalysisService roleAnalysisService;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
