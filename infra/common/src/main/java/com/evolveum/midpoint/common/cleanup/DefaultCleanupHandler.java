@@ -74,8 +74,14 @@ public class DefaultCleanupHandler implements CleanupHandler {
         PrismReference ref = event.item();
         checkMultiValueReferences(ref, event.item().getPath(), event.result());
 
-        PrismContainer<?> source = event.source();
-        if (ResourceType.class.equals(source.getCompileTimeClass())
+        Class<?> type = null;
+        if (event.source() instanceof PrismContainerValue val) {
+            type = val.getCompileTimeClass();
+        } else if (event.source() instanceof PrismContainer container) {
+            type = container.getCompileTimeClass();
+        }
+
+        if (ResourceType.class.equals(type)
                 && ResourceType.F_CONNECTOR_REF.equivalent(event.path())) {
 
             processConnectorRef(event);

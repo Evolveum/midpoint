@@ -7,14 +7,21 @@
 
 package com.evolveum.midpoint.common.cleanup;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+/**
+ * @param source either {@link PrismContainer} or {@link PrismContainerValue}
+ * @param path
+ * @param item
+ * @param result
+ * @param <I>
+ */
 public record CleanupEvent<I>(
-        @NotNull PrismContainer<?> source,
+        @NotNull Object source,
         @NotNull ItemPath path,
         @NotNull I item,
         @NotNull CleanupResult result) {
