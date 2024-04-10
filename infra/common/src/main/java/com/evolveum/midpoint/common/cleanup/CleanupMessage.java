@@ -17,6 +17,10 @@ public record CleanupMessage<D>(Type type, LocalizableMessage message, D data) {
 
         OPTIONAL_CLEANUP,
 
-        PROTECTED_STRING
+        PROTECTED_STRING,
+
+        MISSING_MAPPING_NAME,
+
+        MULTIVALUE_REF_WITHOUT_OID
     }
 }

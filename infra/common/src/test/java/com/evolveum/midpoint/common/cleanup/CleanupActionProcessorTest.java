@@ -60,7 +60,6 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
                 CapabilityCollectionType.F_ACTIVATION);
 
         File file = new File(TEST_DIR, "resource.xml");
-        String content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
 
         PrismObject<ResourceType> resource = getPrismContext().parseObject(file);
 
@@ -85,9 +84,9 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
                 new CleanupPath(ResourceType.COMPLEX_TYPE, CAPABILITY_ACTIVATION, CleanupPathAction.ASK)
         ));
 
-        TestCleanupListener listener = new TestCleanupListener();
+        TestCleanupHandler listener = new TestCleanupHandler();
         processor.setHandler(listener);
-        processor.process(resource, Source.of(file, content));
+        CleanupResult result = processor.process(resource);
 
         LOG.info("AFTER \n{}", resource.debugDump());
 
@@ -111,8 +110,6 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
     @Test
     public void test200User() throws Exception {
         File file = new File(TEST_DIR, "user.xml");
-        String content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-
         PrismObject<ResourceType> user = getPrismContext().parseObject(file);
 
         Assertions.assertThat(user.findItem(UserType.F_METADATA))
@@ -121,9 +118,9 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
                 .isNotNull();
 
         CleanupActionProcessor processor = new CleanupActionProcessor();
-        TestCleanupListener listener = new TestCleanupListener();
+        TestCleanupHandler listener = new TestCleanupHandler();
         processor.setHandler(listener);
-        processor.process(user, Source.of(file, content));
+        processor.process(user);
 
         Assertions.assertThat(user.findItem(UserType.F_METADATA))
                 .isNull();
@@ -151,9 +148,7 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
         PrismContainer<ResourceObjectTypeDefinitionType> container =
                 resource.findContainer(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
 
-        @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> objectType = container.getValue();
-
-        LOG.info("BEFORE \n{}", objectType.debugDump());
+        LOG.info("BEFORE \n{}", container.debugDump());
 
         CleanupActionProcessor processor = new CleanupActionProcessor();
         processor.setRemoveContainerIds(true);
@@ -161,18 +156,18 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
                 new CleanupPath(ResourceObjectFocusSpecificationType.COMPLEX_TYPE, ResourceObjectFocusSpecificationType.F_TYPE, CleanupPathAction.REMOVE)
         ));
 
-        TestCleanupListener listener = new TestCleanupListener();
+        TestCleanupHandler listener = new TestCleanupHandler();
         processor.setHandler(listener);
-        processor.process(objectType, Source.of(file, content));
+        processor.process(container);
 
-        LOG.info("AFTER \n{}", objectType.debugDump());
+        LOG.info("AFTER \n{}", container.debugDump());
 
         Assertions.assertThat(
-                        objectType.findItem(
+                        container.getValue().findItem(
                                 ItemPath.create(ResourceObjectTypeDefinitionType.F_FOCUS, ResourceObjectFocusSpecificationType.F_TYPE)))
                 .isNull();
 
-        ResourceObjectTypeDefinitionType rObjectType = objectType.asContainerable();
+        ResourceObjectTypeDefinitionType rObjectType = container.getValue().asContainerable();
         SynchronizationReactionsType synchronization = rObjectType.getSynchronization();
         AssertJUnit.assertNotNull(synchronization);
 
@@ -192,7 +187,6 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
     @Test
     public void test400ResourceCapabilities() throws Exception {
         File file = new File(TEST_DIR, "resource.xml");
-        String content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
 
         PrismObject<ResourceType> resource = getPrismContext().parseObject(file);
 
@@ -208,9 +202,9 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
         LOG.info("BEFORE \n{}", value.debugDump());
 
         CleanupActionProcessor processor = new CleanupActionProcessor();
-        TestCleanupListener listener = new TestCleanupListener();
+        TestCleanupHandler listener = new TestCleanupHandler();
         processor.setHandler(listener);
-        processor.process(value, Source.of(file, content));
+        processor.process(container);
 
         LOG.info("AFTER \n{}", value.debugDump());
 

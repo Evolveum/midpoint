@@ -15,6 +15,15 @@
         oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 
     <name>Embedded Test OpenDJ</name>
+
+    <!-- missing oid in multivalue ref problem-->
+    <effectiveMarkRef>
+        <filter>
+            <q:text>name="vilko"</q:text>
+        </filter>
+    </effectiveMarkRef>
+    <effectiveMarkRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce"/>
+
     <connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>
     <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
@@ -180,6 +189,7 @@
             <objectClass>AccountObjectClass</objectClass>
             <attribute>
                 <ref>ri:pager</ref>
+                <!-- mapping without name -->
                 <outbound>
                     <source>
                         <path>c:telephoneNumber</path>

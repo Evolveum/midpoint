@@ -8,8 +8,10 @@
 package com.evolveum.midpoint.common.cleanup;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -32,6 +34,10 @@ public interface CleanupHandler {
     }
 
     default void onProtectedStringCleanup(CleanupEvent<PrismProperty<ProtectedStringType>> event) {
+
+    }
+
+    default void onMissingMappingNameCleanup(CleanupEvent<PrismContainer<MappingType>> event) {
 
     }
 }
