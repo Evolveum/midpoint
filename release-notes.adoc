@@ -1,6 +1,7 @@
 ---
 layout: release
 release-version: '4.9'
+visibility: hidden
 ---
 = MidPoint 4.9 "TODO"
 :release-version: 4.9
