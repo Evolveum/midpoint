@@ -15,6 +15,8 @@ import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +51,8 @@ public interface PreInboundsContext<T extends Containerable>
     @Nullable ObjectDelta<ShadowType> getResourceObjectDelta();
 
     @NotNull ResourceObjectDefinition getObjectDefinitionRequired() throws SchemaException, ConfigurationException;
+
+    @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException;
 
     /** Returns the archetype OID bound to the object type. Archetypes determined from the focus itself are not returned here. */
     @Nullable String getArchetypeOid();

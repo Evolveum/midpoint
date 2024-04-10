@@ -516,9 +516,7 @@ public abstract class ShadowItemDefinitionImpl<
     /**
      * Return a human readable name of this class suitable for logs.
      */
-    public String getDebugDumpClassName() {
-        return "RAD";
-    }
+    public abstract String getDebugDumpClassName();
 
     public String debugDump(int indent) {
         return debugDump(indent, null);

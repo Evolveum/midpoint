@@ -200,7 +200,7 @@ public interface ResourceAttributeDefinitionDelegator<T>
     }
 
     @Override
-    default @Nullable ItemCorrelatorDefinitionType getCorrelatorDefinition() {
+    default ItemCorrelatorDefinitionType getCorrelatorDefinition() {
         return delegate().getCorrelatorDefinition();
     }
 

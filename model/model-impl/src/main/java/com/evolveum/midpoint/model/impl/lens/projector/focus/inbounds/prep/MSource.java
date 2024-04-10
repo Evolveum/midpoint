@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -74,13 +75,17 @@ abstract class MSource implements DebugDumpable {
      */
     final ResourceObjectDefinition resourceObjectDefinition;
 
+    @NotNull final ResourceObjectInboundDefinition inboundDefinition;
+
     MSource(
             @Nullable ShadowType currentShadow,
             @Nullable ObjectDelta<ShadowType> aPrioriDelta,
-            ResourceObjectDefinition resourceObjectDefinition) {
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull ResourceObjectInboundDefinition inboundDefinition) {
         this.currentShadow = asPrismObject(currentShadow);
         this.aPrioriDelta = aPrioriDelta;
         this.resourceObjectDefinition = resourceObjectDefinition;
+        this.inboundDefinition = inboundDefinition;
     }
 
     /**
@@ -256,7 +261,7 @@ abstract class MSource implements DebugDumpable {
     }
 
     private @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultEvaluationPhases() {
-        return resourceObjectDefinition.getDefaultInboundMappingEvaluationPhases();
+        return inboundDefinition.getDefaultInboundMappingEvaluationPhases();
     }
 
     abstract @NotNull InboundMappingEvaluationPhaseType getCurrentEvaluationPhase();

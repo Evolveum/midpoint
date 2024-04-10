@@ -9,10 +9,13 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.Collection;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.task.api.TaskUtil;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.BooleanUtils;
@@ -25,7 +28,6 @@ import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -102,7 +104,7 @@ public abstract class SynchronizationContext<F extends FocusType>
     /**
      * Definition of corresponding object (currently found by kind+intent).
      */
-    @Nullable private final ResourceObjectDefinition resourceObjectDefinition;
+    @Nullable protected final ResourceObjectDefinition resourceObjectDefinition;
 
     @Nullable private final SynchronizationPolicy synchronizationPolicy;
 
@@ -547,6 +549,11 @@ public abstract class SynchronizationContext<F extends FocusType>
         public boolean isComplete() {
             return true;
         }
+
+        @Override
+        public @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException {
+            return getObjectDefinitionRequired();
+        }
     }
 
     /**
@@ -568,6 +575,15 @@ public abstract class SynchronizationContext<F extends FocusType>
         @Override
         public boolean isComplete() {
             return false;
+        }
+
+        @Override
+        public @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException {
+            if (resourceObjectDefinition != null) {
+                return resourceObjectDefinition;
+            } else {
+                throw new IllegalStateException("No object definition in " + this + ", this method should not have been called");
+            }
         }
     }
 }

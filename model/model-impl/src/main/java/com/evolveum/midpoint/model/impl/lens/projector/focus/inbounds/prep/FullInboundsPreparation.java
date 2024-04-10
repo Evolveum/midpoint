@@ -16,6 +16,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.jetbrains.annotations.NotNull;
@@ -53,9 +54,6 @@ import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
-import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -101,6 +99,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                 new FullSource(
                         projectionContext.getObjectCurrent(),
                         getAPrioriDelta(projectionContext),
+                        projectionContext.getCompositeObjectDefinition(),
                         projectionContext.getCompositeObjectDefinition(),
                         projectionContext,
                         context),
@@ -309,7 +308,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
             ConfigurationException, ObjectNotFoundException {
         // TODO convert to mapping creation requests
         evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
-                source.resourceObjectDefinition.getPasswordInbound(),
+                source.inboundDefinition.getPasswordInbound(),
                 SchemaConstants.PATH_PASSWORD_VALUE, SchemaConstants.PATH_PASSWORD_VALUE,
                 result);
         evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
@@ -328,7 +327,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
 
     private List<MappingType> getActivationInbound(ItemName itemName) {
         ResourceBidirectionalMappingType biDirMapping =
-                source.resourceObjectDefinition.getActivationBidirectionalMappingType(itemName);
+                source.inboundDefinition.getActivationBidirectionalMappingType(itemName);
         return biDirMapping != null ? biDirMapping.getInbound() : Collections.emptyList();
     }
 
@@ -342,15 +341,13 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
         }
 
         for (var association : AbstractShadow.of(shadow).getAssociations()) {
-            LOGGER.trace("Processing associated objects for {}", association.getDefinition());
+            var associationDefinition = association.getDefinition();
+            LOGGER.trace("Processing values of association {}", associationDefinition);
             for (var associationValue : association.getAssociationValues()) {
-                var associatedObjectDefinition = associationValue.getAssociatedObjectDefinition();
-                LOGGER.trace("Processing association value: {} ({})", associationValue, associatedObjectDefinition);
-                var associatedObjectTypeDefinition = associatedObjectDefinition.getTypeDefinition();
-                if (associatedObjectTypeDefinition != null
-                        && associatedObjectTypeDefinition.hasInboundMappings()
-                        && associatedObjectTypeDefinition.getKind() == ShadowKindType.ASSOCIATED) { // TODO rethink this
-                    new AssociatedObjectProcessing(associationValue, associatedObjectTypeDefinition)
+                var associationTypeDefinition = associationDefinition.getAssociationTypeDefinition();
+                LOGGER.trace("Processing association value: {} ({})", associationValue, associationTypeDefinition);
+                if (associationTypeDefinition.needsInboundProcessing()) {
+                    new AssociationValueProcessing(associationValue, associationDefinition)
                             .process(result);
                 } else {
                     LOGGER.trace(" -> not an associated object with inbound mappings, skipping the value");
@@ -366,20 +363,23 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
      * 2. determining the target PCV + action (synchronizing or not)
      * 3. collecting the mappings
      */
-    private class AssociatedObjectProcessing {
+    private class AssociationValueProcessing {
 
         @NotNull private final ShadowAssociationValue associationValue;
-        @NotNull private final ResourceObjectTypeDefinition associatedObjectDefinition;
+        @NotNull private final ShadowAssociationDefinition associationDefinition;
+        @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
         @NotNull private final ItemPath focusItemPath;
 
-        AssociatedObjectProcessing(
+        AssociationValueProcessing(
                 @NotNull ShadowAssociationValue associationValue,
-                @NotNull ResourceObjectTypeDefinition associatedObjectDefinition) throws ConfigurationException {
+                @NotNull ShadowAssociationDefinition associationDefinition) throws ConfigurationException {
             this.associationValue = associationValue;
-            this.associatedObjectDefinition = associatedObjectDefinition;
+            this.associationDefinition = associationDefinition;
+            var associationTypeDefinition = associationDefinition.getAssociationTypeDefinition();
+            this.inboundDefinition = associationTypeDefinition.getInboundDefinition();
             this.focusItemPath = configNonNull(
-                    associatedObjectDefinition.getFocusItemPath(),
-                    "No focus item path in %s", associatedObjectDefinition);
+                    inboundDefinition.getFocusSpecification().getFocusItemPath(),
+                    "No focus item path in %s", associationTypeDefinition);
         }
 
         void process(OperationResult parentResult)
@@ -388,7 +388,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
 
             OperationResult result = parentResult.subresult(OP_PROCESS_ASSOCIATED_OBJECT)
                     .addArbitraryObjectAsParam("associationValue", associationValue)
-                    .addArbitraryObjectAsParam("associatedObjectDefinition", associatedObjectDefinition)
+                    .addArbitraryObjectAsParam("associatedObjectDefinition", associationDefinition)
                     .build();
             try {
 
@@ -411,6 +411,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
             var target = instantiateTargetObject();
             PreMappingsEvaluation.computePreFocusTemporary(
                     associationValue.getShadow(),
+                    inboundDefinition,
                     projectionContext.getResourceRequired(),
                     target,
                     context.env.task,
@@ -432,14 +433,14 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
 
             var correlationResult = beans.correlationServiceImpl.correlateLimited(
                     CorrelatorContextCreator.createRootContext(
-                            associatedObjectDefinition.getDefinitionBean().getCorrelation(),
+                            inboundDefinition.getCorrelation(),
                             CorrelatorDiscriminator.forSynchronization(),
                             null,
                             context.getSystemConfigurationBean()),
                     new CorrelationContext.Shadow(
                             associationValue.getShadowBean(),
                             projectionContext.getResourceRequired(),
-                            associatedObjectDefinition,
+                            associationValue.getAssociatedObjectDefinition(),
                             objectForCorrelation,
                             candidateObjects,
                             context.getSystemConfigurationBean(),
@@ -451,7 +452,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
 
         private @NotNull Collection<? extends Containerable> getCandidateObjects() throws ConfigurationException {
 
-            var assignmentSubtype = associatedObjectDefinition.getAssignmentSubtype();
+            var assignmentSubtype = inboundDefinition.getFocusSpecification().getAssignmentSubtype();
             LOGGER.trace("Getting candidate objects for {} (assignment subtype: {})", focusItemPath, assignmentSubtype);
 
             var targetItem = target.targetPcv.findItem(focusItemPath);
@@ -463,7 +464,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
             }
             if (!AssignmentHolderType.F_ASSIGNMENT.equivalent(focusItemPath)) {
                 throw new ConfigurationException(
-                        "Specifying assignment subtype but not referencing assignments? in " + associatedObjectDefinition);
+                        "Specifying assignment subtype but not referencing assignments? in " + associationDefinition);
             }
             return targetItem.getRealValues(AssignmentType.class).stream()
                     .filter(a -> a.getSubtype().contains(assignmentSubtype))
@@ -473,7 +474,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
         private AssignmentType instantiateTargetObject() {
             // FIXME temporary
             return new AssignmentType()
-                    .subtype(associatedObjectDefinition.getAssignmentSubtype());
+                    .subtype(inboundDefinition.getFocusSpecification().getAssignmentSubtype());
         }
 
         // FIXME temporary
@@ -483,7 +484,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
             SynchronizationSituationType situation =
                     synchronizationState.situation() != SynchronizationSituationType.UNLINKED ?
                             synchronizationState.situation() : SynchronizationSituationType.LINKED;
-            for (var reaction : associatedObjectDefinition.getSynchronizationReactions()) {
+            for (var reaction : inboundDefinition.getSynchronizationReactions()) {
                 if (reaction.getSituations().contains(situation)) {
                     // TODO evaluate other aspects, like condition etc
                     LOGGER.trace("Determined synchronization reaction: {}", reaction);
@@ -531,7 +532,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                                     .identifier(String.valueOf(id))) // TEMPORARY FIXME (needed to make them different! fix the swallower instead!)
                             .asItemDelta());
             LOGGER.trace("Going to ADD a new focus-side value ({}/{}) for associated object: {}",
-                    focusItemPath, id, associatedObjectDefinition);
+                    focusItemPath, id, associationDefinition);
             collectChildMappings(id, result);
         }
 
@@ -545,7 +546,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                     owner.asPrismContainerValue().getId(),
                     "Cannot invoke SYNCHRONIZE action on an owner without PCV ID: %s", owner);
             LOGGER.trace("Going to SYNCHRONIZE existing focus-side value ({}/{}) for associated object: {}",
-                    focusItemPath, ownerId, associatedObjectDefinition);
+                    focusItemPath, ownerId, associationDefinition);
             collectChildMappings(ownerId, result);
         }
 
@@ -555,7 +556,8 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
             MSource childSource = new FullSource(
                     associationValue.getShadow().getPrismObject(),
                     null, // TODO
-                    associatedObjectDefinition,
+                    associationValue.getAssociatedObjectDefinition(),
+                    inboundDefinition,
                     projectionContext,
                     context);
             child(childSource, focusItemPath.append(id))

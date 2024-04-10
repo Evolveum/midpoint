@@ -137,12 +137,12 @@ public class ResourceSchemaImpl
         associationTypeDefinitionsMap.put(associationTypeDefinition.getName(), associationTypeDefinition);
     }
 
-    @Nullable ShadowAssociationClassDefinition getAssociationTypeDefinition(@NotNull String name) {
+    @Nullable ShadowAssociationClassDefinition getAssociationTypeDefinitionOld(@NotNull String name) {
         return associationTypeDefinitionsMap.get(name);
     }
 
-    @Nullable ShadowAssociationClassDefinition getAssociationTypeDefinition(@NotNull QName name) {
-        return getAssociationTypeDefinition(QNameUtil.getLocalPartCheckingNamespace(name, NS_RI));
+    @Nullable ShadowAssociationClassDefinition getAssociationTypeDefinitionOld(@NotNull QName name) {
+        return getAssociationTypeDefinitionOld(QNameUtil.getLocalPartCheckingNamespace(name, NS_RI));
     }
 
     @NotNull Collection<ShadowAssociationClassDefinition> getAssociationTypes() {

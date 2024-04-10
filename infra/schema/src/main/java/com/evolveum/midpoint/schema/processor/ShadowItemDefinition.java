@@ -46,7 +46,8 @@ public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
         PrismPresentationDefinition,
         ShadowItemUcfDefinition,
         ShadowItemLayeredDefinition,
-        LayeredDefinition {
+        LayeredDefinition,
+        ResourceObjectInboundDefinition.ItemInboundDefinition {
 
     /**
      * When set to true, allows to preserve attribute values that are set outside midPoint.
@@ -210,6 +211,11 @@ public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
 
     /** TODO */
     @Nullable String getLifecycleState();
+
+    @Override
+    default boolean isIgnored(LayerType layer) {
+        return ShadowItemLayeredDefinition.super.isIgnored(layer);
+    }
 
     /** TODO */
     default boolean isVisible(@NotNull TaskExecutionMode taskExecutionMode) {

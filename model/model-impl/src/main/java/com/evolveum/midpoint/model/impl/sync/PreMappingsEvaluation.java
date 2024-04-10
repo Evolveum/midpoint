@@ -7,34 +7,27 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
-
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SimplePreInboundsContextImpl;
-import com.evolveum.midpoint.prism.Containerable;
-
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.util.AbstractShadow;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.LimitedInboundsProcessing;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SimplePreInboundsContextImpl;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.jetbrains.annotations.VisibleForTesting;
-import org.springframework.ui.Model;
-
-import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Evaluates "pre-mappings" i.e. inbound mappings that are evaluated before the actual clockwork is run.
@@ -73,7 +66,7 @@ public class PreMappingsEvaluation<T extends Containerable> {
                 PrismContext.get().createObjectable(focusClass),
                 ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                 task,
-                objectTypeDefinition);
+                objectTypeDefinition, objectTypeDefinition);
         new PreMappingsEvaluation<>(preInboundsContext)
                 .evaluate(result);
         return preInboundsContext.getPreFocus();
@@ -82,22 +75,21 @@ public class PreMappingsEvaluation<T extends Containerable> {
     // FIXME TEMPORARY
     public static <C extends Containerable> void computePreFocusTemporary(
             @NotNull AbstractShadow shadowedResourceObject,
+            @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull ResourceType resource,
             @NotNull C targetObject,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        var definition = shadowedResourceObject.getObjectDefinition();
-        var typeDefinition = argNonNull(
-                definition.getTypeDefinition(),
-                "Shadow (%s) must have a type definition; class definition is not sufficient here: %s",
-                shadowedResourceObject, definition);
         SimplePreInboundsContextImpl<C> preInboundsContext = new SimplePreInboundsContextImpl<>(
-                shadowedResourceObject.getBean(), resource,
+                shadowedResourceObject.getBean(),
+                resource,
                 targetObject,
                 ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
-                task, typeDefinition);
+                task,
+                shadowedResourceObject.getObjectDefinition(),
+                inboundDefinition);
         new PreMappingsEvaluation<>(preInboundsContext)
                 .evaluate(result);
     }

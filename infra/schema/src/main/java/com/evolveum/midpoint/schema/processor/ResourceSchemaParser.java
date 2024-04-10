@@ -405,7 +405,7 @@ class ResourceSchemaParser {
 
         // Types from association classes
         for (var associationClassImplementation : resourceSchema.getAssociationClassImplementations()) {
-            if (resourceSchema.getAssociationTypeDefinition(associationClassImplementation.getName()) == null) {
+            if (resourceSchema.getAssociationTypeDefinitionOld(associationClassImplementation.getName()) == null) {
                 resourceSchema.addAssociationTypeDefinition(
                         ShadowAssociationClassDefinition.fromImplementation(associationClassImplementation));
             }
@@ -513,13 +513,15 @@ class ResourceSchemaParser {
             ItemName assocName = nativeAssocDef.getItemName();
             LOGGER.trace("Parsing association {}", assocName);
 
-            var assocDefBean = value(definitionCI.getAssociationDefinitionIfPresent(assocName));
-            var assocTypeDef = stateNonNull(
-                    resourceSchema.getAssociationTypeDefinition(nativeAssocDef.getTypeName()),
+            var assocTypeDefOld = stateNonNull(
+                    resourceSchema.getAssociationTypeDefinitionOld(nativeAssocDef.getTypeName()),
                     "Unknown association type '%s' (for '%s' in %s) in %s",
                     nativeAssocDef.getTypeName(), assocName, definition, resourceSchema);
+            var assocTypeDefNew =
+                    createTypeDefNew(assocTypeDefOld.getRepresentativeObjectDefinition(), assocName);
+            var assocDefBean = value(definitionCI.getAssociationDefinitionIfPresent(assocName));
             definition.add(
-                    ShadowAssociationDefinitionImpl.fromNative(nativeAssocDef, assocTypeDef, assocDefBean));
+                    ShadowAssociationDefinitionImpl.fromNative(nativeAssocDef, assocTypeDefOld, assocTypeDefNew, assocDefBean));
         }
 
         private void parseModernSimulatedAssociation(@NotNull ShadowAssociationClassSimulationDefinition simulationDefinition)
@@ -527,13 +529,43 @@ class ResourceSchemaParser {
             ItemName assocName = simulationDefinition.getLocalSubjectItemName();
             LOGGER.trace("Parsing association {}", assocName);
 
-            var assocDefBean = value(definitionCI.getAssociationDefinitionIfPresent(assocName));
-            var assocTypeDef = stateNonNull(
-                    resourceSchema.getAssociationTypeDefinition(simulationDefinition.getQName()),
+            var assocTypeDefOld = stateNonNull(
+                    resourceSchema.getAssociationTypeDefinitionOld(simulationDefinition.getQName()),
                     "Unknown association type '%s' (for '%s' in %s) in %s",
                     simulationDefinition.getQName(), assocName, definition, resourceSchema);
+            var assocTypeDefNew =
+                    createTypeDefNew(assocTypeDefOld.getRepresentativeObjectDefinition(), assocName);
+            var assocDefBean = value(definitionCI.getAssociationDefinitionIfPresent(assocName));
             definition.add(
-                    ShadowAssociationDefinitionImpl.fromSimulated(simulationDefinition, assocTypeDef, assocDefBean));
+                    ShadowAssociationDefinitionImpl.fromSimulated(simulationDefinition, assocTypeDefOld, assocTypeDefNew, assocDefBean));
+        }
+
+        private @NotNull ShadowAssociationTypeDefinitionNew createTypeDefNew(
+                ResourceObjectDefinition representativeObjectDefinition, ItemName assocName) {
+            var defConfigItem = findAssociationTypeDefinitionConfigItem(assocName);
+            return ShadowAssociationTypeDefinitionNew.create(
+                    defConfigItem,
+                    ResourceObjectInboundDefinition.forAssociation(
+                            ConfigurationItem.value(defConfigItem)
+                    ));
+        }
+
+        private @Nullable ShadowAssociationTypeNewDefinitionConfigItem findAssociationTypeDefinitionConfigItem(@NotNull ItemName assocName) {
+            ResourceObjectTypeIdentification typeIdentification = definition.getTypeIdentification();
+            if (typeIdentification != null) {
+                return schemaHandling.getAssociationTypesNew().stream()
+                        .filter(def -> def.matches(typeIdentification, assocName))
+                        .findFirst().orElse(null);
+            } else {
+                return null; // We are probably called during object class parsing - there will be no bean
+            }
+        }
+
+        private ResourceObjectDefinition createMergedDefinition(
+                @NotNull ResourceObjectDefinition representativeObjectDefinition,
+                @Nullable ShadowAssociationTypeNewDefinitionConfigItem definitionConfigItem,
+                @NotNull ItemName assocName) {
+            return null;
         }
 
         /**
@@ -783,12 +815,12 @@ class ResourceSchemaParser {
             var simulationDefinition = ShadowAssociationClassSimulationDefinition.Legacy.parse(
                     associationDefCI, resourceSchema, subjectTypeDefinition, objectTypeDefinitions);
 
-            var associationTypeDefinition = ShadowAssociationClassDefinition.parseLegacy(
+            var associationClassDefinition = ShadowAssociationClassDefinition.parseLegacy(
                     associationDefCI, simulationDefinition, subjectTypeDefinition, objectTypeDefinitions);
 
             checkNotPresentAsNative();
 
-            return ShadowAssociationDefinitionImpl.parseLegacy(associationTypeDefinition, associationDefCI);
+            return ShadowAssociationDefinitionImpl.parseLegacy(associationClassDefinition, associationDefCI);
         }
 
         private void checkNotPresentAsNative() throws ConfigurationException {

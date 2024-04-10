@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.AbstractShadow;
@@ -340,18 +339,33 @@ public final class ResourceObjectTypeDefinitionImpl
         return definitionBean.getSynchronization() != null;
     }
 
+    // FIXME TEMPORARY, reconsider
+    @Override
+    public @NotNull FocusSpecification getFocusSpecification() {
+        return new FocusSpecification() {
+            @Override
+            public ItemPath getFocusItemPath() {
+                var focusSpec = getDefinitionBean().getFocus();
+                return focusSpec != null && focusSpec.getItemPath() != null ? focusSpec.getItemPath().getItemPath() : null;
+            }
+
+            @Override
+            public String getAssignmentSubtype() {
+                var focusSpec = getDefinitionBean().getFocus();
+                return focusSpec != null ? focusSpec.getAssignmentSubtype() : null;
+            }
+
+            @Override
+            public String getArchetypeOid() {
+                return ResourceObjectTypeDefinitionImpl.this.getArchetypeOid();
+            }
+        };
+    }
+
     @Override
     public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
-        SynchronizationReactionsType reactions = definitionBean.getSynchronization();
-        if (reactions == null) {
-            return List.of();
-        } else {
-            SynchronizationReactionsDefaultSettingsType defaultSettings = reactions.getDefaultSettings();
-            ClockworkSettings reactionLevelSettings = ClockworkSettings.of(defaultSettings);
-            return reactions.getReaction().stream()
-                    .map(bean -> SynchronizationReactionDefinition.of(bean, reactionLevelSettings))
-                    .collect(Collectors.toList());
-        }
+        return SynchronizationReactionDefinition.modern(
+                definitionBean.getSynchronization());
     }
 
     @Override
@@ -408,5 +422,11 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public @NotNull String getShortIdentification() {
         return identification.toString();
+    }
+
+    @Override
+    public boolean hasAnyInbounds() {
+        return getShadowItemDefinitions().stream()
+                .anyMatch(def -> def.hasInboundMapping());
     }
 }

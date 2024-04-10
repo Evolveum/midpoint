@@ -106,24 +106,25 @@
                 </reaction>
             </synchronization>
         </objectType>
-        <objectType>
+        <associatedObjectType>
             <kind>associated</kind>
             <intent>contract</intent>
+            <documentation>
+                This is an object that's associated to the person. It's fetched automatically with its owning person.
+                (Decided by the resource itself, for now. There's no support for "item to fetch" yet.)
+                It is mapped to a user's assignment. So, mappings refer to the specific assignment value, unless
+                specified otherwise.
+            </documentation>
+            <!-- This is the association by which the contract is connected to its owner. -->
+            <!-- Note that contract has two more associations: to org and to costCenter. -->
+            <associationClass>ri:personContract</associationClass>
             <delineation>
                 <objectClass>ri:CustomcontractObjectClass</objectClass>
             </delineation>
-        </objectType>
-        <associationTypeNew>
-            <name>contracts</name>
-            <subject>
-                <objectType>
-                    <kind>account</kind>
-                    <intent>person</intent>
-                </objectType>
-                <item>ri:contract</item>
-            </subject>
             <focus>
-                <subtype>contract</subtype>
+                <!-- The object-level specification is derived from associated object (account/person). -->
+                <itemPath>assignment</itemPath>
+                <assignmentSubtype>contract</assignmentSubtype>
             </focus>
             <attribute>
                 <ref>icfs:uid</ref>
@@ -272,6 +273,6 @@
                     </actions>
                 </reaction>
             </synchronization>
-        </associationTypeNew>
+        </associatedObjectType>
     </schemaHandling>
 </resource>

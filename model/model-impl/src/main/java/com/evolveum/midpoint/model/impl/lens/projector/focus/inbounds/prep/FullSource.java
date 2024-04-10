@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.processor.ShadowAssociation;
@@ -65,10 +66,11 @@ class FullSource extends MSource {
     FullSource(
             PrismObject<ShadowType> currentShadow,
             @Nullable ObjectDelta<ShadowType> aPrioriDelta,
-            ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull LensProjectionContext projectionContext,
             @NotNull Context context) throws ConfigurationException {
-        super(asObjectable(currentShadow), aPrioriDelta, resourceObjectDefinition);
+        super(asObjectable(currentShadow), aPrioriDelta, resourceObjectDefinition, inboundDefinition);
         this.projectionContext = projectionContext;
         this.context = context;
         this.identityManagementConfiguration = getFocusContext().getIdentityManagementConfiguration();

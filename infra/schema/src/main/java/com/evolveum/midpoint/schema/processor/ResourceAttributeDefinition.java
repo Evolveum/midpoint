@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -120,7 +119,7 @@ public interface ResourceAttributeDefinition<T>
     boolean isDisplayNameAttribute();
 
     /** @see ItemRefinedDefinitionType#getCorrelator() */
-    @Nullable ItemCorrelatorDefinitionType getCorrelatorDefinition();
+    ItemCorrelatorDefinitionType getCorrelatorDefinition();
 
     /** Creates a normalization-aware version of this definition. */
     default <N> @NotNull NormalizationAwareResourceAttributeDefinition<N> toNormalizationAware() {

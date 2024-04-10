@@ -63,6 +63,13 @@ public class SchemaHandlingConfigItem
                 SchemaHandlingType.F_ASSOCIATION_TYPE);
     }
 
+    public List<ShadowAssociationTypeNewDefinitionConfigItem> getAssociationTypesNew() {
+        return children(
+                value().getAssociationTypeNew(),
+                ShadowAssociationTypeNewDefinitionConfigItem.class,
+                SchemaHandlingType.F_ASSOCIATION_TYPE_NEW);
+    }
+
     /**
      * Checks that all attribute names (`ref` elements) are valid - before even starting to parse the schema.
      * Otherwise, the parsing may fail at unusual places, generating confusing error messages. See also MID-8162.

@@ -43,5 +43,8 @@ public interface ShadowAssociationDefinition
 
     @NotNull ShadowAssociationClassDefinition getAssociationClassDefinition();
 
+    @NotNull
+    ShadowAssociationTypeDefinitionNew getAssociationTypeDefinition();
+
     boolean isEntitlement();
 }

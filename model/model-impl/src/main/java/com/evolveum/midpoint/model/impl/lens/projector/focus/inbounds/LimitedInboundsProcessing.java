@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.PathSet;
 
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -98,11 +97,9 @@ public class LimitedInboundsProcessing<T extends Containerable> extends Abstract
     }
 
     private @NotNull CorrelationDefinitionType getCorrelationDefinitionBean() throws SchemaException, ConfigurationException {
-        ResourceObjectTypeDefinition objectTypeDefinition = ctx.getObjectDefinitionRequired().getTypeDefinition();
-        CorrelationDefinitionType resourceCorrelationDefinitionBean =
-                objectTypeDefinition != null ? objectTypeDefinition.getCorrelationDefinitionBean() : null;
-        return resourceCorrelationDefinitionBean != null ?
-                resourceCorrelationDefinitionBean : new CorrelationDefinitionType();
+        return Objects.requireNonNullElseGet(
+                ctx.getInboundDefinition().getCorrelation(),
+                () -> new CorrelationDefinitionType());
     }
 
     private ObjectTemplateType getObjectTemplate(OperationResult result)

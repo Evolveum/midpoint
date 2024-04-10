@@ -77,7 +77,8 @@ public interface ResourceObjectDefinition
         AttributeDefinitionStore,
         AssociationDefinitionStore,
         LayeredDefinition,
-        FrameworkNameResolver {
+        FrameworkNameResolver,
+        ResourceObjectInboundDefinition {
 
     /**
      * The basic information about the resource (like name, OID, selected configuration beans).
@@ -286,23 +287,8 @@ public interface ResourceObjectDefinition
      * TODO Rarely used, consider removing from the interface
      */
     default ResourceBidirectionalMappingType getActivationBidirectionalMappingType(ItemName itemName) {
-        ResourceActivationDefinitionType activationSchemaHandling = getActivationSchemaHandling();
-        if (activationSchemaHandling == null) {
-            return null;
-        }
-        if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS, itemName)) {
-            return activationSchemaHandling.getAdministrativeStatus();
-        } else if (QNameUtil.match(ActivationType.F_VALID_FROM, itemName)) {
-            return activationSchemaHandling.getValidFrom();
-        } else if (QNameUtil.match(ActivationType.F_VALID_TO, itemName)) {
-            return activationSchemaHandling.getValidTo();
-        } else if (QNameUtil.match(ActivationType.F_LOCKOUT_STATUS, itemName)) {
-            return activationSchemaHandling.getLockoutStatus();
-        } else if (QNameUtil.match(ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP, itemName)) {
-            return null; // todo implement this
-        } else {
-            throw new IllegalArgumentException("Unknown activation property " + itemName);
-        }
+        return ResourceObjectDefinitionUtil.getActivationBidirectionalMappingType(
+                getActivationSchemaHandling(), itemName);
     }
 
     /**
@@ -599,9 +585,4 @@ public interface ResourceObjectDefinition
 
     /** Returns both attribute and association definitions. */
     @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions();
-
-    default boolean hasInboundMappings() {
-        return getShadowItemDefinitions().stream()
-                .anyMatch(ShadowItemDefinition::hasInboundMapping);
-    }
 }

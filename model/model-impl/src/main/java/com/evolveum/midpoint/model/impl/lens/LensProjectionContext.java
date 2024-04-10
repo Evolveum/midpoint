@@ -1944,8 +1944,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (objectDefinition == null) {
             return null;
         }
-        ResourceObjectTypeDefinition typeDefinition = objectDefinition.getTypeDefinition();
-        return typeDefinition != null ? typeDefinition.getArchetypeOid() : null;
+        return objectDefinition.getFocusSpecification().getArchetypeOid();
     }
 
     /** Returns focus identity source information for data created from this projection. */

@@ -41,7 +41,8 @@ class LimitedSource extends MSource {
         super(
                 ctx.getShadowedResourceObject(),
                 ctx.getResourceObjectDelta(),
-                ctx.getObjectDefinitionRequired());
+                ctx.getObjectDefinitionRequired(),
+                ctx.getInboundDefinition());
         this.ctx = ctx;
     }
 

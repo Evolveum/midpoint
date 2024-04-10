@@ -853,4 +853,19 @@ public abstract class AbstractResourceObjectDefinitionImpl
     public @Nullable ItemName resolveFrameworkName(@NotNull String frameworkName) {
         return FrameworkNameResolver.findInObjectDefinition(this, frameworkName);
     }
+
+    @Override
+    public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return findAttributeDefinitionRequired(itemName);
+    }
+
+    @Override
+    public ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException {
+        return findAssociationDefinitionRequired(itemName);
+    }
+
+    @Override
+    public CorrelationDefinitionType getCorrelation() {
+        return getDefinitionBean().getCorrelation();
+    }
 }

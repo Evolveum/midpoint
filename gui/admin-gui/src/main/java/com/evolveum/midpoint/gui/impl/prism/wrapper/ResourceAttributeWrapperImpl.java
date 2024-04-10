@@ -228,7 +228,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public @Nullable ItemCorrelatorDefinitionType getCorrelatorDefinition() {
+    public ItemCorrelatorDefinitionType getCorrelatorDefinition() {
         return getRefinedAttributeDefinition().getCorrelatorDefinition();
     }
 

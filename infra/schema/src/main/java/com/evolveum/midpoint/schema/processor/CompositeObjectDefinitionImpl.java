@@ -318,6 +318,21 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public @NotNull FocusSpecification getFocusSpecification() {
+        return structuralDefinition.getFocusSpecification();
+    }
+
+    @Override
+    public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+        return structuralDefinition.getSynchronizationReactions();
+    }
+
+    @Override
+    public CorrelationDefinitionType getCorrelation() {
+        return structuralDefinition.getCorrelation();
+    }
+
+    @Override
     public @Nullable String getLifecycleState() {
         return structuralDefinition.getLifecycleState();
     }
@@ -855,5 +870,20 @@ public class CompositeObjectDefinitionImpl
     @Override
     public @Nullable ItemName resolveFrameworkName(@NotNull String frameworkName) {
         return FrameworkNameResolver.findInObjectDefinition(this, frameworkName);
+    }
+
+    @Override
+    public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return structuralDefinition.getAttributeInboundDefinition(itemName);
+    }
+
+    @Override
+    public ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException {
+        return structuralDefinition.getAssociationInboundDefinition(itemName);
+    }
+
+    @Override
+    public boolean hasAnyInbounds() {
+        return structuralDefinition.hasAnyInbounds();
     }
 }

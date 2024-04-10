@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.deleg.ComplexTypeDefinitionDelegator;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -323,5 +322,37 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     @Nullable
     default ItemName resolveFrameworkName(@NotNull String frameworkName) {
         return delegate().resolveFrameworkName(frameworkName);
+    }
+
+    @Override
+    default ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return delegate().getAttributeInboundDefinition(itemName);
+    }
+
+    @Override
+    default ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException {
+        return delegate().getAssociationInboundDefinition(itemName);
+    }
+
+    @Override
+    @NotNull
+    default FocusSpecification getFocusSpecification() {
+        return delegate().getFocusSpecification();
+    }
+
+    @Override
+    @NotNull
+    default Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+        return delegate().getSynchronizationReactions();
+    }
+
+    @Override
+    default CorrelationDefinitionType getCorrelation() {
+        return delegate().getCorrelation();
+    }
+
+    @Override
+    default boolean hasAnyInbounds() {
+        return delegate().hasAnyInbounds();
     }
 }

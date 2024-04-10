@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +48,9 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
 
     @NotNull private final Task task;
 
-    @NotNull private final ResourceObjectTypeDefinition objectTypeDefinition;
+    @NotNull private final ResourceObjectDefinition objectDefinition;
+
+    @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
 
     public SimplePreInboundsContextImpl(
             @NotNull ShadowType shadowedResourceObject,
@@ -55,13 +58,15 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
             @NotNull T preFocus,
             @Nullable SystemConfigurationType systemConfiguration,
             @NotNull Task task,
-            @NotNull ResourceObjectTypeDefinition objectTypeDefinition) {
+            @NotNull ResourceObjectDefinition objectDefinition,
+            @NotNull ResourceObjectInboundDefinition inboundDefinition) {
         this.shadowedResourceObject = shadowedResourceObject;
         this.resource = resource;
         this.preFocus = preFocus;
         this.systemConfiguration = systemConfiguration;
         this.task = task;
-        this.objectTypeDefinition = objectTypeDefinition;
+        this.objectDefinition = objectDefinition;
+        this.inboundDefinition = inboundDefinition;
     }
 
     @Override
@@ -94,12 +99,17 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
 
     @Override
     public @NotNull ResourceObjectDefinition getObjectDefinitionRequired() {
-        return objectTypeDefinition;
+        return objectDefinition;
+    }
+
+    @Override
+    public @NotNull ResourceObjectInboundDefinition getInboundDefinition() {
+        return inboundDefinition;
     }
 
     @Override
     public @Nullable String getArchetypeOid() {
-        return objectTypeDefinition.getArchetypeOid();
+        return inboundDefinition.getFocusSpecification().getArchetypeOid();
     }
 
     @Override
@@ -113,7 +123,7 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
         return "SimplePreInboundsContext for " +
                 shadowedResourceObject +
                 " on " + resource.getName() +
-                " of " + objectTypeDefinition.getTypeIdentification();
+                " of " + objectDefinition.getTypeIdentification();
     }
 
     @Override
@@ -121,7 +131,7 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowedResourceObject", shadowedResourceObject, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "resource", resource, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "objectTypeDefinition", objectTypeDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "objectTypeDefinition", objectDefinition, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "systemConfiguration", systemConfiguration, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "preFocus", preFocus, indent + 1);
         return sb.toString();

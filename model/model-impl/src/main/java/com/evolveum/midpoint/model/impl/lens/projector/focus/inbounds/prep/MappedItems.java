@@ -18,6 +18,8 @@ import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,7 +75,8 @@ class MappedItems<T extends Containerable> {
      */
     void collectMappedItems() throws SchemaException, ConfigurationException {
         for (var attributeDef : source.resourceObjectDefinition.getAttributeDefinitions()) {
-            createMappedItemForAttribute(attributeDef);
+            createMappedItemForAttribute(
+                    attributeDef, source.inboundDefinition.getAttributeInboundDefinition(attributeDef.getItemName()));
         }
 
         // FIXME Remove this temporary check
@@ -83,7 +86,8 @@ class MappedItems<T extends Containerable> {
         }
 
         for (var associationDef : source.resourceObjectDefinition.getAssociationDefinitions()) {
-            createMappedItemForAssociation(associationDef);
+            createMappedItemForAssociation(
+                    associationDef, source.inboundDefinition.getAssociationInboundDefinition(associationDef.getItemName()));
         }
 
         if (!source.isProjectionBeingDeleted()) {
@@ -98,14 +102,20 @@ class MappedItems<T extends Containerable> {
      * Creates a mapping creation request for mapping(s) for given attribute.
      *
      * @param <TA> type of the attribute
-     * @see #createMappedItemForAssociation(ShadowAssociationDefinition)
+     * @see #createMappedItemForAssociation(ShadowAssociationDefinition, ResourceObjectInboundDefinition.ItemInboundDefinition)
      * @see #createMappedItemForAuxObjectClasses()
      */
-    private <TA> void createMappedItemForAttribute(ResourceAttributeDefinition<TA> attributeDefinition)
+    private <TA> void createMappedItemForAttribute(
+            ResourceAttributeDefinition<TA> attributeDefinition,
+            ResourceObjectInboundDefinition.ItemInboundDefinition attributeInboundDefinition)
             throws SchemaException, ConfigurationException {
 
+        if (attributeInboundDefinition == null) {
+            return;
+        }
+
         // 1. Definitions and mapping beans
-        List<InboundMappingType> inboundMappingBeans = attributeDefinition.getInboundMappingBeans();
+        List<InboundMappingType> inboundMappingBeans = attributeInboundDefinition.getInboundMappingBeans();
         if (inboundMappingBeans.isEmpty()) {
             return;
         }
@@ -114,7 +124,7 @@ class MappedItems<T extends Containerable> {
         List<InboundMappingConfigItem> applicableMappings = // [EP:M:IM] DONE beans are really from the resource
                 source.selectMappingBeansForEvaluationPhase(
                         createMappingCIs(inboundMappingBeans),
-                        attributeDefinition.getCorrelatorDefinition() != null,
+                        attributeInboundDefinition.getCorrelatorDefinition() != null,
                         context.getCorrelationItemPaths());
         if (applicableMappings.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
@@ -162,15 +172,21 @@ class MappedItems<T extends Containerable> {
     /**
      * Creates a {@link MappedItem} for given association.
      *
-     * @see #createMappedItemForAttribute(ResourceAttributeDefinition)
+     * @see #createMappedItemForAttribute(ResourceAttributeDefinition, ResourceObjectInboundDefinition.ItemInboundDefinition)
      * @see #createMappedItemForAuxObjectClasses()
      */
-    private void createMappedItemForAssociation(ShadowAssociationDefinition associationDefinition)
+    private void createMappedItemForAssociation(
+            ShadowAssociationDefinition associationDefinition,
+            ResourceObjectInboundDefinition.ItemInboundDefinition associationInboundDefinition)
             throws SchemaException, ConfigurationException {
+
+        if (associationInboundDefinition == null) {
+            return;
+        }
 
         // 1. Definitions
 
-        var inboundMappingBeans = associationDefinition.getInboundMappingBeans();
+        var inboundMappingBeans = associationInboundDefinition.getInboundMappingBeans();
         if (inboundMappingBeans.isEmpty()) {
             return;
         }
@@ -181,7 +197,7 @@ class MappedItems<T extends Containerable> {
         List<InboundMappingConfigItem> applicableMappings =
                 source.selectMappingBeansForEvaluationPhase(
                         createMappingCIs(inboundMappingBeans),
-                        false,
+                        associationInboundDefinition.getCorrelatorDefinition() != null,
                         Set.of()); // Associations are not evaluated before clockwork anyway
         if (applicableMappings.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
@@ -247,8 +263,8 @@ class MappedItems<T extends Containerable> {
     /**
      * Creates a {@link MappedItem} for "auxiliary object classes" property.
      *
-     * @see #createMappedItemForAttribute(ResourceAttributeDefinition)
-     * @see #createMappedItemForAssociation(ShadowAssociationDefinition)
+     * @see #createMappedItemForAttribute(ResourceAttributeDefinition, ResourceObjectInboundDefinition.ItemInboundDefinition)
+     * @see #createMappedItemForAssociation(ShadowAssociationDefinition, ResourceObjectInboundDefinition.ItemInboundDefinition)
      */
     private void createMappedItemForAuxObjectClasses() throws SchemaException, ConfigurationException {
 
@@ -257,8 +273,7 @@ class MappedItems<T extends Containerable> {
         ItemName itemPath = ShadowType.F_AUXILIARY_OBJECT_CLASS;
         String itemDescription = "auxiliary object classes";
 
-        ResourceBidirectionalMappingAndDefinitionType auxiliaryObjectClassMappings =
-                source.resourceObjectDefinition.getAuxiliaryObjectClassMappings();
+        var auxiliaryObjectClassMappings = source.inboundDefinition.getAuxiliaryObjectClassMappings();
         if (auxiliaryObjectClassMappings == null) {
             return;
         }

@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryImpl;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -167,7 +166,7 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    public @Nullable ItemCorrelatorDefinitionType getCorrelatorDefinition() {
+    public ItemCorrelatorDefinitionType getCorrelatorDefinition() {
         return customizationBean.getCorrelator();
     }
 
@@ -186,6 +185,11 @@ public class ResourceAttributeDefinitionImpl<T>
     @Override
     public void debugDumpShortToString(StringBuilder sb) {
         sb.append(this); // TODO improve if needed
+    }
+
+    @Override
+    public String getDebugDumpClassName() {
+        return "RAD";
     }
 
     @Override

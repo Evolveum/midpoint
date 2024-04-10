@@ -57,6 +57,9 @@ public class ShadowAssociationDefinitionImpl
     /** Participant-independent definition of the association. */
     @NotNull private final ShadowAssociationClassDefinition associationClassDefinition;
 
+    /** This is the definition of a "logical association" that is used in the schema. */
+    @NotNull private final ShadowAssociationTypeDefinitionNew associationTypeDefinition;
+
     /** Refined definition for {@link ShadowAssociationValueType} values that are stored in the {@link ShadowAssociation} item. */
     @NotNull private final ComplexTypeDefinition complexTypeDefinition;
 
@@ -65,10 +68,12 @@ public class ShadowAssociationDefinitionImpl
 
     private ShadowAssociationDefinitionImpl(
             @NotNull ShadowAssociationClassDefinition associationClassDefinition,
+            @NotNull ShadowAssociationTypeDefinitionNew associationTypeDefinition,
             @NotNull NativeShadowAssociationDefinition nativeDefinition,
             @NotNull ResourceObjectAssociationType configurationBean) throws SchemaException {
         super(nativeDefinition, configurationBean, false);
         this.associationClassDefinition = associationClassDefinition;
+        this.associationTypeDefinition = associationTypeDefinition;
         this.complexTypeDefinition = createComplexTypeDefinition();
     }
 
@@ -79,22 +84,25 @@ public class ShadowAssociationDefinitionImpl
             @NotNull Map<LayerType, PropertyLimitations> limitationsMap,
             @NotNull PropertyAccessType accessOverride,
             @NotNull ShadowAssociationClassDefinition associationClassDefinition,
+            @NotNull ShadowAssociationTypeDefinitionNew associationTypeDefinition,
             Integer maxOccurs) {
         super(layer, nativeDefinition, customizationBean, limitationsMap, accessOverride);
         this.associationClassDefinition = associationClassDefinition;
+        this.associationTypeDefinition = associationTypeDefinition;
         this.complexTypeDefinition = getComplexTypeDefinition();
         this.maxOccurs = maxOccurs;
     }
 
     static ShadowAssociationDefinitionImpl parseLegacy(
-            @NotNull ShadowAssociationClassDefinition associationTypeDefinition,
+            @NotNull ShadowAssociationClassDefinition associationClassDefinition,
             @NotNull ResourceObjectAssociationConfigItem definitionCI) throws ConfigurationException {
         try {
             return new ShadowAssociationDefinitionImpl(
-                    associationTypeDefinition,
+                    associationClassDefinition,
+                    ShadowAssociationTypeDefinitionNew.empty(),
                     NativeShadowItemDefinitionImpl.forSimulatedAssociation(
                             definitionCI.getAssociationName(),
-                            associationTypeDefinition.getClassName(),
+                            associationClassDefinition.getClassName(),
                             ShadowAssociationParticipantRole.SUBJECT),
                     definitionCI.value());
         } catch (SchemaException e) {
@@ -104,11 +112,13 @@ public class ShadowAssociationDefinitionImpl
 
     static ShadowAssociationDefinitionImpl fromNative(
             @NotNull NativeShadowAssociationDefinition rawDefinition,
-            @NotNull ShadowAssociationClassDefinition associationTypeDefinition,
+            @NotNull ShadowAssociationClassDefinition associationClassDefinition,
+            @NotNull ShadowAssociationTypeDefinitionNew associationTypeDefinitionNew,
             @Nullable ResourceObjectAssociationType customizationBean) {
         try {
             return new ShadowAssociationDefinitionImpl(
-                    associationTypeDefinition,
+                    associationClassDefinition,
+                    associationTypeDefinitionNew,
                     rawDefinition,
                     toExistingImmutable(customizationBean));
         } catch (SchemaException e) {
@@ -119,10 +129,12 @@ public class ShadowAssociationDefinitionImpl
     static ItemDefinition<?> fromSimulated(
             @NotNull ShadowAssociationClassSimulationDefinition simulationDefinition,
             @NotNull ShadowAssociationClassDefinition associationTypeDefinition,
+            @NotNull ShadowAssociationTypeDefinitionNew associationTypeDefinitionNew,
             @Nullable ResourceObjectAssociationType assocDefBean) {
         try {
             return new ShadowAssociationDefinitionImpl(
                     associationTypeDefinition,
+                    associationTypeDefinitionNew,
                     NativeShadowItemDefinitionImpl.forSimulatedAssociation(
                             simulationDefinition.getLocalSubjectItemName(), simulationDefinition.getQName(), ShadowAssociationParticipantRole.SUBJECT),
                     toExistingImmutable(assocDefBean));
@@ -137,6 +149,10 @@ public class ShadowAssociationDefinitionImpl
 
     public @NotNull ShadowAssociationClassDefinition getAssociationClassDefinition() {
         return associationClassDefinition;
+    }
+
+    public @NotNull ShadowAssociationTypeDefinitionNew getAssociationTypeDefinition() {
+        return associationTypeDefinition;
     }
 
     public @NotNull ResourceObjectDefinition getTargetObjectDefinition() {
@@ -159,6 +175,7 @@ public class ShadowAssociationDefinitionImpl
                     limitationsMap,
                     accessOverride.clone(), // TODO do we want to preserve also the access override?
                     associationClassDefinition,
+                    associationTypeDefinition,
                     maxOccurs);
         }
     }
@@ -296,6 +313,7 @@ public class ShadowAssociationDefinitionImpl
                 limitationsMap,
                 accessOverride.clone(), // TODO do we want to preserve also the access override?
                 associationClassDefinition,
+                associationTypeDefinition,
                 maxOccurs);
     }
 
@@ -361,6 +379,11 @@ public class ShadowAssociationDefinitionImpl
 
     @Override
     protected void extendToString(StringBuilder sb) {
+    }
+
+    @Override
+    public String getDebugDumpClassName() {
+        return "SAssocD";
     }
 
     @Override
@@ -480,5 +503,10 @@ public class ShadowAssociationDefinitionImpl
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), associationClassDefinition, complexTypeDefinition, maxOccurs);
+    }
+
+    @Override
+    public ItemCorrelatorDefinitionType getCorrelatorDefinition() {
+        return null; // Association cannot be used as a correlator - for now
     }
 }

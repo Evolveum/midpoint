@@ -40,18 +40,29 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
     private static final File TEST_DIR = new File("src/test/resources/associations");
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
+    private static final String INTENT_PERSON = "person";
     private static final String INTENT_COST_CENTER = "costCenter";
 
+    private static final String INTENT_DEFAULT = "default";
+    private static final String INTENT_DOCUMENT = "document";
+
     private static DummyHrScenarioExtended hrScenario;
+    private static DummyDmsScenario dmsScenario;
 
     private static final DummyTestResource RESOURCE_DUMMY_HR = new DummyTestResource(
             TEST_DIR, "resource-dummy-hr.xml", "ded54130-8ce5-4c8d-ac30-c3bf4fc82337", "hr",
             c -> hrScenario = DummyHrScenarioExtended.on(c).initialize());
 
+    private static final DummyTestResource RESOURCE_DUMMY_DMS = new DummyTestResource(
+            TEST_DIR, "resource-dummy-dms.xml", "d77da617-ee78-46f7-8a15-cde88193308d", "dms",
+            c -> dmsScenario = DummyDmsScenario.on(c).initialize());
+
     private static final TestObject<ArchetypeType> ARCHETYPE_PERSON = TestObject.file(
             TEST_DIR, "archetype-person.xml", "184a5aa5-3e28-46c7-b9ed-a1dabaacc11d");
     private static final TestObject<ArchetypeType> ARCHETYPE_COST_CENTER = TestObject.file(
             TEST_DIR, "archetype-costCenter.xml", "eb49f576-5813-4988-9dd1-91e418c65be6");
+    private static final TestObject<ArchetypeType> ARCHETYPE_DOCUMENT = TestObject.file(
+            TEST_DIR, "archetype-document.xml", "ce92f877-9f22-44cf-9ef1-f55675760eb0");
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -63,11 +74,15 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
         super.initSystem(initTask, initResult);
 
         initTestObjects(initTask, initResult,
-                ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER);
+                ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER, ARCHETYPE_DOCUMENT);
 
         RESOURCE_DUMMY_HR.initAndTest(this, initTask, initResult);
         createCommonHrObjects();
         importCostCenters();
+
+        RESOURCE_DUMMY_DMS.initAndTest(this, initTask, initResult);
+        createCommonDmsObjects();
+        importDocuments();
     }
 
     /** These objects should be usable in all tests. */
@@ -110,6 +125,28 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
                 .display();
     }
 
+    /** Temporary. Later we create these objects via midPoint/outbounds. */
+    private void createCommonDmsObjects() {
+        DummyObject jack = dmsScenario.account.add("jack");
+        DummyObject guide = dmsScenario.document.add("guide");
+        DummyObject jackCanReadGuide = dmsScenario.access.add("jack-can-read-guide");
+
+        dmsScenario.accountAccess.add(jack, jackCanReadGuide);
+        dmsScenario.accessDocument.add(jackCanReadGuide, guide);
+    }
+
+    /** Temporary. Later we create all via outbounds. */
+    private void importDocuments() throws Exception {
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_DMS.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.GENERIC, INTENT_DOCUMENT))
+                .withProcessingAllAccounts()
+                .executeOnForeground(getTestOperationResult());
+
+        assertServiceByName("guide", "after")
+                .display();
+    }
+
     @Test
     public void test100GetJohn() throws Exception {
         var task = getTestTask();
@@ -141,7 +178,7 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
         when("john is imported");
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_HR.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "person"))
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
                 .withNameValue("john")
                 .withTracingProfile(createModelAndProvisioningLoggingTracingProfile())
                 .executeOnForeground(result);
@@ -149,4 +186,45 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
         then("john is found");
         assertUserAfterByUsername("john");
     }
+
+    @Test
+    public void test200GetJack() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("john is get");
+        var query = Resource.of(RESOURCE_DUMMY_DMS.get())
+                .queryFor(DummyDmsScenario.Account.OBJECT_CLASS_NAME.xsd())
+                .and().item(DummyDmsScenario.Account.AttributeNames.NAME.path()).eq("jack")
+                .build();
+        var shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+
+        then("jack is found");
+
+        display("shadows", shadows);
+        assertThat(shadows).as("shadows").hasSize(1);
+
+        assertShadowAfter(shadows.get(0))
+                .associations()
+                .association(DummyDmsScenario.Account.LinkNames.ACCESS.q())
+                .assertSize(1);
+    }
+
+    @Test
+    public void test210ImportJack() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("jack is imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_DMS.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
+                .withNameValue("jack")
+                .withTracingProfile(createModelAndProvisioningLoggingTracingProfile())
+                .executeOnForeground(result);
+
+        then("jack is found");
+        assertUserAfterByUsername("jack");
+    }
+
 }

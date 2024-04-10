@@ -28,8 +28,6 @@ import java.io.Serial;
 import java.util.*;
 import java.util.Objects;
 
-import static com.evolveum.midpoint.prism.DefinitionFragmentBuilder.fixed;
-import static com.evolveum.midpoint.prism.DefinitionFragmentBuilder.unsupported;
 import static com.evolveum.midpoint.schema.processor.ResourceSchema.qualifyTypeName;
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
@@ -461,4 +459,18 @@ public class ResourceObjectClassDefinitionImpl
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public @NotNull FocusSpecification getFocusSpecification() {
+        return FocusSpecification.empty();
+    }
+
+    @Override
+    public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+        return List.of();
+    }
+
+    @Override
+    public boolean hasAnyInbounds() {
+        return false;
+    }
 }
