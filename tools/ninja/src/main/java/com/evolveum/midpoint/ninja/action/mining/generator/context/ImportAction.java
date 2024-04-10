@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.ninja.action.mining.generator.context;
 
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
+import static com.evolveum.midpoint.ninja.action.mining.generator.object.InitialObjectsDefinition.getNoiseRolesObjects;
 
 import java.io.IOException;
 import java.util.*;
@@ -85,7 +86,7 @@ public class ImportAction {
         importPlanktonRoles(initialObjectsDefinition, repositoryService, result, log);
         importMultipliedBasicRoles(initialObjectsDefinition, repositoryService, result, log);
         importBusinessRoles(initialObjectsDefinition, repositoryService, result, log);
-        importNoiseRoles(initialObjectsDefinition, repositoryService, result, log);
+        importNoiseRoles(repositoryService, result, log);
         log.info("Initial role objects imported");
     }
 
@@ -151,11 +152,10 @@ public class ImportAction {
     }
 
     private void importNoiseRoles(
-            @NotNull InitialObjectsDefinition initialObjectsDefinition,
             @NotNull RepositoryService repositoryService,
             @NotNull OperationResult result,
             @NotNull Log log) {
-        List<RoleType> rolesObjects = initialObjectsDefinition.getNoiseRolesObjects();
+        List<RoleType> rolesObjects = getNoiseRolesObjects();
         log.info("Importing noise roles: 0/{}", rolesObjects.size());
         for (int i = 0; i < rolesObjects.size(); i++) {
             log.info("Importing noise roles: {}/{}", i + 1, rolesObjects.size());
@@ -587,14 +587,13 @@ public class ImportAction {
      *
      * @param context The Ninja context.
      * @param result The operation result used for tracking the operation.
-     * @param noise
      * @param query The query for searching users.
      * @param options The options for retrieving users.
      * @throws RuntimeException If an error occurs during the process.
      */
     public static void remakeUsersBusinessRoles(@NotNull NinjaContext context,
             @NotNull OperationResult result,
-            GeneratorOptions generatorOptions,
+            @NotNull GeneratorOptions generatorOptions,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
 
@@ -630,9 +629,9 @@ public class ImportAction {
     private static void executeChangesOnUser(
             @NotNull OperationResult result,
             @NotNull PrismObject<UserType> object,
-            GeneratorOptions generatorOptions,
-            RepositoryService repository,
-            Log log) {
+            @NotNull GeneratorOptions generatorOptions,
+            @NotNull RepositoryService repository,
+            @NotNull Log log) {
         String userOid = object.getOid();
         PolyString name = object.getName();
         if (name == null) {
@@ -662,7 +661,7 @@ public class ImportAction {
             List<ItemDelta<?, ?>> modifications = new ArrayList<>();
             try {
 
-                RoleType noiseRole = getNoiseRole(generatorOptions.getAdditionNoise());
+                RoleType noiseRole = getAdditionNoiseRole(generatorOptions.getAdditionNoise());
                 if (noiseRole != null) {
                     modifications.add(PrismContext.get().deltaFor(UserType.class)
                             .item(UserType.F_ASSIGNMENT).add(createRoleAssignment(noiseRole.getOid()))
@@ -670,7 +669,7 @@ public class ImportAction {
                 }
 
                 for (AssignmentType assignmentType : inducement) {
-                    boolean allowed = isExcluded(generatorOptions.getForgetNoise());
+                    boolean allowed = isForgetRole(generatorOptions.getForgetNoise());
                     if (allowed) {
                         continue;
                     }
