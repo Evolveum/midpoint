@@ -102,7 +102,7 @@ public class DateTimePickerOptions implements Serializable {
                         .append(": '")
                         .append(LocalizationUtil.translate("DateTimePickerOptions." + key))
                         .append("', "));
-        sb.append("dayViewHeaderFormat: { month: 'long', year: 'numeric', hour: '2-digit' }, ");
+        sb.append("dayViewHeaderFormat: { month: 'long', year: 'numeric'}, ");
 
         @NotNull Locale locale = LocalizationUtil.findLocale();
         sb.append("locale: '").append(locale.toLanguageTag()).append("', ");
