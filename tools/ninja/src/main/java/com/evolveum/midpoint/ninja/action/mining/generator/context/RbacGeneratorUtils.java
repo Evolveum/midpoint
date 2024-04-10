@@ -262,18 +262,31 @@ public class RbacGeneratorUtils {
         }
     }
 
+
     /**
-     * Resolve chance.
+     * Determines whether a role should be forgotten based on a given chance.
+     * The chance is a percentage value between 0 and 100.
+     * A random number between 0 and 100 is generated and if it's less than the given chance, the method returns true.
      *
-     * @param chance The chance to resolve.
-     * @return True if the chance is resolved, false otherwise.
+     * @param chance The chance (percentage) of forgetting a role.
+     * @return True if the role should be forgotten, false otherwise.
      */
-    public static boolean isExcluded(int chance) {
+    public static boolean isForgetRole(int chance) {
         Random random = new Random();
         return random.nextInt(100) < chance;
     }
 
-    public static @Nullable RoleType getNoiseRole(int chance) {
+    /**
+     * Retrieves an additional noise role based on a given chance.
+     * The chance is a percentage value between 0 and 100.
+     * A random number between 0 and 100 is generated and if it's less than the given chance,
+     * a noise role is selected randomly from the list of noise roles.
+     * If the chance condition is not met or there are no noise roles, the method returns null.
+     *
+     * @param chance The chance (percentage) of getting an additional noise role.
+     * @return A RoleType object representing the additional noise role, or null if no role is selected.
+     */
+    public static @Nullable RoleType getAdditionNoiseRole(int chance) {
         Random random = new Random();
         boolean b = random.nextInt(100) < chance;
         List<RoleType> noiseRolesObjects = getNoiseRolesObjects();
