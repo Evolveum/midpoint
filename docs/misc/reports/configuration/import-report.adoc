@@ -51,7 +51,7 @@ Example below shows report (ReportType) configuration for importing CSV file wit
 .*Import Behavior Example*
 [%collapsible]
 ====
-sampleRef::samples/reports/import/import-report-with-view.xml
+sampleRef::samples/reports/import/import-report-with-view.xml[]
 ====
 
 ////
@@ -295,7 +295,7 @@ Variables _valid_from_ and _valid_to_ are mapped to the properties _activation/v
 .*Import Script Behavior Example*
 [%collapsible]
 ====
-sampleRef::samples/reports/import/report-with-import-script.xml
+sampleRef::samples/reports/import/report-with-import-script.xml[]
 ====
 ////
 TODO
