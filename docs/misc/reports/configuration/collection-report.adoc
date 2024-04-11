@@ -99,6 +99,7 @@ As the result we will see users that have memberships in organization Evolveum a
 
 image::collection-query.png[]
 
+[#_collection_columns]
 === Columns
 
 Columns are defined using `view`.
@@ -165,6 +166,7 @@ Part of standard script evaluator variable set.
 
 |===
 
+[#_collection_parameter]
 === Parameters
 
 There are situation when we want to run report with slightly different settings.
@@ -266,6 +268,7 @@ Expected `List<DisplayableValue>`.
 
 |===
 
+[#_sub_reports]
 === Sub-reports
 
 Sub-report is an expression which can be used when we need to collect additional data for the processed object (row).
