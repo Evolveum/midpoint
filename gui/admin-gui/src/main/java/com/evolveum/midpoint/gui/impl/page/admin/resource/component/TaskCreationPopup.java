@@ -57,12 +57,16 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
         add(templateChoicePanel);
 
         ToggleCheckBoxPanel simulationPanel = new ToggleCheckBoxPanel(ID_SIMULATE,
-                Model.of(false),
+                Model.of(getDefaultSimulationTag()),
                 createStringResource("TaskCreationPopup.simulate.label"),
                 createStringResource("TaskCreationPopup.simulate.tooltip"));
         simulationPanel.setOutputMarkupId(true);
         add(simulationPanel);
 
+    }
+
+    protected boolean getDefaultSimulationTag() {
+        return false;
     }
 
     @SuppressWarnings("all")

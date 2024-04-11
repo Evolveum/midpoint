@@ -59,13 +59,18 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
             steps.add(new TaskResourceObjectsWizardPanel(activityName, getAssignmentHolderModel()));
         }
 
+        boolean isShadowReclassification = WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_SHADOW_RECLASSIFICATION_TASK.value());
         //TODO this is not very clean, should be somehow passed to the wizard
         boolean isSimulationTask = task.getActivity().getExecution() != null && task.getActivity().getExecution().getMode() != null;
         if (isSimulationTask) {
-            steps.add(new TaskExecutionWizardPanel(getAssignmentHolderModel()));
+            steps.add(new TaskExecutionWizardPanel(getAssignmentHolderModel()){
+                @Override
+                protected boolean isShadowSimulation() {
+                    return isShadowReclassification;
+                }
+            });
         }
 
-        boolean isShadowReclassification = WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_SHADOW_RECLASSIFICATION_TASK.value());
         boolean isImport = WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
         if (!isImport) {
             if (isShadowReclassification) {

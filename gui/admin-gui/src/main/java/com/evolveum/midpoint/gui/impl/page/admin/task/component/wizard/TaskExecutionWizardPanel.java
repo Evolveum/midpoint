@@ -59,7 +59,11 @@ public class TaskExecutionWizardPanel extends AbstractFormWizardStepPanel<TaskDe
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return createStringResource("PageTask.wizard.step.execution.subText");
+        return createStringResource(!isShadowSimulation() ? "PageTask.wizard.step.execution.subText" : "PageTask.wizard.step.execution.subText.shadow");
+    }
+
+    protected boolean isShadowSimulation() {
+        return false;
     }
 
     @Override
