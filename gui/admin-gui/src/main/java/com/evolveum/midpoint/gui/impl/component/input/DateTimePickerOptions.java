@@ -18,9 +18,12 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serial;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.time.*;
 import java.time.chrono.IsoChronology;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.FormatStyle;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -104,6 +107,7 @@ public class DateTimePickerOptions implements Serializable {
                         .append("', "));
         sb.append("dayViewHeaderFormat: { month: 'long', year: 'numeric'}, ");
 
+
         @NotNull Locale locale = LocalizationUtil.findLocale();
         sb.append("locale: '").append(locale.toLanguageTag()).append("', ");
 
@@ -117,23 +121,31 @@ public class DateTimePickerOptions implements Serializable {
                 .append(getDateTimeFormatForOption(locale))
                 .append("' ");
 
-        sb.append("}");
+        sb.append("},");
 
+        sb.append("useCurrent: false,");
+        sb.append("viewDate: '" + getCurrentDate(locale) + "'");
         sb.append("}");
         return sb.toString();
     }
 
+    private String getCurrentDate(@NotNull Locale locale) {
+        return LocalDateTime.now().with(LocalTime.MIDNIGHT).format(DateTimeFormatter.ofPattern(getDefaultPattern(locale)));
+    }
+
     public List<String> getDateTimeFormat() {
         @NotNull Locale locale = LocalizationUtil.findLocale();
-        String localizedDatePattern = getDateTimeFormat(locale);
-
-        localizedDatePattern = replaceSpecificCharacters(localizedDatePattern);
+        String localizedDatePattern = getDefaultPattern(locale);
 
         return List.of(
                 replaceSpecificCharacters(localizedDatePattern),
                 replaceSpecificCharacters(((SimpleDateFormat) SimpleDateFormat.getDateInstance(SimpleDateFormat.LONG, locale)).toPattern()),
                 replaceSpecificCharacters(((SimpleDateFormat) SimpleDateFormat.getDateInstance(SimpleDateFormat.SHORT, locale)).toPattern())
         );
+    }
+
+    private String getDefaultPattern(@NotNull Locale locale) {
+        return replaceSpecificCharacters(getDateTimeFormat(locale));
     }
 
     private String replaceSpecificCharacters(String localizedDatePattern) {
