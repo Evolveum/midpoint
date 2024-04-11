@@ -6,17 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
-import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
+import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+
+import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -24,11 +18,20 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.visit.ClassVisitFilter;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-import java.util.List;
-
-import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
-import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 @PanelType(name = "rm-process")
 @PanelInstance(identifier = "rm-process",
@@ -53,8 +56,6 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
 
     }
 
-
-
     @Override
     protected QName getObjectType() {
         return null;
@@ -62,23 +63,22 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
 
     @Override
     protected void onTileClickPerformed(ProcessMode value, AjaxRequestTarget target) {
-
-        try {
-            RoleAnalysisProcessModeType mode;
-            if (value.equals(ProcessMode.ROLE)) {
-                mode = RoleAnalysisProcessModeType.ROLE;
-            } else {
-                mode = RoleAnalysisProcessModeType.USER;
-            }
-
-            getAssignmentHolderDetailsModel().getObjectWrapper().findProperty(RoleAnalysisSessionType.F_PROCESS_MODE).getValue().setRealValue(mode);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
+        RoleAnalysisProcessModeType mode;
+        if (value.equals(ProcessMode.ROLE)) {
+            mode = RoleAnalysisProcessModeType.ROLE;
+        } else {
+            mode = RoleAnalysisProcessModeType.USER;
         }
+
+        PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
+        PrismContainer<Containerable> property = objectWrapper.getObject()
+                .findContainer(RoleAnalysisSessionType.F_ANALYSIS_OPTION);
+
+        property.findProperty(RoleAnalysisOptionType.F_PROCESS_MODE)
+                .setRealValue(mode);
 
         onSubmitPerformed(target);
     }
-
 
     public enum ProcessMode implements TileEnum {
         USER(CLASS_OBJECT_USER_ICON),

@@ -15,9 +15,13 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
+ * TODO merge with {@link com.evolveum.midpoint.schema.validator.ObjectValidator}
+ *  also see {@link com.evolveum.midpoint.schema.validator.ObjectUpgradeValidator}
+ *
  * Utility class that can be used to process objects and remove unwanted items.
  * By default, it removes all operational items and all items marked with optionalCleanup.
  *
@@ -82,44 +86,27 @@ public class CleanupActionProcessor {
     /**
      * Processes object (modifies it) and removes unwanted items.
      */
-    public CleanupResult process(@NotNull PrismObject<?> object, @NotNull Source source) {
+    public CleanupResult process(@NotNull PrismContainer<?> container) {
         CleanupResult result = new CleanupResult();
 
-        processItemRecursively(object, ItemPath.EMPTY_PATH, new HashMap<>(), object, source, result);
+        processItemRecursively(container, ItemPath.EMPTY_PATH, new HashMap<>(), container, result);
 
         return result;
     }
 
-    /**
-     * Processes container value (modifies it) and removes unwanted items.
-     */
-    public CleanupResult process(@NotNull PrismContainerValue<?> containerValue, @NotNull Source source) {
+    public CleanupResult process(@NotNull PrismContainerValue<?> containerValue) {
         CleanupResult result = new CleanupResult();
 
-        if (containerValue.isEmpty()) {
-            return result;
-        }
+        processContainerValue(containerValue, ItemPath.EMPTY_PATH, new HashMap<>(), containerValue, result);
 
-        Map<Item<?, ?>, CleanupPathAction> customItemActions = new HashMap<>();
-
-        final List<Item<?, ?>> toBeRemoved = new ArrayList<>();
-
-        Collection<Item<?, ?>> items = containerValue.getItems();
-        for (Item<?, ?> i : items) {
-            if (processItemRecursively(i, i.getElementName(), customItemActions, null, source, result)) {
-                toBeRemoved.add(i);
-            }
-        }
-
-        items.removeAll(toBeRemoved);
         return result;
     }
 
     private boolean processItemRecursively(
-            Item<?, ?> item, ItemPath currentPath, Map<Item<?, ?>, CleanupPathAction> customItemActions, PrismObject<?> object,
-            Source source, CleanupResult result) {
+            Item<?, ?> item, ItemPath currentPath, Map<Item<?, ?>, CleanupPathAction> customItemActions,
+            Object source, CleanupResult result) {
 
-        boolean remove = processItem(item, currentPath, customItemActions, object, source, result);
+        boolean remove = processItem(item, currentPath, customItemActions, source, result);
         if (remove) {
             return true;
         }
@@ -130,47 +117,59 @@ public class CleanupActionProcessor {
             if (item instanceof PrismProperty<?> property) {
                 if (ProtectedStringType.COMPLEX_TYPE.equals(def.getTypeName())) {
                     fireProtectedStringCleanup(
-                            createEvent(object, currentPath, (PrismProperty<ProtectedStringType>) property, source, result));
+                            createEvent(source, currentPath, (PrismProperty<ProtectedStringType>) property, result));
                 }
             } else if (item instanceof PrismReference) {
                 fireReferenceCleanup(
-                        createEvent(object, currentPath, (PrismReference) item, source, result));
+                        createEvent(source, currentPath, (PrismReference) item, result));
             }
         }
 
         if (item instanceof PrismContainer<?> pc) {
-            boolean emptyBefore = pc.isEmpty();
-
-            final List<Item<?, ?>> toBeRemoved = new ArrayList<>();
+            boolean emptyBefore = pc.hasNoValues();
 
             for (PrismContainerValue<?> value : pc.getValues()) {
-                if (removeContainerIds) {
-                    value.setId(null);
-                }
-
-                Collection<Item<?, ?>> items = value.getItems();
-                for (Item<?, ?> i : items) {
-                    if (processItemRecursively(
-                            i, currentPath.append(i.getElementName()), customItemActions, object, source, result)) {
-                        toBeRemoved.add(i);
-                    }
-                }
-
-                items.removeAll(toBeRemoved);
+                processContainerValue(value, currentPath, customItemActions, source, result);
             }
 
-            return !emptyBefore && item.isEmpty();
+            ItemDefinition<?> def = item.getDefinition();
+            if (MappingType.COMPLEX_TYPE.equals(def.getTypeName())) {
+                fireMissingMappingNameCleanup(
+                        createEvent(source, currentPath, (PrismContainer<MappingType>) item, result));
+            }
+
+            return !emptyBefore && item.hasNoValues();
         }
 
         return false;
+    }
+
+    private void processContainerValue(
+            PrismContainerValue<?> value, ItemPath currentPath, Map<Item<?, ?>, CleanupPathAction> customItemActions,
+            Object source, CleanupResult result) {
+
+        List<Item<?, ?>> toBeRemoved = new ArrayList<>();
+
+        if (removeContainerIds) {
+            value.setId(null);
+        }
+
+        Collection<Item<?, ?>> items = value.getItems();
+        for (Item<?, ?> i : items) {
+            if (processItemRecursively(i, currentPath.append(i.getElementName()), customItemActions, source, result)) {
+                toBeRemoved.add(i);
+            }
+        }
+
+        items.removeAll(toBeRemoved);
     }
 
     /**
      * @return true if item should be removed, false otherwise
      */
     private boolean processItem(
-            Item<?, ?> item, ItemPath currentPath, Map<Item<?, ?>, CleanupPathAction> customItemActions, PrismObject<?> object,
-            Source source, CleanupResult result) {
+            Item<?, ?> item, ItemPath currentPath, Map<Item<?, ?>, CleanupPathAction> customItemActions,
+            Object source, CleanupResult result) {
 
         final ItemDefinition<?> def = item.getDefinition();
         if (def != null) {
@@ -181,7 +180,7 @@ public class CleanupActionProcessor {
         if (customAction != null) {
             return switch (customAction) {
                 case REMOVE -> true;
-                case ASK -> fireConfirmOptionalCleanup(createEvent(object, currentPath, item, source, result));
+                case ASK -> fireConfirmOptionalCleanup(createEvent(source, currentPath, item, result));
                 default -> false;
             };
         }
@@ -191,7 +190,7 @@ public class CleanupActionProcessor {
         }
 
         if (def.isOptionalCleanup()) {
-            return fireConfirmOptionalCleanup(createEvent(object, currentPath, item, source, result));
+            return fireConfirmOptionalCleanup(createEvent(source, currentPath, item, result));
         }
 
         if (def.isOperational()) {
@@ -269,8 +268,8 @@ public class CleanupActionProcessor {
         }
     }
 
-    private <T> CleanupEvent<T> createEvent(PrismObject<?> object, ItemPath path, T item, Source source, CleanupResult result) {
-        return new CleanupEvent<>(object, path, item, source, result);
+    private <T> CleanupEvent<T> createEvent(Object source, ItemPath path, T item, CleanupResult result) {
+        return new CleanupEvent<>(source, path, item, result);
     }
 
     private void fireProtectedStringCleanup(CleanupEvent<PrismProperty<ProtectedStringType>> event) {
@@ -295,5 +294,13 @@ public class CleanupActionProcessor {
         }
 
         return handler.onConfirmOptionalCleanup(event);
+    }
+
+    private void fireMissingMappingNameCleanup(CleanupEvent<PrismContainer<MappingType>> event) {
+        if (handler == null) {
+            return;
+        }
+
+        handler.onMissingMappingNameCleanup(event);
     }
 }

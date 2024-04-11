@@ -10,7 +10,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHol
 
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -29,6 +28,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.google.common.collect.*;
@@ -433,7 +433,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             return SelectorOptions.hasToFetchPathNotRetrievedByDefault(getPath(), options);
         }
 
-        public Multimap<UUID, Tuple> fetchChildren(Collection<UUID> oidList, JdbcSession jdbcSession) throws SchemaException {
+        public Multimap<UUID, Tuple> fetchChildren(Collection<UUID> oidList, JdbcSession jdbcSession, Set<UUID> toMigrate) throws SchemaException {
             Multimap<UUID, Tuple> ret = MultimapBuilder.hashKeys().arrayListValues().build();
 
             var q = mapping.createAlias();
@@ -444,8 +444,12 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                     .orderBy(mapping.orderSpecifier(q));
             for (var row : query.fetch()) {
                 // All assignments should have full object present / legacy assignments should be kept
+                var owner =  mapping.getOwner(row,q);
                 if (mapping.hasFullObject(row,q)) {
-                    ret.put(mapping.getOwner(row,q), row);
+                    ret.put(owner, row);
+                } else {
+                    // Indexed value did not contained full object, we should mark it for reindex
+                    toMigrate.add(owner);
                 }
             }
             return ret;
@@ -485,7 +489,11 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         Map<MObjectType, Set<FullObjectItemMapping>> itemsToFetch = new HashMap<>();
         Multimap<FullObjectItemMapping, UUID> oidsToFetch = HashMultimap.create();
 
+        // Set of objects, which should be reindexed (they are stored without full objects in nested tables)
+        Set<UUID> objectsToReindex = new HashSet<>();
+
         Map<FullObjectItemMapping, Multimap<UUID, PrismValue>> mappingToData = new HashMap<>();
+
         return new ResultListRowTransformer<S, Q, R>() {
 
             @Override
@@ -522,7 +530,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 for (var mapping : mappingToData.entrySet()) {
                     var result = SqlBaseOperationTracker.fetchChildren(mapping.getKey().mapping.tableName());
                     try {
-                        mapping.setValue(mapping.getKey().fetchChildren(oidsToFetch.get(mapping.getKey()), jdbcSession));
+                        mapping.setValue(mapping.getKey().fetchChildren(oidsToFetch.get(mapping.getKey()), jdbcSession, objectsToReindex));
                     } finally {
                         result.close();
                     }
@@ -536,6 +544,12 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 var uuid = tuple.get(entityPath.oid);
                 if (!storeSplitted) {
                     return baseObject;
+                }
+                if (objectsToReindex.contains(uuid)) {
+                    // Object is in legacy form (splitted items does not have full object, reindex is recommended
+                    // This mark is checked during update from original state read by repository
+                    // which forces reindex as part of udpate
+                    baseObject.asPrismObject().setUserData(SqaleUtils.REINDEX_NEEDED, true);
                 }
                 var childrenResult = SqlBaseOperationTracker.parseChildren("all");
                 try {
@@ -564,6 +578,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         return 0;
     }
 
+    @VisibleForTesting
     public void setStoreSplitted(boolean storeSplitted) {
         this.storeSplitted = storeSplitted;
         fullObjectSkips = null; // Needs to be recomputed

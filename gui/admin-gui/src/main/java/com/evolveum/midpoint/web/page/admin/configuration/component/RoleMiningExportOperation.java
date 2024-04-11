@@ -88,7 +88,7 @@ public class RoleMiningExportOperation implements Serializable {
     }
 
     @NotNull
-    private UserType getPreparedUserObject(@NotNull FocusType object, PageBase pageBase) {
+    private UserType getPreparedUserObject(@NotNull UserType object, PageBase pageBase) {
         UserType user = new UserType();
         List<AssignmentType> assignment = object.getAssignment();
         if (assignment == null || assignment.isEmpty()) {
@@ -118,6 +118,13 @@ public class RoleMiningExportOperation implements Serializable {
                 user.getAssignment().add(encryptObjectReference(assignmentObject, securityMode, key));
             }
 
+        }
+
+
+        PolyStringType title = object.getTitle();
+
+        if(title != null){
+            user.setTitle(title);
         }
 
         user.setName(encryptUserName(object.getName().toString(), membersIterator++, nameMode, key));

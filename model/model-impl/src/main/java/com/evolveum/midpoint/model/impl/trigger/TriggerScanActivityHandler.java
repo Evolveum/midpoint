@@ -54,7 +54,7 @@ public class TriggerScanActivityHandler
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(TriggerScanWorkDefinitionType.COMPLEX_TYPE,
-                ImportWorkDefinition.class);
+                TriggerScanWorkDefinition.class);
     }
 
     @Override

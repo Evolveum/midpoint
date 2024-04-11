@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractTemplateChoicePanel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -34,7 +36,7 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_CLOSE = "close";
 
-    private IModel<SynchronizationTaskFlavor> flavorModel;
+    private IModel<SynchronizationTaskFlavor> flavorModel = Model.of();
 
     private Fragment footer;
 
@@ -45,14 +47,6 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
     @Override
     protected void onInitialize() {
         super.onInitialize();
-
-        flavorModel = new LoadableModel<>() {
-            @Override
-            protected SynchronizationTaskFlavor load() {
-                return null;
-            }
-        };
-
         initLayout();
         initFooter();
     }
@@ -145,5 +139,16 @@ public abstract class TaskCreationPopup<T extends Serializable> extends BasePane
 
     protected final IModel<SynchronizationTaskFlavor> getFlavorModel() {
         return flavorModel;
+    }
+
+    protected SynchronizationTaskFlavor determineTaskFlavour(String archetypeOid) {
+        SystemObjectsType taskType = SystemObjectsType.fromValue(archetypeOid);
+        return switch (taskType) {
+            case ARCHETYPE_RECONCILIATION_TASK -> SynchronizationTaskFlavor.RECONCILIATION;
+            case ARCHETYPE_LIVE_SYNC_TASK -> SynchronizationTaskFlavor.LIVE_SYNC;
+            case ARCHETYPE_IMPORT_TASK -> SynchronizationTaskFlavor.IMPORT;
+            case ARCHETYPE_SHADOW_RECLASSIFICATION_TASK -> SynchronizationTaskFlavor.SHADOW_RECLASSIFICATION;
+            default -> null;
+        };
     }
 }

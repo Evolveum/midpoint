@@ -200,7 +200,6 @@ We want report with table of audit events, so we import dashboard report.
 ----
 <report>
     <name>Changes of administrativeStatus(R1) dashboard report</name>
-    <reportEngine>dashboard</reportEngine>
     <dashboard>
         <dashboardRef oid="72b1f98e-f587-4b9f-b92b-72e251da4567" type="DashboardType"/>
     </dashboard>

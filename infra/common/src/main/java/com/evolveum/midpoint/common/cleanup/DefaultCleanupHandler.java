@@ -16,23 +16,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+@SuppressWarnings("unused")
 public class DefaultCleanupHandler implements CleanupHandler {
 
     private static final Trace TRACE = TraceManager.getTrace(DefaultCleanupHandler.class);
@@ -62,30 +60,61 @@ public class DefaultCleanupHandler implements CleanupHandler {
     @Override
     public boolean onConfirmOptionalCleanup(CleanupEvent<Item<?, ?>> event) {
         event.result().getMessages().add(
-                new CleanupMessage(
-                        CleanupMessage.Status.WARNING,
+                new CleanupMessage<>(
+                        CleanupMessage.Type.OPTIONAL_CLEANUP,
                         new SingleLocalizableMessage(
-                                "Optional item '" + event.path() + "' not cleaned up.")));
+                                "Optional item '" + event.path() + "' not cleaned up."),
+                        event.path()));
 
         return false;
     }
 
     @Override
     public void onReferenceCleanup(CleanupEvent<PrismReference> event) {
-        PrismObject<?> object = event.object();
-        if (ResourceType.class.equals(object.getCompileTimeClass())
+        PrismReference ref = event.item();
+        checkMultiValueReferences(ref, event.item().getPath(), event.result());
+
+        Class<?> type = null;
+        if (event.source() instanceof PrismContainerValue val) {
+            type = val.getCompileTimeClass();
+        } else if (event.source() instanceof PrismContainer container) {
+            type = container.getCompileTimeClass();
+        }
+
+        if (ResourceType.class.equals(type)
                 && ResourceType.F_CONNECTOR_REF.equivalent(event.path())) {
 
             processConnectorRef(event);
             return;
         }
 
-        PrismReference ref = event.value();
         if (ref.isEmpty()) {
             return;
         }
 
         ref.getValues().forEach(refValue -> processOtherRef(event, refValue));
+    }
+
+    private void checkMultiValueReferences(PrismReference reference, ItemPath currentPath, CleanupResult result) {
+        PrismReferenceDefinition def = reference.getDefinition();
+        if (def == null || def.isSingleValue()) {
+            return;
+        }
+
+        List<PrismReferenceValue> missingOids = reference.getValues().stream()
+                .filter(v -> StringUtils.isEmpty(v.getOid()))
+                .toList();
+
+        for (PrismReferenceValue value : missingOids) {
+            result.getMessages().add(
+                    new CleanupMessage<>(
+                            CleanupMessage.Type.MULTIVALUE_REF_WITHOUT_OID,
+                            new SingleLocalizableMessage(
+                                    "CleanupActionProcessor.multiValueReferenceWithoutOid",
+                                    new Object[] { currentPath }, String.format("Multi-value reference without oid on path %s", currentPath)),
+                            new ObjectReferenceType().setupReferenceValue(value)
+                    ));
+        }
     }
 
     private void processOtherRef(CleanupEvent<PrismReference> event, PrismReferenceValue refValue) {
@@ -94,6 +123,9 @@ public class DefaultCleanupHandler implements CleanupHandler {
         }
 
         String oid = refValue.getOid();
+        if (oid == null) {
+            return;
+        }
 
         QName typeName = refValue.getTargetType();
         if (typeName == null) {
@@ -107,10 +139,13 @@ public class DefaultCleanupHandler implements CleanupHandler {
         }
 
         event.result().getMessages().add(
-                new CleanupMessage(
-                        CleanupMessage.Status.WARNING,
+                new CleanupMessage<>(
+                        CleanupMessage.Type.MISSING_REFERENCE,
                         new SingleLocalizableMessage(
-                                "Unresolved reference (locally): " + refValue.getOid() + "(" + typeName.getLocalPart() + ").")));
+                                "Unresolved reference (locally): " + refValue.getOid() + "(" + typeName.getLocalPart() + ")."),
+                        new ObjectReferenceType()
+                                .oid(oid)
+                                .type(typeName)));
     }
 
     private void clearOidFromReference(PrismReferenceValue value) {
@@ -120,7 +155,7 @@ public class DefaultCleanupHandler implements CleanupHandler {
     }
 
     private void processConnectorRef(CleanupEvent<PrismReference> event) {
-        PrismReference ref = event.value();
+        PrismReference ref = event.item();
         if (ref.isEmpty()) {
             return;
         }
@@ -136,22 +171,25 @@ public class DefaultCleanupHandler implements CleanupHandler {
             return;
         }
 
+        ObjectReferenceType missingRef = new ObjectReferenceType()
+                .oid(oid)
+                .type(ConnectorType.COMPLEX_TYPE);
+
         try {
             PrismObject<ConnectorType> connector = resolveConnector(oid);
             if (connector == null) {
                 event.result().getMessages().add(
-                        new CleanupMessage(
-                                CleanupMessage.Status.WARNING,
+                        new CleanupMessage<>(
+                                CleanupMessage.Type.MISSING_REFERENCE,
                                 new SingleLocalizableMessage(
-                                        "Unresolved connector reference: Couldn't find connector with oid " + oid + ".")));
+                                        "Unresolved connector reference: Couldn't find connector with oid " + oid + "."),
+                                missingRef));
                 return;
             }
 
             ConnectorType connectorType = connector.asObjectable();
 
-            String resourceXml = event.source().content();
-
-            SearchFilterType searchFilter = createSearchFilterType(resourceXml, connectorType);
+            SearchFilterType searchFilter = createSearchFilterType(connectorType);
             if (searchFilter != null) {
                 val.setFilter(searchFilter);
                 clearOidFromReference(val);
@@ -160,14 +198,15 @@ public class DefaultCleanupHandler implements CleanupHandler {
             TRACE.debug("Couldn't resolve connector reference", ex);
 
             event.result().getMessages().add(
-                    new CleanupMessage(
-                            CleanupMessage.Status.WARNING,
+                    new CleanupMessage<>(
+                            CleanupMessage.Type.MISSING_REFERENCE,
                             new SingleLocalizableMessage(
-                                    "Unresolved connector reference: " + ex.getMessage())));
+                                    "Unresolved connector reference: " + ex.getMessage()),
+                            missingRef));
         }
     }
 
-    private SearchFilterType createSearchFilterType(String resourceXml, ConnectorType connectorType)
+    private SearchFilterType createSearchFilterType(ConnectorType connectorType)
             throws PrismQuerySerialization.NotSupportedException, SchemaException {
 
         S_MatchingRuleEntry filterBuilder = prismContext.queryFor(ConnectorType.class)
@@ -186,23 +225,10 @@ public class DefaultCleanupHandler implements CleanupHandler {
             return prismContext.getQueryConverter().createSearchFilterType(filter);
         }
 
-        PrismNamespaceContext nsCtx = resourceXml != null ?
-                getPrismNamespaceContextForConnectorRef(resourceXml) :
-                PrismNamespaceContext.EMPTY.childDefaultNamespace(SchemaConstantsGenerated.NS_COMMON);
-        String filterText = prismContext.querySerializer().serialize(filter, nsCtx).filterText();
-        SearchFilterType searchFilter = new SearchFilterType();
-        searchFilter.setText(filterText);
-
-        return searchFilter;
-    }
-
-    private PrismNamespaceContext getPrismNamespaceContextForConnectorRef(String resourceXml) throws SchemaException {
-        XNode node = prismContext.parserFor(resourceXml).parseToXNode().getSubnode();
-        if (!(node instanceof MapXNode mapNode)) {
-            return node.namespaceContext();
-        }
-
-        return mapNode.get(ResourceType.F_CONNECTOR_REF).namespaceContext();
+        PrismNamespaceContext nsCtx = PrismNamespaceContext.EMPTY.childDefaultNamespace(SchemaConstantsGenerated.NS_COMMON);
+        return prismContext.querySerializer()
+                .serialize(filter, nsCtx)
+                .toSearchFilterType();
     }
 
     private boolean shouldAddConnectorAvailable() {
@@ -219,10 +245,12 @@ public class DefaultCleanupHandler implements CleanupHandler {
 
     @Override
     public void onProtectedStringCleanup(CleanupEvent<PrismProperty<ProtectedStringType>> event) {
-        PrismProperty<ProtectedStringType> property = event.value();
+        PrismProperty<ProtectedStringType> property = event.item();
         if (property.isEmpty()) {
             return;
         }
+
+        ProtectedStringViolations violations = new ProtectedStringViolations();
 
         List<String> messages = new ArrayList<>();
         for (PrismPropertyValue<ProtectedStringType> value : property.getValues()) {
@@ -233,14 +261,17 @@ public class DefaultCleanupHandler implements CleanupHandler {
 
             if (ps.getEncryptedDataType() != null) {
                 messages.add("encrypted data in " + property.getPath());
+                violations.addEncrypted(property.getPath());
             }
 
             if (ps.getHashedDataType() != null) {
                 messages.add("hashed data in " + property.getPath());
+                violations.addHashed(property.getPath());
             }
 
             if (ps.getClearValue() != null) {
                 messages.add("clear value in " + property.getPath());
+                violations.addClearValue(property.getPath());
             }
         }
 
@@ -249,26 +280,43 @@ public class DefaultCleanupHandler implements CleanupHandler {
         }
 
         event.result().getMessages().add(
-                new CleanupMessage(
-                        CleanupMessage.Status.WARNING,
+                new CleanupMessage<>(
+                        CleanupMessage.Type.PROTECTED_STRING,
                         new SingleLocalizableMessage(
-                                "Protected string: " + StringUtils.join(messages, ", "))));
+                                "Protected string: " + StringUtils.join(messages, ", ")),
+                        violations));
+    }
+
+    @Override
+    public void onMissingMappingNameCleanup(CleanupEvent<PrismContainer<MappingType>> event) {
+        PrismContainer<MappingType> mapping = event.item();
+
+        List<MappingType> unnamed = mapping.getRealValues().stream()
+                .filter(m -> StringUtils.isEmpty(m.getName()))
+                .toList();
+        if (unnamed.isEmpty()) {
+            return;
+        }
+
+        ItemPath currentPath = event.path();
+        for (MappingType m : unnamed) {
+            event.result().getMessages().add(
+                    new CleanupMessage<>(
+                            CleanupMessage.Type.MISSING_MAPPING_NAME,
+                            new SingleLocalizableMessage(
+                                    "CleanupActionProcessor.unnamedMapping",
+                                    new Object[] { currentPath }, String.format("Unnamed mapping on path %s", currentPath)),
+                            m));
+        }
     }
 
     /**
-     * @param type
-     * @param oid
-     * @param <O>
      * @return true if the object reference can be resolved, false otherwise. E.g. file/object is available locally in project.
      */
     protected <O extends ObjectType> boolean canResolveLocalObject(Class<O> type, String oid) {
         return false;
     }
 
-    /**
-     * @param oid
-     * @return
-     */
     protected PrismObject<ConnectorType> resolveConnector(String oid) {
         return null;
     }

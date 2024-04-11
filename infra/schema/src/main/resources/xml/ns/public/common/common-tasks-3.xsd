@@ -1907,6 +1907,13 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="shadowReclassification" type="tns:ShadowReclassificationWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Shadow reclassification specified resource objects.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
                 <xsd:element name="reconciliation" type="tns:ReconciliationWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
@@ -7454,11 +7461,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractWorkDefinitionType">
-                <xsd:sequence>
-                    <xsd:element name="resourceObjects" type="tns:ResourceObjectSetType" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:extension>
+            <xsd:extension base="tns:ResourceWorkDefinitionType"/>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="reconciliationWorkDefinition" type="tns:ReconciliationWorkDefinitionType"/>
@@ -7501,14 +7504,26 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractWorkDefinitionType">
-                <xsd:sequence>
-                    <xsd:element name="resourceObjects" type="tns:ResourceObjectSetType" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:extension>
+            <xsd:extension base="tns:ResourceWorkDefinitionType"/>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="importWorkDefinition" type="tns:ImportWorkDefinitionType"/>
+
+    <xsd:complexType name="ShadowReclassificationWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition for a shadow reclassification activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ResourceWorkDefinitionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="shadowReclassificationWorkDefinition" type="tns:ShadowReclassificationWorkDefinitionType"/>
 
     <xsd:complexType name="LiveSyncWorkDefinitionType">
         <xsd:annotation>
@@ -7521,9 +7536,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractWorkDefinitionType">
+            <xsd:extension base="tns:ResourceWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="resourceObjects" type="tns:ResourceObjectSetType" minOccurs="0"/>
                     <xsd:element name="batchSize" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -7725,6 +7739,26 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="abstractWorkDefinition" type="tns:AbstractWorkDefinitionType" />
+
+    <xsd:complexType name="ResourceWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Marker type for an activity work definition that use resourceObjects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceObjects" type="tns:ResourceObjectSetType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="resourceWorkDefinition" type="tns:ResourceWorkDefinitionType" />
 
     <xsd:complexType name="PropagationWorkDefinitionType">
         <xsd:annotation>

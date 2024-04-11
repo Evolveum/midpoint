@@ -22,6 +22,9 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
+import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +41,6 @@ import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
-import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
@@ -1528,7 +1530,7 @@ public final class WebComponentUtil {
         if (date == null) {
             return null;
         }
-        PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true);
+        DateConverter converter = new DateConverter(getLocalizedDatePattern(style), true);
         return converter.convertToString(date, getCurrentLocale());
     }
 
@@ -3108,7 +3110,7 @@ public final class WebComponentUtil {
         pageBase.showResult(result);
     }
 
-    public static OperationResultStatusPresentationProperties caseOutcomeUriToIcon(String outcome) {
+    public static OperationResultStatusPresentationProperties caseOutcomeUriToPresentation(String outcome) {
         if (outcome == null) {
             return OperationResultStatusPresentationProperties.IN_PROGRESS;
         } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE)) {
@@ -3117,6 +3119,20 @@ public final class WebComponentUtil {
             return OperationResultStatusPresentationProperties.FATAL_ERROR;
         } else {
             return OperationResultStatusPresentationProperties.UNKNOWN;
+        }
+    }
+
+    public static ApprovalOutcomeIcon caseOutcomeUriToIcon(String outcome) {
+        if (outcome == null) {
+            return ApprovalOutcomeIcon.IN_PROGRESS;
+        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE)) {
+            return ApprovalOutcomeIcon.APPROVED;
+        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT)) {
+            return ApprovalOutcomeIcon.REJECTED;
+        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP)) {
+            return ApprovalOutcomeIcon.SKIPPED;
+        } else {
+            return ApprovalOutcomeIcon.UNRECOGNIZED;
         }
     }
 

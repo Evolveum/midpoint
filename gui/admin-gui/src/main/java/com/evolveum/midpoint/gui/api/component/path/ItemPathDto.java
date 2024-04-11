@@ -15,10 +15,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-public class ItemPathDto implements Serializable{
+public class ItemPathDto implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private  QName objectType = FocusType.COMPLEX_TYPE;
+    private QName objectType = FocusType.COMPLEX_TYPE;
 
     private ItemPathDto parentPath;
 
@@ -39,11 +39,16 @@ public class ItemPathDto implements Serializable{
         this.path = itemPathType.getItemPath();
     }
 
+    public ItemPathDto(ItemPath itemPath, ItemDefinition<?> itemDef, QName objectType) {
+        this.path = itemPath;
+        this.itemDef = itemDef;
+        this.objectType = objectType;
+    }
+
     public ItemPathDto(ItemPathDto parentPath) {
         this.parentPath = parentPath;
         this.path = parentPath.toItemPath();
     }
-
 
     public QName getObjectType() {
         return objectType;
@@ -106,7 +111,7 @@ public class ItemPathDto implements Serializable{
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("{ObjectType: [").append("], Parent: [").append(parentPath).append("], ItemDef: [")
-        .append(getItemDef()).append("], Path: [").append(path).append("] }");
+                .append(getItemDef()).append("], Path: [").append(path).append("] }");
         return sb.toString();
     }
 

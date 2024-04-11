@@ -12,9 +12,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -40,6 +37,9 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -134,7 +134,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         }
     }
 
-        @Override
+    @Override
     protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
         return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
                 customColumn, expression, getPageBase()) {
@@ -433,12 +433,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             return createStringResource("MainObjectListPanel.refresh.start").getString();
         };
     }
+
     protected boolean isCreateNewObjectVisible() {
         return !isCollectionViewPanel() || getObjectCollectionView().isApplicableForOperation(OperationTypeType.ADD) ||
                 CollectionUtils.isNotEmpty(getNewObjectInfluencesList());
     }
 
-    @NotNull protected List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
+    @NotNull
+    protected List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
         if (isCollectionViewPanelForCompiledView()) {
             return new ArrayList<>();
         }
