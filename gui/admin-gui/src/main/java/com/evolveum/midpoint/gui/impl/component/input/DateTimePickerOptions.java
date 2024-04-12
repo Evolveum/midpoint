@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.component.input;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
@@ -23,10 +24,7 @@ import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.FormatStyle;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Options that will be used for date time picker in js.
@@ -107,7 +105,6 @@ public class DateTimePickerOptions implements Serializable {
                         .append("', "));
         sb.append("dayViewHeaderFormat: { month: 'long', year: 'numeric'}, ");
 
-
         @NotNull Locale locale = LocalizationUtil.findLocale();
         sb.append("locale: '").append(locale.toLanguageTag()).append("', ");
 
@@ -124,46 +121,65 @@ public class DateTimePickerOptions implements Serializable {
         sb.append("},");
 
         sb.append("useCurrent: false,");
-        sb.append("viewDate: '" + getCurrentDate(locale) + "'");
+
+        sb.append("viewDate: MidPointTheme.createCurrentDateForDatePicker()");
+
         sb.append("}");
         return sb.toString();
     }
 
-    private String getCurrentDate(@NotNull Locale locale) {
-        return LocalDateTime.now().with(LocalTime.MIDNIGHT).format(DateTimeFormatter.ofPattern(getDefaultPattern(locale)));
-    }
-
     public List<String> getDateTimeFormat() {
         @NotNull Locale locale = LocalizationUtil.findLocale();
-        String localizedDatePattern = getDefaultPattern(locale);
+        String localizedDatePattern = getDateTimeFormat(locale);
 
         return List.of(
-                replaceSpecificCharacters(localizedDatePattern),
-                replaceSpecificCharacters(((SimpleDateFormat) SimpleDateFormat.getDateInstance(SimpleDateFormat.LONG, locale)).toPattern()),
-                replaceSpecificCharacters(((SimpleDateFormat) SimpleDateFormat.getDateInstance(SimpleDateFormat.SHORT, locale)).toPattern())
+                getPatternForConverter(localizedDatePattern),
+                getPatternForConverter(
+                        replaceSpecificCharacters(((SimpleDateFormat) SimpleDateFormat.getDateInstance(SimpleDateFormat.LONG, locale)).toPattern())),
+                ((SimpleDateFormat) SimpleDateFormat.getDateInstance(SimpleDateFormat.SHORT, locale)).toPattern()
         );
     }
 
-    private String getDefaultPattern(@NotNull Locale locale) {
-        return replaceSpecificCharacters(getDateTimeFormat(locale));
-    }
-
-    private String replaceSpecificCharacters(String localizedDatePattern) {
+    private String getPatternForConverter(String localizedDatePattern) {
         if (localizedDatePattern.contains("MMMM")) {
             localizedDatePattern = localizedDatePattern.replaceAll("MMMM", "LLLL");
         }
+        return localizedDatePattern;
+    }
 
+    private String replaceSpecificCharacters(String localizedDatePattern) {
         if (!localizedDatePattern.contains("yyyy")) {
             localizedDatePattern = localizedDatePattern.replaceAll("yy", "yyyy");
+        }
+
+        //hack because of issue in js of date picker implementation
+        if (localizedDatePattern.toLowerCase().contains("a")) {
+            if (!localizedDatePattern.toLowerCase().contains("hh")
+                    && localizedDatePattern.toLowerCase().contains("h")) {
+                localizedDatePattern = localizedDatePattern.replaceAll("h", "hh");
+                localizedDatePattern = localizedDatePattern.replaceAll("H", "HH");
+            }
+        } else {
+            if (localizedDatePattern.toLowerCase().contains("hh")) {
+                localizedDatePattern = localizedDatePattern.replaceAll("hh", "h");
+                localizedDatePattern = localizedDatePattern.replaceAll("HH", "H");
+            }
+        }
+
+        //hack because of issue in js of date picker implementation
+        if (!localizedDatePattern.contains("MM")) {
+            localizedDatePattern = localizedDatePattern.replaceAll("M", "MM");
+            if (!localizedDatePattern.contains("dd")) {
+                localizedDatePattern = localizedDatePattern.replaceAll("d", "dd");
+            }
         }
 
         return localizedDatePattern;
     }
 
     private String getDateTimeFormat(@NotNull Locale locale) {
-        String dateFormat = ((SimpleDateFormat) SimpleDateFormat.getDateInstance(SimpleDateFormat.LONG, locale)).toPattern();
-        String timeFormat = ((SimpleDateFormat) SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT, locale)).toPattern();
-        return dateFormat + " " + timeFormat;
+        return replaceSpecificCharacters(((SimpleDateFormat) SimpleDateFormat.getDateTimeInstance(
+                SimpleDateFormat.LONG, SimpleDateFormat.SHORT, locale)).toPattern());
     }
 
     private String getDateTimeFormatForOption(@NotNull Locale locale) {
@@ -182,19 +198,6 @@ public class DateTimePickerOptions implements Serializable {
                 replacingChar = "]";
             } else {
                 replacingChar = "[";
-            }
-        }
-
-        if (dateTimeFormat.toLowerCase().contains("a")) {
-            if (!dateTimeFormat.toLowerCase().contains("hh")
-                    && dateTimeFormat.toLowerCase().contains("h")) {
-                dateTimeFormat = dateTimeFormat.replaceAll("h", "hh");
-                dateTimeFormat = dateTimeFormat.replaceAll("H", "HH");
-            }
-        } else {
-            if (dateTimeFormat.toLowerCase().contains("hh")) {
-                dateTimeFormat = dateTimeFormat.replaceAll("hh", "h");
-                dateTimeFormat = dateTimeFormat.replaceAll("HH", "H");
             }
         }
 
