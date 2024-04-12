@@ -51,6 +51,7 @@ See xref:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status
 * Adding possibility for use 'Preview' button with development configuration on page details.
 * Adding 'Shadow reclassification' task as a new separate activity of the task type.
 ** Adding button for creating simulated/production 'Reclassification' task on unrecognized resource objects panel.
+* New implementation and look of date time picker.
 
 === Releases Of Other Components
 
