@@ -1,5 +1,5 @@
 = Report from Dashboard
-:page-nav-title: Report from Collections
+:page-nav-title: Report from Dashboard
 :page-display-order: 300
 :page-toc: top
 :page-keywords: [ 'report', 'collection' ,'collections' ]
