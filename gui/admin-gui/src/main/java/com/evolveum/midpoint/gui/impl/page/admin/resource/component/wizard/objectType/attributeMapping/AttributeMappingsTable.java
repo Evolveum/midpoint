@@ -91,7 +91,12 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                 }
                 newValueWrapper = WebPrismUtil.createNewValueWrapper(wrapper, newValue, getPageBase(), target);
             } else {
-                newValueWrapper = wrapper.getValue();
+                if (value == null) {
+                    newValueWrapper = wrapper.getValue();
+                } else {
+                    wrapper.getValues().clear();
+                    newValueWrapper = WebPrismUtil.createNewValueWrapper(wrapper, value, getPageBase(), target);
+                }
             }
 
             newValueWrapper.findProperty(MappingType.F_STRENGTH).getValue().setRealValue(MappingStrengthType.STRONG);

@@ -2,7 +2,7 @@
 midpoint-feature: reporting
 doc-type: intro
 ---
-= MidPoint Reports
+= Reports
 :page-nav-title: Reports
 :page-wiki-name: Reporting
 :page-wiki-id: 655423
