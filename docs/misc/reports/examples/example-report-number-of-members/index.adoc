@@ -6,129 +6,41 @@
 :page-wiki-metadata-create-date: 2020-05-04T12:41:02.412+02:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-07-27T09:14:49.594+02:00
+:page-upkeep-status: green
 
 Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables.
 
 
-== Usecase
+== Example use-case
 
-Administrator needs display all roles with number of members.
-
+Administrator needs to display all roles with the number of their members.
 
 == Configuration
 
-As first we need configure object collection for all roles.
+As the first step we need to configure an object collection for all roles.
 
-.Object collection
-[source,xml]
-----
-<objectCollection oid="72b1f98e-f587-4b9f-b92b-72e251dbb255">
-    <name>All roles</name>
-    <type>RoleType</type>
-    <filter>
-        <all/>
-    </filter>
-</objectCollection>
+.*Example Object Collection*
+[%collapsible]
+====
+sampleRef::samples/objectCollection/all-roles.xml[]
+====
 
+We want a report with table of roles for this we configure the report definition.
 
-----
+.*Example Report Configuration*
+[%collapsible]
+====
+sampleRef::samples/reports/roles-and-members.xml[]
+====
 
-When we have object collection, then import Dashboard object with widget for our object collection.
+Now we can run the report in the report menu, and download the report.
 
-.Dashboard
-[source,xml]
-----
-<dashboard oid="72b1f98e-f587-4b9f-b92b-72e251da2345">
-    <name>role-dashboard</name>
-    <display>
-        <label>Role dashboard</label>
-    </display>
-    <widget>
-        <identifier>roles</identifier>
-        <display>
-            <label>Number of roles</label>
-            <color>#00a65a</color>
-            <icon>
-                <cssClass>fe fe-role_icon</cssClass>
-            </icon>
-        </display>
-        <data>
-            <sourceType>objectCollection</sourceType>
-            <collection>
-                <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb255" type="ObjectCollectionType"/>
-            </collection>
-        </data>
-        <presentation>
-            <dataField>
-                <fieldType>value</fieldType>
-                <expression>
-                    <proportional>
-                        <style>value-only</style>
-                    </proportional>
-                </expression>
-            </dataField>
-            <dataField>
-                <fieldType>unit</fieldType>
-                <expression>
-                    <value>roles</value>
-                </expression>
-            </dataField>
-            <view>
-                <column>
-                    <name>nameColumn</name>
-                    <path>name</path>
-                    <display>
-                        <label>Name</label>
-                    </display>
-                </column>
-                <column>
-                    <name>members</name>
-                    <display>
-                        <label>Members</label>
-                    </display>
-                    <previousColumn>nameColumn</previousColumn>
-					<export>
-                    	<expression>
-                        	<script>
-                            	<code>
-                                	import com.evolveum.midpoint.prism.query.*
-                                	import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+== See Also
 
-                                	query = prismContext.queryFor(UserType.class).item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF).ref(object.getOid()).build();
-
-                                	objects = midpoint.searchObjects(UserType.class, query)
-                                	return objects.size();
-                          		</code>
-                        	</script>
-                    	</expression>
-					</export>
-                </column>
-            </view>
-        </presentation>
-    </widget>
-</dashboard>
-----
-
-After successful import of dashboard object and reload of page you can see dashboard in menu *Dashboards* > *Role dashboard*.
-
-We want report with table of roles, so we import dashboard report.
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/concepts/query/#reference-query[Reference Query]
 
 
-.Report
-[source,xml]
-----
-<report>
-    <name>Roles dashboard report</name>
-    <dashboard>
-        <dashboardRef oid="72b1f98e-f587-4b9f-b92b-72e251da2345" type="DashboardType"/>
-    </dashboard>
-</report>
-----
-
-Now we can run report in report menu, show task, and download report.
-Every report from dashboard is in HTML format.
-
-
-Report:
-
-image::image2020-5-4_12-56-18.png[]

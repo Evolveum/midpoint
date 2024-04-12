@@ -57,7 +57,12 @@ To do this add the example text into the following xml container:
 [source.xml]
 ----
     <collection>
-        <!--Add the filter here-->
+        <filter>
+            <text>
+                        <!--Add the filter here-->
+            </text>
+        </filter>
+
             <baseCollectionRef>
                     .....
             </baseCollectionRef>
@@ -71,10 +76,8 @@ After the collection is added
 The name of the parameter will be *'resource'* , so we have to use it in the collection filter.
 
 .Filter
-[source,xml]
+[source,midpoint-query]
 ----
-<filter>
-    <q:text>
 . type ShadowType and resourceRef = yaml```
 expression:
   queryInterpretationOfNoValue: "filterAll"
@@ -90,7 +93,35 @@ expression:
         ort.setRelation(resource.getRelation());
         ort.setType(resource.getTargetType());
         return ort;
-```</q:text>
+```
+----
+
+[source,xml]
+----
+<filter xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <q:ref>
+        <q:path>resourceRef</q:path>
+        <expression>
+            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+            <script>
+                <objectVariableMode>prismReference</objectVariableMode>
+                <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+                    if (!resource) {
+                        return null;
+                    }
+
+                    ObjectReferenceType ort = new ObjectReferenceType();
+                    ort.setOid(resource.getOid());
+                    ort.setRelation(resource.getRelation());
+                    ort.setType(resource.getTargetType());
+                    return ort;
+                </code>
+            </script>
+        </expression>
+    </q:ref>
 </filter>
 ----
 
