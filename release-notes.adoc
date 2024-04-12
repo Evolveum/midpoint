@@ -36,6 +36,9 @@ TODO
 ** Removed upper record limit for  reports for Assignments, Certfication Cases, Certification Work items and others.
 ** Changed transaction isolation from READ_COMMITED to REPEATABLE_READ.
 ** Changed storage strategy for complex container types - actual data stored inside their own table istead of parent object JSON.
+* Added support for external data in protected strings, that can be resolved via secrets providers.
+This allows to store secrets in external systems, such as HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, etc.
+For more information see xref:/midpoint/reference//security/credentials/secrets-provider-configuration.adoc[].
 
 === Other Improvements
 
