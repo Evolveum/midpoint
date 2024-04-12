@@ -6,7 +6,7 @@
 :page-wiki-metadata-create-date: 2020-08-18T15:06:52.473+02:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-09-07T09:26:13.342+02:00
-:page-upkeep-status: Green
+:page-upkeep-status: green
 
 Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
 
