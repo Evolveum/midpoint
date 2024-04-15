@@ -461,8 +461,8 @@ public class TestRefinedSchema extends AbstractUnitTest {
     private void assertAttributeDefs(ResourceAttributeContainerDefinition attrsDef, LayerType sourceLayer, LayerType validationLayer) {
         assertNotNull("Null account definition", attrsDef);
         assertEquals("AccountObjectClass", attrsDef.getComplexTypeDefinition().getTypeName().getLocalPart());
-        assertEquals("Wrong objectclass in the definition of <attributes> definition in account", ResourceObjectTypeDefinitionImpl.class, attrsDef.getComplexTypeDefinition().getClass());
-        ResourceObjectTypeDefinition rAccount = (ResourceObjectTypeDefinition) attrsDef.getComplexTypeDefinition();
+        assertThat(attrsDef.getComplexTypeDefinition()).isInstanceOf(ShadowAttributesComplexTypeDefinition.class);
+        var rAccount = attrsDef.getComplexTypeDefinition().getResourceObjectDefinition();
         assertRObjectClassDef(rAccount, sourceLayer, validationLayer);
     }
 
