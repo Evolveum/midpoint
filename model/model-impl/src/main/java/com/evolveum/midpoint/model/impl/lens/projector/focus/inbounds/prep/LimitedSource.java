@@ -43,7 +43,7 @@ class LimitedSource extends MSource {
                 ctx.getResourceObjectDelta(),
                 ctx.getObjectDefinitionRequired(),
                 ctx.getInboundDefinition(),
-                null);
+                ctx.getOwningAssociationDefinition());
         this.ctx = ctx;
     }
 

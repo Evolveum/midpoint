@@ -8,8 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,8 +18,6 @@ import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -52,6 +49,8 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
 
     @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
 
+    @Nullable private final ShadowAssociationDefinition owningAssociationDefinition;
+
     public SimplePreInboundsContextImpl(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull ResourceType resource,
@@ -59,7 +58,8 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
             @Nullable SystemConfigurationType systemConfiguration,
             @NotNull Task task,
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull ResourceObjectInboundDefinition inboundDefinition) {
+            @NotNull ResourceObjectInboundDefinition inboundDefinition,
+            @Nullable ShadowAssociationDefinition owningAssociationDefinition) {
         this.shadowedResourceObject = shadowedResourceObject;
         this.resource = resource;
         this.preFocus = preFocus;
@@ -67,6 +67,7 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
         this.task = task;
         this.objectDefinition = objectDefinition;
         this.inboundDefinition = inboundDefinition;
+        this.owningAssociationDefinition = owningAssociationDefinition;
     }
 
     @Override
@@ -105,6 +106,11 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
     @Override
     public @NotNull ResourceObjectInboundDefinition getInboundDefinition() {
         return inboundDefinition;
+    }
+
+    @Override
+    public @Nullable ShadowAssociationDefinition getOwningAssociationDefinition() {
+        return owningAssociationDefinition;
     }
 
     @Override

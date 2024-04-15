@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
@@ -66,7 +68,9 @@ public class PreMappingsEvaluation<T extends Containerable> {
                 PrismContext.get().createObjectable(focusClass),
                 ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                 task,
-                objectTypeDefinition, objectTypeDefinition);
+                objectTypeDefinition,
+                objectTypeDefinition,
+                null);
         new PreMappingsEvaluation<>(preInboundsContext)
                 .evaluate(result);
         return preInboundsContext.getPreFocus();
@@ -89,7 +93,8 @@ public class PreMappingsEvaluation<T extends Containerable> {
                 ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                 task,
                 associationValue.getAssociatedObjectDefinition(),
-                inboundDefinition);
+                inboundDefinition,
+                (ShadowAssociationDefinition) associationValue.getDefinition());
         new PreMappingsEvaluation<>(preInboundsContext)
                 .evaluate(result);
     }

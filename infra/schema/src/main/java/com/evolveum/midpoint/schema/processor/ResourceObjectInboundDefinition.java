@@ -226,7 +226,8 @@ public interface ResourceObjectInboundDefinition {
 
         @Override
         public boolean hasAnyInbounds() {
-            return itemDefinitionsMap.values().stream()
+            return associationValueInboundDefinition != null
+                    || itemDefinitionsMap.values().stream()
                     .anyMatch(def -> !def.getInboundMappingBeans().isEmpty());
         }
 
