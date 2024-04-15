@@ -17,6 +17,8 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +55,11 @@ public interface PreInboundsContext<T extends Containerable>
     @NotNull ResourceObjectDefinition getObjectDefinitionRequired() throws SchemaException, ConfigurationException;
 
     @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException;
+
+    // TODO
+    default @Nullable ShadowAssociationDefinition getOwningAssociationDefinition() {
+        return null;
+    }
 
     /** Returns the archetype OID bound to the object type. Archetypes determined from the focus itself are not returned here. */
     @Nullable String getArchetypeOid();

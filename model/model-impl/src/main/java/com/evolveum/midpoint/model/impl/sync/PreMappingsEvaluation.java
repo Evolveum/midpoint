@@ -19,8 +19,8 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -73,8 +73,8 @@ public class PreMappingsEvaluation<T extends Containerable> {
     }
 
     // FIXME TEMPORARY
-    public static <C extends Containerable> void computePreFocusTemporary(
-            @NotNull AbstractShadow shadowedResourceObject,
+    public static <C extends Containerable> void computePreFocusForAssociationValue(
+            @NotNull ShadowAssociationValue associationValue,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull ResourceType resource,
             @NotNull C targetObject,
@@ -83,12 +83,12 @@ public class PreMappingsEvaluation<T extends Containerable> {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         SimplePreInboundsContextImpl<C> preInboundsContext = new SimplePreInboundsContextImpl<>(
-                shadowedResourceObject.getBean(),
+                associationValue.getShadowBean(),
                 resource,
                 targetObject,
                 ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                 task,
-                shadowedResourceObject.getObjectDefinition(),
+                associationValue.getAssociatedObjectDefinition(),
                 inboundDefinition);
         new PreMappingsEvaluation<>(preInboundsContext)
                 .evaluate(result);

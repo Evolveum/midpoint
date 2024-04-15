@@ -102,7 +102,8 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                         projectionContext.getCompositeObjectDefinition(),
                         projectionContext.getCompositeObjectDefinition(),
                         projectionContext,
-                        context),
+                        context,
+                        null),
                 new FullTarget<>(lensContext, focus, focusDefinition, itemDefinitionMap, ItemPath.EMPTY_PATH),
                 context);
     }
@@ -409,8 +410,8 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException {
             var target = instantiateTargetObject();
-            PreMappingsEvaluation.computePreFocusTemporary(
-                    associationValue.getShadow(),
+            PreMappingsEvaluation.computePreFocusForAssociationValue(
+                    associationValue,
                     inboundDefinition,
                     projectionContext.getResourceRequired(),
                     target,
@@ -559,7 +560,8 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                     associationValue.getAssociatedObjectDefinition(),
                     inboundDefinition,
                     projectionContext,
-                    context);
+                    context,
+                    associationDefinition);
             child(childSource, focusItemPath.append(id))
                     .collectOrEvaluate(result);
         }

@@ -11,12 +11,14 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -54,6 +56,10 @@ public interface ResourceObjectInboundDefinition {
 
     // TEMPORARY FIXME define the semantics
     boolean hasAnyInbounds();
+
+    default @Nullable ItemInboundDefinition getAssociationValueInboundDefinition() {
+        return null;
+    }
 
     interface ItemInboundDefinition {
 
@@ -123,16 +129,27 @@ public interface ResourceObjectInboundDefinition {
 
         @NotNull private final Collection<SynchronizationReactionDefinition> synchronizationReactionDefinitions;
 
+        /** This is the inbound provided by "ref = '.'", i.e., related to the association value itself. */
+        @Nullable private final ItemInboundDefinition associationValueInboundDefinition;
+
         AssociationBasedImplementation(@NotNull ShadowAssociationTypeNewDefinitionType definitionBean) {
             this.definitionBean = definitionBean;
             for (var itemDefBean : definitionBean.getAttribute()) {
                 var itemName = ItemPathTypeUtil.asSingleNameOrFail(itemDefBean.getRef()); // TODO error handling
                 itemDefinitionsMap.put(itemName, new BeanBasedItemImplementation(itemDefBean));
             }
+            Collection<ItemInboundDefinition> associationValueInbounds = new ArrayList<>();
             for (var itemDefBean : definitionBean.getAssociation()) {
-                var itemName = ItemPathTypeUtil.asSingleNameOrFail(itemDefBean.getRef()); // TODO error handling
-                itemDefinitionsMap.put(itemName, new BeanBasedItemImplementation(itemDefBean));
+                // TODO error handling
+                var itemPath = itemDefBean.getRef().getItemPath();
+                BeanBasedItemImplementation value = new BeanBasedItemImplementation(itemDefBean);
+                if (itemPath.isEmpty()) {
+                    associationValueInbounds.add(value);
+                } else {
+                    itemDefinitionsMap.put(itemPath.asSingleNameOrFail(), value);
+                }
             }
+            associationValueInboundDefinition = MiscUtil.extractSingleton(associationValueInbounds);
             synchronizationReactionDefinitions =
                     SynchronizationReactionDefinition.modern(
                             definitionBean.getSynchronization());
@@ -211,6 +228,11 @@ public interface ResourceObjectInboundDefinition {
         public boolean hasAnyInbounds() {
             return itemDefinitionsMap.values().stream()
                     .anyMatch(def -> !def.getInboundMappingBeans().isEmpty());
+        }
+
+        @Override
+        public @Nullable ItemInboundDefinition getAssociationValueInboundDefinition() {
+            return associationValueInboundDefinition;
         }
     }
 

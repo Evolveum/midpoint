@@ -201,6 +201,10 @@ public class CorrelationItem implements DebugDumpable {
             return builder
                     .item(searchSpec.itemPath, searchSpec.itemDef)
                     .fuzzyString(convertToString(searchSpec.value), fuzzyMatchingMethod);
+        } else if (searchSpec.value instanceof Referencable referencable) {
+            return builder
+                    .item(searchSpec.itemPath, searchSpec.itemDef)
+                    .ref(referencable.asReferenceValue().clone());
         } else {
             return builder
                     .item(searchSpec.itemPath, searchSpec.itemDef)

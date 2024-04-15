@@ -5,7 +5,6 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-
 <resource oid="a817af1e-a1ef-4dcf-aab4-04e266c93e74"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -37,7 +36,7 @@
             <kind>account</kind>
             <intent>default</intent>
             <delineation>
-                <objectClass>ri:CustomuserObjectClass</objectClass>
+                <objectClass>ri:AccountObjectClass</objectClass>
             </delineation>
             <focus>
                 <type>UserType</type>
@@ -60,6 +59,12 @@
             </attribute>
             <synchronization>
                 <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
                     <situation>unlinked</situation>
                     <actions>
                         <link/>
@@ -71,10 +76,10 @@
             <kind>entitlement</kind>
             <intent>group</intent>
             <delineation>
-                <objectClass>ri:CustommyGroupObjectClass</objectClass>
+                <objectClass>ri:GroupObjectClass</objectClass>
             </delineation>
             <focus>
-                <type>OrgType</type>
+                <type>RoleType</type>
             </focus>
             <attribute>
                 <ref>icfs:name</ref>
@@ -102,7 +107,8 @@
             </synchronization>
         </objectType>
         <associationTypeNew>
-            <name>groupMembership</name>
+            <name>userGroupMembership</name>
+            <!-- Where the processing starts -->
             <subject>
                 <objectType>
                     <kind>account</kind>
@@ -111,6 +117,7 @@
                 <item>ri:group</item>
             </subject>
             <focus>
+                <item>assignment</item>
                 <subtype>groupMembership</subtype>
             </focus>
             <association>
@@ -121,24 +128,14 @@
                     </expression>
                 </outbound>
                 <inbound>
-                    <source>
-                        <path>attributes/level</path>
-                    </source>
                     <expression>
+                        <!--<referencedShadowOwner/>-->
                         <referenceSearch>
                             <targetType>OrgType</targetType>
                             <filter>
                                 <q:text>linkRef = `input.shadowRef`</q:text>
                             </filter>
                         </referenceSearch>
-                        <!--<inbound>-->
-                        <!--    <expression>-->
-                        <!--        <referencedShadowOwner/>-->
-                        <!--    </expression>-->
-                        <!--    <target>-->
-                        <!--        <path>targetRef</path>-->
-                        <!--    </target>-->
-                        <!--</inbound>-->
                     </expression>
                     <target>
                         <path>targetRef</path>

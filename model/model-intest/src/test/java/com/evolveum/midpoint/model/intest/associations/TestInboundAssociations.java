@@ -46,8 +46,11 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
     private static final String INTENT_DEFAULT = "default";
     private static final String INTENT_DOCUMENT = "document";
 
+    private static final String INTENT_GROUP = "group";
+
     private static DummyHrScenarioExtended hrScenario;
     private static DummyDmsScenario dmsScenario;
+    private static DummyAdTrivialScenario adScenario;
 
     private static final DummyTestResource RESOURCE_DUMMY_HR = new DummyTestResource(
             TEST_DIR, "resource-dummy-hr.xml", "ded54130-8ce5-4c8d-ac30-c3bf4fc82337", "hr",
@@ -56,6 +59,10 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
     private static final DummyTestResource RESOURCE_DUMMY_DMS = new DummyTestResource(
             TEST_DIR, "resource-dummy-dms.xml", "d77da617-ee78-46f7-8a15-cde88193308d", "dms",
             c -> dmsScenario = DummyDmsScenario.on(c).initialize());
+
+    private static final DummyTestResource RESOURCE_DUMMY_AD = new DummyTestResource(
+            TEST_DIR, "resource-dummy-ad.xml", "a817af1e-a1ef-4dcf-aab4-04e266c93e74", "ad",
+            c -> adScenario = DummyAdTrivialScenario.on(c).initialize());
 
     private static final TestObject<ArchetypeType> ARCHETYPE_PERSON = TestObject.file(
             TEST_DIR, "archetype-person.xml", "184a5aa5-3e28-46c7-b9ed-a1dabaacc11d");
@@ -83,6 +90,10 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
         RESOURCE_DUMMY_DMS.initAndTest(this, initTask, initResult);
         createCommonDmsObjects();
         importDocuments();
+
+        RESOURCE_DUMMY_AD.initAndTest(this, initTask, initResult);
+        createCommonAdObjects();
+        importGroups();
     }
 
     /** These objects should be usable in all tests. */
@@ -144,6 +155,26 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
                 .executeOnForeground(getTestOperationResult());
 
         assertServiceByName("guide", "after")
+                .display();
+    }
+
+    /** Temporary. Later we create these objects via midPoint/outbounds. */
+    private void createCommonAdObjects() {
+        DummyObject jim = adScenario.account.add("jim");
+        DummyObject administrators = adScenario.group.add("administrators");
+
+        adScenario.accountGroup.add(jim, administrators);
+    }
+
+    /** Temporary. Later we create all via outbounds. */
+    private void importGroups() throws Exception {
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ENTITLEMENT, INTENT_GROUP))
+                .withProcessingAllAccounts()
+                .executeOnForeground(getTestOperationResult());
+
+        assertRoleByName("administrators", "after")
                 .display();
     }
 
@@ -227,4 +258,43 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
         assertUserAfterByUsername("jack");
     }
 
+    @Test
+    public void test300GetJim() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("jim is get");
+        var query = Resource.of(RESOURCE_DUMMY_AD.get())
+                .queryFor(DummyAdTrivialScenario.Account.OBJECT_CLASS_NAME.xsd())
+                .and().item(DummyAdTrivialScenario.Account.AttributeNames.NAME.path()).eq("jim")
+                .build();
+        var shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+
+        then("jim is found");
+
+        display("shadows", shadows);
+        assertThat(shadows).as("shadows").hasSize(1);
+
+        assertShadowAfter(shadows.get(0))
+                .associations()
+                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .assertSize(1);
+    }
+
+    @Test
+    public void test310ImportJim() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("jack is imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
+                .withNameValue("jim")
+                .withTracingProfile(createModelAndProvisioningLoggingTracingProfile())
+                .executeOnForeground(result);
+
+        then("jim is found");
+        assertUserAfterByUsername("jim");
+    }
 }

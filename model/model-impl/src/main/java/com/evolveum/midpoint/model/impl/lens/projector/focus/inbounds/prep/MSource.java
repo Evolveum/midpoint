@@ -16,8 +16,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
-import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAssociation;
+import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -34,8 +33,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.PropertyLimitations;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -77,15 +74,20 @@ abstract class MSource implements DebugDumpable {
 
     @NotNull final ResourceObjectInboundDefinition inboundDefinition;
 
+    // TODO
+    @Nullable private final ShadowAssociationDefinition owningAssociationDefinition;
+
     MSource(
             @Nullable ShadowType currentShadow,
             @Nullable ObjectDelta<ShadowType> aPrioriDelta,
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull ResourceObjectInboundDefinition inboundDefinition) {
+            @NotNull ResourceObjectInboundDefinition inboundDefinition,
+            @Nullable ShadowAssociationDefinition owningAssociationDefinition) {
         this.currentShadow = asPrismObject(currentShadow);
         this.aPrioriDelta = aPrioriDelta;
         this.resourceObjectDefinition = resourceObjectDefinition;
         this.inboundDefinition = inboundDefinition;
+        this.owningAssociationDefinition = owningAssociationDefinition;
     }
 
     /**
@@ -272,4 +274,8 @@ abstract class MSource implements DebugDumpable {
     abstract @Nullable IdentityItemConfiguration getIdentityItemConfiguration(@NotNull ItemPath itemPath) throws ConfigurationException;
 
     abstract ItemPath determineTargetPathExecutionOverride(ItemPath targetItemPath) throws ConfigurationException, SchemaException;
+
+    public @Nullable ShadowAssociationDefinition getOwningAssociationDefinition() {
+        return owningAssociationDefinition;
+    }
 }

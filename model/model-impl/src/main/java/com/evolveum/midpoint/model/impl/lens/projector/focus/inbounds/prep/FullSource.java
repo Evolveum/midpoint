@@ -25,12 +25,9 @@ import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.PropertyLimitations;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -69,8 +66,14 @@ class FullSource extends MSource {
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull LensProjectionContext projectionContext,
-            @NotNull Context context) throws ConfigurationException {
-        super(asObjectable(currentShadow), aPrioriDelta, resourceObjectDefinition, inboundDefinition);
+            @NotNull Context context,
+            @Nullable ShadowAssociationDefinition owningAssociationDefinition) throws ConfigurationException {
+        super(
+                asObjectable(currentShadow),
+                aPrioriDelta,
+                resourceObjectDefinition,
+                inboundDefinition,
+                owningAssociationDefinition);
         this.projectionContext = projectionContext;
         this.context = context;
         this.identityManagementConfiguration = getFocusContext().getIdentityManagementConfiguration();
