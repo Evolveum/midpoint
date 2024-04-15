@@ -57,6 +57,10 @@ public class ResourceObjectSetUtil {
         if (!Objects.isNull(work.getImport()) && !Objects.isNull(work.getImport().getResourceObjects())){
             return work.getImport().getResourceObjects();
         }
+
+        if (!Objects.isNull(work.getShadowReclassification()) && !Objects.isNull(work.getShadowReclassification().getResourceObjects())){
+            return work.getShadowReclassification().getResourceObjects();
+        }
         return null;
     }
 }
