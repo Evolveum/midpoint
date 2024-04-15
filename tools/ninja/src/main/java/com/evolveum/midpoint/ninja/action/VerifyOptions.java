@@ -12,6 +12,9 @@ import java.util.List;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import com.evolveum.midpoint.schema.validator.ValidationItemType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.util.EnumConverterValidator;

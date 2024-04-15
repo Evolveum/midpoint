@@ -6,22 +6,20 @@
  */
 package com.evolveum.midpoint.schema.validator;
 
-import java.io.File;
+import static org.testng.AssertJUnit.*;
 
+import java.io.File;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -177,32 +175,31 @@ public class TestObjectValidator extends AbstractSchemaTest {
 //                ItemPath.create(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES, MultiplicityPolicyConstraintType.F_ENFORCEMENT));
 //    }
 
-
     private ObjectValidator createValidator() {
-        return new ObjectValidator(PrismTestUtil.getPrismContext());
+        return new ObjectValidator();
     }
 
     private void assertWarnings(ValidationResult validationResult, Object... expectedItems) {
         for (Object expectedItem : expectedItems) {
             ItemPath expectedPath;
             if (expectedItem instanceof ItemPath) {
-                expectedPath = (ItemPath)expectedItem;
+                expectedPath = (ItemPath) expectedItem;
             } else if (expectedItem instanceof QName) {
                 expectedPath = ItemPath.create(expectedItem);
             } else {
-                throw new IllegalArgumentException("What? "+expectedItem);
+                throw new IllegalArgumentException("What? " + expectedItem);
             }
             ValidationItem valItem = findItem(validationResult, expectedPath);
-            assertNotNull("No validation item for "+expectedPath, valItem);
-            assertEquals("Wrong status in "+valItem, OperationResultStatus.WARNING, valItem.getStatus());
-            PrismAsserts.assertPathEquivalent("Wrong path in "+valItem, expectedPath, valItem.getItemPath());
+            assertNotNull("No validation item for " + expectedPath, valItem);
+            assertEquals("Wrong status in " + valItem, ValidationItemStatus.WARNING, valItem.status());
+            PrismAsserts.assertPathEquivalent("Wrong path in " + valItem, expectedPath, valItem.path());
         }
         assertEquals("Unexpected size of validation result", expectedItems.length, validationResult.size());
     }
 
     private ValidationItem findItem(ValidationResult validationResult, ItemPath expectedPath) {
         for (ValidationItem valItem : validationResult.getItems()) {
-            if (expectedPath.equivalent(valItem.getItemPath())) {
+            if (expectedPath.equivalent(valItem.path())) {
                 return valItem;
             }
         }
