@@ -31,6 +31,7 @@ public class SchemaPropertyWrapperImpl extends PrismPropertyValueWrapper<SchemaD
     public static final String F_NAMESPACE = "namespace";
 
     private String oldValue;
+
     private String namespace;
     private Collection<? extends Definition> definitions;
 

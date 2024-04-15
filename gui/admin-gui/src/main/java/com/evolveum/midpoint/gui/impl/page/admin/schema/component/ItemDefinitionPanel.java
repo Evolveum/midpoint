@@ -15,6 +15,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
@@ -22,10 +23,19 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import javax.xml.namespace.QName;
+
 public class ItemDefinitionPanel extends BasePanel<ItemDefinitionDto> implements Popupable {
 
+    private final boolean isCreate;
+
     public ItemDefinitionPanel(String id, IModel<ItemDefinitionDto> model) {
+        this(id, model, false);
+    }
+
+    public ItemDefinitionPanel(String id, IModel<ItemDefinitionDto> model, boolean isCreate) {
         super(id, model);
+        this.isCreate = isCreate;
     }
 
     @Override
@@ -35,6 +45,13 @@ public class ItemDefinitionPanel extends BasePanel<ItemDefinitionDto> implements
     }
 
     protected void initLayout() {
+        TextPanel<String> itemName = new TextPanel<>("name", new PropertyModel<>(getModel(), ItemDefinitionDto.F_NAME));
+        itemName.add(new EnableBehaviour(() -> isCreate));
+        add(itemName);
+        //TODO support for type
+//        TextPanel<QName> typeName = new TextPanel<>("typeName", new PropertyModel<>(getModel(), ItemDefinitionDto.F_TYPE));
+//        typeName.add(new EnableBehaviour(() -> isCreate));
+//        add(typeName);
         add(new TextPanel<>("displayName", new PropertyModel<>(getModel(), ItemDefinitionDto.F_DISPLAY_NAME)));
         add(new TextPanel<>("displayOrder", new PropertyModel<>(getModel(), ItemDefinitionDto.F_DISPLAY_ORDER)));
         //TODO switch component

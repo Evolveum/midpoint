@@ -42,4 +42,5 @@ public class SchemaDetailsModel extends ObjectDetailsModels<SchemaExtensionType>
     public IModel<String> getNamespaceModel() {
         return new PropertyModel<>(prismSchemaModel, SchemaPropertyWrapperImpl.F_NAMESPACE);
     }
+
 }

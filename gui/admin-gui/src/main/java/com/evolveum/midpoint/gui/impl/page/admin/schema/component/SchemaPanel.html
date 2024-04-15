@@ -9,10 +9,22 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div class="form-group">
-        <label>Namespace</label>
-        <div wicket:id="namespace" />
-    </div>
+    <form wicket:id="form">
+
+        <div class="form-group">
+            <label>Namespace</label>
+            <div wicket:id="namespace" />
+        </div>
+
+        <div class="form-group">
+            <label>Name</label>
+            <div wicket:id="complexTypeName" />
+        </div>
+
+        <div class="form-group">
+            <div wicket:id="createDef" />
+        </div>
+    </form>
 
     <div wicket:id="defs">
         <div wicket:id="definition"></div>

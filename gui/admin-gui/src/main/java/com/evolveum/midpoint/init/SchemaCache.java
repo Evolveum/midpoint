@@ -67,6 +67,7 @@ public class SchemaCache implements Cache {
 
         Map<QName, ComplexTypeDefinition> dbExtensions = new HashMap<>();
 
+        //TODO cleanup
         ResultHandler<SchemaExtensionType> handler = (object, parentResult) -> {
             try {
                 SchemaExtensionType schemaType = object.asObjectable();

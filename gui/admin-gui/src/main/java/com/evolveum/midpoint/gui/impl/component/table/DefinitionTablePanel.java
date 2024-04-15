@@ -8,27 +8,39 @@
 package com.evolveum.midpoint.gui.impl.component.table;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.component.ButtonBar;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.ItemDefinitionPanel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.ItemDefinitionDto;
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.page.admin.resources.dto.AttributeDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DefinitionTablePanel<T extends ItemDefinitionDto> extends BasePanel<List<T>> {
 
     private static final String ID_DEFINITIONS = "definitions";
+    private static final String ID_BUTTON_BAR = "buttonBar";
+    private static final String ID_BUTTON = "button";
 
     public DefinitionTablePanel(String id, IModel<List<T>> model) {
         super(id, model);
@@ -54,7 +66,13 @@ public class DefinitionTablePanel<T extends ItemDefinitionDto> extends BasePanel
             }
         };
         attributeProvider.setSort(AttributeDto.F_DISPLAY_ORDER, SortOrder.ASCENDING);
-        BoxedTablePanel<T> attributeTable = new BoxedTablePanel<>(ID_DEFINITIONS, attributeProvider, initColumns());
+        BoxedTablePanel<T> attributeTable = new BoxedTablePanel<>(ID_DEFINITIONS, attributeProvider, initColumns()) {
+
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                return createTableButtons(id);
+            }
+        };
         attributeTable.setOutputMarkupId(true);
         attributeTable.setItemsPerPage(UserProfileStorage.DEFAULT_PAGING_SIZE);
         attributeTable.setShowPaging(true);
@@ -96,4 +114,47 @@ public class DefinitionTablePanel<T extends ItemDefinitionDto> extends BasePanel
 
         return columns;
     }
+
+    private WebMarkupContainer createTableButtons(String id) {
+        return new ButtonBar<>(id, ID_BUTTON_BAR, DefinitionTablePanel.this, createToolbarButtonsList(ID_BUTTON));
+    }
+
+
+    protected List<Component> createToolbarButtonsList(String idButton) {
+        List<Component> buttonsList = new ArrayList<>();
+        buttonsList.add(createNewDefinitionBUtton(idButton));
+        return buttonsList;
+    }
+
+    private AjaxIconButton createNewDefinitionBUtton(String buttonId) {
+        return new AjaxIconButton(buttonId, new Model<>("fa fa-plus"), createStringResource("SchemaListPanel.newDefinition")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+
+                //TODO ugly hack
+                MutablePrismPropertyDefinition ppd = createNewDefinition();
+                ItemDefinitionPanel itemDefPanel = new ItemDefinitionPanel(getPageBase().getMainPopupBodyId(), new Model<>(new ItemDefinitionDto(ppd)), true) {
+
+                    @Override
+                    protected void refresh(AjaxRequestTarget target) {
+                        DefinitionTablePanel.this.getModelObject().add((T) getModelObject());
+                        target.add(DefinitionTablePanel.this);
+                        newDefinitionAdded(target, getModelObject());
+
+                    }
+                };
+                getPageBase().showMainPopup(itemDefPanel, target);
+            }
+        };
+    }
+
+    protected void newDefinitionAdded(AjaxRequestTarget target, ItemDefinitionDto newDefinition) {
+
+    }
+
+    protected MutablePrismPropertyDefinition createNewDefinition() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
 }
