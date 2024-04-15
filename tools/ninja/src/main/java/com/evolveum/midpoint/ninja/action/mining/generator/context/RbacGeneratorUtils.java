@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
 
+import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -75,10 +77,16 @@ public class RbacGeneratorUtils {
      * Retrieves a list of randomly selected plankton abstract roles.
      *
      * @param minRoles The minimum number of roles to select.
+     * @param generatorOptions The generator options to consider.
      * @return A list of randomly selected plankton abstract roles.
      */
     protected static @NotNull List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> getRandomPlanktonRoles(
-            int minRoles) {
+            int minRoles, GeneratorOptions generatorOptions) {
+
+        if (generatorOptions.isPlanktonDisable()) {
+            return new ArrayList<>();
+        }
+
         int maxRoles = InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole.values().length;
 
         Random random = new Random();
@@ -261,7 +269,6 @@ public class RbacGeneratorUtils {
             user.getAssignment().add(createRoleAssignment(randomAuxWithChanceVpn.getOidValue()));
         }
     }
-
 
     /**
      * Determines whether a role should be forgotten based on a given chance.
