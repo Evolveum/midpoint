@@ -15,9 +15,12 @@ compliance:
 = Information Classification and Clearances
 :page-toc: top
 :page-nav-title: Classification
-:page-since: "4.8"
-:page-experimental: true
+:page-since: "4.9"
 :page-upkeep-status: yellow
+
+.Work in progress
+NOTE: This is still work in progress.
+The mechanisms that underlay the classifications are being updated to a more modern approach, planned for midPoint 4.9.
 
 Information classification is a process in which organisations assess their data and systems, with regard to the necessary level of protection.
 The information is classified by assigning information _labels_ or _classifications_ to individual assets, such as databases, filesystems, applications or even individual files.
