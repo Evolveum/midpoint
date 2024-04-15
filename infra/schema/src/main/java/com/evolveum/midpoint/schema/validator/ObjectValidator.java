@@ -91,8 +91,7 @@ public class ObjectValidator {
         setTypeToCheck(ValidationItemType.REMOVED_ITEM, warnRemoved);
     }
 
-    @Deprecated
-    private void setTypeToCheck(ValidationItemType type, boolean set) {
+    public void setTypeToCheck(@NotNull ValidationItemType type, boolean set) {
         if (set) {
             typesToCheck.add(type);
         } else {

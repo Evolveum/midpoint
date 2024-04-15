@@ -109,24 +109,7 @@ public class VerificationReporter {
         if (categories.isEmpty()) {
             validator.showAllWarnings();
         } else {
-            for (VerifyOptions.VerificationCategory category : categories) {
-                switch (category) {
-                    case DEPRECATED:
-                        validator.setWarnDeprecated(true);
-                        break;
-                    case INCORRECT_OIDS:
-                        validator.setWarnIncorrectOids(true);
-                        break;
-                    case PLANNED_REMOVAL:
-                        validator.setWarnPlannedRemoval(true);
-                        break;
-                    case REMOVED:
-                        validator.setWarnRemoved(true);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unknown category " + category);
-                }
-            }
+            categories.forEach(c -> validator.setTypeToCheck(c.validationItemType, true));
         }
     }
 
@@ -325,6 +308,10 @@ public class VerificationReporter {
             items.add(validationItem.status());
         } else {
             writer.append("INFO ");
+        }
+
+        if (item.getItem().type() != null) {
+            items.add(item.getItem().type());
         }
 
         UpgradePriority priority = item.getPriority();

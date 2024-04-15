@@ -17,6 +17,10 @@ public class ObjectUpgradeValidator {
         this.validator = new ObjectValidator();
     }
 
+    public void setTypeToCheck(@NotNull ValidationItemType item, boolean check) {
+        this.validator.setTypeToCheck(item, check);
+    }
+
     public void setWarnDeprecated(boolean value) {
         this.validator.setWarnDeprecated(value);
     }

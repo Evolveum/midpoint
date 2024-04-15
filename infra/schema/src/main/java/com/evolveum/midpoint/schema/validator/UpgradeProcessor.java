@@ -55,10 +55,12 @@ public class UpgradeProcessor {
         PrismObject<T> cloned = object.clone();
 
         UpgradeObjectProcessor<?> processor = null;
-        for (UpgradeObjectProcessor<?> p : PROCESSORS) {
-            if (p.isApplicable(cloned, path)) {
-                processor = p;
-                break;
+        if (path != null && !path.isEmpty()) {
+            for (UpgradeObjectProcessor<?> p : PROCESSORS) {
+                if (p.isApplicable(cloned, path)) {
+                    processor = p;
+                    break;
+                }
             }
         }
 
