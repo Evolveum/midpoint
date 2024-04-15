@@ -6,29 +6,41 @@
  */
 package com.evolveum.midpoint.init;
 
-import com.evolveum.midpoint.prism.CloneStrategy;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.merger.SimpleObjectMergeOperation;
-import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.parseObject;
 
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.datatype.Duration;
+import javax.xml.namespace.QName;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import java.io.File;
-import java.io.IOException;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.merger.SimpleObjectMergeOperation;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 public class TestInitialObjects extends AbstractUnitTest {
 
@@ -86,5 +98,123 @@ public class TestInitialObjects extends AbstractUnitTest {
             failed++;
             LOGGER.error("Merged object is not equivalent to expected result\n" + delta.debugDump(), e);
         }
+    }
+
+    /**
+     * Not a real test.
+     *
+     * Lists multi-value complex properties and containers from all schema definitions.
+     * Also checks initial objects whether they contain such properties/containers.
+     *
+     * Used to generate CSV for documentation/development purposes only.
+     */
+    @Test//(enabled = false)
+    public void listComplexPropertiesAndMultiValueContainers() throws Exception {
+        List<ItemDefinition<?>> initialObjects = new ArrayList<>();
+        Set<Definition> visited = new HashSet<>();
+
+        Collection<File> files = FileUtils.listFiles(INITIAL_OBJECTS_DIR, new String[] { "xml" }, true);
+        for (File file : files) {
+            PrismObject<?> object = parseObject(file);
+            object.accept(visitable -> {
+                if (visitable instanceof Item<?, ?> item) {
+                    processDefinition(item.getDefinition(), initialObjects, visited, false);
+                }
+            });
+        }
+
+        Set<QName> initialObjectsTypes = initialObjects.stream()
+                .map(ItemDefinition::getTypeName)
+                .collect(Collectors.toSet());
+
+        List<ItemDefinition<?>> fullSchema = new ArrayList<>();
+        visited.clear();
+
+        SchemaRegistry registry = PrismTestUtil.getPrismContext().getSchemaRegistry();
+        for (PrismSchema schema : registry.getSchemas()) {
+            Collection<Definition> definitions = schema.getDefinitions();
+
+            definitions.stream()
+                    .filter(d -> d instanceof PrismObjectDefinition<?>)
+                    .forEach(d -> processDefinition(d, fullSchema, visited, true));
+        }
+
+        List<String> dump = fullSchema.stream()
+                .map(id -> map(id, initialObjectsTypes.contains(id.getTypeName())))
+                .distinct()
+                .sorted()
+                .toList();
+
+        System.out.println(StringUtils.joinWith(";",
+                "Definition class",
+                "Type QName",
+                "Primitive",
+                "Deprecated",
+                "Removed",
+                "Experimental",
+                "Initial Object",
+                "Merger",
+                "NaturalKey"
+        ));
+        dump.forEach(System.out::println);
+    }
+
+    private void processDefinition(Definition def, List<ItemDefinition<?>> result, Set<Definition> visited, boolean recursive) {
+        if (visited.contains(def)) {
+            return;
+        }
+        visited.add(def);
+
+        if (!(def instanceof ItemDefinition<?> id)) {
+            return;
+        }
+
+        if (id instanceof PrismPropertyDefinition<?> ppd) {
+            if (ppd.isMultiValue()) {
+                Class type = ppd.getTypeClass();
+                if (!isPrimitive(type)
+                        && !PolyString.class.equals(type)
+                        && !PolyStringType.class.equals(type)
+                        && !ItemPathType.class.equals(type)
+                        && !QName.class.equals(type)
+                        && !ProtectedStringType.class.equals(type)
+                        && !Duration.class.equals(type)) {
+                    result.add(id);
+                }
+            }
+        } else if (id instanceof PrismContainerDefinition<?> pcd) {
+            if (pcd.isMultiValue()) {
+                result.add(id);
+            }
+
+            if (recursive) {
+                pcd.getDefinitions().forEach(d -> processDefinition(d, result, visited, recursive));
+            }
+        }
+    }
+
+    private String map(ItemDefinition id, boolean initialObject) {
+        Class<?> clazz = id.getTypeClass();
+
+        return StringUtils.joinWith(";",
+                id.getClass().getSimpleName(),
+                id.getTypeName().toString()
+                        .replace("http://midpoint.evolveum.com/xml/ns/public", "..")
+                        .replace("http://prism.evolveum.com/xml/ns/public", "prism.."),
+                isPrimitive(clazz) ? "PRIMITIVE" : "",
+                id.isDeprecated() ? "DEPRECATED" : "",
+                id.isRemoved() ? "REMOVED" : "",
+                id.isExperimental() ? "EXPERIMENTAL" : "",
+                initialObject ? "INITIAL" : "",
+                id.getMergerIdentifier(),
+                id.getNaturalKeyConstituents()
+        );
+    }
+
+    private boolean isPrimitive(Class<?> clazz) {
+        return clazz != null && (clazz.isPrimitive()
+                || ClassUtils.wrapperToPrimitive(clazz) != null
+                || clazz.equals(String.class)
+                || Enum.class.isAssignableFrom(clazz));
     }
 }
