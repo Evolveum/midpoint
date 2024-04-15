@@ -13,7 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.common.cleanup.CleanupActionProcessor;
+import com.evolveum.midpoint.common.cleanup.ObjectCleaner;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -131,7 +131,7 @@ public class DuplicationProcessHelper {
      */
     public static <O extends ObjectType> PrismObject<O> duplicateObjectDefault(PrismObject<O> object) {
         PrismObject<O> duplicate = object.cloneComplex(CloneStrategy.REUSE);
-        CleanupActionProcessor cleanupProcessor = new CleanupActionProcessor();
+        ObjectCleaner cleanupProcessor = new ObjectCleaner();
         cleanupProcessor.setRemoveContainerIds(true);
         cleanupProcessor.setPaths(List.of(new CleanupPath(CredentialsType.COMPLEX_TYPE, ItemPath.EMPTY_PATH, CleanupPathAction.REMOVE)));
         cleanupProcessor.process(duplicate);
@@ -148,7 +148,7 @@ public class DuplicationProcessHelper {
                         Collections.singletonList(container))
                 .iterator().next();
         duplicate.setParent(container.getParent());
-        CleanupActionProcessor cleanupProcessor = new CleanupActionProcessor();
+        ObjectCleaner cleanupProcessor = new ObjectCleaner();
         cleanupProcessor.setRemoveContainerIds(true);
         cleanupProcessor.process(duplicate);
         return duplicate;

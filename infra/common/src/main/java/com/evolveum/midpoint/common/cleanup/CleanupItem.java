@@ -9,18 +9,9 @@ package com.evolveum.midpoint.common.cleanup;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
 
-public record CleanupMessage<D>(Type type, LocalizableMessage message, D data) {
+public record CleanupItem<D>(
+        CleanupItemType type,
+        LocalizableMessage message,
+        D data) {
 
-    public enum Type {
-
-        MISSING_REFERENCE,
-
-        OPTIONAL_CLEANUP,
-
-        PROTECTED_STRING,
-
-        MISSING_MAPPING_NAME,
-
-        MULTIVALUE_REF_WITHOUT_OID
-    }
 }

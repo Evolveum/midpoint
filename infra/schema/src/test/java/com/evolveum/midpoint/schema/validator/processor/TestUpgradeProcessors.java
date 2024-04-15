@@ -92,7 +92,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
                             return;
                         }
 
-                        ItemPath path = item.getItem().getItemPath();
+                        ItemPath path = item.getItem().path();
                         try {
                             processor.process(updated, path);
                         } catch (Exception ex) {

@@ -77,15 +77,15 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
 
         LOG.info("BEFORE \n{}", resource.debugDump());
 
-        CleanupActionProcessor processor = new CleanupActionProcessor();
+        ObjectCleaner processor = new ObjectCleaner();
         processor.setPaths(List.of(
                 new CleanupPath(SchemaHandlingType.COMPLEX_TYPE, SchemaHandlingType.F_OBJECT_TYPE, CleanupPathAction.REMOVE),
                 new CleanupPath(XmlSchemaType.COMPLEX_TYPE, XmlSchemaType.F_DEFINITION, CleanupPathAction.IGNORE),
                 new CleanupPath(ResourceType.COMPLEX_TYPE, CAPABILITY_ACTIVATION, CleanupPathAction.ASK)
         ));
 
-        TestCleanupHandler listener = new TestCleanupHandler();
-        processor.setHandler(listener);
+        TestCleanupListener listener = new TestCleanupListener();
+        processor.setListener(listener);
         CleanupResult result = processor.process(resource);
 
         LOG.info("AFTER \n{}", resource.debugDump());
@@ -117,20 +117,15 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
         Assertions.assertThat(user.findItem(UserType.F_OPERATION_EXECUTION))
                 .isNotNull();
 
-        CleanupActionProcessor processor = new CleanupActionProcessor();
-        TestCleanupHandler listener = new TestCleanupHandler();
-        processor.setHandler(listener);
+        ObjectCleaner processor = new ObjectCleaner();
+        TestCleanupListener listener = new TestCleanupListener();
+        processor.setListener(listener);
         processor.process(user);
 
         Assertions.assertThat(user.findItem(UserType.F_METADATA))
                 .isNull();
         Assertions.assertThat(user.findItem(UserType.F_OPERATION_EXECUTION))
                 .isNull();
-
-        Assertions.assertThat(listener.getProtectedStringCleanupEvents())
-                .hasSize(1);
-        Assertions.assertThat(listener.getProtectedStringCleanupEvents().get(0).path())
-                .isEqualTo(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE));
     }
 
     @Test
@@ -150,14 +145,14 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
 
         LOG.info("BEFORE \n{}", container.debugDump());
 
-        CleanupActionProcessor processor = new CleanupActionProcessor();
+        ObjectCleaner processor = new ObjectCleaner();
         processor.setRemoveContainerIds(true);
         processor.setPaths(List.of(
                 new CleanupPath(ResourceObjectFocusSpecificationType.COMPLEX_TYPE, ResourceObjectFocusSpecificationType.F_TYPE, CleanupPathAction.REMOVE)
         ));
 
-        TestCleanupHandler listener = new TestCleanupHandler();
-        processor.setHandler(listener);
+        TestCleanupListener listener = new TestCleanupListener();
+        processor.setListener(listener);
         processor.process(container);
 
         LOG.info("AFTER \n{}", container.debugDump());
@@ -201,9 +196,9 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
 
         LOG.info("BEFORE \n{}", value.debugDump());
 
-        CleanupActionProcessor processor = new CleanupActionProcessor();
-        TestCleanupHandler listener = new TestCleanupHandler();
-        processor.setHandler(listener);
+        ObjectCleaner processor = new ObjectCleaner();
+        TestCleanupListener listener = new TestCleanupListener();
+        processor.setListener(listener);
         processor.process(container);
 
         LOG.info("AFTER \n{}", value.debugDump());

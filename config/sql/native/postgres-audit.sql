@@ -53,6 +53,7 @@ DO $$ BEGIN
         'OBJECT_COLLECTION',
         'OBJECT_TEMPLATE',
         'ORG',
+        'POLICY',
         'REPORT',
         'REPORT_DATA',
         'RESOURCE',

@@ -8,17 +8,13 @@
 package com.evolveum.midpoint.common.cleanup;
 
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Listener that can be used to react on cleanup events created for items that are marked
  * with action {@link CleanupPathAction#ASK}.
  */
-public interface CleanupHandler {
+public interface CleanerListener {
 
     /**
      * Method that allows consumers to react on cleanup event marked with action {@link CleanupPathAction#ASK}.
@@ -30,14 +26,6 @@ public interface CleanupHandler {
     }
 
     default void onReferenceCleanup(CleanupEvent<PrismReference> event) {
-
-    }
-
-    default void onProtectedStringCleanup(CleanupEvent<PrismProperty<ProtectedStringType>> event) {
-
-    }
-
-    default void onMissingMappingNameCleanup(CleanupEvent<PrismContainer<MappingType>> event) {
 
     }
 }
