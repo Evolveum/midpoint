@@ -3309,7 +3309,8 @@ public final class WebComponentUtil {
     public static boolean isResourceRelatedTask(TaskType task) {
         return WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value())
                 || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value())
-                || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
+                || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value())
+                || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_SHADOW_RECLASSIFICATION_TASK.value());
     }
 
     public static boolean isRefreshEnabled(PageBase pageBase, QName type) {

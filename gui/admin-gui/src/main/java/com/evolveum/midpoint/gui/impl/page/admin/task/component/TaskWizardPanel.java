@@ -148,6 +148,8 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
             return WorkDefinitionsType.F_RECONCILIATION;
         } else if (WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value())) {
             return WorkDefinitionsType.F_IMPORT;
+        } else if (WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_SHADOW_RECLASSIFICATION_TASK.value())) {
+            return WorkDefinitionsType.F_SHADOW_RECLASSIFICATION;
         }
         return null;
     }
