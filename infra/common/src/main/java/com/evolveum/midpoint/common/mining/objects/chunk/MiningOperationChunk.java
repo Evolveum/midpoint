@@ -9,6 +9,8 @@ package com.evolveum.midpoint.common.mining.objects.chunk;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +18,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
+
+import static com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter.jacquardSimilarity;
 
 /**
  * <p>
@@ -82,6 +86,17 @@ public class MiningOperationChunk implements Serializable {
             }
         });
 
+        Comparator<MiningRoleTypeChunk> jaccardComparator = (chunk1, chunk2) -> {
+            List<String> propertiesA = chunk1.getProperties();
+            List<String> propertiesB = chunk2.getProperties();
+            double similarity1 = jacquardSimilarity(propertiesA, propertiesB);
+            double similarity2 = jacquardSimilarity(propertiesA, propertiesB);
+            return Double.compare(similarity2, similarity1);
+        };
+
+        miningRoleTypeChunks.subList(0, Collections.frequency(miningRoleTypeChunks, thisStatusFirst))
+                .sort(jaccardComparator);
+
         return miningRoleTypeChunks;
     }
 
@@ -97,6 +112,18 @@ public class MiningOperationChunk implements Serializable {
                 return chunk1.getStatus().compareTo(chunk2.getStatus());
             }
         });
+
+
+        Comparator<MiningUserTypeChunk> jaccardComparator = (chunk1, chunk2) -> {
+            List<String> propertiesA = chunk1.getProperties();
+            List<String> propertiesB = chunk2.getProperties();
+            double similarity1 = jacquardSimilarity(propertiesA, propertiesB);
+            double similarity2 = jacquardSimilarity(propertiesA, propertiesB);
+            return Double.compare(similarity2, similarity1);
+        };
+
+        miningUserTypeChunks.subList(0, Collections.frequency(miningUserTypeChunks, thisStatusFirst))
+                .sort(jaccardComparator);
 
         return miningUserTypeChunks;
     }
