@@ -69,28 +69,8 @@ public class OutlierObjectModel {
         return outlierItemModels;
     }
 
-    public void setOutlierName(String outlierName) {
-        this.outlierName = outlierName;
-    }
-
-    public void setOutlierDescription(String outlierDescription) {
-        this.outlierDescription = outlierDescription;
-    }
-
-    public void setOutlierConfidence(double outlierConfidence) {
-        this.outlierConfidence = outlierConfidence;
-    }
-
-    public void setOutlierItemModels(List<OutlierItemModel> outlierItemModels) {
-        this.outlierItemModels = outlierItemModels;
-    }
-
     public String getTimeCreated() {
         return timeCreated;
-    }
-
-    public void setTimeCreated(String timeCreated) {
-        this.timeCreated = timeCreated;
     }
 
     public static @Nullable OutlierObjectModel generateUserOutlierResultModel(
@@ -273,23 +253,29 @@ public class OutlierObjectModel {
         String propertyConfidenceRange = decimalFormat.format(min) + " - " + decimalFormat.format(max) + "%";
         String propertyDescription = "There is detected " + propertyCount + " outlier assignment(s) with high confidence";
 
-        OutlierObjectModel outlierObjectModel = new OutlierObjectModel(name.getOrig(), outlierDescription, outlierConfidenceInt, createTimestamp.toString());
+        OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
+                name.getOrig(), outlierDescription, outlierConfidenceInt, createTimestamp.toString());
 
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
         int similarObjectCount = cluster.getMember().size();
         Double membershipDensity = clusterStatistics.getMembershipDensity();
-        String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density " + String.format("%.2f", membershipDensity) + "%";
-        OutlierItemModel clusterItemModel = new OutlierItemModel(similarObjectCount + " similar object(s)", clusterDescription, "fa fa-cubes");
+        String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density "
+                + String.format("%.2f", membershipDensity) + "%";
+        OutlierItemModel clusterItemModel = new OutlierItemModel(similarObjectCount
+                + " similar object(s)", clusterDescription, "fa fa-cubes");
         outlierObjectModel.addOutlierItemModel(clusterItemModel);
 
         OutlierItemModel outlierItemModel = new OutlierItemModel(propertyConfidenceRange, propertyDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(outlierItemModel);
 
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = cluster.getClusterStatistics().getUserAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = cluster.getClusterStatistics()
+                .getUserAttributeAnalysisResult();
 
-        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveRoleMembersAttribute(roleTypePrismObject.getOid(), task, result);
+        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService
+                .resolveRoleMembersAttribute(roleTypePrismObject.getOid(), task, result);
 
-        RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService.resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
+        RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
+                .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
 
         double averageItemsOccurs = 0;
         assert compareAttributeResult != null;
@@ -318,15 +304,19 @@ public class OutlierObjectModel {
 
         averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
 
-        OutlierItemModel roleAssignmentsItemModel = new OutlierItemModel(String.format("%.2f", roleAssignmentsOccurs) + "%", roleAssignmentsDescription, "fe fe-role");
+        OutlierItemModel roleAssignmentsItemModel = new OutlierItemModel(String.format("%.2f", roleAssignmentsOccurs)
+                + "%", roleAssignmentsDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(roleAssignmentsItemModel);
 
-        String attributeDescription = "Items factor outlier vs cluster. (average overlap value of outlier attributes with similar objects.)";
+        String attributeDescription = "Items factor outlier vs cluster. "
+                + "(average overlap value of outlier attributes with similar objects.)";
 
-        OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs) + "%", attributeDescription, "fa fa-cogs");
+        OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs)
+                + "%", attributeDescription, "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModel);
 
-        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(String.valueOf(attributeAboveThreshold) + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
+        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold
+                + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
 
         List<String> rolesOid = Collections.singletonList(roleTypePrismObject.getOid());
@@ -348,22 +338,26 @@ public class OutlierObjectModel {
             }
         }
 
-        OutlierItemModel directRolesItemModel = new OutlierItemModel(String.valueOf(directRoles), directRolesDescription, "fe fe-role");
+        OutlierItemModel directRolesItemModel = new OutlierItemModel(String.valueOf(directRoles),
+                directRolesDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(directRolesItemModel);
 
-        OutlierItemModel indirectRolesItemModel = new OutlierItemModel(String.valueOf(indirectRoles), indirectRolesDescription, "fe fe-role");
+        OutlierItemModel indirectRolesItemModel = new OutlierItemModel(String.valueOf(indirectRoles),
+                indirectRolesDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(indirectRolesItemModel);
 
         int rolesByCondition = 0;
         String rolesByConditionDescription = "Role assignments of the outlier object by condition. (?)";
 
-        OutlierItemModel rolesByConditionItemModel = new OutlierItemModel(String.valueOf(rolesByCondition), rolesByConditionDescription, "fe fe-role");
+        OutlierItemModel rolesByConditionItemModel = new OutlierItemModel(String.valueOf(rolesByCondition),
+                rolesByConditionDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(rolesByConditionItemModel);
 
         int outdatedAccessRights = 0;
         String outdatedAccessRightsDescription = "Outdated access rights of the outlier object.";
 
-        OutlierItemModel outdatedAccessRightsItemModel = new OutlierItemModel(String.valueOf(outdatedAccessRights), outdatedAccessRightsDescription, "fa fa-key");
+        OutlierItemModel outdatedAccessRightsItemModel = new OutlierItemModel(String.valueOf(outdatedAccessRights),
+                outdatedAccessRightsDescription, "fa fa-key");
         outlierObjectModel.addOutlierItemModel(outdatedAccessRightsItemModel);
 
         return outlierObjectModel;
@@ -390,18 +384,21 @@ public class OutlierObjectModel {
         int outlierConfidenceInt = (int) confidence;
         String description = "Assignment has been marked as outlier object due to confidence score:";
 
-        OutlierObjectModel outlierObjectModel = new OutlierObjectModel(name.getOrig(), description, outlierConfidenceInt, outlierResult.getCreateTimestamp().toString());
+        OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
+                name.getOrig(), description, outlierConfidenceInt, outlierResult.getCreateTimestamp().toString());
 
         double occurInCluster = outlierResult.getFrequency() * 100;
         String descriptionOccurInCluster = "Outlier assignment coverage in cluster.";
 
-        OutlierItemModel occurInClusterItemModel = new OutlierItemModel(String.format("%.2f", occurInCluster) + "%", descriptionOccurInCluster, "fa fa-cubes");
+        OutlierItemModel occurInClusterItemModel = new OutlierItemModel(String.format("%.2f", occurInCluster)
+                + "%", descriptionOccurInCluster, "fa fa-cubes");
         outlierObjectModel.addOutlierItemModel(occurInClusterItemModel);
 
         int indirectAssignments = roleTypeObject.asObjectable().getInducement().size();
         String indirectAssignmentsDescription = "Indirect role assignments of the outlier assignment.";
 
-        OutlierItemModel indirectAssignmentsItemModel = new OutlierItemModel(String.valueOf(indirectAssignments), indirectAssignmentsDescription, "fe fe-role");
+        OutlierItemModel indirectAssignmentsItemModel = new OutlierItemModel(String.valueOf(indirectAssignments),
+                indirectAssignmentsDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(indirectAssignmentsItemModel);
 
         int roleMemberCount = 0;
@@ -415,12 +412,26 @@ public class OutlierObjectModel {
 
         String roleMemberDescription = "Role member count of the outlier assignment.";
 
-        OutlierItemModel roleMemberItemModel = new OutlierItemModel(String.valueOf(roleMemberCount), roleMemberDescription, "fe fe-user");
+        OutlierItemModel roleMemberItemModel = new OutlierItemModel(String.valueOf(roleMemberCount),
+                roleMemberDescription, "fe fe-user");
         outlierObjectModel.addOutlierItemModel(roleMemberItemModel);
 
-        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService.resolveRoleMembersAttribute(roleTypeObject.getOid(), task, result);
+        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService
+                .resolveRoleMembersAttribute(roleTypeObject.getOid(), task, result);
+
         RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject);
-        RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService.resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);
+
+        RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
+                .resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);
+
+        int userCountInRepo = roleAnalysisService.countObjects(UserType.class, null, null, task, result);
+
+        double memberPercentageRepo = (((double) roleMemberCount / userCountInRepo) * 100);
+        String memberPercentageRepoDescription = "Role member percentage compared to all users in the repository.";
+
+        OutlierItemModel memberPercentageRepoItemModel = new OutlierItemModel(String.format("%.2f",
+                memberPercentageRepo) + "%", memberPercentageRepoDescription, "fe fe-user");
+        outlierObjectModel.addOutlierItemModel(memberPercentageRepoItemModel);
 
         double averageItemsOccurs = 0;
         assert compareAttributeResult != null;
@@ -442,17 +453,20 @@ public class OutlierObjectModel {
         }
 
         if (attributeAboveThreshold == 0) {
-            attributeDescriptionThreshold = new StringBuilder("No attributes with occurrence above ").append(threshold).append("%.");
+            attributeDescriptionThreshold = new StringBuilder("No attributes with occurrence above ")
+                    .append(threshold).append("%.");
         }
 
-        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
+        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold
+                + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
 
         averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
 
         String attributeDescription = "Items factor outlier assignment vs members.";
 
-        OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs) + "%", attributeDescription, "fa fa-cogs");
+        OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs)
+                + "%", attributeDescription, "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModel);
 
         return outlierObjectModel;
