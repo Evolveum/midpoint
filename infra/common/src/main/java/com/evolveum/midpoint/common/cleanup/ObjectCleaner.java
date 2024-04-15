@@ -15,22 +15,17 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
- * TODO merge with {@link com.evolveum.midpoint.schema.validator.ObjectValidator}
- *  also see {@link com.evolveum.midpoint.schema.validator.ObjectUpgradeValidator}
- *
  * Utility class that can be used to process objects and remove unwanted items.
  * By default, it removes all operational items and all items marked with optionalCleanup.
  *
- * This behaviour can be configured via {@link CleanupActionProcessor#removeAskActionItemsByDefault}
- * and {@link CleanupActionProcessor#setPaths(List)}.
+ * This behaviour can be configured via {@link ObjectCleaner#removeAskActionItemsByDefault}
+ * and {@link ObjectCleaner#setPaths(List)}.
  */
-public class CleanupActionProcessor {
+public class ObjectCleaner {
 
-    private CleanupHandler handler;
+    private CleanerListener listener;
 
     private boolean removeAskActionItemsByDefault = true;
 
@@ -48,8 +43,8 @@ public class CleanupActionProcessor {
         this.removeContainerIds = removeContainerIds;
     }
 
-    public void setHandler(CleanupHandler handler) {
-        this.handler = handler;
+    public void setListener(CleanerListener listener) {
+        this.listener = listener;
     }
 
     public void setPaths(List<CleanupPath> paths) {
@@ -112,14 +107,7 @@ public class CleanupActionProcessor {
         }
 
         if (!item.isEmpty() && item.getDefinition() != null) {
-            ItemDefinition<?> def = item.getDefinition();
-
-            if (item instanceof PrismProperty<?> property) {
-                if (ProtectedStringType.COMPLEX_TYPE.equals(def.getTypeName())) {
-                    fireProtectedStringCleanup(
-                            createEvent(source, currentPath, (PrismProperty<ProtectedStringType>) property, result));
-                }
-            } else if (item instanceof PrismReference) {
+            if (item instanceof PrismReference) {
                 fireReferenceCleanup(
                         createEvent(source, currentPath, (PrismReference) item, result));
             }
@@ -130,12 +118,6 @@ public class CleanupActionProcessor {
 
             for (PrismContainerValue<?> value : pc.getValues()) {
                 processContainerValue(value, currentPath, customItemActions, source, result);
-            }
-
-            ItemDefinition<?> def = item.getDefinition();
-            if (MappingType.COMPLEX_TYPE.equals(def.getTypeName())) {
-                fireMissingMappingNameCleanup(
-                        createEvent(source, currentPath, (PrismContainer<MappingType>) item, result));
             }
 
             return !emptyBefore && item.hasNoValues();
@@ -272,35 +254,19 @@ public class CleanupActionProcessor {
         return new CleanupEvent<>(source, path, item, result);
     }
 
-    private void fireProtectedStringCleanup(CleanupEvent<PrismProperty<ProtectedStringType>> event) {
-        if (handler == null) {
-            return;
-        }
-
-        handler.onProtectedStringCleanup(event);
-    }
-
     private void fireReferenceCleanup(CleanupEvent<PrismReference> event) {
-        if (handler == null) {
+        if (listener == null) {
             return;
         }
 
-        handler.onReferenceCleanup(event);
+        listener.onReferenceCleanup(event);
     }
 
     private boolean fireConfirmOptionalCleanup(CleanupEvent<Item<?, ?>> event) {
-        if (handler == null) {
+        if (listener == null) {
             return removeAskActionItemsByDefault;
         }
 
-        return handler.onConfirmOptionalCleanup(event);
-    }
-
-    private void fireMissingMappingNameCleanup(CleanupEvent<PrismContainer<MappingType>> event) {
-        if (handler == null) {
-            return;
-        }
-
-        handler.onMissingMappingNameCleanup(event);
+        return listener.onConfirmOptionalCleanup(event);
     }
 }

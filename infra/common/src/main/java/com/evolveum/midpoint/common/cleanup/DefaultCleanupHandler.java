@@ -8,15 +8,12 @@
 package com.evolveum.midpoint.common.cleanup;
 
 import java.lang.module.ModuleDescriptor;
-import java.util.ArrayList;
-import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
@@ -26,12 +23,14 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 @SuppressWarnings("unused")
-public class DefaultCleanupHandler implements CleanupHandler {
+public class DefaultCleanupHandler implements CleanerListener {
 
     private static final Trace TRACE = TraceManager.getTrace(DefaultCleanupHandler.class);
 
@@ -60,8 +59,8 @@ public class DefaultCleanupHandler implements CleanupHandler {
     @Override
     public boolean onConfirmOptionalCleanup(CleanupEvent<Item<?, ?>> event) {
         event.result().getMessages().add(
-                new CleanupMessage<>(
-                        CleanupMessage.Type.OPTIONAL_CLEANUP,
+                new CleanupItem<>(
+                        CleanupItemType.OPTIONAL_CLEANUP,
                         new SingleLocalizableMessage(
                                 "Optional item '" + event.path() + "' not cleaned up."),
                         event.path()));
@@ -72,7 +71,6 @@ public class DefaultCleanupHandler implements CleanupHandler {
     @Override
     public void onReferenceCleanup(CleanupEvent<PrismReference> event) {
         PrismReference ref = event.item();
-        checkMultiValueReferences(ref, event.item().getPath(), event.result());
 
         Class<?> type = null;
         if (event.source() instanceof PrismContainerValue val) {
@@ -93,28 +91,6 @@ public class DefaultCleanupHandler implements CleanupHandler {
         }
 
         ref.getValues().forEach(refValue -> processOtherRef(event, refValue));
-    }
-
-    private void checkMultiValueReferences(PrismReference reference, ItemPath currentPath, CleanupResult result) {
-        PrismReferenceDefinition def = reference.getDefinition();
-        if (def == null || def.isSingleValue()) {
-            return;
-        }
-
-        List<PrismReferenceValue> missingOids = reference.getValues().stream()
-                .filter(v -> StringUtils.isEmpty(v.getOid()))
-                .toList();
-
-        for (PrismReferenceValue value : missingOids) {
-            result.getMessages().add(
-                    new CleanupMessage<>(
-                            CleanupMessage.Type.MULTIVALUE_REF_WITHOUT_OID,
-                            new SingleLocalizableMessage(
-                                    "CleanupActionProcessor.multiValueReferenceWithoutOid",
-                                    new Object[] { currentPath }, String.format("Multi-value reference without oid on path %s", currentPath)),
-                            new ObjectReferenceType().setupReferenceValue(value)
-                    ));
-        }
     }
 
     private void processOtherRef(CleanupEvent<PrismReference> event, PrismReferenceValue refValue) {
@@ -139,8 +115,8 @@ public class DefaultCleanupHandler implements CleanupHandler {
         }
 
         event.result().getMessages().add(
-                new CleanupMessage<>(
-                        CleanupMessage.Type.MISSING_REFERENCE,
+                new CleanupItem<>(
+                        CleanupItemType.MISSING_REFERENCE,
                         new SingleLocalizableMessage(
                                 "Unresolved reference (locally): " + refValue.getOid() + "(" + typeName.getLocalPart() + ")."),
                         new ObjectReferenceType()
@@ -179,8 +155,8 @@ public class DefaultCleanupHandler implements CleanupHandler {
             PrismObject<ConnectorType> connector = resolveConnector(oid);
             if (connector == null) {
                 event.result().getMessages().add(
-                        new CleanupMessage<>(
-                                CleanupMessage.Type.MISSING_REFERENCE,
+                        new CleanupItem<>(
+                                CleanupItemType.MISSING_REFERENCE,
                                 new SingleLocalizableMessage(
                                         "Unresolved connector reference: Couldn't find connector with oid " + oid + "."),
                                 missingRef));
@@ -198,8 +174,8 @@ public class DefaultCleanupHandler implements CleanupHandler {
             TRACE.debug("Couldn't resolve connector reference", ex);
 
             event.result().getMessages().add(
-                    new CleanupMessage<>(
-                            CleanupMessage.Type.MISSING_REFERENCE,
+                    new CleanupItem<>(
+                            CleanupItemType.MISSING_REFERENCE,
                             new SingleLocalizableMessage(
                                     "Unresolved connector reference: " + ex.getMessage()),
                             missingRef));
@@ -241,73 +217,6 @@ public class DefaultCleanupHandler implements CleanupHandler {
         String current = getMidpointVersion();
         return current == null ||
                 REFERENCE_FILTER_SUPPORT_VERSION.compareTo(ModuleDescriptor.Version.parse(current)) <= 0;
-    }
-
-    @Override
-    public void onProtectedStringCleanup(CleanupEvent<PrismProperty<ProtectedStringType>> event) {
-        PrismProperty<ProtectedStringType> property = event.item();
-        if (property.isEmpty()) {
-            return;
-        }
-
-        ProtectedStringViolations violations = new ProtectedStringViolations();
-
-        List<String> messages = new ArrayList<>();
-        for (PrismPropertyValue<ProtectedStringType> value : property.getValues()) {
-            ProtectedStringType ps = value.getValue();
-            if (ps == null) {
-                continue;
-            }
-
-            if (ps.getEncryptedDataType() != null) {
-                messages.add("encrypted data in " + property.getPath());
-                violations.addEncrypted(property.getPath());
-            }
-
-            if (ps.getHashedDataType() != null) {
-                messages.add("hashed data in " + property.getPath());
-                violations.addHashed(property.getPath());
-            }
-
-            if (ps.getClearValue() != null) {
-                messages.add("clear value in " + property.getPath());
-                violations.addClearValue(property.getPath());
-            }
-        }
-
-        if (messages.isEmpty()) {
-            return;
-        }
-
-        event.result().getMessages().add(
-                new CleanupMessage<>(
-                        CleanupMessage.Type.PROTECTED_STRING,
-                        new SingleLocalizableMessage(
-                                "Protected string: " + StringUtils.join(messages, ", ")),
-                        violations));
-    }
-
-    @Override
-    public void onMissingMappingNameCleanup(CleanupEvent<PrismContainer<MappingType>> event) {
-        PrismContainer<MappingType> mapping = event.item();
-
-        List<MappingType> unnamed = mapping.getRealValues().stream()
-                .filter(m -> StringUtils.isEmpty(m.getName()))
-                .toList();
-        if (unnamed.isEmpty()) {
-            return;
-        }
-
-        ItemPath currentPath = event.path();
-        for (MappingType m : unnamed) {
-            event.result().getMessages().add(
-                    new CleanupMessage<>(
-                            CleanupMessage.Type.MISSING_MAPPING_NAME,
-                            new SingleLocalizableMessage(
-                                    "CleanupActionProcessor.unnamedMapping",
-                                    new Object[] { currentPath }, String.format("Unnamed mapping on path %s", currentPath)),
-                            m));
-        }
     }
 
     /**
