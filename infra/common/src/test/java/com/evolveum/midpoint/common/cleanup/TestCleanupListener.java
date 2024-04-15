@@ -14,13 +14,13 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
-public class TestCleanupHandler extends DefaultCleanupHandler {
+public class TestCleanupListener extends DefaultCleanupListener {
 
     private List<CleanupEvent<Item<?, ?>>> optionalCleanupEvents = new ArrayList<>();
 
     private List<CleanupEvent<PrismReference>> referenceCleanupEvents = new ArrayList<>();
 
-    public TestCleanupHandler() {
+    public TestCleanupListener() {
         super(PrismTestUtil.getPrismContext());
     }
 

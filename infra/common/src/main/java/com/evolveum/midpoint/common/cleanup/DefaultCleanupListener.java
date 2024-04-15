@@ -30,9 +30,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 @SuppressWarnings("unused")
-public class DefaultCleanupHandler implements CleanerListener {
+public class DefaultCleanupListener implements CleanerListener {
 
-    private static final Trace TRACE = TraceManager.getTrace(DefaultCleanupHandler.class);
+    private static final Trace TRACE = TraceManager.getTrace(DefaultCleanupListener.class);
 
     private static final ModuleDescriptor.Version CONNECTOR_AVAILABLE_SUPPORT_VERSION =
             ModuleDescriptor.Version.parse("4.6");
@@ -44,7 +44,7 @@ public class DefaultCleanupHandler implements CleanerListener {
 
     private boolean warnAboutMissingReferences;
 
-    public DefaultCleanupHandler(@NotNull PrismContext prismContext) {
+    public DefaultCleanupListener(@NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
     }
 

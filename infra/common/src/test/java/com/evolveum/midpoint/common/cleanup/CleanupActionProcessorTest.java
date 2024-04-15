@@ -84,7 +84,7 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
                 new CleanupPath(ResourceType.COMPLEX_TYPE, CAPABILITY_ACTIVATION, CleanupPathAction.ASK)
         ));
 
-        TestCleanupHandler listener = new TestCleanupHandler();
+        TestCleanupListener listener = new TestCleanupListener();
         processor.setListener(listener);
         CleanupResult result = processor.process(resource);
 
@@ -118,7 +118,7 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
                 .isNotNull();
 
         ObjectCleaner processor = new ObjectCleaner();
-        TestCleanupHandler listener = new TestCleanupHandler();
+        TestCleanupListener listener = new TestCleanupListener();
         processor.setListener(listener);
         processor.process(user);
 
@@ -151,7 +151,7 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
                 new CleanupPath(ResourceObjectFocusSpecificationType.COMPLEX_TYPE, ResourceObjectFocusSpecificationType.F_TYPE, CleanupPathAction.REMOVE)
         ));
 
-        TestCleanupHandler listener = new TestCleanupHandler();
+        TestCleanupListener listener = new TestCleanupListener();
         processor.setListener(listener);
         processor.process(container);
 
@@ -197,7 +197,7 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
         LOG.info("BEFORE \n{}", value.debugDump());
 
         ObjectCleaner processor = new ObjectCleaner();
-        TestCleanupHandler listener = new TestCleanupHandler();
+        TestCleanupListener listener = new TestCleanupListener();
         processor.setListener(listener);
         processor.process(container);
 
