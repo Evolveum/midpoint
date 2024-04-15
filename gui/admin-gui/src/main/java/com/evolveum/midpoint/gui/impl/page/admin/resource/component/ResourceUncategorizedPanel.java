@@ -91,10 +91,13 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
     }
 
     private void createObjectTypeChoice() {
+        QName defaultObjectClass = getDefaultObjectClass();
+        resetSearch(defaultObjectClass);
+
         boolean templateCategory = WebComponentUtil.isTemplateCategory(getObjectWrapperObject().asObjectable());
 
         var objectTypes = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
-                Model.of(getDefaultObjectClass()),
+                Model.of(defaultObjectClass),
                 () -> {
                     List<QName> resourceObjectClassesDefinitions = getObjectDetailsModels().getResourceObjectClassesDefinitions();
                     return Objects.requireNonNullElseGet(resourceObjectClassesDefinitions, ArrayList::new);
@@ -103,14 +106,37 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
         objectTypes.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                target.add(getShadowTable());
+                resetSearch(getSelectedObjectClass());
+                getShadowTable().refreshTable(target);
             }
         });
         objectTypes.setOutputMarkupId(true);
         add(objectTypes);
     }
 
+    private void resetSearch(QName currentObjectClass) {
+        ResourceContentStorage storage = getPageBase().getSessionStorage().getResourceContentStorage(null);
+
+        QName storedObjectClass = storage.getContentSearch().getObjectClass();
+        String storedResourceOid = storage.getContentSearch().getResourceOid();
+        String wrapperResourceOid = getObjectWrapper().getOid();
+        if (storedObjectClass == null
+                || !QNameUtil.match(currentObjectClass, storedObjectClass)
+                || StringUtils.isEmpty(wrapperResourceOid)
+                || !wrapperResourceOid.equals(storedResourceOid)) {
+            storage.setSearch(null);
+            storage.getContentSearch().setResourceOid(wrapperResourceOid);
+            storage.getContentSearch().setObjectClass(currentObjectClass);
+        }
+    }
+
     protected QName getDefaultObjectClass() {
+        ResourceContentStorage storage = getPageBase().getSessionStorage().getResourceContentStorage(null);
+        if (getObjectWrapper().getOid() != null
+                && getObjectWrapper().getOid().equals(storage.getContentSearch().getResourceOid())
+                && storage.getContentSearch().getObjectClass() != null) {
+            return storage.getContentSearch().getObjectClass();
+        }
         return getObjectDetailsModels().getDefaultObjectClass();
     }
 

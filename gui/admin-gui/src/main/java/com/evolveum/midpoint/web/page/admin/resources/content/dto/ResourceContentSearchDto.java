@@ -21,6 +21,7 @@ public class ResourceContentSearchDto implements Serializable, DebugDumpable {
     private ShadowKindType kind;
     private String intent;
     private QName objectClass;
+    private String resourceOid;
 
     private boolean isUseObjectClass = false;
 
@@ -58,6 +59,14 @@ public class ResourceContentSearchDto implements Serializable, DebugDumpable {
         this.objectClass = objectClass;
     }
 
+    public String getResourceOid() {
+        return resourceOid;
+    }
+
+    public void setResourceOid(String resourceOid) {
+        this.resourceOid = resourceOid;
+    }
+
     public boolean isUseObjectClass() {
         return isUseObjectClass;
     }
@@ -77,6 +86,7 @@ public class ResourceContentSearchDto implements Serializable, DebugDumpable {
         DebugUtil.debugDumpWithLabelLn(sb, "intent", intent, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectClass", objectClass, indent+1);
         DebugUtil.debugDumpWithLabel(sb, "isUseObjectClass", isUseObjectClass, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "resourceOid", resourceOid, indent+1);
         return sb.toString();
     }
 
