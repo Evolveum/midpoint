@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.common.mining.objects.analysis;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.evolveum.midpoint.prism.Item;
@@ -19,6 +21,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.NotNull;
 
 public class RoleAnalysisAttributeDef implements Serializable {
 
@@ -59,10 +63,6 @@ public class RoleAnalysisAttributeDef implements Serializable {
         this.identifierType = identifierType;
     }
 
-    public void calculateZScore(int objectWithExactAttributeCount, RoleAnalysisAttributeDef attributeDef) {
-        // TODO
-    }
-
     public ItemPath getPath() {
         return path;
     }
@@ -87,7 +87,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
         this.displayValue = displayValue;
     }
 
-    public String resolveSingleValueItem(PrismObject<?> prismObject, ItemPath itemPath) {
+    public String resolveSingleValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
         if (!isContainer) {
             Item<PrismValue, ItemDefinition<?>> property = prismObject.findItem(itemPath);
             if (property != null) {
@@ -98,11 +98,19 @@ public class RoleAnalysisAttributeDef implements Serializable {
         return null;
     }
 
-    public Set<String> resolveMultiValueItem(PrismObject<?> prismObject, ItemPath itemPath) {
-        return null;
+    public @NotNull Set<String> resolveMultiValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
+        Set<String> resolvedValues = new HashSet<>();
+        Collection<Item<?, ?>> allItems = prismObject.getAllItems(itemPath);
+        for (Item<?, ?> item : allItems) {
+            Object realValue = item.getRealValue();
+            if (realValue != null) {
+                resolvedValues.add(realValue.toString());
+            }
+        }
+        return resolvedValues;
     }
 
-    protected static String extractRealValue(Object object) {
+    public static String extractRealValue(Object object) {
         if (object != null) {
             if (object instanceof PolyString) {
                 return ((PolyString) object).getOrig();
@@ -130,10 +138,6 @@ public class RoleAnalysisAttributeDef implements Serializable {
         return classType;
     }
 
-    public void setClassType(Class<? extends ObjectType> classType) {
-        this.classType = classType;
-    }
-
     public enum IdentifierType {
         OID,
         FINAL
@@ -141,10 +145,6 @@ public class RoleAnalysisAttributeDef implements Serializable {
 
     public IdentifierType getIdentifierType() {
         return identifierType;
-    }
-
-    public void setIdentifierType(IdentifierType identifierType) {
-        this.identifierType = identifierType;
     }
 
 }
