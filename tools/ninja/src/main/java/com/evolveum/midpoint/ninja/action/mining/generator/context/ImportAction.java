@@ -83,7 +83,10 @@ public class ImportAction {
             importArchetypes(initialObjectsDefinition, repositoryService, result, log);
         }
 
-        importPlanktonRoles(initialObjectsDefinition, repositoryService, result, log);
+        if (!generatorOptions.isPlanktonDisable()) {
+            importPlanktonRoles(initialObjectsDefinition, repositoryService, result, log);
+        }
+
         importMultipliedBasicRoles(initialObjectsDefinition, repositoryService, result, log);
         importBusinessRoles(initialObjectsDefinition, repositoryService, result, log);
         importNoiseRoles(repositoryService, result, log);
@@ -361,7 +364,7 @@ public class ImportAction {
             String locationBusinessRoleOidValue = randomLocationBusinessRole.getOidValue();
             PolyStringType locale = PolyStringType.fromOrig(randomLocationBusinessRole.getLocale());
             String randomlyJobTitleStructure = getRandomlyJobTitlesWithNone();
-            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0);
+            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0, generatorOptions);
 
             UserType user = new UserType();
             user.setName(getNameFromSet(PolyStringType.fromOrig("Semi-Regular User " + i)));
@@ -403,7 +406,7 @@ public class ImportAction {
         for (int i = 0; i < irregularUsersCount; i++) {
             log.info("Importing irregular users: {}/{}", i + 1, irregularUsersCount);
             String randomlyJobTitleStructureWithNone = getRandomlyJobTitlesWithNone();
-            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(7);
+            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(7, generatorOptions);
             UserType user = new UserType();
             user.setName(getNameFromSet(PolyStringType.fromOrig("Irregular User " + i)));
             user.getAssignment().add(createOrgAssignment(organizationOid));
@@ -445,7 +448,7 @@ public class ImportAction {
             InitialObjectsDefinition.LocationInitialBusinessRole randomLocationBusinessRole = getRandomLocationBusinessRole();
             String locationBusinessRoleOidValue = randomLocationBusinessRole.getOidValue();
             PolyStringType locale = PolyStringType.fromOrig(randomLocationBusinessRole.getLocale());
-            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0);
+            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0, generatorOptions);
 
             UserType user = new UserType();
             user.setName(getNameFromSet(PolyStringType.fromOrig("Manager User " + i)));
@@ -563,7 +566,7 @@ public class ImportAction {
 
         for (int i = 0; i < contractorsCount; i++) {
             log.info("Importing contractor users: {}/{}", i + 1, contractorsCount);
-            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0);
+            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0, generatorOptions);
 
             UserType user = new UserType();
             user.setName(getNameFromSet(PolyStringType.fromOrig("Contractor User " + i)));
