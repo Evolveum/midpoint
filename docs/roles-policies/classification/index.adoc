@@ -19,6 +19,13 @@ compliance:
 :page-experimental: true
 :page-upkeep-status: yellow
 
+NOTE: For midPoint 4.8, this considered an experimental functionality.
+The mechanism works in midPoint 4.8 as described here, and they are based on stable functionality.
+However, it is planned that the mechanism will be updated for a more modern approach in midPoint 4.9.
+Some changes to configuration will be needed when upgrading information classification configuration to midPoint 4.9.
++
+MidPoint deployments that expect extensive use of information classification capabilities should wait for release of midPoint 4.9 and base their configuration on improved mechanisms.
+
 Information classification is a process in which organisations assess their data and systems, with regard to the necessary level of protection.
 The information is classified by assigning information _labels_ or _classifications_ to individual assets, such as databases, filesystems, applications or even individual files.
 
@@ -30,7 +37,7 @@ Even if a role definition is wrong, including access that it should not include,
 
 == Implementation
 
-MidPoint contains two pre-configured xref:../schema/archetypes/[archetypes]:
+The configuration is based on two basic xref:../schema/archetypes/[archetypes]:
 
 * `Classification` archetype is used to set up classification schemes.
 It is used to define set of _classifications_ (_information labels_) that can be assigned to applications.
@@ -44,6 +51,14 @@ Clearances allow access to classified applications.
 The actual mechanism is based on combination of xref:../metaroles/[meta-roles] and xref:../policy-rules/[policy rules].
 Classifications act as meta-roles, specifying their security requirements in form of policy rules embedded in a second-level inducements.
 The policy rules often assert presence of clearances, which are represented by user assignments.
+
+Sample definition of the archetypes for midPoint 4.8 can be found in https://github.com/Evolveum/midpoint-samples/tree/support-4.8/samples/experimental/classification[midPoint samples for version 4.8].
+
+WARNING: The definitions of `Classification` and `Clearance` archetypes provided for midPoint 4.8 are *experimental*.
+They are based on midPoint 4.8 mechanisms only.
+Improvements planned for midPoint 4.9 and 4.10 are likely to impact the way the archetypes are defined, therefore the definition of these archetypes in is almost certain to change.
+This is likely to affect upgrade of information classification functionality from midPoint 4.8 to later versions.
+Manual upgrade steps are likely to be required.
 
 == Example
 
