@@ -27,6 +27,13 @@ public enum ValidationItemType {
     MULTIVALUE_REF_WITHOUT_OID,
 
     /**
+     * Multi-value byte array in extension container.
+     *
+     * Data type: null
+     */
+    MULTIVALUE_BYTE_ARRAY,
+
+    /**
      * Data type:  {@link com.evolveum.midpoint.prism.Item}
      */
     DEPRECATED_ITEM,

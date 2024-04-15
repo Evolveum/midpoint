@@ -223,12 +223,30 @@ public class ObjectValidator {
     }
 
     private void visitProperty(PrismProperty<?> property, ValidationResult result) {
-        if (check(ValidationItemType.PROTECTED_DATA_NOT_EXTERNAL) && ProtectedStringType.COMPLEX_TYPE.equals(property.getDefinition().getTypeName())) {
-            PrismPropertyDefinition<?> def = property.getDefinition();
+        PrismPropertyDefinition<?> def = property.getDefinition();
+
+        if (check(ValidationItemType.PROTECTED_DATA_NOT_EXTERNAL)
+                && ProtectedStringType.COMPLEX_TYPE.equals(property.getDefinition().getTypeName())) {
             Class<?> type = def.getTypeClass();
             if (ProtectedDataType.class.isAssignableFrom(type)) {
                 checkProtectedString(property, result);
             }
+        }
+
+        if (check(ValidationItemType.MULTIVALUE_BYTE_ARRAY)) {
+            if (!def.isMultiValue()) {
+                return;
+            }
+
+            if (!byte[].class.equals(def.getTypeClass())) {
+                return;
+            }
+
+            ItemPath path = property.getPath();
+
+            warn(
+                    result, ValidationItemType.MULTIVALUE_BYTE_ARRAY,
+                    "Multi-value byte array in " + property.getPath(), property, null);
         }
     }
 

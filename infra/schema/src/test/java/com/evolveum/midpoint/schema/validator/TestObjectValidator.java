@@ -9,8 +9,11 @@ package com.evolveum.midpoint.schema.validator;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -27,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 public class TestObjectValidator extends AbstractSchemaTest {
 
     public static final File TEST_DIR = new File("src/test/resources/validator");
+
+    public static final File ROLE = new File(TEST_DIR, "role.xml");
 
     // Contains elements that are deprecated and planned for removal, but still valid.
     protected static final File ROLE_ONE_FILE = new File(TEST_DIR, "role-one.xml");
@@ -204,5 +209,30 @@ public class TestObjectValidator extends AbstractSchemaTest {
             }
         }
         return null;
+    }
+
+    @Test
+    public void testNewValidations() throws Exception {
+        ObjectValidator validator = new ObjectValidator();
+        validator.setAllWarnings();
+        validator.setSummarizeItemLifecycleState(false);
+        validator.setWarnPlannedRemovalVersion("4.8");
+
+        PrismObject<RoleType> object = PrismTestUtil.getPrismContext().parseObject(ROLE);
+        ValidationResult result = validator.validate(object);
+
+        AssertJUnit.assertNotNull(result);
+        AssertJUnit.assertEquals(5, result.size());
+
+        Map<ValidationItemType, Long> countPerType = result.getItems().stream()
+                .collect(Collectors.groupingBy(
+                        i -> i.type(),
+                        Collectors.counting()));
+
+        AssertJUnit.assertEquals(1L, countPerType.get(ValidationItemType.PROTECTED_DATA_NOT_EXTERNAL).longValue());
+        AssertJUnit.assertEquals(2L, countPerType.get(ValidationItemType.INCORRECT_OID_FORMAT).longValue());
+//        AssertJUnit.assertEquals(1L, countPerType.get(ValidationItemType.MISSING_NATURAL_KEY));
+        AssertJUnit.assertEquals(1L, countPerType.get(ValidationItemType.MULTIVALUE_REF_WITHOUT_OID).longValue());
+        AssertJUnit.assertEquals(1L, countPerType.get(ValidationItemType.DEPRECATED_ITEM).longValue());
     }
 }
