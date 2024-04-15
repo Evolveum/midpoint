@@ -66,7 +66,7 @@ public class MemberOperationsGuiHelper {
 
     public static <O extends ObjectType> void assignOrgMembers(PageBase pageBase, OrgType targetRefObject, AjaxRequestTarget target,
             Search search, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
-        ChooseOrgMemberPopup<O> browser = new ChooseOrgMemberPopup<>(pageBase.getMainPopupBodyId(), search) {
+        ChooseOrgMemberPopup<O> browser = new ChooseOrgMemberPopup<>(pageBase.getMainPopupBodyId(), search, null) {
 
             private static final long serialVersionUID = 1L;
 
