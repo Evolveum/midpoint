@@ -122,7 +122,7 @@ public final class ResourceAttributeContainerImpl
         if (containerDef == null) {
             return null;
         }
-        ResourceAttributeDefinition<?> namingAttrDef = containerDef.getNamingAttribute();
+        ResourceAttributeDefinition<?> namingAttrDef = containerDef.getResourceObjectDefinition().getNamingAttribute();
         if (namingAttrDef == null) {
             return null;
         }

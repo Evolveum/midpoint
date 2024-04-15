@@ -19,6 +19,8 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProces
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -341,7 +343,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
             return;
         }
 
-        for (var association : AbstractShadow.of(shadow).getAssociations()) {
+        for (var association : ShadowUtil.getAssociations(shadow)) {
             var associationDefinition = association.getDefinition();
             LOGGER.trace("Processing values of association {}", associationDefinition);
             for (var associationValue : association.getAssociationValues()) {

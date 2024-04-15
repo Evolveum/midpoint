@@ -52,11 +52,6 @@ public class ObjectFactory {
         return new ResourceAttributeContainerImpl(name, definition);
     }
 
-    public static ResourceAttributeContainerDefinition createResourceAttributeContainerDefinition(
-            QName name, ResourceObjectDefinition resourceObjectDefinition) {
-        return new ResourceAttributeContainerDefinitionImpl(name, resourceObjectDefinition);
-    }
-
     public static NativeResourceSchemaBuilder createNativeResourceSchemaBuilder() {
         return new NativeResourceSchemaImpl();
     }

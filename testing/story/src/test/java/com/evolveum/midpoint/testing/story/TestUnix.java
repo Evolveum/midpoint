@@ -420,21 +420,24 @@ public class TestUnix extends AbstractStoryTest {
 
         // WHEN
         when();
-        ResourceObjectDefinition editObjectClassDefinition = modelInteractionService.getEditObjectClassDefinition(shadow, resourceOpenDj, AuthorizationPhaseType.REQUEST, task, result);
+        var editAttributesDefinition =
+                modelInteractionService
+                        .getEditObjectClassDefinition(shadow, resourceOpenDj, AuthorizationPhaseType.REQUEST, task, result)
+                        .getAttributesComplexTypeDefinition();
 
         // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        displayDumpable("OC def", editObjectClassDefinition);
+        displayDumpable("OC def", editAttributesDefinition);
 
-        PrismAsserts.assertPropertyDefinition(editObjectClassDefinition,
+        PrismAsserts.assertPropertyDefinition(editAttributesDefinition,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING, 1, -1);
-        PrismAsserts.assertPropertyDefinition(editObjectClassDefinition,
+        PrismAsserts.assertPropertyDefinition(editAttributesDefinition,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "o"), DOMUtil.XSD_STRING, 0, -1);
-        PrismAsserts.assertPropertyDefinition(editObjectClassDefinition,
+        PrismAsserts.assertPropertyDefinition(editAttributesDefinition,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "uidNumber"), DOMUtil.XSD_INTEGER, 1, 1);
-        PrismAsserts.assertPropertyDefinition(editObjectClassDefinition,
+        PrismAsserts.assertPropertyDefinition(editAttributesDefinition,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "gidNumber"), DOMUtil.XSD_INTEGER, 1, 1);
     }
 

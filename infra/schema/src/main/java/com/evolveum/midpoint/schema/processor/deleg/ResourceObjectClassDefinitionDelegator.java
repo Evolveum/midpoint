@@ -1,15 +1,10 @@
 package com.evolveum.midpoint.schema.processor.deleg;
 
-import com.evolveum.midpoint.schema.processor.BasicResourceInformation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -72,10 +67,5 @@ public interface ResourceObjectClassDefinitionDelegator extends ResourceObjectDe
     @NotNull
     default Collection<? extends ResourceObjectDefinition> getAuxiliaryDefinitions() {
         return delegate().getAuxiliaryDefinitions();
-    }
-
-    @Override
-    default ResourceAttributeContainer instantiate(ItemName elementName) {
-        return delegate().instantiate(elementName);
     }
 }

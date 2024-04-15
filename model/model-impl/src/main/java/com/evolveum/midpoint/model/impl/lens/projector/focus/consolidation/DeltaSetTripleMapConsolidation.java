@@ -36,11 +36,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * Responsible for consolidation of delta set triple map (plus, minus, zero sets for individual items) to item deltas.
+ * Responsible for consolidation of a {@link DeltaSetTripleMap} (plus, minus, zero sets for individual items) to item deltas.
  *
  * The consolidation itself is delegated to {@link IvwoConsolidator}.
  */
-@Experimental
 public class DeltaSetTripleMapConsolidation<T extends Containerable> {
 
     private static final Trace LOGGER = TraceManager.getTrace(DeltaSetTripleMapConsolidation.class);
@@ -56,9 +55,13 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
      * Target PCV, for which deltas are to be produced.
      *
      * It contains the newest state of the object (in the light of previous computations),
-     * i.e. value with targetAPrioriDelta already applied.
+     * i.e. value with `targetAPrioriDelta` already applied.
+     *
+     * Actually, it can be null, there's no problem in that.
+     * We do not want to apply anything directly to it.
+     * We need it only to know the a priori computed values, if there are any.
      */
-    private final PrismContainerValue<T> targetPcv;
+    @Nullable private final PrismContainerValue<T> targetPcv;
 
     /** Provides a-priori deltas for items being consolidated. */
     private final APrioriDeltaProvider aPrioriItemDeltaProvider;
@@ -124,7 +127,7 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
 
     public DeltaSetTripleMapConsolidation(
             @NotNull DeltaSetTripleMap outputTripleMap,
-            @NotNull PrismContainerValue<T> targetPcv,
+            @Nullable PrismContainerValue<T> targetPcv,
             @NotNull APrioriDeltaProvider aPrioriItemDeltaProvider,
             @NotNull Function<ItemPath, Boolean> itemDeltaExistsProvider,
             @Nullable Boolean addUnchangedValuesOverride,

@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.DeepCloneOperation;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -84,21 +85,15 @@ public interface ResourceObjectClassDefinition
         return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, getTypeName());
     }
 
-    ResourceAttributeContainer instantiate(ItemName elementName);
+    @NotNull ResourceObjectClassDefinition clone();
 
-    @NotNull
-    ResourceObjectClassDefinition clone();
-
-    @NotNull
     @Override
-    ResourceObjectClassDefinition deepClone(@NotNull DeepCloneOperation operation);
-
-    ResourceObjectClassDefinitionMutator mutator();
+    @NotNull ResourceObjectClassDefinition deepClone(@NotNull DeepCloneOperation operation);
 
     /**
-     * Interface allowing modifications of an object class definition.
+     * Interface allowing modifications of an object class definition. TODO remove?
      */
-    interface ResourceObjectClassDefinitionMutator extends ComplexTypeDefinitionMutator {
+    interface ResourceObjectClassDefinitionMutator extends ComplexTypeDefinition.ComplexTypeDefinitionMutator {
 
         void add(ItemDefinition<?> definition);
     }

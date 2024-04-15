@@ -18,12 +18,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-public interface ResourceObjectInboundDefinition {
+public interface ResourceObjectInboundDefinition extends Serializable {
 
     static ResourceObjectInboundDefinition empty() {
         return new EmptyImplementation();
@@ -61,7 +62,7 @@ public interface ResourceObjectInboundDefinition {
         return null;
     }
 
-    interface ItemInboundDefinition {
+    interface ItemInboundDefinition extends Serializable {
 
         @NotNull List<InboundMappingType> getInboundMappingBeans();
 

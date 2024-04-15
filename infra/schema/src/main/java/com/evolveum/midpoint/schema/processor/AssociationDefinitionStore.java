@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -29,7 +30,7 @@ public interface AssociationDefinitionStore {
      * Note: these items are _not_ included in getDefinitions.
      * (BTW, ResourceAssociationDefinition is not a subtype of ItemDefinition, not even of Definition.)
      */
-    @NotNull Collection<? extends ShadowAssociationDefinition> getAssociationDefinitions();
+    @NotNull List<? extends ShadowAssociationDefinition> getAssociationDefinitions();
 
     default ShadowAssociationDefinition findAssociationDefinition(QName name) {
         return getAssociationDefinitions().stream()

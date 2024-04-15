@@ -12,6 +12,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +45,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.Delta
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.FixedTargetSpecification;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.TargetObjectSpecification;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
@@ -92,7 +93,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class AssignmentProcessor implements ProjectorProcessor {
 
     @Autowired private ReferenceResolver referenceResolver;
-    @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private PrismContext prismContext;
     @Autowired private ConstructionProcessor constructionProcessor;
@@ -345,7 +345,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 request.getEvaluatedAssignment().addFocusMapping(mapping);
             };
 
-            TargetObjectSpecification<AH> targetSpecification = new FixedTargetSpecification<>(focusOdoRelative.getNewObject(), true);
+            var targetSpecification = new FixedTargetSpecification<>(focusOdoRelative.getNewObject(), true);
 
             MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(
                     "focus mappings in assignments of " + focusContext.getHumanReadableName(),
@@ -373,7 +373,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
             DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(
                     focusOutputTripleMap,
-                    focusOdoRelative.getNewObject().getValue(), // FIXME what about null focus?
+                    ObjectTypeUtil.getValue(focusOdoRelative.getNewObject()),
                     APrioriDeltaProvider.forDelta(focusOdoRelative.getObjectDelta()),
                     context::primaryFocusItemDeltaExists,
                     null,

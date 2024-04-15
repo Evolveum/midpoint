@@ -253,7 +253,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         System.out.println("\nResourceAttributeContainerDefinition (" + sourceLayer + ")");
         System.out.println(resAttrContainerDef.debugDump());
 
-        ResourceObjectDefinition rComplexTypeDefinition = resAttrContainerDef.getComplexTypeDefinition();
+        ResourceObjectDefinition rComplexTypeDefinition = resAttrContainerDef.getResourceObjectDefinition();
         System.out.println("\nResourceAttributeContainerDefinition ComplexTypeDefinition (" + sourceLayer + ")");
         System.out.println(rComplexTypeDefinition.debugDump());
         if (accountDef instanceof ResourceObjectTypeDefinition) {
@@ -699,7 +699,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         System.out.println("\nResourceAttributeContainerDefinition");
         System.out.println(resAttrContainerDef.debugDump());
 
-        ResourceObjectDefinition rComplexTypeDefinition = resAttrContainerDef.getComplexTypeDefinition();
+        ResourceObjectDefinition rComplexTypeDefinition = resAttrContainerDef.getResourceObjectDefinition();
         System.out.println("\nResourceAttributeContainerDefinition ComplexTypeDefinition");
         System.out.println(rComplexTypeDefinition.debugDump());
 

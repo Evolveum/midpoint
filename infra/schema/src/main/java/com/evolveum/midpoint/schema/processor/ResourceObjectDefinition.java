@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
@@ -36,49 +36,24 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * A definition that describes either an object class (as fetched from the resource, optionally refined by `schemaHandling`),
  * or an object type (as defined in `schemaHandling` part of resource definition).
  *
- * It is used as a common interface to both "raw" and "refined" definitions. (Raw definitions are used e.g. in cases
- * when there is no `schemaHandling` for given object class, or for the resource as a whole.)
+ * Since 4.9, it is no longer a {@link ComplexTypeDefinition}; see {@link ShadowItemsComplexTypeDefinition} for explanation.
  *
- * Note: Before midPoint 4.5, this interface was known as `ObjectClassComplexTypeDefinition`.
- * So the hierarchy was:
- *
- *                          ComplexTypeDefinition
- *                                   ^
- *                                   |
- *                    ObjectClassComplexTypeDefinition
- *                                   ^
- *                                   |
- *                      RefinedObjectClassDefinition
- *
- * Now the hierarchy is like this:
- *
- *                          ComplexTypeDefinition
- *                                   ^
- *                                   |
  *                       ResourceObjectDefinition
  *                                   ^
  *                                   |
  *                +------------------+-------------------+
  *                |                                      |
  *     ResourceObjectClassDefinition  ResourceObjectTypeDefinition
- *
- * This change eliminates e.g. the need to create "artificial" refined object class definitions just to allow
- * model and provisioning modules to work with object classes not described in schema handling. (Confusion stemmed
- * e.g. from the fact that `RefinedObjectClassDefinition` had to have kind/intent. This is now fixed.)
- *
- * NOTE: The object definition can be _attached to the resource_ or not. The attached definition has the basic
- * information about the resource present, see {@link #getBasicResourceInformation()}. Only raw object class
- * definitions can be unattached. Refined definitions are always attached.
  */
 public interface ResourceObjectDefinition
     extends
-        ComplexTypeDefinition,
         IdentifiersDefinitionStore,
         AttributeDefinitionStore,
         AssociationDefinitionStore,
         LayeredDefinition,
         FrameworkNameResolver,
-        ResourceObjectInboundDefinition {
+        ResourceObjectInboundDefinition,
+        TypeDefinition {
 
     /**
      * The basic information about the resource (like name, OID, selected configuration beans).
@@ -386,37 +361,13 @@ public interface ResourceObjectDefinition
      * Creates {@link ResourceAttributeContainerDefinition} with this definition as a complex type definition.
      */
     default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
-        return toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES);
-    }
-
-    /**
-     * Creates {@link ResourceAttributeContainerDefinition} (with given item name) with this definition
-     * as a complex type definition.
-     */
-    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
-        return ObjectFactory.createResourceAttributeContainerDefinition(elementName, this);
+        return new ResourceAttributeContainerDefinitionImpl(ShadowType.F_ATTRIBUTES, getAttributesComplexTypeDefinition());
     }
 
     default @NotNull ShadowAssociationsContainerDefinition toShadowAssociationsContainerDefinition() {
-        return new ShadowAssociationsContainerDefinitionImpl(ShadowType.F_ASSOCIATIONS, toAssociationsComplexTypeDefinition());
+        return new ShadowAssociationsContainerDefinitionImpl(ShadowType.F_ASSOCIATIONS, getAssociationsComplexTypeDefinition());
     }
 
-    default @NotNull ComplexTypeDefinition toAssociationsComplexTypeDefinition() {
-        var ctd = new ComplexTypeDefinitionImpl(ShadowAssociationsType.COMPLEX_TYPE);
-        for (var associationDefinition : getAssociationDefinitions()) {
-            ctd.add(associationDefinition);
-        }
-        return ctd;
-    }
-
-    /**
-     * Creates a {@link ResourceAttributeContainer} instance with this definition as its complex type definition.
-     */
-    default ResourceAttributeContainer instantiate(ItemName itemName) {
-        return new ResourceAttributeContainerImpl(
-                itemName,
-                toResourceAttributeContainerDefinition(itemName));
-    }
     //endregion
 
     //region Capabilities
@@ -434,6 +385,7 @@ public interface ResourceObjectDefinition
 
     //region Diagnostics and administration
 
+    void trimTo(@NotNull Collection<ItemPath> paths);
     /**
      * Executes some basic checks on this object type.
      * Moved from `validateObjectClassDefinition()` method in {@link ResourceTypeUtil}.
@@ -461,7 +413,6 @@ public interface ResourceObjectDefinition
      * BEWARE, the mutable {@link CompositeObjectDefinition} is significantly slower than its immutable counterpart.
      * See MID-9156.
      */
-    @Override
     @NotNull ResourceObjectDefinition clone();
 
     /**
@@ -470,7 +421,6 @@ public interface ResourceObjectDefinition
      * BEWARE, the mutable {@link CompositeObjectDefinition} is significantly slower than its immutable counterpart.
      * See MID-9156.
      */
-    @Override
     @NotNull
     ResourceObjectDefinition deepClone(@NotNull DeepCloneOperation operation);
 
@@ -585,4 +535,37 @@ public interface ResourceObjectDefinition
 
     /** Returns both attribute and association definitions. */
     @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions();
+
+    default @NotNull ShadowAttributesComplexTypeDefinition getAttributesComplexTypeDefinition() {
+        return ShadowAttributesComplexTypeDefinitionImpl.of(this);
+    }
+
+    default @NotNull ShadowAssociationsComplexTypeDefinition getAssociationsComplexTypeDefinition() {
+        return ShadowAssociationsComplexTypeDefinitionImpl.of(this);
+    }
+
+    @Override
+    default @Nullable Class<?> getCompileTimeClass() {
+        return null;
+    }
+
+    @Override
+    default @Nullable QName getSuperType() {
+        return null;
+    }
+
+    @Override
+    default @NotNull Collection<TypeDefinition> getStaticSubTypes() {
+        return List.of();
+    }
+
+    @Override
+    default Integer getInstantiationOrder() {
+        return null;
+    }
+
+    @Override
+    default boolean canRepresent(QName typeName) {
+        return QNameUtil.match(typeName, getTypeName());
+    }
 }

@@ -33,9 +33,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#link",
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" })
 @ActionDefinitionClass(LinkSynchronizationActionType.class)
-public class LinkAction<F extends FocusType> extends BaseClockworkAction<F> {
+class LinkAction<F extends FocusType> extends BaseClockworkAction<F> {
 
-    public LinkAction(@NotNull ActionInstantiationContext<F> ctx) {
+    LinkAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);
     }
 

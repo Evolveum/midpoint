@@ -330,7 +330,7 @@ public class IntegrationTestTools {
         assertNotNull("No attributes container definition", attrsDef);
         assertTrue("Wrong attributes definition class " + attrsDef.getClass().getName(), attrsDef instanceof ResourceAttributeContainerDefinition);
         ResourceAttributeContainerDefinition rAttrsDef = (ResourceAttributeContainerDefinition) attrsDef;
-        ResourceObjectClassDefinition objectClassDef = rAttrsDef.getComplexTypeDefinition().getObjectClassDefinition();
+        ResourceObjectClassDefinition objectClassDef = rAttrsDef.getResourceObjectDefinition().getObjectClassDefinition();
         assertNotNull("No object class definition in attributes definition", objectClassDef);
         assertEquals("Wrong object class in attributes definition", objectClass, objectClassDef.getTypeName());
         var primaryIdDef = objectClassDef.getPrimaryIdentifiers().iterator().next();
@@ -852,7 +852,7 @@ public class IntegrationTestTools {
 
         assertNotNull("No object class definition " + RI_ACCOUNT_OBJECT_CLASS, accountDefinition);
         assertTrue("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is not default account", accountDefinition.isDefaultAccountDefinition());
-        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.isEmpty());
+        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.getAttributeDefinitions().isEmpty());
 
         Collection<? extends ResourceAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
         assertNotNull("Null identifiers for " + RI_ACCOUNT_OBJECT_CLASS, identifiers);
@@ -919,18 +919,20 @@ public class IntegrationTestTools {
 
     public static ObjectDelta<ShadowType> createEntitleDelta(
             String accountOid, QName associationName, String groupOid) throws SchemaException {
+        //noinspection unchecked
         return PrismContext.get().deltaFactory().object().createModificationAddContainer(
                 ShadowType.class, accountOid,
                 ShadowType.F_ASSOCIATIONS.append(associationName),
-                ShadowAssociationValue.withReferenceTo(groupOid));
+                ShadowAssociationValue.rawWithReferenceTo(groupOid));
     }
 
     public static ObjectDelta<ShadowType> createDetitleDelta(
             String accountOid, QName associationName, String groupOid) {
+        //noinspection unchecked
         return PrismContext.get().deltaFactory().object().createModificationDeleteContainer(
                 ShadowType.class, accountOid,
                 ShadowType.F_ASSOCIATIONS.append(associationName),
-                ShadowAssociationValue.withReferenceTo(groupOid));
+                ShadowAssociationValue.rawWithReferenceTo(groupOid));
     }
 
     public static ObjectDelta<ShadowType> createEntitleDeltaIdentifiers(

@@ -7,14 +7,9 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition.PrismPropertyDefinitionMutator;
-import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition.ResourceObjectClassDefinitionMutator;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -40,7 +35,7 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
  */
 public class ResourceObjectClassDefinitionImpl
         extends AbstractResourceObjectDefinitionImpl
-        implements ResourceObjectClassDefinition, ResourceObjectClassDefinitionMutator {
+        implements ResourceObjectClassDefinition {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -128,22 +123,6 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public void delete(QName itemName) {
-        attributeDefinitions.removeIf(
-                def -> QNameUtil.match(def.getItemName(), itemName));
-    }
-
-    @Override
-    public PrismPropertyDefinitionMutator<?> createPropertyDefinition(QName name, QName typeName) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PrismPropertyDefinitionMutator<?> createPropertyDefinition(String name, QName typeName) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public @Nullable QName getNamingAttributeName() {
         return nativeObjectClassDefinition.getNamingAttributeName();
     }
@@ -174,27 +153,7 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public ResourceAttributeContainer instantiate(@NotNull ItemName elementName) {
-        return instantiate(elementName, this);
-    }
-
-    // TODO is this needed to be exposed publicly?
-    public static ResourceAttributeContainer instantiate(
-            @NotNull QName elementName,
-            @NotNull ResourceObjectClassDefinition objectClassDefinition) {
-        return new ResourceAttributeContainerImpl(
-                elementName,
-                objectClassDefinition.toResourceAttributeContainerDefinition(elementName));
-    }
-
-    @Override
-    public @Nullable QName getDefaultItemTypeName() {
-        return null;
-    }
-
-    @NotNull
-    @Override
-    public ResourceObjectClassDefinitionImpl clone() {
+    public @NotNull ResourceObjectClassDefinitionImpl clone() {
         try {
             return clone(currentLayer, basicResourceInformation);
         } catch (SchemaException | ConfigurationException e) {
@@ -222,76 +181,6 @@ public class ResourceObjectClassDefinitionImpl
         return clone;
     }
 
-    @Override
-    public void addSubstitution(ItemDefinition<?> itemDef, ItemDefinition<?> maybeSubst) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDeprecated(boolean deprecated) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setRemoved(boolean removed) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setOptionalCleanup(boolean optionalCleanup) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setRemovedSince(String removedSince) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setExperimental(boolean experimental) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDisplayHint(DisplayHint displayHint) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setEmphasized(boolean emphasized) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDisplayName(String displayName) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDisplayOrder(Integer displayOrder) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setHelp(String help) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setRuntimeSchema(boolean value) {
-        argCheck(value, "Cannot set runtime schema flag to 'false' for %s", this);
-    }
-
-    @Override
-    public void setDocumentation(String value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void addSchemaMigration(SchemaMigration schemaMigration) {
-        throw new UnsupportedOperationException();
-    }
-
     public void setInstantiationOrder(Integer order) {
         argCheck(order == null, "Instantiation order is not supported for %s", this);
     }
@@ -299,12 +188,13 @@ public class ResourceObjectClassDefinitionImpl
     @NotNull
     @Override
     public ResourceObjectClassDefinition deepClone(@NotNull DeepCloneOperation operation) {
-        // We do not need to do deep cloning of item definitions, because they are of simple types.
-        return (ResourceObjectClassDefinition) operation.execute(
-                this,
-                this::clone,
-                clone -> clone.getDefinitions()
-                        .forEach(operation::executePostCloneAction));
+        throw new UnsupportedOperationException();
+//        // We do not need to do deep cloning of item definitions, because they are of simple types.
+//        return (ResourceObjectClassDefinition) operation.execute(
+//                this,
+//                this::clone,
+//                clone -> clone.getDefinitions()
+//                        .forEach(operation::executePostCloneAction));
     }
 
     @Override
@@ -320,18 +210,6 @@ public class ResourceObjectClassDefinitionImpl
     @Override
     public boolean hasRefinements() {
         return !definitionBean.asPrismContainerValue().hasNoItems();
-    }
-
-    @Override
-    public boolean hasSubstitutions() {
-        // TODO
-        return false;
-    }
-
-    @Override
-    public Optional<ItemDefinition<?>> substitution(QName name) {
-        // TODO
-        return Optional.empty();
     }
 
     @Override
@@ -351,12 +229,6 @@ public class ResourceObjectClassDefinitionImpl
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), objectClassName, nativeObjectClassDefinition);
-    }
-
-    @Override
-    public ResourceObjectClassDefinitionMutator mutator() {
-        checkMutableOnExposing();
-        return this;
     }
 
     @Override
@@ -432,31 +304,6 @@ public class ResourceObjectClassDefinitionImpl
     @Override
     public @NotNull String getShortIdentification() {
         return getObjectClassName().getLocalPart();
-    }
-
-    @Override
-    public <A> void setAnnotation(QName qname, A value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setPlannedRemoval(String plannedRemoval) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDeprecatedSince(String deprecatedSince) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setSchemaMigrations(List<SchemaMigration> value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDiagrams(List<ItemDiagramSpecification> value) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

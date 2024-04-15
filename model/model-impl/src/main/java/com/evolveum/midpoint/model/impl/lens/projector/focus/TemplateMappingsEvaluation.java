@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
@@ -292,7 +294,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
         consolidation = new DeltaSetTripleMapConsolidation<>(
                 outputTripleMap,
-                targetObject.getValue(),
+                ObjectTypeUtil.getValue(targetObject),
                 APrioriDeltaProvider.forDelta(targetAPrioriDelta),
                 itemDeltaExistsProvider,
                 null,

@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -17,7 +16,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schema.SerializableComplexTypeDefinition;
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -48,15 +46,15 @@ public class ResourceAttributeContainerDefinitionImpl
 
     @Serial private static final long serialVersionUID = 3943909626639924429L;
 
-    public ResourceAttributeContainerDefinitionImpl(QName name, @NotNull ComplexTypeDefinition complexTypeDefinition) {
+    ResourceAttributeContainerDefinitionImpl(QName name, @NotNull ComplexTypeDefinition complexTypeDefinition) {
         super(name, complexTypeDefinition);
         super.setCompileTimeClass(ShadowAttributesType.class);
         isRuntimeSchema = true;
     }
 
     @Override
-    public ResourceObjectDefinition getComplexTypeDefinition() {
-        return (ResourceObjectDefinition) super.getComplexTypeDefinition();
+    public ShadowAttributesComplexTypeDefinition getComplexTypeDefinition() {
+        return (ShadowAttributesComplexTypeDefinition) super.getComplexTypeDefinition();
     }
 
     @Override
@@ -77,34 +75,6 @@ public class ResourceAttributeContainerDefinitionImpl
     @Override
     public Collection<? extends ResourceAttributeDefinition<?>> getAllIdentifiers() {
         return getComplexTypeDefinition().getAllIdentifiers();
-    }
-
-    @Override
-    public ResourceAttributeDefinition<?> getNamingAttribute() {
-        return getComplexTypeDefinition().getNamingAttribute();
-    }
-
-//    public void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute) {
-//        // We can afford to delegate a set here as we know that there is one-to-one correspondence between
-//        // object class definition and attribute container
-//        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setNamingAttributeName(namingAttribute.getItemName());
-//    }
-
-//    public void setNamingAttribute(QName namingAttribute) {
-//        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setNamingAttributeName(namingAttribute);
-//    }
-
-    public void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName) {
-        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setDisplayNameAttributeName(displayName.getItemName());
-    }
-
-    /**
-     * TODO
-     *
-     * Convenience method. It will internally look up the correct definition.
-     */
-    public void setDisplayNameAttribute(QName displayName) {
-        ((ResourceObjectClassDefinitionImpl) getComplexTypeDefinition()).setDisplayNameAttributeName(displayName);
     }
 
     @NotNull
@@ -136,36 +106,18 @@ public class ResourceAttributeContainerDefinitionImpl
     }
 
     @Override
-    public <T> ResourceAttributeDefinition<T> findAttributeDefinition(QName elementQName, boolean caseInsensitive) {
-        var ctd = complexTypeDefinition;
-        if (ctd instanceof ResourceObjectDefinition) {
-            // Shortcut to more efficient lookup implementation - FIXME this is a hack
-            //noinspection unchecked
-            return (ResourceAttributeDefinition<T>)
-                    ((ResourceObjectDefinition) ctd).findAttributeDefinition(elementQName, caseInsensitive);
-        }
-        //noinspection unchecked
-        return findLocalItemDefinition(ItemName.fromQName(elementQName), ResourceAttributeDefinition.class, caseInsensitive);
-    }
-
-    @Override
-    public ResourceAttributeDefinition<?> findAttributeDefinition(ItemPath elementPath) {
+    public <T> ResourceAttributeDefinition<T> findAttributeDefinition(ItemPath elementPath) {
         if (elementPath.isSingleName()) {
             // this is a bit of hack
+            //noinspection unchecked
             return findLocalItemDefinition(elementPath.asSingleNameOrFail(), ResourceAttributeDefinition.class, false);
         } else {
+            //noinspection unchecked
             return findItemDefinition(elementPath, ResourceAttributeDefinition.class);
         }
     }
 
-    @Override
-    public ResourceAttributeDefinition<?> findAttributeDefinition(String localName) {
-        ItemName elementQName = new ItemName(getItemName().getNamespaceURI(), localName);
-        return findAttributeDefinition(elementQName);
-    }
-
-    @Override
-    public List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
+    private List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
         return getComplexTypeDefinition().getAttributeDefinitions();
     }
 
@@ -177,8 +129,7 @@ public class ResourceAttributeContainerDefinitionImpl
         for (ResourceAttributeDefinition<?> def : getDefinitions()) {
             sb.append("\n");
             sb.append(def.debugDump(indent+1));
-            if (((ResourceObjectDefinition) super.getComplexTypeDefinition())
-                    .isPrimaryIdentifier(def.getItemName())) {
+            if (getComplexTypeDefinition().isPrimaryIdentifier(def.getItemName())) {
                 sb.deleteCharAt(sb.length()-1);
                 sb.append(" id");
             }
@@ -188,14 +139,17 @@ public class ResourceAttributeContainerDefinitionImpl
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName()).append(":").append(getItemName()).append(" (").append(getTypeName()).append(")");
-        return sb.toString();
+        return "RACD: " + complexTypeDefinition;
     }
 
     // Only attribute definitions should be here.
     @Override
     public @NotNull List<? extends ResourceAttributeDefinition<?>> getDefinitions() {
         return getAttributeDefinitions();
+    }
+
+    @Override
+    public @NotNull ResourceObjectDefinition getResourceObjectDefinition() {
+        return getComplexTypeDefinition().getResourceObjectDefinition();
     }
 }

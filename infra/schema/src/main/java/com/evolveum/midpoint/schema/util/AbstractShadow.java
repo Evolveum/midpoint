@@ -243,6 +243,11 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
                     "Attribute %s with no definition in %s", attribute, this);
             var attrDefFromObjectDef = objectDefinition.findAttributeDefinitionStrictlyRequired(attribute.getElementName());
             if (!attrDef.equals(attrDefFromObjectDef)) {
+                // FIXME This is too harsh. See e.g. TestModelServiceContract#test350, where we provide our own account delta
+                //  that gets processed as part of inbound processing. The attribute definition was provided by the caller
+                //  (and is derived from resource object class), whereas the "official" definition is derived from the
+                //  object type.
+                //  OR ... should we overwrite all client-supplied definitions with our own? Probably not a bad idea.
                 throw new IllegalStateException(
                         "Attribute %s has a definition (%s) that does not match the one from object definition (%s from %s) in %s"
                                 .formatted(attribute, attrDef, attrDefFromObjectDef, objectDefinition, this));

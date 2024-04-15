@@ -236,6 +236,7 @@ public class ShadowUtil {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         return attributesContainer.getDefinition()
                 .getComplexTypeDefinition()
+                .getResourceObjectDefinition()
                 .getObjectClassDefinition();
     }
 

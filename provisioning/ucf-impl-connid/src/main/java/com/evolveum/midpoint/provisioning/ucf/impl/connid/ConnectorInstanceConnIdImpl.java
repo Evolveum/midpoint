@@ -376,7 +376,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             // We can tell with certainty only from the ConnId schema, looking for __ACCOUNT__ and __GROUP__ classes.
             // (We'd need some flag to store the information in the XSD to be precise.)
             detectedLegacySchema =
-                    resourceSchema.findComplexTypeDefinitionByType(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS) != null;
+                    resourceSchema.findObjectClassDefinition(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS) != null;
         }
     }
 
@@ -695,12 +695,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         OperationResult result = parentResult.createSubresult(OP_ADD_OBJECT);
         result.addParam("resourceObject", shadow);
 
-        ResourceObjectDefinition ocDef;
+        ResourceObjectDefinition objDef;
         ResourceAttributeContainerDefinition attrContDef = attributesContainer.getDefinition();
         if (attrContDef != null) {
-            ocDef = attrContDef.getComplexTypeDefinition();
+            objDef = attrContDef.getResourceObjectDefinition();
         } else {
-            ocDef = resourceSchema.findDefinitionForObjectClassRequired(shadow.asObjectable().getObjectClass());
+            objDef = resourceSchema.findDefinitionForObjectClassRequired(shadow.asObjectable().getObjectClass());
         }
 
         // getting icf object class from resource object class
@@ -715,7 +715,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         Set<Attribute> attributes;
         try {
             LOGGER.trace("midPoint object before conversion:\n{}", attributesContainer.debugDumpLazily());
-            attributes = connIdObjectConvertor.convertFromResourceObjectToConnIdAttributes(attributesContainer, ocDef);
+            attributes = connIdObjectConvertor.convertFromResourceObjectToConnIdAttributes(attributesContainer, objDef);
 
             if (shadowType.getCredentials() != null && shadowType.getCredentials().getPassword() != null) {
                 PasswordType password = shadowType.getCredentials().getPassword();
@@ -777,7 +777,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         // CALL THE ConnId FRAMEWORK
         InternalMonitor.recordConnectorOperation("create");
         InternalMonitor.recordConnectorModification("create");
-        ConnIdOperation operation = recordIcfOperationStart(ctx, ProvisioningOperation.ICF_CREATE, ocDef, null);
+        ConnIdOperation operation = recordIcfOperationStart(ctx, ProvisioningOperation.ICF_CREATE, objDef, null);
 
         Uid uid;
         try {
@@ -827,7 +827,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         Collection<ResourceAttribute<?>> identifiers =
                 ConnIdUtil.convertToIdentifiers(
                         uid,
-                        attributesContainer.getDefinition().getComplexTypeDefinition(),
+                        attributesContainer.getDefinition().getResourceObjectDefinition(),
                         resourceSchema);
         for (ResourceAttribute<?> identifier: identifiers) {
             attributesContainer.getValue().addReplaceExisting(identifier);

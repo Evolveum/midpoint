@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationVal
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
@@ -124,10 +125,13 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return new ShadowAssociationValue();
     }
 
-    public static ShadowAssociationValue withReferenceTo(@NotNull String targetOid) {
-        return of(
-                new ShadowAssociationValueType()
-                        .shadowRef(targetOid, ShadowType.COMPLEX_TYPE));
+    /** Intentionally not returning {@link ShadowAssociationValue}; because it is not valid due to missing (resolved) shadow. */
+    @TestOnly // TODO decide about this method
+    public static PrismContainerValue<ShadowAssociationValueType> rawWithReferenceTo(@NotNull String targetOid) {
+        //noinspection unchecked
+        return new ShadowAssociationValueType()
+                .shadowRef(targetOid, ShadowType.COMPLEX_TYPE)
+                .asPrismContainerValue();
     }
 
     @Override
@@ -160,11 +164,6 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return getAttributesContainerRequired().getDefinitionRequired().getTypeName();
     }
 
-    /** Returns the identifiers of the referenced object. */
-    public @NotNull ResourceAttributeContainer getIdentifiersContainerRequired() {
-        return getAttributesContainerRequired();
-    }
-
     public @NotNull ShadowAssociationClassDefinition getAssociationClassDefinition() {
         return stateNonNull((ShadowAssociationDefinition) getDefinition(), "No definition in %s", this)
                 .getAssociationClassDefinition();
@@ -195,6 +194,11 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return stateNonNull(getShadowIfPresent(), "No shadow in %s", this);
     }
 
+    public @Nullable ResourceObjectDefinition getAssociatedObjectDefinitionIfPresent() {
+        var shadow = getShadowIfPresent();
+        return shadow != null ? shadow.getObjectDefinition() : null;
+    }
+
     public @NotNull ResourceObjectDefinition getAssociatedObjectDefinition() {
         return getShadowRequired().getObjectDefinition();
     }
@@ -220,7 +224,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
             sb.append("; ");
         }
         // TODO this should be a part of ShadowType dumping; but that code is automatically generated for now
-        sb.append(getAssociatedObjectDefinition());
+        sb.append(getAssociatedObjectDefinitionIfPresent());
         return true;
     }
 }

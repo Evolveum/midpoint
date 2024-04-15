@@ -34,28 +34,8 @@ public interface ResourceAttributeContainerDefinitionDelegator
     }
 
     @Override
-    default ResourceAttributeDefinition<?> getNamingAttribute() {
-        return delegate().getNamingAttribute();
-    }
-
-    @Override
-    default <T> ResourceAttributeDefinition<T> findAttributeDefinition(QName elementQName, boolean caseInsensitive) {
-        return delegate().findAttributeDefinition(elementQName, caseInsensitive);
-    }
-
-    @Override
     default ResourceAttributeDefinition<?> findAttributeDefinition(ItemPath elementPath) {
         return delegate().findAttributeDefinition(elementPath);
-    }
-
-    @Override
-    default ResourceAttributeDefinition<?> findAttributeDefinition(String localName) {
-        return delegate().findAttributeDefinition(localName);
-    }
-
-    @Override
-    default List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
-        return delegate().getAttributeDefinitions();
     }
 
     @Override
@@ -74,7 +54,7 @@ public interface ResourceAttributeContainerDefinitionDelegator
     }
 
     @Override
-    default ResourceObjectDefinition getComplexTypeDefinition() {
+    default ShadowAttributesComplexTypeDefinition getComplexTypeDefinition() {
         return delegate().getComplexTypeDefinition();
     }
 

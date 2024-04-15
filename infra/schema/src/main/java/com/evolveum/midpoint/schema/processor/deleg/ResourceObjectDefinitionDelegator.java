@@ -11,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.deleg.ComplexTypeDefinitionDelegator;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.*;
@@ -19,9 +18,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
-public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinitionDelegator, ResourceObjectDefinition {
+public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinition {
 
-    @Override
     ResourceObjectDefinition delegate();
 
     @Override
@@ -76,23 +74,8 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default ResourceAttributeDefinition<?> getNamingAttribute() {
-        return delegate().getNamingAttribute();
-    }
-
-    @Override
     default ResourceAttributeDefinition<?> getDisplayNameAttribute() {
         return delegate().getDisplayNameAttribute();
-    }
-
-    @Override
-    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
-        return delegate().toResourceAttributeContainerDefinition();
-    }
-
-    @Override
-    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
-        return delegate().toResourceAttributeContainerDefinition(elementName);
     }
 
     @Override
@@ -151,9 +134,10 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
 
     @Override
     @NotNull
-    default Collection<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
+    default List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
         return delegate().getAssociationDefinitions();
     }
+
     @Override
     @NotNull
     default Collection<QName> getPrimaryIdentifiersNames() {

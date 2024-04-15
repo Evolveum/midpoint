@@ -206,14 +206,15 @@ interface PartiallyMutableComplexTypeDefinition extends ComplexTypeDefinitionMut
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 
-    interface ObjectClassDefinition extends PartiallyMutableComplexTypeDefinition, ResourceObjectClassDefinition.ResourceObjectClassDefinitionMutator {
-
-        @Override
-        default void add(ItemDefinition<?> definition) {
-            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
-        }
-
-        @Override
-        @NotNull ResourceObjectClassDefinition clone();
-    }
+    // FIXME temporarily commented out
+//    interface ObjectClassDefinition extends PartiallyMutableComplexTypeDefinition, ResourceObjectClassDefinition.ResourceObjectClassDefinitionMutator {
+//
+//        @Override
+//        default void add(ItemDefinition<?> definition) {
+//            throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+//        }
+//
+//        @Override
+//        @NotNull ResourceObjectClassDefinition clone();
+//    }
 }

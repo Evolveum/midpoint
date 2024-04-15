@@ -49,7 +49,7 @@ public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismC
         ResourceAttributeContainerDefinition attributesContainerDefinition =
                 new ResourceAttributeContainerDefinitionImpl(
                         elementName,
-                        resourceObjectDefinition);
+                        resourceObjectDefinition.getAttributesComplexTypeDefinition());
         return new ResourceAttributeContainerImpl(elementName, attributesContainerDefinition);
     }
 
@@ -65,7 +65,7 @@ public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismC
     default @NotNull ResourceObjectDefinition getResourceObjectDefinitionRequired() {
         ResourceAttributeContainerDefinition definition = getDefinitionRequired();
         return MiscUtil.stateNonNull(
-                definition.getComplexTypeDefinition(),
+                definition.getResourceObjectDefinition(),
                 () -> "No resource object definition in " + definition);
     }
 

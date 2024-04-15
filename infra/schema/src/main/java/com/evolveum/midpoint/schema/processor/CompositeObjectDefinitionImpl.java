@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import com.evolveum.midpoint.schema.util.AbstractShadow;
@@ -19,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -73,7 +73,7 @@ public class CompositeObjectDefinitionImpl
 
         if (!allowMutableDefinitions) {
             this.structuralDefinition.checkImmutable();
-            this.auxiliaryDefinitions.forEach(ComplexTypeDefinition::checkImmutable);
+            this.auxiliaryDefinitions.forEach(Freezable::checkImmutable);
         }
     }
 
@@ -109,23 +109,8 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public Class<?> getCompileTimeClass() {
-        return structuralDefinition.getCompileTimeClass();
-    }
-
-    @Override
-    public boolean isContainerMarker() {
-        return structuralDefinition.isContainerMarker();
-    }
-
-    @Override
     public boolean isPrimaryIdentifier(QName attrName) {
         return structuralDefinition.isPrimaryIdentifier(attrName);
-    }
-
-    @Override
-    public boolean isObjectMarker() {
-        return structuralDefinition.isObjectMarker();
     }
 
     @Override
@@ -149,11 +134,6 @@ public class CompositeObjectDefinitionImpl
     @Override
     public boolean isAbstract() {
         return structuralDefinition.isAbstract();
-    }
-
-    @Override
-    public @Nullable QName getSuperType() {
-        return structuralDefinition.getSuperType();
     }
 
     @Override
@@ -257,14 +237,8 @@ public class CompositeObjectDefinitionImpl
     // TODO - ok???
     @NotNull
     @Override
-    public Collection<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
+    public List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
         return structuralDefinition.getAssociationDefinitions();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return structuralDefinition.isEmpty()
-                && auxiliaryDefinitions.stream().noneMatch(ComplexTypeDefinition::isEmpty);
     }
 
     @Override
@@ -466,27 +440,6 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public QName getExtensionForType() {
-        return structuralDefinition.getExtensionForType();
-    }
-
-    @Override
-    public boolean isXsdAnyMarker() {
-        return structuralDefinition.isXsdAnyMarker();
-    }
-
-    @Override
-    public String getDefaultNamespace() {
-        return structuralDefinition.getDefaultNamespace();
-    }
-
-    @NotNull
-    @Override
-    public List<String> getIgnoredNamespaces() {
-        return structuralDefinition.getIgnoredNamespaces();
-    }
-
-    @Override
     public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
         return structuralDefinition.getAuxiliaryObjectClassMappings();
     }
@@ -505,11 +458,6 @@ public class CompositeObjectDefinitionImpl
         if (path.size() == 1 && path.startsWithName()) {
             return findLocalItemDefinition(ItemPath.toName(path.first()), clazz, false);
         }
-        throw new UnsupportedOperationException("TODO implement if needed");
-    }
-
-    @Override
-    public void merge(ComplexTypeDefinition otherComplexTypeDef) {
         throw new UnsupportedOperationException("TODO implement if needed");
     }
 
@@ -742,16 +690,6 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public boolean isListMarker() {
-        return structuralDefinition.isListMarker();
-    }
-
-    @Override
-    public @Nullable QName getDefaultItemTypeName() {
-        return null;
-    }
-
-    @Override
     public void trimTo(@NotNull Collection<ItemPath> paths) {
         structuralDefinition.trimTo(paths);
         auxiliaryDefinitions.forEach(def -> def.trimTo(paths));
@@ -760,17 +698,6 @@ public class CompositeObjectDefinitionImpl
     @Override
     public ResourceObjectClassDefinition.ResourceObjectClassDefinitionMutator mutator() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isReferenceMarker() {
-        return structuralDefinition.isReferenceMarker();
-    }
-
-    @NotNull
-    @Override
-    public Collection<TypeDefinition> getStaticSubTypes() {
-        return Collections.emptySet();
     }
 
     @Override
@@ -784,37 +711,9 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public Integer getInstantiationOrder() {
-        return structuralDefinition.getInstantiationOrder();
-    }
-
-    @Override
-    public boolean canRepresent(QName typeName) {
-        if (structuralDefinition.canRepresent(typeName)) {
-            return true;
-        }
-        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
-            if (auxiliaryObjectClassDefinition.canRepresent(typeName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
     public void performFreeze() {
         structuralDefinition.freeze();
         auxiliaryDefinitions.forEach(Freezable::freeze);
-    }
-
-    @Override
-    public boolean hasSubstitutions() {
-        return false;
-    }
-
-    @Override
-    public Optional<ItemDefinition<?>> substitution(QName name) {
-        return Optional.empty();
     }
 
     @Override

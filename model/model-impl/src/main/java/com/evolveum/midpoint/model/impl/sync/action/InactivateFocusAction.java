@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 @ActionDefinitionClass(InactivateFocusSynchronizationActionType.class)
 class InactivateFocusAction<F extends FocusType> extends BaseClockworkAction<F> {
 
-    public InactivateFocusAction(@NotNull ActionInstantiationContext<F> ctx) {
+    InactivateFocusAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);
     }
 

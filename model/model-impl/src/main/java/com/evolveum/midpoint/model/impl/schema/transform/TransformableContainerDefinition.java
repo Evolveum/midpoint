@@ -50,9 +50,9 @@ public class TransformableContainerDefinition<C extends Containerable>
         if (originalItem instanceof TransformableContainerDefinition) {
             return (TransformableContainerDefinition<C>) originalItem;
         }
-        if (originalItem instanceof ResourceAttributeContainerDefinition) {
-            return (TransformableContainerDefinition) new ResourceAttributeContainer((ResourceAttributeContainerDefinition) originalItem);
-        }
+//        if (originalItem instanceof ResourceAttributeContainerDefinition) {
+//            return (TransformableContainerDefinition) new ResourceAttributeContainer((ResourceAttributeContainerDefinition) originalItem);
+//        }
 
         return new TransformableContainerDefinition<>(originalItem);
     }
@@ -191,7 +191,6 @@ public class TransformableContainerDefinition<C extends Containerable>
         complexTypeDefinition.replaceDefinition(itemName, newDefinition);
     }
 
-
     @Override
     public PrismContainerDefinitionMutator<C> mutator() {
         return this;
@@ -242,63 +241,63 @@ public class TransformableContainerDefinition<C extends Containerable>
         return (TransformableContainerDefinition<C>) assocContainer;
     }
 
-    public static class ResourceAttributeContainer
-            extends TransformableContainerDefinition<ShadowAttributesType>
-            implements ResourceAttributeContainerDefinitionDelegator {
-
-        @Serial private static final long serialVersionUID = 2L;
-
-        ResourceAttributeContainer(ResourceAttributeContainerDefinition delegate) {
-            super(delegate);
-        }
-
-        ResourceAttributeContainer(ResourceAttributeContainer copy, TransformableComplexTypeDefinition typeDef) {
-            super(copy, typeDef);
-        }
-
-        @Override
-        public ResourceAttributeContainerDefinition delegate() {
-            return (ResourceAttributeContainerDefinition) super.delegate();
-        }
-
-        @Override
-        public @NotNull List<? extends ResourceAttributeDefinition<?>> getDefinitions() {
-            // FIXME: Later
-            //noinspection unchecked
-            return (List<? extends ResourceAttributeDefinition<?>>) super.getDefinitions();
-        }
-
-        @Override
-        public TransformableComplexTypeDefinition.TrResourceObjectDefinition getComplexTypeDefinition() {
-            return (TransformableComplexTypeDefinition.TrResourceObjectDefinition) super.getComplexTypeDefinition();
-        }
-
-        @Override
-        public PrismContainerDefinition<ShadowAttributesType> cloneWithNewDefinition(
-                QName newItemName, ItemDefinition<?> newDefinition) {
-            TransformableComplexTypeDefinition typeDefCopy = complexTypeDefinition.copy();
-            typeDefCopy.replaceDefinition(newItemName, newDefinition);
-            return new ResourceAttributeContainer(this, typeDefCopy);
-        }
-
-        @Override
-        public @NotNull ResourceAttributeContainerDefinition clone() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttributeContainer instantiate() {
-            return instantiate(getItemName());
-        }
-
-        @Override
-        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttributeContainer instantiate(QName elementName) {
-            com.evolveum.midpoint.schema.processor.ResourceAttributeContainer deleg = delegate().instantiate(elementName);
-            deleg.setDefinition(this);
-            return deleg;
-        }
-
-    }
+//    public static class ResourceAttributeContainer
+//            extends TransformableContainerDefinition<ShadowAttributesType>
+//            implements ResourceAttributeContainerDefinitionDelegator {
+//
+//        @Serial private static final long serialVersionUID = 2L;
+//
+//        ResourceAttributeContainer(ResourceAttributeContainerDefinition delegate) {
+//            super(delegate);
+//        }
+//
+//        ResourceAttributeContainer(ResourceAttributeContainer copy, TransformableComplexTypeDefinition typeDef) {
+//            super(copy, typeDef);
+//        }
+//
+//        @Override
+//        public ResourceAttributeContainerDefinition delegate() {
+//            return (ResourceAttributeContainerDefinition) super.delegate();
+//        }
+//
+//        @Override
+//        public @NotNull List<? extends ResourceAttributeDefinition<?>> getDefinitions() {
+//            // FIXME: Later
+//            //noinspection unchecked
+//            return (List<? extends ResourceAttributeDefinition<?>>) super.getDefinitions();
+//        }
+//
+//        @Override
+//        public TransformableComplexTypeDefinition.TrResourceObjectDefinition getComplexTypeDefinition() {
+//            return (TransformableComplexTypeDefinition.TrResourceObjectDefinition) super.getComplexTypeDefinition();
+//        }
+//
+//        @Override
+//        public PrismContainerDefinition<ShadowAttributesType> cloneWithNewDefinition(
+//                QName newItemName, ItemDefinition<?> newDefinition) {
+//            TransformableComplexTypeDefinition typeDefCopy = complexTypeDefinition.copy();
+//            typeDefCopy.replaceDefinition(newItemName, newDefinition);
+//            return new ResourceAttributeContainer(this, typeDefCopy);
+//        }
+//
+//        @Override
+//        public @NotNull ResourceAttributeContainerDefinition clone() {
+//            throw new UnsupportedOperationException();
+//        }
+//
+//        @Override
+//        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttributeContainer instantiate() {
+//            return instantiate(getItemName());
+//        }
+//
+//        @Override
+//        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttributeContainer instantiate(QName elementName) {
+//            com.evolveum.midpoint.schema.processor.ResourceAttributeContainer deleg = delegate().instantiate(elementName);
+//            deleg.setDefinition(this);
+//            return deleg;
+//        }
+//
+//    }
 
     @Override
     protected TransformableContainerDefinition<C> copy() {

@@ -29,23 +29,20 @@ public class ShadowAssociationsContainerDefinitionImpl
         isRuntimeSchema = true;
     }
 
-    @NotNull
     @Override
-    public ShadowAssociationsContainer instantiate() {
+    public @NotNull ShadowAssociationsContainer instantiate() {
         return instantiate(getItemName());
     }
 
-    @NotNull
     @Override
-    public ShadowAssociationsContainer instantiate(QName name) {
+    public @NotNull ShadowAssociationsContainer instantiate(QName name) {
         name = DefinitionUtil.addNamespaceIfApplicable(name, this.itemName);
         return new ShadowAssociationsContainerImpl(name, this);
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
-    @NotNull
     @Override
-    public ShadowAssociationsContainerDefinitionImpl clone() {
+    public @NotNull ShadowAssociationsContainerDefinitionImpl clone() {
         ShadowAssociationsContainerDefinitionImpl clone =
                 new ShadowAssociationsContainerDefinitionImpl(itemName, complexTypeDefinition);
         clone.copyDefinitionDataFrom(this);
@@ -59,7 +56,7 @@ public class ShadowAssociationsContainerDefinitionImpl
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + ":" + getItemName() + " (" + getTypeName() + ")";
+        return "SAssocCD: " + complexTypeDefinition;
     }
 
     @Override

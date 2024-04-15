@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.util.QNameUtil;
@@ -244,5 +245,11 @@ public class ResourceSchemaImpl
     @Override
     public @NotNull NativeResourceSchema getNativeSchema() {
         return nativeSchema;
+    }
+
+    @Override
+    public ComplexTypeDefinition findComplexTypeDefinitionByType(@NotNull QName typeName) {
+        // FIXME remove eventually
+        throw new UnsupportedOperationException("Object definitions are no longer CTDs please don't ask for them in this way");
     }
 }

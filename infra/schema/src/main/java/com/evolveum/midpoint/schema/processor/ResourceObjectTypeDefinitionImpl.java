@@ -183,11 +183,6 @@ public final class ResourceObjectTypeDefinitionImpl
         refinedObjectClassDefinition.trimTo(paths);
     }
 
-    @Override
-    public @Nullable QName getDefaultItemTypeName() {
-        return null;
-    }
-
     //region Cloning ========================================================
     @NotNull
     @Override
@@ -280,24 +275,9 @@ public final class ResourceObjectTypeDefinitionImpl
     //endregion
 
     @Override
-    public ResourceObjectClassDefinition.ResourceObjectClassDefinitionMutator mutator() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void performFreeze() {
         super.performFreeze();
         refinedObjectClassDefinition.freeze(); // TODO really?
-    }
-
-    @Override
-    public boolean hasSubstitutions() {
-        return false;
-    }
-
-    @Override
-    public Optional<ItemDefinition<?>> substitution(QName name) {
-        return Optional.empty();
     }
 
     @Override

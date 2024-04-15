@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
-import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
@@ -34,14 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 
 /**
  * Common implementation for both {@link ResourceObjectClassDefinition} and {@link ResourceObjectTypeDefinition}.
- *
- * Note about not inheriting from {@link ComplexTypeDefinitionImpl}:
- *
- * As we do not inherit from that class, we have to provide our own implementation of various methods like
- * {@link #getExtensionForType()}, {@link #isContainerMarker()}, and so on. This is basically
- * no problem, as this information is not available from a resource connector, so we are OK with the default values.
- * Should this change, we would need to reconsider this design. The current implementation is more straightforward,
- * less entangled with a hierarchy of ancestor implementations.
  */
 public abstract class AbstractResourceObjectDefinitionImpl
         extends AbstractFreezable
@@ -192,7 +183,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
+    public @NotNull List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
         return associationDefinitions;
     }
 
@@ -420,31 +411,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public @Nullable Class<?> getCompileTimeClass() {
-        return null;
-    }
-
-    @Override
-    public @Nullable QName getSuperType() {
-        return null;
-    }
-
-    @Override
-    public @NotNull Collection<TypeDefinition> getStaticSubTypes() {
-        return List.of();
-    }
-
-    @Override
-    public Integer getInstantiationOrder() {
-        return null;
-    }
-
-    @Override
-    public boolean canRepresent(QName typeName) {
-        return QNameUtil.match(typeName, getObjectClassName());
-    }
-
-    @Override
     protected void performFreeze() {
         attributeDefinitions.freeze();
         createAttributeDefinitionMap();
@@ -549,58 +515,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
     public @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions() {
         //noinspection unchecked
         return (Collection<? extends ShadowItemDefinition<?, ?>>) getDefinitions();
-    }
-
-    @Override
-    public @Nullable QName getExtensionForType() {
-        return null;
-    }
-
-    @Override
-    public boolean isReferenceMarker() {
-        return false;
-    }
-
-    @Override
-    public boolean isContainerMarker() {
-        return true;
-    }
-
-    @Override
-    public boolean isObjectMarker() {
-        return false;
-    }
-
-    @Override
-    public boolean isXsdAnyMarker() {
-        return true;
-    }
-
-    @Override
-    public boolean isListMarker() {
-        return false;
-    }
-
-    @Override
-    public @Nullable String getDefaultNamespace() {
-        return null;
-    }
-
-    @Override
-    public @NotNull List<String> getIgnoredNamespaces() {
-        return List.of();
-    }
-
-    @Override
-    public void merge(ComplexTypeDefinition otherComplexTypeDef) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return attributeDefinitions.isEmpty()
-                && associationDefinitions.isEmpty()
-                && auxiliaryObjectClassDefinitions.isEmpty();
     }
 
     @Override
@@ -856,16 +770,21 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @Override
     public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
-        return findAttributeDefinitionRequired(itemName);
+        return findAttributeDefinition(itemName);
     }
 
     @Override
     public ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException {
-        return findAssociationDefinitionRequired(itemName);
+        return findAssociationDefinition(itemName);
     }
 
     @Override
     public CorrelationDefinitionType getCorrelation() {
         return getDefinitionBean().getCorrelation();
+    }
+
+    @Override
+    public DefinitionMutator mutator() {
+        throw new UnsupportedOperationException();
     }
 }
