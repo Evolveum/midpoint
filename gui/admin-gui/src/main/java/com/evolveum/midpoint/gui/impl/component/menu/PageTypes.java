@@ -59,7 +59,7 @@ public enum PageTypes {
     REPORT("reports", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class, PageReport.class, ReportType.COMPLEX_TYPE),
     SIMULATION_RESULT("simulationResults", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageSimulationResults.class, PageSimulationResult.class, SimulationResultType.COMPLEX_TYPE),
     MARK("marks", GuiStyleConstants.CLASS_MARK, PageMarks.class, PageMark.class, MarkType.COMPLEX_TYPE),
-    SCHEMA("schemas", GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA, PageSchemas.class, PageSchema.class, SchemaExtensionType.COMPLEX_TYPE);
+    SCHEMA("schemas", GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA, PageSchemas.class, PageSchema.class, SchemaType.COMPLEX_TYPE);
 
     private String identifier;
     private String icon;

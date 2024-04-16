@@ -125,7 +125,7 @@ public enum ObjectTypes {
             ObjectManager.MODEL, "simulationResults"),
 
     SCHEMA(
-            SchemaExtensionType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SCHEMA_EXTENSION, SchemaExtensionType.class,
+            SchemaType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SCHEMA, SchemaType.class,
             ObjectManager.MODEL, "schemaExtensions"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType

@@ -199,7 +199,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(SimulationResultType.COMPLEX_TYPE, QSimulationResultMapping.initSimulationResultMapping(repositoryContext))
                 .register(SimulationResultProcessedObjectType.COMPLEX_TYPE, QProcessedObjectMapping.initProcessedResultMapping(repositoryContext))
                 .register(MarkType.COMPLEX_TYPE, QMarkMapping.init(repositoryContext))
-                .register(SchemaExtensionType.COMPLEX_TYPE, QSchemaMapping.init(repositoryContext))
+                .register(SchemaType.COMPLEX_TYPE, QSchemaMapping.init(repositoryContext))
                 .register(QAffectedObjectsMapping.init(repositoryContext))
                 .seal();
 

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.schema;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -15,13 +17,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.tag.QMark;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaExtensionType;
 
 /**
  * Mapping between {@link QMark} and {@link MarkType}.
  */
 public class QSchemaMapping
-        extends QObjectMapping<SchemaExtensionType, QSchema, MObject> {
+        extends QObjectMapping<SchemaType, QSchema, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "schema";
     private static QSchemaMapping instance;
@@ -41,7 +42,7 @@ public class QSchemaMapping
 
     private QSchemaMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QSchema.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                SchemaExtensionType.class, QSchema.class, repositoryContext);
+                SchemaType.class, QSchema.class, repositoryContext);
     }
 
     @Override

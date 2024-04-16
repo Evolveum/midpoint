@@ -100,7 +100,7 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisSessionType.class, PageRoleAnalysisSession.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisClusterType.class, PageRoleAnalysisCluster.class);
 
-        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(SchemaExtensionType.class, PageSchema.class);
+        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(SchemaType.class, PageSchema.class);
 
     }
 

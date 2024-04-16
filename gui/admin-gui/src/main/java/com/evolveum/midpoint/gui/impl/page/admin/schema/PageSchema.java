@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -35,7 +35,7 @@ import org.apache.wicket.model.IModel;
                         label = "PageUser.auth.user.label",
                         description = "PageUser.auth.user.description")
         })
-public class PageSchema extends AbstractPageObjectDetails<SchemaExtensionType, SchemaDetailsModel> {
+public class PageSchema extends AbstractPageObjectDetails<SchemaType, SchemaDetailsModel> {
 
         private static final long serialVersionUID = 1L;
 
@@ -44,17 +44,17 @@ public class PageSchema extends AbstractPageObjectDetails<SchemaExtensionType, S
         }
 
     @Override
-    protected SchemaDetailsModel createObjectDetailsModels(PrismObject<SchemaExtensionType> object) {
+    protected SchemaDetailsModel createObjectDetailsModels(PrismObject<SchemaType> object) {
         return new SchemaDetailsModel(createPrismObjectModel(object), this);
     }
 
     @Override
-    public Class<SchemaExtensionType> getType() {
-        return SchemaExtensionType.class;
+    public Class<SchemaType> getType() {
+        return SchemaType.class;
     }
 
     @Override
-    protected Panel createSummaryPanel(String id, IModel<SchemaExtensionType> summaryModel) {
+    protected Panel createSummaryPanel(String id, IModel<SchemaType> summaryModel) {
         return new ObjectSummaryPanel<>(id, summaryModel, getSummaryPanelSpecification()) {
 
             @Override

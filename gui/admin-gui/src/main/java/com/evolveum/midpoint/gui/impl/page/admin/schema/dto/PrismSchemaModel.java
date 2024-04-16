@@ -14,14 +14,14 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.SchemaPropertyWrapperImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 public class PrismSchemaModel implements IModel<SchemaPropertyWrapperImpl> {
 
-    private final IModel<PrismObjectWrapper<SchemaExtensionType>> schemaType;
+    private final IModel<PrismObjectWrapper<SchemaType>> schemaType;
 
-    public PrismSchemaModel(IModel<PrismObjectWrapper<SchemaExtensionType>> schemaType) {
+    public PrismSchemaModel(IModel<PrismObjectWrapper<SchemaType>> schemaType) {
         this.schemaType = schemaType;
     }
 
@@ -29,7 +29,7 @@ public class PrismSchemaModel implements IModel<SchemaPropertyWrapperImpl> {
     public SchemaPropertyWrapperImpl getObject() {
         PrismPropertyWrapper<SchemaDefinitionType> property;
         try {
-            property = schemaType.getObject().findProperty(SchemaExtensionType.F_DEFINITION);
+            property = schemaType.getObject().findProperty(SchemaType.F_DEFINITION);
             PrismPropertyValueWrapper<SchemaDefinitionType> valueWrapper = property.getValue();
             return (SchemaPropertyWrapperImpl) valueWrapper;
         } catch (SchemaException e) {

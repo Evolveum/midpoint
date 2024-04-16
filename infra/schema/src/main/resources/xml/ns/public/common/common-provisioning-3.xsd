@@ -175,7 +175,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element ref="tns:schema" minOccurs="0">
+                    <xsd:element name="schema" type="tns:XmlSchemaType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Schema for resource objects.
@@ -454,7 +454,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="schema" type="tns:XmlSchemaType"/>
+    <xsd:element name="xmlSchema" type="tns:XmlSchemaType"/>
 
     <xsd:complexType name="CachingMetadataType">
         <xsd:annotation>
@@ -4269,7 +4269,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element ref="tns:schema" minOccurs="0">
+                    <xsd:element name="schema" type="tns:XmlSchemaType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Connector configuration schema.

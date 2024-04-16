@@ -33,7 +33,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
@@ -68,9 +68,9 @@ public class SchemaCache implements Cache {
         Map<QName, ComplexTypeDefinition> dbExtensions = new HashMap<>();
 
         //TODO cleanup
-        ResultHandler<SchemaExtensionType> handler = (object, parentResult) -> {
+        ResultHandler<SchemaType> handler = (object, parentResult) -> {
             try {
-                SchemaExtensionType schemaType = object.asObjectable();
+                SchemaType schemaType = object.asObjectable();
                 QName extensionForType = schemaType.getType();
 
                 SchemaDefinitionType def = schemaType.getDefinition();
@@ -89,7 +89,7 @@ public class SchemaCache implements Cache {
 
         OperationResult result = new OperationResult("initExtensionFromDB");
         try {
-            repositoryService.searchObjectsIterative(SchemaExtensionType.class, null, handler, null, true, result);
+            repositoryService.searchObjectsIterative(SchemaType.class, null, handler, null, true, result);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
@@ -121,7 +121,7 @@ public class SchemaCache implements Cache {
     }
 
     private static final Collection<Class<?>> INVALIDATION_RELATED_CLASSES = Arrays.asList(
-            SchemaExtensionType.class
+            SchemaType.class
     );
 
     @Override

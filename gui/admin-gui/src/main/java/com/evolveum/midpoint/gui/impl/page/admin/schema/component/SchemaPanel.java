@@ -41,7 +41,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -55,9 +55,9 @@ import java.util.List;
 
 @PanelType(name = "schemaPanel")
 @PanelInstance(identifier = "schemaPanel",
-        applicableForType = SchemaExtensionType.class,
+        applicableForType = SchemaType.class,
         display = @PanelDisplay(label = "SchemaPanel.title", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 25))
-public class SchemaPanel<T extends DefinitionDto> extends AbstractObjectMainPanel<SchemaExtensionType, SchemaDetailsModel> {
+public class SchemaPanel<T extends DefinitionDto> extends AbstractObjectMainPanel<SchemaType, SchemaDetailsModel> {
 
     private static final String ID_DEFS = "defs";
     private static final String ID_FORM = "form";
@@ -121,7 +121,7 @@ public class SchemaPanel<T extends DefinitionDto> extends AbstractObjectMainPane
                 }
                 Element newXsdSchema = DOMUtil.getFirstChildElement(newXsdSchemaDoc);
 
-                SchemaExtensionType extensionType = new SchemaExtensionType();
+                SchemaType extensionType = new SchemaType();
                 SchemaDefinitionType newDef = new SchemaDefinitionType();
                 newDef.setSchema(newXsdSchema);
                 extensionType.setDefinition(newDef);

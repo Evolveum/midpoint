@@ -22,7 +22,7 @@ import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.markup.html.form.Form;
@@ -60,7 +60,7 @@ public class PageSchemas extends PageAdmin {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<SchemaExtensionType> table = new MainObjectListPanel<>(ID_TABLE, SchemaExtensionType.class) {
+        MainObjectListPanel<SchemaType> table = new MainObjectListPanel<>(ID_TABLE, SchemaType.class) {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {

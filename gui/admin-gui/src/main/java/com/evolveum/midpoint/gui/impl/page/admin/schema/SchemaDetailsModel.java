@@ -19,16 +19,16 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.DefinitionDto;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.DefinitionsModel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 
 import org.apache.wicket.model.PropertyModel;
 
-public class SchemaDetailsModel extends ObjectDetailsModels<SchemaExtensionType> {
+public class SchemaDetailsModel extends ObjectDetailsModels<SchemaType> {
 
     private final PrismSchemaModel prismSchemaModel;
     private DefinitionsModel<DefinitionDto> schemaModel;
 
-    public SchemaDetailsModel(LoadableDetachableModel<PrismObject<SchemaExtensionType>> prismObjectModel, ModelServiceLocator serviceLocator) {
+    public SchemaDetailsModel(LoadableDetachableModel<PrismObject<SchemaType>> prismObjectModel, ModelServiceLocator serviceLocator) {
         super(prismObjectModel, serviceLocator);
 
         this.prismSchemaModel = new PrismSchemaModel(getObjectWrapperModel());

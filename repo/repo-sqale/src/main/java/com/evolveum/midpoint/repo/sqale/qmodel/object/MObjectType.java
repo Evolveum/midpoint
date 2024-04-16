@@ -82,7 +82,7 @@ public enum MObjectType {
     ROLE(QRole.class, RoleType.class),
     ROLE_ANALYSIS_CLUSTER(QClusterData.class, RoleAnalysisClusterType.class),
     ROLE_ANALYSIS_SESSION(QSessionData.class, RoleAnalysisSessionType.class),
-    SCHEMA(QSchema.class, SchemaExtensionType.class),
+    SCHEMA(QSchema.class, SchemaType.class),
     SECURITY_POLICY(QSecurityPolicy.class, SecurityPolicyType.class),
     SEQUENCE(QSequence.class, SequenceType.class),
     SERVICE(QService.class, ServiceType.class),
