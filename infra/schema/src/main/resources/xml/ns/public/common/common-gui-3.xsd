@@ -1278,7 +1278,8 @@
                 <a:since>4.6</a:since>
                 <a:displayName>GuiResourceDetailsPageType.details</a:displayName>
                 <a:experimental/>
-                <a:merger>GuiResourceDetailsPageType</a:merger>
+                <a:naturalKey>type</a:naturalKey>
+                <a:naturalKey>connectorRef</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
