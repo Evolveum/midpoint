@@ -26,7 +26,6 @@
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="OFF"/>
     <logger name="com.evolveum.midpoint" level="INFO"/>
 
-    <!-- Disable Trace loggers
     <logger name="com.evolveum.midpoint.init" level="TRACE"/>
     <logger name="com.evolveum.midpoint.repo" level="TRACE"/>
 
@@ -34,6 +33,6 @@
     <logger name="PROFILING" level="TRACE"/>
     <logger name="com.evolveum.midpoint.util.aspect" level="TRACE"/>
     <logger name="com.querydsl.sql" level="DEBUG"/>
-    -->
+
 </configuration>
 

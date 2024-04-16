@@ -89,7 +89,7 @@ public final class MultiPropagationActivityRun
             @NotNull OperationResult result) {
         try {
             getActivityHandler().shadowsFacade.propagateOperations(resource, repoShadow, workerTask, result);
-        } catch (CommonException | GenericFrameworkException | EncryptionException e) {
+        } catch (CommonException | GenericFrameworkException e) {
             throw new SystemException("Provisioning error: " + e.getMessage(), e);
         }
     }

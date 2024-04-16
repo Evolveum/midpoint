@@ -10,12 +10,15 @@ Objects exported from midPoint can be filtered in several ways:
 * by type (`-t, --type`) and filter (`-f, --filter`)
 
 [WARNING]
-When exporting shadow objects from midPoint `-r (--raw)` option must be used to export data correctly.
-Raw option will add schema for shadow attributes (to be used in import later on).
-Behavior without raw option will export shadow attribute without schema because of backward compatibility.
+====
+When creating export from midPoint `-r (--raw)` option must be used to export data correctly.
+It's mandatory mainly for shadow objects. Raw option will add schema for shadow attributes (to be used in import later on).
+
+Without `--raw` option, ninja will export shadow attributes without schema because of backward compatibility.
+====
 
 .Example of export to compressed zip file using 4 threads:
 [source,bash]
 ----
-./bin/ninja.sh export -O export.zip -z -l 4
+./bin/ninja.sh export -O export.zip -r -z -l 4
 ----

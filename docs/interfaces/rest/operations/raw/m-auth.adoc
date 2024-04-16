@@ -1,0 +1,7 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+The model authorization for the specific action.
+This authorization is needed to request/execute the concrete action. The examples are usually quite broad, and
+the actions can be additionally specified for a more fine-grained authorization.
+For more information please see xref:/midpoint/reference/security/authorization/model/[this] page.

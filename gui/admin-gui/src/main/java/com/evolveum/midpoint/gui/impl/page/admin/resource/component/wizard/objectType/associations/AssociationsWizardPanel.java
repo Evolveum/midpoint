@@ -58,7 +58,6 @@ public class AssociationsWizardPanel extends AbstractWizardPanel<ResourceObjectT
                 valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showChoiceFragment(target, createTablePanel());
             }
         };

@@ -71,6 +71,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
     protected static final String OPERATION_SAVE = DOT_CLASS + "save";
     protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
+    protected static final String OPERATION_PREVIEW_CHANGES_WITH_DEV_CONFIG = DOT_CLASS + "previewChangesWithDevConfig";
     protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
     protected static final String OPERATION_EXECUTE_ARCHETYPE_CHANGES = DOT_CLASS + "executeArchetypeChanges";
 
@@ -290,6 +291,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         if (task == null) {
             task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+        }
+
+        if (previewOnly && getExecuteChangesOptionsDto() != null && getExecuteChangesOptionsDto().getTaskMode() != null) {
+            task.setExecutionMode(getExecuteChangesOptionsDto().getTaskMode());
         }
 
         ExecuteChangeOptionsDto options = getExecuteChangesOptionsDto();
@@ -676,7 +681,9 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 LOGGER.debug("Can't instantiate panel based on config\n {}", config.debugDump(), e);
             }
 
+            LoggingUtils.logUnexpectedException(LOGGER, e);
             error(getString("AbstractPageObjectDetails.replacePanelException", e.getMessage(), e.getClass().getSimpleName()));
+
             target.add(getFeedbackPanel());
         }
     }

@@ -177,19 +177,18 @@ public class ExpressionUtil {
     }
 
     @Nullable
-    public static Language converLanguage(String language) {
-        if (StringUtils.isEmpty(language)) {
+    public static Language converLanguage(String languageValue) {
+        if (StringUtils.isEmpty(languageValue)) {
             return null;
         }
-        if (language.equals(Language.VELOCITY.getLanguage())) {
-            return Language.VELOCITY;
-        } else if (language.equals(Language.PYTHON.getLanguage())) {
-            return Language.PYTHON;
-        } else if (language.equals(Language.JAVASCRIPT.getLanguage())) {
-            return Language.JAVASCRIPT;
-        } else {
-            return Language.GROOVY;
+
+        for (Language language : Language.values()) {
+            if (languageValue.equals(language.getLanguage()) || languageValue.equalsIgnoreCase(language.name())) {
+                return language;
+            }
         }
+
+        return Language.GROOVY;
     }
 
     public static String loadExpression(ExpressionType expression, PrismContext prismContext, Trace LOGGER) {
@@ -387,7 +386,7 @@ public class ExpressionUtil {
 
         SearchFilterType filterType = new SearchFilterType();
         filterType.setFilterClauseXNode(filterClauseNode);
-        searchObjectExpressionEvaluatorType.setFilter(filterType);
+        searchObjectExpressionEvaluatorType.getFilter().add(filterType);
 
         evaluator.setValue(searchObjectExpressionEvaluatorType);
         return evaluator;
@@ -403,11 +402,11 @@ public class ExpressionUtil {
         if (evaluator == null) {
             evaluator = new SearchObjectExpressionEvaluatorType();
         }
-        SearchFilterType filterType = evaluator.getFilter();
-        if (filterType == null) {
-            filterType = new SearchFilterType();
+        List<SearchFilterType> filterTypeList = evaluator.getFilter();
+        if (filterTypeList.isEmpty()) {
+            filterTypeList.add(new SearchFilterType());
         }
-        MapXNode filterClauseNode = filterType.getFilterClauseXNode();
+        MapXNode filterClauseNode = filterTypeList.get(0).getFilterClauseXNode(); // TODO is this correct?
         if (filterClauseNode == null) {
             filterClauseNode = prismContext.xnodeFactory().map();
         }
@@ -430,7 +429,8 @@ public class ExpressionUtil {
         EqualFilter<?> pathFilter = prismContext.queryFactory().createEqual(ItemPath.create(newPath), null, null, prismContext, newValue);
 
         SearchFilterType filterType = prismContext.getQueryConverter().createSearchFilterType(pathFilter);
-        associationTargetSearchType.setFilter(filterType);
+        associationTargetSearchType.getFilter().clear(); // TODO is this correct?
+        associationTargetSearchType.getFilter().add(filterType);
         JAXBElement<SearchObjectExpressionEvaluatorType> evaluator = new ObjectFactory().createAssociationTargetSearch(associationTargetSearchType);
 
         removeEvaluatorByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
@@ -636,11 +636,11 @@ public class ExpressionUtil {
         }
         JAXBElement element = ExpressionUtil.findFirstEvaluatorByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
         if (element != null && element.getValue() != null && element.getValue() instanceof SearchObjectExpressionEvaluatorType) {
-            SearchFilterType filter = ((SearchObjectExpressionEvaluatorType) element.getValue()).getFilter();
-            if (filter == null) {
+            List<SearchFilterType> filters = ((SearchObjectExpressionEvaluatorType) element.getValue()).getFilter();
+            if (filters.isEmpty()) {
                 return null;
             }
-            MapXNode filterValue = filter.getFilterClauseXNode();
+            MapXNode filterValue = filters.get(0).getFilterClauseXNode(); // TODO is this correct?
             return filterValue != null && filterValue.containsKey(new QName(SchemaConstantsGenerated.NS_QUERY, "equal")) ?
                     (MapXNode) filterValue.get(new QName(SchemaConstantsGenerated.NS_QUERY, "equal")) : null;
 

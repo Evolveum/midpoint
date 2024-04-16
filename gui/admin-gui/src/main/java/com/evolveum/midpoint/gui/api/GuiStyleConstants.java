@@ -115,6 +115,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_CONSENT = "fa fa-check-square";
 
     public static final String CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED = "fa fa-check text-warning";
+    public static final String CLASS_APPROVAL_OUTCOME_ICON_UNRECOGNIZED_COLORED = "fa fa-question text-warning";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED = "fa fa-check text-success";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED = "fa fa-times text-danger";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_SKIPPED_COLORED = "fa fa-step-forward text-success";
@@ -245,6 +246,8 @@ public class GuiStyleConstants {
     public static final String EVO_MESSAGE_TEMPLATE_TYPE_ICON = "fa fa-book";
 
     public static final String CLASS_ROLE_ANALYSIS_SESSION_ICON = "fa fa-bar-chart";
+    public static final String CLASS_BAR_CHART_ICON = "fa fa-bar-chart";
+    public static final String CLASS_LINE_CHART_ICON = "fa fa-line-chart";
     public static final String CLASS_ROLE_ANALYSIS_CLUSTER_ICON = "fa fa-cubes";
 
 

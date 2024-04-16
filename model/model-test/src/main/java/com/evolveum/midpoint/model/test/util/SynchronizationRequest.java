@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.model.test.util;
 
-import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.IMPORT;
-import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.RECONCILIATION;
+import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.*;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
 
@@ -19,7 +18,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -76,6 +80,7 @@ public class SynchronizationRequest {
     private final TracingProfileType tracingProfile;
     private final Collection<String> tracingAccounts;
     @NotNull private final TaskExecutionMode taskExecutionMode;
+    private final ShadowClassificationModeType classificationMode;
 
     private SynchronizationRequest(
             @NotNull SynchronizationRequest.SynchronizationRequestBuilder builder) {
@@ -90,6 +95,7 @@ public class SynchronizationRequest {
         this.tracingProfile = builder.tracingProfile;
         this.tracingAccounts = builder.tracingAccounts;
         this.taskExecutionMode = Objects.requireNonNullElse(builder.taskExecutionMode, TaskExecutionMode.PRODUCTION);
+        this.classificationMode = builder.classificationMode;
     }
 
     public String execute(OperationResult result) throws CommonException, IOException {
@@ -101,10 +107,15 @@ public class SynchronizationRequest {
                 .intent(accountsScope.getIntent())
                 .objectclass(accountsScope.getObjectClassName())
                 .query(PrismContext.get().getQueryConverter().createQueryType(query))
-                .queryApplication(ResourceObjectSetQueryApplicationModeType.REPLACE);
+                .queryApplication(ResourceObjectSetQueryApplicationModeType.REPLACE)
+                .searchOptions(GetOperationOptionsUtil.optionsToOptionsBeanNullable(createGetOperationOptions()));
         if (synchronizationStyle == IMPORT) {
             work = new WorkDefinitionsType()
                     ._import(new ImportWorkDefinitionType()
+                            .resourceObjects(resourceObjectSet));
+        } else if (synchronizationStyle == SHADOW_RECLASSIFICATION) {
+            work = new WorkDefinitionsType()
+                    .shadowReclassification(new ShadowReclassificationWorkDefinitionType()
                             .resourceObjects(resourceObjectSet));
         } else {
             work = new WorkDefinitionsType()
@@ -152,6 +163,16 @@ public class SynchronizationRequest {
         return taskOid;
     }
 
+    private Collection<SelectorOptions<GetOperationOptions>> createGetOperationOptions() {
+        if (classificationMode != null) {
+            return GetOperationOptionsBuilder.create()
+                    .shadowClassificationMode(classificationMode)
+                    .build();
+        } else {
+            return null;
+        }
+    }
+
     private @NotNull ExecutionModeType getBackgroundTaskExecutionMode() {
         if (taskExecutionMode.isFullyPersistent()) {
             return ExecutionModeType.FULL;
@@ -188,7 +209,7 @@ public class SynchronizationRequest {
                 getProvisioningService().searchObjects(
                         ShadowType.class,
                         createResourceObjectQuery(result),
-                        null,
+                        createGetOperationOptions(),
                         task,
                         result);
         String shadowOid =
@@ -346,6 +367,7 @@ public class SynchronizationRequest {
         private Collection<String> tracingAccounts;
         private Task task;
         private TaskExecutionMode taskExecutionMode;
+        private ShadowClassificationModeType classificationMode;
 
         public SynchronizationRequestBuilder(@NotNull AbstractModelIntegrationTest test) {
             this.test = test;
@@ -393,6 +415,10 @@ public class SynchronizationRequest {
 
         public SynchronizationRequestBuilder withUsingReconciliation() {
             return withSynchronizationStyle(RECONCILIATION);
+        }
+
+        public SynchronizationRequestBuilder withUsingShadowReclassification() {
+            return withSynchronizationStyle(SHADOW_RECLASSIFICATION);
         }
 
         @SuppressWarnings("SameParameterValue")
@@ -458,10 +484,16 @@ public class SynchronizationRequest {
             return this;
         }
 
+        public SynchronizationRequestBuilder withClassificationMode(ShadowClassificationModeType classificationMode) {
+            this.classificationMode = classificationMode;
+            return this;
+        }
+
         public SynchronizationRequest build() {
             return new SynchronizationRequest(this);
         }
 
+        /** Executes on background (in a task). */
         public String execute(OperationResult result) throws CommonException, IOException {
             return build().execute(result);
         }
@@ -489,7 +521,7 @@ public class SynchronizationRequest {
     }
 
     public enum SynchronizationStyle {
-        IMPORT("import"), RECONCILIATION("reconciliation");
+        IMPORT("import"), RECONCILIATION("reconciliation"), SHADOW_RECLASSIFICATION("shadowReclassification");
 
         private final String taskName;
 

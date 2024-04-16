@@ -1,5 +1,4 @@
 = Expression Profiles Coverage
-:page-since: "4.8"
 
 The coverage by expression profiles is *NOT COMPLETE*.
 

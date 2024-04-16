@@ -13,12 +13,12 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.*;
@@ -139,15 +139,29 @@ public class WebModelServiceUtils {
         return loadObject(definition.getCompileTimeClass(), reference.getOid(), createNoFetchCollection(), page, task, result);
     }
 
-    public static <O extends ObjectType> List<ObjectReferenceType> createObjectReferenceList(Class<O> type, PageBase page, Map<String, String> referenceMap) {
-        referenceMap.clear();
-
+    public static <O extends ObjectType> List<ObjectReferenceType> createObjectReferenceListForType(Class<O> type, PageBase page,
+            Map<String, String> referenceMap) {
         OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_REFS);
-//        Task task = page.createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
-
+        List<PrismObject<O>> objects = new ArrayList<>();
         try {
-            List<PrismObject<O>> objects = searchObjects(type, null, result, page);
+            objects = searchObjects(type, null, result, page);
             result.recomputeStatus();
+            return createObjectReferenceListForObjects(page, objects, referenceMap);
+        } catch (Exception e) {
+            result.recordFatalError(page.createStringResource("WebModelUtils.couldntLoadPasswordPolicies").getString(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
+        }
+        return null;
+        // TODO - show error somehow
+        // if(!result.isSuccess()){
+        //    getPageBase().showResult(result);
+        // }
+    }
+
+    public static <O extends ObjectType> List<ObjectReferenceType> createObjectReferenceListForObjects(PageBase page,
+            List<PrismObject<O>> objects, Map<String, String> referenceMap) {
+            referenceMap.clear();
+
             List<ObjectReferenceType> references = new ArrayList<>();
 
             for (PrismObject<O> object : objects) {
@@ -155,20 +169,8 @@ public class WebModelServiceUtils {
                 ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, page.getPrismContext());
                 ref.setTargetName(null);  // this fixes MID-5878. the problem is, that ORT(type, targetName, oid) is not equal to ORT(type, oid)
                 references.add(ref);
-
             }
             return references;
-        } catch (Exception e) {
-            result.recordFatalError(page.createStringResource("WebModelUtils.couldntLoadPasswordPolicies").getString(), e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
-        }
-
-        // TODO - show error somehow
-        // if(!result.isSuccess()){
-        //    getPageBase().showResult(result);
-        // }
-
-        return null;
     }
 
     public static <O extends ObjectType> PrismObject<O> loadObject(PrismReferenceValue objectRef, QName expectedTargetType, PageBase pageBase, Task task, OperationResult result) {
@@ -340,14 +342,6 @@ public class WebModelServiceUtils {
         return objects;
     }
 
-    public static <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsByQueryFromSearchPanel(
-            Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions,
-            Task task, OperationResult result, ModelService modelService) throws CommonException{
-        checkExpressionInFilter(query);
-
-        return modelService.searchObjects(type, query, currentOptions, task, result);
-    }
-
     public static <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, PageBase page) {
         LOGGER.debug("Count object: type => {}, query => {}", type, query);
         Task task = page.createSimpleTask(OPERATION_COUNT_OBJECT);
@@ -365,14 +359,6 @@ public class WebModelServiceUtils {
 
         LOGGER.debug("Count objects with result {}", parentResult);
         return count;
-    }
-
-    public static <T extends ObjectType> int countObjectsByQueryFromSearchPanel(
-            Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions,
-            Task task, OperationResult result, ModelService modelService) throws CommonException{
-        checkExpressionInFilter(query);
-
-        return modelService.countObjects(type, query, currentOptions, task, result);
     }
 
     public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result,
@@ -468,21 +454,6 @@ public class WebModelServiceUtils {
         LOGGER.debug("Saved with result {}", subResult);
     }
 
-    public static <C extends Containerable> List<C> searchContainersByQueryFromSearchPanel(Class<C> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result, PageBase page) throws ExpressionEvaluationException {
-        checkExpressionInFilter(query);
-
-        return searchContainers(type, query, options, result, page);
-    }
-
-    public static <C extends Containerable> List<C> searchContainersByQueryFromSearchPanel(Class<C> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result, ModelService modelService)
-            throws CommonException {
-        checkExpressionInFilter(query);
-
-        return modelService.searchContainers(type, query, options, task, result);
-    }
-
     public static <C extends Containerable> List<C> searchContainers(Class<C> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result, PageBase page) {
         LOGGER.debug("Searching {}, options {}", type.getSimpleName(), options);
@@ -521,32 +492,17 @@ public class WebModelServiceUtils {
         return containers;
     }
 
-    public static <C extends Containerable> int countContainersByQueryFromSearchPanel(Class<C> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result, ModelService modelService)
-            throws CommonException{
-        checkExpressionInFilter(query);
-
-        return modelService.countContainers(type, query, options, task, result);
-    }
-
-    private static void checkExpressionInFilter(ObjectQuery query) throws ExpressionEvaluationException {
-        if (query == null) {
+    public static void checkExpressionInFilter(ObjectFilter filter) throws ExpressionEvaluationException {
+        if (filter == null) {
             return;
         }
-        if (ExpressionUtil.hasExpressionsAndHasNoValue(query.getFilter())) {
+        if (ExpressionUtil.hasExpressionsAndHasNoValue(filter)) {
             throw new ExpressionEvaluationException(
                     new SingleLocalizableMessage(
                             "WebModelServiceUtils.message.error.unsupportedExpression",
                             new Object[]{},
-                            "Filter contains unsupported expression. Filter: " + query.getFilter()));
+                            "Filter contains unsupported expression. Filter: " + filter));
         }
-    }
-
-    public static <C extends Containerable> int countContainersByQueryFromSearchPanel(Class<C> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, PageBase page) throws CommonException{
-        checkExpressionInFilter(query);
-
-        return countContainers(type, query, options, page);
     }
 
     public static <C extends Containerable> int countContainers(Class<C> type, ObjectQuery query,

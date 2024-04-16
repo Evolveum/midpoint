@@ -51,6 +51,8 @@ public class ReferenceAutocompletePanel<R extends Referencable> extends ValueCho
 
     private static final String ID_EDIT_BUTTON_LABEL = "buttonLabel";
 
+    ReferenceConverter<R> referenceConverter;
+
     public ReferenceAutocompletePanel(String id, IModel<R> value) {
         super(id, value);
     }
@@ -58,11 +60,33 @@ public class ReferenceAutocompletePanel<R extends Referencable> extends ValueCho
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
+        initReferenceConverter();
+
         Label label = new Label(
                 ID_EDIT_BUTTON_LABEL,
                 getPageBase().createStringResource("ReferenceAutocompletePanel.button.select", getTypeTranslation()));
         label.add(new VisibleBehaviour(this::isButtonLabelVisible));
         getEditButton().add(label);
+    }
+
+    private void initReferenceConverter() {
+        referenceConverter = new ReferenceConverter<>(getBaseFormComponent(), getPageBase()) {
+            @Override
+            protected List<Class<ObjectType>> getSupportedObjectTypes() {
+                return ReferenceAutocompletePanel.this.getSupportedObjectTypes();
+            }
+
+            @Override
+            protected boolean isAllowedNotFoundObjectRef() {
+                return ReferenceAutocompletePanel.this.isAllowedNotFoundObjectRef();
+            }
+
+            @Override
+            protected ObjectQuery createChooseQuery() {
+                return ReferenceAutocompletePanel.this.createChooseQuery();
+            }
+        };
     }
 
     protected boolean isButtonLabelVisible() {
@@ -124,25 +148,9 @@ public class ReferenceAutocompletePanel<R extends Referencable> extends ValueCho
                 return (Iterator<R>) ObjectTypeUtil.objectListToReferences(objectsList).iterator();
             }
 
-            //TODO can we clean this?
             @Override
             protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter) {
-                return (IConverter<C>) new ReferenceConverter(getBaseFormComponent(), getPageBase()) {
-                    @Override
-                    protected List<Class<ObjectType>> getSupportedObjectTypes() {
-                        return ReferenceAutocompletePanel.this.getSupportedObjectTypes();
-                    }
-
-                    @Override
-                    protected boolean isAllowedNotFoundObjectRef() {
-                        return ReferenceAutocompletePanel.this.isAllowedNotFoundObjectRef();
-                    }
-
-                    @Override
-                    protected ObjectQuery createChooseQuery() {
-                        return ReferenceAutocompletePanel.this.createChooseQuery();
-                    }
-                };
+                return (IConverter<C>) referenceConverter;
             }
 
             @Override
@@ -182,6 +190,10 @@ public class ReferenceAutocompletePanel<R extends Referencable> extends ValueCho
 
     public AutoCompleteTextPanel getAutoCompleteField() {
         return (AutoCompleteTextPanel) getBaseComponent();
+    }
+
+    public ReferenceConverter<R> getConverter() {
+        return referenceConverter;
     }
 
     protected boolean isAllowedNotFoundObjectRef(){

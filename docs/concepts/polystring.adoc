@@ -1,3 +1,7 @@
+---
+midpoint-feature: polystring
+doc-type: intro
+---
 = PolyString
 :page-wiki-name: PolyString
 :page-wiki-id: 4424110
@@ -6,8 +10,6 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2019-03-26T11:35:30.352+01:00
 :page-toc: top
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 

@@ -340,7 +340,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
             EqualFilter<String> filter = prismContext.queryFactory().createEqual(nameAttributePath, null, null, groupName);
 
             SearchFilterType filterType = prismContext.getQueryConverter().createSearchFilterType(filter);
-            associationTargetSearchType.setFilter(filterType);
+            associationTargetSearchType.filter(filterType);
             associationTargetSearchType.setSearchStrategy(ObjectSearchStrategyType.IN_REPOSITORY);
             JAXBElement<SearchObjectExpressionEvaluatorType> evaluator = objectFactory.createAssociationTargetSearch(associationTargetSearchType);
             roleType

@@ -1,3 +1,7 @@
+---
+midpoint-feature: extensible-object-types
+doc-type: config
+---
 = Custom Schema Extension
 :page-wiki-name: Custom Schema Extension
 :page-wiki-id: 4882516

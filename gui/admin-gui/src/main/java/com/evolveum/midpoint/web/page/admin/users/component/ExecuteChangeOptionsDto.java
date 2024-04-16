@@ -9,10 +9,12 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ public class ExecuteChangeOptionsDto implements Serializable {
     private boolean saveInBackground;
     private TracingProfileType tracing;
     private List<TracingProfileType> tracingChoices;
+    private TaskExecutionMode taskMode;
 
     public ExecuteChangeOptionsDto() {
     }
@@ -117,6 +120,15 @@ public class ExecuteChangeOptionsDto implements Serializable {
 
     public void setSaveInBackground(boolean saveInBackground) {
         this.saveInBackground = saveInBackground;
+    }
+
+    public void setTaskMode(TaskExecutionMode taskMode) {
+        this.taskMode = taskMode;
+    }
+
+    @Nullable
+    public TaskExecutionMode getTaskMode() {
+        return taskMode;
     }
 
     @NotNull

@@ -9,23 +9,26 @@ package com.evolveum.midpoint.common.cleanup;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.*;
-
+import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,7 +59,9 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
                 CapabilitiesType.F_CONFIGURED,
                 CapabilityCollectionType.F_ACTIVATION);
 
-        PrismObject<ResourceType> resource = getPrismContext().parseObject(new File(TEST_DIR, "resource.xml"));
+        File file = new File(TEST_DIR, "resource.xml");
+
+        PrismObject<ResourceType> resource = getPrismContext().parseObject(file);
 
         Assertions.assertThat(
                         resource.findItem(
@@ -72,7 +77,7 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
 
         LOG.info("BEFORE \n{}", resource.debugDump());
 
-        CleanupActionProcessor processor = new CleanupActionProcessor();
+        ObjectCleaner processor = new ObjectCleaner();
         processor.setPaths(List.of(
                 new CleanupPath(SchemaHandlingType.COMPLEX_TYPE, SchemaHandlingType.F_OBJECT_TYPE, CleanupPathAction.REMOVE),
                 new CleanupPath(XmlSchemaType.COMPLEX_TYPE, XmlSchemaType.F_DEFINITION, CleanupPathAction.IGNORE),
@@ -81,7 +86,7 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
 
         TestCleanupListener listener = new TestCleanupListener();
         processor.setListener(listener);
-        processor.process(resource);
+        CleanupResult result = processor.process(resource);
 
         LOG.info("AFTER \n{}", resource.debugDump());
 
@@ -104,14 +109,15 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
 
     @Test
     public void test200User() throws Exception {
-        PrismObject<ResourceType> user = getPrismContext().parseObject(new File(TEST_DIR, "user.xml"));
+        File file = new File(TEST_DIR, "user.xml");
+        PrismObject<ResourceType> user = getPrismContext().parseObject(file);
 
         Assertions.assertThat(user.findItem(UserType.F_METADATA))
                 .isNotNull();
         Assertions.assertThat(user.findItem(UserType.F_OPERATION_EXECUTION))
                 .isNotNull();
 
-        CleanupActionProcessor processor = new CleanupActionProcessor();
+        ObjectCleaner processor = new ObjectCleaner();
         TestCleanupListener listener = new TestCleanupListener();
         processor.setListener(listener);
         processor.process(user);
@@ -120,16 +126,14 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
                 .isNull();
         Assertions.assertThat(user.findItem(UserType.F_OPERATION_EXECUTION))
                 .isNull();
-
-        Assertions.assertThat(listener.getProtectedStringCleanupEvents())
-                .hasSize(1);
-        Assertions.assertThat(listener.getProtectedStringCleanupEvents().get(0).path())
-                .isEqualTo(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE));
     }
 
     @Test
     public void test300ResourceObjectType() throws Exception {
-        PrismObject<ResourceType> resource = getPrismContext().parseObject(new File(TEST_DIR, "resource.xml"));
+        File file = new File(TEST_DIR, "resource.xml");
+        String content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+
+        PrismObject<ResourceType> resource = getPrismContext().parseObject(file);
 
         Assertions.assertThat(
                         resource.findItem(
@@ -139,30 +143,47 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
         PrismContainer<ResourceObjectTypeDefinitionType> container =
                 resource.findContainer(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
 
-        @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> value = container.getValue();
+        LOG.info("BEFORE \n{}", container.debugDump());
 
-        LOG.info("BEFORE \n{}", value.debugDump());
-
-        CleanupActionProcessor processor = new CleanupActionProcessor();
+        ObjectCleaner processor = new ObjectCleaner();
+        processor.setRemoveContainerIds(true);
         processor.setPaths(List.of(
                 new CleanupPath(ResourceObjectFocusSpecificationType.COMPLEX_TYPE, ResourceObjectFocusSpecificationType.F_TYPE, CleanupPathAction.REMOVE)
         ));
 
         TestCleanupListener listener = new TestCleanupListener();
         processor.setListener(listener);
-        processor.process(value);
+        processor.process(container);
 
-        LOG.info("AFTER \n{}", value.debugDump());
+        LOG.info("AFTER \n{}", container.debugDump());
 
         Assertions.assertThat(
-                        value.findItem(
+                        container.getValue().findItem(
                                 ItemPath.create(ResourceObjectTypeDefinitionType.F_FOCUS, ResourceObjectFocusSpecificationType.F_TYPE)))
                 .isNull();
+
+        ResourceObjectTypeDefinitionType rObjectType = container.getValue().asContainerable();
+        SynchronizationReactionsType synchronization = rObjectType.getSynchronization();
+        AssertJUnit.assertNotNull(synchronization);
+
+        AssertJUnit.assertEquals(2, synchronization.getReaction().size());
+        synchronization.getReaction().forEach(reaction -> {
+            SynchronizationActionsType actions = reaction.getActions();
+            AssertJUnit.assertNotNull(actions);
+
+            if ("unmatched-add".equals(reaction.getName())) {
+                AssertJUnit.assertEquals(1, actions.getAddFocus().size());
+            } else if ("linked-synchronize".equals(reaction.getName())) {
+                AssertJUnit.assertEquals(1, actions.getSynchronize().size());
+            }
+        });
     }
 
     @Test
     public void test400ResourceCapabilities() throws Exception {
-        PrismObject<ResourceType> resource = getPrismContext().parseObject(new File(TEST_DIR, "resource.xml"));
+        File file = new File(TEST_DIR, "resource.xml");
+
+        PrismObject<ResourceType> resource = getPrismContext().parseObject(file);
 
         Assertions.assertThat(
                         resource.findItem(
@@ -175,10 +196,10 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
 
         LOG.info("BEFORE \n{}", value.debugDump());
 
-        CleanupActionProcessor processor = new CleanupActionProcessor();
+        ObjectCleaner processor = new ObjectCleaner();
         TestCleanupListener listener = new TestCleanupListener();
         processor.setListener(listener);
-        processor.process(value);
+        processor.process(container);
 
         LOG.info("AFTER \n{}", value.debugDump());
 

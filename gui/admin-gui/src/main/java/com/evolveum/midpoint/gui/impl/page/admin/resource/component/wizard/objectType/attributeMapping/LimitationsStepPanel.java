@@ -35,7 +35,7 @@ public class LimitationsStepPanel extends
 
     public LimitationsStepPanel(ResourceDetailsModel model,
             IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> parentModel) {
-        super(model, null);
+        super(model, null, parentModel);
         this.valueModel = createNewValueModel(parentModel, ResourceAttributeDefinitionType.F_LIMITATIONS);
     }
 

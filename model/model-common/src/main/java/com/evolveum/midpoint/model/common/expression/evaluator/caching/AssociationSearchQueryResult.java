@@ -7,15 +7,16 @@
 
 package com.evolveum.midpoint.model.common.expression.evaluator.caching;
 
+import java.util.Collection;
+
+import org.apache.commons.lang3.Validate;
+
+import com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator.ObjectFound;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import org.apache.commons.lang3.Validate;
-
-import java.util.List;
 
 public class AssociationSearchQueryResult extends QueryResult<PrismContainerValue<ShadowAssociationValueType>> {
 
@@ -23,11 +24,13 @@ public class AssociationSearchQueryResult extends QueryResult<PrismContainerValu
     private final ShadowKindType kind;
 
     AssociationSearchQueryResult(
-            List<PrismContainerValue<ShadowAssociationValueType>> resultingList, List<PrismObject<ShadowType>> rawResultsList) {
-        super(resultingList);
+            Collection<? extends ObjectFound<ShadowType, PrismContainerValue<ShadowAssociationValueType>>> objectsFound) {
+        super(objectsFound);
 
-        Validate.isTrue(rawResultsList != null && !rawResultsList.isEmpty());
-        ShadowType shadow = rawResultsList.get(0).asObjectable();
+        // TODO this is quite suspicious ... but it's here for ages, let us keep it for now
+
+        Validate.isTrue(objectsFound != null && !objectsFound.isEmpty());
+        ShadowType shadow = objectsFound.iterator().next().sourceObject().asObjectable();
 
         resourceOid = ShadowUtil.getResourceOid(shadow);
         kind = shadow.getKind();

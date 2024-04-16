@@ -14,7 +14,10 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -48,7 +51,8 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
 
         Collection<D> deltas = new ArrayList<D>();
 
-        ContainerDelta<ShadowAssociationValueType> delta = createEmptyDelta(getDeltaPathForStatus(getStatus()));
+        ContainerDelta<ShadowAssociationValueType> delta = createEmptyDelta(ItemPath.create(ShadowType.F_ASSOCIATIONS,
+                getDeltaPathForStatus(getStatus())));
 
         switch (getStatus()) {
 
@@ -102,14 +106,40 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
                     var adapted = associationValue.asPrismContainerValue().applyDefinition(getItemDefinition());
 
                     switch (updatedRefValue.getStatus()) {
-                    case ADDED:
-                        delta.addValueToAdd(adapted);
-                        break;
-                    case NOT_CHANGED:
-                        break;
-                    case DELETED:
-                        delta.addValueToDelete(adapted);
-                        break;
+                        case ADDED:
+                            delta.addValueToAdd(adapted);
+                            break;
+                        case NOT_CHANGED:
+                            break;
+                        case MODIFIED:
+                            if (updatedRefValue.getParent().isSingleValue()) {
+                                if (updatedRefValue.getNewValue().isEmpty())  {
+                                    // if old value is empty, nothing to do.
+                                    if (!updatedRefValue.getOldValue().isEmpty()) {
+                                        delta.addValueToDelete(associationValue.asPrismContainerValue());
+                                    }
+                                } else {
+                                    delta.addValueToReplace(associationValue.asPrismContainerValue());
+                                }
+                                break;
+                            }
+
+                            if (!updatedRefValue.getNewValue().isEmpty()) {
+                                delta.addValueToAdd(associationValue.asPrismContainerValue());
+                            }
+                            if (!updatedRefValue.getOldValue().isEmpty()) {
+                                ShadowAssociationValueType oldAssociationValue = new ShadowAssociationValueType();
+                                oldAssociationValue.asPrismContainerValue().applyDefinition(getItemDefinition());
+                                oldAssociationValue.setShadowRef(
+                                        ObjectTypeUtil.createObjectRef((PrismReferenceValue)updatedRefValue.getOldValue()));
+
+                                delta.addValueToDelete(oldAssociationValue.asPrismContainerValue());
+                            }
+                            break;
+
+                        case DELETED:
+                            delta.addValueToDelete(adapted);
+                            break;
                     }
                 }
             }

@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -100,16 +102,28 @@ public class ConfigurableProtector extends KeyStoreBasedProtectorImpl implements
         String provider = external.getProvider();
         String key = external.getKey();
         if (provider == null) {
-            throw new EncryptionException("No provider specified for key " + key);
+            SingleLocalizableMessage message = new SingleLocalizableMessage(
+                    "ConfigurableProtector.noProvider",
+                    new Object[] { key },
+                    "No provider specified for key " + key);
+            throw new EncryptionException(message);
         }
 
         if (key == null) {
-            throw new EncryptionException("No key specified for provider " + provider);
+            SingleLocalizableMessage message = new SingleLocalizableMessage(
+                    "ConfigurableProtector.noKey",
+                    new Object[] { provider },
+                    "No key specified for provider " + provider);
+            throw new EncryptionException(message);
         }
 
         SecretsProvider<?> secretsProvider = providers.get(provider);
         if (secretsProvider == null) {
-            throw new EncryptionException("No secrets provider with identifier " + provider + " found");
+            SingleLocalizableMessage message = new SingleLocalizableMessage(
+                    "ConfigurableProtector.unknownProviderIdentifier",
+                    new Object[] { provider },
+                    "No secrets provider with identifier " + provider + " found");
+            throw new EncryptionException(message);
         }
 
         T value;
@@ -118,11 +132,19 @@ public class ConfigurableProtector extends KeyStoreBasedProtectorImpl implements
         } else if (type == ByteBuffer.class) {
             value = (T) secretsProvider.getSecretBinary(key);
         } else {
-            throw new EncryptionException("Unsupported external data type " + type);
+            SingleLocalizableMessage message = new SingleLocalizableMessage(
+                    "ConfigurableProtector.unsupportedExternalDataType",
+                    new Object[] { type },
+                    "Unsupported external data type " + type);
+            throw new EncryptionException(message);
         }
 
         if (value == null) {
-            throw new EncryptionException("No secret with key " + key + " found in provider " + provider);
+            SingleLocalizableMessage message = new SingleLocalizableMessage(
+                    "ConfigurableProtector.noSecretWithKey",
+                    new Object[] { key, provider },
+                    "No secret with key " + key + " found in provider " + provider);
+            throw new EncryptionException(message);
         }
 
         return value;

@@ -984,6 +984,19 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         }
     }
 
+    /**
+     * Returns the classification mode.
+     *
+     * FIXME define the scope more precisely: is it for the main object, or for associated ones as well?
+     *  (Actually, this is an issue for other {@link #getOperationOptions} settings.)
+     */
+    public @NotNull ShadowClassificationModeType getClassificationMode() {
+        return Objects.requireNonNullElse(
+                GetOperationOptions.getShadowClassificationMode(
+                        SelectorOptions.findRootOptions(getOperationOptions)),
+                ShadowClassificationModeType.NORMAL);
+    }
+
     @Override
     public String debugDump(int indent) {
         var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);

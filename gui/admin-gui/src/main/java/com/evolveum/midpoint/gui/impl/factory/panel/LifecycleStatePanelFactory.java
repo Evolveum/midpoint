@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import com.evolveum.midpoint.gui.impl.component.input.LifecycleStateFormPanel;
-import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import jakarta.annotation.PostConstruct;
@@ -19,15 +16,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.util.DateValidator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @Component
 public class LifecycleStatePanelFactory extends AbstractInputGuiComponentFactory<String> {

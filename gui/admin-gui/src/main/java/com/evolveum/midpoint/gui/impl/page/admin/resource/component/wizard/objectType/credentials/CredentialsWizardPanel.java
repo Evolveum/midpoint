@@ -87,14 +87,12 @@ public class CredentialsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
         steps.add(new InboundCredentialsMappingMainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showCredentialsTablePanel(target, MappingDirection.INBOUND);
             }
         });
         steps.add(new InboundCredentialsMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showCredentialsTablePanel(target, MappingDirection.INBOUND);
             }
         });
@@ -114,14 +112,12 @@ public class CredentialsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
         steps.add(new OutboundCredentialsMappingMainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showCredentialsTablePanel(target, MappingDirection.OUTBOUND);
             }
         });
         steps.add(new OutboundCredentialsMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showCredentialsTablePanel(target, MappingDirection.OUTBOUND);
             }
         });

@@ -3,6 +3,7 @@
 :page-display-order: 1000
 :page-toc: top
 :page-keywords: [ 'rest', 'user', 'operation' ]
+:page-upkeep-status: green
 
 == Description
 A set of operations which are specific for objects of the "User" type residing on the "users" endpoint.
@@ -73,8 +74,22 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
+include::../operations/raw/a-auth.adoc[]
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#resetCredential+`
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getValuePolicy+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#rawOperation+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read+`
+
+For the "Reset Credentials" operation also additionally add use the following:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify+`
 
 == Examples
 

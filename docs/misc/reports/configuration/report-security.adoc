@@ -1,0 +1,52 @@
+= Report Security
+:page-nav-title: Report Security
+:page-display-order: 300
+:page-toc: top
+:page-keywords: [ 'report', 'expression' ,'security' ]
+:page-upkeep-status: green
+
+== Description
+Reports often use xref:/midpoint/reference/expressions/[expressions].
+Expressions allow to customize midPoint behavior, and they are essential for the success of midPoint deployments.
+However, the expressions are very powerful, and they may even be too powerful for some use cases.
+The expressions can use general-purpose scripting languages such as Groovy or JavaScript.
+Therefore, such expressions have almost unlimited capabilities.
+Which means that the expressions can damage the system or compromise security of the system.
+
+[WARNING]
+====
+*Use expressions with utmost care.*
+====
+
+== Report Expression Security
+
+Currently, there are very little restraints for expression execution.
+The xref:/midpoint/reference/expressions/expressions/script/functions/[expression functions] provided by midPoint usually check for proper authorizations.
+But as the expressions can use general-purpose languages, there is no obligation for the expressions to use those libraries.
+The expression can easily circumvent those weak protections.
+Therefore, do not let any unauthorized user to set up any kind of expression in midPoint.
+*Allowing the right to edit any expression may lead to compromise of system security.*
+
+Some expression security can be achieved by using xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles].
+Expression profiles can be used to limit the capabilities of report expressions, e.g. to limit them to safe operations that just manipulate strings and basic data structures.
+This seems to work reasonably well for ordinary object-based reports.
+However, when it comes to audit reports, this solution may not be sufficient.
+xref:/midpoint/reference/security/audit/[Audit records] are *not*  midPoint objects, they are just rows in ordinary relational table.
+Therefore, the usual midPoint mechanisms do not apply to them.
+E.g. they cannot be queries by using midPoint query mechanisms.
+There is a way how a "safe" expression can construct a string query for audit table.
+However, there is no protection against SQL injection or similar attacks.
+Major improvement to auditing capabilities of midPoint would be needed for that purpose.
+
+An example of such an audit report can be found in midPoint tests: link:https://github.com/Evolveum/midpoint/blob/master/model/report-impl/src/test/resources/reports/report-audit-csv.xml[Example] +
+However, this is just an example.
+It may not be complete, it may not be secure.
+There are no guarantees.
+Use at your own risk.
+
+In case that secure audit reports are needed, the current recommendation is to make such reports outside midPoint.
+The xref:/midpoint/reference/security/audit/[structure of an audit table is documented], and it can be used for integration with data warehouse and/or SIEM systems.
+MidPoint is neither of those systems, and it has no ambition to become one.
+Therefore, such integration is likely to be required anyway to construct a complete information security solution.
+
+See xref:/midpoint/reference/security/security-guide/[Security Guide] for more detail regarding security-related functionality of midPoint.

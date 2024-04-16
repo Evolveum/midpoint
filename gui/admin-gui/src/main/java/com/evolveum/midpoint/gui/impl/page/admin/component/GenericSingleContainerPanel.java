@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.ButtonBar;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
@@ -203,7 +204,6 @@ import java.util.List;
         type = "EventMarkInformationType",
         expanded = true
 )
-
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
@@ -269,6 +269,15 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
 
                 return wrapper -> false;
             }
+
+            @Override
+            protected ItemMandatoryHandler getMandatoryHandler() {
+                return createMandatoryHandler();
+            }
         };
+    }
+
+    protected ItemMandatoryHandler createMandatoryHandler() {
+        return null;
     }
 }

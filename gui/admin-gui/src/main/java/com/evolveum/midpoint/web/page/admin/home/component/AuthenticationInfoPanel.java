@@ -16,8 +16,8 @@ import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
+import java.io.Serial;
 import java.util.Date;
 
 public class AuthenticationInfoPanel extends BasePanel<PersonalInfoDto> {
@@ -47,7 +47,7 @@ public class AuthenticationInfoPanel extends BasePanel<PersonalInfoDto> {
 
         DateLabelComponent lastLoginDate = new DateLabelComponent(ID_LAST_LOGIN_DATE, new IModel<>() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public Date getObject() {
@@ -59,12 +59,12 @@ public class AuthenticationInfoPanel extends BasePanel<PersonalInfoDto> {
                 return dto == null ? null : dto.getLastLoginDate();
             }
         }, WebComponentUtil.getLongDateTimeFormat(getPageBase()));
-        lastLoginDate.setBeforeTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
+        lastLoginDate.setTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
         add(lastLoginDate);
 
         Label lastLoginFrom = new Label(ID_LAST_LOGIN_FROM, new IModel<String>() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -81,7 +81,7 @@ public class AuthenticationInfoPanel extends BasePanel<PersonalInfoDto> {
 
         DateLabelComponent lastFailDate = new DateLabelComponent(ID_LAST_FAIL_DATE, new IModel<Date>() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public Date getObject() {
@@ -92,12 +92,12 @@ public class AuthenticationInfoPanel extends BasePanel<PersonalInfoDto> {
                 return dto == null ? null : dto.getLastFailDate();
             }
         }, WebComponentUtil.getLongDateTimeFormat(getPageBase()));
-        lastFailDate.setBeforeTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
+        lastFailDate.setTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
         add(lastFailDate);
 
         Label lastFailFrom = new Label(ID_LAST_FAIL_FROM, new IModel<String>() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -113,7 +113,7 @@ public class AuthenticationInfoPanel extends BasePanel<PersonalInfoDto> {
         add(lastFailFrom);
 
         DateLabelComponent passwordExp = new DateLabelComponent(ID_PASSWORD_EXP, new IModel<Date>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public Date getObject() {
@@ -125,7 +125,7 @@ public class AuthenticationInfoPanel extends BasePanel<PersonalInfoDto> {
                 return dto == null ? null : dto.getPasswordExp();
             }
         }, WebComponentUtil.getLongDateTimeFormat(getPageBase()));
-        passwordExp.setBeforeTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
+        passwordExp.setTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
         add(passwordExp);
     }
 

@@ -1,3 +1,7 @@
+---
+midpoint-feature: asynchronous-resources
+doc-type: intro
+---
 = Asynchronous Resources
 :page-upkeep-status: yellow
 

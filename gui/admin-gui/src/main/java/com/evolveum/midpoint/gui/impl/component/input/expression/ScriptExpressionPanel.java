@@ -29,6 +29,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
@@ -38,6 +39,8 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_CODE_LABEL = "codeLabel";
     private static final String ID_LANGUAGE_INPUT = "languageInput";
     private static final String ID_LANGUAGE_LABEL = "languageLabel";
+    private static final String C_DATA_PREFIX = "<![CDATA[";
+    private static final String C_DATA_SUFFIX = "]]>";
 
     public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
         super(id, model);
@@ -90,7 +93,21 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         IModel<String> model = new IModel<>() {
             @Override
             public String getObject() {
-                return getEvaluatorValue().code;
+
+                ScriptExpressionWrapper evaluatorWrapper = getEvaluatorValue();
+
+                String ret = evaluatorWrapper.code;
+
+                if (ExpressionUtil.Language.VELOCITY.equals(evaluatorWrapper.language)) {
+                    if (ret.startsWith(C_DATA_PREFIX)) {
+                        ret = ret.substring(C_DATA_PREFIX.length());
+                    }
+
+                    if (ret.endsWith(C_DATA_SUFFIX)) {
+                        ret = ret.substring(0, ret.length() - C_DATA_SUFFIX.length());
+                    }
+                }
+                return ret;
             }
 
             @Override
@@ -146,7 +163,9 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private void updateEvaluatorValue(String code) {
         ExpressionType expressionType = getModelObject();
         try {
-            ScriptExpressionEvaluatorType evaluator = getEvaluatorValue().code(code).toEvaluator();
+            ScriptExpressionWrapper evaluatorWrapper = getEvaluatorValue();
+
+            ScriptExpressionEvaluatorType evaluator = evaluatorWrapper.code(code).toEvaluator();
             expressionType = ExpressionUtil.updateScriptExpressionValue(expressionType, evaluator);
             getModel().setObject(expressionType);
         } catch (SchemaException ex) {

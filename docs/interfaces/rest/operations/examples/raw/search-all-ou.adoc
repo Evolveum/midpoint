@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 .*Search for All Organizational Units*
 [source,bash]
 ----

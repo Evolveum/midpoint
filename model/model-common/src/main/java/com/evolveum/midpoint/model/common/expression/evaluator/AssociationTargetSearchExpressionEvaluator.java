@@ -6,15 +6,10 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
-import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
-
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,20 +25,23 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -91,7 +89,7 @@ public class AssociationTargetSearchExpressionEvaluator
             }
 
             @Override
-            protected PrismContainerValue<ShadowAssociationValueType> createResultValue(
+            protected @NotNull PrismContainerValue<ShadowAssociationValueType> createResultValue(
                     String oid,
                     PrismObject<ShadowType> object,
                     List<ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> newValueDeltas)
@@ -114,19 +112,23 @@ public class AssociationTargetSearchExpressionEvaluator
                 return newAssociationValue.clone(); // It needs to be parent-less when included in the output triple
             }
 
-            @Override
-            protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params)
-                    throws ExpressionEvaluationException {
+            private ResourceObjectTypeDefinition associationTargetDef(ExpressionEvaluationContext params) throws ExpressionEvaluationException {
                 @SuppressWarnings("unchecked")
                 var rAssocTargetDefTypedValue = (TypedValue<ResourceObjectTypeDefinition>)
                         params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
                 if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
                     throw new ExpressionEvaluationException(
                             String.format("No association target object definition variable in %s; the expression may be used in"
-                                    + " a wrong place. It is only supposed to create an association.",
+                                            + " a wrong place. It is only supposed to create an association.",
                                     params.getContextDescription()));
                 }
-                ResourceObjectTypeDefinition rAssocTargetDef = (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
+                return (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
+            }
+
+            @Override
+            protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params)
+                    throws ExpressionEvaluationException {
+                var rAssocTargetDef = associationTargetDef(params);
                 ObjectFilter coordinatesFilter = prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_RESOURCE_REF).ref(rAssocTargetDef.getResourceOid())
                         .and().item(ShadowType.F_KIND).eq(rAssocTargetDef.getKind())
@@ -139,15 +141,18 @@ public class AssociationTargetSearchExpressionEvaluator
             }
 
             @Override
-            protected void extendOptions(
-                    Collection<SelectorOptions<GetOperationOptions>> options, boolean searchOnResource) {
-                super.extendOptions(options, searchOnResource);
+            protected ObjectQuery createRawQuery(SearchFilterType filter, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
+                var concreteShadowDef = associationTargetDef(params).getPrismObjectDefinition();
+                var objFilter = prismContext.getQueryConverter().createObjectFilter(concreteShadowDef, filter);
+                return prismContext.queryFactory().createQuery(objFilter);
+            }
+
+            @Override
+            protected void extendOptions(GetOperationOptionsBuilder builder, boolean searchOnResource) {
+                super.extendOptions(builder, searchOnResource);
                 // We do not need to worry about associations of associations here
                 // (nested associations). Avoiding that will make the query faster.
-                options.add(
-                        SelectorOptions.create(
-                                prismContext.toUniformPath(ShadowType.F_ASSOCIATIONS),
-                                GetOperationOptions.createDontRetrieve()));
+                builder.item(ShadowType.F_ASSOCIATIONS).dontRetrieve();
             }
 
             @Override

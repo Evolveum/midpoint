@@ -21,6 +21,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MiningUserTypeChunk extends MiningBaseTypeChunk implements Serializable {
 
+    String iconColor;
+
     public MiningUserTypeChunk(
             @NotNull List<String> users,
             @NotNull List<String> roles,
@@ -77,5 +79,13 @@ public class MiningUserTypeChunk extends MiningBaseTypeChunk implements Serializ
     @Override
     public void setStatus(@NotNull RoleAnalysisOperationMode roleAnalysisOperationMode) {
         super.setStatus(roleAnalysisOperationMode);
+    }
+
+    public String getIconColor() {
+        return iconColor;
+    }
+
+    public void setIconColor(String iconColor) {
+        this.iconColor = iconColor;
     }
 }

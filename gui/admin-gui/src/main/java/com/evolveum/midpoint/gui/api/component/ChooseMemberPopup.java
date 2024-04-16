@@ -427,6 +427,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     }
 
     private List<CompositedIconButtonDto> getAssignButtonDescription() {
+
         List<CompositedIconButtonDto> buttons = new ArrayList<>();
         List<AssignmentObjectRelation> loadedRelations = loadMemberRelationsList();
         boolean addDefaultObjectRelation = false;

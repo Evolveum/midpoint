@@ -3609,11 +3609,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     /**
-     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, int)}.
+     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, long)}.
      *
      * To be used on tasks that were _not_ executed before. I.e. we are happy with any task completion.
      */
-    protected void waitForRootActivityCompletion(@NotNull String rootTaskOid, int timeout) throws CommonException {
+    protected void waitForRootActivityCompletion(@NotNull String rootTaskOid, long timeout) throws CommonException {
         waitForRootActivityCompletion(rootTaskOid, null, timeout);
     }
 
@@ -3631,7 +3631,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected Task waitForRootActivityCompletion(
             @NotNull String rootTaskOid,
             @Nullable XMLGregorianCalendar lastKnownCompletionTimestamp,
-            int timeout) throws CommonException {
+            long timeout) throws CommonException {
         OperationResult waitResult = getTestOperationResult();
         Task freshRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
         argCheck(freshRootTask.getParent() == null, "Non-root task: %s", freshRootTask);
@@ -7308,6 +7308,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected SynchronizationRequestBuilder reconcileAccountsRequest() {
         return new SynchronizationRequestBuilder(this)
                 .withUsingReconciliation();
+    }
+
+    /** Reclassification of shadows by creating a specialized task. */
+    protected SynchronizationRequestBuilder shadowReclassificationRequest() {
+        return new SynchronizationRequestBuilder(this)
+                .withUsingShadowReclassification();
     }
 
     /**

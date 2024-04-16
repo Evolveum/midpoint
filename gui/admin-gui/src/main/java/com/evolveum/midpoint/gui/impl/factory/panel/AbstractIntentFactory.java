@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.Iterator;
 
 //FIXME serializable?
-@Component
 public abstract class AbstractIntentFactory extends AbstractInputGuiComponentFactory<String> implements Serializable {
 
     @Override

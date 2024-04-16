@@ -13,6 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,10 +37,15 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
     }
 
     private void initLayout() {
-        List<Badge> badgeList = getModelObject()
-                .stream()
-                .map(op -> new Badge(createBadgeClass(op), null, createLabelText(op), createTooltip(op)))
-                .toList();
+        List<Badge> badgeList;
+        if (getModelObject() != null) {
+            badgeList = getModelObject()
+                    .stream()
+                    .map(op -> new Badge(createBadgeClass(op), null, createLabelText(op), createTooltip(op)))
+                    .toList();
+        } else {
+            badgeList = new ArrayList<>();
+        }
         add(new BadgeListPanel(
                 ID_OPERATION,
                 Model.ofList(badgeList)));

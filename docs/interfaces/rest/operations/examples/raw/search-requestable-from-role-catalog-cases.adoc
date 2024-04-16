@@ -1,0 +1,83 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Search for All Requestable Objects which are a Part of the Role Catalog'*
+[source,bash]
+----
+curl --user Jack:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/roles/search \
+-v \
+--data-binary @./samples/rest/query-all-request-targets.json
+----
+
+.*Show* data source example for *"Search for All Requestable Objects which are a Part of the Role Catalog"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/query-all-request-targets.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "query": {
+    "filter": {
+      "text": "requestable = true AND parentOrgRef/@/name = \"Role Catalog\""
+    }
+  }
+}
+----
+====
+
+The response is an HTTP 200 code in case of success with a response body containing the queried items.
+
+.Example Output is a list of objects.
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#ObjectListType",
+    "object" : [ {
+      "@type" : "c:RoleType",
+      "oid" : "96262f4f-053a-4b0b-8901-b3ec01e3509c",
+      "version" : "5",
+      "name" : "employee",
+      "parentOrgRef" : {
+        "oid" : "7878cf5d-9de2-486c-aeb7-41b438200a57",
+        "relation" : "org:default",
+        "type" : "c:OrgType",
+        "targetName" : "Role Catalog"
+      },
+      "metadata" : {},
+      "operationExecution" : [],
+      "assignment" : {
+        "@id" : 3,
+        "metadata" : {},
+        "targetRef" : {
+          "oid" : "7878cf5d-9de2-486c-aeb7-41b438200a57",
+          "relation" : "org:default",
+          "type" : "c:OrgType",
+          "targetName" : "Role Catalog"
+        },
+        "activation" : {
+          "effectiveStatus" : "enabled"
+        }
+      },
+      "iteration" : 0,
+      "iterationToken" : "",
+      "roleMembershipRef" : {
+        "@metadata" : {},
+        "oid" : "7878cf5d-9de2-486c-aeb7-41b438200a57",
+        "relation" : "org:default",
+        "type" : "c:OrgType",
+        "targetName" : "Role Catalog"
+      },
+      "activation" : {},
+      "displayName" : "Basic Employee",
+      "requestable" : true
+    } ]
+  }
+}
+----
+====

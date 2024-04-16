@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractTemplateChoicePanel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -22,17 +22,13 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionType> implements Popupable {
+import java.io.Serializable;
+
+public abstract class TaskCreationPopup<T extends Serializable> extends BasePanel<T> implements Popupable {
 
     private static final String ID_TEMPLATE_CHOICE_PANEL = "templateChoicePanel";
     private static final String ID_SIMULATE = "simulate";
@@ -40,68 +36,41 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_CLOSE = "close";
 
-    private IModel<SynchronizationTaskFlavor> flavorModel;
+    private IModel<SynchronizationTaskFlavor> flavorModel = Model.of();
 
     private Fragment footer;
 
-    public TaskCreationPopup(String id, IModel<ResourceObjectTypeDefinitionType> model) {
-        super(id, model);
+    public TaskCreationPopup(String id) {
+        super(id);
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
-        flavorModel = new LoadableModel<>() {
-            @Override
-            protected SynchronizationTaskFlavor load() {
-                return null;
-            }
-        };
-
         initFooter();
-
     }
 
     private void initLayout() {
 
-        TemplateChoicePanel templateChoicePanel = new TemplateChoicePanel(ID_TEMPLATE_CHOICE_PANEL) {
-
-            @Override
-            protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
-                CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
-                return profile.getObjectCollectionViews()
-                        .stream()
-                        .filter(view -> isSynchronizationTaskCollection(view.getArchetypeOid()))
-                        .collect(Collectors.toList());
-            }
-
-            @Override
-            protected void onTemplateChosePerformed(CompiledObjectCollectionView view, AjaxRequestTarget target) {
-                view.getArchetypeOid();
-                flavorModel.setObject(determineTaskFlavour(view.getArchetypeOid()));
-            }
-
-            @Override
-            protected QName getType() {
-                return TaskType.COMPLEX_TYPE;
-            }
-
-            @Override
-            protected boolean isSelectable() {
-                return true;
-            }
-        };
+        AbstractTemplateChoicePanel<T> templateChoicePanel = createChoicePanel(ID_TEMPLATE_CHOICE_PANEL);
         add(templateChoicePanel);
 
         ToggleCheckBoxPanel simulationPanel = new ToggleCheckBoxPanel(ID_SIMULATE,
-                Model.of(false),
+                Model.of(getDefaultSimulationTag()),
                 createStringResource("TaskCreationPopup.simulate.label"),
                 createStringResource("TaskCreationPopup.simulate.tooltip"));
         simulationPanel.setOutputMarkupId(true);
         add(simulationPanel);
 
     }
+
+    protected boolean getDefaultSimulationTag() {
+        return false;
+    }
+
+    @SuppressWarnings("all")
+    protected abstract AbstractTemplateChoicePanel<T> createChoicePanel(String id);
 
     private void initFooter() {
         footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
@@ -126,25 +95,6 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
             }
         });
 
-    }
-
-    private boolean isSynchronizationTaskCollection(String archetypeOid) {
-        if (archetypeOid == null) {
-            return false;
-        }
-        return archetypeOid.equals(SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value())
-                || archetypeOid.equals(SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value())
-                || archetypeOid.equals(SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
-    }
-
-    private SynchronizationTaskFlavor determineTaskFlavour(String archetypeOid) {
-        SystemObjectsType taskType = SystemObjectsType.fromValue(archetypeOid);
-        return switch (taskType) {
-            case ARCHETYPE_RECONCILIATION_TASK -> SynchronizationTaskFlavor.RECONCILIATION;
-            case ARCHETYPE_LIVE_SYNC_TASK -> SynchronizationTaskFlavor.LIVE_SYNC;
-            case ARCHETYPE_IMPORT_TASK -> SynchronizationTaskFlavor.IMPORT;
-            default -> null;
-        };
     }
 
     private void onCreateTask(AjaxRequestTarget target) {
@@ -189,5 +139,20 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
     @Override
     public @NotNull Component getFooter() {
         return footer;
+    }
+
+    protected final IModel<SynchronizationTaskFlavor> getFlavorModel() {
+        return flavorModel;
+    }
+
+    protected SynchronizationTaskFlavor determineTaskFlavour(String archetypeOid) {
+        SystemObjectsType taskType = SystemObjectsType.fromValue(archetypeOid);
+        return switch (taskType) {
+            case ARCHETYPE_RECONCILIATION_TASK -> SynchronizationTaskFlavor.RECONCILIATION;
+            case ARCHETYPE_LIVE_SYNC_TASK -> SynchronizationTaskFlavor.LIVE_SYNC;
+            case ARCHETYPE_IMPORT_TASK -> SynchronizationTaskFlavor.IMPORT;
+            case ARCHETYPE_SHADOW_RECLASSIFICATION_TASK -> SynchronizationTaskFlavor.SHADOW_RECLASSIFICATION;
+            default -> null;
+        };
     }
 }

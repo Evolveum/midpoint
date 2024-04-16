@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static com.evolveum.midpoint.schema.TaskExecutionMode.SIMULATED_DEVELOPMENT;
-import static com.evolveum.midpoint.schema.TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT;
+import static com.evolveum.midpoint.schema.TaskExecutionMode.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -132,9 +131,11 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final TestResource RESOURCE_OPENDJ_270 = createOpenDjResource("resource-opendj-270.xml");
     private static final TestResource RESOURCE_OPENDJ_280 = createOpenDjResource("resource-opendj-280.xml");
     private static final TestResource RESOURCE_OPENDJ_290 = createOpenDjResource("resource-opendj-290.xml");
+    private static final TestResource RESOURCE_OPENDJ_300 = createOpenDjResource("resource-opendj-300.xml");
+
     private TestResource currentOpenDjResource = RESOURCE_OPENDJ_200;
 
-    private static final ObjectsCounter focusCounter = new ObjectsCounter(FocusType.class);
+    public static final String INTENT_OTHER = "other";
 
     private static final String NAME_JSMITH1 = "jsmith1";
     private static final String NAME_JSMITH2 = "jsmith2";
@@ -153,6 +154,8 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final String DN_ADMIN = "uid=admin,ou=People,dc=example,dc=com";
     private static final String DN_JUNIOR1 = "uid=junior1,ou=People,dc=example,dc=com";
     private static final String DN_EMPNO_6 = "uid=empNo:6,ou=People,dc=example,dc=com";
+
+    private final ObjectsCounter focusCounter = new ObjectsCounter(FocusType.class);
 
     @Autowired CorrelationCaseManager correlationCaseManager;
     @Autowired CaseManager caseManager;
@@ -1676,6 +1679,55 @@ public class TestFirstSteps extends AbstractStoryTest {
                 NAME_BOB, DN_BOB, "Robert", "Black", "rblack5@evolveum.com", "5");
     }
 
+    /**
+     * Testing forced reclassification: We add a secondary object type, manually switch an account to it, and check
+     * if the simulated forced reclassification will detect the "repair" action.
+     *
+     * MID-9514
+     */
+    @Test
+    public void test300ForcedReclassification() throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("resource definition is imported and tested");
+        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_300, task, result);
+
+        and("shadow 'jsmith1' is manually misclassified");
+        repositoryService.modifyObject(
+                ShadowType.class,
+                getOpenDjShadowOid(DN_JSMITH1),
+                prismContext.deltaFor(ShadowType.class)
+                        .item(ShadowType.F_INTENT).replace(INTENT_OTHER)
+                        .asItemDeltas(),
+                result);
+
+        when("running the simulated shadow reclassification (production)");
+        var taskOid = shadowReclassificationOpenDjRequest(DN_JSMITH1)
+                .withTaskExecutionMode(SIMULATED_SHADOWS_PRODUCTION)
+                .execute(result);
+        waitForRootActivityCompletion(taskOid, DEFAULT_SHORT_TASK_WAIT_TIMEOUT);
+
+        then("the task is OK");
+        assertTask(taskOid, "simulated shadow reclassification")
+                .display();
+
+        and("there is a simulated classification change");
+        assertProcessedObjects(getTaskSimResult(taskOid, result))
+                .display()
+                .by()
+                .objectType(ShadowType.class)
+                .changeType(ChangeType.MODIFY)
+                .eventMarkOid(MARK_SHADOW_CLASSIFICATION_CHANGED.oid)
+                .find(po -> po
+                        .delta()
+                        .assertModifications(1)
+                        .assertModification(ShadowType.F_INTENT, INTENT_OTHER, INTENT_DEFAULT)
+                        .end());
+        // Currently, there is also another one, synchronization-timestamp-related, delta.
+        // Hopefully it will get merged to the first one (checked above) eventually.
+    }
+
     private void assertUserAndOpenDjShadow(
             String userName, String dn, String givenName, String familyName, String mail, String employeeNumber)
             throws CommonException {
@@ -1765,6 +1817,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private ObjectReferenceType getUserRef(String name) {
         return ObjectTypeUtil.createObjectRef(getUserOid(name), ObjectTypes.USER);
     }
@@ -1804,6 +1857,13 @@ public class TestFirstSteps extends AbstractStoryTest {
     @SuppressWarnings("SameParameterValue")
     private SynchronizationRequestBuilder importOpenDjAccountRequest(String dn) {
         return importAccountsRequest()
+                .withResourceOid(RESOURCE_OPENDJ_OID)
+                .withNamingAttribute(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER)
+                .withNameValue(dn);
+    }
+
+    private SynchronizationRequestBuilder shadowReclassificationOpenDjRequest(String dn) {
+        return shadowReclassificationRequest()
                 .withResourceOid(RESOURCE_OPENDJ_OID)
                 .withNamingAttribute(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER)
                 .withNameValue(dn);

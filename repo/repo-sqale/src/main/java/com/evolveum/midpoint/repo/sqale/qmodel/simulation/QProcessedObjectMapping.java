@@ -138,4 +138,9 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
     public static String partitionName(String oid) {
         return PARTITION_PREFIX + oid.replace('-', '_');
     }
+
+    @Override
+    public int containerDepth() {
+        return 1;
+    }
 }

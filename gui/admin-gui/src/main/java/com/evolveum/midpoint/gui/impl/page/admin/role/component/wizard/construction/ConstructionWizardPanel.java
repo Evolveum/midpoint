@@ -126,14 +126,12 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
         steps.add(new ConstructionOutboundMainStepPanel<>(getAssignmentHolderModel(), rowModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);
             }
         });
         steps.add(new ConstructionOutboundOptionalStepPanel(getAssignmentHolderModel(), rowModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);
             }
         });

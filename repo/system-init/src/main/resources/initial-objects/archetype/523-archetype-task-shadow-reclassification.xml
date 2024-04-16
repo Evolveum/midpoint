@@ -1,0 +1,82 @@
+<!--
+  ~ Copyright (c) 2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000523"
+           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <name>Shadow reclassification task</name>
+    <archetypePolicy>
+        <display>
+            <label>Shadow reclassification task</label>
+            <pluralLabel>
+                <orig>Shadow reclassification tasks</orig>
+                <translation>
+                    <key>ShadowReclassificationTasks.title</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-refresh</cssClass>
+                <color>green</color>
+            </icon>
+        </display>
+        <itemConstraint id="1">
+            <path>extension</path>
+            <visibility>vacant</visibility>
+        </itemConstraint>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>TaskType</type>
+                <panel id="2">
+                    <identifier>activity</identifier>
+                    <panel id="3">
+                        <identifier>work</identifier>
+                        <container id="4">
+                            <identifier>work-import</identifier>
+                            <path>activity/work/shadowReclassification</path>
+                        </container>
+                    </panel>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+    <assignment id="5">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="6">
+            <holderType>TaskType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <inducement id="7">
+        <identifier>nameMapping</identifier>
+        <focusMappings>
+            <mapping id="8">
+                <strength>weak</strength>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType
+                            import org.apache.commons.lang3.StringUtils
+
+                            def task = focus as TaskType
+
+                            String name = source.name
+
+                            String description = midpoint.describeResourceObjectSet(task?.activity?.work?.getShadowReclassification()?.resourceObjects)
+                            if(StringUtils.isNotEmpty(description)) {
+                                return name + ': ' + description
+                            }
+
+                            return name
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>name</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</archetype>

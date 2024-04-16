@@ -11,15 +11,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 
 import java.io.Serial;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCandidateRoleType;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -33,17 +26,17 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
@@ -57,8 +50,8 @@ import com.evolveum.midpoint.web.component.util.RoleAnalysisTablePageable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCandidateRoleType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
@@ -83,15 +76,13 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     private String additionalBoxCssClasses = null;
     int columnCount;
     static boolean isRoleMining = false;
-    RoleAnalysisSortMode roleAnalysisSortModeMode;
 
     public RoleAnalysisTable(String id, ISortableDataProvider<T, ?> provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId, boolean isRoleMining, int columnCount, RoleAnalysisSortMode roleAnalysisSortModeMode) {
+            UserProfileStorage.TableId tableId, boolean isRoleMining, int columnCount) {
         super(id);
         this.tableId = tableId;
         RoleAnalysisTable.isRoleMining = isRoleMining;
         this.columnCount = columnCount;
-        this.roleAnalysisSortModeMode = roleAnalysisSortModeMode;
         initLayout(columns, provider, columnCount);
     }
 
@@ -447,23 +438,6 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
             formBsProcess.add(editButton);
 
-            Form<?> formSortMode = new MidpointForm<>("form_sort_model");
-            footerContainer.add(formSortMode);
-
-            ChoiceRenderer<RoleAnalysisSortMode> renderer = new ChoiceRenderer<>("displayString");
-
-            DropDownChoice<RoleAnalysisSortMode> sortModeSelector = new DropDownChoice<>(
-                    "modeSelector", Model.of(roleAnalysisSortModeMode),
-                    new ArrayList<>(EnumSet.allOf(RoleAnalysisSortMode.class)), renderer);
-            sortModeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    onChangeSortMode(sortModeSelector.getModelObject(), target);
-                }
-            });
-            sortModeSelector.setOutputMarkupId(true);
-            formSortMode.add(sortModeSelector);
-
             Form<?> formCurrentPage = new MidpointForm<>("form_current_page");
             footerContainer.add(formCurrentPage);
             List<Integer> integers = List.of(new Integer[] { 100, 200, 400 });
@@ -552,9 +526,6 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     }
 
     public void onChange(String value, AjaxRequestTarget target, int currentPage) {
-    }
-
-    public void onChangeSortMode(RoleAnalysisSortMode roleAnalysisSortModeMode, AjaxRequestTarget target) {
     }
 
     protected void onChangeSize(int value, AjaxRequestTarget target) {

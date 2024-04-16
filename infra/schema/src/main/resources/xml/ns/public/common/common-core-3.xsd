@@ -6615,13 +6615,26 @@
 
                                 It is planned to be used to "remember" the search result. E.g. to
                                 search for the target on import and then store the fixed OID.
-                                But this is not yet implemented.
+                                But this is not yet implemented. Actually, it can be a problem if multiple objects
+                                are found by the search by filter.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
+                    <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Filter or filters to use to look for objects.
+                            </xsd:documentation>
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="searchStrategy" type="tns:ObjectSearchStrategyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How we try to find matching objects. Note that when "onResourceIfNeeded" is used,
+                                it is applied onto the filters individually. That means, that each filter is evaluated
+                                against the repository, and if nothing is found, the resource is consulted.
+                            </xsd:documentation>
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="defaultTargetRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
@@ -8740,6 +8753,23 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="role" type="tns:RoleType" substitutionGroup="tns:object"/>
+
+    <xsd:complexType name="PolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    FIXME
+                </p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractRoleType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="policy" type="tns:PolicyType" substitutionGroup="tns:object"/>
 
     <xsd:element name="approverRef" type="tns:ObjectReferenceType" />
 
@@ -14309,6 +14339,45 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="ShadowClassificationModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should be shadows classified?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="normal">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default classification behavior. Basically, the classification will be done only for unclassified shadows,
+                        with some exceptions regarding simulation mode working with development configuration.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NORMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="forced">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        All shadows touched by given get/search operation (including the associated ones) will be reclassified.
+                        Primarily useful for shadow management simulation.
+
+                        TO BE DEFINED BETTER. LIMITED SUPPORT. MAY CHANGE BEFORE 4.9 RELEASE.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FORCED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- Maybe also "forcedLimited" and "skip" -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="ConflictResolutionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -16458,6 +16527,28 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000330">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_CLASSIFICATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000331">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_CLEARANCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000332">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLASSIFICATION_PRIVILEGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
             <xsd:enumeration value="00000000-0000-0000-0000-000000000501">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -16609,6 +16700,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_OBJECT_INTEGRITY_CHECK_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000523">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOW_RECLASSIFICATION_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17268,6 +17366,20 @@
                         <a:displayName>GetOperationOptionsType.errorHandling</a:displayName>
                         <a:experimental>true</a:experimental>
                         <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="shadowClassificationMode" type="tns:ShadowClassificationModeType" minOccurs="0" default="normal">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should shadows be reclassified when being retrieved?
+                        Used for "get" style operations: get and search.
+                        For internal use. Currently supported only in a limited way.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.shadowClassificationMode</a:displayName>
+                        <a:since>4.9</a:since>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

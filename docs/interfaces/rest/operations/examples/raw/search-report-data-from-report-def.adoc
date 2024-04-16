@@ -1,0 +1,66 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Search Report Data based on Report Reference*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/reportData/search \
+-v \
+--data-binary @./samples/rest/query-report-data.json
+----
+
+.*Show* data source example for *"Search Report Data based on Report Reference"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/query-report-data.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "query": {
+    "filter": {
+      "text": "reportRef/@/name =\"All error audit records in 24h\""
+    }
+  }
+}
+----
+====
+
+The response is an HTTP 200 code in case of success with a response body containing the queried items.
+
+.Example Output is a list of objects.
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#ObjectListType",
+    "object" : [ {
+      "@type" : "c:ReportDataType",
+      "oid" : "1a1f8226-6b2d-4253-8714-f0a8e61179fb",
+      "version" : "1",
+      "name" : "All error audit records in 24h-EXPORT 08-03-2024 08-18-46.230 - CSV",
+      "description" : "Report made from all audit records. - CSV",
+      "metadata" : {},
+      "operationExecution" : {},
+      "iteration" : 0,
+      "iterationToken" : "",
+      "filePath" : "./foo/baar/All_error_audit_records_in_24h-EXPORT_08-03-2024_08-18-46.228.csv",
+      "reportRef" : {
+        "oid" : "579b3765-a2d3-46bc-98e5-3a2414d0accd",
+        "relation" : "org:default",
+        "type" : "c:ReportType"
+      },
+      "nodeRef" : {
+        "oid" : "3f383096-0da2-42f5-97d5-cdc2da0f61db",
+        "relation" : "org:default",
+        "type" : "c:NodeType"
+      }
+    } ]
+  }
+}
+----
+====

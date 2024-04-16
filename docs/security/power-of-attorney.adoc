@@ -1,3 +1,7 @@
+---
+midpoint-feature: power-of-attorney
+doc-type: config
+---
 = Power of Attorney Configuration
 :page-nav-title: Power of Attorney
 :page-wiki-name: Power of Attorney Configuration

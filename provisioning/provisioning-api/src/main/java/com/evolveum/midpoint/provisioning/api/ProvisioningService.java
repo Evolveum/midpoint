@@ -1059,7 +1059,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException;
+            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException, EncryptionException;
 
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
@@ -1067,7 +1067,7 @@ public interface ProvisioningService {
      */
     default void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException {
+            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         refreshShadow(shadow, options, new ProvisioningOperationContext(), task, parentResult);
     }
 

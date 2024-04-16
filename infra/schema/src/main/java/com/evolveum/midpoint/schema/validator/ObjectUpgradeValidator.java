@@ -14,7 +14,11 @@ public class ObjectUpgradeValidator {
     private final ObjectValidator validator;
 
     public ObjectUpgradeValidator(@NotNull PrismContext prismContext) {
-        this.validator = new ObjectValidator(prismContext);
+        this.validator = new ObjectValidator();
+    }
+
+    public void setTypeToCheck(@NotNull ValidationItemType item, boolean check) {
+        this.validator.setTypeToCheck(item, check);
     }
 
     public void setWarnDeprecated(boolean value) {

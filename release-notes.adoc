@@ -1,6 +1,7 @@
 ---
 layout: release
 release-version: '4.9'
+visibility: hidden
 ---
 = MidPoint 4.9 "TODO"
 :release-version: 4.9
@@ -31,6 +32,13 @@ TODO
 === New Features and Major Improvements
 
 * Shadow caching
+* Native Repository Support for searchContainersIteratively for all container types
+** Removed upper record limit for  reports for Assignments, Certfication Cases, Certification Work items and others.
+** Changed transaction isolation from READ_COMMITED to REPEATABLE_READ.
+** Changed storage strategy for complex container types - actual data stored inside their own table istead of parent object JSON.
+* Added support for external data in protected strings, that can be resolved via secrets providers.
+This allows to store secrets in external systems, such as HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, etc.
+For more information see xref:/midpoint/reference//security/credentials/secrets-provider-configuration.adoc[].
 * Shadow associations
 
 === Other Improvements
@@ -42,10 +50,12 @@ See xref:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status
 * #TODO some restrictions regarding running midPoint without subscription were added#
 
 * Duplication function of object or container showed in table.
-
 * Adding panel in gui, that support of creating new archetype for reference in resource object type.
-
 * Changing of input field for documentation element to multi-line text field.
+* Adding possibility for use 'Preview' button with development configuration on page details.
+* Adding 'Shadow reclassification' task as a new separate activity of the task type.
+** Adding button for creating simulated/production 'Reclassification' task on unrecognized resource objects panel.
+* New implementation and look of date time picker.
 
 === Releases Of Other Components
 

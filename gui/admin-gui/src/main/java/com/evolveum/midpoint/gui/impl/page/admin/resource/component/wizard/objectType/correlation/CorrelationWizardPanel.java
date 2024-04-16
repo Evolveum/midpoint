@@ -11,16 +11,23 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import java.util.Collection;
+
 /**
  * @author lskublik
  */
 public class CorrelationWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationWizardPanel.class);
 
     public CorrelationWizardPanel(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
@@ -38,7 +45,16 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<ResourceObjectTy
                 WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> helper = new WizardPanelHelper<>(getAssignmentHolderDetailsModel(), rowModel) {
                     @Override
                     public void onExitPerformed(AjaxRequestTarget target) {
-                        WebComponentUtil.showToastForRecordedButUnsavedChanges(target, getValueModel().getObject());
+                        if (getValueModel() != null) {
+                            try {
+                                Collection<?> deltas = getValueModel().getObject().getDeltas();
+                                if (!deltas.isEmpty()) {
+                                    WebComponentUtil.showToastForRecordedButUnsavedChanges(target, getValueModel().getObject());
+                                }
+                            } catch (SchemaException e) {
+                                LOGGER.error("Couldn't collect deltas from " + getValueModel().getObject(), e);
+                            }
+                        }
                         showChoiceFragment(target, createTablePanel());
                     }
                 };

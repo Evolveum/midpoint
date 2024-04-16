@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.*;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -46,10 +48,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnector;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnectorHost;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHost;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.MLookupTableRow;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRow;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.MNode;
@@ -237,6 +235,44 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         and("nothing is added to the database");
         assertThat(count(QObject.CLASS)).isEqualTo(baseCount + 1);
+    }
+
+    @Test
+    public void test119ModifyLegacyPreservesData() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+        QUserMapping.getUserMapping().setStoreSplitted(false);
+        QAssignmentMapping.getAssignmentMapping().setStoreFullObject(false);
+        long baseCount = count(QObject.CLASS);
+
+        UserType user = new UserType().name("user" + getTestNumber())
+                .assignment(new AssignmentType().targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE));
+        try {
+            given("user already in the repository with legacy format (assignment.full_object is null)");
+            String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+            assertThat(count(QObject.CLASS)).isEqualTo(baseCount + 1);
+
+            QUserMapping.getUserMapping().setStoreSplitted(true);
+            QAssignmentMapping.getAssignmentMapping().setStoreFullObject(true);
+            expect("should be readed correctly with assignment present");
+            UserType readed = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
+            assertThat(readed.getAssignment()).hasSize(1);
+            // Modify with splitted -
+
+            and("when unrelated modification is applied");
+            var deltas = prismContext.deltaFor(UserType.class)
+                            .item(UserType.F_ACTIVATION).add(new ActivationType().administrativeStatus(ActivationStatusType.ENABLED))
+                            .asItemDeltas();
+            repositoryService.modifyObject(UserType.class, oid, deltas, result);
+            and("assignment should be still there and reindexed");
+            readed = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
+            assertThat(readed.getAssignment()).hasSize(1);
+            assertThat(readed.getActivation()).isNotNull();
+
+
+        } finally {
+            QUserMapping.getUserMapping().setStoreSplitted(true);
+            QAssignmentMapping.getAssignmentMapping().setStoreFullObject(true);
+        }
     }
 
     // detailed container tests are from test200 on, this one has overwrite priority :-)

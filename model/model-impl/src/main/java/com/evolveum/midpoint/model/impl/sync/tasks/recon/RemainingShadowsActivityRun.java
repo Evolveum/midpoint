@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Reconciliatio
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -201,7 +202,7 @@ final class RemainingShadowsActivityRun
             ObjectNotFoundException e,
             Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException {
+            ConfigurationException, ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException, EncryptionException {
         if (!shadow.getOid().equals(e.getOid())) {
             LOGGER.debug("Got unrelated ObjectNotFoundException, rethrowing: " + e.getMessage(), e);
             throw e;
@@ -225,7 +226,7 @@ final class RemainingShadowsActivityRun
     private void reactResourceObjectGone(
             ShadowType originalShadow, String requestIdentifier, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException {
+            ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException, EncryptionException {
 
         // We reload e.g. to get current "gone" status. Otherwise the clockwork is confused.
         PrismObject<ShadowType> shadow = reloadShadow(originalShadow, task, result);

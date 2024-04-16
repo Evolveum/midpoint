@@ -27,6 +27,10 @@ public interface ExecutionModeProvider {
         return getExecutionMode().areShadowChangesSimulated();
     }
 
+    default boolean isPersistentAtShadowLevelButNotFully() {
+        return getExecutionMode().isPersistentAtShadowLevelButNotFully();
+    }
+
     default boolean isProductionConfiguration() {
         return getExecutionMode().isProductionConfiguration();
     }

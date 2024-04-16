@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.intest;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.evolveum.midpoint.schema.validator.ValidationItemStatus;
+
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.test.annotation.DirtiesContext;
@@ -38,7 +40,7 @@ public class TestInitialObjects extends AbstractIntegrationTest {
 
     @Test
     public void testInitialObjects() throws Exception {
-        ObjectValidator validator = new ObjectValidator(prismContext);
+        ObjectValidator validator = new ObjectValidator();
         validator.setAllWarnings();
 
         StringBuilder errorsSb = new StringBuilder();
@@ -82,7 +84,7 @@ public class TestInitialObjects extends AbstractIntegrationTest {
 
     private boolean isIgnoredWarning(ValidationResult validationResult) {
         for (ValidationItem item : validationResult.getItems()) {
-            if (!item.getStatus().equals(OperationResultStatus.WARNING)) {
+            if (!item.status().equals(ValidationItemStatus.WARNING)) {
                 return false;
             }
         }

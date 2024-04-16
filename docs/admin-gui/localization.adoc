@@ -1,3 +1,7 @@
+---
+midpoint-feature: localization
+doc-type: intro
+---
 = Localization
 :page-wiki-name: Localization
 :page-wiki-id: 30245445
@@ -5,8 +9,6 @@
 :page-wiki-metadata-create-date: 2019-04-24T08:13:11.429+02:00
 :page-wiki-metadata-modify-user: petr.gasparik
 :page-wiki-metadata-modify-date: 2021-01-27T10:31:25.054+01:00
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 MidPoint was born in Europe, therefore it is quite natural that it had support for multiple languages from its very beginning.

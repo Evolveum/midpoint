@@ -11,8 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -89,8 +88,8 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     protected Integer countObjects(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> currentOptions,
             Task task, OperationResult result) throws CommonException {
-        return WebModelServiceUtils.countObjectsByQueryFromSearchPanel(
-                type, getQuery(), currentOptions, task, result, getModelService());
+        return getModelService().countObjects(
+                type, getQuery(), currentOptions, task, result);
     }
 
     protected boolean isMemberPanel() {
@@ -106,7 +105,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
         if (taskConsumer != null) {
             taskConsumer.accept(task);
         }
-        return WebModelServiceUtils.searchObjectsByQueryFromSearchPanel(type, query, options, task, result, getModelService())
+        return getModelService().searchObjects(type, query, options, task, result)
                 .map(prismObject -> prismObject.asObjectable());
     }
 

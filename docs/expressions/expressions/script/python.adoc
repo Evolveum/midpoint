@@ -1,3 +1,7 @@
+---
+midpoint-feature: expression-python
+doc-type: intro
+---
 = Python Expressions
 :page-nav-title: Python
 :page-toc: top
@@ -13,8 +17,7 @@ No support for Python 3.x is available now.
 
 == Activation for version 4.4 and later
 
-Up to version 4.3, Python support was packaged inside midPoint.
-Starting with version 4.4, Python is not built-in and to activate it the following steps are necessary:
+Python support is not built-in and to activate it the following steps are necessary:
 
 * Download the standalone version as JAR from https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.2/jython-standalone-2.7.2.jar[this URL].
 MidPoint 4.4 was tested with Jython 2.7.2 but likely any latest stable version of `jython-standalone` should work.

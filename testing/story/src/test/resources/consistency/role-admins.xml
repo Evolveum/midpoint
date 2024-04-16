@@ -24,10 +24,7 @@
                <expression>
                <associationTargetSearch>
                         <filter>
-                            <q:equal>
-                                <q:path>attributes/ri:dn</q:path>
-                                <q:value>cn=admins,ou=groups,dc=example,dc=com</q:value>
-                            </q:equal>
+                            <q:text>attributes/ri:dn = "cn=admins,ou=groups,dc=example,dc=com"</q:text>
                         </filter>
                     <searchStrategy>onResourceIfNeeded</searchStrategy>
                </associationTargetSearch>

@@ -1,7 +1,9 @@
+---
+midpoint-feature: correlation
+doc-type: intro
+---
 = Smart Correlation
 :page-toc: top
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 == Introduction

@@ -534,14 +534,35 @@ li.dropdown.user.user-menu {
   }
 }
 
-// capability buttons in resource details page
+// Capability resource view grid
+.evo-grid.grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
 
+// Capability buttons in resource details page
 .btn-resource-capability {
-	width: 90px;
-	height: 75px;
-	padding-top: 10px;
-	white-space: normal;
-    margin: 0 !important;
+	//min-width: 150px !important;
+	aspect-ratio: 4/3!important;
+	height: auto;
+	max-height:120px;
+	font-size: 14px;
+
+	.icon-background {
+	  color: rgba(60, 141, 188, 0.1);
+	}
+
+	& i.fa-stack-2x {
+	  font-size:3.5rem;
+	}
+  & i.fa-stack-1x {
+    font-size: 1.35rem;
+  }
+}
+
+.btn-resource-capability:hover {
+	background: $light;
+	border-color: darken($light, 3%);
 }
 
 // Feedback messages
@@ -2067,4 +2088,20 @@ select:focus-visible
 div.show > a > div > i.fas {
   rotate: -90deg;
   @include smooth-transition(0.08s);
+}
+
+@each $color, $value in $theme-colors {
+  $backgroundValue: color-yiq($value);
+
+  .btn-#{$color}-hover:hover {
+      color: $value;
+      background-color: mix(#ffffff, $value, 85%);
+      border-color: $value;
+      border:1px solid;
+
+      option {
+        background: $white;
+        color: $dark;
+      }
+  }
 }

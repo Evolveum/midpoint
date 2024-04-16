@@ -36,7 +36,7 @@ public class DelineationResourceObjectTypeStepPanel
 
     public DelineationResourceObjectTypeStepPanel(ResourceDetailsModel model,
                            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
-        super(model, null);
+        super(model, null, null);
         this.valueModel = createNewValueModel(newValueModel, ResourceObjectTypeDefinitionType.F_DELINEATION);
     }
 
