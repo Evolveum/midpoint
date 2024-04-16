@@ -183,11 +183,11 @@ public abstract class AbstractObjectDummyConnector
         }
     }
 
-    ObjectClass toConnIdObjectClass(String nativeClassName) {
+    private ObjectClass toConnIdObjectClass(String nativeClassName) {
         if (nativeClassName.equals(DummyAccount.OBJECT_CLASS_NAME)) {
-            return ObjectClass.ACCOUNT;
+            return new ObjectClass(getAccountObjectClassName());
         } else if (nativeClassName.equals(DummyGroup.OBJECT_CLASS_NAME)) {
-            return ObjectClass.GROUP;
+            return new ObjectClass(getGroupObjectClassName());
         } else {
             return new ObjectClass(nativeClassName);
         }
@@ -307,9 +307,9 @@ public abstract class AbstractObjectDummyConnector
 
     private ObjectClassInfo createAccountObjectClass() {
 
-        String className = configuration.getUseLegacySchema() ? ObjectClass.ACCOUNT_NAME : DummyAccount.OBJECT_CLASS_NAME;
         var objClassBuilder =
-                createCommonObjectClassBuilder(className, resource.getAccountObjectClass(), configuration.getSupportActivation());
+                createCommonObjectClassBuilder(
+                        getAccountObjectClassName(), resource.getAccountObjectClass(), configuration.getSupportActivation());
 
         // __PASSWORD__ attribute
         AttributeInfo passwordAttrInfo;
@@ -333,9 +333,17 @@ public abstract class AbstractObjectDummyConnector
         return objClassBuilder.build();
     }
 
+    private String getAccountObjectClassName() {
+        return configuration.getUseLegacySchema() ? ObjectClass.ACCOUNT_NAME : DummyAccount.OBJECT_CLASS_NAME;
+    }
+
+    private String getGroupObjectClassName() {
+        return configuration.getUseLegacySchema() ? ObjectClass.GROUP_NAME : DummyGroup.OBJECT_CLASS_NAME;
+    }
+
     private ObjectClassInfo createGroupObjectClass() {
-        String className = configuration.getUseLegacySchema() ? ObjectClass.GROUP_NAME : DummyGroup.OBJECT_CLASS_NAME;
-        return createCommonObjectClassBuilder(className, resource.getGroupObjectClass(), configuration.getSupportActivation())
+        return createCommonObjectClassBuilder(
+                getGroupObjectClassName(), resource.getGroupObjectClass(), configuration.getSupportActivation())
                 .build();
     }
 
