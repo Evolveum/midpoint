@@ -25,7 +25,7 @@ public class ExpressionConstants {
 
     // Generic variables
     public static final String VAR_INPUT = "input";
-    public static final ItemName VAR_INPUT_QNAME = new ItemName(SchemaConstants.NS_C, VAR_INPUT);
+    public static final ItemName VAR_INPUT_QNAME = ItemName.from(SchemaConstants.NS_C, VAR_INPUT);
     public static final String VAR_OBJECT =  "object";
 
     // Variables used in various mappings
@@ -81,16 +81,16 @@ public class ExpressionConstants {
 
     // existence mapping variables
     public static final String VAR_LEGAL = "legal";
-    public static final ItemName VAR_LEGAL_QNAME = new ItemName(SchemaConstants.NS_C, VAR_LEGAL);
+    public static final ItemName VAR_LEGAL_QNAME = ItemName.from(SchemaConstants.NS_C, VAR_LEGAL);
 
     public static final String VAR_ASSIGNED = "assigned";
-    public static final ItemName VAR_ASSIGNED_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ASSIGNED);
+    public static final ItemName VAR_ASSIGNED_QNAME = ItemName.from(SchemaConstants.NS_C, VAR_ASSIGNED);
 
     public static final String VAR_FOCUS_EXISTS = "focusExists";
-    public static final ItemName VAR_FOCUS_EXISTS_QNAME = new ItemName(SchemaConstants.NS_C, VAR_FOCUS_EXISTS);
+    public static final ItemName VAR_FOCUS_EXISTS_QNAME = ItemName.from(SchemaConstants.NS_C, VAR_FOCUS_EXISTS);
 
     public static final String VAR_ADMINISTRATIVE_STATUS = "administrativeStatus";
-    public static final ItemName VAR_ADMINISTRATIVE_STATUS_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ADMINISTRATIVE_STATUS);
+    public static final ItemName VAR_ADMINISTRATIVE_STATUS_QNAME = ItemName.from(SchemaConstants.NS_C, VAR_ADMINISTRATIVE_STATUS);
 
     public static final String VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION = "associationTargetObjectClassDefinition";
 
@@ -99,7 +99,7 @@ public class ExpressionConstants {
      * Iterations are used to find unique values for an account, to resolve naming conflicts, etc.
      */
     public static final String VAR_ITERATION = "iteration";
-    public static final ItemName VAR_ITERATION_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ITERATION);
+    public static final ItemName VAR_ITERATION_QNAME = ItemName.from(SchemaConstants.NS_C, VAR_ITERATION);
 
     /**
      * String value describing the current iteration. It is usually suffix that is appended to the username
@@ -107,7 +107,7 @@ public class ExpressionConstants {
      * value is determined by the iteration settings.
      */
     public static final String VAR_ITERATION_TOKEN = "iterationToken";
-    public static final ItemName VAR_ITERATION_TOKEN_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ITERATION_TOKEN);
+    public static final ItemName VAR_ITERATION_TOKEN_QNAME = ItemName.from(SchemaConstants.NS_C, VAR_ITERATION_TOKEN);
 
     public static final String VAR_REFERENCE_TIME = "referenceTime";
 
@@ -116,7 +116,7 @@ public class ExpressionConstants {
     public static final String VAR_OBJECT_LEFT = "objectLeft";
     public static final String VAR_OBJECT_RIGHT = "objectRight";
 
-    public static final ItemName OUTPUT_ELEMENT_NAME = new ItemName(SchemaConstants.NS_C, "output");
+    public static final ItemName OUTPUT_ELEMENT_NAME = ItemName.from(SchemaConstants.NS_C, "output");
 
     // "case" would collide with java keyword
     public static final String VAR_WORK_ITEM = "workItem";

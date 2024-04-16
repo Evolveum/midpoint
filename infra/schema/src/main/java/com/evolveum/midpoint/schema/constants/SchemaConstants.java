@@ -51,58 +51,58 @@ public abstract class SchemaConstants {
 
     // COMMON NAMESPACE
 
-    public static final ItemName C_OBJECTS = new ItemName(NS_C, "objects");
-    public static final ItemName C_OBJECT = new ItemName(NS_C, "object");
-    public static final ItemName C_TARGET = new ItemName(NS_C, "target");
-    public static final ItemName C_ABSTRACT_ROLE = new ItemName(NS_C, "abstractRole");
-    public static final ItemName C_FOCUS = new ItemName(NS_C, "focus");
+    public static final ItemName C_OBJECTS = ItemName.from(NS_C, "objects");
+    public static final ItemName C_OBJECT = ItemName.from(NS_C, "object");
+    public static final ItemName C_TARGET = ItemName.from(NS_C, "target");
+    public static final ItemName C_ABSTRACT_ROLE = ItemName.from(NS_C, "abstractRole");
+    public static final ItemName C_FOCUS = ItemName.from(NS_C, "focus");
     public static final QName C_OBJECT_TYPE = new QName(NS_C, "ObjectType");
-    public static final ItemName C_VALUE = new ItemName(NS_C, "value");
-    public static final ItemName C_PARAM_VALUE = new ItemName(NS_C, "paramValue");
-    public static final ItemName C_OID_ATTRIBUTE = new ItemName(NS_C, "oid");
+    public static final ItemName C_VALUE = ItemName.from(NS_C, "value");
+    public static final ItemName C_PARAM_VALUE = ItemName.from(NS_C, "paramValue");
+    public static final ItemName C_OID_ATTRIBUTE = ItemName.from(NS_C, "oid");
     public static final QName C_USER_TYPE = new QName(NS_C, "UserType");
     public static final QName C_TASK_TYPE = new QName(NS_C, "TaskType");
-    public static final ItemName C_TASK = new ItemName(NS_C, "task");
-    public static final ItemName C_RESOURCE = new ItemName(NS_C, "resource");
-    public static final ItemName C_RESULT = new ItemName(NS_C, "result");
-    public static final ItemName C_USER = new ItemName(NS_C, "user");
-    public static final ItemName C_OBJECT_TEMPLATE = new ItemName(NS_C, "objectTemplate");
+    public static final ItemName C_TASK = ItemName.from(NS_C, "task");
+    public static final ItemName C_RESOURCE = ItemName.from(NS_C, "resource");
+    public static final ItemName C_RESULT = ItemName.from(NS_C, "result");
+    public static final ItemName C_USER = ItemName.from(NS_C, "user");
+    public static final ItemName C_OBJECT_TEMPLATE = ItemName.from(NS_C, "objectTemplate");
     public static final QName C_OBJECT_TEMPLATE_TYPE = new QName(NS_C, "ObjectTemplateType");
     public static final QName C_GENERIC_OBJECT_TYPE = new QName(NS_C, "GenericObjectType");
-    public static final ItemName C_GENERIC_OBJECT = new ItemName(NS_C, "genericObject");
-    public static final ItemName C_ACCOUNT = new ItemName(NS_C, "account");
+    public static final ItemName C_GENERIC_OBJECT = ItemName.from(NS_C, "genericObject");
+    public static final ItemName C_ACCOUNT = ItemName.from(NS_C, "account");
     public static final QName C_RESOURCE_TYPE = new QName(NS_C, "ResourceType");
     public static final QName C_CONNECTOR_TYPE = new QName(NS_C, "ConnectorType");
-    public static final ItemName C_CONNECTOR = new ItemName(NS_C, "connector");
+    public static final ItemName C_CONNECTOR = ItemName.from(NS_C, "connector");
     public static final QName C_CONNECTOR_HOST_TYPE = new QName(NS_C, "ConnectorHostType");
-    public static final ItemName C_CONNECTOR_HOST = new ItemName(NS_C, "connectorHost");
-    public static final ItemName C_ROLE_ANALYSIS_CLUSTER_TYPE = new ItemName(NS_C, "RoleAnalysisClusterType");
-    public static final ItemName C_ROLE_ANALYSIS_CLUSTER = new ItemName(NS_C, "roleAnalysisCluster");
-    public static final ItemName C_ROLE_ANALYSIS_SESSION_TYPE = new ItemName(NS_C, "RoleAnalysisSessionType");
-    public static final ItemName C_ROLE_ANALYSIS_SESSION = new ItemName(NS_C, "roleAnalysisSession");
-    public static final ItemName C_CONNECTOR_FRAMEWORK = new ItemName(NS_C, "framework");
-    public static final ItemName C_CONNECTOR_CONNECTOR_TYPE = new ItemName(NS_C, "connectorType");
-    public static final ItemName C_SHADOW = new ItemName(NS_C, "shadow");
+    public static final ItemName C_CONNECTOR_HOST = ItemName.from(NS_C, "connectorHost");
+    public static final ItemName C_ROLE_ANALYSIS_CLUSTER_TYPE = ItemName.from(NS_C, "RoleAnalysisClusterType");
+    public static final ItemName C_ROLE_ANALYSIS_CLUSTER = ItemName.from(NS_C, "roleAnalysisCluster");
+    public static final ItemName C_ROLE_ANALYSIS_SESSION_TYPE = ItemName.from(NS_C, "RoleAnalysisSessionType");
+    public static final ItemName C_ROLE_ANALYSIS_SESSION = ItemName.from(NS_C, "roleAnalysisSession");
+    public static final ItemName C_CONNECTOR_FRAMEWORK = ItemName.from(NS_C, "framework");
+    public static final ItemName C_CONNECTOR_CONNECTOR_TYPE = ItemName.from(NS_C, "connectorType");
+    public static final ItemName C_SHADOW = ItemName.from(NS_C, "shadow");
     public static final QName C_SHADOW_TYPE = new QName(NS_C, "ShadowType");
-    public static final ItemName C_ATTRIBUTES = new ItemName(NS_C, "attributes");
-    public static final ItemName C_CREDENTIALS = new ItemName(NS_C, "credentials");
-    public static final ItemName C_ACTIVATION = new ItemName(NS_C, "activation");
+    public static final ItemName C_ATTRIBUTES = ItemName.from(NS_C, "attributes");
+    public static final ItemName C_CREDENTIALS = ItemName.from(NS_C, "credentials");
+    public static final ItemName C_ACTIVATION = ItemName.from(NS_C, "activation");
     public static final QName C_SYSTEM_CONFIGURATION_TYPE = new QName(NS_C, "SystemConfigurationType");
-    public static final ItemName C_SYSTEM_CONFIGURATION = new ItemName(NS_C, "systemConfiguration");
-    public static final ItemName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new ItemName(NS_C,
+    public static final ItemName C_SYSTEM_CONFIGURATION = ItemName.from(NS_C, "systemConfiguration");
+    public static final ItemName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = ItemName.from(NS_C,
             "globalAccountSynchronizationSettings");
 
-    public static final ItemName C_REPORT = new ItemName(NS_C, "report");
-    public static final ItemName C_REPORT_DATA = new ItemName(NS_C, "reportData");
+    public static final ItemName C_REPORT = ItemName.from(NS_C, "report");
+    public static final ItemName C_REPORT_DATA = ItemName.from(NS_C, "reportData");
     public static final QName C_ACTIVATION_STATUS_TYPE = new QName(NS_C, "ActivationStatusType");
-    public static final ItemName C_SECURITY_POLICY = new ItemName(NS_C, "securityPolicy");
-    public static final ItemName C_MODEL_EXECUTE_OPTIONS = new ItemName(NS_C, "modelExecuteOptions");
-    public static final ItemName C_CONFLICT_RESOLUTION_ACTION_TYPE = new ItemName(NS_C, "ConflictResolutionActionType");
-    public final static ItemName F_EXECUTION_OPTIONS = new ItemName(NS_C, "executionOptions");
+    public static final ItemName C_SECURITY_POLICY = ItemName.from(NS_C, "securityPolicy");
+    public static final ItemName C_MODEL_EXECUTE_OPTIONS = ItemName.from(NS_C, "modelExecuteOptions");
+    public static final ItemName C_CONFLICT_RESOLUTION_ACTION_TYPE = ItemName.from(NS_C, "ConflictResolutionActionType");
+    public final static ItemName F_EXECUTION_OPTIONS = ItemName.from(NS_C, "executionOptions");
 
     public static final QName T_POLY_STRING_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES,
             "PolyStringType");
-    public static final ItemName T_OBJECT_DELTA = new ItemName(SchemaConstantsGenerated.NS_TYPES, "objectDelta");
+    public static final ItemName T_OBJECT_DELTA = ItemName.from(SchemaConstantsGenerated.NS_TYPES, "objectDelta");
 
     /*
      * Constants for default relations.
@@ -222,7 +222,7 @@ public abstract class SchemaConstants {
 
     public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
     public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
-    public static final ItemName SYNC_TOKEN = new ItemName(NS_PROVISIONING_LIVE_SYNC, "token");
+    public static final ItemName SYNC_TOKEN = ItemName.from(NS_PROVISIONING_LIVE_SYNC, "token");
     public static final String NS_PROVISIONING_TASK = NS_PROVISIONING + "/task";
 
     public static final String NS_CHANNEL = NS_MIDPOINT_PUBLIC_COMMON + "/channels-3";
@@ -363,81 +363,81 @@ public abstract class SchemaConstants {
     public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-3";
 
     public static final ItemName LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME =
-            new ItemName(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
+            ItemName.from(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
 
     @VisibleForTesting // should be ignored by production code since 4.8
-    public static final ItemName MODEL_EXTENSION_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "dryRun");
+    public static final ItemName MODEL_EXTENSION_DRY_RUN = ItemName.from(NS_MODEL_EXTENSION, "dryRun");
     @VisibleForTesting // should be ignored by production code since 4.8
     public static final ItemPath PATH_MODEL_EXTENSION_DRY_RUN = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 
     // Temporary
-    public static final ItemName MODEL_EXTENSION_UPDATE_ID_MATCH = new ItemName(NS_MODEL_EXTENSION, "updateIdMatch");
+    public static final ItemName MODEL_EXTENSION_UPDATE_ID_MATCH = ItemName.from(NS_MODEL_EXTENSION, "updateIdMatch");
 
-    public static final ItemName MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
-    public static final ItemName MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "updateLiveSyncTokenInDryRun");
-    public static final ItemName MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE = new ItemName(NS_MODEL_EXTENSION, "liveSyncBatchSize");
-    public static final ItemName MODEL_EXTENSION_KIND = new ItemName(NS_MODEL_EXTENSION, "kind");
-    public static final ItemName MODEL_EXTENSION_INTENT = new ItemName(NS_MODEL_EXTENSION, "intent");
-    public static final ItemName MODEL_EXTENSION_OBJECTCLASS = new ItemName(NS_MODEL_EXTENSION, "objectclass");
-    public static final ItemName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new ItemName(
+    public static final ItemName MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS = ItemName.from(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
+    public static final ItemName MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN = ItemName.from(NS_MODEL_EXTENSION, "updateLiveSyncTokenInDryRun");
+    public static final ItemName MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE = ItemName.from(NS_MODEL_EXTENSION, "liveSyncBatchSize");
+    public static final ItemName MODEL_EXTENSION_KIND = ItemName.from(NS_MODEL_EXTENSION, "kind");
+    public static final ItemName MODEL_EXTENSION_INTENT = ItemName.from(NS_MODEL_EXTENSION, "intent");
+    public static final ItemName MODEL_EXTENSION_OBJECTCLASS = ItemName.from(NS_MODEL_EXTENSION, "objectclass");
+    public static final ItemName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = ItemName.from(
             NS_MODEL_EXTENSION, "lastScanTimestamp");
-    public static final ItemName MODEL_EXTENSION_PROFILING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "profilingInterval");
-    public static final ItemName MODEL_EXTENSION_TRACING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "tracingInterval");
-    public static final ItemName MODEL_EXTENSION_TRACING_PROFILE = new ItemName(NS_MODEL_EXTENSION, "tracingProfile");
-    public static final ItemName MODEL_EXTENSION_TRACING_ROOT = new ItemName(NS_MODEL_EXTENSION, "tracingRoot");
-    public static final ItemName MODEL_EXTENSION_TRACING = new ItemName(NS_MODEL_EXTENSION, "tracing");
-    public static final ItemName MODEL_EXTENSION_REPORTING_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "reporting");
+    public static final ItemName MODEL_EXTENSION_PROFILING_INTERVAL = ItemName.from(NS_MODEL_EXTENSION, "profilingInterval");
+    public static final ItemName MODEL_EXTENSION_TRACING_INTERVAL = ItemName.from(NS_MODEL_EXTENSION, "tracingInterval");
+    public static final ItemName MODEL_EXTENSION_TRACING_PROFILE = ItemName.from(NS_MODEL_EXTENSION, "tracingProfile");
+    public static final ItemName MODEL_EXTENSION_TRACING_ROOT = ItemName.from(NS_MODEL_EXTENSION, "tracingRoot");
+    public static final ItemName MODEL_EXTENSION_TRACING = ItemName.from(NS_MODEL_EXTENSION, "tracing");
+    public static final ItemName MODEL_EXTENSION_REPORTING_OPTIONS = ItemName.from(NS_MODEL_EXTENSION, "reporting");
 
-    public static final ItemName MODEL_EXTENSION_OBJECT_TYPE = new ItemName(NS_MODEL_EXTENSION, "objectType");
+    public static final ItemName MODEL_EXTENSION_OBJECT_TYPE = ItemName.from(NS_MODEL_EXTENSION, "objectType");
     public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_TYPE = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
 
-    public static final ItemName MODEL_EXTENSION_OBJECT_QUERY = new ItemName(NS_MODEL_EXTENSION, "objectQuery");
+    public static final ItemName MODEL_EXTENSION_OBJECT_QUERY = ItemName.from(NS_MODEL_EXTENSION, "objectQuery");
     public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_QUERY = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
 
-    public static final ItemName MODEL_EXTENSION_SEARCH_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "searchOptions");
-    public static final ItemName MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY = new ItemName(NS_MODEL_EXTENSION, "useRepositoryDirectly");
-    public static final ItemName MODEL_EXTENSION_ITERATION_METHOD = new ItemName(NS_MODEL_EXTENSION, "iterationMethod");
-    public static final ItemName MODEL_EXTENSION_FAILED_OBJECTS_SELECTOR = new ItemName(NS_MODEL_EXTENSION, "failedObjectsSelector");
+    public static final ItemName MODEL_EXTENSION_SEARCH_OPTIONS = ItemName.from(NS_MODEL_EXTENSION, "searchOptions");
+    public static final ItemName MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY = ItemName.from(NS_MODEL_EXTENSION, "useRepositoryDirectly");
+    public static final ItemName MODEL_EXTENSION_ITERATION_METHOD = ItemName.from(NS_MODEL_EXTENSION, "iterationMethod");
+    public static final ItemName MODEL_EXTENSION_FAILED_OBJECTS_SELECTOR = ItemName.from(NS_MODEL_EXTENSION, "failedObjectsSelector");
 
-    public static final ItemName MODEL_EXTENSION_OBJECT_DELTA = new ItemName(NS_MODEL_EXTENSION, "objectDelta");
+    public static final ItemName MODEL_EXTENSION_OBJECT_DELTA = ItemName.from(NS_MODEL_EXTENSION, "objectDelta");
     public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_DELTA = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
 
-    public static final ItemName MODEL_EXTENSION_OBJECT_DELTAS = new ItemName(NS_MODEL_EXTENSION, "objectDeltas");
-    public static final ItemName MODEL_EXTENSION_WORKER_THREADS = new ItemName(NS_MODEL_EXTENSION, "workerThreads");
-    public static final ItemName MODEL_EXTENSION_OPTION_RAW = new ItemName(NS_MODEL_EXTENSION, "optionRaw");
-    public static final ItemName MODEL_EXTENSION_EXECUTE_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "executeOptions");
+    public static final ItemName MODEL_EXTENSION_OBJECT_DELTAS = ItemName.from(NS_MODEL_EXTENSION, "objectDeltas");
+    public static final ItemName MODEL_EXTENSION_WORKER_THREADS = ItemName.from(NS_MODEL_EXTENSION, "workerThreads");
+    public static final ItemName MODEL_EXTENSION_OPTION_RAW = ItemName.from(NS_MODEL_EXTENSION, "optionRaw");
+    public static final ItemName MODEL_EXTENSION_EXECUTE_OPTIONS = ItemName.from(NS_MODEL_EXTENSION, "executeOptions");
     public static final ItemPath PATH_MODEL_EXTENSION_EXECUTE_OPTIONS = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-    public static final ItemName MODEL_EXTENSION_MODEL_EXECUTE_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "modelExecuteOptions");
+    public static final ItemName MODEL_EXTENSION_MODEL_EXECUTE_OPTIONS = ItemName.from(NS_MODEL_EXTENSION, "modelExecuteOptions");
 
-    public static final ItemName MODEL_EXTENSION_DIAGNOSE = new ItemName(NS_MODEL_EXTENSION, "diagnose");
-    public static final ItemName MODEL_EXTENSION_FIX = new ItemName(NS_MODEL_EXTENSION, "fix");
-    public static final ItemName MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER = new ItemName(NS_MODEL_EXTENSION,
+    public static final ItemName MODEL_EXTENSION_DIAGNOSE = ItemName.from(NS_MODEL_EXTENSION, "diagnose");
+    public static final ItemName MODEL_EXTENSION_FIX = ItemName.from(NS_MODEL_EXTENSION, "fix");
+    public static final ItemName MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER = ItemName.from(NS_MODEL_EXTENSION,
             "duplicateShadowsResolver");
-    public static final ItemName MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY = new ItemName(
+    public static final ItemName MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY = ItemName.from(
             NS_MODEL_EXTENSION, "checkDuplicatesOnPrimaryIdentifiersOnly");
 
-    public static final ItemName MODEL_EXTENSION_CLEANUP_POLICIES = new ItemName(NS_MODEL_EXTENSION,
+    public static final ItemName MODEL_EXTENSION_CLEANUP_POLICIES = ItemName.from(NS_MODEL_EXTENSION,
             "cleanupPolicies");
 
-    public static final ItemName MODEL_EXTENSION_WORK_ITEM_ID = new ItemName(NS_MODEL_EXTENSION, "workItemId");
-    public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTIONS = new ItemName(NS_MODEL_EXTENSION, "workItemActions");
-    public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTION = new ItemName(NS_MODEL_EXTENSION, "workItemAction");
-    public static final ItemName MODEL_EXTENSION_TIME_BEFORE_ACTION = new ItemName(NS_MODEL_EXTENSION, "timeBeforeAction");
-    public static final ItemName MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT = new ItemName(NS_MODEL_EXTENSION, "plannedOperationAttempt");
+    public static final ItemName MODEL_EXTENSION_WORK_ITEM_ID = ItemName.from(NS_MODEL_EXTENSION, "workItemId");
+    public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTIONS = ItemName.from(NS_MODEL_EXTENSION, "workItemActions");
+    public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTION = ItemName.from(NS_MODEL_EXTENSION, "workItemAction");
+    public static final ItemName MODEL_EXTENSION_TIME_BEFORE_ACTION = ItemName.from(NS_MODEL_EXTENSION, "timeBeforeAction");
+    public static final ItemName MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT = ItemName.from(NS_MODEL_EXTENSION, "plannedOperationAttempt");
 
     public static final String NOOP_SCHEMA_URI = NS_MIDPOINT_PUBLIC + "/task/noop/handler-3";
-    public static final ItemName NOOP_DELAY_QNAME = new ItemName(NOOP_SCHEMA_URI, "delay");
-    public static final ItemName NOOP_STEPS_QNAME = new ItemName(NOOP_SCHEMA_URI, "steps");
+    public static final ItemName NOOP_DELAY_QNAME = ItemName.from(NOOP_SCHEMA_URI, "delay");
+    public static final ItemName NOOP_STEPS_QNAME = ItemName.from(NOOP_SCHEMA_URI, "steps");
 
     public static final String JDBC_PING_SCHEMA_URI = NS_MIDPOINT_PUBLIC + "/task/jdbc-ping/handler-3";
-    public static final ItemName JDBC_PING_TESTS_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "tests");
-    public static final ItemName JDBC_PING_INTERVAL_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "interval");
-    public static final ItemName JDBC_PING_TEST_QUERY_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "testQuery");
-    public static final ItemName JDBC_PING_DRIVER_CLASS_NAME_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "driverClassName");
-    public static final ItemName JDBC_PING_JDBC_URL_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "jdbcUrl");
-    public static final ItemName JDBC_PING_JDBC_USERNAME_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "jdbcUsername");
-    public static final ItemName JDBC_PING_JDBC_PASSWORD_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "jdbcPassword");
-    public static final ItemName JDBC_PING_LOG_ON_INFO_LEVEL_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "logOnInfoLevel");
+    public static final ItemName JDBC_PING_TESTS_QNAME = ItemName.from(JDBC_PING_SCHEMA_URI, "tests");
+    public static final ItemName JDBC_PING_INTERVAL_QNAME = ItemName.from(JDBC_PING_SCHEMA_URI, "interval");
+    public static final ItemName JDBC_PING_TEST_QUERY_QNAME = ItemName.from(JDBC_PING_SCHEMA_URI, "testQuery");
+    public static final ItemName JDBC_PING_DRIVER_CLASS_NAME_QNAME = ItemName.from(JDBC_PING_SCHEMA_URI, "driverClassName");
+    public static final ItemName JDBC_PING_JDBC_URL_QNAME = ItemName.from(JDBC_PING_SCHEMA_URI, "jdbcUrl");
+    public static final ItemName JDBC_PING_JDBC_USERNAME_QNAME = ItemName.from(JDBC_PING_SCHEMA_URI, "jdbcUsername");
+    public static final ItemName JDBC_PING_JDBC_PASSWORD_QNAME = ItemName.from(JDBC_PING_SCHEMA_URI, "jdbcPassword");
+    public static final ItemName JDBC_PING_LOG_ON_INFO_LEVEL_QNAME = ItemName.from(JDBC_PING_SCHEMA_URI, "logOnInfoLevel");
 
     // Init channel, used when system is initializing itself
     public static final QName CHANNEL_INIT_QNAME = new QName(NS_CHANNEL, "init");
@@ -489,47 +489,47 @@ public abstract class SchemaConstants {
     public static final String NS_ICF_SUBTYPES = ICF_FRAMEWORK_URI + "/subtypes";
     public static final QName ICF_SUBTYPES_POLYSTRING_QNAME = new QName(NS_ICF_SUBTYPES, "PolyString");
     public static final String ICF_SUBTYPES_POLYSTRING_URI = qNameToUri(ICF_SUBTYPES_POLYSTRING_QNAME);
-    public static final ItemName ICF_CONFIGURATION_PROPERTIES = new ItemName(NS_ICF_CONFIGURATION,
+    public static final ItemName ICF_CONFIGURATION_PROPERTIES = ItemName.from(NS_ICF_CONFIGURATION,
             "configurationProperties");
 
     // Note! This is also specified in SchemaConstants (MID-356)
     public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-3";
     public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
-    public static final ItemName ICFS_NAME = new ItemName(NS_ICF_SCHEMA, "name");
+    public static final ItemName ICFS_NAME = ItemName.from(NS_ICF_SCHEMA, "name");
     public static final ItemPath ICFS_NAME_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_NAME);
-    public static final ItemName ICFS_UID = new ItemName(NS_ICF_SCHEMA, "uid");
+    public static final ItemName ICFS_UID = ItemName.from(NS_ICF_SCHEMA, "uid");
     public static final ItemPath ICFS_UID_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_UID);
-    public static final ItemName ICFS_PASSWORD = new ItemName(NS_ICF_SCHEMA, "password");
+    public static final ItemName ICFS_PASSWORD = ItemName.from(NS_ICF_SCHEMA, "password");
     public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME = "configurationProperties";
-    public static final ItemName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME = new ItemName(NS_ICF_CONFIGURATION,
+    public static final ItemName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME = ItemName.from(NS_ICF_CONFIGURATION,
             CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME);
     public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
     public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
-    public static final ItemName RI_ACCOUNT_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
-    public static final ItemName RI_GROUP_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, GROUP_OBJECT_CLASS_LOCAL_NAME);
+    public static final ItemName RI_ACCOUNT_OBJECT_CLASS = ItemName.from(MidPointConstants.NS_RI, ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+    public static final ItemName RI_GROUP_OBJECT_CLASS = ItemName.from(MidPointConstants.NS_RI, GROUP_OBJECT_CLASS_LOCAL_NAME);
 
     public static final String UCF_FRAMEWORK_URI_BUILTIN = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1";
 
     // OTHER (temporary? [mederly])
 
     public static final String ICF_CONNECTOR_EXTENSION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-extension-3";
-    public static final ItemName ICF_CONNECTOR_USUAL_NAMESPACE_PREFIX = new ItemName(ICF_CONNECTOR_EXTENSION,
+    public static final ItemName ICF_CONNECTOR_USUAL_NAMESPACE_PREFIX = ItemName.from(ICF_CONNECTOR_EXTENSION,
             "usualNamespacePrefix");
 
     public static final String SCRIPTING_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3";
-    public static final ItemName SE_EXECUTE_SCRIPT = new ItemName(SCRIPTING_EXTENSION_NS, "executeScript");
+    public static final ItemName SE_EXECUTE_SCRIPT = ItemName.from(SCRIPTING_EXTENSION_NS, "executeScript");
 
     public static final String NS_SCRIPTING = "http://midpoint.evolveum.com/xml/ns/public/model/scripting-3";
-    public static final ItemName S_PIPELINE = new ItemName(NS_SCRIPTING, "pipeline");
-    public static final ItemName S_SEARCH = new ItemName(NS_SCRIPTING, "search");
-    public static final ItemName S_SEQUENCE = new ItemName(NS_SCRIPTING, "sequence");
-    public static final ItemName S_ACTION = new ItemName(NS_SCRIPTING, "action");
+    public static final ItemName S_PIPELINE = ItemName.from(NS_SCRIPTING, "pipeline");
+    public static final ItemName S_SEARCH = ItemName.from(NS_SCRIPTING, "search");
+    public static final ItemName S_SEQUENCE = ItemName.from(NS_SCRIPTING, "sequence");
+    public static final ItemName S_ACTION = ItemName.from(NS_SCRIPTING, "action");
 
-    public static final ItemName S_PIPELINE_DATA = new ItemName(NS_SCRIPTING, "pipelineData");
+    public static final ItemName S_PIPELINE_DATA = ItemName.from(NS_SCRIPTING, "pipelineData");
 
-    public static final ItemName C_NAME = new ItemName(SchemaConstants.NS_C, "name");
+    public static final ItemName C_NAME = ItemName.from(SchemaConstants.NS_C, "name");
 
-    public static final ItemName C_MODEL_CONTEXT = new ItemName(NS_C, "modelContext");
+    public static final ItemName C_MODEL_CONTEXT = ItemName.from(NS_C, "modelContext");
 
     // Lifecycle
 
