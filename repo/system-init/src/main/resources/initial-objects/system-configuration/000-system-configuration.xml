@@ -1171,7 +1171,7 @@
                         </item>
                     </container>
                     <container id="139">
-                        <identifier>delineation</identifier>
+                        <identifier>delineation-hidden</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/delineation</path>
                     </container>
@@ -1382,7 +1382,7 @@
                         </item>
                     </container>
                     <container id="175">
-                        <identifier>association</identifier>
+                        <identifier>association-hidden</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/association</path>
                     </container>
