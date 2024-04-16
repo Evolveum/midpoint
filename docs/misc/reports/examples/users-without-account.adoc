@@ -10,7 +10,7 @@
 
 Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
 
-== Example use-case
+== Example Use-case
 
 We need a report of users which have assignments of a construction role, but don’t have an account on our resource, which they should have.
 

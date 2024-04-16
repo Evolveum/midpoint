@@ -33,23 +33,20 @@ Following code shows basic configuration of dashboard report.
 </report>
 ----
 
-// TODO rephrase
-Configuration for the dashboard report contains definition for _view_.
-The _view_ attribute in dashboard report is multivalued.
-We can configure view for every type of objects, which are showed via widgets.
-View defines columns of table in report.
 
-image::dashboard-view.png[]
+The _view_ (configuration of columns present in the report) can be defined at a couple of places in midPoint.
+
+image::dashboard-view.png[75%]
 
 For example in our picture, in the first line under screenshot, you can see the views for types `ResourceType`, `AuditEventRecordType` and `TaskType`.
 
 The final view of the widget in a dashboard report is merged from the three levels of definitions for the view.
-View in report for type of object, view in dashboard for widget and from view in object collection which contains configuration for widget.
-Columns from views are merged in a same way as in a Collection report.
-Also, we can use attribute `useOnlyReportView` for using only view defined by report.
+The view configuration in a report for the type of object, view in a dashboard for widget and from view in a object collection which contains configuration for a widget.
+Columns from views are merged in the same way as in a Collection report.
+Also, we can use attribute `useOnlyReportView` for using only views defined by report.
 
 When we don't use the _view_ parameters, the report  will contain default columns.
-In expression of column you can use the variable 'object' which represent the searched object or object defined in the _path_ property.
+In an expression for a column you can use the variable 'object' which represent the searched object or object defined in the _path_ property.
 For more information about view configuration please see xref:/midpoint/reference/admin-gui/collections-views/configuration/#views[Views].
 
 .Example of view for RoleType
@@ -122,7 +119,7 @@ return objects.size();
 </report>
 ----
 
-==== Report for asynchronous widget
+==== Report for an Asynchronous Widget
 
 A Dashboard report has two kinds of output.
 The most common case is to generate an output file with reported data.
@@ -149,10 +146,10 @@ Configuration of Dashboard report contains attribute _storeExportedWidgetData_, 
 
 |===
 
-==== Example of generated report
+==== Example of Generated Report
 
-On screenshot, we can see an example of a generated report of a Dashboard report in the HTML format.
-On top, we see the table of widgets with name, message and status.
+On the screenshot, we can see an example of a generated report of a Dashboard report in the HTML format.
+On the top, we can see the table of widgets with name, message and status.
 Under the table of widgets, the report continues with one table for every widget.
 
-image::dashboard-example.png[]
+image::dashboard-example.png[75%]
