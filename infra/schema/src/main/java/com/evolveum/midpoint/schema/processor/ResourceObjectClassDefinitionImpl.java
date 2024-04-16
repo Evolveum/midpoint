@@ -6,9 +6,23 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.*;
+
+import java.io.Serial;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+import javax.xml.namespace.QName;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
-
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -18,21 +32,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.io.Serial;
-import java.util.*;
-import java.util.Objects;
-import java.util.function.Consumer;
-
-import static com.evolveum.midpoint.util.MiscUtil.*;
 
 /**
  * Default implementation of {@link ResourceObjectClassDefinition}.
@@ -472,12 +472,12 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public void setMerger(String merger) {
+    public void setMergerIdentifier(String mergerIdentifier) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setNaturalKey(List<QName> naturalKey) {
+    public void setNaturalKeyConstituents(List<QName> naturalKeyConstituents) {
         throw new UnsupportedOperationException();
     }
 

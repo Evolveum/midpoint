@@ -10,6 +10,9 @@ package com.evolveum.midpoint.schema.merger;
 import java.util.Map;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.OriginMarker;
+import com.evolveum.midpoint.prism.impl.GenericItemMerger;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

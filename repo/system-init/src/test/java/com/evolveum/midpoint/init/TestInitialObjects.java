@@ -25,7 +25,6 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -48,8 +47,8 @@ public class TestInitialObjects extends AbstractUnitTest {
 
     private static final File INITIAL_OBJECTS_DIR = new File("./src/main/resources/initial-objects");
 
-    private int success = 0;
-    private int failed = 0;
+    record FileMergeResult<O extends ObjectType>(File file, PrismObject<O> before, PrismObject<O> after, boolean problem) {
+    }
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -58,26 +57,39 @@ public class TestInitialObjects extends AbstractUnitTest {
 
     @Test
     public void mergeInitialObjects() throws Exception {
-        testMergeOnFiles(INITIAL_OBJECTS_DIR.listFiles());
+        List<FileMergeResult> results = new ArrayList<>();
 
-        LOGGER.info("Success: " + success + ", Failed: " + failed + ", Total: " + (success + failed));
+        testMergeOnFiles(INITIAL_OBJECTS_DIR.listFiles(), results);
 
-        Assertions.assertThat(failed).withFailMessage(() -> "Failed " + failed + " merged initial objects.")
-                .matches(t -> t == 0);
+        int success = results.stream().filter(r -> !r.problem()).toList().size();
+        int failed = results.size() - success;
+
+        LOGGER.info("Success: " + success + ", Failed: " + failed + ", Total: " + results.size());
+
+        results.stream()
+                .filter(r -> r.problem())
+                .forEach(r -> LOGGER.error("Problem with file: " + r.file()
+//                        + "\nfirst:\n" + r.before().debugDump(1)
+//                        + "\nsecond:\n" + r.after().debugDump(1)
+                        + "\ndelta:\n" + r.before().diff(r.after()).debugDump(1)));
+
+        Assertions.assertThat(failed)
+                .isEqualTo(0)
+                .withFailMessage("Failed merge for " + failed + " files");
     }
 
-    public void testMergeOnFiles(File... files) throws SchemaException, IOException, ConfigurationException {
+    public void testMergeOnFiles(File[] files, List<FileMergeResult> results) throws SchemaException, IOException, ConfigurationException {
         for (File file : files) {
             if (file.isDirectory()) {
-                testMergeOnFiles(file.listFiles());
+                testMergeOnFiles(file.listFiles(), results);
             } else {
-                testMergeOnFile(file);
-                success++;
+                FileMergeResult result = testMergeOnFile(file);
+                results.add(result);
             }
         }
     }
 
-    private <O extends ObjectType> void testMergeOnFile(File file) throws SchemaException, IOException, ConfigurationException {
+    private <O extends ObjectType> FileMergeResult testMergeOnFile(File file) throws SchemaException, IOException, ConfigurationException {
         PrismObject<O> object = getPrismContext().parseObject(file);
         PrismObject<O> objectBeforeMerge = object.cloneComplex(CloneStrategy.REUSE);
 
@@ -87,17 +99,9 @@ public class TestInitialObjects extends AbstractUnitTest {
 
         LOGGER.trace("Object after merge:\n{}", object.debugDump());
 
-        ObjectDelta<O> delta = objectBeforeMerge.diff(object);
+        boolean problem = !object.equivalent(objectBeforeMerge);
 
-        try {
-            Assertions.assertThat(object)
-                    .matches(
-                            t -> t.equivalent(objectBeforeMerge));
-            success++;
-        } catch (AssertionError e) {
-            failed++;
-            LOGGER.error("Merged object is not equivalent to expected result\n" + delta.debugDump(), e);
-        }
+        return new FileMergeResult(file, objectBeforeMerge, object, problem);
     }
 
     /**
@@ -108,7 +112,7 @@ public class TestInitialObjects extends AbstractUnitTest {
      *
      * Used to generate CSV for documentation/development purposes only.
      */
-    @Test//(enabled = false)
+    @Test(enabled = false)
     public void listComplexPropertiesAndMultiValueContainers() throws Exception {
         List<ItemDefinition<?>> initialObjects = new ArrayList<>();
         Set<Definition> visited = new HashSet<>();

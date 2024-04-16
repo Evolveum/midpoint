@@ -14,6 +14,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKey;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -107,13 +109,23 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public @Nullable String getMerger() {
-        return metadataValueWrapper.getMerger();
+    public @Nullable String getMergerIdentifier() {
+        return metadataValueWrapper.getMergerIdentifier();
     }
 
     @Override
-    public @Nullable List<QName> getNaturalKey() {
-        return metadataValueWrapper.getNaturalKey();
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return metadataValueWrapper.getNaturalKeyConstituents();
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return metadataValueWrapper.getMergerInstance(strategy, originMarker);
+    }
+
+    @Override
+    public @Nullable NaturalKey getNaturalKeyInstance() {
+        return metadataValueWrapper.getNaturalKeyInstance();
     }
 
     @Override

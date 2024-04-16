@@ -10,6 +10,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.impl.key.NaturalKeyImpl;
+import com.evolveum.midpoint.prism.key.NaturalKey;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +54,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     private PrismReferenceValue valueEnumerationRef;
     private String merger;
 
-    private List<QName> naturalKey;
+    private List<QName> naturalKeyConstituents;
 
     protected TransformableItemDefinition(D delegate) {
         super(delegate);
@@ -77,7 +80,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
             this.delegate = copyOf.delegate;
             this.alwaysUseForEquals = copyOf.alwaysUseForEquals;
             this.merger = copyOf.merger;
-            this.naturalKey = copyOf.naturalKey;
+            this.naturalKeyConstituents = copyOf.naturalKeyConstituents;
         } else {
             this.delegate = new DelegatedItem.FullySerializable<>(delegate);
         }
@@ -194,24 +197,35 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     @Nullable
     @Override
-    public String getMerger() {
+    public String getMergerIdentifier() {
         return merger;
     }
 
     @Override
-    public void setMerger(String merger) {
-        this.merger = merger;
+    public void setMergerIdentifier(String mergerIdentifier) {
+        this.merger = mergerIdentifier;
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return getPrismContext().itemMergerFactory().createMerger(this, strategy, originMarker);
+    }
+
+    @Override
+    public @Nullable NaturalKey getNaturalKeyInstance() {
+        // todo how to create proper NaturalKey instance, implementations could be outside of prism api/impl
+        return naturalKeyConstituents != null && !naturalKeyConstituents.isEmpty() ? NaturalKeyImpl.of(naturalKeyConstituents) : null;
     }
 
     @Nullable
     @Override
-    public List<QName> getNaturalKey() {
-        return naturalKey;
+    public List<QName> getNaturalKeyConstituents() {
+        return naturalKeyConstituents;
     }
 
     @Override
-    public void setNaturalKey(List<QName> naturalKey) {
-        this.naturalKey = naturalKey;
+    public void setNaturalKeyConstituents(List<QName> naturalKeyConstituents) {
+        this.naturalKeyConstituents = naturalKeyConstituents;
     }
 
     @Override

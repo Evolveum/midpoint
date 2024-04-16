@@ -2961,6 +2961,7 @@
                 <a:experimenta>true</a:experimenta>
                 <a:container>true</a:container>
                 <a:since>4.0</a:since>
+                <a:naturalKey>logger</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

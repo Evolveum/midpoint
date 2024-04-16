@@ -1484,12 +1484,15 @@
                 block such as personal info, basic info, additional info. Each of this
                 section should have only attributes which belong to it, e.g. given name,
                 family name, date of the birth are attributes corresponding to the personal info.
-                Basic info section will contains attributes describing organizationalUnit, emailAddress
+                Basic info section will contain attributes describing organizationalUnit, emailAddress
                 or job position and additional info will contain attributes about user's nickname and so on.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.0</a:since>
+                <a:naturalKey>identifier</a:naturalKey>
+                <!-- todo this is incorrect -->
+                <!--<a:naturalKey>path</a:naturalKey>-->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

@@ -11,6 +11,9 @@ import java.util.*;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKey;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,13 +142,13 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @Nullable String getMerger() {
-        return structuralDefinition.getMerger();
+    public @Nullable String getMergerIdentifier() {
+        return structuralDefinition.getMergerIdentifier();
     }
 
     @Override
-    public @Nullable List<QName> getNaturalKey() {
-        return structuralDefinition.getNaturalKey();
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return structuralDefinition.getNaturalKeyConstituents();
     }
 
     @Override
@@ -827,5 +830,15 @@ public class CompositeObjectDefinitionImpl
     @Override
     public @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy() {
         return structuralDefinition.getEffectiveShadowCachingPolicy();
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return structuralDefinition.getMergerInstance(strategy, originMarker);
+    }
+
+    @Override
+    public @Nullable NaturalKey getNaturalKeyInstance() {
+        return structuralDefinition.getNaturalKeyInstance();
     }
 }

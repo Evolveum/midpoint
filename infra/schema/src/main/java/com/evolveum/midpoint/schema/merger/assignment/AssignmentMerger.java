@@ -17,8 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.schema.merger.BaseItemMerger;
-import com.evolveum.midpoint.schema.merger.OriginMarker;
+import com.evolveum.midpoint.prism.impl.BaseItemMerger;
+import com.evolveum.midpoint.prism.OriginMarker;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;

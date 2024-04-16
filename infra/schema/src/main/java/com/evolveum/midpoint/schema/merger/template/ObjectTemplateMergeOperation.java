@@ -7,10 +7,11 @@
 
 package com.evolveum.midpoint.schema.merger.template;
 
+import com.evolveum.midpoint.schema.OriginMarkerMixin;
 import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
-import com.evolveum.midpoint.schema.merger.GenericItemMerger;
+import com.evolveum.midpoint.prism.impl.GenericItemMerger;
 import com.evolveum.midpoint.schema.merger.IgnoreSourceItemMerger;
-import com.evolveum.midpoint.schema.merger.OriginMarker;
+import com.evolveum.midpoint.prism.OriginMarker;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -33,7 +34,7 @@ public class ObjectTemplateMergeOperation extends BaseMergeOperation<ObjectTempl
         super(target,
                 source,
                 new GenericItemMerger(
-                        OriginMarker.forOid(source.getOid(), ResourceType.COMPLEX_TYPE),
+                        OriginMarkerMixin.forOid(source.getOid(), ResourceType.COMPLEX_TYPE),
                         createPathMap(Map.of(
                                 // Resource name: we don't want to copy super-template name to the specific
                                 // template object.

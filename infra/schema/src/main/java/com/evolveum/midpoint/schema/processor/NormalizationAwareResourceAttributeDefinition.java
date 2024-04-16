@@ -10,20 +10,19 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
-import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKey;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
+import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryImpl;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.normalization.Normalizer;
@@ -32,10 +31,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.processor.deleg.ResourceAttributeDefinitionDelegator;
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.VisibleForTesting;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * An alternative representation of a {@link ResourceAttributeDefinition} that describes a normalization-aware resource attribute:
@@ -294,13 +294,23 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     }
 
     @Override
-    public @Nullable String getMerger() {
-        return originalDefinition.getMerger();
+    public @Nullable String getMergerIdentifier() {
+        return originalDefinition.getMergerIdentifier();
     }
 
     @Override
-    public @Nullable List<QName> getNaturalKey() {
-        return originalDefinition.getNaturalKey();
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return originalDefinition.getNaturalKeyConstituents();
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return originalDefinition.getMergerInstance(strategy, originMarker);
+    }
+
+    @Override
+    public @Nullable NaturalKey getNaturalKeyInstance() {
+        return originalDefinition.getNaturalKeyInstance();
     }
 
     @Override
