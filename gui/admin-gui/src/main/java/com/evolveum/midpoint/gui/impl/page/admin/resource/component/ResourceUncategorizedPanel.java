@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProv
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -165,8 +166,11 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         objectTypes.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                ShadowTablePanel table = getShadowTable();
                 resetSearch(getSelectedObjectClass());
-                getShadowTable().refreshTable(target);
+                table.getSearchModel().getObject();
+                table.refreshTable(target);
+                table.resetTable(target);
             }
         });
         objectTypes.setOutputMarkupId(true);

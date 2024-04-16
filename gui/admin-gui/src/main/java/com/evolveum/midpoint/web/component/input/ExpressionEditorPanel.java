@@ -163,7 +163,7 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
 
         DropDownChoice<?> policyRef = new DropDownChoice<>(ID_POLICY_REF,
                 new PropertyModel<>(dtoModel, ExpressionTypeDto.F_POLICY_REF),
-                (IModel<List<ObjectReferenceType>>) () -> WebModelServiceUtils.createObjectReferenceList(
+                (IModel<List<ObjectReferenceType>>) () -> WebModelServiceUtils.createObjectReferenceListForType(
                         ValuePolicyType.class, getPageBase(), policyMap), new ObjectReferenceChoiceRenderer(policyMap));
         policyRef.add(new AjaxFormComponentUpdatingBehavior("change") {
 
