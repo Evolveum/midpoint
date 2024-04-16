@@ -9,13 +9,14 @@
 
 == Introduction
 
-The following page contains some examples on how to configure the post report script feature in other words how to configure the execution of a specified command-line script after a report is generated.
+The following page contains some examples on how to configure the post report script feature, in other words how to configure the execution of a specified command-line script after a report is generated.
 
 === Parameters
 
 The scripts can be parameterized using inputs from the report itself. The script is executed like this:
 
-. The expressions defined for parameters defined in the command-line scrips are evaluated. MidPoint 3.7 support only macro parameters.
+. The expressions defined for parameters defined in the command-line scrips are evaluated.
+Currently only macro parameters are supported.
 
 . The macros denoted as %name% in the script command-line are expanded using the expressions results.
 
@@ -47,9 +48,13 @@ Note: report parameters are stored in the task, as is the user that started the 
 
 There are two execution modes:
 
-* exec: This mode will execute the command-line using native operating system service. On UNIX systems this is the exec() operation. The command-line string needs to be divided to the command and the parameters, which may not work well in all cases.
+* exec: This mode will execute the command-line using native operating system service.
+On UNIX systems this is the exec() operation.
+The command-line string needs to be divided to the command and the parameters, which may not work well in all cases.
 
-* shell: The command will be executed by using the shell. The shell is executed first and the command is passed to the shell (e.g. bash -c command). This works only on UNIX systems and it currently defaults to bash shell.
+* shell: The command will be executed by using the shell.
+The shell is executed first and the command is passed to the shell (e.g. bash -c command).
+This works only on UNIX systems, and it currently defaults to bash shell.
 
 
 === Examples
@@ -61,11 +66,11 @@ Following script copies the report to the /tmp directory:
 <report>
     ...
     <postReportScript>
-        <macro>
-            <name>file</name>
+        <macro> <!--<1>-->
+            <name>file</name> <!--<2> -->
             <asIs/>
         </macro>
-        <macro>
+        <macro><!--<3> -->
             <name>name</name>
             <script>
                 <code>
@@ -74,18 +79,19 @@ Following script copies the report to the /tmp directory:
             </script>
         </macro>
         <executionMethod>shell</executionMethod>
-        <code>cp %file% /tmp/%name%.pdf</code>
+        <code>cp %file% /tmp/%name%.pdf</code> <!--<4> <5>-->
     </postReportScript>
 </report>
 ----
 
-There are two macros defined.
-The first one is the file macro.
-It will contain the value of expression variable `file`. When this macro is applied to a command-line then the `%file%` string will be replaced by the name of the file that contains report output.
-Second macro is a bit more complex.
-This is the `name` macro.
+<1> The file macro.
+<2> Value of expression variable `file`.
+<3> When this macro is applied to a command-line then the `%file%` string will be replaced by the name of the file that contains report output.
+
+<4> This is the `name` macro.
 It takes name of the report from the report object (ReportType).
-The string `%name%` in the command-line will be replaced by the result of the macro expression, which is a name of the report.
+<5> The string `%name%` in the command-line will be replaced by the result of the macro expression, which is a name of the report.
+
 === Error reporting
 
 The information about errors which could occur during script execution will be present in the result section of the task created for generating the script.
@@ -107,7 +113,12 @@ For additional debugging the following logger can be used.
 The report will be generated even if there is an error during the execution of the post report script.
 ====
 
-
 == See Also
 
-** xref:/midpoint/reference/misc/reports/configuration/[Report configuration]
+- xref:/midpoint/reference/expressions/expressions/script/functions/[Script Expression Functions]
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/report-security.adoc[Report Security]
+- xref:/midpoint/reference/misc/reports/configuration/report-task-definition.adoc[Report Task Definition]

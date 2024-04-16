@@ -11,7 +11,7 @@
 Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
 
 
-== Example use-case
+== Example Use-case
 
 We need to create a report of users which account attributes have not changed for some time.
 

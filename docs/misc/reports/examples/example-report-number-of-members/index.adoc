@@ -11,7 +11,7 @@
 Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables.
 
 
-== Example use-case
+== Example Use-case
 
 Administrator needs to display all roles with the number of their members.
 
