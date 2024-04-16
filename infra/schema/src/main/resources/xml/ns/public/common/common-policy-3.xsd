@@ -724,6 +724,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.5</a:since>
+                <a:merger>ModificationPolicyConstraintType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

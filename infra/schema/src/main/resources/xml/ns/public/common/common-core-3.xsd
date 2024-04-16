@@ -2897,6 +2897,7 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:merger>AssignmentType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3305,6 +3306,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.0</a:since>
+                <a:merger>AssignmentRelationType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
            <xsd:sequence>
@@ -8043,6 +8045,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:merger>ObjectSelectorType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12101,6 +12104,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:merger>ExpressionEvaluatorProfileType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12160,6 +12164,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:merger>ScriptLanguageExpressionProfileType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -14536,6 +14541,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>ItemConstraintType.details</a:displayName>
+                <a:merger>ItemConstraintType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -17226,6 +17232,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:merger>SelectorQualifiedGetOptionType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

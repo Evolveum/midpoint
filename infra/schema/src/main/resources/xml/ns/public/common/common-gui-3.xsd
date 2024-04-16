@@ -1188,6 +1188,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.7</a:since>
+                <a:merger>AbstractObjectTypeConfigurationType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1232,6 +1233,7 @@
                 <a:since>4.4</a:since>
                 <a:displayName>GuiObjectDetailsPageType.details</a:displayName>
                 <a:experimental/>
+                <a:merger>GuiShadowDetailsPageType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1276,6 +1278,7 @@
                 <a:since>4.6</a:since>
                 <a:displayName>GuiResourceDetailsPageType.details</a:displayName>
                 <a:experimental/>
+                <a:merger>GuiResourceDetailsPageType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1304,6 +1307,7 @@
                 <a:container/>
                 <a:since>3.7</a:since>
                 <a:displayName>GuiObjectDetailsPageType.details</a:displayName>
+                <a:merger>GuiObjectDetailsPageType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1491,8 +1495,6 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:naturalKey>identifier</a:naturalKey>
-                <!-- todo this is incorrect -->
-                <!--<a:naturalKey>path</a:naturalKey>-->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2650,6 +2652,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.2</a:since>
+                <a:merger>SearchItemType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3423,6 +3426,7 @@
                 <a:since>4.0</a:since>
                 <a:displayName>DashboardWidgetDataFieldType.details</a:displayName>
                 <a:experimental>true</a:experimental>
+                <a:merger>DashboardWidgetDataFieldType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3506,6 +3510,7 @@
                 <a:since>4.0</a:since>
                 <a:displayName>DashboardWidgetVariationType.details</a:displayName>
                 <a:experimental>true</a:experimental>
+                <a:merger>DashboardWidgetVariationType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3786,6 +3791,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.0</a:since>
+                <a:merger>CollectionSpecificationType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
