@@ -167,14 +167,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 ShadowTablePanel table = getShadowTable();
-                Search<ShadowType> search = table.getSearchModel().getObject();
                 resetSearch(getSelectedObjectClass());
-                if (search != null) {
-                    Search<ShadowType> newSearch = table.getSearchModel().getObject();
-                    if (newSearch != null) {
-                        newSearch.setSearchMode(search.getSearchMode());
-                    }
-                }
                 table.getSearchModel().getObject();
                 table.refreshTable(target);
                 table.resetTable(target);
