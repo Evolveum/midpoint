@@ -48,7 +48,13 @@ public class ObjectUpgradeValidator {
     public <O extends ObjectType> UpgradeValidationResult validate(PrismObject<O> object) throws Exception {
         ValidationResult result = validator.validate(object);
 
+        ValidationResult filtered = new ValidationResult();
+
+        result.getItems().stream()
+                .filter(i -> i.type() == ValidationItemType.DEPRECATED_REMOVED_PLANNED_REMOVAL_ITEM)
+                .forEach(filtered::addItem);
+
         UpgradeProcessor processor = new UpgradeProcessor();
-        return processor.process(object, result);
+        return processor.process(object, filtered);
     }
 }

@@ -7,11 +7,13 @@
 package com.evolveum.midpoint.schema.validator;
 
 import java.util.*;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.key.NaturalKey;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -19,8 +21,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import javax.xml.namespace.QName;
 
 /**
  * Validator that can process objects, validate them, check for errors and warning
@@ -206,10 +206,13 @@ public class ObjectValidator {
             return;
         }
 
+        // todo enable natural keys check
         List<QName> constituents = def.getNaturalKeyConstituents();
         if (constituents == null || constituents.isEmpty()) {
             return;
         }
+
+        NaturalKey naturalKey = def.getNaturalKeyInstance();
 
         for (PrismContainerValue<?> value : container.getValues()) {
             for (QName key : constituents) {
@@ -217,6 +220,22 @@ public class ObjectValidator {
                     warn(
                             result, ValidationItemType.MISSING_NATURAL_KEY,
                             "Missing natural key constituent: " + key.getLocalPart(), container, value);
+                }
+            }
+
+            if (check(ValidationItemType.NATURAL_KEY_NOT_UNIQUE) && naturalKey != null) {
+                // this could be quite expensive, however now there's probably no better way to
+                // figure out whether there are two values with the same natural key
+                for (PrismContainerValue<?> other : container.getValues()) {
+                    if (value == other) {
+                        continue;
+                    }
+
+                    if (naturalKey.valuesMatch(value, other)) {
+                        warn(
+                                result, ValidationItemType.NATURAL_KEY_NOT_UNIQUE,
+                                "Non-unique natural key in " + container.getPath(), container, value);
+                    }
                 }
             }
         }
