@@ -12,16 +12,16 @@ import java.util.List;
 
 public class CleanupResult {
 
-    private List<CleanupMessage<?>> messages;
+    private List<CleanupItem<?>> messages;
 
-    public List<CleanupMessage<?>> getMessages() {
+    public List<CleanupItem<?>> getMessages() {
         if (messages == null) {
             messages = new ArrayList<>();
         }
         return messages;
     }
 
-    public void setMessages(List<CleanupMessage<?>> messages) {
+    public void setMessages(List<CleanupItem<?>> messages) {
         this.messages = messages;
     }
 }

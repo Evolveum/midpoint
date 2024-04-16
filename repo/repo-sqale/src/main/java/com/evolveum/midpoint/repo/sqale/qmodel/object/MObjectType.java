@@ -89,7 +89,8 @@ public enum MObjectType {
     MARK(QMark.class, MarkType.class),
     TASK(QTask.class, TaskType.class),
     USER(QUser.class, UserType.class),
-    VALUE_POLICY(QValuePolicy.class, ValuePolicyType.class);
+    VALUE_POLICY(QValuePolicy.class, ValuePolicyType.class),
+    POLICY(QPolicy.class, PolicyType.class);
 
     private final Class<? extends QObject<?>> queryType;
     private final Class<? extends ObjectType> schemaType;

@@ -15,6 +15,7 @@ import com.beust.jcommander.Parameters;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.util.EnumConverterValidator;
+import com.evolveum.midpoint.schema.validator.ValidationItemType;
 
 /**
  * // todo fix these options, extending Export options is messing up help messages (it's using export.* keys)
@@ -39,13 +40,27 @@ public class VerifyOptions extends ExportOptions {
 
     public enum VerificationCategory {
 
-        DEPRECATED,
+        DEPRECATED(ValidationItemType.DEPRECATED_ITEM),
 
-        REMOVED,
+        REMOVED(ValidationItemType.REMOVED_ITEM),
 
-        PLANNED_REMOVAL,
+        PLANNED_REMOVAL(ValidationItemType.PLANNED_REMOVAL_ITEM),
 
-        INCORRECT_OIDS
+        INCORRECT_OIDS(ValidationItemType.INCORRECT_OID_FORMAT),
+
+        MULTI_VALUE_REF_WITHOUT_OID(ValidationItemType.MULTIVALUE_REF_WITHOUT_OID),
+
+        MISSING_NATURAL_KEY(ValidationItemType.MISSING_NATURAL_KEY),
+
+        MULTIVALUE_BYTE_ARRAY(ValidationItemType.MULTIVALUE_BYTE_ARRAY),
+
+        PROTECTED_DATA_NOT_EXTERNAL(ValidationItemType.PROTECTED_DATA_NOT_EXTERNAL);
+
+        public final ValidationItemType validationItemType;
+
+        VerificationCategory(ValidationItemType validationItemType) {
+            this.validationItemType = validationItemType;
+        }
     }
 
     public static class VerificationCategoryConverter extends EnumConverterValidator<VerificationCategory> {
@@ -62,6 +77,7 @@ public class VerifyOptions extends ExportOptions {
     public static final String P_STOP_ON_CRITICAL_ERROR = "--stop-on-critical-error";
 
     public static final String P_FILE = "--file";
+
     public static final String P_PLANNED_REMOVAL_VERSION = "--planned-removal-version";
 
     @Parameter(names = { P_VERIFICATION_CATEGORY_LONG }, descriptionKey = "verify.verificationCategory",

@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.common.cleanup;
+package com.evolveum.midpoint.schema.validator;
 
 import java.util.ArrayList;
 import java.util.Collections;

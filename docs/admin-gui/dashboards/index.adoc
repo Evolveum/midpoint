@@ -18,21 +18,22 @@ From the early days of midPoint there were two hardcoded dashboards: end-user ho
 That was fine while midPoint was a simple IDM system.
 But now we are into identity governance, compliance, risk management support and other business-oriented aspects of identity.
 Whenever a "business" is involved there is a need for quick and clear presentation of data.
-Therefore the old hardcoded dashboards are no longer adequate for the job.
+Therefore, the old hardcoded dashboards are no longer adequate for the job.
 
 == More Dashboards
 
 When it comes to data presentation, there is no single way how to do it right.
 Security officer will be interested in certain specific aspects of data, but that aspects make little sense for a business manager.
 And then data protection officer will need yet another way to present the data.
-Therefore we need something that will be flexible and customizable.
+Therefore, we need something that will be flexible and customizable.
 Such as customizable dashboards.
 
 In midPoint universe, dashboards are first-class citizens.
 Each deployment can have as many dashboards as needed, and they can contain custom "widgets" used to present interesting pieces of information.
 Simple widgets can present data from xref:/midpoint/reference/admin-gui/collections-views/[object collections], such as number of active employees, number of failed resources, suspended tasks and so.
 That is an elegant way to create _status dashboards_ showing status of important system components.
-But collections are much more powerful, especially the ability to define collection _domain_. Therefore dynamic dashboard can be used for xref:/midpoint/features/planned/compliance/[compliance] purposes.
+But collections are much more powerful, especially the ability to define collection _domain_.
+Therefore, dynamic dashboards can be used for xref:/midpoint/features/planned/compliance/[compliance] purposes.
 Data protection dashboards may be set up.
 And so on.
 
@@ -49,7 +50,7 @@ But there is one use case when dashboards and reports work together: status repo
 System administrators often like to get regular mail summary of system operation during last 24 hours.
 But we already have a dashboard functionality for the same thing.
 And here in the midPoint land we simply hate to duplicate functionality.
-Therefore there is a printable and mailable version of status dashboard.
+Therefore, there is a printable and mailable version of status dashboard.
 And that is exactly what status report is about.
 The report takes status dashboard configuration as an input.
 But instead of displaying dashboards in an interactive way it renders them in a stand-alone static way.

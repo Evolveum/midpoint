@@ -8758,6 +8758,23 @@
     </xsd:complexType>
     <xsd:element name="role" type="tns:RoleType" substitutionGroup="tns:object"/>
 
+    <xsd:complexType name="PolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    FIXME
+                </p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractRoleType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="policy" type="tns:PolicyType" substitutionGroup="tns:object"/>
+
     <xsd:element name="approverRef" type="tns:ObjectReferenceType" />
 
     <xsd:complexType name="AbstractConstructionType" abstract="true">

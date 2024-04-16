@@ -23,8 +23,8 @@ public class UpgradeValidationItemAsserter {
     }
 
     public UpgradeValidationItemAsserter assertPath(ItemPath path) {
-        if (!path.equivalent(item.getItem().getItemPath())) {
-            Assertions.fail("Expected path " + path + " but was " + item.getItem().getItemPath());
+        if (!path.equivalent(item.getItem().path())) {
+            Assertions.fail("Expected path " + path + " but was " + item.getItem().path());
         }
         return this;
     }
