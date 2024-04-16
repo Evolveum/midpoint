@@ -118,7 +118,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     @Override
     protected Popupable createAssignPopup(QName stableRelation) {
         ChooseOrgMemberPopup browser = new ChooseOrgMemberPopup(OrgMemberPanel.this.getPageBase().getMainPopupBodyId(),
-                getMemberPanelStorage().getSearch(), loadMultiFunctionalButtonModel(false)) {
+                getMemberPanelStorage().getSearch(), loadMultiFunctionalButtonModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
