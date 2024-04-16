@@ -2846,6 +2846,11 @@ public final class WebComponentUtil {
         return combinedRelationList;
     }
 
+    public static List<AssignmentObjectRelation> divideAssignmentRelationsByAllValues(
+            List<AssignmentObjectRelation> initialAssignmentRelationsList) {
+        return divideAssignmentRelationsByAllValues(initialAssignmentRelationsList, false);
+    }
+
     /**
      * The idea is to divide the list of AssignmentObjectRelation objects in such way that each AssignmentObjectRelation
      * in the list will contain not more than 1 relation, not more than 1 object type and not more than one archetype reference.

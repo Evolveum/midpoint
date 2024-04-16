@@ -41,7 +41,7 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
     protected List<ITab> createAssignmentTabs(AssignmentObjectRelation relationSpec) {
         List<ITab> tabs = super.createAssignmentTabs(relationSpec);
         tabs.add(new CountablePanelTab(getPageBase().createStringResource("chooseMemberForOrgPopup.otherTypesLabel"),
-                new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(getAvailableObjectTypes()))) {
+                new VisibleBehaviour(() -> isOthersTabVisible(relationSpec))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -69,6 +69,11 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
             }
         });
         return tabs;
+    }
+
+    private boolean isOthersTabVisible(AssignmentObjectRelation assignmentObjectRelation) {
+        return assignmentObjectRelation == null
+                || assignmentObjectRelation.getObjectTypes() != null && assignmentObjectRelation.getObjectTypes().size() > 1;
     }
 
     @Override
