@@ -10,7 +10,7 @@
 
 Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables and Auditing-Custom column for steps how to add custom column.
 
-== Example use-case
+== Example Use-case
 
 Administrator needs display all audit events which contains delta with changes on administrativeStatus of account on resource R1
 
