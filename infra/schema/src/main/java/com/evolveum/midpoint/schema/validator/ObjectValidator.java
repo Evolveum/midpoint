@@ -20,6 +20,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import javax.xml.namespace.QName;
+
 /**
  * Validator that can process objects, validate them, check for errors and warning
  * and possibly even transform object during upgrades.
@@ -204,21 +206,20 @@ public class ObjectValidator {
             return;
         }
 
-        // todo enable natural keys check
-//        List<QName> constituents = def.getNaturalKey();
-//        if (constituents == null || constituents.isEmpty()) {
-//            return;
-//        }
-//
-//        for (PrismContainerValue<?> value : container.getValues()) {
-//            for (QName key : constituents) {
-//                if (value.findItem(ItemPath.create(key)) == null) {
-//                    warn(
-//                            result, ValidationItemType.MISSING_NATURAL_KEY,
-//                            "Missing natural key constituent: " + key.getLocalPart(), container, value);
-//                }
-//            }
-//        }
+        List<QName> constituents = def.getNaturalKeyConstituents();
+        if (constituents == null || constituents.isEmpty()) {
+            return;
+        }
+
+        for (PrismContainerValue<?> value : container.getValues()) {
+            for (QName key : constituents) {
+                if (value.findItem(ItemPath.create(key)) == null) {
+                    warn(
+                            result, ValidationItemType.MISSING_NATURAL_KEY,
+                            "Missing natural key constituent: " + key.getLocalPart(), container, value);
+                }
+            }
+        }
     }
 
     private void visitProperty(PrismProperty<?> property, ValidationResult result) {
