@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -41,9 +42,11 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
 import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
 import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -108,14 +111,7 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 ShadowTablePanel table = getShadowTable();
-                Search<ShadowType> search = table.getSearchModel().getObject();
                 resetSearch(getSelectedObjectClass());
-                if (search != null) {
-                    Search<ShadowType> newSearch = table.getSearchModel().getObject();
-                    if (newSearch != null) {
-                        newSearch.setSearchMode(search.getSearchMode());
-                    }
-                }
                 table.getSearchModel().getObject();
                 table.refreshTable(target);
                 table.resetTable(target);
