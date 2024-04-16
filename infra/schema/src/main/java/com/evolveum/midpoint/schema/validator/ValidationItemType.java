@@ -20,6 +20,13 @@ public enum ValidationItemType {
     MISSING_NATURAL_KEY,
 
     /**
+     * Used when natural key is not unique in prism container value for multi-value containers.
+     *
+     * Data type: {@link com.evolveum.midpoint.prism.PrismContainerValue}
+     */
+    NATURAL_KEY_NOT_UNIQUE,
+
+    /**
      * Multi-value reference where at least one value doesn't have OID defined (e.g. uses filter).
      *
      * Data type: {@link com.evolveum.midpoint.prism.PrismReferenceValue}
