@@ -11,8 +11,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.delta.ItemMerger;
-import com.evolveum.midpoint.prism.impl.key.NaturalKeyImpl;
-import com.evolveum.midpoint.prism.key.NaturalKey;
+import com.evolveum.midpoint.prism.impl.key.NaturalKeyDefinitionImpl;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -212,9 +212,9 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     }
 
     @Override
-    public @Nullable NaturalKey getNaturalKeyInstance() {
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
         // todo how to create proper NaturalKey instance, implementations could be outside of prism api/impl
-        return naturalKeyConstituents != null && !naturalKeyConstituents.isEmpty() ? NaturalKeyImpl.of(naturalKeyConstituents) : null;
+        return naturalKeyConstituents != null && !naturalKeyConstituents.isEmpty() ? NaturalKeyDefinitionImpl.of(naturalKeyConstituents) : null;
     }
 
     @Nullable

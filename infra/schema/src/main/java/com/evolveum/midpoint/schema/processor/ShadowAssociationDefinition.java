@@ -15,7 +15,7 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemMerger;
-import com.evolveum.midpoint.prism.key.NaturalKey;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
@@ -256,7 +256,7 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     }
 
     @Override
-    public @Nullable NaturalKey getNaturalKeyInstance() {
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
         return null;
     }
 

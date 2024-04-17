@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.Collections;
 import javax.xml.XMLConstants;
 
-import com.evolveum.midpoint.prism.impl.key.DefaultNaturalKeyImpl;
+import com.evolveum.midpoint.prism.impl.key.DefaultNaturalKeyDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.GenericItemMerger;
 import com.evolveum.midpoint.schema.merger.assignment.AssignmentMerger;
 import com.evolveum.midpoint.schema.merger.objdef.LimitationsMerger;
@@ -108,12 +108,12 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                 SearchItemType.class,
                 m -> new GenericItemMerger(
                         m,
-                        DefaultNaturalKeyImpl.of(
+                        DefaultNaturalKeyDefinitionImpl.of(
                                 SearchItemType.F_PATH, SearchItemType.F_FILTER, SearchItemType.F_FILTER_EXPRESSION)));
         factory.registerMergerSupplier(
                 "GuiObjectDetailsPageType",
                 GuiObjectDetailsPageType.class,
-                m -> new GenericItemMerger(m, DefaultNaturalKeyImpl.of(GuiObjectDetailsPageType.F_TYPE)));
+                m -> new GenericItemMerger(m, DefaultNaturalKeyDefinitionImpl.of(GuiObjectDetailsPageType.F_TYPE)));
 //        factory.registerMergerSupplier(
 //                "GuiResourceDetailsPageType",
 //                GuiResourceDetailsPageType.class,
@@ -123,12 +123,12 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         factory.registerMergerSupplier(
                 "ExpressionEvaluatorProfileType",
                 ExpressionEvaluatorProfileType.class,
-                m -> new GenericItemMerger(m, DefaultNaturalKeyImpl.of(ExpressionEvaluatorProfileType.F_TYPE)));
+                m -> new GenericItemMerger(m, DefaultNaturalKeyDefinitionImpl.of(ExpressionEvaluatorProfileType.F_TYPE)));
         factory.registerMergerSupplier(
                 "ScriptLanguageExpressionProfileType",
                 ScriptLanguageExpressionProfileType.class,
                 m -> new GenericItemMerger(
-                        m, DefaultNaturalKeyImpl.of(ScriptLanguageExpressionProfileType.F_LANGUAGE)));
+                        m, DefaultNaturalKeyDefinitionImpl.of(ScriptLanguageExpressionProfileType.F_LANGUAGE)));
 //        factory.registerMergerSupplier(
 //                "ClassLoggerLevelOverrideType",
 //                ClassLoggerLevelOverrideType.class,
@@ -138,29 +138,29 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                 ObjectSelectorType.class,
                 m -> new GenericItemMerger(
                         m,
-                        DefaultNaturalKeyImpl.of(ObjectSelectorType.F_NAME, ObjectSelectorType.F_TYPE)));
+                        DefaultNaturalKeyDefinitionImpl.of(ObjectSelectorType.F_NAME, ObjectSelectorType.F_TYPE)));
         factory.registerMergerSupplier(
                 "CollectionSpecificationType",
                 CollectionSpecificationType.class,
                 m -> new GenericItemMerger(
-                        m, DefaultNaturalKeyImpl.of(CollectionSpecificationType.F_INTERPRETATION)));
+                        m, DefaultNaturalKeyDefinitionImpl.of(CollectionSpecificationType.F_INTERPRETATION)));
         factory.registerMergerSupplier(
                 "DashboardWidgetDataFieldType",
                 DashboardWidgetDataFieldType.class,
-                m -> new GenericItemMerger(m, DefaultNaturalKeyImpl.of(DashboardWidgetDataFieldType.F_FIELD_TYPE)));
+                m -> new GenericItemMerger(m, DefaultNaturalKeyDefinitionImpl.of(DashboardWidgetDataFieldType.F_FIELD_TYPE)));
         factory.registerMergerSupplier(
                 "DashboardWidgetVariationType",
                 DashboardWidgetVariationType.class,
                 m -> new GenericItemMerger(
                         m,
-                        DefaultNaturalKeyImpl.of(
+                        DefaultNaturalKeyDefinitionImpl.of(
                                 DashboardWidgetVariationType.F_DISPLAY, DashboardWidgetVariationType.F_CONDITION)));
         factory.registerMergerSupplier(
                 "AssignmentRelationType",
                 AssignmentRelationType.class,
                 m -> new GenericItemMerger(
                         m,
-                        DefaultNaturalKeyImpl.of(
+                        DefaultNaturalKeyDefinitionImpl.of(
                                 AssignmentRelationType.F_HOLDER_TYPE,
                                 AssignmentRelationType.F_RELATION,
                                 AssignmentRelationType.F_HOLDER_ARCHETYPE_REF)));
@@ -169,7 +169,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                 ModificationPolicyConstraintType.class,
                 m -> new GenericItemMerger(
                         m,
-                        DefaultNaturalKeyImpl.of(
+                        DefaultNaturalKeyDefinitionImpl.of(
                                 ModificationPolicyConstraintType.F_NAME,
                                 ModificationPolicyConstraintType.F_OPERATION)));
         factory.registerMergerSupplier(
@@ -177,12 +177,12 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                 AbstractObjectTypeConfigurationType.class,
                 m -> new GenericItemMerger(
                         m,
-                        DefaultNaturalKeyImpl.of(AbstractObjectTypeConfigurationType.F_TYPE)));
+                        DefaultNaturalKeyDefinitionImpl.of(AbstractObjectTypeConfigurationType.F_TYPE)));
         factory.registerMergerSupplier(
                 "GuiShadowDetailsPageType",
                 GuiShadowDetailsPageType.class,
                 m -> new GenericItemMerger(
-                        m, DefaultNaturalKeyImpl.of(
+                        m, DefaultNaturalKeyDefinitionImpl.of(
                         GuiShadowDetailsPageType.F_TYPE,
                         GuiShadowDetailsPageType.F_RESOURCE_REF,
                         GuiShadowDetailsPageType.F_KIND,
@@ -192,7 +192,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                 SelectorQualifiedGetOptionType.class,
                 m -> new GenericItemMerger(
                         m,
-                        DefaultNaturalKeyImpl.of(
+                        DefaultNaturalKeyDefinitionImpl.of(
                                 SelectorQualifiedGetOptionType.F_OPTIONS,
                                 SelectorQualifiedGetOptionType.F_SELECTOR)));
 

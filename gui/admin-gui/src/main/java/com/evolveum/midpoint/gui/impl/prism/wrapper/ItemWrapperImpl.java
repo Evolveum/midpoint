@@ -18,7 +18,7 @@ import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
 import com.evolveum.midpoint.prism.delta.ItemMerger;
-import com.evolveum.midpoint.prism.key.NaturalKey;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -557,7 +557,7 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     }
 
     @Override
-    public @Nullable NaturalKey getNaturalKeyInstance() {
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
         return getItemDefinition().getNaturalKeyInstance();
     }
 

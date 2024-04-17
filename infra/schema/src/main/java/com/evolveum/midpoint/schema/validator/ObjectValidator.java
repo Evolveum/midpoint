@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.key.NaturalKey;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -212,7 +212,7 @@ public class ObjectValidator {
             return;
         }
 
-        NaturalKey naturalKey = def.getNaturalKeyInstance();
+        NaturalKeyDefinition naturalKey = def.getNaturalKeyInstance();
 
         for (PrismContainerValue<?> value : container.getValues()) {
             for (QName key : constituents) {
