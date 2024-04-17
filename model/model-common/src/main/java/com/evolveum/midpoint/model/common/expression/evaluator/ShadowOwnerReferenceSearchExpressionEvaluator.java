@@ -1,13 +1,18 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -15,29 +20,35 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpressionEvaluatorType;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 
 /**
- * Creates a generic reference (or references) based on specified condition for the referenced object.
+ * Creates a reference pointing to the owner of the provided shadow (if it has an owner).
  *
- * @author Radovan Semancik
+ * Currently, the input is expected to be named `input` with a type of {@link ShadowAssociationValueType};
+ * this is true if this evaluator is be used as an inbound mapping for an association.
+ *
+ * TODO generalize / document this
  */
-public class ReferenceSearchExpressionEvaluator
+class ShadowOwnerReferenceSearchExpressionEvaluator
         extends AbstractSearchExpressionEvaluator<
         PrismReferenceValue,
         ObjectType,
         PrismReferenceDefinition,
         ReferenceSearchExpressionEvaluatorType> {
 
-    ReferenceSearchExpressionEvaluator(
+    ShadowOwnerReferenceSearchExpressionEvaluator(
             QName elementName,
             ReferenceSearchExpressionEvaluatorType expressionEvaluatorType,
             PrismReferenceDefinition outputDefinition,
@@ -53,7 +64,32 @@ public class ReferenceSearchExpressionEvaluator
             boolean useNew,
             @NotNull ExpressionEvaluationContext context,
             @NotNull OperationResult result) throws SchemaException {
+
+        //noinspection DuplicatedCode
         return new Evaluation(variables, useNew, context, result) {
+
+            @Override
+            protected QName getDefaultTargetType() {
+                return FocusType.COMPLEX_TYPE;
+            }
+
+            @Override
+            protected @NotNull List<ObjectQuery> createQueries() throws ConfigurationException, SchemaException {
+                configCheck(expressionEvaluatorBean.getFilter().isEmpty(),
+                        "Filter is not supported in shadow owner reference search expression: %s",
+                        lazy(() -> shortDebugDump()));
+                var input = variables.getValue(ExpressionConstants.VAR_INPUT, ShadowAssociationValue.class);
+                if (input == null) {
+                    return List.of();
+                }
+                var shadowRef = input.getShadowRef();
+                return List.of(
+                        prismContext.queryFor(targetTypeClass)
+                                .item(FocusType.F_LINK_REF)
+                                .ref(shadowRef.asReferenceValue().clone())
+                                .build());
+            }
+
             @Override
             protected @NotNull PrismReferenceValue createResultValue(
                     String oid,
@@ -71,6 +107,6 @@ public class ReferenceSearchExpressionEvaluator
 
     @Override
     public String shortDebugDump() {
-        return "referenceSearchExpression";
+        return "shadowOwnerReferenceSearchExpression";
     }
 }

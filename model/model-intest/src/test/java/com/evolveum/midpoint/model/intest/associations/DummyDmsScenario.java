@@ -48,7 +48,7 @@ public class DummyDmsScenario extends AbstractDummyScenario {
 
     public class Account extends ScenarioObjectClass {
 
-        public static final ObjectClassName OBJECT_CLASS_NAME = legacyAccount("account");
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("account");
 
         public static class AttributeNames {
             public static final AttrName NAME = icfs("name");
@@ -70,7 +70,7 @@ public class DummyDmsScenario extends AbstractDummyScenario {
 
     public class Access extends ScenarioObjectClass {
 
-        public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("access");
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("access");
 
         public static class AttributeNames {
             public static final AttrName LEVEL = ri("level");
@@ -95,7 +95,7 @@ public class DummyDmsScenario extends AbstractDummyScenario {
 
     public class Document extends ScenarioObjectClass {
 
-        public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("document");
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("document");
 
         public static class AttributeNames {
             public static final AttrName NAME = icfs("name");

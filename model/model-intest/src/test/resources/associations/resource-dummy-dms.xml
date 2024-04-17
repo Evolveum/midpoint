@@ -10,8 +10,7 @@
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:assoc="http://midpoint.evolveum.com/xml/ns/samples/associations">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>dms</name>
     <connectorRef type="ConnectorType">
         <filter>
@@ -31,6 +30,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
             <icfi:instanceId>dms</icfi:instanceId>
+            <icfi:useLegacySchema>false</icfi:useLegacySchema>
         </icfc:configurationProperties>
     </connectorConfiguration>
     <schemaHandling>
@@ -38,7 +38,7 @@
             <kind>account</kind>
             <intent>default</intent>
             <delineation>
-                <objectClass>ri:AccountObjectClass</objectClass>
+                <objectClass>ri:account</objectClass>
             </delineation>
             <focus>
                 <type>UserType</type>
@@ -79,7 +79,7 @@
             <intent>document</intent>
             <documentation>Document to which user is granted access.</documentation>
             <delineation>
-                <objectClass>ri:CustomdocumentObjectClass</objectClass>
+                <objectClass>ri:document</objectClass>
             </delineation>
             <focus>
                 <type>ServiceType</type>
@@ -143,6 +143,7 @@
                     </expression>
                 </outbound>
                 <inbound> <!-- not strictly necessary, just for illustration -->
+                    <name>documentName-and-level-into-assignment-identifier</name>
                     <source>
                         <path>$shadow/attributes/ri:level</path>
                     </source>
@@ -160,23 +161,16 @@
                     </target>
                 </inbound>
                 <inbound>
+                    <name>document-and-level-to-assignment-targetRef</name>
                     <source>
                         <path>$shadow/attributes/ri:level</path>
                     </source>
-                    <expression> <!-- The relation will not be set here -->
-                        <referenceSearch>
-                            <targetType>ServiceType</targetType>
-                            <filter>
-                                <q:text>linkRef = `input.shadowRef`</q:text>
-                            </filter>
-                        </referenceSearch>
-                        <!--<referencedShadowOwner> &lt;!&ndash; TODO &ndash;&gt;-->
-                        <!--    <relation>-->
-                        <!--        <expression>-->
-                        <!--            <path>$level</path>-->
-                        <!--        </expression>-->
-                        <!--    </relation>-->
-                        <!--</referencedShadowOwner>-->
+                    <expression>
+                        <shadowOwnerReferenceSearch>
+                            <relationExpression>
+                                <path>$level</path>
+                            </relationExpression>
+                        </shadowOwnerReferenceSearch>
                     </expression>
                     <target>
                         <path>targetRef</path>

@@ -42,7 +42,7 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
 
     public class Account extends ScenarioObjectClass {
 
-        public static final ObjectClassName OBJECT_CLASS_NAME = legacyAccount("account");
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("account");
 
         public static class AttributeNames {
             public static final AttrName NAME = icfs("name");
@@ -64,7 +64,7 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
 
     public class Group extends ScenarioObjectClass {
 
-        public static final ObjectClassName OBJECT_CLASS_NAME = legacyGroup("group");
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("group");
 
         public static class AttributeNames {
             public static final AttrName NAME = icfs("name");

@@ -892,8 +892,8 @@ public class ExpressionUtil {
             return null;
         }
         if (nonNegativeValues.size() > 1) {
-            throw new ExpressionEvaluationException("Expression returned more than one value ("
-                    + nonNegativeValues.size() + ") in " + shortDesc);
+            throw new ExpressionEvaluationException(
+                    "Expression returned more than one value (%d) in %s".formatted(nonNegativeValues.size(), shortDesc));
         }
 
         return nonNegativeValues.iterator().next();

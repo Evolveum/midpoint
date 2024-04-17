@@ -1104,7 +1104,8 @@ public class ObjectTypeUtil {
      * Returns the type name for an object.
      * (This really belongs somewhere else, not here.)
      */
-    public static QName getObjectType(ObjectType object) {
+    @Contract("!null -> !null; null -> null")
+    public static QName getObjectTypeName(ObjectType object) {
         if (object == null) {
             return null;
         }
@@ -1114,7 +1115,7 @@ public class ObjectTypeUtil {
         }
         Class<? extends Objectable> clazz = object.asPrismObject().getCompileTimeClass();
         if (clazz == null) {
-            return null;
+            throw new IllegalStateException("No compile-time class for " + object);
         }
         PrismObjectDefinition<?> defFromRegistry =
                 PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
@@ -1123,6 +1124,12 @@ public class ObjectTypeUtil {
         } else {
             return ObjectType.COMPLEX_TYPE;
         }
+    }
+
+    /** A convenience variant of {@link #getObjectTypeName(ObjectType)}. */
+    @Contract("!null -> !null; null -> null")
+    public static QName getObjectTypeName(PrismObject<? extends ObjectType> object) {
+        return getObjectTypeName(asObjectable(object));
     }
 
     public static boolean isIndestructible(@NotNull ObjectType object) {

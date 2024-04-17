@@ -7,6 +7,32 @@
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:dms="http://midpoint.evolveum.com/xml/ns/samples/dms">
     <name>SystemConfiguration</name>
+    <roleManagement>
+        <relations>
+            <relation>
+                <ref>dms:read</ref>
+                <display>
+                    <label>Read access</label>
+                </display>
+                <kind>member</kind>
+            </relation>
+            <relation>
+                <ref>dms:write</ref>
+                <display>
+                    <label>Write access</label>
+                </display>
+                <kind>member</kind>
+            </relation>
+            <relation>
+                <ref>dms:admin</ref>
+                <display>
+                    <label>Administrator access</label>
+                </display>
+                <kind>member</kind>
+            </relation>
+        </relations>
+    </roleManagement>
 </systemConfiguration>

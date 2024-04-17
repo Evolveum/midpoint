@@ -29,6 +29,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
             <icfi:instanceId>ad</icfi:instanceId>
+            <icfi:useLegacySchema>false</icfi:useLegacySchema>
         </icfc:configurationProperties>
     </connectorConfiguration>
     <schemaHandling>
@@ -36,7 +37,7 @@
             <kind>account</kind>
             <intent>default</intent>
             <delineation>
-                <objectClass>ri:AccountObjectClass</objectClass>
+                <objectClass>ri:account</objectClass>
             </delineation>
             <focus>
                 <type>UserType</type>
@@ -76,7 +77,7 @@
             <kind>entitlement</kind>
             <intent>group</intent>
             <delineation>
-                <objectClass>ri:GroupObjectClass</objectClass>
+                <objectClass>ri:group</objectClass>
             </delineation>
             <focus>
                 <type>RoleType</type>
@@ -129,13 +130,7 @@
                 </outbound>
                 <inbound>
                     <expression>
-                        <!--<referencedShadowOwner/>-->
-                        <referenceSearch>
-                            <targetType>OrgType</targetType>
-                            <filter>
-                                <q:text>linkRef = `input.shadowRef`</q:text>
-                            </filter>
-                        </referenceSearch>
+                        <shadowOwnerReferenceSearch/>
                     </expression>
                     <target>
                         <path>targetRef</path>

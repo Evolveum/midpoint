@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.util.caching.CacheConfiguration.getStatisticsLevel;
@@ -17,10 +18,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchQueryResult;
 import com.evolveum.midpoint.schema.*;
 
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.xml.resolver.apps.XParseError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +41,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -53,7 +53,6 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.caching.CacheUtil;
@@ -108,28 +107,22 @@ public abstract class AbstractSearchExpressionEvaluator<
     }
 
     protected @NotNull List<V> transformSingleValue(
-            VariablesMap variables,
-            PlusMinusZero valueDestination,
+            @NotNull VariablesMap variables,
             boolean useNew,
-            ExpressionEvaluationContext context,
-            String contextDescription,
-            Task task,
-            OperationResult result)
+            @NotNull ExpressionEvaluationContext context,
+            @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        return createEvaluation(variables, valueDestination, useNew, context, contextDescription, task, result)
+        return createEvaluation(variables, useNew, context, result)
                 .execute();
     }
 
-    /** The {@link Evaluation} is subclassed for each use of this (outer) class. */
+    /** Creates the instance of {@link Evaluation}, which is subclassed for each use of this (outer) class. */
     abstract Evaluation createEvaluation(
-            VariablesMap variables,
-            PlusMinusZero valueDestination,
+            @NotNull VariablesMap variables,
             boolean useNew,
-            ExpressionEvaluationContext context,
-            String contextDescription,
-            Task task,
-            OperationResult result) throws SchemaException;
+            @NotNull ExpressionEvaluationContext context,
+            @NotNull OperationResult result) throws SchemaException;
 
     // Override the default in this case. It makes more sense like this.
     @Override
@@ -141,51 +134,34 @@ public abstract class AbstractSearchExpressionEvaluator<
     protected abstract class Evaluation {
 
         /** Variables to be used when evaluating the expressions (in the query and in "populate" expressions). */
-        private final VariablesMap variables;
-
-        /** In which set (+/-/0) is the resulting value to be used? */
-        private final PlusMinusZero valueDestination;
+        @NotNull private final VariablesMap variables;
 
         /** Are we evaluating the "old" or "new" state of the world? */
         private final boolean useNew;
 
-        /** The whole evaluation context. (TODO the task is there... do we need it also explicitly below?) */
-        final ExpressionEvaluationContext context;
+        /** The whole evaluation context. */
+        @NotNull final ExpressionEvaluationContext context;
 
-        /** Human-readable description of the context of the evaluation. */
-        private final String contextDescription;
+        @NotNull private final OperationResult result;
 
-        private final Task task;
-        private final OperationResult result;
-
-        /** What objects are we looking for? E.g. {@link ShadowType} when association targets are to be found. */
-        final QName targetTypeQName;
+        /** What objects are we looking for? E.g. {@link ShadowType} when association targets are to be found. Qualified. */
+        @NotNull final QName targetTypeQName;
 
         /** Class corresponding to {@link #targetTypeQName}. */
-        private final Class<O> targetTypeClass;
-
-        /** Do we have explicitly specified target object OID? */
-        private final String explicitTargetOid;
+        @NotNull final Class<O> targetTypeClass;
 
         protected Evaluation(
-                VariablesMap variables,
-                PlusMinusZero valueDestination,
+                @NotNull VariablesMap variables,
                 boolean useNew,
-                ExpressionEvaluationContext context,
-                String contextDescription,
-                Task task,
-                OperationResult result) throws SchemaException {
+                @NotNull ExpressionEvaluationContext context,
+                @NotNull OperationResult result) throws SchemaException {
             this.variables = variables;
-            this.valueDestination = valueDestination;
             this.useNew = useNew;
             this.context = context;
-            this.contextDescription = contextDescription;
-            this.task = task;
             this.result = result;
 
             this.targetTypeQName = determineTargetTypeQName();
             this.targetTypeClass = ObjectTypes.getObjectTypeClass(targetTypeQName);
-            this.explicitTargetOid = expressionEvaluatorBean.getOid();
         }
 
         private @NotNull QName determineTargetTypeQName() throws SchemaException {
@@ -193,11 +169,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             if (typeName == null) {
                 throw new SchemaException("Unknown target type in " + shortDebugDump());
             }
-            if (QNameUtil.isQualified(typeName)) {
-                return typeName;
-            } else {
-                return prismContext.getSchemaRegistry().resolveUnqualifiedTypeName(typeName);
-            }
+            return prismContext.getSchemaRegistry().qualifyTypeName(typeName);
         }
 
         protected QName getDefaultTargetType() {
@@ -211,10 +183,11 @@ public abstract class AbstractSearchExpressionEvaluator<
             // Deltas to be applied on the newly-created value (assuming the value is an assignment value)
             List<ItemDelta<V, D>> newValueDeltas = createNewValueDeltas();
 
+            var explicitTargetOid = expressionEvaluatorBean.getOid();
             if (explicitTargetOid != null) {
                 // Shortcut: no searching, we already have OID
                 log("explicit OID", 1);
-                return List.of(createResultValue(explicitTargetOid, null, newValueDeltas));
+                return List.of(createResultValue(explicitTargetOid, targetTypeQName, null, newValueDeltas));
             }
 
             var queries = createQueries();
@@ -227,16 +200,19 @@ public abstract class AbstractSearchExpressionEvaluator<
             String defaultTargetOid = Referencable.getOid(expressionEvaluatorBean.getDefaultTargetRef());
             if (defaultTargetOid != null) {
                 log("default target OID", 1);
-                return List.of(createResultValue(defaultTargetOid, null, newValueDeltas));
+                return List.of(createResultValue(defaultTargetOid, targetTypeQName, null, newValueDeltas));
             }
 
-            if (Boolean.TRUE.equals(expressionEvaluatorBean.isCreateOnDemand())
-                    && (valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
+            if (Boolean.TRUE.equals(expressionEvaluatorBean.isCreateOnDemand() && useNew)) {
                 try {
                     PrismObject<O> createdObject = createOnDemand();
                     if (createdObject != null) {
                         log("create-on-demand", 1);
-                        return List.of(createResultValue(createdObject.getOid(), createdObject, newValueDeltas));
+                        return List.of(createResultValue(
+                                createdObject.getOid(),
+                                getObjectTypeName(createdObject),
+                                createdObject,
+                                newValueDeltas));
                     }
                 } catch (ObjectAlreadyExistsException ex) {
                     // object was created in the meantime, so we should try to search for it once more
@@ -251,8 +227,8 @@ public abstract class AbstractSearchExpressionEvaluator<
         }
 
         private void log(String source, int values) {
-            LOGGER.trace("Search expression {} (valueDestination={}) resolved via {}: returning {} values",
-                    contextDescription, valueDestination, source, values);
+            LOGGER.trace("Search expression {} (useNew: {}) resolved via {}: returning {} values",
+                    context, useNew, source, values);
         }
 
         private @Nullable List<ItemDelta<V, D>> createNewValueDeltas()
@@ -260,13 +236,11 @@ public abstract class AbstractSearchExpressionEvaluator<
                 ConfigurationException, SecurityViolationException {
             PopulateType valuePopulationDef = expressionEvaluatorBean.getPopulate();
             if (valuePopulationDef != null) {
-                if (outputDefinition instanceof PrismContainerDefinition) {
+                if (outputDefinition instanceof PrismContainerDefinition<?> pcd) {
                     return PopulatorUtil.computePopulateItemDeltas(
-                            valuePopulationDef, (PrismContainerDefinition<?>) outputDefinition, variables, context,
-                            contextDescription, task, result);
+                            valuePopulationDef, pcd, variables, context, result);
                 } else {
-                    LOGGER.warn("Search expression {} applied to non-container target, ignoring populate definition",
-                            contextDescription);
+                    LOGGER.warn("Search expression {} applied to non-container target, ignoring populate definition", context);
                     return null;
                 }
             } else {
@@ -274,7 +248,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             }
         }
 
-        private @NotNull List<ObjectQuery> createQueries()
+        protected @NotNull List<ObjectQuery> createQueries()
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
@@ -292,7 +266,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                         context.getExpressionProfile(),
                         context.getExpressionFactory(),
                         context.getContextDescription(),
-                        task,
+                        getTask(),
                         result);
                 LOGGER.trace("Query after expressions evaluation: {}", evaluatedQuery.debugDumpLazily());
 
@@ -388,16 +362,14 @@ public abstract class AbstractSearchExpressionEvaluator<
 
             for (ObjectQuery query : queries) {
                 switch (searchStrategy) {
-                    case IN_REPOSITORY ->
-                        objectsFound.addAll(
-                                executeSearchAttempt(
-                                        query, false, false,
-                                        createOnDemandRetry, newValueDeltas));
-                    case ON_RESOURCE ->
-                        objectsFound.addAll(
-                                executeSearchAttempt(
-                                        query, true, true,
-                                        createOnDemandRetry, newValueDeltas));
+                    case IN_REPOSITORY -> objectsFound.addAll(
+                            executeSearchAttempt(
+                                    query, false, false,
+                                    createOnDemandRetry, newValueDeltas));
+                    case ON_RESOURCE -> objectsFound.addAll(
+                            executeSearchAttempt(
+                                    query, true, true,
+                                    createOnDemandRetry, newValueDeltas));
                     case ON_RESOURCE_IF_NEEDED -> {
                         Collection<ObjectFound<O, V>> inRepo = executeSearchAttempt(
                                 query, false, false, createOnDemandRetry, newValueDeltas);
@@ -410,8 +382,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                                             createOnDemandRetry, newValueDeltas));
                         }
                     }
-                    default ->
-                        throw new IllegalArgumentException("Unknown search strategy: " + searchStrategy);
+                    default -> throw new IllegalArgumentException("Unknown search strategy: " + searchStrategy);
                 }
             }
             LOGGER.trace("Objects found (combined): {}", objectsFound.size());
@@ -436,18 +407,18 @@ public abstract class AbstractSearchExpressionEvaluator<
             try {
                 return executeSearch(query, options, additionalAttributeDeltas);
             } catch (IllegalStateException e) { // this comes from checkConsistence methods
-                throw new IllegalStateException(e.getMessage() + " in " + contextDescription, e);
+                throw new IllegalStateException(e.getMessage() + " in " + context, e);
             } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + " in " + contextDescription, e);
+                throw new SchemaException(e.getMessage() + " in " + context, e);
             } catch (SystemException e) {
-                throw new SystemException(e.getMessage() + " in " + contextDescription, e);
+                throw new SystemException(e.getMessage() + " in " + context, e);
             } catch (CommunicationException | ConfigurationException | SecurityViolationException e) {
                 if (searchOnResource && tryAlsoRepository) {
                     var retryOptions = createNoFetchReadOnlyCollection();
                     try {
                         return executeSearch(query, retryOptions, additionalAttributeDeltas);
                     } catch (SchemaException e1) {
-                        throw new SchemaException(e1.getMessage() + " in " + contextDescription, e1);
+                        throw new SchemaException(e1.getMessage() + " in " + context, e1);
                     } catch (CommunicationException | ConfigurationException | SecurityViolationException e1) {
                         // TODO improve handling of exception.. we do not want to
                         //  stop whole projection computation, but what to do if the
@@ -468,7 +439,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                 SecurityViolationException, ExpressionEvaluationException {
             // TODO: perhaps we should limit query to some reasonably high number of results?
             LOGGER.trace("Looking for objects using query:\n{}", query.debugDumpLazily(1));
-            var objects = objectResolver.searchObjects(targetTypeClass, query, options, task, result);
+            var objects = objectResolver.searchObjects(targetTypeClass, query, options, getTask(), result);
             var itemsFound = new ArrayList<ObjectFound<O, V>>();
             for (var object : objects) {
                 if (isAcceptable(object)) {
@@ -476,7 +447,11 @@ public abstract class AbstractSearchExpressionEvaluator<
                     itemsFound.add(
                             new ObjectFound<>(
                                     object,
-                                    createResultValue(object.getOid(), null, additionalAttributeDeltas)));
+                                    createResultValue(
+                                            object.getOid(),
+                                            getObjectTypeName(object),
+                                            null, // We don't want to put full object into ref for historical reasons.
+                                            additionalAttributeDeltas)));
                 } else {
                     LOGGER.trace("Object {} was rejected by additional filtering", object);
                 }
@@ -495,9 +470,51 @@ public abstract class AbstractSearchExpressionEvaluator<
 
         // e.g parameters, activation for assignment etc.
 
-        /** Converts the object found into a value to be returned (from the expression) - i.e. assignment, association, etc. */
+        /**
+         * Converts the object found into a value to be returned (from the expression) - i.e. assignment, association, etc.
+         *
+         * If `object` is present, then `oid` = `object.oid` and `typeName` = object type name.
+         */
         protected abstract @NotNull V createResultValue(
-                String oid, PrismObject<O> object, List<ItemDelta<V, D>> newValueDeltas) throws SchemaException;
+                String oid, @NotNull QName typeName, PrismObject<O> object, List<ItemDelta<V, D>> newValueDeltas)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException;
+
+        /** Useful method called from subclasses producing references. */
+        @NotNull PrismReferenceValue createReferenceValue(
+                String oid, @NotNull QName objectTypeName, PrismObject<ObjectType> object, QName relation) {
+            // Value deltas are ignored here (they cannot be applied to a reference, anyway).
+            ObjectReferenceType ref;
+            if (object != null) {
+                ref = createObjectRefWithFullObject(object);
+            } else {
+                ref = new ObjectReferenceType()
+                        .oid(oid)
+                        .type(objectTypeName);
+            }
+            ref.setRelation(relation);
+            return ref.asReferenceValue();
+        }
+
+        /** Used by reference-searching evaluators. */
+        @Nullable
+        QName determineRelation(QName relation, ExpressionType relationExpression)
+                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
+            configCheck(relation == null || relationExpression == null,
+                    "Both relation and relationExpression are present in %s", lazy(() -> shortDebugDump()));
+            if (relationExpression != null) {
+                var relationDef = PrismContext.get().definitionFactory()
+                        .newPropertyDefinition(ObjectReferenceType.F_RELATION, DOMUtil.XSD_QNAME);
+                // Variables should be non-relativistic here, so we can safely compute the "new" value even for the old state.
+                PrismValue value = ExpressionUtil.evaluateExpression(
+                        variables, relationDef, relationExpression, context.getExpressionProfile(),
+                        context.getExpressionFactory(), context.getContextDescription(), getTask(), result);
+                return value != null ? (QName) value.getRealValue() : null;
+            } else {
+                return relation;
+            }
+        }
 
         private PrismObject<O> createOnDemand()
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
@@ -512,24 +529,23 @@ public abstract class AbstractSearchExpressionEvaluator<
 
             if (populateObjectConfig == null) {
                 LOGGER.warn("No populateObject in search expression in {}, object created on demand will be empty. "
-                        + "Subsequent operations will most likely fail", contextDescription);
+                        + "Subsequent operations will most likely fail", context);
             } else {
                 List<ItemDelta<V, D>> populateDeltas =
                         PopulatorUtil.computePopulateItemDeltas(
-                                populateObjectConfig, objectDefinition, variables, context, contextDescription, task, result);
+                                populateObjectConfig, objectDefinition, variables, context, result);
                 ItemDeltaCollectionsUtil.applyTo(populateDeltas, newObject);
             }
 
-            LOGGER.debug("Creating object on demand from {}: {}", contextDescription, newObject);
+            LOGGER.debug("Creating object on demand from {}: {}", context, newObject);
             LOGGER.trace("Creating object on demand:\n{}", newObject.debugDumpLazily(1));
 
             ObjectDelta<O> addDelta = newObject.createAddDelta();
             Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
 
-            boolean isCreateOnDemandSafe = isCreateOnDemandSafe();
-            if (isCreateOnDemandSafe) {
+            if (isCreateOnDemandSafe()) {
                 try {
-                    ModelContext<O> context = modelInteractionService.previewChanges(deltas, null, task, result);
+                    ModelContext<O> context = modelInteractionService.previewChanges(deltas, null, getTask(), result);
                     ModelElementContext<O> focusContext = context.getFocusContext();
                     return focusContext.getObjectNew();
                 } catch (Exception ex) {
@@ -539,7 +555,7 @@ public abstract class AbstractSearchExpressionEvaluator<
 
             Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges;
             try {
-                executedChanges = modelService.executeChanges(deltas, null, task, result);
+                executedChanges = modelService.executeChanges(deltas, null, getTask(), result);
             } catch (CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
                 throw new ExpressionEvaluationException(e.getMessage(), e);
             }
@@ -549,9 +565,12 @@ public abstract class AbstractSearchExpressionEvaluator<
         }
 
         protected boolean isCreateOnDemandSafe() {
-            ModelExecuteOptions options = ModelExpressionThreadLocalHolder.getLensContextRequired().getOptions();
+            return ModelExecuteOptions.isCreateOnDemandSafe(
+                    ModelExpressionThreadLocalHolder.getLensContextRequired().getOptions());
+        }
 
-            return ModelExecuteOptions.isCreateOnDemandSafe(options);
+        private Task getTask() {
+            return context.getTask();
         }
     }
 

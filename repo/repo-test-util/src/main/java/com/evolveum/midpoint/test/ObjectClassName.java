@@ -40,6 +40,7 @@ public class ObjectClassName {
         return new ObjectClassName(localName, localName, new QName(NS_RI, "Custom" + localName + "ObjectClass"));
     }
 
+    /** "Modern" style of writing class names: the native and midPoint names are the same. */
     public static ObjectClassName custom(String localName) {
         return new ObjectClassName(localName, localName, new QName(NS_RI, localName));
     }

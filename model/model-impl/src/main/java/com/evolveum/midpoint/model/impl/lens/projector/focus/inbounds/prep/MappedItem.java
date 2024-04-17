@@ -134,7 +134,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
                 DebugUtil.debugDumpLazily(currentProjectionItem, 1));
 
         if (currentProjectionItem != null && currentProjectionItem.hasRaw()) {
-            throw new SystemException("Property " + currentProjectionItem + " has raw parsing state,"
+            throw new SystemException("Item " + currentProjectionItem + " has raw parsing state,"
                     + " such property cannot be used in inbound expressions");
         }
 

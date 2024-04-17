@@ -18,9 +18,11 @@ import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition.ItemInboundDefinition;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,9 +32,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -93,7 +92,7 @@ class MappedItems<T extends Containerable> {
 
         // FIXME Remove this temporary check
         if (!source.isClockwork()) {
-            LOGGER.trace("Skipping processing of associations and aux object classes mappings because of limited stage");
+            LOGGER.trace("Skipping processing of aux object classes mappings because of limited stage");
             return;
         }
 
@@ -298,11 +297,13 @@ class MappedItems<T extends Containerable> {
         // 2. Values
 
         ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>
-                associationAPrioriDelta = getItemAPrioriDelta(itemPath);
+                associationAPrioriDelta = null; // TEMPORARY
         MappedItem.ItemProvider<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>
                 associationProvider = () -> {
-            //noinspection unchecked,rawtypes
-            return (Item) MappedItems.this.getCurrentAssociation(associationName);
+            var association = associationDefinition.instantiate();
+            association.add(ShadowAssociationValue.of(
+                    AbstractShadow.of(source.currentShadow), false));
+            return (Item) association;
         };
         MappedItem.PostProcessor<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition> associationPostProcessor =
                 (aPrioriDelta, currentItem) -> {

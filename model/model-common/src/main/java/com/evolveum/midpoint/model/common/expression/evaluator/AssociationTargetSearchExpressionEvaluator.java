@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -37,7 +36,6 @@ import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
@@ -49,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * @author Radovan Semancik
  */
-public class AssociationTargetSearchExpressionEvaluator
+class AssociationTargetSearchExpressionEvaluator
         extends AbstractSearchExpressionEvaluator<
                 PrismContainerValue<ShadowAssociationValueType>,
                 ShadowType,
@@ -74,14 +72,11 @@ public class AssociationTargetSearchExpressionEvaluator
 
     @Override
     Evaluation createEvaluation(
-            VariablesMap variables,
-            PlusMinusZero valueDestination,
+            @NotNull VariablesMap variables,
             boolean useNew,
-            ExpressionEvaluationContext context,
-            String contextDescription,
-            Task task,
-            OperationResult result) throws SchemaException {
-        return new Evaluation(variables, valueDestination, useNew, context, contextDescription, task, result) {
+            @NotNull ExpressionEvaluationContext context,
+            @NotNull OperationResult result) throws SchemaException {
+        return new Evaluation(variables, useNew, context, result) {
 
             @Override
             protected QName getDefaultTargetType() {
@@ -91,6 +86,7 @@ public class AssociationTargetSearchExpressionEvaluator
             @Override
             protected @NotNull PrismContainerValue<ShadowAssociationValueType> createResultValue(
                     String oid,
+                    @NotNull QName objectTypeName,
                     PrismObject<ShadowType> object,
                     List<ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> newValueDeltas)
                     throws SchemaException {
@@ -112,15 +108,16 @@ public class AssociationTargetSearchExpressionEvaluator
                 return newAssociationValue.clone(); // It needs to be parent-less when included in the output triple
             }
 
-            private ResourceObjectTypeDefinition associationTargetDef(ExpressionEvaluationContext params) throws ExpressionEvaluationException {
+            private ResourceObjectTypeDefinition associationTargetDef(ExpressionEvaluationContext context)
+                    throws ExpressionEvaluationException {
                 @SuppressWarnings("unchecked")
                 var rAssocTargetDefTypedValue = (TypedValue<ResourceObjectTypeDefinition>)
-                        params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
+                        context.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
                 if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
                     throw new ExpressionEvaluationException(
                             String.format("No association target object definition variable in %s; the expression may be used in"
                                             + " a wrong place. It is only supposed to create an association.",
-                                    params.getContextDescription()));
+                                    context.getContextDescription()));
                 }
                 return (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
             }

@@ -28,6 +28,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 
+import javax.xml.namespace.QName;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -38,7 +40,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/associations");
+
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+
+    private static final String NS_DMS = "http://midpoint.evolveum.com/xml/ns/samples/dms";
+    private static final String LEVEL_READ = "read";
+    private static final String LEVEL_WRITE = "write";
+    private static final String LEVEL_ADMIN = "admin";
+    private static final QName RELATION_READ = new QName(NS_DMS, LEVEL_READ);
+    private static final QName RELATION_WRITE = new QName(NS_DMS, LEVEL_WRITE);
+    private static final QName RELATION_ADMIN = new QName(NS_DMS, LEVEL_ADMIN);
 
     private static final String INTENT_PERSON = "person";
     private static final String INTENT_COST_CENTER = "costCenter";
@@ -137,10 +148,11 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
     }
 
     /** Temporary. Later we create these objects via midPoint/outbounds. */
-    private void createCommonDmsObjects() {
+    private void createCommonDmsObjects() throws Exception {
         DummyObject jack = dmsScenario.account.add("jack");
         DummyObject guide = dmsScenario.document.add("guide");
         DummyObject jackCanReadGuide = dmsScenario.access.add("jack-can-read-guide");
+        jackCanReadGuide.addAttributeValues(DummyDmsScenario.Access.AttributeNames.LEVEL.local(), LEVEL_READ);
 
         dmsScenario.accountAccess.add(jack, jackCanReadGuide);
         dmsScenario.accessDocument.add(jackCanReadGuide, guide);

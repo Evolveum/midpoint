@@ -97,9 +97,8 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
             addSourcesToStaticVariables(staticVariables, useNewValues);
             assert !staticVariables.haveDeltas();
 
-            List<V> evalResults = evaluator.transformSingleValue(staticVariables, null, useNewValues, context,
-                    (useNewValues ? "(new) " : "(old) " ) + context.getContextDescription(),
-                    context.getTask(), result);
+            List<V> evalResults =
+                    evaluator.transformSingleValue(staticVariables, useNewValues, context, result);
 
             return removeEmptyOutputValues(evalResults);
         } catch (Throwable t) {

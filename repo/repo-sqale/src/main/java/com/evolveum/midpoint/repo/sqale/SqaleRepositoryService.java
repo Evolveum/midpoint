@@ -1865,9 +1865,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
             ObjectFilter lastFilter;
             if (OrderDirection.DESCENDING.equals(direction)) {
-                lastFilter = queryFactory.createLess(lastPath, null, null, lastId, false, PrismContext.get());
+                lastFilter = queryFactory.createLess(lastPath, null, null, lastId, false);
             } else {
-                lastFilter = queryFactory.createGreater(lastPath, null, null, lastId, false, PrismContext.get());
+                lastFilter = queryFactory.createGreater(lastPath, null, null, lastId, false);
             }
             conditions.add(lastFilter);
             if (conditions.size() > 1) {
@@ -1878,7 +1878,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             }
         }
         return queryFactory.createOr(filters);
-    };
+    }
 
     ItemPath createParentPath(int depth) {
         var path = ItemPath.create();

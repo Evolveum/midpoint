@@ -379,11 +379,11 @@ public class CorrelationItem implements DebugDumpable {
         PrismPropertyDefinition<Double> inputPropertyDef =
                 PrismContext.get().definitionFactory().newPropertyDefinition(
                         ExpressionConstants.VAR_INPUT_QNAME, inputTypeName);
-        inputPropertyDef.toMutable().setMaxOccurs(-1);
+        inputPropertyDef.mutator().setMaxOccurs(-1);
         PrismPropertyDefinition<Double> outputPropertyDef =
                 PrismContext.get().definitionFactory().newPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_DOUBLE);
-        outputPropertyDef.toMutable().setMaxOccurs(-1);
+        outputPropertyDef.mutator().setMaxOccurs(-1);
         PrismProperty<Double> inputProperty = inputPropertyDef.instantiate();
         new HashSet<>(matchMetricValues) // To avoid "Adding value to property input that already exists (overwriting)" warnings
                 .forEach(inputProperty::addRealValue);

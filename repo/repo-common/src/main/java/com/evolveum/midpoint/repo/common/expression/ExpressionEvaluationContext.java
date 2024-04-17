@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.expression.evaluator.AsIsExpressionEvaluator;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
@@ -35,7 +37,9 @@ public class ExpressionEvaluationContext {
 
     /**
      * One of the sources can be denoted as "default".
-     * Interpretation of this information is evaluator-specific. (Currently used by AsIs evaluator.)
+     *
+     * Interpretation of this information is evaluator-specific. (Currently used by {@link AsIsExpressionEvaluator}
+     * and "shadow owner reference search" evaluator.)
      */
     private Source<?,?> defaultSource;
 
@@ -219,7 +223,7 @@ public class ExpressionEvaluationContext {
         return contextDescription;
     }
 
-    public Task getTask() {
+    public @NotNull Task getTask() {
         return task;
     }
 
@@ -279,5 +283,11 @@ public class ExpressionEvaluationContext {
         clone.valueMetadataComputer = this.valueMetadataComputer;
         clone.localContextDescription = this.localContextDescription;
         return clone;
+    }
+
+    @Override
+    public String toString() {
+        // The fact that toString() = description is utilized in various loggers where "context" is provided as parameter
+        return contextDescription;
     }
 }
