@@ -17,8 +17,6 @@ import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -40,8 +38,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author Radovan Semancik
  */
 public class ObjectValidator {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectValidator.class);
 
     private Set<ValidationItemType> typesToCheck = new HashSet<>();
 
@@ -71,26 +67,6 @@ public class ObjectValidator {
 
     public void setSummarizeItemLifecycleState(boolean summarizeItemLifecycleState) {
         this.summarizeItemLifecycleState = summarizeItemLifecycleState;
-    }
-
-    @Deprecated
-    public void setWarnDeprecated(boolean warnDeprecated) {
-        setTypeToCheck(ValidationItemType.DEPRECATED_ITEM, warnDeprecated);
-    }
-
-    @Deprecated
-    public void setWarnPlannedRemoval(boolean warnPlannedRemoval) {
-        setTypeToCheck(ValidationItemType.PLANNED_REMOVAL_ITEM, warnPlannedRemoval);
-    }
-
-    @Deprecated
-    public void setWarnIncorrectOids(boolean value) {
-        setTypeToCheck(ValidationItemType.INCORRECT_OID_FORMAT, value);
-    }
-
-    @Deprecated
-    public void setWarnRemoved(boolean warnRemoved) {
-        setTypeToCheck(ValidationItemType.REMOVED_ITEM, warnRemoved);
     }
 
     public void setTypeToCheck(@NotNull ValidationItemType type, boolean set) {
@@ -260,8 +236,6 @@ public class ObjectValidator {
             if (!byte[].class.equals(def.getTypeClass())) {
                 return;
             }
-
-            ItemPath path = property.getPath();
 
             warn(
                     result, ValidationItemType.MULTIVALUE_BYTE_ARRAY,

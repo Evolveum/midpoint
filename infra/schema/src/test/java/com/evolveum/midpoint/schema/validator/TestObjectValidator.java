@@ -66,7 +66,7 @@ public class TestObjectValidator extends AbstractSchemaTest {
         // GIVEN
 
         ObjectValidator validator = createValidator();
-        validator.setWarnDeprecated(true);
+        validator.setTypeToCheck(ValidationItemType.DEPRECATED_ITEM, true);
 
         PrismObject<RoleType> object = PrismTestUtil.getPrismContext().parseObject(ROLE_ONE_FILE);
         System.out.println("Object before validation:");
@@ -91,7 +91,7 @@ public class TestObjectValidator extends AbstractSchemaTest {
         // GIVEN
 
         ObjectValidator validator = createValidator();
-        validator.setWarnDeprecated(true);
+        validator.setTypeToCheck(ValidationItemType.DEPRECATED_ITEM, true);
 
         PrismObject<RoleType> object = PrismTestUtil.getPrismContext()
                 .parserFor(ROLE_ONE_LEGACY_FILE)
@@ -119,7 +119,7 @@ public class TestObjectValidator extends AbstractSchemaTest {
         // GIVEN
 
         ObjectValidator validator = createValidator();
-        validator.setWarnDeprecated(true);
+        validator.setTypeToCheck(ValidationItemType.DEPRECATED_ITEM, true);
 
         try {
             PrismObject<RoleType> object = PrismTestUtil.getPrismContext()
@@ -141,7 +141,7 @@ public class TestObjectValidator extends AbstractSchemaTest {
         // GIVEN
 
         ObjectValidator validator = createValidator();
-        validator.setWarnIncorrectOids(true);
+        validator.setTypeToCheck(ValidationItemType.INCORRECT_OID_FORMAT, true);
 
         PrismObject<RoleType> object = PrismTestUtil.getPrismContext().parseObject(ROLE_TWO_FILE);
         System.out.println("Object before validation:");
