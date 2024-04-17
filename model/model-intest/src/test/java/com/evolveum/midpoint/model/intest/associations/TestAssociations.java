@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.intest.associations;
 
 import java.io.File;
+import java.io.IOException;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.midpoint.model.intest.TestEntitlements;
@@ -14,10 +15,12 @@ import com.evolveum.midpoint.model.intest.associations.DummyHrScenarioExtended.C
 import com.evolveum.midpoint.model.intest.associations.DummyHrScenarioExtended.OrgUnit;
 import com.evolveum.midpoint.model.intest.gensync.TestAssociationInbound;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.Resource;
 
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -96,7 +99,19 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<ArchetypeType> ARCHETYPE_DOCUMENT = TestObject.file(
             TEST_DIR, "archetype-document.xml", "ce92f877-9f22-44cf-9ef1-f55675760eb0");
 
-    private OrgType cc1000;
+    // HR objects
+    private OrgType orgCc1000;
+
+    // DMS objects
+    private ServiceType serviceGuide;
+
+    // AD objects
+    private DummyObject dummyAdministrators;
+    private DummyObject dummyGuests;
+    private DummyObject dummyTesters;
+    private RoleType roleAdministrators;
+    private RoleType roleGuests;
+    private RoleType roleTesters;
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -162,7 +177,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withProcessingAllAccounts()
                 .executeOnForeground(getTestOperationResult());
 
-        cc1000 = assertOrgByName(CC_1000_NAME, "after")
+        orgCc1000 = assertOrgByName(CC_1000_NAME, "after")
                 .display()
                 .getObjectable();
     }
@@ -172,9 +187,14 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         DummyObject guide = dmsScenario.document.add("guide");
         DummyObject jackCanReadGuide = dmsScenario.access.add("jack-can-read-guide");
         jackCanReadGuide.addAttributeValues(DummyDmsScenario.Access.AttributeNames.LEVEL.local(), LEVEL_READ);
+        DummyObject jackCanWriteGuide = dmsScenario.access.add("jack-can-write-guide");
+        jackCanWriteGuide.addAttributeValues(DummyDmsScenario.Access.AttributeNames.LEVEL.local(), LEVEL_WRITE);
 
         dmsScenario.accountAccess.add(jack, jackCanReadGuide);
         dmsScenario.accessDocument.add(jackCanReadGuide, guide);
+
+        dmsScenario.accountAccess.add(jack, jackCanWriteGuide);
+        dmsScenario.accessDocument.add(jackCanWriteGuide, guide);
     }
 
     private void importDocuments() throws Exception {
@@ -184,15 +204,18 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withProcessingAllAccounts()
                 .executeOnForeground(getTestOperationResult());
 
-        assertServiceByName("guide", "after")
-                .display();
+        serviceGuide = assertServiceByName("guide", "after")
+                .display()
+                .getObjectable();
     }
 
     private void createCommonAdObjects() {
-        DummyObject jim = adScenario.account.add("jim");
-        DummyObject administrators = adScenario.group.add("administrators");
+        dummyAdministrators = adScenario.group.add("administrators");
+        dummyGuests = adScenario.group.add("guests");
+        dummyTesters = adScenario.group.add("testers");
 
-        adScenario.accountGroup.add(jim, administrators);
+        DummyObject jim = adScenario.account.add("jim");
+        adScenario.accountGroup.add(jim, dummyAdministrators);
     }
 
     private void importGroups() throws Exception {
@@ -202,13 +225,14 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withProcessingAllAccounts()
                 .executeOnForeground(getTestOperationResult());
 
-        assertRoleByName("administrators", "after")
-                .display();
+        roleAdministrators = assertRoleByName("administrators", "after").display().getObjectable();
+        roleGuests = assertRoleByName("guests", "after").display().getObjectable();
+        roleTesters = assertRoleByName("testers", "after").display().getObjectable();
     }
 
     /** Checks that simply getting the account gets the correct results. A prerequisite for the following test. */
     @Test
-    public void test100GetJohn() throws Exception {
+    public void test100GetExistingHrPerson() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -238,7 +262,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
     /** Checks that the account and its associations are correctly imported. */
     @Test
-    public void test110ImportJohn() throws Exception {
+    public void test110ImportExistingHrPerson() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -247,7 +271,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withResourceOid(RESOURCE_DUMMY_HR.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
                 .withNameValue("john")
-                .withTracingProfile(createModelAndProvisioningLoggingTracingProfile())
                 .executeOnForeground(result);
 
         then("orgs are there (they were created on demand)");
@@ -267,17 +290,30 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                     .assertTargetOid(ARCHETYPE_PERSON.oid)
                 .end()
                 .by().identifier("contract:10703321").find()
-                    .assertTargetOid(orgSciencesOid)
+                    .assertTargetRef(orgSciencesOid, OrgType.COMPLEX_TYPE)
+                    .assertOrgRef(orgCc1000.getOid(), OrgType.COMPLEX_TYPE)
                     .assertSubtype("contract")
                     .extension()
                         .assertPropertyValuesEqual(HR_COST_CENTER, CC_1000_NAME)
                     .end()
-                    .assertOrgRef(cc1000.getOid(), OrgType.COMPLEX_TYPE);
+                    .assertDescription("needs review")
+                .end()
+                .by().identifier("contract:10409314").find()
+                    .assertTargetRef(orgLawOid, OrgType.COMPLEX_TYPE)
+                    .assertOrgRef(orgCc1000.getOid(), OrgType.COMPLEX_TYPE)
+                    .assertSubtype("contract")
+                    .extension()
+                        .assertPropertyValuesEqual(HR_COST_CENTER, CC_1000_NAME)
+                    .end()
+                    .assertDescription(null)
+                .end()
+                .end()
+                .assertOrganizations(ORG_SCIENCES_NAME, ORG_LAW_NAME);
         // @formatter:on
     }
 
     @Test
-    public void test200GetJack() throws Exception {
+    public void test200GetExistingDmsAccount() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -296,11 +332,13 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         assertShadowAfter(shadows.get(0))
                 .associations()
                 .association(DummyDmsScenario.Account.LinkNames.ACCESS.q())
-                .assertSize(1);
+                .assertSize(2);
+
+        // Details not checked here, see test100
     }
 
     @Test
-    public void test210ImportJack() throws Exception {
+    public void test210ImportExistingDmsAccount() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -309,15 +347,26 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withResourceOid(RESOURCE_DUMMY_DMS.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
                 .withNameValue("jack")
-                .withTracingProfile(createModelAndProvisioningLoggingTracingProfile())
                 .executeOnForeground(result);
 
         then("jack is found");
-        assertUserAfterByUsername("jack");
+        // @formatter:off
+        assertUserAfterByUsername("jack")
+                .assignments()
+                .assertAssignments(2)
+                .by().identifier("guide:read").find()
+                    .assertTargetRef(serviceGuide.getOid(), ServiceType.COMPLEX_TYPE, RELATION_READ)
+                    .assertSubtype("documentAccess")
+                .end()
+                .by().identifier("guide:write").find()
+                    .assertTargetRef(serviceGuide.getOid(), ServiceType.COMPLEX_TYPE, RELATION_WRITE)
+                    .assertSubtype("documentAccess")
+                .end();
+        // @formatter:on
     }
 
     @Test
-    public void test300GetJim() throws Exception {
+    public void test300GetExistingAdAccount() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -337,22 +386,82 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .associations()
                 .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
                 .assertSize(1);
+
+        // Details not checked here, see test100
     }
 
     @Test
-    public void test310ImportJim() throws Exception {
+    public void test310ImportExistingAdAccount() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
-        when("jack is imported");
+        when("jim is imported");
+        importAdAccount("jim", result);
+
+        then("jim is found");
+        // @formatter:off
+        assertUserAfterByUsername("jim")
+                .assignments()
+                .assertAssignments(1)
+                .by().targetOid(roleAdministrators.getOid()).find()
+                    .assertTargetRef(roleAdministrators.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
+                    .assertSubtype("groupMembership")
+                .end();
+        // @formatter:on
+    }
+
+    /** Imports AD account throughout its lifecycle: from creation, through modifications, to deletion. */
+    @Test(enabled = false) // doesn't work yet
+    public void test320ImportChangingAdAccount() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        String name = "test320";
+
+        given("AD account (guests)");
+        DummyObject account = adScenario.account.add(name);
+        adScenario.accountGroup.add(account, dummyGuests);
+
+        when("account is imported");
+        importAdAccount(name, result);
+
+        then("user is found");
+        // @formatter:off
+        assertUserAfterByUsername(name)
+                .assignments()
+                .assertAssignments(1)
+                .by().targetOid(roleGuests.getOid()).find()
+                    .assertTargetRef(roleGuests.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
+                    .assertSubtype("groupMembership")
+                .end();
+        // @formatter:on
+
+        when("a membership of testers is added and the account is re-imported");
+        adScenario.accountGroup.add(account, dummyTesters);
+        importAdAccount(name, result);
+
+        then("user has 2 assignments");
+        // @formatter:off
+        assertUserAfterByUsername(name)
+                .assignments()
+                .assertAssignments(2)
+                .by().targetOid(roleGuests.getOid()).find()
+                    .assertTargetRef(roleGuests.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
+                    .assertSubtype("groupMembership")
+                .end()
+                .by().targetOid(roleTesters.getOid()).find()
+                    .assertTargetRef(roleTesters.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
+                    .assertSubtype("groupMembership")
+                .end();
+        // @formatter:on
+    }
+
+    private void importAdAccount(String name, OperationResult result) throws CommonException, IOException {
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_AD.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
-                .withNameValue("jim")
+                .withNameValue(name)
                 .withTracingProfile(createModelAndProvisioningLoggingTracingProfile())
                 .executeOnForeground(result);
-
-        then("jim is found");
-        assertUserAfterByUsername("jim");
     }
 }

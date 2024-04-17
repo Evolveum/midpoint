@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -64,6 +65,27 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
 
     public AssignmentAsserter<R> assertTargetType(QName expected) {
         assertEquals("Wrong target type in " + desc(), expected, getAssignment().getTargetRef().getType());
+        return this;
+    }
+
+    public AssignmentAsserter<R> assertTargetRelationMatches(QName expected) {
+        QName real = getAssignment().getTargetRef().getRelation();
+        if (!QNameUtil.match(real, expected)) {
+            fail("Wrong target relation in " + desc() + "; expected: " + expected + "; real: " + real);
+        }
+        return this;
+    }
+
+    public AssignmentAsserter<R> assertTargetRef(String expectedOid, QName expectedTypeName) {
+        assertTargetOid(expectedOid);
+        assertTargetType(expectedTypeName);
+        return this;
+    }
+
+    public AssignmentAsserter<R> assertTargetRef(String expectedOid, QName expectedTypeName, QName relation) {
+        assertTargetOid(expectedOid);
+        assertTargetType(expectedTypeName);
+        assertTargetRelationMatches(relation);
         return this;
     }
 
@@ -208,5 +230,12 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
         var extensionAsserter = new ExtensionAsserter<>(assignment, this, "extension in " + desc());
         copySetupTo(extensionAsserter);
         return extensionAsserter;
+    }
+
+    public AssignmentAsserter<R> assertDescription(String expected) {
+        assertThat(assignment.getDescription())
+                .as("description in " + assignment)
+                .isEqualTo(expected);
+        return this;
     }
 }

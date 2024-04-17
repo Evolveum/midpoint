@@ -71,6 +71,13 @@
                         <link/>
                     </actions>
                 </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <situation>deleted</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
             </synchronization>
         </objectType>
         <objectType>
