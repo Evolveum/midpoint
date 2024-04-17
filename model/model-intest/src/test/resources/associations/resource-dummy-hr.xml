@@ -11,7 +11,7 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:assoc="http://midpoint.evolveum.com/xml/ns/samples/associations">
+          xmlns:hr="http://midpoint.evolveum.com/xml/ns/samples/hr">
     <name>hr</name>
     <connectorRef type="ConnectorType">
         <filter>
@@ -31,6 +31,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
             <icfi:instanceId>hr</icfi:instanceId>
+            <icfi:useLegacySchema>false</icfi:useLegacySchema>
         </icfc:configurationProperties>
     </connectorConfiguration>
     <schemaHandling>
@@ -39,7 +40,7 @@
             <intent>person</intent>
             <documentation>Just a standard account. Nothing special here.</documentation>
             <delineation>
-                <objectClass>ri:CustompersonObjectClass</objectClass>
+                <objectClass>ri:person</objectClass>
             </delineation>
             <focus>
                 <type>UserType</type>
@@ -75,7 +76,7 @@
             <intent>costCenter</intent>
             <documentation>This is also a standard type of objects.</documentation>
             <delineation>
-                <objectClass>ri:CustomcostCenterObjectClass</objectClass>
+                <objectClass>ri:costCenter</objectClass>
             </delineation>
             <focus>
                 <type>OrgType</type>
@@ -110,7 +111,7 @@
             <kind>associated</kind>
             <intent>contract</intent>
             <delineation>
-                <objectClass>ri:CustomcontractObjectClass</objectClass>
+                <objectClass>ri:contract</objectClass>
             </delineation>
         </objectType>
         <associationTypeNew>
@@ -177,7 +178,7 @@
                     </source>
                     <expression>
                         <!-- Binding to the org object. Searching by name. CoD. -->
-                        <!-- Note that this is _NOT_ associationTargetSearch. It is simple referenceSearch for targetRef.
+                        <!-- Note that this is _NOT_ assignmentTargetSearch. It is simple referenceSearch for targetRef.
                              The assignment value itself is created automatically by midPoint. -->
                         <referenceSearch>
                             <targetType>OrgType</targetType>
@@ -212,20 +213,14 @@
                         <path>$associatedShadow/attributes/icfs:name</path>
                     </expression>
                     <target>
-                        <path>extension/assoc:costCenter</path>
+                        <path>extension/hr:costCenter</path>
                     </target>
                 </inbound>
                 <inbound>
                     <strength>strong</strength>
                     <documentation>Creates assignment/orgRef based on the costCenter reference. Uses shadowRef for this.</documentation>
                     <expression>
-                        <referenceSearch>
-                            <targetType>OrgType</targetType>
-                            <filter>
-                                <!-- We assume that the cost center is already imported; we'll find it as shadow owner. -->
-                                <q:text>linkRef = $input/shadowRef</q:text>
-                            </filter>
-                        </referenceSearch>
+                        <shadowOwnerReferenceSearch/>
                     </expression>
                     <target>
                         <path>orgRef</path>

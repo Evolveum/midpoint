@@ -9,11 +9,13 @@ package com.evolveum.midpoint.model.intest.associations;
 import java.io.File;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
+import com.evolveum.midpoint.model.intest.TestEntitlements;
 import com.evolveum.midpoint.model.intest.associations.DummyHrScenarioExtended.CostCenter;
 import com.evolveum.midpoint.model.intest.associations.DummyHrScenarioExtended.OrgUnit;
+import com.evolveum.midpoint.model.intest.gensync.TestAssociationInbound;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.test.DummyHrScenario;
 
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -33,17 +35,25 @@ import javax.xml.namespace.QName;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests the inbound processing of native associations.
+ * Tests the inbound/outbound processing of native associations.
+ * Later may be extended to other aspects and/or to simulated associations.
+ *
+ * @see TestEntitlements
+ * @see TestAssociationInbound
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
+public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/associations");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
+    private static final String NS_HR = "http://midpoint.evolveum.com/xml/ns/samples/hr";
     private static final String NS_DMS = "http://midpoint.evolveum.com/xml/ns/samples/dms";
+
+    private static final ItemName HR_COST_CENTER = new ItemName(NS_HR, "costCenter");
+
     private static final String LEVEL_READ = "read";
     private static final String LEVEL_WRITE = "write";
     private static final String LEVEL_ADMIN = "admin";
@@ -58,6 +68,10 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
     private static final String INTENT_DOCUMENT = "document";
 
     private static final String INTENT_GROUP = "group";
+
+    private static final String ORG_SCIENCES_NAME = "sciences";
+    private static final String ORG_LAW_NAME = "law";
+    private static final String CC_1000_NAME = "cc1000";
 
     private static DummyHrScenarioExtended hrScenario;
     private static DummyDmsScenario dmsScenario;
@@ -81,6 +95,8 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "archetype-costCenter.xml", "eb49f576-5813-4988-9dd1-91e418c65be6");
     private static final TestObject<ArchetypeType> ARCHETYPE_DOCUMENT = TestObject.file(
             TEST_DIR, "archetype-document.xml", "ce92f877-9f22-44cf-9ef1-f55675760eb0");
+
+    private OrgType cc1000;
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -107,15 +123,18 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
         importGroups();
     }
 
-    /** These objects should be usable in all tests. */
+    /**
+     * These objects should be usable in all tests. They should not be modified by tests; if needed, a test should create
+     * its own objects to work with.
+     */
     private void createCommonHrObjects() throws Exception {
-        DummyObject sciences = hrScenario.orgUnit.add("sciences")
+        DummyObject sciences = hrScenario.orgUnit.add(ORG_SCIENCES_NAME)
                 .addAttributeValues(OrgUnit.AttributeNames.DESCRIPTION.local(), "Faculty of Sciences");
-        DummyObject law = hrScenario.orgUnit.add("law")
+        DummyObject law = hrScenario.orgUnit.add(ORG_LAW_NAME)
                 .addAttributeValues(OrgUnit.AttributeNames.DESCRIPTION.local(), "Faculty of Law");
 
-        DummyObject cc1000 = hrScenario.costCenter.add("cc1000")
-                .addAttributeValues(CostCenter.AttributeNames.DESCRIPTION.local(), "cc1000");
+        DummyObject cc1000 = hrScenario.costCenter.add(CC_1000_NAME)
+                .addAttributeValues(CostCenter.AttributeNames.DESCRIPTION.local(), CC_1000_NAME);
 
         DummyObject john = hrScenario.person.add("john")
                 .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.FIRST_NAME.local(), "John")
@@ -143,11 +162,11 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
                 .withProcessingAllAccounts()
                 .executeOnForeground(getTestOperationResult());
 
-        assertOrgByName("cc1000", "after")
-                .display();
+        cc1000 = assertOrgByName(CC_1000_NAME, "after")
+                .display()
+                .getObjectable();
     }
 
-    /** Temporary. Later we create these objects via midPoint/outbounds. */
     private void createCommonDmsObjects() throws Exception {
         DummyObject jack = dmsScenario.account.add("jack");
         DummyObject guide = dmsScenario.document.add("guide");
@@ -158,7 +177,6 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
         dmsScenario.accessDocument.add(jackCanReadGuide, guide);
     }
 
-    /** Temporary. Later we create all via outbounds. */
     private void importDocuments() throws Exception {
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_DMS.oid)
@@ -170,7 +188,6 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
                 .display();
     }
 
-    /** Temporary. Later we create these objects via midPoint/outbounds. */
     private void createCommonAdObjects() {
         DummyObject jim = adScenario.account.add("jim");
         DummyObject administrators = adScenario.group.add("administrators");
@@ -178,7 +195,6 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
         adScenario.accountGroup.add(jim, administrators);
     }
 
-    /** Temporary. Later we create all via outbounds. */
     private void importGroups() throws Exception {
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_AD.oid)
@@ -190,6 +206,7 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
                 .display();
     }
 
+    /** Checks that simply getting the account gets the correct results. A prerequisite for the following test. */
     @Test
     public void test100GetJohn() throws Exception {
         var task = getTestTask();
@@ -197,8 +214,8 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
 
         when("john is get");
         var query = Resource.of(RESOURCE_DUMMY_HR.get())
-                .queryFor(DummyHrScenario.Person.OBJECT_CLASS_NAME.xsd())
-                .and().item(DummyHrScenario.Person.AttributeNames.NAME.path()).eq("john")
+                .queryFor(DummyHrScenarioExtended.Person.OBJECT_CLASS_NAME.xsd())
+                .and().item(DummyHrScenarioExtended.Person.AttributeNames.NAME.path()).eq("john")
                 .build();
         var shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
@@ -208,11 +225,18 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
         assertThat(shadows).as("shadows").hasSize(1);
 
         assertShadowAfter(shadows.get(0))
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIntent(INTENT_PERSON)
                 .associations()
-                .association(DummyHrScenario.Person.LinkNames.CONTRACT.q())
+                .assertSize(1)
+                .association(DummyHrScenarioExtended.Person.LinkNames.CONTRACT.q())
                 .assertSize(2);
+
+        // We do not check the details here. The provisioning module behavior should be checked in the provisioning tests,
+        // in particular in TestDummyAssociations / TestDummyNativeAssociations.
     }
 
+    /** Checks that the account and its associations are correctly imported. */
     @Test
     public void test110ImportJohn() throws Exception {
         var task = getTestTask();
@@ -226,8 +250,30 @@ public class TestInboundAssociations extends AbstractEmptyModelIntegrationTest {
                 .withTracingProfile(createModelAndProvisioningLoggingTracingProfile())
                 .executeOnForeground(result);
 
-        then("john is found");
-        assertUserAfterByUsername("john");
+        then("orgs are there (they were created on demand)");
+        var orgSciencesOid = assertOrgByName(ORG_SCIENCES_NAME, "after")
+                .display()
+                .getOid();
+        var orgLawOid = assertOrgByName(ORG_LAW_NAME, "after")
+                .display()
+                .getOid();
+
+        and("john is found");
+        // @formatter:off
+        assertUserAfterByUsername("john")
+                .assignments()
+                .assertAssignments(3)
+                .by().targetType(ArchetypeType.COMPLEX_TYPE).find()
+                    .assertTargetOid(ARCHETYPE_PERSON.oid)
+                .end()
+                .by().identifier("contract:10703321").find()
+                    .assertTargetOid(orgSciencesOid)
+                    .assertSubtype("contract")
+                    .extension()
+                        .assertPropertyValuesEqual(HR_COST_CENTER, CC_1000_NAME)
+                    .end()
+                    .assertOrgRef(cc1000.getOid(), OrgType.COMPLEX_TYPE);
+        // @formatter:on
     }
 
     @Test

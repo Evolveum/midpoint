@@ -74,7 +74,7 @@ public class AbstractDummyScenario {
 
         /** Creates a new object. Does *not* add it to the resource. */
         public DummyObject create(String name) {
-            var object = controller.getDummyResource().newObject(getNativeObjectClassName());
+            var object = controller.getDummyResource().newObject(getObjectClassName().local());
             object.setName(name);
             return object;
         }
@@ -90,25 +90,13 @@ public class AbstractDummyScenario {
             return object;
         }
 
-        public abstract @NotNull String getNativeObjectClassName();
-
-        // temporary implementation
-        public @NotNull QName getMidPointObjectClassName() {
-            var nativeName = getNativeObjectClassName();
-            if (nativeName.equals("account")) {
-                return RI_ACCOUNT_OBJECT_CLASS;
-            } else if (nativeName.equals("group")) {
-                return RI_GROUP_OBJECT_CLASS;
-            } else {
-                return new QName(NS_RI, "Custom" + nativeName + "ObjectClass");
-            }
-        }
+        public abstract @NotNull ObjectClassName getObjectClassName();
 
         /** Requires the schema be attached first; see {@link #attachResourceSchema(CompleteResourceSchema)}. */
         public @NotNull ResourceObjectDefinition getObjectClassDefinition() {
             try {
                 return getResourceSchemaRequired()
-                        .findDefinitionForObjectClassRequired(getMidPointObjectClassName());
+                        .findDefinitionForObjectClassRequired(getObjectClassName().xsd());
             } catch (SchemaException e) {
                 throw SystemException.unexpected(e, "something is seriously broken, no definition for class");
             }

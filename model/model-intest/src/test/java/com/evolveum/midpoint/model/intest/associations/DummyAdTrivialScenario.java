@@ -57,8 +57,8 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
         }
 
         @Override
-        public @NotNull String getNativeObjectClassName() {
-            return OBJECT_CLASS_NAME.local();
+        public @NotNull ObjectClassName getObjectClassName() {
+            return OBJECT_CLASS_NAME;
         }
     }
 
@@ -80,8 +80,8 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
         }
 
         @Override
-        public @NotNull String getNativeObjectClassName() {
-            return OBJECT_CLASS_NAME.local();
+        public @NotNull ObjectClassName getObjectClassName() {
+            return OBJECT_CLASS_NAME;
         }
     }
 

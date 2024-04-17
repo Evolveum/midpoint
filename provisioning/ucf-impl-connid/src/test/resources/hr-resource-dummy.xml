@@ -16,6 +16,7 @@
         <icfc:configurationProperties>
             <icfi:instanceId>hr</icfi:instanceId>
             <icfi:uidMode>uuid</icfi:uidMode>
+            <icfi:useLegacySchema>false</icfi:useLegacySchema>
         </icfc:configurationProperties>
     </connectorConfiguration>
 </resource>

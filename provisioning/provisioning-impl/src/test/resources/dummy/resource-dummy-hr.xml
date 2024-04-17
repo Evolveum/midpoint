@@ -19,6 +19,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
             <icfi:instanceId/>
+            <icfi:useLegacySchema>false</icfi:useLegacySchema>
         </icfc:configurationProperties>
     </connectorConfiguration>
     <schemaHandling>
@@ -26,7 +27,7 @@
             <kind>account</kind>
             <intent>person</intent>
             <delineation>
-                <objectClass>ri:CustompersonObjectClass</objectClass>
+                <objectClass>ri:person</objectClass>
             </delineation>
         </objectType>
         <associatedObjectType>
@@ -34,7 +35,7 @@
             <intent>contract</intent>
             <associationClass>ri:personContract</associationClass>
             <delineation>
-                <objectClass>ri:CustomcontractObjectClass</objectClass>
+                <objectClass>ri:contract</objectClass>
             </delineation>
         </associatedObjectType>
     </schemaHandling>

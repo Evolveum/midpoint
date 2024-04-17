@@ -12,7 +12,6 @@ import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.Pa
 import static com.evolveum.midpoint.test.AttrName.icfs;
 import static com.evolveum.midpoint.test.AttrName.ri;
 import static com.evolveum.midpoint.test.ObjectClassName.custom;
-import static com.evolveum.midpoint.test.ObjectClassName.legacyCustom;
 
 import java.time.ZonedDateTime;
 
@@ -55,7 +54,7 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
 
     public class Person extends ScenarioObjectClass {
 
-        public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("person");
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("person");
 
         public static class AttributeNames {
             public static final AttrName NAME = icfs("name");
@@ -77,14 +76,14 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
         }
 
         @Override
-        public @NotNull String getNativeObjectClassName() {
-            return OBJECT_CLASS_NAME.local();
+        public @NotNull ObjectClassName getObjectClassName() {
+            return OBJECT_CLASS_NAME;
         }
     }
 
     public class Contract extends ScenarioObjectClass {
 
-        public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("contract");
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("contract");
 
         public static class AttributeNames {
             public static final AttrName VALID_FROM = ri("validFrom");
@@ -107,15 +106,15 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
         }
 
         @Override
-        public @NotNull String getNativeObjectClassName() {
-            return OBJECT_CLASS_NAME.local();
+        public @NotNull ObjectClassName getObjectClassName() {
+            return OBJECT_CLASS_NAME;
         }
     }
 
     public class OrgUnit extends ScenarioObjectClass {
 
         // for simplicity, we are not reusing standard "org" class
-        public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("orgUnit");
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("orgUnit");
 
         public static class AttributeNames {
             public static final AttrName DESCRIPTION = ri("description");
@@ -132,14 +131,14 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
         }
 
         @Override
-        public @NotNull String getNativeObjectClassName() {
-            return OBJECT_CLASS_NAME.local();
+        public @NotNull ObjectClassName getObjectClassName() {
+            return OBJECT_CLASS_NAME;
         }
     }
 
     public class CostCenter extends ScenarioObjectClass {
 
-        public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("costCenter");
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("costCenter");
 
         public static class AttributeNames {
             public static final AttrName DESCRIPTION = ri("description");
@@ -156,8 +155,8 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
         }
 
         @Override
-        public @NotNull String getNativeObjectClassName() {
-            return OBJECT_CLASS_NAME.local();
+        public @NotNull ObjectClassName getObjectClassName() {
+            return OBJECT_CLASS_NAME;
         }
     }
 
