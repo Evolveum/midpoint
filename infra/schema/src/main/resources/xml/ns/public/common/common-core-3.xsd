@@ -5528,31 +5528,31 @@
             <xsd:element name="name" type="xsd:QName" minOccurs="0"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
-               <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
-                   <xsd:annotation>
-                       <xsd:documentation>
-                           Path of the item (property) that is the target of the binding.
-                           This is the item which is source/target of the mapping or which
-                           is used for the form field. The path may not be specified if it
-                           can be inferred by other means (e.g. using default source or
-                           target definitions). But even in a case that the path is default
-                           we may still want to define other aspects of the binding, e.g.
-                           the value set or type override.
-                       </xsd:documentation>
-                   </xsd:annotation>
-               </xsd:element>
-               <xsd:element name="set" type="tns:ValueSetDefinitionType" minOccurs="0">
-                   <xsd:annotation>
-                       <xsd:documentation>
-                           Definition of the set of values for this variable. The variable
-                           definition will be valid only for those variable. The evaluation
-                           of the set depends on the context that the definition is used.
-                           E.g. if the set is used in mapping source then it defines the
-                           domain of the expression. If it used in the mapping target
-                           definition then it defines range of the expression. Etc.
-                       </xsd:documentation>
-                   </xsd:annotation>
-               </xsd:element>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       Path of the item (property) that is the target of the binding.
+                       This is the item which is source/target of the mapping or which
+                       is used for the form field. The path may not be specified if it
+                       can be inferred by other means (e.g. using default source or
+                       target definitions). But even in a case that the path is default
+                       we may still want to define other aspects of the binding, e.g.
+                       the value set or type override.
+                   </xsd:documentation>
+               </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="set" type="tns:ValueSetDefinitionType" minOccurs="0">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       Definition of the set of values for this variable. The variable
+                       definition will be valid only for those variable. The evaluation
+                       of the set depends on the context that the definition is used.
+                       E.g. if the set is used in mapping source then it defines the
+                       domain of the expression. If it used in the mapping target
+                       definition then it defines range of the expression. Etc.
+                   </xsd:documentation>
+               </xsd:annotation>
+            </xsd:element>
             <xsd:element name="type" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -14541,7 +14541,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>ItemConstraintType.details</a:displayName>
-                <a:merger>ItemConstraintType</a:merger>
+                <a:naturalKey>path</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

@@ -165,10 +165,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                                 AssignmentRelationType.F_RELATION,
                                 AssignmentRelationType.F_HOLDER_ARCHETYPE_REF)));
         factory.registerMergerSupplier(
-                "ItemConstraintType",
-                ItemConstraintType.class,
-                m -> new GenericItemMerger(m, DefaultNaturalKeyImpl.of(ItemConstraintType.F_PATH)));
-        factory.registerMergerSupplier(
                 "ModificationPolicyConstraintType",
                 ModificationPolicyConstraintType.class,
                 m -> new GenericItemMerger(
