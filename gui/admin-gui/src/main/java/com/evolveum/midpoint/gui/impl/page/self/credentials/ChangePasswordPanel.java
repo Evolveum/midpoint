@@ -235,7 +235,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         return CHANGE_PASSWORD_BUTTON_STYLE;
     }
 
-    private void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
+    protected void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
         target.add(get(ID_PASSWORD_VALIDATION_PANEL));
     }
 
